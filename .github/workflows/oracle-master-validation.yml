@@ -54,7 +54,10 @@ jobs:
           python scripts/canonical_dataset_gate.py --check
 
           echo "=== POINT-IN-TIME AUDIT ==="
-          python scripts/audit_historical_point_in_time.py
+          python scripts/audit_historical_point_in_time.py \
+            --matches database/matches.csv \
+            --state database/prematch_team_state.csv \
+            --output research/historical_spine/point_in_time_leakage_audit.json
 
       - name: Run four-market chronological OOS validation
         working-directory: oracle
