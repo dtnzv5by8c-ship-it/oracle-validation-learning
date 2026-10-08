@@ -1,0 +1,42 @@
+name: Oracle Private Data Access Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-private-data-access.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  access-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Verify read-only access to private Oracle repository
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ORACLE_READ_TOKEN is not available to this workflow."
+            exit 1
+          fi
+
+          echo "Testing authenticated read access to private Oracle repository..."
+
+          git ls-remote \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" \
+            HEAD >/tmp/oracle_refs.txt
+
+          if ! grep -q "HEAD" /tmp/oracle_refs.txt; then
+            echo "Private Oracle repository was not readable."
+            exit 1
+          fi
+
+          echo "SUCCESS: public validation runner can read the private Oracle repository."
+          echo "The token was not printed and no private repository data was written."
