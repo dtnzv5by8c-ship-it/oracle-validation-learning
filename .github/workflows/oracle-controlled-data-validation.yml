@@ -1,0 +1,117 @@
+name: Oracle Controlled Data Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-controlled-data-validation
+  cancel-in-progress: false
+
+jobs:
+  validate-private-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Validate controlled read access
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ORACLE_READ_TOKEN is not available."
+            exit 1
+          fi
+
+          WORKDIR="$(mktemp -d)"
+          trap 'rm -rf "${WORKDIR}"' EXIT
+
+          echo "Cloning private Oracle repository with sparse checkout..."
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" \
+            "${WORKDIR}/oracle"
+
+          cd "${WORKDIR}/oracle"
+
+          git sparse-checkout set \
+            database/matches.csv \
+            database/prematch_team_state.csv
+
+          test -s database/matches.csv
+          test -s database/prematch_team_state.csv
+
+          echo "Required Oracle datasets successfully retrieved."
+
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          files = [
+              Path("database/matches.csv"),
+              Path("database/prematch_team_state.csv"),
+          ]
+
+          manifest = {
+              "status": "PASS",
+              "source_repository": "dtnzv5by8c-ship-it/oracle-football-data",
+              "source_commit": subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"],
+                  text=True
+              ).strip(),
+              "files": [],
+          }
+
+          for path in files:
+              with path.open("rb") as f:
+                  data = f.read()
+
+              with path.open(
+                  "r",
+                  encoding="utf-8",
+                  newline=""
+              ) as f:
+                  rows = max(
+                      sum(1 for _ in csv.reader(f)) - 1,
+                      0
+                  )
+
+              manifest["files"].append({
+                  "path": str(path),
+                  "bytes": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+                  "data_rows": rows,
+              })
+
+          output = Path(
+              "${{ runner.temp }}/oracle_validation_manifest.json"
+          )
+
+          output.write_text(
+              json.dumps(manifest, indent=2) + "\n",
+              encoding="utf-8"
+          )
+
+          print(json.dumps(manifest, indent=2))
+          PY
+
+          echo "CONTROLLED ORACLE DATA VALIDATION: PASS"
+          echo "No private CSV contents will be committed to the public repository."
+
+      - name: Upload validation manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-controlled-validation-manifest
+          path: ${{ runner.temp }}/oracle_validation_manifest.json
+          retention-days: 7
