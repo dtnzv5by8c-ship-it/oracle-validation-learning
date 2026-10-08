@@ -1,0 +1,273 @@
+name: Oracle Historical Spine Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-historical-spine-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Validate private Oracle historical spine
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ORACLE_READ_TOKEN is not available."
+            exit 1
+          fi
+
+          WORKDIR="$(mktemp -d)"
+          trap 'rm -rf "${WORKDIR}"' EXIT
+
+          echo "Cloning private Oracle repository..."
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" \
+            "${WORKDIR}/oracle"
+
+          cd "${WORKDIR}/oracle"
+
+          git sparse-checkout set --no-cone \
+            database/matches.csv \
+            database/prematch_team_state.csv
+
+          test -s database/matches.csv
+          test -s database/prematch_team_state.csv
+
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          import subprocess
+          from datetime import date
+          from pathlib import Path
+
+          EXPECTED_ROWS = 12836
+          EXPECTED_FIRST_DATE = "2025-03-21"
+          EXPECTED_LAST_DATE = "2026-09-20"
+
+          EXPECTED_LEAGUES = {
+              "AUT", "B1", "CRO", "CZE", "D1", "D2", "E0", "E1",
+              "E2", "E3", "F1", "F2", "I1", "I2", "N1", "NED2",
+              "P1", "POL", "POR2", "ROU", "RSA", "SC0", "SP1",
+              "SP2", "SWZ", "T1", "UKR"
+          }
+
+          EXPECTED_HASHES = {
+              "database/matches.csv":
+                  "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc",
+              "database/prematch_team_state.csv":
+                  "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78",
+          }
+
+          MATCH_REQUIRED = {
+              "match_id",
+              "date",
+              "league_code",
+              "league",
+              "home_team",
+              "away_team",
+              "home_goals",
+              "away_goals",
+          }
+
+          STATE_REQUIRED = {
+              "match_id",
+              "date",
+              "league_code",
+              "home_team",
+              "away_team",
+              "home_state_latest_source_date",
+              "away_state_latest_source_date",
+              "state_latest_source_date",
+              "state_hash",
+              "home_n",
+              "home_gf5",
+              "home_ga5",
+              "home_btts5",
+              "home_fts5",
+              "home_cs5",
+              "home_shots5",
+              "home_sot5",
+              "away_n",
+              "away_gf5",
+              "away_ga5",
+              "away_btts5",
+              "away_fts5",
+              "away_cs5",
+              "away_shots5",
+              "away_sot5",
+          }
+
+          def sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def read_csv(path):
+              with path.open(
+                  "r",
+                  encoding="utf-8",
+                  newline=""
+              ) as f:
+                  return list(csv.DictReader(f))
+
+          matches_path = Path("database/matches.csv")
+          states_path = Path("database/prematch_team_state.csv")
+
+          matches = read_csv(matches_path)
+          states = read_csv(states_path)
+
+          print(f"Matches rows: {len(matches)}")
+          print(f"State rows: {len(states)}")
+
+          assert len(matches) == EXPECTED_ROWS, \
+              f"Unexpected match rows: {len(matches)}"
+
+          assert len(states) == EXPECTED_ROWS, \
+              f"Unexpected state rows: {len(states)}"
+
+          assert set(matches[0]) >= MATCH_REQUIRED
+          assert set(states[0]) >= STATE_REQUIRED
+
+          match_ids = [r["match_id"] for r in matches]
+          state_ids = [r["match_id"] for r in states]
+
+          assert len(match_ids) == len(set(match_ids)), \
+              "Duplicate match IDs detected"
+
+          assert len(state_ids) == len(set(state_ids)), \
+              "Duplicate state IDs detected"
+
+          match_dates = [r["date"] for r in matches]
+
+          assert min(match_dates) == EXPECTED_FIRST_DATE, \
+              f"Unexpected first date: {min(match_dates)}"
+
+          assert max(match_dates) == EXPECTED_LAST_DATE, \
+              f"Unexpected last date: {max(match_dates)}"
+
+          leagues = {r["league_code"] for r in matches}
+
+          assert leagues == EXPECTED_LEAGUES, \
+              f"League universe mismatch: {sorted(leagues)}"
+
+          assert set(match_ids) == set(state_ids), \
+              "Match/state ID reconciliation failed"
+
+          match_by_id = {r["match_id"]: r for r in matches}
+          state_by_id = {r["match_id"]: r for r in states}
+
+          for match_id, match in match_by_id.items():
+              state = state_by_id[match_id]
+
+              assert state["date"] == match["date"], \
+                  f"State date mismatch for {match_id}"
+
+              assert state["league_code"] == match["league_code"], \
+                  f"League mismatch for {match_id}"
+
+              assert state["home_team"] == match["home_team"], \
+                  f"Home team mismatch for {match_id}"
+
+              assert state["away_team"] == match["away_team"], \
+                  f"Away team mismatch for {match_id}"
+
+              fixture_date = date.fromisoformat(match["date"])
+
+              for field in (
+                  "home_state_latest_source_date",
+                  "away_state_latest_source_date",
+                  "state_latest_source_date",
+              ):
+                  value = state[field]
+
+                  if value:
+                      source_date = date.fromisoformat(value)
+
+                      assert source_date < fixture_date, (
+                          f"Point-in-time violation for {match_id}: "
+                          f"{field}={value}, fixture={match['date']}"
+                      )
+
+          for path, expected_hash in EXPECTED_HASHES.items():
+              actual_hash = sha256(Path(path))
+
+              assert actual_hash == expected_hash, (
+                  f"SHA-256 mismatch for {path}: "
+                  f"{actual_hash}"
+              )
+
+          source_commit = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"],
+              text=True
+          ).strip()
+
+          manifest = {
+              "status": "PASS",
+              "source_repository":
+                  "dtnzv5by8c-ship-it/oracle-football-data",
+              "source_commit": source_commit,
+              "match_rows": len(matches),
+              "state_rows": len(states),
+              "first_date": min(match_dates),
+              "last_date": max(match_dates),
+              "active_leagues": len(leagues),
+              "active_league_codes": sorted(leagues),
+              "duplicate_match_ids": 0,
+              "duplicate_state_ids": 0,
+              "match_state_reconciliation": "PASS",
+              "point_in_time_validation": "PASS",
+              "hash_validation": "PASS",
+              "files": [
+                  {
+                      "path": str(matches_path),
+                      "sha256": EXPECTED_HASHES[str(matches_path)],
+                  },
+                  {
+                      "path": str(states_path),
+                      "sha256": EXPECTED_HASHES[str(states_path)],
+                  },
+              ],
+          }
+
+          output = Path(
+              "${{ runner.temp }}/oracle_historical_spine_validation.json"
+          )
+
+          output.write_text(
+              json.dumps(manifest, indent=2) + "\n",
+              encoding="utf-8"
+          )
+
+          print(json.dumps(manifest, indent=2))
+
+          print("")
+          print("==========================================")
+          print("ORACLE HISTORICAL SPINE VALIDATION: PASS")
+          print("==========================================")
+          PY
+
+      - name: Upload validation manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-historical-spine-validation
+          path: ${{ runner.temp }}/oracle_historical_spine_validation.json
+          retention-days: 7
