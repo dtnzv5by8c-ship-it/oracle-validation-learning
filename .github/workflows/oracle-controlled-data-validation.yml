@@ -43,8 +43,8 @@ jobs:
           cd "${WORKDIR}/oracle"
 
           git sparse-checkout set --no-cone \
-  database/matches.csv \
-  database/prematch_team_state.csv
+              database/matches.csv \
+              database/prematch_team_state.csv
 
           test -s database/matches.csv
           test -s database/prematch_team_state.csv
