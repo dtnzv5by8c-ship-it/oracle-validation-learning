@@ -174,10 +174,19 @@ jobs:
           print(json.dumps(report,indent=2,default=str))
           PY
 
-      - name: Upload sanitized completion report
+      - name: Upload fixture-level intelligence report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: oracle-completion-sanitized-report
-          path: /tmp/oracle-completion-report.json
+          name: oracle-fixture-level-intelligence-report
+          path: |
+            /tmp/oracle-completion-report.json
+            oracle/research/four_model/outputs/four_model_live_predictions.csv
+            oracle/research/four_model/outputs/four_model_live_exclusions.csv
+            oracle/research/four_model/outputs/four_model_schedule_filter_exclusions.csv
+            oracle/research/four_model/outputs/four_model_live_prediction_manifest.json
+            oracle/data/fixtures/oracle_upcoming_fixtures.csv
+            oracle/data/fixtures/oracle_upcoming_fixtures_manifest.json
+            oracle/research/all_markets/oracle_all_markets_oos_summary.csv
+            oracle/research/all_markets/oracle_all_markets_manifest.json
           retention-days: 7
