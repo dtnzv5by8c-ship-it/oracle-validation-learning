@@ -111,8 +111,7 @@ jobs:
           else:
               report["current_state_rows"]=None
               report["current_state_date_max"]=None
-          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"
-")
+          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
           print(json.dumps(report,indent=2))
           PY
 
@@ -123,7 +122,7 @@ jobs:
           set -euo pipefail
           python scripts/oracle_all_markets_walk_forward_v1.py
 
-      - name: Run current governed live prediction runner (five-market baseline)
+      - name: Run current governed live prediction runner (22-market output)
         id: live
         working-directory: oracle
         continue-on-error: true
@@ -178,8 +177,7 @@ jobs:
             "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
             "calibration":"NOT_APPLIED","promotion":"BLOCKED"
           }
-          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"
-")
+          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"\n")
           print(json.dumps(result,indent=2))
           PY
 
@@ -227,8 +225,7 @@ jobs:
           if live_manifest.exists():
               lm=json.loads(live_manifest.read_text())
               report["live_runner_summary"]={k:lm.get(k) for k in ["status","generated_utc","fixture_n","prediction_rows","markets","m1up_truth_max_date","calibration","promotion"]}
-          Path("/tmp/oracle-completion-report.json").write_text(json.dumps(report,indent=2,default=str)+"
-")
+          Path("/tmp/oracle-completion-report.json").write_text(json.dumps(report,indent=2,default=str)+"\n")
           print(json.dumps(report,indent=2,default=str))
           PY
 
