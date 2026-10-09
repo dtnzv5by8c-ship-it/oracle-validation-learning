@@ -103,7 +103,7 @@ jobs:
               report["current_state_date_max"]=str(s["date"].max()) if len(s) and "date" in s else None
           else:
               report["current_state_rows"]=None; report["current_state_date_max"]=None
-          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\\n")
+          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
           print(json.dumps(report,indent=2))
           PY
 
