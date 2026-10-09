@@ -1,0 +1,180 @@
+
+name: Oracle Completion Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      days_ahead:
+        description: "Fixture ingestion window"
+        required: true
+        default: "3"
+        type: choice
+        options:
+          - "1"
+          - "3"
+          - "7"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-completion-run
+  cancel-in-progress: false
+
+jobs:
+  completion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - name: Clone governed private Oracle source
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ERROR: ORACLE_READ_TOKEN secret is missing."
+            exit 1
+          fi
+          git clone --depth 1 --branch fix/epl-btts-team-state-aliases \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "Source commit: $(git -C oracle rev-parse HEAD)"
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pandas numpy scikit-learn requests beautifulsoup4
+
+      - name: Verify historical spine and source scripts
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          echo "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc  database/matches.csv" | sha256sum --check -
+          echo "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78  database/prematch_team_state.csv" | sha256sum --check -
+          python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_btts_cohort_gate_v1.py scripts/oracle_all_markets_walk_forward_v1.py scripts/oracle_four_model_live_predict.py
+
+      - name: Refresh upcoming fixtures from public sources and OpenFoot fallback
+        id: ingest
+        working-directory: oracle
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+          DAYS_AHEAD: ${{ inputs.days_ahead }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OPENFOOT_API_KEY:-}" ]; then
+            echo "OPENFOOT_API_KEY secret absent; public-source-first ingestion will use the script's demo fallback only when needed."
+          fi
+          python scripts/ingest_upcoming_fixtures.py "$DAYS_AHEAD" data/fixtures/oracle_upcoming_fixtures.csv
+
+      - name: Audit fixture coverage and prematch state readiness
+        id: audit
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path(".")
+          schedule=root/"data/fixtures/oracle_upcoming_fixtures.csv"
+          manifest=root/"data/fixtures/oracle_upcoming_fixtures_manifest.json"
+          report={"schedule_file_present":schedule.exists(),"manifest_present":manifest.exists()}
+          if schedule.exists():
+              f=pd.read_csv(schedule)
+              report.update({
+                  "fixture_count":int(len(f)),
+                  "league_count":int(f.league_code.nunique()) if len(f) and "league_code" in f else 0,
+                  "fixture_rows_missing_team":int(f[["home_team","away_team"]].isna().any(axis=1).sum()) if len(f) else 0,
+                  "duplicate_fixture_rows":int(f.duplicated(["league_code","date","home_team","away_team"]).sum()) if len(f) else 0
+              })
+          if manifest.exists():
+              m=json.loads(manifest.read_text())
+              targets=m.get("targets",{})
+              report.update({
+                  "configured_leagues":int(m.get("active_leagues",0)),
+                  "source_error_count":int(m.get("source_error_count",0)),
+                  "league_status_counts":{k:sum(1 for v in targets.values() if v.get("status")==k) for k in sorted({v.get("status","UNKNOWN") for v in targets.values()})}
+              })
+          state_path=root/"database/current_prematch_team_state.csv"
+          if state_path.exists() and schedule.exists():
+              s=pd.read_csv(state_path)
+              report["current_state_rows"]=int(len(s))
+              report["current_state_date_max"]=str(s["date"].max()) if len(s) and "date" in s else None
+          else:
+              report["current_state_rows"]=None
+              report["current_state_date_max"]=None
+          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps(report,indent=2))
+          PY
+
+      - name: Run 22-market chronological out-of-sample benchmark
+        id: backtest
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/oracle_all_markets_walk_forward_v1.py
+
+      - name: Run current governed live prediction runner (five-market baseline)
+        id: live
+        working-directory: oracle
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python scripts/oracle_four_model_live_predict.py
+
+      - name: Build sanitized completion report
+        if: always()
+        env:
+          SOURCE_COMMIT: ${{ env.SOURCE_COMMIT }}
+          INGEST_OUTCOME: ${{ steps.ingest.outcome }}
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+          BACKTEST_OUTCOME: ${{ steps.backtest.outcome }}
+          LIVE_OUTCOME: ${{ steps.live.outcome }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          import pandas as pd
+          root=Path("oracle")
+          report={
+              "artifact":"ORACLE-COMPLETION-RUN",
+              "source_commit":os.environ.get("SOURCE_COMMIT"),
+              "stage_outcomes":{
+                  "fixture_ingestion":os.environ.get("INGEST_OUTCOME"),
+                  "fixture_state_audit":os.environ.get("AUDIT_OUTCOME"),
+                  "22_market_historical_backtest":os.environ.get("BACKTEST_OUTCOME"),
+                  "existing_five_market_live_runner":os.environ.get("LIVE_OUTCOME")
+              },
+              "historical_baseline_mutated":False,
+              "fixture_level_rows_in_artifact":False,
+              "production_promotion":"NOT_ALLOWED"
+          }
+          audit=Path("/tmp/oracle-fixture-audit.json")
+          if audit.exists(): report["fixture_audit"]=json.loads(audit.read_text())
+          summary=root/"research/all_markets/oracle_all_markets_oos_summary.csv"
+          if summary.exists():
+              df=pd.read_csv(summary)
+              report["market_summary"]=df.where(pd.notna(df),None).to_dict(orient="records")
+              report["markets_evaluated"]=int(df.market.nunique()) if "market" in df else 0
+          manifest=root/"research/all_markets/oracle_all_markets_manifest.json"
+          if manifest.exists(): report["backtest_manifest"]=json.loads(manifest.read_text())
+          live_manifest=root/"research/four_model/outputs/four_model_live_prediction_manifest.json"
+          if live_manifest.exists():
+              lm=json.loads(live_manifest.read_text())
+              report["live_runner_summary"]={k:lm.get(k) for k in ["status","generated_utc","fixture_n","prediction_rows","markets","m1up_truth_max_date","calibration","promotion"]}
+          Path("/tmp/oracle-completion-report.json").write_text(json.dumps(report,indent=2,default=str)+"\n")
+          print(json.dumps(report,indent=2,default=str))
+          PY
+
+      - name: Upload sanitized completion report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-completion-sanitized-report
+          path: /tmp/oracle-completion-report.json
+          retention-days: 7
