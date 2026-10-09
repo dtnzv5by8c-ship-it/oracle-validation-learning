@@ -1,0 +1,157 @@
+
+name: Oracle BTTS Cohort Validation - Public Runner
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-btts-cohort-validation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-public-btts-cohort-validation
+  cancel-in-progress: false
+
+jobs:
+  btts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Clone governed private Oracle source
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ORACLE_READ_TOKEN secret is missing."
+            exit 1
+          fi
+
+          git clone --depth 1 \
+            --branch fix/epl-btts-team-state-aliases \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" \
+            oracle
+
+          echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "BTTS_SCRIPT_SHA=$(git -C oracle rev-parse HEAD:scripts/oracle_btts_cohort_gate_v1.py)" >> "$GITHUB_ENV"
+
+          echo "Source commit: $(git -C oracle rev-parse HEAD)"
+          echo "BTTS script SHA: $(git -C oracle rev-parse HEAD:scripts/oracle_btts_cohort_gate_v1.py)"
+
+      - name: Install research dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            pandas numpy scipy scikit-learn
+
+      - name: Verify optimized BTTS code
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path("scripts/oracle_btts_cohort_gate_v1.py")
+          source = p.read_text()
+
+          required = [
+              "def prepare_qcohort(ztrain):",
+              "ztrain_matrix=np.asarray(ztrain[F].to_numpy(),dtype=float)",
+              "distance=np.sqrt(((ztrain_matrix-zrow_matrix)**2).mean(axis=1))",
+          ]
+
+          missing = [item for item in required if item not in source]
+          if missing:
+              raise SystemExit(
+                  "Optimized BTTS version check failed; missing: "
+                  + repr(missing)
+              )
+
+          if "for _,r in ztrain[CORE].iterrows()" in source:
+              raise SystemExit(
+                  "Old repeated quantile loop is still present."
+              )
+
+          print("PASS: optimized BTTS code verified.")
+          PY
+
+      - name: Run governed BTTS historical cohort gate
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+
+          echo "BTTS start UTC: $(date -u +%FT%TZ)"
+          python scripts/oracle_btts_cohort_gate_v1.py
+          echo "BTTS finish UTC: $(date -u +%FT%TZ)"
+
+          test -s research/all_markets/oracle_btts_cohort_oos.csv
+          test -s research/all_markets/oracle_btts_cohort_summary.csv
+          test -s research/all_markets/oracle_btts_learning_ledger.csv
+          test -s research/all_markets/oracle_btts_cohort_manifest.json
+
+          echo "PASS: all expected BTTS output files exist."
+
+      - name: Build sanitized aggregate report
+        if: success()
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import pandas as pd
+
+          root = Path("research/all_markets")
+          manifest = json.loads(
+              (root / "oracle_btts_cohort_manifest.json").read_text()
+          )
+          metrics = pd.read_csv(
+              root / "oracle_btts_cohort_summary.csv"
+          )
+
+          allowed = [
+              "phase", "method", "n", "brier", "log_loss",
+              "auc", "selected_method", "promotion_candidate"
+          ]
+          columns = [c for c in allowed if c in metrics.columns]
+
+          report = {
+              "artifact": "ORACLE-BTTS-COHORT-VALIDATION",
+              "run_status": "COMPLETED",
+              "source_commit": os.environ.get("SOURCE_COMMIT"),
+              "source_script_sha": os.environ.get("BTTS_SCRIPT_SHA"),
+              "model_status": manifest.get("status"),
+              "historical_window": manifest.get("historical_window"),
+              "discovery_window": manifest.get("discovery_window"),
+              "final_oos_window": manifest.get("final_oos_window"),
+              "selected_method": manifest.get("selected_method"),
+              "methods_tested": manifest.get("methods_tested"),
+              "selection_rule": manifest.get("selection_rule"),
+              "promotion_rule": manifest.get("promotion_rule"),
+              "leakage_rule": manifest.get("leakage_rule"),
+              "production_promotion": "NOT_AUTOMATIC",
+              "historical_data_modified": False,
+              "fixture_level_data_published": False,
+              "aggregate_metrics": metrics[columns].to_dict(
+                  orient="records"
+              ),
+          }
+
+          output = Path("/tmp/oracle_btts_sanitized_summary.json")
+          output.write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload sanitized aggregate report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-btts-sanitized-summary
+          path: /tmp/oracle_btts_sanitized_summary.json
+          retention-days: 14
