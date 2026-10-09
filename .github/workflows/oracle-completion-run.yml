@@ -130,6 +130,57 @@ jobs:
           set -euo pipefail
           python scripts/oracle_four_model_live_predict.py
 
+      - name: Reconcile 22-market live predictions
+        id: reconcile
+        working-directory: oracle
+        if: always()
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path("research/four_model/outputs")
+          pred_path=root/"four_model_live_predictions.csv"
+          manifest_path=root/"four_model_live_prediction_manifest.json"
+          exclusions_path=root/"four_model_schedule_filter_exclusions.csv"
+          assert pred_path.exists(), "Missing live prediction CSV"
+          assert manifest_path.exists(), "Missing live prediction manifest"
+          pred=pd.read_csv(pred_path)
+          manifest=json.loads(manifest_path.read_text())
+          expected=[
+            "BTTS_YES","BTTS_NO","HOME_1X","AWAY_X2","HOME_12",
+            "OVER_1_5","OVER_2_5","OVER_3_5","UNDER_1_5","UNDER_2_5",
+            "UNDER_3_5","UNDER_4_5","HOME_O05","HOME_O15","AWAY_O05","AWAY_O15",
+            "HOME_1X_O15","AWAY_X2_O15","HOME_1X_U45","AWAY_X2_U45","M1UP_HOME","M1UP_AWAY"
+          ]
+          assert set(manifest.get("markets",[])) == set(expected), f"Manifest market mismatch: {manifest.get('markets')}"
+          assert set(pred.selection.dropna().unique()) == set(expected), f"Output market mismatch: {sorted(pred.selection.dropna().unique())}"
+          fixture_n=int(pred.fixture_id.nunique()) if len(pred) else 0
+          assert len(pred)==fixture_n*22, f"Rows do not reconcile: {len(pred)} rows for {fixture_n} fixtures"
+          assert pred.groupby("fixture_id").selection.nunique().eq(22).all(), "At least one fixture lacks one or more market rows"
+          predicted=pred[pred.status.eq("PREDICTED")]
+          assert predicted.raw_probability.notna().all(), "PREDICTED row has missing probability"
+          assert predicted.raw_probability.between(0,1).all(), "Probability outside [0,1]"
+          assert pred.kickoff_utc.notna().all(), "A live prediction has no verified kickoff UTC"
+          assert pred[["state_date_home","state_date_away","fixture_date"]].notna().all().all(), "Missing cutoff audit field"
+          assert (pd.to_datetime(pred.state_date_home)<pd.to_datetime(pred.fixture_date)).all(), "Home state is not strictly prematch"
+          assert (pd.to_datetime(pred.state_date_away)<pd.to_datetime(pred.fixture_date)).all(), "Away state is not strictly prematch"
+          exclusions=pd.read_csv(exclusions_path) if exclusions_path.exists() else pd.DataFrame()
+          reason_counts=exclusions.reason.value_counts().to_dict() if len(exclusions) and "reason" in exclusions else {}
+          result={
+            "status":"PASS","fixture_count":fixture_n,"prediction_rows":len(pred),
+            "markets":sorted(expected),"predicted_rows":len(predicted),
+            "no_prediction_rows":int(len(pred)-len(predicted)),
+            "probability_completeness":float(predicted.raw_probability.notna().mean()) if len(predicted) else 0.0,
+            "kickoff_complete":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,
+            "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
+            "calibration":"NOT_APPLIED","promotion":"BLOCKED"
+          }
+          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"\n")
+          print(json.dumps(result,indent=2))
+          PY
+
       - name: Build sanitized completion report
         if: always()
         env:
@@ -137,7 +188,7 @@ jobs:
           INGEST_OUTCOME: ${{ steps.ingest.outcome }}
           AUDIT_OUTCOME: ${{ steps.audit.outcome }}
           BACKTEST_OUTCOME: ${{ steps.backtest.outcome }}
-          LIVE_OUTCOME: ${{ steps.live.outcome }}
+          LIVE_OUTCOME: ${{ steps.live.outcome }}\n          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
         run: |
           python - <<'PY'
           import json, os
@@ -151,13 +202,13 @@ jobs:
                   "fixture_ingestion":os.environ.get("INGEST_OUTCOME"),
                   "fixture_state_audit":os.environ.get("AUDIT_OUTCOME"),
                   "22_market_historical_backtest":os.environ.get("BACKTEST_OUTCOME"),
-                  "existing_five_market_live_runner":os.environ.get("LIVE_OUTCOME")
+                  "22_market_live_runner":os.environ.get("LIVE_OUTCOME"),\n                  "live_reconciliation":os.environ.get("RECONCILE_OUTCOME")
               },
               "historical_baseline_mutated":False,
-              "fixture_level_rows_in_artifact":False,
+              "fixture_level_rows_in_artifact":True,
               "production_promotion":"NOT_ALLOWED"
           }
-          audit=Path("/tmp/oracle-fixture-audit.json")
+          recon=Path("/tmp/oracle-live-reconciliation.json")\n          if recon.exists(): report["live_reconciliation"]=json.loads(recon.read_text())\n          audit=Path("/tmp/oracle-fixture-audit.json")
           if audit.exists(): report["fixture_audit"]=json.loads(audit.read_text())
           summary=root/"research/all_markets/oracle_all_markets_oos_summary.csv"
           if summary.exists():
@@ -187,6 +238,6 @@ jobs:
             oracle/research/four_model/outputs/four_model_live_prediction_manifest.json
             oracle/data/fixtures/oracle_upcoming_fixtures.csv
             oracle/data/fixtures/oracle_upcoming_fixtures_manifest.json
-            oracle/research/all_markets/oracle_all_markets_oos_summary.csv
+            oracle/research/all_markets/oracle_all_markets_oos_predictions.csv\n            oracle/research/all_markets/oracle_all_markets_oos_summary.csv\n            oracle/research/all_markets/oracle_all_markets_league_summary.csv
             oracle/research/all_markets/oracle_all_markets_manifest.json
           retention-days: 7
