@@ -83,35 +83,27 @@ jobs:
           import json
           from pathlib import Path
           import pandas as pd
-          root=Path(".")
-          schedule=root/"data/fixtures/oracle_upcoming_fixtures.csv"
-          manifest=root/"data/fixtures/oracle_upcoming_fixtures_manifest.json"
+          schedule=Path("data/fixtures/oracle_upcoming_fixtures.csv")
+          manifest=Path("data/fixtures/oracle_upcoming_fixtures_manifest.json")
           report={"schedule_file_present":schedule.exists(),"manifest_present":manifest.exists()}
           if schedule.exists():
               f=pd.read_csv(schedule)
-              report.update({
-                  "fixture_count":int(len(f)),
-                  "league_count":int(f.league_code.nunique()) if len(f) and "league_code" in f else 0,
-                  "fixture_rows_missing_team":int(f[["home_team","away_team"]].isna().any(axis=1).sum()) if len(f) else 0,
-                  "duplicate_fixture_rows":int(f.duplicated(["league_code","date","home_team","away_team"]).sum()) if len(f) else 0
-              })
+              report.update({"fixture_count":int(len(f)),
+                "league_count":int(f.league_code.nunique()) if len(f) and "league_code" in f else 0,
+                "fixture_rows_missing_team":int(f[["home_team","away_team"]].isna().any(axis=1).sum()) if len(f) else 0,
+                "duplicate_fixture_rows":int(f.duplicated(["league_code","date","home_team","away_team"]).sum()) if len(f) else 0})
           if manifest.exists():
-              m=json.loads(manifest.read_text())
-              targets=m.get("targets",{})
-              report.update({
-                  "configured_leagues":int(m.get("active_leagues",0)),
-                  "source_error_count":int(m.get("source_error_count",0)),
-                  "league_status_counts":{k:sum(1 for v in targets.values() if v.get("status")==k) for k in sorted({v.get("status","UNKNOWN") for v in targets.values()})}
-              })
-          state_path=root/"database/current_prematch_team_state.csv"
+              m=json.loads(manifest.read_text()); targets=m.get("targets",{})
+              report.update({"configured_leagues":int(m.get("active_leagues",0)),
+                "source_error_count":int(m.get("source_error_count",0)),
+                "league_status_counts":{k:sum(1 for v in targets.values() if v.get("status")==k) for k in sorted({v.get("status","UNKNOWN") for v in targets.values()})}})
+          state_path=Path("database/current_prematch_team_state.csv")
           if state_path.exists() and schedule.exists():
-              s=pd.read_csv(state_path)
-              report["current_state_rows"]=int(len(s))
+              s=pd.read_csv(state_path); report["current_state_rows"]=int(len(s))
               report["current_state_date_max"]=str(s["date"].max()) if len(s) and "date" in s else None
           else:
-              report["current_state_rows"]=None
-              report["current_state_date_max"]=None
-          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
+              report["current_state_rows"]=None; report["current_state_date_max"]=None
+          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\\n")
           print(json.dumps(report,indent=2))
           PY
 
