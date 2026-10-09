@@ -1,0 +1,120 @@
+
+name: Oracle Governed Readiness Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/oracle-governed-readiness-preflight.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-governed-readiness-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Clone governed private Oracle source
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ORACLE_READ_TOKEN}" ]; then
+            echo "ERROR: ORACLE_READ_TOKEN secret is missing."
+            exit 1
+          fi
+
+          git clone --depth 1 \
+            --branch fix/epl-btts-team-state-aliases \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" \
+            oracle
+
+          SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)
+          echo "SOURCE_COMMIT=${SOURCE_COMMIT}" >> "$GITHUB_ENV"
+
+          echo "Source branch: fix/epl-btts-team-state-aliases"
+          echo "Source commit: ${SOURCE_COMMIT}"
+
+      - name: Verify historical baseline hashes
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+
+          echo "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc  database/matches.csv" \
+            | sha256sum --check -
+
+          echo "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78  database/prematch_team_state.csv" \
+            | sha256sum --check -
+
+          echo "PASS: both historical baseline hashes match."
+
+      - name: Verify required scripts and Python syntax
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+
+          test -s scripts/ingest_upcoming_fixtures.py
+          test -s scripts/oracle_btts_cohort_gate_v1.py
+          test -s scripts/oracle_all_markets_walk_forward_v1.py
+          test -s scripts/oracle_four_model_live_predict.py
+
+          python -m py_compile \
+            scripts/ingest_upcoming_fixtures.py \
+            scripts/oracle_btts_cohort_gate_v1.py \
+            scripts/oracle_all_markets_walk_forward_v1.py \
+            scripts/oracle_four_model_live_predict.py
+
+          echo "PASS: required scripts exist and compile."
+
+      - name: Build sanitized preflight report
+        if: always()
+        env:
+          SOURCE_COMMIT: ${{ env.SOURCE_COMMIT }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = {
+              "artifact": "ORACLE-GOVERNED-READINESS-PREFLIGHT",
+              "source_commit": os.environ.get("SOURCE_COMMIT"),
+              "checks": [
+                  "private_source_access",
+                  "historical_baseline_hashes",
+                  "required_script_presence",
+                  "python_syntax",
+              ],
+              "live_fixture_feed_tested": False,
+              "team_state_freshness_verified": False,
+              "predictions_generated": False,
+              "production_promotion": "NOT_ALLOWED",
+              "private_fixture_level_data_published": False,
+          }
+
+          output = Path(
+              "/tmp/oracle-governed-readiness-preflight.json"
+          )
+          output.write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload sanitized preflight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-governed-readiness-preflight
+          path: /tmp/oracle-governed-readiness-preflight.json
+          retention-days: 14
