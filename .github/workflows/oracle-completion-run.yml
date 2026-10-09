@@ -111,7 +111,8 @@ jobs:
           else:
               report["current_state_rows"]=None
               report["current_state_date_max"]=None
-          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
+          Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"
+")
           print(json.dumps(report,indent=2))
           PY
 
@@ -177,7 +178,8 @@ jobs:
             "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
             "calibration":"NOT_APPLIED","promotion":"BLOCKED"
           }
-          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"\n")
+          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"
+")
           print(json.dumps(result,indent=2))
           PY
 
@@ -188,7 +190,8 @@ jobs:
           INGEST_OUTCOME: ${{ steps.ingest.outcome }}
           AUDIT_OUTCOME: ${{ steps.audit.outcome }}
           BACKTEST_OUTCOME: ${{ steps.backtest.outcome }}
-          LIVE_OUTCOME: ${{ steps.live.outcome }}\n          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+          LIVE_OUTCOME: ${{ steps.live.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
         run: |
           python - <<'PY'
           import json, os
@@ -202,13 +205,16 @@ jobs:
                   "fixture_ingestion":os.environ.get("INGEST_OUTCOME"),
                   "fixture_state_audit":os.environ.get("AUDIT_OUTCOME"),
                   "22_market_historical_backtest":os.environ.get("BACKTEST_OUTCOME"),
-                  "22_market_live_runner":os.environ.get("LIVE_OUTCOME"),\n                  "live_reconciliation":os.environ.get("RECONCILE_OUTCOME")
+                  "22_market_live_runner":os.environ.get("LIVE_OUTCOME"),
+                  "live_reconciliation":os.environ.get("RECONCILE_OUTCOME")
               },
               "historical_baseline_mutated":False,
               "fixture_level_rows_in_artifact":True,
               "production_promotion":"NOT_ALLOWED"
           }
-          recon=Path("/tmp/oracle-live-reconciliation.json")\n          if recon.exists(): report["live_reconciliation"]=json.loads(recon.read_text())\n          audit=Path("/tmp/oracle-fixture-audit.json")
+          recon=Path("/tmp/oracle-live-reconciliation.json")
+          if recon.exists(): report["live_reconciliation"]=json.loads(recon.read_text())
+          audit=Path("/tmp/oracle-fixture-audit.json")
           if audit.exists(): report["fixture_audit"]=json.loads(audit.read_text())
           summary=root/"research/all_markets/oracle_all_markets_oos_summary.csv"
           if summary.exists():
@@ -221,7 +227,8 @@ jobs:
           if live_manifest.exists():
               lm=json.loads(live_manifest.read_text())
               report["live_runner_summary"]={k:lm.get(k) for k in ["status","generated_utc","fixture_n","prediction_rows","markets","m1up_truth_max_date","calibration","promotion"]}
-          Path("/tmp/oracle-completion-report.json").write_text(json.dumps(report,indent=2,default=str)+"\n")
+          Path("/tmp/oracle-completion-report.json").write_text(json.dumps(report,indent=2,default=str)+"
+")
           print(json.dumps(report,indent=2,default=str))
           PY
 
@@ -238,6 +245,8 @@ jobs:
             oracle/research/four_model/outputs/four_model_live_prediction_manifest.json
             oracle/data/fixtures/oracle_upcoming_fixtures.csv
             oracle/data/fixtures/oracle_upcoming_fixtures_manifest.json
-            oracle/research/all_markets/oracle_all_markets_oos_predictions.csv\n            oracle/research/all_markets/oracle_all_markets_oos_summary.csv\n            oracle/research/all_markets/oracle_all_markets_league_summary.csv
+            oracle/research/all_markets/oracle_all_markets_oos_predictions.csv
+            oracle/research/all_markets/oracle_all_markets_oos_summary.csv
+            oracle/research/all_markets/oracle_all_markets_league_summary.csv
             oracle/research/all_markets/oracle_all_markets_manifest.json
           retention-days: 7
