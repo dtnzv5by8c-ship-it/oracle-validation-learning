@@ -115,6 +115,32 @@ jobs:
           set -euo pipefail
           python scripts/oracle_all_markets_walk_forward_v1.py
 
+      - name: Gate live prediction on fresh verified team state
+        id: freshness_gate
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from datetime import date
+          from pathlib import Path
+          report_path=Path("/tmp/oracle-fixture-audit.json")
+          if not report_path.exists():
+              raise SystemExit("BLOCKED: fixture audit report is missing; refusing live predictions.")
+          report=json.loads(report_path.read_text())
+          latest=report.get("current_state_date_max")
+          if not latest:
+              raise SystemExit("BLOCKED: verified current prematch state date is unavailable.")
+          try:
+              state_date=date.fromisoformat(str(latest)[:10])
+          except ValueError:
+              raise SystemExit(f"BLOCKED: invalid current state date: {latest!r}")
+          age=(date.today()-state_date).days
+          print(json.dumps({"current_state_date_max":str(state_date),"state_age_days":age,"maximum_allowed_age_days":3},indent=2))
+          if age < 0 or age > 3:
+              raise SystemExit("BLOCKED: current prematch team state is stale or future-dated; refusing live predictions.")
+          PY
+
       - name: Run current governed live prediction runner (22-market output)
         id: live
         working-directory: oracle
@@ -129,6 +155,16 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+          if [ "${{ steps.live.outcome }}" != "success" ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          result={"status":"BLOCKED","reason":"live_prediction_step_not_successful; stale or unverified outputs must not be reconciled as current","calibration":"NOT_APPLIED","promotion":"BLOCKED"}
+          Path("/tmp/oracle-live-reconciliation.json").write_text(json.dumps(result,indent=2)+"\n")
+          print(json.dumps(result,indent=2))
+          PY
+            exit 0
+          fi
           python - <<'PY'
           import json
           from pathlib import Path
