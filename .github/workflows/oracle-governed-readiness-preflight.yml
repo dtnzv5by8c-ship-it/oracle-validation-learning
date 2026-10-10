@@ -1,5 +1,6 @@
 
 name: Oracle Governed Readiness Preflight
+# Uses the verified read-only ORACLE_PRIVATE_READ_TOKEN secret.
 
 on:
   workflow_dispatch:
@@ -27,7 +28,7 @@ jobs:
     steps:
       - name: Clone governed private Oracle source
         env:
-          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
 
