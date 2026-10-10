@@ -1,3 +1,4 @@
+# Automated smoke test: public runner plus read-only private Oracle checkout.
 name: Oracle Private Repository Read Test
 
 on:
