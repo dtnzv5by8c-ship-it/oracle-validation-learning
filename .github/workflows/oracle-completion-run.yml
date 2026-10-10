@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Clone governed private Oracle source
         env:
-          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "${ORACLE_READ_TOKEN}" ]; then
@@ -70,7 +70,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${OPENFOOT_API_KEY:-}" ]; then
-            echo "OPENFOOT_API_KEY secret absent; public-source-first ingestion will use the script's demo fallback only when needed."
+            echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
+            exit 1
           fi
           python scripts/ingest_upcoming_fixtures.py "$DAYS_AHEAD" data/fixtures/oracle_upcoming_fixtures.csv
 
