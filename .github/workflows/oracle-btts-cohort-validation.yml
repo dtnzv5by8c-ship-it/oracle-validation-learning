@@ -3,6 +3,8 @@ name: Oracle BTTS Cohort Validation - Public Runner
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 0" # Weekly Sunday 06:00 SAST
   push:
     paths:
       - ".github/workflows/oracle-btts-cohort-validation.yml"
@@ -24,7 +26,7 @@ jobs:
     steps:
       - name: Clone governed private Oracle source
         env:
-          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
 
