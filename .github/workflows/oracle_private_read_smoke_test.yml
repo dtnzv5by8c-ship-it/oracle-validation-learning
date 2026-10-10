@@ -1,1 +1,36 @@
-oracle_private_read_smoke_test.yml
+name: Oracle Private Repository Read Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  private-read-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm public runner starts
+        run: |
+          echo "PUBLIC_RUNNER_STARTED"
+          python --version
+
+      - name: Read private Oracle repository
+        uses: actions/checkout@v4
+        with:
+          repository: dtnzv5by8c-ship-it/oracle-football-data
+          ref: main
+          token: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
+          path: oracle-private
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/workflows
+          sparse-checkout-cone-mode: true
+
+      - name: Confirm private checkout
+        working-directory: oracle-private
+        run: |
+          git rev-parse --short HEAD
+          test -d .github/workflows
+          echo "PRIVATE_REPOSITORY_READ_PASSED"
