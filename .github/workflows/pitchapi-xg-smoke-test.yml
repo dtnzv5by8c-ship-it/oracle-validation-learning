@@ -1,0 +1,110 @@
+name: PitchAPI xG Access Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pitchapi-xg-smoke-test
+  cancel-in-progress: false
+
+jobs:
+  test-pitchapi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check PitchAPI key and xG endpoint
+        env:
+          PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${PITCHAPI_API_KEY:-}" ]; then
+            echo "::error::PITCHAPI_API_KEY secret is missing."
+            exit 1
+          fi
+
+          # Use a date a few days in the past so the API has time to publish match data.
+          MATCH_DATE="$(date -u -d '3 days ago' +%F)"
+          echo "Testing date endpoint for ${MATCH_DATE}."
+
+          HTTP_CODE="$(curl -sS -o /tmp/pitchapi_date.json -w '%{http_code}' \
+            -H "X-API-KEY: ${PITCHAPI_API_KEY}" \
+            "https://api.pitchapi.dev/v1/date/${MATCH_DATE}")"
+
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::PitchAPI date endpoint returned HTTP ${HTTP_CODE}. The key may be invalid or access may be restricted."
+            # Print only the sanitized error body; never print request headers or key.
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("/tmp/pitchapi_date.json")
+          try:
+              d = json.loads(p.read_text())
+              print(json.dumps({"error": d.get("error", {"message": "Non-JSON response"})}, indent=2))
+          except Exception:
+              print("Response was not valid JSON; body suppressed.")
+          PY
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json, os, sys, urllib.request, urllib.error
+          from pathlib import Path
+
+          key = os.environ["PITCHAPI_API_KEY"]
+          payload = json.loads(Path("/tmp/pitchapi_date.json").read_text())
+          data = payload.get("data", {})
+          matches = data.get("matches", []) if isinstance(data, dict) else []
+          print(f"PASS: date endpoint authenticated; matches returned: {len(matches)}")
+
+          if not matches:
+              print("WARNING: no matches returned on test date. Key authentication passed, but match-level xG is not yet verified.")
+              sys.exit(0)
+
+          errors = []
+          for match in matches[:8]:
+              mid = match.get("id")
+              if not mid:
+                  continue
+              req = urllib.request.Request(
+                  f"https://api.pitchapi.dev/v1/matches/{mid}/stats",
+                  headers={"X-API-KEY": key, "Accept": "application/json"}
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as resp:
+                      stats_payload = json.loads(resp.read().decode("utf-8"))
+                  stats_data = stats_payload.get("data", {})
+                  periods = stats_data.get("periods", []) if isinstance(stats_data, dict) else []
+                  for period in periods:
+                      if str(period.get("period", "")).lower() != "all":
+                          continue
+                      for group in period.get("groups", []) or []:
+                          for item in group.get("items", []) or []:
+                              if str(item.get("key", "")).lower() == "expected_goals":
+                                  print("PASS: match-level xG statistic found.")
+                                  print(json.dumps({
+                                      "test_date": os.path.basename("/tmp/pitchapi_date.json"),
+                                      "match_id": mid,
+                                      "home_team": stats_data.get("home_team", {}).get("name"),
+                                      "away_team": stats_data.get("away_team", {}).get("name"),
+                                      "xg_home_present": item.get("home") not in (None, ""),
+                                      "xg_away_present": item.get("away") not in (None, ""),
+                                      "xg_values": "suppressed from log; verified field presence only"
+                                  }, indent=2))
+                                  if item.get("home") not in (None, "") and item.get("away") not in (None, ""):
+                                      sys.exit(0)
+                                  errors.append("xG key found but one or both values are blank")
+                  errors.append(f"No full-match xG group for match {mid}")
+              except urllib.error.HTTPError as e:
+                  errors.append(f"Stats endpoint HTTP {e.code} for match {mid}")
+              except Exception as e:
+                  errors.append(f"Stats request failed for match {mid}: {type(e).__name__}")
+
+          print("WARNING: API key authenticated, but no checked match returned both full-match xG values.")
+          for e in errors[:8]:
+              print(f"- {e}")
+          sys.exit(2)
+          PY
