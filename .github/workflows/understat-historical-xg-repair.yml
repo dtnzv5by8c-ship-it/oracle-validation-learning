@@ -1,0 +1,30 @@
+name: Understat Historical xG Repair
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout public extraction inputs
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install request dependency
+        run: python -m pip install --disable-pip-version-check requests
+      - name: Fetch historical match xG and calculate venue-specific rolling windows
+        run: python tools/understat_xg/extract_understat_xg.py
+      - name: Upload source data, target results and access audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: understat-xg-repair-\${{ github.run_number }}
+          path: |
+            understat_fixture_xg_results.csv
+            understat_match_team_history.csv
+            understat_endpoint_audit.csv
+          if-no-files-found: error
+          retention-days: 7
