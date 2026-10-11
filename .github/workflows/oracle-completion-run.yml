@@ -2,6 +2,10 @@
 name: Oracle Completion Run
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-completion-run.yml"
   workflow_dispatch:
     inputs:
       days_ahead:
