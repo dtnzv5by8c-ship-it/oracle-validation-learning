@@ -133,6 +133,12 @@ jobs:
                 "league_count":int(f.league_code.nunique()) if len(f) and "league_code" in f else 0,
                 "fixture_rows_missing_team":int(f[["home_team","away_team"]].isna().any(axis=1).sum()) if len(f) else 0,
                 "duplicate_fixture_rows":int(f.duplicated(["league_code","date","home_team","away_team"]).sum()) if len(f) else 0})
+              if "kickoff_time" in f:
+                  missing=f["kickoff_time"].isna() | f["kickoff_time"].astype(str).str.strip().isin(["","nan","None"])
+                  report["fixtures_missing_verified_kickoff"]=int(missing.sum())
+                  report["fixtures_with_verified_kickoff"]=int((~missing).sum())
+                  if "league_code" in f:
+                      report["missing_kickoff_by_league"]={str(k):int(v) for k,v in f.loc[missing].groupby("league_code").size().to_dict().items()}
           if manifest.exists():
               m=json.loads(manifest.read_text()); targets=m.get("targets",{})
               report.update({"configured_leagues":int(m.get("active_leagues",0)),
