@@ -17,8 +17,8 @@ ALIASES = {
     "leverkusen": "bayer leverkusen", "frankfurt": "eintracht frankfurt",
     "koln": "fc cologne", "m gladbach": "borussia m gladbach",
     "psg": "paris saint germain", "bayern munchen": "bayern munich",
-    "nottm forest": "nottingham forest", "brighton": "brighton and hove albion",
-    "newcastle": "newcastle united", "inter": "internazionale",
+    "nottm forest": "nottingham forest", "brighton": "brighton hove albion",
+    "newcastle": "newcastle united", 
     "hamburger sv": "hamburg", "vfb stuttgart": "stuttgart",
 }
 def norm(s):
