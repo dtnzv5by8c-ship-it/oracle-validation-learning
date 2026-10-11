@@ -105,6 +105,14 @@ jobs:
             echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
             exit 1
           fi
+          # On push-triggered runs, workflow_dispatch inputs are empty. Use the
+          # governed 14-day default unless a valid explicit dispatch value exists.
+          DAYS_AHEAD="${DAYS_AHEAD:-14}"
+          if ! [[ "$DAYS_AHEAD" =~ ^[0-9]+$ ]] || [ "$DAYS_AHEAD" -lt 1 ] || [ "$DAYS_AHEAD" -gt 31 ]; then
+            echo "ERROR: DAYS_AHEAD must be an integer from 1 to 31; got '$DAYS_AHEAD'."
+            exit 1
+          fi
+          echo "Fixture ingestion window: $DAYS_AHEAD days ahead."
           python scripts/ingest_upcoming_fixtures.py "$DAYS_AHEAD" data/fixtures/oracle_upcoming_fixtures.csv
 
       - name: Audit fixture coverage and prematch state readiness
