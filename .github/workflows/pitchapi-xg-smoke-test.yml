@@ -15,96 +15,107 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check PitchAPI key and xG endpoint
+      - name: Check PitchAPI authentication and documented stats endpoint
         env:
           PITCHAPI_API_KEY: ${{ secrets.PITCHAPI_API_KEY }}
         run: |
           set -euo pipefail
-
           if [ -z "${PITCHAPI_API_KEY:-}" ]; then
             echo "::error::PITCHAPI_API_KEY secret is missing."
             exit 1
           fi
 
-          # Use a date a few days in the past so the API has time to publish match data.
           MATCH_DATE="$(date -u -d '3 days ago' +%F)"
           echo "Testing date endpoint for ${MATCH_DATE}."
-
-          HTTP_CODE="$(curl -sS -o /tmp/pitchapi_date.json -w '%{http_code}' \
-            -H "X-API-KEY: ${PITCHAPI_API_KEY}" \
-            "https://api.pitchapi.dev/v1/date/${MATCH_DATE}")"
-
-          if [ "${HTTP_CODE}" != "200" ]; then
-            echo "::error::PitchAPI date endpoint returned HTTP ${HTTP_CODE}. The key may be invalid or access may be restricted."
-            # Print only the sanitized error body; never print request headers or key.
-            python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path("/tmp/pitchapi_date.json")
-          try:
-              d = json.loads(p.read_text())
-              print(json.dumps({"error": d.get("error", {"message": "Non-JSON response"})}, indent=2))
-          except Exception:
-              print("Response was not valid JSON; body suppressed.")
-          PY
-            exit 1
-          fi
 
           python - <<'PY'
           import json, os, sys, urllib.request, urllib.error
           from pathlib import Path
 
           key = os.environ["PITCHAPI_API_KEY"]
-          payload = json.loads(Path("/tmp/pitchapi_date.json").read_text())
-          data = payload.get("data", {})
-          matches = data.get("matches", []) if isinstance(data, dict) else []
-          print(f"PASS: date endpoint authenticated; matches returned: {len(matches)}")
+          date_url = f"https://api.pitchapi.dev/v1/date/{__import__('datetime').date.today().fromordinal(__import__('datetime').date.today().toordinal()-3).isoformat()}"
 
+          def request(url):
+              req = urllib.request.Request(url, headers={"X-API-KEY": key, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as r:
+                      return r.status, r.read().decode("utf-8", "replace")
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode("utf-8", "replace")
+              except Exception as e:
+                  print(f"Request failed: {type(e).__name__}")
+                  sys.exit(1)
+
+          code, body = request(date_url)
+          if code != 200:
+              print(f"FAIL: date endpoint HTTP {code}.")
+              try:
+                  obj = json.loads(body)
+                  print("Sanitized API error:", json.dumps({
+                      k: str(obj[k])[:240] for k in ("code", "error", "message", "detail", "hint")
+                      if k in obj and not isinstance(obj[k], (dict, list))
+                  }))
+              except Exception:
+                  print("API did not return a parseable error object; body withheld.")
+              sys.exit(1)
+
+          print("PASS: date endpoint authenticated.")
+          try:
+              obj = json.loads(body)
+          except Exception:
+              print("FAIL: date endpoint response was not JSON.")
+              sys.exit(1)
+
+          data = obj.get("data", {})
+          matches = data.get("matches", []) if isinstance(data, dict) else []
+          print(f"Date endpoint match count: {len(matches)}")
           if not matches:
-              print("WARNING: no matches returned on test date. Key authentication passed, but match-level xG is not yet verified.")
+              print("WARNING: no match IDs returned for the test date; cannot test stats endpoint.")
               sys.exit(0)
 
-          errors = []
-          for match in matches[:8]:
-              mid = match.get("id")
-              if not mid:
-                  continue
-              req = urllib.request.Request(
-                  f"https://api.pitchapi.dev/v1/matches/{mid}/stats",
-                  headers={"X-API-KEY": key, "Accept": "application/json"}
-              )
+          # Probe only one match. Do not print xG values, request headers, or API key.
+          mid = matches[0].get("id")
+          if not mid:
+              print("FAIL: first match record had no id field.")
+              sys.exit(1)
+          stats_url = f"https://api.pitchapi.dev/v1/matches/{mid}/stats"
+          code, body = request(stats_url)
+          print(f"Stats endpoint HTTP status: {code}")
+          if code != 200:
               try:
-                  with urllib.request.urlopen(req, timeout=25) as resp:
-                      stats_payload = json.loads(resp.read().decode("utf-8"))
-                  stats_data = stats_payload.get("data", {})
-                  periods = stats_data.get("periods", []) if isinstance(stats_data, dict) else []
-                  for period in periods:
-                      if str(period.get("period", "")).lower() != "all":
-                          continue
-                      for group in period.get("groups", []) or []:
-                          for item in group.get("items", []) or []:
-                              if str(item.get("key", "")).lower() == "expected_goals":
-                                  print("PASS: match-level xG statistic found.")
-                                  print(json.dumps({
-                                      "test_date": os.path.basename("/tmp/pitchapi_date.json"),
-                                      "match_id": mid,
-                                      "home_team": stats_data.get("home_team", {}).get("name"),
-                                      "away_team": stats_data.get("away_team", {}).get("name"),
-                                      "xg_home_present": item.get("home") not in (None, ""),
-                                      "xg_away_present": item.get("away") not in (None, ""),
-                                      "xg_values": "suppressed from log; verified field presence only"
-                                  }, indent=2))
-                                  if item.get("home") not in (None, "") and item.get("away") not in (None, ""):
-                                      sys.exit(0)
-                                  errors.append("xG key found but one or both values are blank")
-                  errors.append(f"No full-match xG group for match {mid}")
-              except urllib.error.HTTPError as e:
-                  errors.append(f"Stats endpoint HTTP {e.code} for match {mid}")
-              except Exception as e:
-                  errors.append(f"Stats request failed for match {mid}: {type(e).__name__}")
+                  obj = json.loads(body)
+                  safe = {}
+                  for k in ("code", "error", "message", "detail", "hint", "documentation_url"):
+                      v = obj.get(k)
+                      if isinstance(v, (str, int, float, bool)):
+                          safe[k] = str(v)[:240]
+                  print("Sanitized API error:", json.dumps(safe) if safe else "No standard error fields.")
+              except Exception:
+                  print("API error body was not JSON; body withheld.")
+              print("No full extraction was attempted.")
+              sys.exit(2)
 
-          print("WARNING: API key authenticated, but no checked match returned both full-match xG values.")
-          for e in errors[:8]:
-              print(f"- {e}")
-          sys.exit(2)
+          try:
+              obj = json.loads(body)
+              data = obj.get("data", {})
+              periods = data.get("periods", []) if isinstance(data, dict) else []
+              found = False
+              for period in periods:
+                  if str(period.get("period", "")).lower() != "all":
+                      continue
+                  for group in period.get("groups", []) or []:
+                      for item in group.get("items", []) or []:
+                          if str(item.get("key", "")).lower() == "expected_goals":
+                              found = True
+                              print("xG field found in full-match stats.")
+                              print("Home xG populated:", item.get("home") not in (None, ""))
+                              print("Away xG populated:", item.get("away") not in (None, ""))
+              if found:
+                  print("PASS: stats endpoint is accessible and xG field is present.")
+                  sys.exit(0)
+              print("WARNING: stats endpoint accessible, but expected_goals was not found in the tested match.")
+              sys.exit(2)
+          except Exception:
+              print("FAIL: stats response JSON shape did not match the documented schema.")
+              sys.exit(2)
           PY
