@@ -61,6 +61,34 @@ jobs:
           echo "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78  database/prematch_team_state.csv" | sha256sum --check -
           python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_btts_cohort_gate_v1.py scripts/oracle_all_markets_walk_forward_v1.py scripts/oracle_four_model_live_predict.py
 
+      - name: Refresh verified current results and rebuild prematch team state
+        id: current_state_refresh
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/ingest_current_fotmob.py
+          python scripts/reconcile_current_data.py
+          python scripts/reconcile_current_sources.py
+          python scripts/build_current_team_state.py
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          manifest=Path("data/current_source_manifest.json")
+          state_manifest=Path("data/current_team_state_manifest.json")
+          matches=Path("database/current_matches.csv")
+          assert manifest.exists(), "Current source manifest missing after refresh"
+          assert state_manifest.exists(), "Team-state manifest missing after rebuild"
+          assert matches.exists(), "Current matches file missing after refresh"
+          m=json.loads(manifest.read_text())
+          sm=json.loads(state_manifest.read_text())
+          rows=list(csv.DictReader(matches.open(encoding="utf-8", newline="")))
+          completed=[r for r in rows if str(r.get("finished","")).lower()=="true" and str(r.get("cancelled","")).lower()!="true" and r.get("home_goals") not in ("",None) and r.get("away_goals") not in ("",None)]
+          latest=m.get("latest_completed_match_utc")
+          if not completed or not latest:
+              raise SystemExit("BLOCKED: no verified recent completed results were ingested; refusing to call team state fresh.")
+          print(json.dumps({"current_match_rows":len(rows),"completed_score_rows":len(completed),"latest_completed_match_utc":latest,"team_state_rows":sm.get("rows"),"team_state_generated_utc":sm.get("generated_utc"),"history_window":sm.get("history_window")},indent=2))
+          PY
+
       - name: Refresh upcoming fixtures from public sources and OpenFoot fallback
         id: ingest
         working-directory: oracle
@@ -104,6 +132,19 @@ jobs:
               report["current_state_date_max"]=str(s["date"].max()) if len(s) and "date" in s else None
           else:
               report["current_state_rows"]=None; report["current_state_date_max"]=None
+          source_manifest=Path("data/current_source_manifest.json")
+          if source_manifest.exists():
+              sm=json.loads(source_manifest.read_text())
+              report["latest_completed_result_utc"]=sm.get("latest_completed_match_utc")
+              report["current_source_generated_utc"]=sm.get("generated_utc")
+              report["completed_match_rows"]=int(sm.get("completed_match_rows",0))
+          else:
+              report["latest_completed_result_utc"]=None
+              report["current_source_generated_utc"]=None
+              report["completed_match_rows"]=0
+          state_manifest=Path("data/current_team_state_manifest.json")
+          if state_manifest.exists():
+              report["team_state_generated_utc"]=json.loads(state_manifest.read_text()).get("generated_utc")
           Path("/tmp/oracle-fixture-audit.json").write_text(json.dumps(report,indent=2)+"\n")
           print(json.dumps(report,indent=2))
           PY
@@ -128,17 +169,23 @@ jobs:
           if not report_path.exists():
               raise SystemExit("BLOCKED: fixture audit report is missing; refusing live predictions.")
           report=json.loads(report_path.read_text())
-          latest=report.get("current_state_date_max")
+          latest=report.get("latest_completed_result_utc")
           if not latest:
-              raise SystemExit("BLOCKED: verified current prematch state date is unavailable.")
+              raise SystemExit("BLOCKED: verified latest completed-result timestamp is unavailable.")
           try:
               state_date=date.fromisoformat(str(latest)[:10])
           except ValueError:
-              raise SystemExit(f"BLOCKED: invalid current state date: {latest!r}")
+              raise SystemExit(f"BLOCKED: invalid latest completed-result timestamp: {latest!r}")
           age=(date.today()-state_date).days
-          print(json.dumps({"current_state_date_max":str(state_date),"state_age_days":age,"maximum_allowed_age_days":3},indent=2))
+          print(json.dumps({
+              "latest_completed_result_utc":str(latest),
+              "latest_completed_result_date":str(state_date),
+              "result_age_days":age,
+              "team_state_generated_utc":report.get("team_state_generated_utc"),
+              "maximum_allowed_age_days":3
+          },indent=2))
           if age < 0 or age > 3:
-              raise SystemExit("BLOCKED: current prematch team state is stale or future-dated; refusing live predictions.")
+              raise SystemExit("BLOCKED: latest verified completed results are stale or future-dated; refusing live predictions.")
           PY
 
       - name: Run current governed live prediction runner (22-market output)
