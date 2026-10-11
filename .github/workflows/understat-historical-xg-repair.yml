@@ -21,7 +21,7 @@ jobs:
       - name: Upload source data, target results and access audit
         uses: actions/upload-artifact@v4
         with:
-          name: understat-xg-repair-\${{ github.run_number }}
+          name: understat-xg-repair-${{ github.run_number }}
           path: |
             understat_fixture_xg_results.csv
             understat_match_team_history.csv
