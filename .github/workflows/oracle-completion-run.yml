@@ -105,9 +105,10 @@ jobs:
             echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
             exit 1
           fi
-          # On push-triggered runs, workflow_dispatch inputs are empty. Use the
-          # governed 14-day default unless a valid explicit dispatch value exists.
-          DAYS_AHEAD="${DAYS_AHEAD:-14}"
+          # On push-triggered runs, workflow_dispatch inputs are empty.
+          # Match the governed workflow_dispatch default (3 days) to avoid silently
+          # broadening the forecast horizon on automatic runs.
+          DAYS_AHEAD="${DAYS_AHEAD:-3}"
           if ! [[ "$DAYS_AHEAD" =~ ^[0-9]+$ ]] || [ "$DAYS_AHEAD" -lt 1 ] || [ "$DAYS_AHEAD" -gt 31 ]; then
             echo "ERROR: DAYS_AHEAD must be an integer from 1 to 31; got '$DAYS_AHEAD'."
             exit 1
