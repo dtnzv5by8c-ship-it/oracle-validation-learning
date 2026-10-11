@@ -24,7 +24,7 @@ ALIASES = {
 def norm(s):
     s = unicodedata.normalize("NFKD", str(s or "")).encode("ascii","ignore").decode().lower()
     s = re.sub(r"[^a-z0-9]+", " ", s).strip()
-    s = re.sub(r"\\s+", " ", s)
+    s = re.sub(r"\s+", " ", s)
     return ALIASES.get(s, s)
 
 def parse_date(x):
