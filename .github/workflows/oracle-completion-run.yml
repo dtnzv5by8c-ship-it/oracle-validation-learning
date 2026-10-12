@@ -261,7 +261,14 @@ jobs:
           assert pred[["state_date_home","state_date_away","fixture_date"]].notna().all().all(), "Missing cutoff audit field"
           assert (pd.to_datetime(pred.state_date_home)<pd.to_datetime(pred.fixture_date)).all(), "Home state is not strictly prematch"
           assert (pd.to_datetime(pred.state_date_away)<pd.to_datetime(pred.fixture_date)).all(), "Away state is not strictly prematch"
-          exclusions=pd.read_csv(exclusions_path) if exclusions_path.exists() else pd.DataFrame()
+          if exclusions_path.exists() and exclusions_path.stat().st_size > 0:
+              try:
+                  exclusions=pd.read_csv(exclusions_path)
+              except pd.errors.EmptyDataError:
+                  exclusions=pd.DataFrame()
+          else:
+              # A zero-byte ledger is valid when there are no schedule exclusions.
+              exclusions=pd.DataFrame()
           reason_counts=exclusions.reason.value_counts().to_dict() if len(exclusions) and "reason" in exclusions else {}
           result={
             "status":"PASS","fixture_count":fixture_n,"prediction_rows":len(pred),
