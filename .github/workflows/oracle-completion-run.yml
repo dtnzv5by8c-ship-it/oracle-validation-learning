@@ -268,7 +268,9 @@ jobs:
             "markets":sorted(expected),"predicted_rows":len(predicted),
             "no_prediction_rows":int(len(pred)-len(predicted)),
             "probability_completeness":float(predicted.raw_probability.notna().mean()) if len(predicted) else 0.0,
-            "fixture_date_complete":bool(pred.fixture_date.notna().all()) if len(pred) else True,\n            "kickoff_time_available":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,\n            "kickoff_time_required_for_eligibility":False,
+            "fixture_date_complete":bool(pred.fixture_date.notna().all()) if len(pred) else True,
+            "kickoff_time_available":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,
+            "kickoff_time_required_for_eligibility":False,
             "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
             "calibration":"NOT_APPLIED","promotion":"BLOCKED"
           }
