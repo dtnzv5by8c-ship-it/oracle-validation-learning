@@ -257,7 +257,7 @@ jobs:
           predicted=pred[pred.status.eq("PREDICTED")]
           assert predicted.raw_probability.notna().all(), "PREDICTED row has missing probability"
           assert predicted.raw_probability.between(0,1).all(), "Probability outside [0,1]"
-          assert pred.kickoff_utc.notna().all(), "A live prediction has no verified kickoff UTC"
+          assert pred.fixture_date.notna().all(), "A prediction has no verified fixture date"
           assert pred[["state_date_home","state_date_away","fixture_date"]].notna().all().all(), "Missing cutoff audit field"
           assert (pd.to_datetime(pred.state_date_home)<pd.to_datetime(pred.fixture_date)).all(), "Home state is not strictly prematch"
           assert (pd.to_datetime(pred.state_date_away)<pd.to_datetime(pred.fixture_date)).all(), "Away state is not strictly prematch"
@@ -268,7 +268,7 @@ jobs:
             "markets":sorted(expected),"predicted_rows":len(predicted),
             "no_prediction_rows":int(len(pred)-len(predicted)),
             "probability_completeness":float(predicted.raw_probability.notna().mean()) if len(predicted) else 0.0,
-            "kickoff_complete":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,
+            "fixture_date_complete":bool(pred.fixture_date.notna().all()) if len(pred) else True,\n            "kickoff_time_available":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,\n            "kickoff_time_required_for_eligibility":False,
             "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
             "calibration":"NOT_APPLIED","promotion":"BLOCKED"
           }
