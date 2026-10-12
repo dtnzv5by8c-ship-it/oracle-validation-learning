@@ -1,0 +1,30 @@
+name: OpenFoot 27-League Coverage Audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout public audit repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install audit dependency
+        run: python -m pip install --upgrade pip requests
+      - name: Run read-only OpenFoot coverage audit
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+        run: python scripts/audit_openfoot_27_leagues.py
+      - name: Upload sanitized coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openfoot-27-league-coverage
+          path: artifacts/openfoot_27_league_coverage.json
+          if-no-files-found: warn
+          retention-days: 30
