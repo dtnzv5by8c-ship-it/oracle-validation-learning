@@ -61,11 +61,24 @@ def rows_from(payload):
                     if isinstance(v.get(kk),list): return v[kk]
     return []
 def get_json(url, headers, params=None):
-    r=requests.get(url,headers=headers,params=params,timeout=35)
+    try:
+        r=requests.get(url,headers=headers,params=params,timeout=35)
+    except requests.RequestException as exc:
+        # Record only the exception class; never include URLs, headers, or credentials.
+        return None,{"error_class":"NETWORK_ERROR","exception_type":type(exc).__name__}
     safe={"http_status":r.status_code}
     if r.status_code != 200:
+        # OpenFoot commonly returns 429 when the account's request quota/rate limit
+        # has been reached. Capture only non-sensitive diagnostic headers.
+        if r.status_code == 429:
+            safe["error_class"]="RATE_LIMIT_OR_QUOTA_EXCEEDED"
+            for header in ("Retry-After","X-RateLimit-Limit","X-RateLimit-Remaining","X-RateLimit-Reset"):
+                value=r.headers.get(header)
+                if value is not None:
+                    safe[header.lower().replace("-","_")]=value
+        else:
+            safe["error_class"]="HTTP_ERROR"
         # Deliberately do not store response body or request URL (which may contain data).
-        safe["error_class"]="HTTP_ERROR"
         return None,safe
     try: return r.json(),safe
     except ValueError: return None,{"http_status":r.status_code,"error_class":"INVALID_JSON"}
@@ -80,9 +93,11 @@ def main():
     payload,meta=get_json(BASE+"/competitions",headers)
     report["catalogue_request"]=meta
     if payload is None:
-        report["status"]="CATALOGUE_REQUEST_FAILED"
+        report["status"]="OPENFOOT_RATE_LIMITED_OR_QUOTA_EXCEEDED" if meta.get("http_status")==429 else "CATALOGUE_REQUEST_FAILED"
+        report["catalogue_error"]=meta.get("error_class")
+        report["next_action"]="Check OpenFoot dashboard/account for remaining monthly requests and rate limits; rerun only after quota is available." if meta.get("http_status")==429 else "Check OpenFoot API status, endpoint documentation, and account access."
         OUT.write_text(json.dumps(report,indent=2)+"\n")
-        print(json.dumps({"status":report["status"],"http_status":meta.get("http_status"),"report":str(OUT)})); return 1
+        print(json.dumps({"status":report["status"],"http_status":meta.get("http_status"),"error_class":meta.get("error_class"),"retry_after":meta.get("retry_after"),"rate_limit_remaining":meta.get("xratelimit_remaining"),"report":str(OUT)})); return 1
     catalogue=rows_from(payload)
     report["catalogue_rows"]=len(catalogue)
     # Keep a minimal sanitized catalogue for diagnostics; no raw payloads.
