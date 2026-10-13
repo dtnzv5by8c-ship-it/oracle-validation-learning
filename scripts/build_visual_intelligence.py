@@ -88,6 +88,21 @@ def main():
         raise SystemExit("BLOCKED: predictions schema lacks fixture identity columns.")
     # One canonical row per fixture. Keep fixture IDs from Oracle, do not synthesize them.
     fixtures=preds[["fixture_id","fixture_date","league","home_team","away_team"]].drop_duplicates()
+    def fkey(date, league, home, away):
+        d=pd.to_datetime(date,errors="coerce")
+        return "|".join([d.strftime("%Y-%m-%d") if pd.notna(d) else "",norm(league),norm(home),norm(away)])
+    schedule["__key"]=schedule.apply(lambda r:fkey(r.get("date",""),r.get("league_code",""),r.get("home_team",""),r.get("away_team","")),axis=1)
+    # Exact schedule identity: date + league code + home + away; no fuzzy fixture matching.
+    sch_by_teams={}
+    for _, sr in schedule.iterrows():
+        sch_by_teams.setdefault((pd.to_datetime(sr.get("date",""),errors="coerce").strftime("%Y-%m-%d") if pd.notna(pd.to_datetime(sr.get("date",""),errors="coerce")) else "",norm(sr.get("home_team","")),norm(sr.get("away_team",""))),[]).append(str(sr.get("league_code","")))
+    def resolve_code(row):
+        d=pd.to_datetime(row.fixture_date,errors="coerce",utc=True)
+        dk=d.strftime("%Y-%m-%d") if pd.notna(d) else ""
+        candidates=sch_by_teams.get((dk,norm(row.home_team),norm(row.away_team)),[])
+        candidates=list(dict.fromkeys(candidates))
+        return candidates[0] if len(candidates)==1 else ""
+    fixtures["league_code"]=fixtures.apply(resolve_code,axis=1)
     counts=fixtures.fixture_id.value_counts()
     if (counts>1).any(): raise SystemExit("BLOCKED: fixture_id maps to conflicting fixture identities.")
     hist=make_history()
@@ -108,9 +123,7 @@ def main():
             rows.append(base); continue
         cutoff=dt.tz_convert(None).normalize()
         league_code=""
-        if "league_code" in preds.columns:
-            vals=preds.loc[preds.fixture_id==f.fixture_id,"league_code"].dropna().astype(str).unique()
-            if len(vals)==1: league_code=vals[0]
+        league_code=str(f.get("league_code",""))
         league_hist=hist[hist.league_n==norm(league_code)] if league_code else hist[hist.league_n==norm(f.league)]
         # Some current-result feeds lack league_code; only use league-name fallback in that case.
         h_hist,h_rows=team_games(league_hist,norm(f.home_team),cutoff)
