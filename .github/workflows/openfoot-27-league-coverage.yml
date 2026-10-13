@@ -1,6 +1,11 @@
 name: OpenFoot 27-League Coverage Audit
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_openfoot_27_leagues.py"
+      - ".github/workflows/openfoot-27-league-coverage.yml"
 permissions:
   contents: read
 jobs:
