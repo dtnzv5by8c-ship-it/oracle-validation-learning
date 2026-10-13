@@ -38,7 +38,7 @@ LEAGUES = [
 ("POL","Poland",["Ekstraklasa","Polish Ekstraklasa"]),
 ("ROU","Romania",["Romanian Liga I","SuperLiga","Superliga României","Liga I"]),
 ("CZE","Czech Republic",["Czech First League","Czech First Football League","Chance Liga","1. Liga"]),
-("CRO","Croatia",["Croatian HNL","HNL","Croatian Football League"]),
+("CRO","Croatia",["Croatian Football League (HNL)","Croatian HNL","HNL","Croatian Football League"]),
 ("UKR","Ukraine",["Ukrainian Premier League","Premier League Ukraine","UPL"]),
 ("RSA","South Africa",["South African Premiership","South African PSL","South African Premier Division","Betway Premiership","Premier Soccer League"]),
 ]
