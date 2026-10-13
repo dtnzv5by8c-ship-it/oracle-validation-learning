@@ -339,7 +339,20 @@ jobs:
         working-directory: oracle
         run: |
           set -euo pipefail
+          python -m py_compile ../scripts/build_visual_intelligence.py
           python ../scripts/build_visual_intelligence.py
+          test -s oracle/reports/visual_intelligence.csv
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          p=Path("oracle/reports/visual_intelligence.csv")
+          d=pd.read_csv(p)
+          assert "Fixture ID" in d.columns, "Visual Intelligence is missing Fixture ID"
+          assert d["Fixture ID"].notna().all(), "Visual Intelligence contains a blank Fixture ID"
+          assert d["Fixture ID"].is_unique, "Visual Intelligence contains duplicate Fixture IDs"
+          assert len(d) > 0, "Visual Intelligence output is empty"
+          print(f"Visual Intelligence validation PASS: {len(d)} unique fixtures")
+          PY
 
       - name: Upload sanitized aggregate completion report
         if: always()
