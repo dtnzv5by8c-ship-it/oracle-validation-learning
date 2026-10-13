@@ -56,7 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          python -m pip install pandas numpy scikit-learn requests beautifulsoup4
+          python -m pip install pandas numpy scikit-learn requests beautifulsoup4 openpyxl reportlab
 
       - name: Verify historical spine and source scripts
         working-directory: oracle
@@ -354,6 +354,16 @@ jobs:
           print(f"Visual Intelligence validation PASS: {len(d)} unique fixtures")
           PY
 
+      - name: Build curated Visual Intelligence Excel and PDF report
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python -m py_compile ../scripts/build_curated_visual_report.py
+          python ../scripts/build_curated_visual_report.py
+          test -s reports/oracle_curated_visual_report.xlsx
+          test -s reports/oracle_curated_visual_report.pdf
+          test -s reports/oracle_curated_visual_report_audit.json
+
       - name: Upload sanitized aggregate completion report
         if: always()
         uses: actions/upload-artifact@v4
@@ -376,6 +386,9 @@ jobs:
             oracle/database/current_matches.csv
             oracle/database/matches.csv
             oracle/reports/visual_intelligence.csv
+            oracle/reports/oracle_curated_visual_report.xlsx
+            oracle/reports/oracle_curated_visual_report.pdf
+            oracle/reports/oracle_curated_visual_report_audit.json
             /tmp/oracle-fixture-audit.json
             /tmp/oracle-live-reconciliation.json
           if-no-files-found: warn
