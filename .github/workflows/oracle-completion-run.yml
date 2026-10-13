@@ -50,6 +50,7 @@ jobs:
             "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
+          echo "Governed alias correction refresh: 015df644864392501ad0173b6350dd3a15d10e1f"
 
       - name: Install dependencies
         run: |
