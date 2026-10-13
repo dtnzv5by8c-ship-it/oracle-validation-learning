@@ -346,11 +346,11 @@ jobs:
           set -euo pipefail
           python -m py_compile ../scripts/build_visual_intelligence.py
           python ../scripts/build_visual_intelligence.py
-          test -s oracle/reports/visual_intelligence.csv
+          test -s reports/visual_intelligence.csv
           python - <<'PY'
           import pandas as pd
           from pathlib import Path
-          p=Path("oracle/reports/visual_intelligence.csv")
+          p=Path("reports/visual_intelligence.csv")
           d=pd.read_csv(p)
           assert "Fixture ID" in d.columns, "Visual Intelligence is missing Fixture ID"
           assert d["Fixture ID"].notna().all(), "Visual Intelligence contains a blank Fixture ID"
