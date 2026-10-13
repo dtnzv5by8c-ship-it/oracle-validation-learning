@@ -6,10 +6,12 @@ and uses only completed matches dated before the target fixture date.
 """
 from pathlib import Path
 import re
+import json
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEDULE = ROOT / "oracle/data/fixtures/oracle_upcoming_fixtures.csv"
+MANIFEST = ROOT / "oracle/data/fixtures/oracle_upcoming_fixtures_manifest.json"
 MATCHES = ROOT / "oracle/database/current_matches.csv"
 OUT = ROOT / "oracle/reports/visual_intelligence.csv"
 
@@ -62,7 +64,10 @@ def main():
     if not SCHEDULE.exists() or not MATCHES.exists():
         raise SystemExit("Required schedule or verified current-match file missing; no enrichment generated.")
     sch=pd.read_csv(SCHEDULE).fillna("")
-    m=pd.read_csv(MATCHES).fillna("")
+    league_map={}
+    if MANIFEST.exists():
+        manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
+        league_map={str(k):str(v.get("competition", "")) for k,v in manifest.get("targets", {}).items()}
     required={"date","home_team","away_team","home_goals","away_goals","finished","cancelled","league"}
     missing=required-set(m.columns)
     if missing: raise SystemExit(f"Match history schema missing required fields: {sorted(missing)}")
@@ -73,17 +78,18 @@ def main():
     out=[]
     for _, f in sch.iterrows():
         date=pd.to_datetime(f.get("date",""), errors="coerce")
-        league=str(f.get("league_code", f.get("league","")))
+        league_code=str(f.get("league_code", ""))
+        league=league_map.get(league_code, str(f.get("league", league_code)))
         h,a=str(f.get("home_team","")),str(f.get("away_team",""))
         keydate=date.strftime("%Y-%m-%d") if pd.notna(date) else ""
         hist=m[(m["date_dt"] < pd.Timestamp(keydate, tz="UTC").tz_localize(None) if keydate else False)].copy()
-        hist=hist[hist["league_n"]==norm(league) | (hist["league_n"]==norm(f.get("league_name","")))] if False else hist
+        hist=hist[hist["league_n"]==norm(league)]
         # Team history is restricted to exact normalized team identity and pre-fixture dates.
         home=hist[(hist.home_n==norm(h))].sort_values("date_dt")
         away=hist[(hist.away_n==norm(a))].sort_values("date_dt")
         home_last=home.tail(5); away_last=away.tail(5)
         h2h=hist[((hist.home_n==norm(h)) & (hist.away_n==norm(a))) | ((hist.home_n==norm(a)) & (hist.away_n==norm(h)))].sort_values("date_dt").tail(5)
-        row={"Fixture Date":keydate,"League":league,"Home Team":h,"Away Team":a,
+        row={"Fixture Date":keydate,"League":league,"League Code":league_code,"Home Team":h,"Away Team":a,
              "Visual Intelligence Match Key":"|".join([norm(league),keydate,norm(h),norm(a)]),
              "Home History Matches":len(home_last),"Away History Matches":len(away_last),
              "H2H Last5 Count":len(h2h),"H2H Last5 Summary":"","H2H Wins Home":"","H2H Draws":"","H2H Wins Away":"",
