@@ -37,6 +37,11 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
 
     steps:
+      - name: Check out reporting and workflow repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
       - name: Clone governed private Oracle source
         env:
           ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
