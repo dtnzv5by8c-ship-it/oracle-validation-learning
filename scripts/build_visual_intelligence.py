@@ -124,7 +124,7 @@ def main():
         cutoff=dt.tz_convert(None).normalize()
         league_code=""
         league_code=str(f.get("league_code",""))
-        league_hist=hist[hist.league_n==norm(league_code)] if league_code else hist[hist.league_n==norm(f.league)]
+        league_hist=hist[((hist.league_n==norm(league_code)) & (hist.league_n!="")) | ((hist.league_n=="") & (hist.league.map(norm)==norm(f.league)))] if league_code else hist[hist.league_n==norm(f.league)]
         # Some current-result feeds lack league_code; only use league-name fallback in that case.
         h_hist,h_rows=team_games(league_hist,norm(f.home_team),cutoff)
         a_hist,a_rows=team_games(league_hist,norm(f.away_team),cutoff)
@@ -150,6 +150,9 @@ def main():
                          "H2H Avg Total Goals":"","H2H BTTS %":"","H2H Over 2.5 %":""})
         base["Data As-Of Date"]=str(hist.date_dt.max().date()) if len(hist) else ""
         base["Evidence Status"]="PARTIAL" if len(h_rows)>=3 and len(a_rows)>=3 else "INSUFFICIENT_HISTORY"
+        if len(h_rows)<5 or len(a_rows)<5:
+            base["Risk Profile"]="DATA COVERAGE RISK"
+            base["Risk Rationale"]=f"Recent-history coverage is incomplete (home={len(h_rows)}/5, away={len(a_rows)}/5); standings, season finishes, profiles and derby evidence are unverified."
         rows.append(base)
     out=pd.DataFrame(rows)
     if out["Fixture ID"].duplicated().any(): raise SystemExit("BLOCKED: duplicate Fixture IDs in Visual Intelligence output.")
