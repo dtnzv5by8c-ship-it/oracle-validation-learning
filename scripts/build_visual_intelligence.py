@@ -70,9 +70,9 @@ def main():
         manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
         league_map={str(k):str(v.get("competition", "")) for k,v in manifest.get("targets", {}).items()}
     required={"home_team","away_team","home_goals","away_goals","finished","cancelled","league"}
+    missing=required-set(m.columns)
     if "date_utc" not in m.columns and "date" not in m.columns:
         missing.add("date_utc or date")
-    missing=required-set(m.columns)
     if missing: raise SystemExit(f"Match history schema missing required fields: {sorted(missing)}")
     m["date_dt"]=pd.to_datetime(m["date_utc"] if "date_utc" in m else m["date"], errors="coerce", utc=True).dt.tz_convert(None)
     m["home_n"]=m["home_team"].map(norm); m["away_n"]=m["away_team"].map(norm)
