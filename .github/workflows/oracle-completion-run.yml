@@ -334,6 +334,13 @@ jobs:
           print(json.dumps(report,indent=2,default=str))
           PY
 
+      - name: Build reporting-only Visual Intelligence layer
+        if: always()
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python ../scripts/build_visual_intelligence.py
+
       - name: Upload sanitized aggregate completion report
         if: always()
         uses: actions/upload-artifact@v4
@@ -355,6 +362,7 @@ jobs:
             oracle/database/current_prematch_team_state.csv
             oracle/database/current_matches.csv
             oracle/database/matches.csv
+            oracle/reports/visual_intelligence.csv
             /tmp/oracle-fixture-audit.json
             /tmp/oracle-live-reconciliation.json
           if-no-files-found: warn
