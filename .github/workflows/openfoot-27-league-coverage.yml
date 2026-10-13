@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/audit_openfoot_27_leagues.py"
+      - "scripts/audit_openfoot_27_league_endpoints.py"
       - ".github/workflows/openfoot-27-league-coverage.yml"
 permissions:
   contents: read
@@ -25,11 +26,16 @@ jobs:
         env:
           OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
         run: python scripts/audit_openfoot_27_leagues.py
+      - name: Run read-only endpoint and feature audit
+        if: success()
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+        run: python scripts/audit_openfoot_27_league_endpoints.py
       - name: Upload sanitized coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: openfoot-27-league-coverage
-          path: artifacts/openfoot_27_league_coverage.json
+          path: artifacts/*.json
           if-no-files-found: warn
           retention-days: 30
