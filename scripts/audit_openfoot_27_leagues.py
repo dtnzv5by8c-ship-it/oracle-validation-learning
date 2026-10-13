@@ -19,8 +19,8 @@ LEAGUES = [
 ("E2","England",["League One","League One England","EFL League One"]),
 ("E3","England",["League Two","League Two England","EFL League Two"]),
 ("SP1","Spain",["La Liga","Primera División","Primera Division"]),
-("SP2","Spain",["Segunda División","Segunda Division","LaLiga 2"]),
-("D1","Germany",["Bundesliga","German Bundesliga"]),
+("SP2","Spain",["Segunda División","Segunda Division"]),
+("D1","Germany",["Bundesliga"]),
 ("D2","Germany",["2. Bundesliga","2 Bundesliga","2nd Bundesliga"]),
 ("I1","Italy",["Serie A","Serie A Italy"]),
 ("I2","Italy",["Serie B","Serie B Italy"]),
@@ -28,7 +28,7 @@ LEAGUES = [
 ("F2","France",["Ligue 2","Ligue 2 France"]),
 ("N1","Netherlands",["Eredivisie","Dutch Eredivisie"]),
 ("NED2","Netherlands",["Eerste Divisie","Keuken Kampioen Divisie"]),
-("P1","Portugal",["Primeira Liga","Liga Portugal","Liga Portugal Betclic"]),
+("P1","Portugal",["Primeira Liga","Liga Portugal Betclic"]),
 ("POR2","Portugal",["Liga Portugal 2","Segunda Liga","Liga Portugal 2 Meu Super"]),
 ("T1","Turkey",["Turkish Super Lig","Süper Lig","Super Lig"]),
 ("B1","Belgium",["Belgian Pro League","Jupiler Pro League","Pro League"]),
@@ -40,7 +40,7 @@ LEAGUES = [
 ("CZE","Czech Republic",["Czech First League","Czech First Football League","Chance Liga","1. Liga"]),
 ("CRO","Croatia",["Croatian HNL","HNL","Croatian Football League"]),
 ("UKR","Ukraine",["Ukrainian Premier League","Premier League Ukraine","UPL"]),
-("RSA","South Africa",["South African PSL","South African Premier Division","Betway Premiership","Premier Soccer League"]),
+("RSA","South Africa",["South African Premiership","South African PSL","South African Premier Division","Betway Premiership","Premier Soccer League"]),
 ]
 def norm(s):
     return re.sub(r"[^a-z0-9]+","",str(s or "").lower())
@@ -120,7 +120,7 @@ def main():
             cn=norm(c.get("country"))
             nm=norm(c.get("name"))
             country_ok=norm(country) in cn or cn in norm(country) if cn else False
-            name_ok=any(norm(a)==nm or norm(a) in nm or nm in norm(a) for a in aliases if norm(a) and nm)
+            name_ok=any(norm(a)==nm for a in aliases if norm(a) and nm)
             if country_ok and name_ok: candidates.append(c)
         # A name-only exact match is recorded as ambiguous, never silently chosen.
         unique={str(c.get("id")):c for c in candidates if c.get("id")}
