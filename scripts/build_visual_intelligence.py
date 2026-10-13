@@ -64,6 +64,7 @@ def main():
     if not SCHEDULE.exists() or not MATCHES.exists():
         raise SystemExit("Required schedule or verified current-match file missing; no enrichment generated.")
     sch=pd.read_csv(SCHEDULE).fillna("")
+    m=pd.read_csv(MATCHES).fillna("")
     league_map={}
     if MANIFEST.exists():
         manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -82,7 +83,10 @@ def main():
         league=league_map.get(league_code, str(f.get("league", league_code)))
         h,a=str(f.get("home_team","")),str(f.get("away_team",""))
         keydate=date.strftime("%Y-%m-%d") if pd.notna(date) else ""
-        hist=m[(m["date_dt"] < pd.Timestamp(keydate, tz="UTC").tz_localize(None) if keydate else False)].copy()
+        if not keydate:
+            out.append({"Fixture Date":"","League":league,"League Code":league_code,"Home Team":h,"Away Team":a,"Evidence Status":"INVALID_FIXTURE_DATE","Risk Profile":"DATA COVERAGE RISK","Risk Rationale":"Fixture date is missing or invalid."})
+            continue
+        hist=m[m["date_dt"] < pd.Timestamp(keydate)].copy()
         hist=hist[hist["league_n"]==norm(league)]
         # Team history is restricted to exact normalized team identity and pre-fixture dates.
         home=hist[(hist.home_n==norm(h))].sort_values("date_dt")
