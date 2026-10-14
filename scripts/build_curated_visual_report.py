@@ -78,8 +78,10 @@ def main():
             return ""
     def independent_analysis(row):
         status=str(val(row,"Evidence Status","UNAVAILABLE") or "UNAVAILABLE")
-        home_risk=str(val(row,"Home Evidence Risk","UNAVAILABLE") or "UNAVAILABLE")
-        away_risk=str(val(row,"Away Evidence Risk","UNAVAILABLE") or "UNAVAILABLE")
+        # Recompute from the same reporting-only rules used in the risk columns.
+        # The joined raw Visual Intelligence frame does not contain these report-derived fields.
+        home_risk=team_evidence_risk(row,"Home")
+        away_risk=team_evidence_risk(row,"Away")
         home_form=str(val(row,"Home_Recent_Form_Last5","unavailable") or "unavailable")
         away_form=str(val(row,"Away_Recent_Form_Last5","unavailable") or "unavailable")
         hpos=str(val(row,"Home League Position","unverified") or "unverified")
