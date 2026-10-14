@@ -96,6 +96,8 @@ def main():
         source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
         standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
         asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
+        kickoff_raw=str(val(row,"kickoff_utc","") or "").strip()
+        kickoff_status=(f"VERIFIED UTC {kickoff_raw}" if kickoff_raw and kickoff_raw.lower() not in ("nan","none","unverified","unknown") else "UNVERIFIED / MISSING")
         def index_pair(home_key, away_key):
             hv=val(row,home_key,""); av=val(row,away_key,"")
             try:
@@ -120,7 +122,12 @@ def main():
                 f"TOTAL Index (attack + defence, home vs away) {total}. Indices are reporting-only, normalized to a 0–100 scale per component "
                 "with 50 representing the pre-fixture league average; derived from each team's last five available results (minimum three) "
                 "and the league's pre-fixture scoring baseline. "
-                f"Evidence status: {status}. Team evidence risk: home {home_risk}; away {away_risk}. Recent results (last five): {home_form} vs {away_form}. "
+                f"Evidence status: {status}. Kickoff: {kickoff_status}. Team evidence-coverage risk: home {home_risk}; away {away_risk}. "
+                f"Risk rationale: home [{team_evidence_rationale(row,'Home')}] away [{team_evidence_rationale(row,'Away')}]. "
+                f"Historical accuracy: {historical_accuracy_status} A+ setup: {setup_status} "
+                "Market-specific outcome risk is NOT GRADED: no audited prediction-to-settlement cohort or bookmaker odds/value inputs are available. "
+                "Market evidence requirements are defined on the Definitions sheet; evidence coverage must not be mistaken for outcome probability. "
+                f"Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
                 f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
                 f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
@@ -169,12 +176,6 @@ def main():
       "TOTAL Index":evidence.apply(total_pair,axis=1),
       "H2H Last 5 Summary":evidence.get("H2H Last5 Summary",pd.Series([""]*len(evidence),index=evidence.index)),
       "H2H Avg Total Goals":evidence.get("H2H Avg Total Goals",pd.Series([""]*len(evidence),index=evidence.index)),
-      "Historical Accuracy Status":pd.Series([historical_accuracy_status]*len(evidence),index=evidence.index),
-      "Home Evidence Risk":evidence.apply(lambda r:team_evidence_risk(r,"Home"),axis=1),
-      "Away Evidence Risk":evidence.apply(lambda r:team_evidence_risk(r,"Away"),axis=1),
-      "Home Risk Rationale":evidence.apply(lambda r:team_evidence_rationale(r,"Home"),axis=1),
-      "Away Risk Rationale":evidence.apply(lambda r:team_evidence_rationale(r,"Away"),axis=1),
-      "A+ Setup Status":pd.Series([setup_status]*len(evidence),index=evidence.index),
       "Gem's Independent Match Analysis":evidence.apply(independent_analysis,axis=1)
     })
     locked_columns=["Fixture Date","League","Fixture","BTTS Yes","Home 1X","Away X2","Over 1.5","Over 2.5","Under 4.5",
@@ -182,11 +183,9 @@ def main():
       "Away X2 + Under 4.5","M-1UP Home","M-1UP Away","Draw Probability (derived)","Goal Line Call (O/U 2.5)",
       "Most Likely Total-Goals Band (derived)","Recent Form (5)","Recent Form Points (Last 5)","League Position",
       "Avg. Goals Scored (Last 5)","Avg. Goals Conceded (Last 5)","Avg. Points (Last 5)","Attacking Index",
-      "Defensive Index","TOTAL Index","H2H Last 5 Summary","H2H Avg Total Goals",
-      "Historical Accuracy Status","Home Evidence Risk","Away Evidence Risk","Home Risk Rationale","Away Risk Rationale","A+ Setup Status",
-      "Gem's Independent Match Analysis"]
+      "Defensive Index","TOTAL Index","H2H Last 5 Summary","H2H Avg Total Goals","Gem's Independent Match Analysis"]
     report=report[locked_columns]
-    if len(report.columns)!=38: raise SystemExit(f"BLOCKED: report schema expected 38 columns; got {len(report.columns)}.")
+    if len(report.columns)!=32: raise SystemExit(f"BLOCKED: locked report schema expected 32 columns; got {len(report.columns)}.")
     base=report
     # Definitions sheet and fixture sheet are the only workbook tabs.
     wb=Workbook()
@@ -208,10 +207,17 @@ def main():
       ("OpenFoot standings coverage",json.dumps(evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict())),
       ("Index methodology","Reporting-only independent metrics. Attacking Index = 50 × team last-five average goals scored / pre-fixture league average goals per team-match. Defensive Index = 50 × league average goals per team-match / team last-five average goals conceded. Each is clipped to 0–100; 50 is league average; minimum three prior matches. TOTAL Index = Attacking Index + Defensive Index for each team, shown home vs away. No index feeds Oracle probabilities."),
       ("Independent confluence","Gem's Independent Match Analysis places raw Oracle market probabilities beside independently derived form/index/standings/H2H evidence. It describes agreement or disagreement without recalibrating, changing, or blending probabilities."),
-      ("Report schema","38 columns: original 32-column curated view plus historical-accuracy status, home/away evidence-risk profiles, risk rationales and A+ setup status. Metrics remain unavailable when evidence is insufficient."),
-      ("Historical accuracy","No percentage is published unless an audited archive of genuinely pre-match Oracle predictions is joined to completed outcomes for the same team and market. Current run does not contain that validated archive."),
-      ("Risk definitions","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. This is evidence-coverage risk, not outcome risk."),
-      ("A+ setup status","Not graded until market-specific historical accuracy/calibration and bookmaker odds/value assessment are available; a high raw probability alone is not an A+ label."),
+      ("Report schema","Locked 32-column baseline retained. Evidence-coverage risk, historical-accuracy status, kickoff status and A+ eligibility are explained in the existing independent-analysis narrative and this Definitions sheet; no extra fixture columns are added."),
+      ("Historical accuracy","NOT CALCULABLE until pre-match Oracle prediction IDs are joined to verified final scores/settlements by fixture and market. Current prediction ledger has 210 challenger rows/42 fixtures but settlement ledger is empty; challenger rows must not be presented as production-model accuracy."),
+      ("Team evidence-coverage risk","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. Coverage only, not outcome safety."),
+      ("Market-specific risk status","NOT GRADED until the prediction-to-settlement cohort and market odds/value inputs are audited. Do not infer market hit rates from fixture form or raw probability alone."),
+      ("Market evidence requirements — BTTS Yes/No","Use both teams’ pre-match goals-for and goals-against history, minimum three prior matches each, with five preferred; require market-specific settled outcomes before assigning outcome-risk grades."),
+      ("Market evidence requirements — Over/Under goals","Use combined pre-match goals-for/goals-against history for both teams and a pre-fixture league scoring baseline; require market-specific settled outcomes before outcome-risk grades."),
+      ("Market evidence requirements — Home/Away team goals","Use the selected team's goals-for history plus opponent goals-against history, with home/away split only when sourced and sufficiently sampled; require settled market outcomes."),
+      ("Market evidence requirements — Double chance (Home 1X/Away X2/Home 12)","Use pre-match form and verified standings for both teams; require market-specific settlements and odds/value before grading outcome risk."),
+      ("Market evidence requirements — Combined markets","Use all component evidence relevant to the combination; grade only when the exact combined market has its own audited settlements and odds/value. Never derive combo accuracy from component-market accuracy."),
+      ("Market evidence requirements — M-1UP Home/Away","Requires time-stamped lead-access/event-state evidence and settled early-settlement outcomes for the exact M-1UP side/market; standard full-time results are not a substitute."),
+      ("A+ setup status","NOT GRADED until market-specific historical accuracy/calibration, evidence-risk review and bookmaker odds/value assessment are available; a high raw probability alone is not an A+ label."),
     ]
     for row in defs: ws.append(list(row))
     ws.column_dimensions["A"].width=34; ws.column_dimensions["B"].width=115
@@ -273,6 +279,7 @@ def main():
           ["Last-5 goals scored",str(val(r,"Home_Last5_Goals_For","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_For","Unavailable") or "Unavailable")],
           ["Last-5 goals conceded",str(val(r,"Home_Last5_Goals_Against","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_Against","Unavailable") or "Unavailable")],
           ["Last-5 points",str(val(r,"Home_Last5_Points","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Points","Unavailable") or "Unavailable")],
+          ["Kickoff (UTC)",str(val(r,"kickoff_utc","UNVERIFIED / MISSING") or "UNVERIFIED / MISSING"),""],
           ["League position",str(val(r,"Home League Position","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Position","UNVERIFIED") or "UNVERIFIED")],
           ["League points",str(val(r,"Home League Points","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Points","UNVERIFIED") or "UNVERIFIED")],
           ["League form",str(val(r,"Home League Form","Unavailable") or "Unavailable"),str(val(r,"Away League Form","Unavailable") or "Unavailable")],
@@ -294,11 +301,15 @@ def main():
         story.append(Paragraph(escape(str(val(r,"Gem's Independent Match Analysis","Unavailable"))),styles["SmallCell"]))
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
+    kickoff_values=evidence["kickoff_utc"].astype(str).str.strip() if "kickoff_utc" in evidence.columns else pd.Series([""]*len(evidence),index=evidence.index)
+    kickoff_missing=int(kickoff_values.isin(["","nan","None","NaT","UNVERIFIED","UNKNOWN"]).sum())
     audit={"status":"PASS","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
       "duplicate_fixture_ids":int(evidence.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
       "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
+      "kickoff_coverage":{"verified_or_populated":int(len(evidence)-kickoff_missing),"unverified_or_missing":kickoff_missing,"status":"VISIBLE_IN_FIXTURE_NARRATIVE_AND_PDF"},
+      "historical_accuracy":"NOT_CALCULABLE_SETTLEMENT_LEDGER_EMPTY","market_specific_outcome_risk":"NOT_GRADED_NO_AUDITED_SETTLEMENTS_OR_ODDS","a_plus_setup":"NOT_GRADED",
       "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
       "standings_matched_fixtures":int((evidence.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
       "probability_values_carried_from_raw_output":True}
