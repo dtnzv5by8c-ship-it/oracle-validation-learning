@@ -105,24 +105,39 @@ def fetch_openfoot_standings(league_codes, league_names):
             val=obj.get(name) if isinstance(obj,dict) else None
             if val not in (None,""): return val
         return ""
-    norm_codes={norm(x) for x in league_codes if str(x).strip()}
-    norm_names={norm(x) for x in league_names if str(x).strip()}
+    aliases={
+      "E0":["Premier League","Premier League England","English Premier League"],
+      "E1":["Championship","Championship England"],"E2":["League One","League One England"],
+      "E3":["League Two","League Two England"],"SP1":["La Liga","Primera División","Primera Division"],
+      "SP2":["Segunda División","Segunda Division"],"D1":["Bundesliga","Bundesliga Germany"],
+      "D2":["2. Bundesliga","2 Bundesliga"],"I1":["Serie A Italy","Serie A"],"I2":["Serie B Italy","Serie B"],
+      "F1":["Ligue 1","Ligue 1 France"],"F2":["Ligue 2","Ligue 2 France"],
+      "N1":["Eredivisie","Dutch Eredivisie"],"NED2":["Eerste Divisie","Keuken Kampioen Divisie"],
+      "P1":["Primeira Liga","Liga Portugal"],"POR2":["Liga Portugal 2","Liga Portugal 2"],
+      "T1":["Turkish Super Lig","Süper Lig","Super Lig"],"B1":["Belgian Pro League","Jupiler Pro League"],
+      "SC0":["Scottish Premiership","Scottish Premiership Scotland"],
+      "AUT":["Austrian Bundesliga","Austrian Football Bundesliga"],"SWZ":["Swiss Super League"],
+      "POL":["Ekstraklasa","Polish Ekstraklasa"],"ROU":["Superliga României","Romanian Superliga"],
+      "CZE":["Czech First League","Czech First League Czechia"],
+      "CRO":["Croatian Football League (HNL)","HNL Croatia"],"UKR":["Ukrainian Premier League"],
+      "RSA":["South African Premier Division","South African Premiership","Betway Premiership","Premier Soccer League"]
+    }
     candidates=[]
     for comp in catalog:
         if not isinstance(comp,dict): continue
         code=field(comp,"code","leagueCode","shortCode")
         name=field(comp,"name","title","competitionName")
         cid=field(comp,"id","competitionId","competition_id")
-        if cid and ((norm(code) in norm_codes and norm(code)) or (norm(name) in norm_names and norm(name))):
-            candidates.append((str(cid),str(code),str(name)))
+        if not cid: continue
+        normalized_names={norm(name)}
+        matched_codes=[str(local) for local in league_codes if norm(code)==norm(local) and norm(code)]
+        matched_codes += [str(local) for local in league_codes if any(norm(alias)==norm(name) for alias in aliases.get(str(local),[]))]
+        if matched_codes:
+            candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes))))
     by_code={}
     for code in league_codes:
-        matches=[c for c in candidates if norm(c[1])==norm(code)]
-        if len(matches)==1: by_code[str(code)]=matches[0]
-    for code,name in zip(league_codes,league_names):
-        if str(code) in by_code: continue
-        matches=[c for c in candidates if norm(c[2])==norm(name)]
-        if len(matches)==1: by_code[str(code)]=matches[0]
+        matches=[c for c in candidates if str(code) in c[3]]
+        if len(matches)==1: by_code[str(code)]=(matches[0][0],matches[0][1],matches[0][2])
     for code,comp in by_code.items():
         cid,provider_code,provider_name=comp
         try:
