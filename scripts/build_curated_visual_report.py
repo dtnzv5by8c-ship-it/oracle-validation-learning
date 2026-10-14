@@ -159,11 +159,15 @@ def main():
     settlement_script=Path(__file__).with_name("audit_historical_settlements.py")
     try:
         if settlement_script.exists() and (ORACLE/"archive/PREDICTION_LEDGER.csv").exists() and (ORACLE/"database/current_matches.csv").exists():
-            subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir)],
-                           check=False,capture_output=True,text=True,timeout=120)
+            audit_process=subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir)],
+                                          check=False,capture_output=True,text=True,timeout=120)
             summary_path=settlement_dir/"settlement_audit_summary.json"
             if summary_path.exists():
                 settlement_summary=json.loads(summary_path.read_text(encoding="utf-8"))
+                settlement_summary["audit_script_exit_code"]=audit_process.returncode
+            else:
+                settlement_summary={"status":"BLOCKED_AUDIT_SCRIPT_FAILED","audit_script_exit_code":audit_process.returncode,
+                                    "stderr_tail":audit_process.stderr[-1000:],"canonical_settlement_ledger_modified":False}
             candidates_path=settlement_dir/"settlement_candidates_score_only.csv"
             if candidates_path.exists():
                 candidates_frame=pd.read_csv(candidates_path)
