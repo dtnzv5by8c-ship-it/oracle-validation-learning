@@ -93,11 +93,25 @@ def main():
         source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
         standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
         asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
-        return (f"Evidence status: {status}. Risk: {risk}. Recent results (last five): {home_form} vs {away_form}. "
+        attack=str(val(row,"Attacking Index","unavailable") or "unavailable")
+        defence=str(val(row,"Defensive Index","unavailable") or "unavailable")
+        total=str(val(row,"TOTAL Index","unavailable") or "unavailable")
+        btts=prob(row,"BTTS_YES")
+        over25=prob(row,"OVER_2_5")
+        home1x=prob(row,"HOME_1X")
+        awayx2=prob(row,"AWAY_X2")
+        market_text=(f"Oracle raw probabilities: BTTS Yes {btts:.1%}; Over 2.5 {over25:.1%}; Home 1X {home1x:.1%}; Away X2 {awayx2:.1%}. "
+                     if all(x is not None for x in (btts,over25,home1x,awayx2)) else "One or more selected Oracle probabilities unavailable. ")
+        return (f"{market_text}Independent visual evidence: attacking index (home vs away) {attack}; defensive index (home vs away) {defence}; "
+                f"TOTAL Index (attack + defence, home vs away) {total}. Indices are reporting-only, normalized to a 0–100 scale per component "
+                "with 50 representing the pre-fixture league average; derived from each team's last five available results (minimum three) "
+                "and the league's pre-fixture scoring baseline. "
+                f"Evidence status: {status}. Risk: {risk}. Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
                 f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
                 f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
                 f"Verified components: {components}. Sources: {source}. "
+                "Confluence assessment is descriptive, not a second probability or a calibrated forecast: compare Oracle market probabilities with the independent form, indices, standings and H2H evidence; record disagreement as a caution rather than changing Oracle values. "
                 "Previous-season finishes, team profiles and derby classification remain unverified unless explicitly sourced. "
                 "Missing evidence is not a negative signal; visual evidence is reporting context and does not alter Oracle probabilities.")
     report=pd.DataFrame({
@@ -153,7 +167,9 @@ def main():
       ("Prediction status counts",json.dumps(evidence.Prediction_Status.value_counts().to_dict())),
       ("Visual Intelligence evidence status",json.dumps(evidence.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict())),
       ("OpenFoot standings coverage",json.dumps(evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict())),
-      ("Report schema","Locked 32 columns; TOTAL Index is Attacking Index + Defensive Index when source indices exist; missing values remain blank."),
+      ("Index methodology","Reporting-only independent metrics. Attacking Index = 50 × team last-five average goals scored / pre-fixture league average goals per team-match. Defensive Index = 50 × league average goals per team-match / team last-five average goals conceded. Each is clipped to 0–100; 50 is league average; minimum three prior matches. TOTAL Index = Attacking Index + Defensive Index for each team, shown home vs away. No index feeds Oracle probabilities."),
+      ("Independent confluence","Gem's Independent Match Analysis places raw Oracle market probabilities beside independently derived form/index/standings/H2H evidence. It describes agreement or disagreement without recalibrating, changing, or blending probabilities."),
+      ("Report schema","Locked 32 columns; indices are shown home vs away; TOTAL Index is attack + defence per team. Metrics remain blank when minimum evidence requirements or baseline are unavailable."),
     ]
     for row in defs: ws.append(list(row))
     ws.column_dimensions["A"].width=34; ws.column_dimensions["B"].width=115
