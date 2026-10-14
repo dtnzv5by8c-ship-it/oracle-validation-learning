@@ -93,9 +93,20 @@ def main():
         source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
         standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
         asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
-        attack=str(val(row,"Attacking Index","unavailable") or "unavailable")
-        defence=str(val(row,"Defensive Index","unavailable") or "unavailable")
-        total=str(val(row,"TOTAL Index","unavailable") or "unavailable")
+        def index_pair(home_key, away_key):
+            hv=val(row,home_key,""); av=val(row,away_key,"")
+            try:
+                return f"{float(hv):.1f} vs {float(av):.1f}"
+            except (TypeError,ValueError):
+                return "unavailable"
+        attack=index_pair("Home Attacking Index","Away Attacking Index")
+        defence=index_pair("Home Defensive Index","Away Defensive Index")
+        try:
+            ht=float(val(row,"Home Attacking Index"))+float(val(row,"Home Defensive Index"))
+            at=float(val(row,"Away Attacking Index"))+float(val(row,"Away Defensive Index"))
+            total=f"{ht:.1f} vs {at:.1f}"
+        except (TypeError,ValueError):
+            total="unavailable"
         btts=prob(row,"BTTS_YES")
         over25=prob(row,"OVER_2_5")
         home1x=prob(row,"HOME_1X")
