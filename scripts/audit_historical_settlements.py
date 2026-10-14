@@ -85,12 +85,18 @@ def main() -> None:
         & results["status"].str.upper().isin({"FT", "AET", "PEN", "FINISHED"})
     ].copy()
 
-    # Strict match key: exact normalized home/away names and calendar date.
-    # Do not use fuzzy aliases or infer outcomes for ambiguous candidates.
+    # Strict settlement match key: exact normalized home/away names and calendar date.
+    # Diagnostic indexes below do not settle anything; they explain unresolved rows only.
     groups = {}
     for idx, row in finished.iterrows():
         key = (row["date_key"], row["home_key"], row["away_key"])
         groups.setdefault(key, []).append(idx)
+    all_date_groups = {}
+    pair_any_date_groups = {}
+    for idx, row in results.iterrows():
+        key = (row["date_key"], row["home_key"], row["away_key"])
+        all_date_groups.setdefault(key, []).append(idx)
+        pair_any_date_groups.setdefault((row["home_key"], row["away_key"]), []).append(idx)
 
     settlements = []
     audit_rows = []
@@ -107,11 +113,23 @@ def main() -> None:
             "raw_probability": p["raw_probability"],
         }
         if len(hits) != 1:
-            audit_rows.append({**base, "match_status": "UNMATCHED" if not hits else "AMBIGUOUS",
+            if hits:
+                match_status = "AMBIGUOUS"
+                reason = "Multiple exact completed score matches"
+            elif all_date_groups.get(key):
+                match_status = "SAME_DATE_RESULT_UNVERIFIED"
+                reason = "Same date and exact normalized teams exist, but no uniquely completed non-cancelled score is verified"
+            elif pair_any_date_groups.get((p["home_key"], p["away_key"])):
+                match_status = "TEAM_PAIR_DATE_MISMATCH"
+                reason = "Exact normalized team pair appears in results on a different date; review postponement/date semantics manually"
+            else:
+                match_status = "NO_EXACT_TEAM_PAIR"
+                reason = "No exact normalized home/away team pair found in current results"
+            audit_rows.append({**base, "match_status": match_status,
                                "matching_completed_results": len(hits), "matched_result_date_utc": "",
                                "matched_result_home": "", "matched_result_away": "",
                                "final_home_score": "", "final_away_score": "",
-                               "reason": "No exact completed score match" if not hits else "Multiple exact completed score matches"})
+                               "reason": reason})
             continue
 
         r = finished.loc[hits[0]]
