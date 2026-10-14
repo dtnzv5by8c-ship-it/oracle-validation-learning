@@ -183,8 +183,12 @@ def main():
     settled_n=int(settlement_summary.get("score_only_settlement_candidates",0) or 0)
     considered_n=int(settlement_summary.get("prediction_rows_considered",0) or 0)
     if settled_n:
-        historical_accuracy_status=(f"CHALLENGER SCORE-ONLY AUDIT: {settled_n} of {considered_n} archived market predictions uniquely matched to completed scores; research only, not production accuracy. "
-                                    "No odds/value or first-goal/1UP truth inferred.")
+        match_counts=settlement_summary.get("match_status_counts",{})
+        native_n=int(match_counts.get("MATCHED_SCORE_ONLY",0) or 0)
+        supplemental_n=int(match_counts.get("MATCHED_SUPPLEMENTAL_SCORE_ONLY",0) or 0)
+        historical_accuracy_status=(f"CHALLENGER SCORE-ONLY AUDIT: {settled_n} of {considered_n} archived market predictions matched to completed scores; research only, not production accuracy. "
+                                    f"Evidence split: {native_n} rows from exact current-results matches; {supplemental_n} rows from reviewed supplemental source results. "
+                                    "Unresolved, abandoned, or future fixtures remain excluded. No odds/value or first-goal/1UP truth inferred.")
     else:
         historical_accuracy_status="NOT CALCULABLE: no unique, verified score-only settlement cohort was produced. No accuracy percentage is inferred."
     setup_status = "NOT GRADED: requires market-specific historical hit rate/calibration, evidence-risk review and bookmaker odds/value assessment. High Oracle probability alone is not an A+ setup."
