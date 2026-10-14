@@ -298,7 +298,22 @@ def main():
           ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
         story.append(ev_table)
         story.append(Spacer(1,10))
-        story.append(Paragraph(escape(str(val(r,"Gem's Independent Match Analysis","Unavailable"))),styles["SmallCell"]))
+        # Render the report-only risk and validation gates explicitly on each PDF fixture page.
+        assessment_rows=[
+          ["Reporting-only assessment","Status / rationale"],
+          ["Home evidence coverage",team_evidence_risk(r,"Home")+" — "+team_evidence_rationale(r,"Home")],
+          ["Away evidence coverage",team_evidence_risk(r,"Away")+" — "+team_evidence_rationale(r,"Away")],
+          ["Historical accuracy",historical_accuracy_status],
+          ["Market-specific outcome risk","NOT GRADED: no audited prediction-to-settlement cohort or bookmaker odds/value inputs are available."],
+          ["A+ setup","NOT GRADED: requires market-specific historical validation, evidence-risk review and bookmaker odds/value assessment."],
+          ["Probability handling","Raw Oracle probabilities copied unchanged; calibration NOT APPLIED; this evidence does not alter model probabilities."]
+        ]
+        assessment_table=Table([[Paragraph(escape(str(c)),styles["SmallCell"]) for c in row] for row in assessment_rows],
+          colWidths=[145,540],repeatRows=1)
+        assessment_table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#333333")),("TEXTCOLOR",(0,0),(-1,0),colors.white),
+          ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("GRID",(0,0),(-1,-1),0.3,colors.grey),("VALIGN",(0,0),(-1,-1),"TOP"),
+          ("LEFTPADDING",(0,0),(-1,-1),5),("RIGHTPADDING",(0,0),(-1,-1),5),("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
+        story.append(assessment_table)
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
     kickoff_values=evidence["kickoff_utc"].astype(str).str.strip() if "kickoff_utc" in evidence.columns else pd.Series([""]*len(evidence),index=evidence.index)
