@@ -170,6 +170,11 @@ def fetch_openfoot_standings(league_codes, league_names):
                 audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings"})
         except Exception as exc:
             audit["competition_failures"].append({"league_code":code,"reason":type(exc).__name__})
+            # Stop after an explicit provider rate-limit response; do not burn quota
+            # by retrying the same unavailable endpoint for every remaining league.
+            if getattr(getattr(exc,"response",None),"status_code",None)==429:
+                audit["reason"]="provider_rate_limited"
+                break
     audit["status"]="PASS" if cache and not audit["competition_failures"] else "PARTIAL" if cache else "UNAVAILABLE"
     audit["competitions_requested"]=len(by_code)
     audit["competitions_unresolved"]=sorted(set(map(str,league_codes))-set(by_code))
