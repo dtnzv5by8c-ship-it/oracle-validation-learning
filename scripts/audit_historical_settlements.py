@@ -195,6 +195,22 @@ def main() -> None:
             canonical_rows = len(pd.read_csv(canonical_settlement_path))
         except pd.errors.EmptyDataError:
             canonical_rows = 0
+    unresolved_fixture_summary = []
+    if len(audit_df):
+        unresolved = audit_df[audit_df["match_status"] != "MATCHED_SCORE_ONLY"].copy()
+        if len(unresolved):
+            group_cols = ["fixture_id", "competition", "fixture_date", "home_team", "away_team", "match_status", "reason"]
+            for _, group in unresolved.groupby(group_cols, dropna=False, sort=True):
+                unresolved_fixture_summary.append({
+                    "fixture_id": str(group["fixture_id"].iloc[0]),
+                    "competition": str(group["competition"].iloc[0]),
+                    "fixture_date": str(group["fixture_date"].iloc[0]),
+                    "home_team": str(group["home_team"].iloc[0]),
+                    "away_team": str(group["away_team"].iloc[0]),
+                    "match_status": str(group["match_status"].iloc[0]),
+                    "market_rows_unresolved": int(len(group)),
+                    "reason": str(group["reason"].iloc[0]),
+                })
     report = {
         "status": "AUDIT_COMPLETE" if len(audit_df) else "NO_CANDIDATES",
         "scope": "archived CHALLENGER predictions for final-score-settleable markets only",
@@ -202,6 +218,7 @@ def main() -> None:
         "unique_completed_result_rows": int(len(finished)),
         "score_only_settlement_candidates": int(len(settlements_df)),
         "match_status_counts": {str(k): int(v) for k, v in status_counts.items()},
+        "unresolved_fixture_summary": unresolved_fixture_summary,
         "canonical_settlement_ledger_rows_before": int(canonical_rows),
         "canonical_settlement_ledger_modified": False,
         "first_goal_and_1up_truth_inferred": False,
