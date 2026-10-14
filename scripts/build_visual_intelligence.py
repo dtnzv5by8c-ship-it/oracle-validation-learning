@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reporting-only Visual Intelligence build. Oracle prediction values are never modified."""
 from pathlib import Path
-import json, re
+import json, re, os, requests
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,6 +79,87 @@ def metrics(rows,p):
             f"{p}_Avg_Points_Per_Game_Last3":avg("pts",3) if len(rows)>=3 else "",
             f"{p}_Avg_Points_Per_Game_Last5":avg("pts",5) if len(rows)>=5 else ""}
 
+def fetch_openfoot_standings(league_codes, league_names):
+    """Fetch source-backed current standings once per competition; missing data stays explicit."""
+    key=os.getenv("OPENFOOT_API_KEY","").strip()
+    if not key:
+        return {}, {"status":"UNAVAILABLE","reason":"OPENFOOT_API_KEY not configured","competitions_fetched":0}
+    headers={"Accept":"application/json","Authorization":f"Bearer {key}"}
+    base="https://openfootapi.com/v1"
+    cache={}
+    audit={"status":"PARTIAL","reason":"","competitions_fetched":0,"competition_failures":[],"source":"OpenFoot API /v1/standings"}
+    try:
+        response=requests.get(f"{base}/competitions",headers=headers,timeout=25)
+        response.raise_for_status()
+        payload=response.json()
+        catalog=payload.get("data",[])
+        if isinstance(catalog,dict):
+            catalog=catalog.get("competitions",catalog.get("items",[]))
+        if not isinstance(catalog,list):
+            raise ValueError("unexpected competitions catalogue schema")
+    except Exception as exc:
+        audit["reason"]=f"competition_catalogue_unavailable:{type(exc).__name__}"
+        return {},audit
+    def field(obj,*names):
+        for name in names:
+            val=obj.get(name) if isinstance(obj,dict) else None
+            if val not in (None,""): return val
+        return ""
+    norm_codes={norm(x) for x in league_codes if str(x).strip()}
+    norm_names={norm(x) for x in league_names if str(x).strip()}
+    candidates=[]
+    for comp in catalog:
+        if not isinstance(comp,dict): continue
+        code=field(comp,"code","leagueCode","shortCode")
+        name=field(comp,"name","title","competitionName")
+        cid=field(comp,"id","competitionId","competition_id")
+        if cid and ((norm(code) in norm_codes and norm(code)) or (norm(name) in norm_names and norm(name))):
+            candidates.append((str(cid),str(code),str(name)))
+    by_code={}
+    for code in league_codes:
+        matches=[c for c in candidates if norm(c[1])==norm(code)]
+        if len(matches)==1: by_code[str(code)]=matches[0]
+    for code,name in zip(league_codes,league_names):
+        if str(code) in by_code: continue
+        matches=[c for c in candidates if norm(c[2])==norm(name)]
+        if len(matches)==1: by_code[str(code)]=matches[0]
+    for code,comp in by_code.items():
+        cid,provider_code,provider_name=comp
+        try:
+            rr=requests.get(f"{base}/standings",params={"competition":cid},headers=headers,timeout=25)
+            rr.raise_for_status()
+            body=rr.json()
+            rows=body.get("data",[])
+            if isinstance(rows,dict):
+                rows=rows.get("standings",rows.get("table",rows.get("items",[])))
+            if not isinstance(rows,list):
+                raise ValueError("unexpected standings schema")
+            table={}
+            for item in rows:
+                if not isinstance(item,dict): continue
+                team=item.get("team") or item.get("participant") or item.get("club") or {}
+                team_name=field(team,"name","title","displayName") if isinstance(team,dict) else str(team)
+                team_name=team_name or field(item,"teamName","name","participantName")
+                if not team_name: continue
+                table[norm(team_name)]={
+                    "position":field(item,"position","rank","place","positionNumber"),
+                    "points":field(item,"points","pts"),
+                    "played":field(item,"played","matchesPlayed","gamesPlayed","matches"),
+                    "goal_difference":field(item,"goalDifference","goal_difference","gd"),
+                    "form":field(item,"form","recentForm","lastFive"),
+                    "provider":"OpenFoot API","competition":provider_name}
+            if table:
+                cache[code]=table
+                audit["competitions_fetched"]+=1
+            else:
+                audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings"})
+        except Exception as exc:
+            audit["competition_failures"].append({"league_code":code,"reason":type(exc).__name__})
+    audit["status"]="PASS" if cache and not audit["competition_failures"] else "PARTIAL" if cache else "UNAVAILABLE"
+    audit["competitions_requested"]=len(by_code)
+    audit["competitions_unresolved"]=sorted(set(map(str,league_codes))-set(by_code))
+    return cache,audit
+
 def main():
     for p in (SCHEDULE,PREDICTIONS):
         if not p.exists(): raise SystemExit(f"BLOCKED: required file missing: {p}")
@@ -106,6 +187,9 @@ def main():
     counts=fixtures.fixture_id.value_counts()
     if (counts>1).any(): raise SystemExit("BLOCKED: fixture_id maps to conflicting fixture identities.")
     hist=make_history()
+    league_pairs=fixtures[["league_code","league"]].drop_duplicates()
+    standings,standings_audit=fetch_openfoot_standings(
+        league_pairs["league_code"].astype(str).tolist(),league_pairs["league"].astype(str).tolist())
     rows=[]
     for _, f in fixtures.iterrows():
         dt=pd.to_datetime(f.fixture_date,errors="coerce",utc=True)
@@ -130,6 +214,20 @@ def main():
         a_hist,a_rows=team_games(league_hist,norm(f.away_team),cutoff)
         base.update(metrics(h_rows,"Home")); base.update(metrics(a_rows,"Away"))
         base["Home History Matches"]=len(h_rows); base["Away History Matches"]=len(a_rows)
+        table=standings.get(league_code,{})
+        home_table=table.get(norm(f.home_team),{})
+        away_table=table.get(norm(f.away_team),{})
+        base["Home League Position"]=home_table.get("position","")
+        base["Away League Position"]=away_table.get("position","")
+        base["Home League Points"]=home_table.get("points","")
+        base["Away League Points"]=away_table.get("points","")
+        base["Home League Played"]=home_table.get("played","")
+        base["Away League Played"]=away_table.get("played","")
+        base["Home League Form"]=home_table.get("form","")
+        base["Away League Form"]=away_table.get("form","")
+        base["Standings Source"]="OpenFoot API" if home_table and away_table else "UNAVAILABLE"
+        base["Standings As-Of UTC"]=pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds") if home_table and away_table else ""
+        base["Standings Competition"]=home_table.get("competition","") if home_table and away_table else ""
         h2h=league_hist[( ((league_hist.home_n==norm(f.home_team))&(league_hist.away_n==norm(f.away_team))) |
                           ((league_hist.home_n==norm(f.away_team))&(league_hist.away_n==norm(f.home_team))) ) &
                          (league_hist.date_dt<cutoff)].sort_values("date_dt").tail(5)
@@ -149,19 +247,30 @@ def main():
             base.update({"H2H Last5 Summary":"","H2H Wins Home":"","H2H Draws":"","H2H Wins Away":"",
                          "H2H Avg Total Goals":"","H2H BTTS %":"","H2H Over 2.5 %":""})
         base["Data As-Of Date"]=str(hist.date_dt.max().date()) if len(hist) else ""
-        base["Evidence Status"]="PARTIAL" if len(h_rows)>=3 and len(a_rows)>=3 else "INSUFFICIENT_HISTORY"
-        if len(h_rows)<5 or len(a_rows)<5:
+        history_ok=len(h_rows)>=3 and len(a_rows)>=3
+        standings_ok=bool(home_table and away_table)
+        base["Evidence Status"]="VERIFIED_STANDINGS_AND_HISTORY" if history_ok and standings_ok else "PARTIAL" if history_ok or standings_ok else "INSUFFICIENT_HISTORY"
+        base["Visual Evidence Components"]="; ".join(x for x,ok in [
+            ("Recent results/form",history_ok),("Head-to-head",len(h2h)>0),("League standings",standings_ok),
+            ("Season finishes",False),("Team profiles",False),("Derby context",False)] if ok) or "NO_VERIFIED_COMPONENTS"
+        if len(h_rows)<5 or len(a_rows)<5 or not standings_ok:
             base["Risk Profile"]="DATA COVERAGE RISK"
-            base["Risk Rationale"]=f"Recent-history coverage is incomplete (home={len(h_rows)}/5, away={len(a_rows)}/5); standings, season finishes, profiles and derby evidence are unverified."
+            base["Risk Rationale"]=f"History coverage home={len(h_rows)}/5, away={len(a_rows)}/5; standings {'verified' if standings_ok else 'unavailable/unmatched'}; season finishes, team profiles and derby evidence remain unverified."
         rows.append(base)
     out=pd.DataFrame(rows)
     if out["Fixture ID"].duplicated().any(): raise SystemExit("BLOCKED: duplicate Fixture IDs in Visual Intelligence output.")
     if set(out["Fixture ID"])!=set(fixtures["fixture_id"]): raise SystemExit("BLOCKED: fixture-level join coverage mismatch.")
     OUT.parent.mkdir(parents=True,exist_ok=True)
     out.to_csv(OUT,index=False)
-    print(json.dumps({"status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
-                      "fixture_id_unique":True,"oracle_probabilities_modified":False,
-                      "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
-                      "output":str(OUT)},indent=2))
+    audit_path=OUT.with_name("visual_intelligence_audit.json")
+    audit={"status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
+           "fixture_id_unique":True,"oracle_probabilities_modified":False,
+           "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
+           "standings_source_audit":standings_audit,
+           "standings_matched_fixture_count":int((out.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
+           "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
+           "output":str(OUT)}
+    audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\\n",encoding="utf-8")
+    print(json.dumps(audit,indent=2,default=str))
 
 if __name__=="__main__": main()
