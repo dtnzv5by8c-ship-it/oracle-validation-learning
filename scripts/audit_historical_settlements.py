@@ -52,6 +52,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--oracle-root", required=True, type=Path)
     ap.add_argument("--output-dir", required=True, type=Path)
+    ap.add_argument("--supplemental-results", type=Path, default=None,
+                    help="Optional reviewed score-only evidence CSV keyed by exact archived fixture_id; research/reporting only.")
     args = ap.parse_args()
     root = args.oracle_root
     out = args.output_dir
@@ -65,6 +67,13 @@ def main() -> None:
 
     pred = pd.read_csv(pred_path, dtype=str).fillna("")
     results = pd.read_csv(result_path, dtype=str).fillna("")
+    supplemental = pd.DataFrame()
+    supplemental_required = {"fixture_id", "competition", "fixture_date", "home_team", "away_team", "home_goals", "away_goals", "status", "source_name", "source_url", "source_note"}
+    if args.supplemental_results is not None and args.supplemental_results.exists():
+        supplemental = pd.read_csv(args.supplemental_results, dtype=str).fillna("")
+        missing_s = sorted(supplemental_required - set(supplemental.columns))
+        if missing_s:
+            raise SystemExit(f"BLOCKED: supplemental results schema mismatch; missing={missing_s}")
     missing_p = sorted(PREDICTION_REQUIRED - set(pred.columns))
     missing_r = sorted(RESULT_REQUIRED - set(results.columns))
     if missing_p or missing_r:
@@ -98,11 +107,36 @@ def main() -> None:
         all_date_groups.setdefault(key, []).append(idx)
         pair_any_date_groups.setdefault((row["home_key"], row["away_key"]), []).append(idx)
 
+    supplemental_by_id = {}
+    for _, sr in supplemental.iterrows():
+        supplemental_by_id.setdefault(str(sr["fixture_id"]), []).append(sr)
     settlements = []
     audit_rows = []
+    supplemental_matched_ids = set()
+    supplemental_rejected = []
     for _, p in pred.iterrows():
         key = (p["fixture_date_key"], p["home_key"], p["away_key"])
         hits = groups.get(key, [])
+        supplemental_match = None
+        if not hits and not all_date_groups.get(key):
+            candidates = supplemental_by_id.get(str(p["fixture_id"]), [])
+            for sr in candidates:
+                # Explicit reviewed fixture-ID crosswalk, with date/team/competition validation.
+                # No fuzzy matching: names must normalize exactly to the archived prediction names.
+                valid_identity = (
+                    str(sr["competition"]).strip() == str(p["competition"]).strip()
+                    and pd.to_datetime(sr["fixture_date"], errors="coerce").strftime("%Y-%m-%d") == key[0]
+                    and norm_team(sr["home_team"]) == key[1]
+                    and norm_team(sr["away_team"]) == key[2]
+                )
+                valid_score = (str(sr["status"]).upper() in {"FT", "AET", "PEN", "FINISHED"}
+                               and str(sr["home_goals"]).fullmatch(r"\\d+") is not None
+                               and str(sr["away_goals"]).fullmatch(r"\\d+") is not None
+                               and bool(str(sr["source_name"]).strip()) and str(sr["source_url"]).startswith("https://"))
+                if valid_identity and valid_score:
+                    supplemental_match = sr
+                    break
+                supplemental_rejected.append({"fixture_id": str(p["fixture_id"]), "reason": "Supplemental row failed exact identity, completed-status, score, or source validation"})
         base = {
             "prediction_id": p["prediction_id"], "run_id": p["run_id"],
             "fixture_id": p["fixture_id"], "competition": p["competition"],
@@ -112,6 +146,48 @@ def main() -> None:
             "model_status": p["model_status"], "prediction_timestamp": p["prediction_timestamp"],
             "raw_probability": p["raw_probability"],
         }
+        if len(hits) != 1 and supplemental_match is not None:
+            r = supplemental_match
+            hg, ag = int(r["home_goals"]), int(r["away_goals"])
+            y = truth_for_market(p["selection"], hg, ag)
+            try:
+                probability = float(p["raw_probability"])
+            except (TypeError, ValueError):
+                probability = float("nan")
+            if y is None or not math.isfinite(probability) or not 0 <= probability <= 1:
+                audit_rows.append({**base, "match_status": "BLOCKED_INVALID_INPUT",
+                                   "matching_completed_results": 1, "matched_result_date_utc": r["fixture_date"],
+                                   "matched_result_home": r["home_team"], "matched_result_away": r["away_team"],
+                                   "final_home_score": hg, "final_away_score": ag,
+                                   "source_name": r["source_name"], "source_url": r["source_url"],
+                                   "reason": "Supplemental score verified but market/probability input is invalid"})
+                continue
+            eps = 1e-15
+            clipped = min(1-eps, max(eps, probability))
+            settlements.append({
+                "prediction_id": p["prediction_id"], "run_id": p["run_id"], "fixture_id": p["fixture_id"],
+                "market": p["selection"], "raw_probability": probability,
+                "settlement_timestamp": pd.Timestamp.now(tz="UTC").isoformat(),
+                "final_home_score": hg, "final_away_score": ag,
+                "first_goal_team": "", "first_goal_minute": "", "btts_truth": int(hg > 0 and ag > 0),
+                "home_1up_truth": "", "away_1up_truth": "", "selection_truth": y,
+                "prediction_hit": int((probability >= 0.5) == bool(y)),
+                "probability_error": probability - y, "brier_component": (probability-y)**2,
+                "log_loss_component": -(y*math.log(clipped) + (1-y)*math.log(1-clipped)),
+                "settlement_source": str(r["source_name"]), "settlement_source_url": str(r["source_url"]),
+                "event_truth_source": "Reviewed source result matched by exact archived fixture_id/date/team identity; score-derived market truth only",
+                "event_truth_cutoff_date": p["fixture_date"], "settlement_status": "SETTLED_SUPPLEMENTAL_SCORE_ONLY_AUDIT",
+                "miss_class": "", "root_cause": "",
+                "notes": "Reporting/research-only supplemental source row; canonical settlement ledger unchanged; no odds/value or first-goal evidence inferred."
+            })
+            supplemental_matched_ids.add(str(p["fixture_id"]))
+            audit_rows.append({**base, "match_status": "MATCHED_SUPPLEMENTAL_SCORE_ONLY",
+                               "matching_completed_results": 1, "matched_result_date_utc": r["fixture_date"],
+                               "matched_result_home": r["home_team"], "matched_result_away": r["away_team"],
+                               "final_home_score": hg, "final_away_score": ag, "selection_truth": y,
+                               "source_name": r["source_name"], "source_url": r["source_url"],
+                               "reason": "Reviewed source score; exact archived fixture ID, date, normalized teams, and competition validated"})
+            continue
         if len(hits) != 1:
             if hits:
                 match_status = "AMBIGUOUS"
@@ -158,8 +234,8 @@ def main() -> None:
             "prediction_hit": int((probability >= 0.5) == bool(y)),
             "probability_error": probability - y, "brier_component": (probability-y)**2,
             "log_loss_component": -(y*math.log(clipped) + (1-y)*math.log(1-clipped)),
-            "settlement_source": "FotMob current_matches.csv",
-            "event_truth_source": "Unique completed final score; score-derived market truth only",
+            "settlement_source": "Current verified results dataset", "settlement_source_url": "",
+            "event_truth_source": "Unique exact normalized team/date match to completed final score; score-derived market truth only",
             "event_truth_cutoff_date": p["fixture_date"], "settlement_status": "SETTLED_SCORE_ONLY_AUDIT",
             "miss_class": "", "root_cause": "",
             "notes": "Research audit candidate only; canonical settlement ledger unchanged; no odds/value or first-goal evidence inferred."
@@ -168,6 +244,7 @@ def main() -> None:
                            "matching_completed_results": 1, "matched_result_date_utc": r["date_utc"],
                            "matched_result_home": r["home_team"], "matched_result_away": r["away_team"],
                            "final_home_score": hg, "final_away_score": ag, "selection_truth": y,
+                           "source_name": "Current verified results dataset", "source_url": "",
                            "reason": "Unique exact normalized team/date match; final-score-settleable market"})
 
     settlements_df = pd.DataFrame(settlements)
@@ -197,7 +274,7 @@ def main() -> None:
             canonical_rows = 0
     unresolved_fixture_summary = []
     if len(audit_df):
-        unresolved = audit_df[audit_df["match_status"] != "MATCHED_SCORE_ONLY"].copy()
+        unresolved = audit_df[~audit_df["match_status"].isin({"MATCHED_SCORE_ONLY", "MATCHED_SUPPLEMENTAL_SCORE_ONLY"})].copy()
         if len(unresolved):
             group_cols = ["fixture_id", "competition", "fixture_date", "home_team", "away_team", "match_status", "reason"]
             for _, group in unresolved.groupby(group_cols, dropna=False, sort=True):
@@ -217,6 +294,10 @@ def main() -> None:
         "prediction_rows_considered": int(len(pred)),
         "unique_completed_result_rows": int(len(finished)),
         "score_only_settlement_candidates": int(len(settlements_df)),
+        "supplemental_result_rows_loaded": int(len(supplemental)),
+        "supplemental_fixture_ids_matched": int(len(supplemental_matched_ids)),
+        "supplemental_rows_rejected": supplemental_rejected,
+        "supplemental_sources": sorted(supplemental["source_name"].dropna().astype(str).unique().tolist()) if len(supplemental) else [],
         "match_status_counts": {str(k): int(v) for k, v in status_counts.items()},
         "unresolved_fixture_summary": unresolved_fixture_summary,
         "canonical_settlement_ledger_rows_before": int(canonical_rows),
