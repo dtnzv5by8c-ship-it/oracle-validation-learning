@@ -32,6 +32,10 @@ def main():
         if not p.exists() or p.stat().st_size==0: raise SystemExit(f"BLOCKED: missing/empty required input: {p}")
     pred=pd.read_csv(PRED).fillna("")
     vi=pd.read_csv(VI).fillna("")
+    # Locked reporting-only window: 16–19 October 2026 inclusive.
+    report_dates=pd.to_datetime(pred["fixture_date"],errors="coerce",utc=True).dt.strftime("%Y-%m-%d")
+    pred=pred.loc[report_dates.between("2026-10-16","2026-10-19")].copy()
+    if pred.empty: raise SystemExit("BLOCKED: no predictions in locked report window 2026-10-16 through 2026-10-19.")
     required={"fixture_id","fixture_date","league","home_team","away_team","selection","raw_probability","status"}
     if not required.issubset(pred.columns): raise SystemExit(f"BLOCKED: prediction schema missing {sorted(required-set(pred.columns))}")
     if "Fixture ID" not in vi.columns: raise SystemExit("BLOCKED: Visual Intelligence missing Fixture ID")
@@ -39,6 +43,10 @@ def main():
     if pred["fixture_id"].isna().any() or (pred["fixture_id"].astype(str).str.strip()=="").any(): raise SystemExit("BLOCKED: blank Oracle Fixture ID")
     identities=pred[["fixture_id","fixture_date","kickoff_utc","league","home_team","away_team","status","calibration_status"]].drop_duplicates()
     if identities.fixture_id.duplicated().any(): raise SystemExit("BLOCKED: fixture identity/status inconsistent across market rows")
+    report_ids=set(identities.fixture_id.astype(str))
+    vi=vi[vi["Fixture ID"].astype(str).isin(report_ids)].copy()
+    if set(vi["Fixture ID"].astype(str)) != report_ids:
+        raise SystemExit("BLOCKED: Visual Intelligence join incomplete for locked 16–19 October report window.")
     pivot=pred.pivot(index="fixture_id",columns="selection",values="raw_probability").reset_index()
     statuses=pred.groupby("fixture_id",as_index=False).agg(Prediction_Status=("status",lambda x:"PREDICTED" if (x=="PREDICTED").all() else "NO_PREDICTION"),
         Markets_Present=("selection","nunique"),Prematch_Cutoff_Home=("state_date_home","first"),Prematch_Cutoff_Away=("state_date_away","first"))
@@ -67,6 +75,7 @@ def main():
       ("xG","Excluded by specification."),
       ("Production status","DEVELOPMENT / VALIDATION ONLY. Promotion remains blocked."),
       ("Inputs",f"{PRED.name}; {VI.name}"),
+      ("Report window","16–19 October 2026 inclusive"),
       ("Fixture count",str(len(base))),
       ("Prediction status counts",json.dumps(base.Prediction_Status.value_counts().to_dict())),
       ("Visual Intelligence evidence status",json.dumps(base.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict())),
@@ -77,7 +86,7 @@ def main():
         row[0].font=Font(bold=True,color="FFFFFF"); row[0].fill=PatternFill("solid",fgColor="333333")
         row[1].alignment=Alignment(wrap_text=True,vertical="top")
     ws.freeze_panes="A2"
-    fx=wb.create_sheet("Fixture Predictions")
+    fx=wb.create_sheet("Fixture Predictions 16-19 Oct")
     cols=list(base.columns)
     fx.append(cols)
     for r in base.itertuples(index=False,name=None):
@@ -122,7 +131,8 @@ def main():
     audit={"status":"PASS","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
       "duplicate_fixture_ids":int(base.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
-      "evidence_status_counts":base.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict()}
+      "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
+      "report_window":{"start":"2026-10-16","end":"2026-10-19"}}
     AUDIT.write_text(json.dumps(audit,indent=2,default=str)+"\n")
     print(json.dumps(audit,indent=2,default=str))
 if __name__=="__main__": main()
