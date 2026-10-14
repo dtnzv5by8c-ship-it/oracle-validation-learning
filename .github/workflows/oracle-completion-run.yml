@@ -3,9 +3,11 @@ name: Oracle Completion Run
 
 on:
   push:
-    branches: [main]
+    branches: [main, reporting/visual-intelligence-enrichment]
     paths:
       - ".github/workflows/oracle-completion-run.yml"
+      - "scripts/build_visual_intelligence.py"
+      - "scripts/build_curated_visual_report.py"
   workflow_dispatch:
     inputs:
       days_ahead:
