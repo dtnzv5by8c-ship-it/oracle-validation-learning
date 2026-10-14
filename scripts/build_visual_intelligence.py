@@ -314,7 +314,7 @@ def main():
            "standings_matched_fixture_count":int((out.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
            "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
            "output":str(OUT)}
-    audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\\n",encoding="utf-8")
+    audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2,default=str))
 
 if __name__=="__main__": main()
