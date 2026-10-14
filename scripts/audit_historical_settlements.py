@@ -132,6 +132,7 @@ def main() -> None:
         clipped = min(1-eps, max(eps, probability))
         settlements.append({
             "prediction_id": p["prediction_id"], "run_id": p["run_id"], "fixture_id": p["fixture_id"],
+            "market": p["selection"],
             "settlement_timestamp": pd.Timestamp.now(tz="UTC").isoformat(),
             "final_home_score": hg, "final_away_score": ag,
             "first_goal_team": "", "first_goal_minute": "", "btts_truth": int(hg > 0 and ag > 0),
@@ -160,7 +161,7 @@ def main() -> None:
     settled_by_market = settlements_df.groupby("fixture_id")["market"].count().to_dict() if len(settlements_df) else {}
     market_summary = []
     if len(settlements_df):
-        for market, g in settlements_df.merge(pred[["prediction_id", "selection"]], on="prediction_id", how="left").groupby("market"):
+        for market, g in settlements_df.groupby("market"):
             y = pd.to_numeric(g["selection_truth"], errors="coerce")
             p = pd.to_numeric(g["raw_probability"], errors="coerce")
             market_summary.append({
