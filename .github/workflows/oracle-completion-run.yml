@@ -3,7 +3,7 @@ name: Oracle Completion Run
 
 on:
   push:
-    branches: [main, reporting/visual-intelligence-enrichment]
+    branches: [main, reporting/visual-intelligence-enrichment, reporting/run61-followups-32col-kickoff-risk]
     paths:
       - ".github/workflows/oracle-completion-run.yml"
       - "scripts/build_visual_intelligence.py"
