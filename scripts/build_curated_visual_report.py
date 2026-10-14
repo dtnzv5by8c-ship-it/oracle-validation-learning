@@ -159,7 +159,7 @@ def main():
     settlement_script=Path(__file__).with_name("audit_historical_settlements.py")
     try:
         if settlement_script.exists() and (ORACLE/"archive/PREDICTION_LEDGER.csv").exists() and (ORACLE/"database/current_matches.csv").exists():
-            audit_process=subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir)],
+            audit_process=subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir),"--supplemental-results",str(ROOT/"data/supplemental_verified_results.csv")],
                                           check=False,capture_output=True,text=True,timeout=120)
             summary_path=settlement_dir/"settlement_audit_summary.json"
             if summary_path.exists():
