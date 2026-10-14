@@ -54,8 +54,28 @@ jobs:
             echo "ERROR: ORACLE_READ_TOKEN secret is missing."
             exit 1
           fi
-          git clone --depth 1 --branch fix/epl-btts-team-state-aliases \
-            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          # Retry transient GitHub transport interruptions; never continue with a partial clone.
+          export GIT_TERMINAL_PROMPT=0
+          export GIT_HTTP_VERSION=HTTP/1.1
+          clone_url="https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git"
+          clone_ok=0
+          for attempt in 1 2 3; do
+            echo "Private Oracle clone attempt ${attempt}/3"
+            rm -rf oracle
+            if git -c http.version=HTTP/1.1 clone --depth 1 --single-branch --branch fix/epl-btts-team-state-aliases "$clone_url" oracle; then
+              clone_ok=1
+              break
+            fi
+            rm -rf oracle
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          unset clone_url
+          if [ "$clone_ok" -ne 1 ]; then
+            echo "ERROR: private Oracle clone failed after 3 attempts; stopping safely."
+            exit 1
+          fi
           echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
           echo "Governed alias correction refresh: 015df644864392501ad0173b6350dd3a15d10e1f"
