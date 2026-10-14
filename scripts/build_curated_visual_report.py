@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a reporting-only Oracle workbook/PDF by exact Fixture ID; never alters prediction values."""
 from pathlib import Path
-import json, re
+import json, re, subprocess, sys
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -150,7 +150,39 @@ def main():
         idx=str(val(row,f"{side} Index Evidence","UNAVAILABLE") or "UNAVAILABLE")
         pos=str(val(row,f"{side} League Position","UNVERIFIED") or "UNVERIFIED")
         return f"Pre-fixture history={n}/5; index evidence={idx}; league position={pos}. This measures evidence coverage, not outcome safety."
-    historical_accuracy_status = "NOT CALCULABLE: no audited archive of pre-match Oracle predictions matched to completed results by team and market is available in the current report inputs. No accuracy percentage is inferred."
+    # Run an isolated score-only audit against the archived CHALLENGER ledger.
+    # This does not write to the canonical settlement ledger or affect Oracle probabilities.
+    settlement_dir=OUTDIR/"settlement_audit"
+    settlement_summary={}
+    settlement_candidates=[]
+    settlement_match_audit=[]
+    settlement_script=Path(__file__).with_name("audit_historical_settlements.py")
+    try:
+        if settlement_script.exists() and (ORACLE/"archive/PREDICTION_LEDGER.csv").exists() and (ORACLE/"database/current_matches.csv").exists():
+            subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir)],
+                           check=False,capture_output=True,text=True,timeout=120)
+            summary_path=settlement_dir/"settlement_audit_summary.json"
+            if summary_path.exists():
+                settlement_summary=json.loads(summary_path.read_text(encoding="utf-8"))
+            candidates_path=settlement_dir/"settlement_candidates_score_only.csv"
+            if candidates_path.exists():
+                candidates_frame=pd.read_csv(candidates_path)
+                settlement_candidates=candidates_frame.where(pd.notna(candidates_frame),None).to_dict(orient="records")
+            match_audit_path=settlement_dir/"prediction_settlement_match_audit.csv"
+            if match_audit_path.exists():
+                match_frame=pd.read_csv(match_audit_path)
+                settlement_match_audit=match_frame.where(pd.notna(match_frame),None).to_dict(orient="records")
+        else:
+            settlement_summary={"status":"BLOCKED_INPUTS_MISSING","canonical_settlement_ledger_modified":False}
+    except Exception as exc:
+        settlement_summary={"status":"BLOCKED_AUDIT_ERROR","error_type":type(exc).__name__,"canonical_settlement_ledger_modified":False}
+    settled_n=int(settlement_summary.get("score_only_settlement_candidates",0) or 0)
+    considered_n=int(settlement_summary.get("prediction_rows_considered",0) or 0)
+    if settled_n:
+        historical_accuracy_status=(f"CHALLENGER SCORE-ONLY AUDIT: {settled_n} of {considered_n} archived market predictions uniquely matched to completed scores; research only, not production accuracy. "
+                                    "No odds/value or first-goal/1UP truth inferred.")
+    else:
+        historical_accuracy_status="NOT CALCULABLE: no unique, verified score-only settlement cohort was produced. No accuracy percentage is inferred."
     setup_status = "NOT GRADED: requires market-specific historical hit rate/calibration, evidence-risk review and bookmaker odds/value assessment. High Oracle probability alone is not an A+ setup."
     report=pd.DataFrame({
       "Fixture Date":evidence["fixture_date"].astype(str).str[:10],
@@ -327,7 +359,14 @@ def main():
       "historical_accuracy":"NOT_CALCULABLE_SETTLEMENT_LEDGER_EMPTY","market_specific_outcome_risk":"NOT_GRADED_NO_AUDITED_SETTLEMENTS_OR_ODDS","a_plus_setup":"NOT_GRADED",
       "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
       "standings_matched_fixtures":int((evidence.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
-      "probability_values_carried_from_raw_output":True}
+      "probability_values_carried_from_raw_output":True,
+      "historical_settlement_audit":{
+        "summary":settlement_summary,
+        "score_only_candidate_rows":settlement_candidates,
+        "prediction_match_audit_rows":settlement_match_audit,
+        "canonical_settlement_ledger_modified":False,
+        "production_probabilities_modified":False,
+        "promotion":"BLOCKED"}}
     AUDIT.write_text(json.dumps(audit,indent=2,default=str)+"\n")
     print(json.dumps(audit,indent=2,default=str))
 if __name__=="__main__": main()
