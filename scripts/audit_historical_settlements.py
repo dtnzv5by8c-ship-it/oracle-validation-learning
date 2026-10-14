@@ -132,7 +132,7 @@ def main() -> None:
         clipped = min(1-eps, max(eps, probability))
         settlements.append({
             "prediction_id": p["prediction_id"], "run_id": p["run_id"], "fixture_id": p["fixture_id"],
-            "market": p["selection"],
+            "market": p["selection"], "raw_probability": probability,
             "settlement_timestamp": pd.Timestamp.now(tz="UTC").isoformat(),
             "final_home_score": hg, "final_away_score": ag,
             "first_goal_team": "", "first_goal_minute": "", "btts_truth": int(hg > 0 and ag > 0),
