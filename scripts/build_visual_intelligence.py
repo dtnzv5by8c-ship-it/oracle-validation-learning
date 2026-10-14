@@ -79,6 +79,19 @@ def metrics(rows,p):
             f"{p}_Avg_Points_Per_Game_Last3":avg("pts",3) if len(rows)>=3 else "",
             f"{p}_Avg_Points_Per_Game_Last5":avg("pts",5) if len(rows)>=5 else ""}
 
+def team_indices(rows, league_history):
+    """Transparent reporting-only indices, normalized to a 0–100 scale against pre-fixture league scoring."""
+    if len(rows) < 3 or league_history.empty:
+        return "", "", "INSUFFICIENT_HISTORY"
+    league_avg = (league_history["hg"].sum() + league_history["ag"].sum()) / (2 * len(league_history))
+    if not pd.notna(league_avg) or league_avg <= 0:
+        return "", "", "LEAGUE_BASELINE_UNAVAILABLE"
+    gf = sum(x["gf"] for x in rows) / len(rows)
+    ga = sum(x["ga"] for x in rows) / len(rows)
+    attack = round(min(100.0, max(0.0, 50.0 * gf / league_avg)), 1)
+    defence = round(100.0 if ga == 0 else min(100.0, max(0.0, 50.0 * league_avg / ga)), 1)
+    return attack, defence, "DERIVED_LAST5_VS_LEAGUE_BASELINE"
+
 def fetch_openfoot_standings(league_codes, league_names):
     """Fetch source-backed current standings once per competition; missing data stays explicit."""
     key=os.getenv("OPENFOOT_API_KEY","").strip()
@@ -233,6 +246,17 @@ def main():
         h_hist,h_rows=team_games(league_hist,norm(f.home_team),cutoff)
         a_hist,a_rows=team_games(league_hist,norm(f.away_team),cutoff)
         base.update(metrics(h_rows,"Home")); base.update(metrics(a_rows,"Away"))
+        # Reporting-only indices; these do not feed into Oracle prediction probabilities.
+        pre_fixture_league = league_hist[league_hist.date_dt < cutoff]
+        hai, hdi, hidx_status = team_indices(h_rows, pre_fixture_league)
+        aai, adi, aidx_status = team_indices(a_rows, pre_fixture_league)
+        base["Home Attacking Index"] = hai
+        base["Home Defensive Index"] = hdi
+        base["Away Attacking Index"] = aai
+        base["Away Defensive Index"] = adi
+        base["Index Method"] = "0–100; 50=league average; attack=last-5 goals scored relative to pre-fixture league average; defence=inverse last-5 goals conceded relative to league average; minimum 3 prior matches"
+        base["Home Index Evidence"] = hidx_status
+        base["Away Index Evidence"] = aidx_status
         base["Home History Matches"]=len(h_rows); base["Away History Matches"]=len(a_rows)
         table=standings.get(league_code,{})
         home_table=table.get(norm(f.home_team),{})
@@ -271,7 +295,7 @@ def main():
         standings_ok=bool(home_table and away_table)
         base["Evidence Status"]="VERIFIED_STANDINGS_AND_HISTORY" if history_ok and standings_ok else "PARTIAL" if history_ok or standings_ok else "INSUFFICIENT_HISTORY"
         base["Visual Evidence Components"]="; ".join(x for x,ok in [
-            ("Recent results/form",history_ok),("Head-to-head",len(h2h)>0),("League standings",standings_ok),
+            ("Recent results/form",history_ok),("Head-to-head",len(h2h)>0),("League standings",standings_ok),("Form-based attack/defence indices",str(hidx_status).startswith("DERIVED") and str(aidx_status).startswith("DERIVED")),
             ("Season finishes",False),("Team profiles",False),("Derby context",False)] if ok) or "NO_VERIFIED_COMPONENTS"
         if len(h_rows)<5 or len(a_rows)<5 or not standings_ok:
             base["Risk Profile"]="DATA COVERAGE RISK"
