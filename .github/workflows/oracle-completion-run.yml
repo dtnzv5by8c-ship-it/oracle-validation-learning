@@ -342,6 +342,8 @@ jobs:
       - name: Build reporting-only Visual Intelligence layer
         if: always()
         working-directory: oracle
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
         run: |
           set -euo pipefail
           python -m py_compile ../scripts/build_visual_intelligence.py
@@ -391,6 +393,7 @@ jobs:
             oracle/database/current_matches.csv
             oracle/database/matches.csv
             oracle/reports/visual_intelligence.csv
+            oracle/reports/visual_intelligence_audit.json
             oracle/reports/oracle_curated_visual_report.xlsx
             oracle/reports/oracle_curated_visual_report.pdf
             oracle/reports/oracle_curated_visual_report_audit.json
