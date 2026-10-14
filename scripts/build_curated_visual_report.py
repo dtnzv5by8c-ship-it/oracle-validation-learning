@@ -78,7 +78,8 @@ def main():
             return ""
     def independent_analysis(row):
         status=str(val(row,"Evidence Status","UNAVAILABLE") or "UNAVAILABLE")
-        risk=str(val(row,"Risk Profile","UNAVAILABLE") or "UNAVAILABLE")
+        home_risk=str(val(row,"Home Evidence Risk","UNAVAILABLE") or "UNAVAILABLE")
+        away_risk=str(val(row,"Away Evidence Risk","UNAVAILABLE") or "UNAVAILABLE")
         home_form=str(val(row,"Home_Recent_Form_Last5","unavailable") or "unavailable")
         away_form=str(val(row,"Away_Recent_Form_Last5","unavailable") or "unavailable")
         hpos=str(val(row,"Home League Position","unverified") or "unverified")
@@ -117,7 +118,7 @@ def main():
                 f"TOTAL Index (attack + defence, home vs away) {total}. Indices are reporting-only, normalized to a 0–100 scale per component "
                 "with 50 representing the pre-fixture league average; derived from each team's last five available results (minimum three) "
                 "and the league's pre-fixture scoring baseline. "
-                f"Evidence status: {status}. Risk: {risk}. Recent results (last five): {home_form} vs {away_form}. "
+                f"Evidence status: {status}. Team evidence risk: home {home_risk}; away {away_risk}. Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
                 f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
                 f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
