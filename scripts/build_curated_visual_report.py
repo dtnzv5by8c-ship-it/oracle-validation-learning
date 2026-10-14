@@ -144,7 +144,7 @@ def main():
       ("Inputs",f"{PRED.name}; {VI.name}"),
       ("Report window","16–19 October 2026 inclusive"),
       ("Fixture count",str(len(base))),
-      ("Prediction status counts",json.dumps(base.Prediction_Status.value_counts().to_dict())),
+      ("Prediction status counts",json.dumps(evidence.Prediction_Status.value_counts().to_dict())),
       ("Visual Intelligence evidence status",json.dumps(evidence.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict())),
       ("OpenFoot standings coverage",json.dumps(evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict())),
       ("Report schema","Locked 32 columns; TOTAL Index is Attacking Index + Defensive Index when source indices exist; missing values remain blank."),
@@ -195,13 +195,49 @@ def main():
       ("LEFTPADDING",(0,0),(-1,-1),3),("RIGHTPADDING",(0,0),(-1,-1),3),("TOPPADDING",(0,0),(-1,-1),3),("BOTTOMPADDING",(0,0),(-1,-1),3)]))
     story += [table,Spacer(1,10),Paragraph("Evidence note: Visual Intelligence is reporting context, not a model probability. Empty fields indicate unavailable evidence. Do not infer a negative signal from missing data.",styles["BodyText"]),
       Spacer(1,6),Paragraph("Validation: exact Fixture ID join; one row per fixture; prediction values copied from the raw Oracle output; no calibration, model changes or xG.",styles["BodyText"])]
+    # Individual fixture evidence pages make the supporting context visible in the PDF, not only Excel.
+    from xml.sax.saxutils import escape
+    for _,r in evidence.iterrows():
+        story.append(PageBreak())
+        fixture=f"{val(r,'home_team')} vs {val(r,'away_team')}"
+        story.append(Paragraph(escape(fixture),styles["Heading1"]))
+        story.append(Paragraph(escape(f"Date: {str(val(r,'fixture_date'))[:10]} | League: {val(r,'league')} | Evidence status: {val(r,'Evidence Status','UNAVAILABLE')} | Risk: {val(r,'Risk Profile','UNAVAILABLE')}"),styles["BodyText"]))
+        story.append(Spacer(1,8))
+        evidence_rows=[
+          ["Visual evidence item","Home","Away"],
+          ["Recent form (last 5)",str(val(r,"Home_Recent_Form_Last5","Unavailable") or "Unavailable"),str(val(r,"Away_Recent_Form_Last5","Unavailable") or "Unavailable")],
+          ["Last-5 goals scored",str(val(r,"Home_Last5_Goals_For","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_For","Unavailable") or "Unavailable")],
+          ["Last-5 goals conceded",str(val(r,"Home_Last5_Goals_Against","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_Against","Unavailable") or "Unavailable")],
+          ["Last-5 points",str(val(r,"Home_Last5_Points","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Points","Unavailable") or "Unavailable")],
+          ["League position",str(val(r,"Home League Position","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Position","UNVERIFIED") or "UNVERIFIED")],
+          ["League points",str(val(r,"Home League Points","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Points","UNVERIFIED") or "UNVERIFIED")],
+          ["League form",str(val(r,"Home League Form","Unavailable") or "Unavailable"),str(val(r,"Away League Form","Unavailable") or "Unavailable")],
+          ["History matches available",str(val(r,"Home History Matches","0")),str(val(r,"Away History Matches","0"))],
+          ["Standings source",str(val(r,"Standings Source","UNAVAILABLE") or "UNAVAILABLE"),str(val(r,"Standings Source","UNAVAILABLE") or "UNAVAILABLE")],
+          ["Head-to-head (last 5)",str(val(r,"H2H Last5 Summary","Unavailable") or "Unavailable"),""],
+          ["H2H average total goals",str(val(r,"H2H Avg Total Goals","Unavailable") or "Unavailable"),""],
+          ["Risk rationale",str(val(r,"Risk Rationale","Unavailable") or "Unavailable"),""],
+          ["Source and timestamp",str(val(r,"Data Source(s)","Unavailable") or "Unavailable")+" | standings as-of "+str(val(r,"Standings As-Of UTC","Unavailable") or "Unavailable"),""],
+        ]
+        escaped_rows=[[Paragraph(escape(str(c)),styles["SmallCell"]) for c in row] for row in evidence_rows]
+        ev_table=Table(escaped_rows,colWidths=[145,270,270],repeatRows=1)
+        ev_table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#333333")),("TEXTCOLOR",(0,0),(-1,0),colors.white),
+          ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("FONTSIZE",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.grey),
+          ("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),5),("RIGHTPADDING",(0,0),(-1,-1),5),
+          ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
+        story.append(ev_table)
+        story.append(Spacer(1,10))
+        story.append(Paragraph(escape(str(val(r,"Gem's Independent Match Analysis","Unavailable"))),styles["SmallCell"]))
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
     audit={"status":"PASS","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
-      "duplicate_fixture_ids":int(base.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
+      "duplicate_fixture_ids":int(evidence.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
-      "report_window":{"start":"2026-10-16","end":"2026-10-19"}}
+      "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
+      "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
+      "standings_matched_fixtures":int((evidence.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
+      "probability_values_carried_from_raw_output":True}
     AUDIT.write_text(json.dumps(audit,indent=2,default=str)+"\n")
     print(json.dumps(audit,indent=2,default=str))
 if __name__=="__main__": main()
