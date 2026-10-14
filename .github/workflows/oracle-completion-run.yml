@@ -8,6 +8,7 @@ on:
       - ".github/workflows/oracle-completion-run.yml"
       - "scripts/build_visual_intelligence.py"
       - "scripts/build_curated_visual_report.py"
+      - "scripts/audit_historical_settlements.py"
   workflow_dispatch:
     inputs:
       days_ahead:
