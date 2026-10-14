@@ -63,6 +63,12 @@ def main():
     def pair(row,home_key,away_key):
         h=val(row,home_key); a=val(row,away_key)
         return f"{h} vs {a}" if str(h).strip() and str(a).strip() else ""
+    def prob(row,key):
+        try:
+            x=float(row.get(key))
+            return x if 0 <= x <= 1 else None
+        except (TypeError,ValueError):
+            return None
     def total_pair(row):
         try:
             h=float(val(row,"Home Attacking Index"))+float(val(row,"Home Defensive Index"))
@@ -104,9 +110,9 @@ def main():
       "Home 1X + Over 1.5":evidence["HOME_1X_O15"],"Away X2 + Over 1.5":evidence["AWAY_X2_O15"],
       "Home 1X + Under 4.5":evidence["HOME_1X_U45"],"Away X2 + Under 4.5":evidence["AWAY_X2_U45"],
       "M-1UP Home":evidence["M1UP_HOME"],"M-1UP Away":evidence["M1UP_AWAY"],
-      "Draw Probability (derived)":evidence.apply(lambda r:max(0.0,min(1.0,float(r["HOME_1X"])+float(r["AWAY_X2"])-1.0)) if pd.notna(r["HOME_1X"]) and pd.notna(r["AWAY_X2"]) else "",axis=1),
-      "Goal Line Call (O/U 2.5)":evidence.apply(lambda r:"Over 2.5" if pd.notna(r["OVER_2_5"]) and pd.notna(r["UNDER_2_5"]) and r["OVER_2_5"]>r["UNDER_2_5"] else "Under 2.5" if pd.notna(r["OVER_2_5"]) and pd.notna(r["UNDER_2_5"]) and r["UNDER_2_5"]>r["OVER_2_5"] else "No clear edge",axis=1),
-      "Most Likely Total-Goals Band (derived)":evidence.apply(lambda r:"4+ goals" if pd.notna(r["OVER_3_5"]) and r["OVER_3_5"]>0.5 else "2–3 goals" if pd.notna(r["OVER_2_5"]) and r["OVER_2_5"]>0.5 else "0–1 goals",axis=1),
+      "Draw Probability (derived)":evidence.apply(lambda r:max(0.0,min(1.0,prob(r,"HOME_1X")+prob(r,"AWAY_X2")-1.0)) if prob(r,"HOME_1X") is not None and prob(r,"AWAY_X2") is not None else "",axis=1),
+      "Goal Line Call (O/U 2.5)":evidence.apply(lambda r:"Over 2.5" if prob(r,"OVER_2_5") is not None and prob(r,"UNDER_2_5") is not None and prob(r,"OVER_2_5")>prob(r,"UNDER_2_5") else "Under 2.5" if prob(r,"OVER_2_5") is not None and prob(r,"UNDER_2_5") is not None and prob(r,"UNDER_2_5")>prob(r,"OVER_2_5") else "No clear edge",axis=1),
+      "Most Likely Total-Goals Band (derived)":evidence.apply(lambda r:"4+ goals" if prob(r,"OVER_3_5") is not None and prob(r,"OVER_3_5")>0.5 else "2–3 goals" if prob(r,"OVER_2_5") is not None and prob(r,"OVER_2_5")>0.5 else "0–1 goals",axis=1),
       "Recent Form (5)":evidence.apply(lambda r:pair(r,"Home_Recent_Form_Last5","Away_Recent_Form_Last5"),axis=1),
       "Recent Form Points (Last 5)":evidence.apply(lambda r:pair(r,"Home_Last5_Points","Away_Last5_Points"),axis=1),
       "League Position":evidence.apply(lambda r:pair(r,"Home League Position","Away League Position") or "UNVERIFIED",axis=1),
