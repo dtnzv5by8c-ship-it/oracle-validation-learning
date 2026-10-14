@@ -55,13 +55,80 @@ def main():
     if len(base)!=len(identities): raise SystemExit("BLOCKED: fixture count changed during Visual Intelligence join")
     if base.fixture_id.duplicated().any(): raise SystemExit("BLOCKED: duplicate report fixtures")
     if (base["_merge"]!="both").any(): raise SystemExit(f"BLOCKED: Visual Intelligence join incomplete for {(base['_merge']!='both').sum()} fixtures")
-    base["Probability Source"]="Oracle raw probability; calibration NOT APPLIED"
-    base["Production Promotion"]="BLOCKED"
-    base["xG Included"]="NO"
-    base=base.drop(columns=["_merge","Fixture ID"],errors="ignore")
-    market_map=dict(MARKETS)
-    # Preserve all available market columns; rename selections to reader-friendly headings.
-    base=base.rename(columns={k:market_map.get(k,k) for k in market_map})
+    # Preserve a full evidence frame for narrative and audit; create the exact locked 32-column view.
+    evidence=base.copy()
+    def val(row,key,default=""):
+        x=row.get(key,default)
+        return "" if pd.isna(x) else x
+    def pair(row,home_key,away_key):
+        h=val(row,home_key); a=val(row,away_key)
+        return f"{h} vs {a}" if str(h).strip() and str(a).strip() else ""
+    def total_pair(row):
+        try:
+            h=float(val(row,"Home Attacking Index"))+float(val(row,"Home Defensive Index"))
+            a=float(val(row,"Away Attacking Index"))+float(val(row,"Away Defensive Index"))
+            return f"{h:.2f} vs {a:.2f}"
+        except (TypeError,ValueError):
+            return ""
+    def independent_analysis(row):
+        status=str(val(row,"Evidence Status","UNAVAILABLE") or "UNAVAILABLE")
+        risk=str(val(row,"Risk Profile","UNAVAILABLE") or "UNAVAILABLE")
+        home_form=str(val(row,"Home_Recent_Form_Last5","unavailable") or "unavailable")
+        away_form=str(val(row,"Away_Recent_Form_Last5","unavailable") or "unavailable")
+        hpos=str(val(row,"Home League Position","unverified") or "unverified")
+        apos=str(val(row,"Away League Position","unverified") or "unverified")
+        hpoints=str(val(row,"Home League Points","unverified") or "unverified")
+        apoints=str(val(row,"Away League Points","unverified") or "unverified")
+        htableform=str(val(row,"Home League Form","unavailable") or "unavailable")
+        atableform=str(val(row,"Away League Form","unavailable") or "unavailable")
+        h2h=str(val(row,"H2H Last5 Summary","unavailable") or "unavailable")
+        h2hgoals=str(val(row,"H2H Avg Total Goals","unavailable") or "unavailable")
+        components=str(val(row,"Visual Evidence Components","unavailable") or "unavailable")
+        source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
+        standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
+        asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
+        return (f"Evidence status: {status}. Risk: {risk}. Recent results (last five): {home_form} vs {away_form}. "
+                f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
+                f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
+                f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
+                f"Verified components: {components}. Sources: {source}. "
+                "Previous-season finishes, team profiles and derby classification remain unverified unless explicitly sourced. "
+                "Missing evidence is not a negative signal; visual evidence is reporting context and does not alter Oracle probabilities.")
+    report=pd.DataFrame({
+      "Fixture Date":evidence["fixture_date"].astype(str).str[:10],
+      "League":evidence["league"],
+      "Fixture":evidence["home_team"].astype(str)+" vs "+evidence["away_team"].astype(str),
+      "BTTS Yes":evidence["BTTS_YES"],"Home 1X":evidence["HOME_1X"],"Away X2":evidence["AWAY_X2"],
+      "Over 1.5":evidence["OVER_1_5"],"Over 2.5":evidence["OVER_2_5"],"Under 4.5":evidence["UNDER_4_5"],
+      "Home over 1.5 goals":evidence["HOME_O15"],"Away over 1.5 goals":evidence["AWAY_O15"],
+      "Home 1X + Over 1.5":evidence["HOME_1X_O15"],"Away X2 + Over 1.5":evidence["AWAY_X2_O15"],
+      "Home 1X + Under 4.5":evidence["HOME_1X_U45"],"Away X2 + Under 4.5":evidence["AWAY_X2_U45"],
+      "M-1UP Home":evidence["M1UP_HOME"],"M-1UP Away":evidence["M1UP_AWAY"],
+      "Draw Probability (derived)":evidence.apply(lambda r:max(0.0,min(1.0,float(r["HOME_1X"])+float(r["AWAY_X2"])-1.0)) if pd.notna(r["HOME_1X"]) and pd.notna(r["AWAY_X2"]) else "",axis=1),
+      "Goal Line Call (O/U 2.5)":evidence.apply(lambda r:"Over 2.5" if pd.notna(r["OVER_2_5"]) and pd.notna(r["UNDER_2_5"]) and r["OVER_2_5"]>r["UNDER_2_5"] else "Under 2.5" if pd.notna(r["OVER_2_5"]) and pd.notna(r["UNDER_2_5"]) and r["UNDER_2_5"]>r["OVER_2_5"] else "No clear edge",axis=1),
+      "Most Likely Total-Goals Band (derived)":evidence.apply(lambda r:"4+ goals" if pd.notna(r["OVER_3_5"]) and r["OVER_3_5"]>0.5 else "2–3 goals" if pd.notna(r["OVER_2_5"]) and r["OVER_2_5"]>0.5 else "0–1 goals",axis=1),
+      "Recent Form (5)":evidence.apply(lambda r:pair(r,"Home_Recent_Form_Last5","Away_Recent_Form_Last5"),axis=1),
+      "Recent Form Points (Last 5)":evidence.apply(lambda r:pair(r,"Home_Last5_Points","Away_Last5_Points"),axis=1),
+      "League Position":evidence.apply(lambda r:pair(r,"Home League Position","Away League Position") or "UNVERIFIED",axis=1),
+      "Avg. Goals Scored (Last 5)":evidence.apply(lambda r:pair(r,"Home_Avg_Goals_For_Last5","Away_Avg_Goals_For_Last5"),axis=1),
+      "Avg. Goals Conceded (Last 5)":evidence.apply(lambda r:pair(r,"Home_Avg_Goals_Against_Last5","Away_Avg_Goals_Against_Last5"),axis=1),
+      "Avg. Points (Last 5)":evidence.apply(lambda r:pair(r,"Home_Avg_Points_Per_Game_Last5","Away_Avg_Points_Per_Game_Last5"),axis=1),
+      "Attacking Index":evidence.apply(lambda r:pair(r,"Home Attacking Index","Away Attacking Index"),axis=1),
+      "Defensive Index":evidence.apply(lambda r:pair(r,"Home Defensive Index","Away Defensive Index"),axis=1),
+      "TOTAL Index":evidence.apply(total_pair,axis=1),
+      "H2H Last 5 Summary":evidence.get("H2H Last5 Summary",pd.Series([""]*len(evidence),index=evidence.index)),
+      "H2H Avg Total Goals":evidence.get("H2H Avg Total Goals",pd.Series([""]*len(evidence),index=evidence.index)),
+      "Gem's Independent Match Analysis":evidence.apply(independent_analysis,axis=1)
+    })
+    locked_columns=["Fixture Date","League","Fixture","BTTS Yes","Home 1X","Away X2","Over 1.5","Over 2.5","Under 4.5",
+      "Home over 1.5 goals","Away over 1.5 goals","Home 1X + Over 1.5","Away X2 + Over 1.5","Home 1X + Under 4.5",
+      "Away X2 + Under 4.5","M-1UP Home","M-1UP Away","Draw Probability (derived)","Goal Line Call (O/U 2.5)",
+      "Most Likely Total-Goals Band (derived)","Recent Form (5)","Recent Form Points (Last 5)","League Position",
+      "Avg. Goals Scored (Last 5)","Avg. Goals Conceded (Last 5)","Avg. Points (Last 5)","Attacking Index",
+      "Defensive Index","TOTAL Index","H2H Last 5 Summary","H2H Avg Total Goals","Gem's Independent Match Analysis"]
+    report=report[locked_columns]
+    if len(report.columns)!=32: raise SystemExit("BLOCKED: locked report must contain exactly 32 columns.")
+    base=report
     # Definitions sheet and fixture sheet are the only workbook tabs.
     wb=Workbook()
     ws=wb.active; ws.title="Definitions"
@@ -78,7 +145,9 @@ def main():
       ("Report window","16–19 October 2026 inclusive"),
       ("Fixture count",str(len(base))),
       ("Prediction status counts",json.dumps(base.Prediction_Status.value_counts().to_dict())),
-      ("Visual Intelligence evidence status",json.dumps(base.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict())),
+      ("Visual Intelligence evidence status",json.dumps(evidence.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict())),
+      ("OpenFoot standings coverage",json.dumps(evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict())),
+      ("Report schema","Locked 32 columns; TOTAL Index is Attacking Index + Defensive Index when source indices exist; missing values remain blank."),
     ]
     for row in defs: ws.append(list(row))
     ws.column_dimensions["A"].width=34; ws.column_dimensions["B"].width=115
@@ -111,7 +180,7 @@ def main():
     story=[Paragraph("ORACLE CURATED MATCH REPORT — VISUAL INTELLIGENCE",styles["AuditHead"]),
            Paragraph(f"Generated from Oracle run inputs | {len(base)} fixtures | Raw probabilities only | Calibration not applied | Production promotion blocked | xG excluded",styles["BodyText"]),
            Spacer(1,10)]
-    pdfcols=[("fixture_date","Date"),("league","League"),("home_team","Home"),("away_team","Away"),("BTTS Yes","BTTS Yes"),("Home 1X","Home 1X"),("Away X2","Away X2"),("M-1UP Home","M-1UP H"),("M-1UP Away","M-1UP A"),("Evidence Status","Evidence")]
+    pdfcols=[("Fixture Date","Date"),("League","League"),("Fixture","Fixture"),("BTTS Yes","BTTS Yes"),("Home 1X","Home 1X"),("Away X2","Away X2"),("M-1UP Home","M-1UP H"),("M-1UP Away","M-1UP A"),("League Position","Table positions"),("H2H Last 5 Summary","H2H")]
     def fmt(v):
         if pd.isna(v) or v=="": return "—"
         if isinstance(v,(float,int)) and 0<=v<=1: return f"{v*100:.1f}%"
