@@ -130,8 +130,8 @@ def main() -> None:
                     and norm_team(sr["away_team"]) == key[2]
                 )
                 valid_score = (str(sr["status"]).upper() in {"FT", "AET", "PEN", "FINISHED"}
-                               and str(sr["home_goals"]).fullmatch(r"\\d+") is not None
-                               and str(sr["away_goals"]).fullmatch(r"\\d+") is not None
+                               and re.fullmatch(r"\\d+", str(sr["home_goals"])) is not None
+                               and re.fullmatch(r"\\d+", str(sr["away_goals"])) is not None
                                and bool(str(sr["source_name"]).strip()) and str(sr["source_url"]).startswith("https://"))
                 if valid_identity and valid_score:
                     supplemental_match = sr
