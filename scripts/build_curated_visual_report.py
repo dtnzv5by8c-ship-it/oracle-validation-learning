@@ -96,6 +96,7 @@ def main():
         source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
         standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
         asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
+        retrieved=str(val(row,"Standings Retrieved UTC","unavailable") or "unavailable")
         def index_pair(home_key, away_key):
             hv=val(row,home_key,""); av=val(row,away_key,"")
             try:
@@ -140,7 +141,7 @@ def main():
                 f"Evidence status: {status}. Team evidence risk: home {home_risk}; away {away_risk}. Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
                 f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
-                f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
+                f"Standings source/as-of: {standings_source} / {asof}; retrieved UTC: {retrieved}. H2H: {h2h}; average total goals {h2hgoals}. "
                 f"Verified components: {components}. Sources: {source}. "
                 "Confluence assessment is descriptive, not a second probability or a calibrated forecast: compare Oracle market probabilities with the independent form, indices, standings and H2H evidence; record disagreement as a caution rather than changing Oracle values. "
                 "Previous-season finishes, team profiles and derby classification remain unverified unless explicitly sourced. "
