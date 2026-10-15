@@ -191,6 +191,31 @@ def fetch_openfoot_standings(league_codes, league_names):
       "CRO":["Croatian Football League (HNL)","HNL Croatia"],"UKR":["Ukrainian Premier League"],
       "RSA":["South African Premier Division","South African Premiership","Betway Premiership","Premier Soccer League"]
     }
+    # Use both the governed local code and the fixture's own league label.
+    # Exact matches are preferred. Season/country suffix matching is allowed only
+    # when it produces one unique provider competition; ambiguous mappings stay unresolved.
+    local_names={str(code):str(name) for code,name in zip(league_codes,league_names)}
+    def competition_matches(local_code, provider_code, provider_name):
+        pc, pn = norm(provider_code), norm(provider_name)
+        if pc and pc == norm(local_code):
+            return 3
+        expected=[local_names.get(str(local_code),"")] + aliases.get(str(local_code),[])
+        expected=[norm(x) for x in expected if norm(x)]
+        if pn and pn in expected:
+            return 3
+        # Provider labels commonly append season/region qualifiers. Do not use
+        # unrestricted substring matching: it can confuse top divisions with U21/2nd leagues.
+        safe_suffixes=("2025","2026","2027","2028","england","france","italy","spain","germany",
+                       "scotland","portugal","turkey","romania","southafrica","czechia","austria",
+                       "switzerland","poland","croatia","ukraine","netherlands","belgium","wales",
+                       "northernireland","ireland","league")
+        for alias in expected:
+            if len(alias) < 6 or not pn.startswith(alias):
+                continue
+            suffix=pn[len(alias):]
+            if not suffix or any(suffix.startswith(s) for s in safe_suffixes):
+                return 2
+        return 0
     candidates=[]
     for comp in catalog:
         if not isinstance(comp,dict): continue
@@ -198,15 +223,19 @@ def fetch_openfoot_standings(league_codes, league_names):
         name=field(comp,"name","title","competitionName")
         cid=field(comp,"id","competitionId","competition_id")
         if not cid: continue
-        normalized_names={norm(name)}
-        matched_codes=[str(local) for local in league_codes if norm(code)==norm(local) and norm(code)]
-        matched_codes += [str(local) for local in league_codes if any(norm(alias)==norm(name) for alias in aliases.get(str(local),[]))]
+        scores={str(local):competition_matches(str(local),code,name) for local in league_codes}
+        best=max(scores.values(),default=0)
+        matched_codes=[local for local,score in scores.items() if score==best and best>0]
         if matched_codes:
-            candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes))))
+            candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes)),best))
     by_code={}
     for code in league_codes:
         matches=[c for c in candidates if str(code) in c[3]]
-        if len(matches)==1: by_code[str(code)]=(matches[0][0],matches[0][1],matches[0][2])
+        # Never choose between two provider competitions for one governed league.
+        top=max((c[4] for c in matches),default=0)
+        best=[c for c in matches if c[4]==top]
+        if len(best)==1 and top>0:
+            by_code[str(code)]=(best[0][0],best[0][1],best[0][2])
     for code,comp in by_code.items():
         cid,provider_code,provider_name=comp
         try:
@@ -225,18 +254,33 @@ def fetch_openfoot_standings(league_codes, league_names):
                 team_name=field(team,"name","title","displayName") if isinstance(team,dict) else str(team)
                 team_name=team_name or field(item,"teamName","name","participantName")
                 if not team_name: continue
-                table[norm(team_name)]={
-                    "position":field(item,"position","rank","place","positionNumber"),
+                position=field(item,"position","rank","place","positionNumber")
+                # Position must be a positive integer; malformed rows are not verified standings.
+                try:
+                    position_int=int(position)
+                    if position_int < 1: continue
+                except (TypeError,ValueError):
+                    continue
+                team_key=norm(team_name)
+                if not team_key: continue
+                # Duplicate normalized names are ambiguous and must not silently overwrite.
+                if team_key in table:
+                    table[team_key]["position"]=""
+                    table[team_key]["match_status"]="AMBIGUOUS_DUPLICATE_TEAM_NAME"
+                    continue
+                table[team_key]={
+                    "position":position_int,
                     "points":field(item,"points","pts"),
                     "played":field(item,"played","matchesPlayed","gamesPlayed","matches"),
                     "goal_difference":field(item,"goalDifference","goal_difference","gd"),
                     "form":field(item,"form","recentForm","lastFive"),
-                    "provider":"OpenFoot API","competition":provider_name}
-            if table:
+                    "provider":"OpenFoot API","competition":provider_name,
+                    "match_status":"VERIFIED_POSITION"}
+            if table and any(v.get("position") not in ("",None) for v in table.values()):
                 cache[code]=table
                 audit["competitions_fetched"]+=1
             else:
-                audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings"})
+                audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings_or_positions"})
         except Exception as exc:
             audit["competition_failures"].append({"league_code":code,"reason":type(exc).__name__})
             # Stop after an explicit provider rate-limit response; do not burn quota
@@ -319,6 +363,8 @@ def main():
         away_table=table.get(norm(f.away_team),{})
         base["Home League Position"]=home_table.get("position","")
         base["Away League Position"]=away_table.get("position","")
+        base["Home League Position Verification"]="VERIFIED" if home_table.get("position") not in ("",None) else "UNVERIFIED"
+        base["Away League Position Verification"]="VERIFIED" if away_table.get("position") not in ("",None) else "UNVERIFIED"
         base["Home League Points"]=home_table.get("points","")
         base["Away League Points"]=away_table.get("points","")
         base["Home League Played"]=home_table.get("played","")
@@ -368,6 +414,11 @@ def main():
            "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
            "standings_source_audit":standings_audit,
            "standings_matched_fixture_count":int((out.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
+           "home_position_verified_count":int((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
+           "away_position_verified_count":int((out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
+           "fixtures_both_positions_verified":int(((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),
+           "fixtures_missing_one_or_both_positions":int(((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).sum()),
+           "betting_readiness":"PARTIAL_NOT_READY" if ((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).any() else "STANDINGS_COMPLETE_PENDING_OTHER_GATES",
            "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
            "output":str(OUT)}
     audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\\n",encoding="utf-8")
