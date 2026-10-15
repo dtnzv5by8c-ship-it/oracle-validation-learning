@@ -226,7 +226,9 @@ def fetch_openfoot_standings(league_codes, league_names):
         scores={str(local):competition_matches(str(local),code,name) for local in league_codes}
         best=max(scores.values(),default=0)
         matched_codes=[local for local,score in scores.items() if score==best and best>0]
-        if matched_codes:
+        # A provider competition must map to exactly one governed local code.
+        # If two local leagues tie, preserve the ambiguity for audit instead of reusing one table.
+        if len(set(matched_codes))==1:
             candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes)),best))
     by_code={}
     for code in league_codes:
