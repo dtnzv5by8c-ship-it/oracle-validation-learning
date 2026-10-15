@@ -373,6 +373,60 @@ jobs:
           test -s reports/oracle_curated_visual_report.pdf
           test -s reports/oracle_curated_visual_report_audit.json
 
+      - name: Enforce report quality controls and publish readiness status
+        if: always()
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          from openpyxl import load_workbook
+          report_dir=Path("reports")
+          vi_audit_path=report_dir/"visual_intelligence_audit.json"
+          report_audit_path=report_dir/"oracle_curated_visual_report_audit.json"
+          xlsx_path=report_dir/"oracle_curated_visual_report.xlsx"
+          for p in (vi_audit_path,report_audit_path,xlsx_path):
+              if not p.exists() or p.stat().st_size==0:
+                  raise SystemExit(f"BLOCKED: required quality-control artifact missing/empty: {p}")
+          vi=json.loads(vi_audit_path.read_text())
+          ra=json.loads(report_audit_path.read_text())
+          if not ra.get("join_complete") or ra.get("oracle_probabilities_modified") is not False:
+              raise SystemExit("BLOCKED: report join or probability-preservation audit failed.")
+          if ra.get("probability_values_valid_0_to_1") is not True:
+              raise SystemExit("BLOCKED: raw probability validation failed.")
+          wb=load_workbook(xlsx_path,read_only=False,data_only=False)
+          if "Fixture Predictions 16-19 Oct" not in wb.sheetnames:
+              raise SystemExit("BLOCKED: expected fixture report sheet missing.")
+          ws=wb["Fixture Predictions 16-19 Oct"]
+          headers={cell.value:cell.column for cell in ws[1]}
+          prob_headers={"BTTS Yes","Home 1X","Away X2","Over 1.5","Over 2.5","Under 4.5",
+            "Home over 1.5 goals","Away over 1.5 goals","Home 1X + Over 1.5","Away X2 + Over 1.5",
+            "Home 1X + Under 4.5","Away X2 + Under 4.5","M-1UP Home","M-1UP Away","Draw Probability (derived)"}
+          missing=prob_headers-set(headers)
+          if missing:
+              raise SystemExit(f"BLOCKED: expected probability columns missing: {sorted(missing)}")
+          bad=[]
+          for name in prob_headers:
+              col=headers[name]
+              for row in range(2,ws.max_row+1):
+                  cell=ws.cell(row,col)
+                  if isinstance(cell.value,(int,float)) and 0 <= cell.value <= 1 and "%" not in cell.number_format:
+                      bad.append(f"{name}@{cell.coordinate}")
+          if bad:
+              raise SystemExit("BLOCKED: probability cells lack percentage display formatting: "+", ".join(bad[:20]))
+          print(json.dumps({"report_quality":"PASS","visual_intelligence_status":vi.get("status"),
+            "generation_status":vi.get("generation_status"),"standings_readiness":vi.get("betting_readiness"),
+            "standings_verified_fixtures":vi.get("fixtures_both_positions_verified"),
+            "fixtures_missing_positions":vi.get("fixtures_missing_one_or_both_positions"),
+            "probability_formatting":"PASS","raw_probabilities_valid":True,
+            "confidence_percent":ra.get("confidence_percent"),"betting_readiness":ra.get("betting_readiness"),
+            "production_promotion":"BLOCKED"},indent=2))
+          if vi.get("betting_readiness")=="PARTIAL_NOT_READY" or ra.get("betting_readiness")=="PARTIAL_NOT_READY":
+              print("::warning::Report generated, but standings coverage is incomplete. Do not treat this report as fully evidence-verified for betting.")
+          PY
+
       - name: Upload sanitized aggregate completion report
         if: always()
         uses: actions/upload-artifact@v4
