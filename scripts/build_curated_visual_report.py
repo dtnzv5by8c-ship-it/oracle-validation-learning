@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build a reporting-only Oracle workbook/PDF by exact Fixture ID; never alters prediction values."""
 from pathlib import Path
-import json, re, subprocess, sys
+from datetime import date, timedelta
+import json, re, subprocess, sys, os
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -27,15 +28,31 @@ MARKETS=[
 ("UNDER_3_5","Under 3.5"),("UNDER_4_5","Under 4.5"),("HOME_O05","Home over 0.5"),("HOME_O15","Home over 1.5"),
 ("AWAY_O05","Away over 0.5"),("AWAY_O15","Away over 1.5"),("HOME_1X_O15","Home 1X + Over 1.5"),("AWAY_X2_O15","Away X2 + Over 1.5"),
 ("HOME_1X_U45","Home 1X + Under 4.5"),("AWAY_X2_U45","Away X2 + Under 4.5"),("M1UP_HOME","M-1UP Home"),("M1UP_AWAY","M-1UP Away")]
+def report_window():
+    start=os.getenv("REPORT_START_DATE","").strip()
+    end=os.getenv("REPORT_END_DATE","").strip()
+    if not start and not end:
+        start=(date.today()+timedelta(days=1)).isoformat()
+        end=(date.today()+timedelta(days=4)).isoformat()
+    elif not start or not end:
+        raise SystemExit("BLOCKED: provide both REPORT_START_DATE and REPORT_END_DATE in YYYY-MM-DD format.")
+    try:
+        sd=date.fromisoformat(start); ed=date.fromisoformat(end)
+    except ValueError:
+        raise SystemExit("BLOCKED: report dates must use YYYY-MM-DD.")
+    if ed < sd: raise SystemExit("BLOCKED: report end date is earlier than start date.")
+    return sd.isoformat(),ed.isoformat()
+
 def main():
+    report_start,report_end=report_window()
     for p in (PRED,VI):
         if not p.exists() or p.stat().st_size==0: raise SystemExit(f"BLOCKED: missing/empty required input: {p}")
     pred=pd.read_csv(PRED).fillna("")
     vi=pd.read_csv(VI).fillna("")
-    # Locked reporting-only window: 16–19 October 2026 inclusive.
+    # Requested date window is report-only; raw prediction values are not changed.
     report_dates=pd.to_datetime(pred["fixture_date"],errors="coerce",utc=True).dt.strftime("%Y-%m-%d")
-    pred=pred.loc[report_dates.between("2026-10-16","2026-10-19")].copy()
-    if pred.empty: raise SystemExit("BLOCKED: no predictions in locked report window 2026-10-16 through 2026-10-19.")
+    pred=pred.loc[report_dates.between(report_start,report_end)].copy()
+    if pred.empty: raise SystemExit(f"BLOCKED: no predictions in report window {report_start} through {report_end}. Check ingestion coverage and requested dates.")
     required={"fixture_id","fixture_date","league","home_team","away_team","selection","raw_probability","status"}
     if not required.issubset(pred.columns): raise SystemExit(f"BLOCKED: prediction schema missing {sorted(required-set(pred.columns))}")
     if "Fixture ID" not in vi.columns: raise SystemExit("BLOCKED: Visual Intelligence missing Fixture ID")
@@ -362,7 +379,7 @@ def main():
       "duplicate_fixture_ids":int(evidence.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
-      "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
+      "report_window":{"start":report_start,"end":report_end},"template_columns":len(base.columns),
       "kickoff_coverage":{"verified_or_populated":int(len(evidence)-kickoff_missing),"unverified_or_missing":kickoff_missing,"status":"VISIBLE_IN_FIXTURE_NARRATIVE_AND_PDF"},
       "historical_accuracy":(f"CHALLENGER_SCORE_ONLY_AUDIT_{settled_n}_OF_{considered_n}_ROWS_MATCHED;_CANONICAL_LEDGER_EMPTY;_NOT_PRODUCTION_ACCURACY" if settled_n else "NOT_CALCULABLE_NO_VERIFIED_SCORE_ONLY_COHORT"),"market_specific_outcome_risk":"NOT_GRADED_ODDS_VALUE_ABSENT_LIMITED_CHALLENGER_SAMPLE","a_plus_setup":"NOT_GRADED",
       "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
