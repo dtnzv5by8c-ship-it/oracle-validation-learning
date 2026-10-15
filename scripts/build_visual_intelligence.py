@@ -1,8 +1,63 @@
 #!/usr/bin/env python3
 """Reporting-only Visual Intelligence build. Oracle prediction values are never modified."""
 from pathlib import Path
-import json, re, os, requests
+import json, re, os, requests, unicodedata
 import pandas as pd
+
+# Reporting-only canonical aliases. The source feeds use inconsistent abbreviations,
+# diacritics and club prefixes. This map affects evidence lookup only, never Oracle
+# prediction probabilities. Ambiguous aliases are explicitly reviewed and league-scoped
+# by the existing competition filter in the history query.
+_TEAM_ALIASES_RAW = {
+    "otelul": "otelulgalati", "csikszereda m ciuc": "csikszeredamiercureaciuc",
+    "fc botosani": "botosani", "petrolul": "petrolulploiesti",
+    "sepsi sf gheorghe": "sepsi osk", "fc rapid bucuresti": "rapidbucuresti",
+    "corvinul": "corvinulhunedoara", "univ craiova": "universitateacraiova",
+    "farul constanta": "fcvfarulconstanta", "u cluj": "universitateacluj",
+    "fc arges": "fcargespitesti",
+    "eintracht frankfurt": "frankfurt", "1 fc koln": "koln",
+    "mainz 05": "mainz", "borussia dortmund": "dortmund",
+    "borussia monchengladbach": "mgladbach", "bayer leverkusen": "leverkusen",
+    "manchester city": "mancity", "manchester utd": "manunited",
+    "nottingham": "nottmforest", "sk rapid": "rapidwien",
+    "austria vienna": "austriawien", "tirol": "wsgtirol",
+    "cottbus": "energiecottbus", "nurnberg": "1fcnurnberg",
+    "hertha berlin": "herthabsc", "hannover": "hannover96",
+    "heidenheim": "fcheidenheim", "sg dynamo dresden": "dynamodresden",
+    "annecy": "annecyfc", "clermont": "clermontfoot", "st etienne": "saintetienne",
+    "heerenveen": "scheerenveen", "groningen": "fcgroningen",
+    "nijmegen": "necnijmegen", "sittard": "fortunasittard",
+    "twente": "fctwente", "utrecht": "fcutrecht", "zwolle": "peczwolle",
+    "g a eagles": "goaheadeagles", "ga eagles": "goaheadeagles",
+    "eindhoven fc": "fceindhoven", "maastricht": "mvvmaastricht",
+    "waalwijk": "rkcwaalwijk", "gijon": "sportinggijon",
+    "ceuta": "adceutafc", "oviedo": "realoviedo", "andorra": "fcandorra",
+    "granada cf": "granada", "cadiz cf": "cadiz", "valladolid": "realvalladolid",
+    "bohemians": "bohemians1905", "fk pardubice": "pardubice",
+    "zlin": "fczlin", "liberec": "slovanliberec", "plzen": "viktoriaplzen",
+    "ostrava": "banikostrava", "sheffield utd": "sheffutd",
+    "sheffield wed": "sheffwed", "cambridge utd": "cambridge",
+    "bradford city": "bradford", "afc wimbledon": "wimbledon",
+    "paris saint germain": "psg", "as roma": "roma", "ac milan": "milan",
+    "entella": "virtusentella", "legia": "legiawarszawa",
+    "dundee utd": "dundeeunited", "betis": "realbetis",
+    "atl madrid": "atleticomadrid", "ath bilbao": "athleticclub",
+    "alaves": "deportivoalaves", "amedspor": "amedsportif",
+    "gaziantep": "gaziantepfk", "slask wroclaw": "slaskwroclaw",
+    "zaglebie": "zaglebie lubin", "jagiellonia": "jagiellonia bialystok",
+    "wisla plock": "wislaplock",
+}
+_TRANSLATE = str.maketrans({
+    "ı":"i", "İ":"i", "ł":"l", "Ł":"l", "ø":"o", "Ø":"o",
+    "æ":"ae", "Æ":"ae", "œ":"oe", "Œ":"oe", "ß":"ss", "đ":"d", "Đ":"d",
+    "ð":"d", "Ð":"d", "þ":"th", "Þ":"th"
+})
+def _base_norm(x):
+    text = str(x).casefold().translate(_TRANSLATE)
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "", text)
+
+_TEAM_ALIASES = {_base_norm(k): _base_norm(v) for k, v in _TEAM_ALIASES_RAW.items()}
 
 ROOT = Path(__file__).resolve().parents[1]
 ORACLE = ROOT / "oracle"
@@ -14,7 +69,8 @@ CURRENT = ORACLE / "database/current_matches.csv"
 OUT = ORACLE / "reports/visual_intelligence.csv"
 
 def norm(x):
-    return re.sub(r"[^a-z0-9]+", "", str(x).casefold())
+    token = _base_norm(x)
+    return _TEAM_ALIASES.get(token, token)
 
 def yes(x):
     return str(x).strip().casefold() in {"true","1","yes","finished","complete","completed"}
