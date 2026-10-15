@@ -181,6 +181,14 @@ def main():
     for col in ["Model-Implied Decimal Odds (1/p; raw only)","Required Odds for 5% Raw Edge"]:
         idx=hdr.index(col)+1
         for rr in range(2,ws.max_row+1):ws.cell(rr,idx).number_format="0.00"
+    p_idx=hdr.index("raw_probability")+1
+    odds_idx=hdr.index("Bookmaker Odds (enter manually)")+1
+    ev_idx=hdr.index("Raw EV Diagnostic (p*odds - 1)")+1
+    for rr in range(2,ws.max_row+1):
+        pcell=f"{get_column_letter(p_idx)}{rr}"
+        ocell=f"{get_column_letter(odds_idx)}{rr}"
+        ws.cell(rr,ev_idx).value=f'=IF(OR({ocell}="",{ocell}<=1),"",{pcell}*{ocell}-1)'
+        ws.cell(rr,ev_idx).number_format="0.0%"
     wb.save(XLSX)
     styles=getSampleStyleSheet()
     styles.add(ParagraphStyle(name="SmallBody",parent=styles["BodyText"],fontSize=8,leading=10,spaceAfter=4))
