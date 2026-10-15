@@ -324,8 +324,8 @@ def main():
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
     raw_probability_columns=[m for m,_ in MARKETS]
-    probability_values=pred.loc[pred.status.eq("PREDICTED"),"raw_probability"]
-    probability_valid=bool(probability_values.notna().all() and probability_values.between(0,1).all())
+    probability_values=pd.to_numeric(pred.loc[pred.status.eq("PREDICTED"),"raw_probability"],errors="coerce")
+    probability_valid=bool(len(probability_values)>0 and probability_values.notna().all() and probability_values.between(0,1).all())
     standings_complete=bool(("Home League Position" in evidence.columns) and ("Away League Position" in evidence.columns) and
       evidence["Home League Position"].notna().all() and evidence["Away League Position"].notna().all() and
       (evidence["Home League Position"].astype(str).str.strip()!="").all() and
