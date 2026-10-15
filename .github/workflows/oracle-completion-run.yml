@@ -3,7 +3,7 @@ name: Oracle Completion Run
 
 on:
   push:
-    branches: [main, reporting/visual-intelligence-enrichment]
+    branches: [main, reporting/visual-intelligence-enrichment, audit/permanent-report-quality-gates]
     paths:
       - ".github/workflows/oracle-completion-run.yml"
       - "scripts/build_visual_intelligence.py"
