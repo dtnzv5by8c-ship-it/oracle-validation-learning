@@ -412,7 +412,8 @@ def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     out.to_csv(OUT,index=False)
     audit_path=OUT.with_name("visual_intelligence_audit.json")
-    audit={"status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
+    positions_missing=((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED"))
+    audit={"status":"PARTIAL" if positions_missing.any() else "PASS","generation_status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
            "fixture_id_unique":True,"oracle_probabilities_modified":False,
            "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
            "standings_source_audit":standings_audit,
@@ -420,8 +421,9 @@ def main():
            "home_position_verified_count":int((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
            "away_position_verified_count":int((out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
            "fixtures_both_positions_verified":int(((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),
-           "fixtures_missing_one_or_both_positions":int(((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).sum()),
-           "betting_readiness":"PARTIAL_NOT_READY" if ((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).any() else "STANDINGS_COMPLETE_PENDING_OTHER_GATES",
+           "fixtures_missing_one_or_both_positions":int(positions_missing.sum()),
+           "standings_coverage_by_league":{str(k):{"fixtures":int(len(g)),"both_positions_verified":int(((g.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (g.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),"missing_one_or_both":int(((g.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (g.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).sum())} for k,g in out.groupby("League",dropna=False)},
+           "betting_readiness":"PARTIAL_NOT_READY" if positions_missing.any() else "STANDINGS_COMPLETE_PENDING_OTHER_GATES",
            "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
            "output":str(OUT)}
     audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\\n",encoding="utf-8")
