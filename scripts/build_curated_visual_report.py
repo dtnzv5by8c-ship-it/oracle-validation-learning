@@ -116,7 +116,24 @@ def main():
         awayx2=prob(row,"AWAY_X2")
         market_text=(f"Oracle raw probabilities: BTTS Yes {btts:.1%}; Over 2.5 {over25:.1%}; Home 1X {home1x:.1%}; Away X2 {awayx2:.1%}. "
                      if all(x is not None for x in (btts,over25,home1x,awayx2)) else "One or more selected Oracle probabilities unavailable. ")
-        return (f"{market_text}Independent visual evidence: attacking index (home vs away) {attack}; defensive index (home vs away) {defence}; "
+        # Evidence coverage is a transparent completeness metric, not a forecast confidence or outcome-risk percentage.
+        try: kickoff_ok = bool(str(val(row,"kickoff_utc","")).strip()) and str(val(row,"kickoff_utc","")).lower() not in ("nan","none")
+        except Exception: kickoff_ok = False
+        try: home_n = int(float(val(row,"Home History Matches",0) or 0))
+        except (TypeError,ValueError): home_n = 0
+        try: away_n = int(float(val(row,"Away History Matches",0) or 0))
+        except (TypeError,ValueError): away_n = 0
+        standings_ok = str(hpos).strip().lower() not in ("","unverified","nan","none") and str(apos).strip().lower() not in ("","unverified","nan","none")
+        indices_ok = attack != "unavailable" and defence != "unavailable"
+        try: h2h_ok = int(float(val(row,"H2H Last5 Count",0) or 0)) > 0
+        except (TypeError,ValueError): h2h_ok = False
+        coverage_checks = [kickoff_ok, home_n >= 5, away_n >= 5, standings_ok, indices_ok, h2h_ok]
+        coverage_pct = 100.0 * sum(coverage_checks) / len(coverage_checks)
+        coverage_text = (f"Evidence coverage {coverage_pct:.1f}% ({sum(coverage_checks)}/6 checks: verified kickoff, five prior home matches, "
+                         "five prior away matches, both league positions, both indices, and at least one H2H record). "
+                         "This is a data-completeness score only—not betting risk or prediction confidence. "
+                         "Oracle confidence calibration: NOT CALIBRATED; no audited market-specific settled-outcome calibration ledger is available. ")
+        return (f"{market_text}{coverage_text}Independent visual evidence: attacking index (home vs away) {attack}; defensive index (home vs away) {defence}; "
                 f"TOTAL Index (attack + defence, home vs away) {total}. Indices are reporting-only, normalized to a 0–100 scale per component "
                 "with 50 representing the pre-fixture league average; derived from each team's last five available results (minimum three) "
                 "and the league's pre-fixture scoring baseline. "
@@ -211,6 +228,10 @@ def main():
       ("Report schema","38 columns: original 32-column curated view plus historical-accuracy status, home/away evidence-risk profiles, risk rationales and A+ setup status. Metrics remain unavailable when evidence is insufficient."),
       ("Historical accuracy","No percentage is published unless an audited archive of genuinely pre-match Oracle predictions is joined to completed outcomes for the same team and market. Current run does not contain that validated archive."),
       ("Risk definitions","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. This is evidence-coverage risk, not outcome risk."),
+      ("Evidence Coverage %","A descriptive data-completeness score, not a forecast confidence or chance of losing. Six checks: verified kickoff time, five prior home matches, five prior away matches, both league positions, both derived indices, and at least one H2H record. Score = passed checks / 6 × 100. H2H absence may reflect no historical meeting and is not itself evidence of a poor outcome."),
+      ("Confidence %","NOT CALIBRATED. No confidence percentage is published until genuinely pre-match, market-specific Oracle probabilities are matched to settled outcomes and assessed for calibration. Raw Oracle probabilities must not be relabelled as confidence."),
+      ("Probability display","Probability values are retained as decimals in the workbook and formatted for display as percentages (0.0%). PDF percentages are formatted for display only; no probability values are multiplied or changed."),
+      ("League position verification","A position is verified only when a source-backed standings row resolves to a unique team and a positive integer position. Unmatched, ambiguous, malformed or unavailable positions remain unverified and must not be guessed."),
       ("A+ setup status","Not graded until market-specific historical accuracy/calibration and bookmaker odds/value assessment are available; a high raw probability alone is not an A+ label."),
     ]
     for row in defs: ws.append(list(row))
@@ -234,8 +255,15 @@ def main():
         elif col in ("Risk Rationale","Gem's Independent Match Analysis","Risk Profile","Home Risk Rationale","Away Risk Rationale","Historical Accuracy Status","A+ Setup Status"): width=52
         elif col in ("H2H Last5 Summary","Home Team","Away Team"): width=28
         fx.column_dimensions[get_column_letter(i)].width=width
+    percentage_headers=set([label for _,label in MARKETS] + ["Draw Probability (derived)"])
+    # Excel stores Oracle probabilities as decimals; format the cells as percentages only.
+    # Never multiply or otherwise mutate the underlying values.
     for row in fx.iter_rows(min_row=2):
-        for c in row: c.alignment=Alignment(wrap_text=True,vertical="top")
+        for cell in row:
+            cell.alignment=Alignment(wrap_text=True,vertical="top")
+            if fx.cell(row=1,column=cell.column).value in percentage_headers and isinstance(cell.value,(int,float)):
+                if 0.0 <= cell.value <= 1.0:
+                    cell.number_format="0.0%"
     wb.save(XLSX)
     # Compact multi-page PDF with match identity, selected Oracle markets and evidence/risk flags.
     styles=getSampleStyleSheet()
@@ -294,8 +322,18 @@ def main():
         story.append(Paragraph(escape(str(val(r,"Gem's Independent Match Analysis","Unavailable"))),styles["SmallCell"]))
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
-    audit={"status":"PASS","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
+    raw_probability_columns=[m for m,_ in MARKETS]
+    probability_values=pred.loc[pred.status.eq("PREDICTED"),"raw_probability"]
+    probability_valid=bool(probability_values.notna().all() and probability_values.between(0,1).all())
+    standings_complete=bool(("Home League Position" in evidence.columns) and ("Away League Position" in evidence.columns) and
+      evidence["Home League Position"].notna().all() and evidence["Away League Position"].notna().all() and
+      (evidence["Home League Position"].astype(str).str.strip()!="").all() and
+      (evidence["Away League Position"].astype(str).str.strip()!="").all())
+    audit={"status":"PASS" if probability_valid else "BLOCKED","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
       "duplicate_fixture_ids":int(evidence.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
+      "probability_values_valid_0_to_1":probability_valid,"probability_display":"Excel 0.0%; raw decimals unchanged",
+      "standings_complete_for_report_window":standings_complete,"betting_readiness":"PARTIAL_NOT_READY" if not standings_complete else "PENDING_OTHER_GATES",
+      "confidence_percent":"NOT_CALIBRATED","risk_metric":"evidence coverage only; not outcome risk",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
       "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
