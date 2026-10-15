@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build a reporting-only Oracle workbook/PDF by exact Fixture ID; never alters prediction values."""
 from pathlib import Path
-import json, re
+from datetime import date, timedelta
+import json, re, subprocess, sys, os
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -27,15 +28,31 @@ MARKETS=[
 ("UNDER_3_5","Under 3.5"),("UNDER_4_5","Under 4.5"),("HOME_O05","Home over 0.5"),("HOME_O15","Home over 1.5"),
 ("AWAY_O05","Away over 0.5"),("AWAY_O15","Away over 1.5"),("HOME_1X_O15","Home 1X + Over 1.5"),("AWAY_X2_O15","Away X2 + Over 1.5"),
 ("HOME_1X_U45","Home 1X + Under 4.5"),("AWAY_X2_U45","Away X2 + Under 4.5"),("M1UP_HOME","M-1UP Home"),("M1UP_AWAY","M-1UP Away")]
+def report_window():
+    start=os.getenv("REPORT_START_DATE","").strip()
+    end=os.getenv("REPORT_END_DATE","").strip()
+    if not start and not end:
+        start=(date.today()+timedelta(days=1)).isoformat()
+        end=(date.today()+timedelta(days=4)).isoformat()
+    elif not start or not end:
+        raise SystemExit("BLOCKED: provide both REPORT_START_DATE and REPORT_END_DATE in YYYY-MM-DD format.")
+    try:
+        sd=date.fromisoformat(start); ed=date.fromisoformat(end)
+    except ValueError:
+        raise SystemExit("BLOCKED: report dates must use YYYY-MM-DD.")
+    if ed < sd: raise SystemExit("BLOCKED: report end date is earlier than start date.")
+    return sd.isoformat(),ed.isoformat()
+
 def main():
+    report_start,report_end=report_window()
     for p in (PRED,VI):
         if not p.exists() or p.stat().st_size==0: raise SystemExit(f"BLOCKED: missing/empty required input: {p}")
     pred=pd.read_csv(PRED).fillna("")
     vi=pd.read_csv(VI).fillna("")
-    # Locked reporting-only window: 16–19 October 2026 inclusive.
+    # Requested date window is report-only; raw prediction values are not changed.
     report_dates=pd.to_datetime(pred["fixture_date"],errors="coerce",utc=True).dt.strftime("%Y-%m-%d")
-    pred=pred.loc[report_dates.between("2026-10-16","2026-10-19")].copy()
-    if pred.empty: raise SystemExit("BLOCKED: no predictions in locked report window 2026-10-16 through 2026-10-19.")
+    pred=pred.loc[report_dates.between(report_start,report_end)].copy()
+    if pred.empty: raise SystemExit(f"BLOCKED: no predictions in report window {report_start} through {report_end}. Check ingestion coverage and requested dates.")
     required={"fixture_id","fixture_date","league","home_team","away_team","selection","raw_probability","status"}
     if not required.issubset(pred.columns): raise SystemExit(f"BLOCKED: prediction schema missing {sorted(required-set(pred.columns))}")
     if "Fixture ID" not in vi.columns: raise SystemExit("BLOCKED: Visual Intelligence missing Fixture ID")
@@ -96,6 +113,8 @@ def main():
         source=str(val(row,"Data Source(s)","unavailable") or "unavailable")
         standings_source=str(val(row,"Standings Source","unavailable") or "unavailable")
         asof=str(val(row,"Standings As-Of UTC","unavailable") or "unavailable")
+        kickoff_raw=str(val(row,"kickoff_utc","") or "").strip()
+        kickoff_status=(f"VERIFIED UTC {kickoff_raw}" if kickoff_raw and kickoff_raw.lower() not in ("nan","none","unverified","unknown") else "UNVERIFIED / MISSING")
         def index_pair(home_key, away_key):
             hv=val(row,home_key,""); av=val(row,away_key,"")
             try:
@@ -120,7 +139,12 @@ def main():
                 f"TOTAL Index (attack + defence, home vs away) {total}. Indices are reporting-only, normalized to a 0–100 scale per component "
                 "with 50 representing the pre-fixture league average; derived from each team's last five available results (minimum three) "
                 "and the league's pre-fixture scoring baseline. "
-                f"Evidence status: {status}. Team evidence risk: home {home_risk}; away {away_risk}. Recent results (last five): {home_form} vs {away_form}. "
+                f"Evidence status: {status}. Kickoff: {kickoff_status}. Team evidence-coverage risk: home {home_risk}; away {away_risk}. "
+                f"Risk rationale: home [{team_evidence_rationale(row,'Home')}] away [{team_evidence_rationale(row,'Away')}]. "
+                f"Historical accuracy: {historical_accuracy_status} A+ setup: {setup_status} "
+                "Market-specific outcome risk is NOT GRADED: a challenger-only score-derived audit is available for five final-score-settleable markets, but bookmaker odds/value are absent and M-1UP truth cannot be inferred from final scores. "
+                "Market evidence requirements are defined on the Definitions sheet; evidence coverage must not be mistaken for outcome probability. "
+                f"Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
                 f"{val(row,'Away Team')} position {apos}, {apoints} points, form {atableform}. "
                 f"Standings source/as-of: {standings_source} / {asof}. H2H: {h2h}; average total goals {h2hgoals}. "
@@ -143,7 +167,47 @@ def main():
         idx=str(val(row,f"{side} Index Evidence","UNAVAILABLE") or "UNAVAILABLE")
         pos=str(val(row,f"{side} League Position","UNVERIFIED") or "UNVERIFIED")
         return f"Pre-fixture history={n}/5; index evidence={idx}; league position={pos}. This measures evidence coverage, not outcome safety."
-    historical_accuracy_status = "NOT CALCULABLE: no audited archive of pre-match Oracle predictions matched to completed results by team and market is available in the current report inputs. No accuracy percentage is inferred."
+    # Run an isolated score-only audit against the archived CHALLENGER ledger.
+    # This does not write to the canonical settlement ledger or affect Oracle probabilities.
+    settlement_dir=OUTDIR/"settlement_audit"
+    settlement_summary={}
+    settlement_candidates=[]
+    settlement_match_audit=[]
+    settlement_script=Path(__file__).with_name("audit_historical_settlements.py")
+    try:
+        if settlement_script.exists() and (ORACLE/"archive/PREDICTION_LEDGER.csv").exists() and (ORACLE/"database/current_matches.csv").exists():
+            audit_process=subprocess.run([sys.executable,str(settlement_script),"--oracle-root",str(ORACLE),"--output-dir",str(settlement_dir),"--supplemental-results",str(ROOT/"data/supplemental_verified_results.csv")],
+                                          check=False,capture_output=True,text=True,timeout=120)
+            summary_path=settlement_dir/"settlement_audit_summary.json"
+            if summary_path.exists():
+                settlement_summary=json.loads(summary_path.read_text(encoding="utf-8"))
+                settlement_summary["audit_script_exit_code"]=audit_process.returncode
+            else:
+                settlement_summary={"status":"BLOCKED_AUDIT_SCRIPT_FAILED","audit_script_exit_code":audit_process.returncode,
+                                    "stderr_tail":audit_process.stderr[-1000:],"canonical_settlement_ledger_modified":False}
+            candidates_path=settlement_dir/"settlement_candidates_score_only.csv"
+            if candidates_path.exists():
+                candidates_frame=pd.read_csv(candidates_path)
+                settlement_candidates=candidates_frame.where(pd.notna(candidates_frame),None).to_dict(orient="records")
+            match_audit_path=settlement_dir/"prediction_settlement_match_audit.csv"
+            if match_audit_path.exists():
+                match_frame=pd.read_csv(match_audit_path)
+                settlement_match_audit=match_frame.where(pd.notna(match_frame),None).to_dict(orient="records")
+        else:
+            settlement_summary={"status":"BLOCKED_INPUTS_MISSING","canonical_settlement_ledger_modified":False}
+    except Exception as exc:
+        settlement_summary={"status":"BLOCKED_AUDIT_ERROR","error_type":type(exc).__name__,"canonical_settlement_ledger_modified":False}
+    settled_n=int(settlement_summary.get("score_only_settlement_candidates",0) or 0)
+    considered_n=int(settlement_summary.get("prediction_rows_considered",0) or 0)
+    if settled_n:
+        match_counts=settlement_summary.get("match_status_counts",{})
+        native_n=int(match_counts.get("MATCHED_SCORE_ONLY",0) or 0)
+        supplemental_n=int(match_counts.get("MATCHED_SUPPLEMENTAL_SCORE_ONLY",0) or 0)
+        historical_accuracy_status=(f"CHALLENGER SCORE-ONLY AUDIT: {settled_n} of {considered_n} archived market predictions matched to completed scores; research only, not production accuracy. "
+                                    f"Evidence split: {native_n} rows from exact current-results matches; {supplemental_n} rows from reviewed supplemental source results. "
+                                    "Unresolved, abandoned, or future fixtures remain excluded. No odds/value or first-goal/1UP truth inferred.")
+    else:
+        historical_accuracy_status="NOT CALCULABLE: no unique, verified score-only settlement cohort was produced. No accuracy percentage is inferred."
     setup_status = "NOT GRADED: requires market-specific historical hit rate/calibration, evidence-risk review and bookmaker odds/value assessment. High Oracle probability alone is not an A+ setup."
     report=pd.DataFrame({
       "Fixture Date":evidence["fixture_date"].astype(str).str[:10],
@@ -169,12 +233,6 @@ def main():
       "TOTAL Index":evidence.apply(total_pair,axis=1),
       "H2H Last 5 Summary":evidence.get("H2H Last5 Summary",pd.Series([""]*len(evidence),index=evidence.index)),
       "H2H Avg Total Goals":evidence.get("H2H Avg Total Goals",pd.Series([""]*len(evidence),index=evidence.index)),
-      "Historical Accuracy Status":pd.Series([historical_accuracy_status]*len(evidence),index=evidence.index),
-      "Home Evidence Risk":evidence.apply(lambda r:team_evidence_risk(r,"Home"),axis=1),
-      "Away Evidence Risk":evidence.apply(lambda r:team_evidence_risk(r,"Away"),axis=1),
-      "Home Risk Rationale":evidence.apply(lambda r:team_evidence_rationale(r,"Home"),axis=1),
-      "Away Risk Rationale":evidence.apply(lambda r:team_evidence_rationale(r,"Away"),axis=1),
-      "A+ Setup Status":pd.Series([setup_status]*len(evidence),index=evidence.index),
       "Gem's Independent Match Analysis":evidence.apply(independent_analysis,axis=1)
     })
     locked_columns=["Fixture Date","League","Fixture","BTTS Yes","Home 1X","Away X2","Over 1.5","Over 2.5","Under 4.5",
@@ -182,11 +240,9 @@ def main():
       "Away X2 + Under 4.5","M-1UP Home","M-1UP Away","Draw Probability (derived)","Goal Line Call (O/U 2.5)",
       "Most Likely Total-Goals Band (derived)","Recent Form (5)","Recent Form Points (Last 5)","League Position",
       "Avg. Goals Scored (Last 5)","Avg. Goals Conceded (Last 5)","Avg. Points (Last 5)","Attacking Index",
-      "Defensive Index","TOTAL Index","H2H Last 5 Summary","H2H Avg Total Goals",
-      "Historical Accuracy Status","Home Evidence Risk","Away Evidence Risk","Home Risk Rationale","Away Risk Rationale","A+ Setup Status",
-      "Gem's Independent Match Analysis"]
+      "Defensive Index","TOTAL Index","H2H Last 5 Summary","H2H Avg Total Goals","Gem's Independent Match Analysis"]
     report=report[locked_columns]
-    if len(report.columns)!=38: raise SystemExit(f"BLOCKED: report schema expected 38 columns; got {len(report.columns)}.")
+    if len(report.columns)!=32: raise SystemExit(f"BLOCKED: locked report schema expected 32 columns; got {len(report.columns)}.")
     base=report
     # Definitions sheet and fixture sheet are the only workbook tabs.
     wb=Workbook()
@@ -208,10 +264,17 @@ def main():
       ("OpenFoot standings coverage",json.dumps(evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict())),
       ("Index methodology","Reporting-only independent metrics. Attacking Index = 50 × team last-five average goals scored / pre-fixture league average goals per team-match. Defensive Index = 50 × league average goals per team-match / team last-five average goals conceded. Each is clipped to 0–100; 50 is league average; minimum three prior matches. TOTAL Index = Attacking Index + Defensive Index for each team, shown home vs away. No index feeds Oracle probabilities."),
       ("Independent confluence","Gem's Independent Match Analysis places raw Oracle market probabilities beside independently derived form/index/standings/H2H evidence. It describes agreement or disagreement without recalibrating, changing, or blending probabilities."),
-      ("Report schema","38 columns: original 32-column curated view plus historical-accuracy status, home/away evidence-risk profiles, risk rationales and A+ setup status. Metrics remain unavailable when evidence is insufficient."),
-      ("Historical accuracy","No percentage is published unless an audited archive of genuinely pre-match Oracle predictions is joined to completed outcomes for the same team and market. Current run does not contain that validated archive."),
-      ("Risk definitions","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. This is evidence-coverage risk, not outcome risk."),
-      ("A+ setup status","Not graded until market-specific historical accuracy/calibration and bookmaker odds/value assessment are available; a high raw probability alone is not an A+ label."),
+      ("Report schema","Locked 32-column baseline retained. Evidence-coverage risk, historical-accuracy status, kickoff status and A+ eligibility are explained in the existing independent-analysis narrative and this Definitions sheet; no extra fixture columns are added."),
+      ("Historical accuracy","Canonical settlement ledger remains empty. A separate research-only score audit can match archived CHALLENGER predictions to verified final scores for score-settleable markets; this is not production-model accuracy, does not establish 1UP/first-goal truth, and does not assess odds/value."),
+      ("Team evidence-coverage risk","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. Coverage only, not outcome safety."),
+      ("Market-specific risk status","NOT GRADED until the prediction-to-settlement cohort and market odds/value inputs are audited. Do not infer market hit rates from fixture form or raw probability alone."),
+      ("Market evidence requirements — BTTS Yes/No","Use both teams’ pre-match goals-for and goals-against history, minimum three prior matches each, with five preferred; require market-specific settled outcomes before assigning outcome-risk grades."),
+      ("Market evidence requirements — Over/Under goals","Use combined pre-match goals-for/goals-against history for both teams and a pre-fixture league scoring baseline; require market-specific settled outcomes before outcome-risk grades."),
+      ("Market evidence requirements — Home/Away team goals","Use the selected team's goals-for history plus opponent goals-against history, with home/away split only when sourced and sufficiently sampled; require settled market outcomes."),
+      ("Market evidence requirements — Double chance (Home 1X/Away X2/Home 12)","Use pre-match form and verified standings for both teams; require market-specific settlements and odds/value before grading outcome risk."),
+      ("Market evidence requirements — Combined markets","Use all component evidence relevant to the combination; grade only when the exact combined market has its own audited settlements and odds/value. Never derive combo accuracy from component-market accuracy."),
+      ("Market evidence requirements — M-1UP Home/Away","Requires time-stamped lead-access/event-state evidence and settled early-settlement outcomes for the exact M-1UP side/market; standard full-time results are not a substitute."),
+      ("A+ setup status","NOT GRADED until market-specific historical accuracy/calibration, evidence-risk review and bookmaker odds/value assessment are available; a high raw probability alone is not an A+ label."),
     ]
     for row in defs: ws.append(list(row))
     ws.column_dimensions["A"].width=34; ws.column_dimensions["B"].width=115
@@ -273,6 +336,7 @@ def main():
           ["Last-5 goals scored",str(val(r,"Home_Last5_Goals_For","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_For","Unavailable") or "Unavailable")],
           ["Last-5 goals conceded",str(val(r,"Home_Last5_Goals_Against","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Goals_Against","Unavailable") or "Unavailable")],
           ["Last-5 points",str(val(r,"Home_Last5_Points","Unavailable") or "Unavailable"),str(val(r,"Away_Last5_Points","Unavailable") or "Unavailable")],
+          ["Kickoff (UTC)",str(val(r,"kickoff_utc","UNVERIFIED / MISSING") or "UNVERIFIED / MISSING"),""],
           ["League position",str(val(r,"Home League Position","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Position","UNVERIFIED") or "UNVERIFIED")],
           ["League points",str(val(r,"Home League Points","UNVERIFIED") or "UNVERIFIED"),str(val(r,"Away League Points","UNVERIFIED") or "UNVERIFIED")],
           ["League form",str(val(r,"Home League Form","Unavailable") or "Unavailable"),str(val(r,"Away League Form","Unavailable") or "Unavailable")],
@@ -291,17 +355,43 @@ def main():
           ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
         story.append(ev_table)
         story.append(Spacer(1,10))
-        story.append(Paragraph(escape(str(val(r,"Gem's Independent Match Analysis","Unavailable"))),styles["SmallCell"]))
+        # Render the report-only risk and validation gates explicitly on each PDF fixture page.
+        assessment_rows=[
+          ["Reporting-only assessment","Status / rationale"],
+          ["Home evidence coverage",team_evidence_risk(r,"Home")+" — "+team_evidence_rationale(r,"Home")],
+          ["Away evidence coverage",team_evidence_risk(r,"Away")+" — "+team_evidence_rationale(r,"Away")],
+          ["Historical accuracy",historical_accuracy_status],
+          ["Market-specific outcome risk","NOT GRADED: a challenger-only score-derived audit is available for five final-score-settleable markets; bookmaker odds/value are absent, sample sizes are limited, and M-1UP truth cannot be inferred from final scores."],
+          ["A+ setup","NOT GRADED: requires market-specific historical validation, evidence-risk review and bookmaker odds/value assessment."],
+          ["Probability handling","Raw Oracle probabilities copied unchanged; calibration NOT APPLIED; this evidence does not alter model probabilities."]
+        ]
+        assessment_table=Table([[Paragraph(escape(str(c)),styles["SmallCell"]) for c in row] for row in assessment_rows],
+          colWidths=[145,540],repeatRows=1)
+        assessment_table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#333333")),("TEXTCOLOR",(0,0),(-1,0),colors.white),
+          ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("GRID",(0,0),(-1,-1),0.3,colors.grey),("VALIGN",(0,0),(-1,-1),"TOP"),
+          ("LEFTPADDING",(0,0),(-1,-1),5),("RIGHTPADDING",(0,0),(-1,-1),5),("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
+        story.append(assessment_table)
     OUTDIR.mkdir(parents=True,exist_ok=True)
     SimpleDocTemplate(str(PDF),pagesize=landscape(A4),rightMargin=20,leftMargin=20,topMargin=24,bottomMargin=24).build(story)
+    kickoff_values=evidence["kickoff_utc"].astype(str).str.strip() if "kickoff_utc" in evidence.columns else pd.Series([""]*len(evidence),index=evidence.index)
+    kickoff_missing=int(kickoff_values.isin(["","nan","None","NaT","UNVERIFIED","UNKNOWN"]).sum())
     audit={"status":"PASS","fixture_count":len(base),"visual_intelligence_rows":len(vi),"join":"exact Fixture ID","join_complete":True,
       "duplicate_fixture_ids":int(evidence.fixture_id.duplicated().sum()),"oracle_probabilities_modified":False,"calibration":"NOT_APPLIED",
       "production_promotion":"BLOCKED","xg_included":False,"workbook":str(XLSX),"pdf":str(PDF),
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
-      "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
+      "report_window":{"start":report_start,"end":report_end},"template_columns":len(base.columns),
+      "kickoff_coverage":{"verified_or_populated":int(len(evidence)-kickoff_missing),"unverified_or_missing":kickoff_missing,"status":"VISIBLE_IN_FIXTURE_NARRATIVE_AND_PDF"},
+      "historical_accuracy":(f"CHALLENGER_SCORE_ONLY_AUDIT_{settled_n}_OF_{considered_n}_ROWS_MATCHED;_CANONICAL_LEDGER_EMPTY;_NOT_PRODUCTION_ACCURACY" if settled_n else "NOT_CALCULABLE_NO_VERIFIED_SCORE_ONLY_COHORT"),"market_specific_outcome_risk":"NOT_GRADED_ODDS_VALUE_ABSENT_LIMITED_CHALLENGER_SAMPLE","a_plus_setup":"NOT_GRADED",
       "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
       "standings_matched_fixtures":int((evidence.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
-      "probability_values_carried_from_raw_output":True}
+      "probability_values_carried_from_raw_output":True,
+      "historical_settlement_audit":{
+        "summary":settlement_summary,
+        "score_only_candidate_rows":settlement_candidates,
+        "prediction_match_audit_rows":settlement_match_audit,
+        "canonical_settlement_ledger_modified":False,
+        "production_probabilities_modified":False,
+        "promotion":"BLOCKED"}}
     AUDIT.write_text(json.dumps(audit,indent=2,default=str)+"\n")
     print(json.dumps(audit,indent=2,default=str))
 if __name__=="__main__": main()
