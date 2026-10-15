@@ -125,7 +125,7 @@ def main():
                 f"Evidence status: {status}. Kickoff: {kickoff_status}. Team evidence-coverage risk: home {home_risk}; away {away_risk}. "
                 f"Risk rationale: home [{team_evidence_rationale(row,'Home')}] away [{team_evidence_rationale(row,'Away')}]. "
                 f"Historical accuracy: {historical_accuracy_status} A+ setup: {setup_status} "
-                "Market-specific outcome risk is NOT GRADED: no audited prediction-to-settlement cohort or bookmaker odds/value inputs are available. "
+                "Market-specific outcome risk is NOT GRADED: a challenger-only score-derived audit is available for five final-score-settleable markets, but bookmaker odds/value are absent and M-1UP truth cannot be inferred from final scores. "
                 "Market evidence requirements are defined on the Definitions sheet; evidence coverage must not be mistaken for outcome probability. "
                 f"Recent results (last five): {home_form} vs {away_form}. "
                 f"League table: {val(row,'Home Team')} position {hpos}, {hpoints} points, form {htableform}; "
@@ -248,7 +248,7 @@ def main():
       ("Index methodology","Reporting-only independent metrics. Attacking Index = 50 × team last-five average goals scored / pre-fixture league average goals per team-match. Defensive Index = 50 × league average goals per team-match / team last-five average goals conceded. Each is clipped to 0–100; 50 is league average; minimum three prior matches. TOTAL Index = Attacking Index + Defensive Index for each team, shown home vs away. No index feeds Oracle probabilities."),
       ("Independent confluence","Gem's Independent Match Analysis places raw Oracle market probabilities beside independently derived form/index/standings/H2H evidence. It describes agreement or disagreement without recalibrating, changing, or blending probabilities."),
       ("Report schema","Locked 32-column baseline retained. Evidence-coverage risk, historical-accuracy status, kickoff status and A+ eligibility are explained in the existing independent-analysis narrative and this Definitions sheet; no extra fixture columns are added."),
-      ("Historical accuracy","NOT CALCULABLE until pre-match Oracle prediction IDs are joined to verified final scores/settlements by fixture and market. Current prediction ledger has 210 challenger rows/42 fixtures but settlement ledger is empty; challenger rows must not be presented as production-model accuracy."),
+      ("Historical accuracy","Canonical settlement ledger remains empty. A separate research-only score audit can match archived CHALLENGER predictions to verified final scores for score-settleable markets; this is not production-model accuracy, does not establish 1UP/first-goal truth, and does not assess odds/value."),
       ("Team evidence-coverage risk","HIGH if fewer than three prior matches or no derived index; MODERATE if fewer than five prior matches or standings unavailable; LOW only with at least five prior matches, a derived index and standings. Coverage only, not outcome safety."),
       ("Market-specific risk status","NOT GRADED until the prediction-to-settlement cohort and market odds/value inputs are audited. Do not infer market hit rates from fixture form or raw probability alone."),
       ("Market evidence requirements — BTTS Yes/No","Use both teams’ pre-match goals-for and goals-against history, minimum three prior matches each, with five preferred; require market-specific settled outcomes before assigning outcome-risk grades."),
@@ -344,7 +344,7 @@ def main():
           ["Home evidence coverage",team_evidence_risk(r,"Home")+" — "+team_evidence_rationale(r,"Home")],
           ["Away evidence coverage",team_evidence_risk(r,"Away")+" — "+team_evidence_rationale(r,"Away")],
           ["Historical accuracy",historical_accuracy_status],
-          ["Market-specific outcome risk","NOT GRADED: no audited prediction-to-settlement cohort or bookmaker odds/value inputs are available."],
+          ["Market-specific outcome risk","NOT GRADED: a challenger-only score-derived audit is available for five final-score-settleable markets; bookmaker odds/value are absent, sample sizes are limited, and M-1UP truth cannot be inferred from final scores."],
           ["A+ setup","NOT GRADED: requires market-specific historical validation, evidence-risk review and bookmaker odds/value assessment."],
           ["Probability handling","Raw Oracle probabilities copied unchanged; calibration NOT APPLIED; this evidence does not alter model probabilities."]
         ]
@@ -364,7 +364,7 @@ def main():
       "evidence_status_counts":vi.get("Evidence Status",pd.Series(dtype=str)).value_counts().to_dict(),
       "report_window":{"start":"2026-10-16","end":"2026-10-19"},"template_columns":len(base.columns),
       "kickoff_coverage":{"verified_or_populated":int(len(evidence)-kickoff_missing),"unverified_or_missing":kickoff_missing,"status":"VISIBLE_IN_FIXTURE_NARRATIVE_AND_PDF"},
-      "historical_accuracy":"NOT_CALCULABLE_SETTLEMENT_LEDGER_EMPTY","market_specific_outcome_risk":"NOT_GRADED_NO_AUDITED_SETTLEMENTS_OR_ODDS","a_plus_setup":"NOT_GRADED",
+      "historical_accuracy":(f"CHALLENGER_SCORE_ONLY_AUDIT_{settled_n}_OF_{considered_n}_ROWS_MATCHED;_CANONICAL_LEDGER_EMPTY;_NOT_PRODUCTION_ACCURACY" if settled_n else "NOT_CALCULABLE_NO_VERIFIED_SCORE_ONLY_COHORT"),"market_specific_outcome_risk":"NOT_GRADED_ODDS_VALUE_ABSENT_LIMITED_CHALLENGER_SAMPLE","a_plus_setup":"NOT_GRADED",
       "standings_source_counts":evidence.get("Standings Source",pd.Series(dtype=str)).value_counts().to_dict(),
       "standings_matched_fixtures":int((evidence.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
       "probability_values_carried_from_raw_output":True,
