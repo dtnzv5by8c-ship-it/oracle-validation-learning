@@ -371,8 +371,11 @@ def main():
         base["Away League Played"]=away_table.get("played","")
         base["Home League Form"]=home_table.get("form","")
         base["Away League Form"]=away_table.get("form","")
-        base["Standings Source"]="OpenFoot API" if home_table and away_table else "UNAVAILABLE"
-        base["Standings As-Of UTC"]=pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds") if home_table and away_table else ""
+        base["Standings Source"]="OpenFoot API" if home_table and away_table and home_table.get("position") not in ("",None) and away_table.get("position") not in ("",None) else "PARTIAL/UNAVAILABLE"
+        # Retrieval time is not the same as the provider's table effective/as-of time.
+        # Do not label a fetch timestamp as a source snapshot date.
+        base["Standings As-Of UTC"]=""
+        base["Standings Retrieved UTC"]=pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds") if home_table or away_table else ""
         base["Standings Competition"]=home_table.get("competition","") if home_table and away_table else ""
         h2h=league_hist[( ((league_hist.home_n==norm(f.home_team))&(league_hist.away_n==norm(f.away_team))) |
                           ((league_hist.home_n==norm(f.away_team))&(league_hist.away_n==norm(f.home_team))) ) &
