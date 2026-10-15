@@ -8,6 +8,7 @@ on:
       - ".github/workflows/oracle-completion-run.yml"
       - "scripts/build_visual_intelligence.py"
       - "scripts/build_curated_visual_report.py"
+      - "scripts/build_betting_decision_pack.py"
       - "scripts/audit_historical_settlements.py"
       - "data/supplemental_verified_results.csv"
   workflow_dispatch:
@@ -23,7 +24,16 @@ on:
           - "7"
           - "15"
           - "30"
-          
+      report_start_date:
+        description: "Optional report start date (YYYY-MM-DD; future fixtures only)"
+        required: false
+        default: ""
+        type: string
+      report_end_date:
+        description: "Optional report end date (YYYY-MM-DD; future fixtures only)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -129,16 +139,42 @@ jobs:
         env:
           OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
           DAYS_AHEAD: ${{ inputs.days_ahead }}
+          REPORT_START_DATE: ${{ inputs.report_start_date }}
+          REPORT_END_DATE: ${{ inputs.report_end_date }}
         run: |
           set -euo pipefail
           if [ -z "${OPENFOOT_API_KEY:-}" ]; then
             echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
             exit 1
           fi
-          # On push-triggered runs, workflow_dispatch inputs are empty.
-          # Match the governed workflow_dispatch default (3 days) to avoid silently
-          # broadening the forecast horizon on automatic runs.
-          DAYS_AHEAD="${DAYS_AHEAD:-7}"
+          # When explicit report dates are supplied, expand ingestion to cover the end date.
+          # Only future fixture windows are supported by this live-ingestion workflow.
+          if [ -n "${REPORT_START_DATE:-}" ] || [ -n "${REPORT_END_DATE:-}" ]; then
+            if [ -z "${REPORT_START_DATE:-}" ] || [ -z "${REPORT_END_DATE:-}" ]; then
+              echo "ERROR: both REPORT_START_DATE and REPORT_END_DATE must be supplied."
+              exit 1
+            fi
+            DAYS_AHEAD=$(python - "$REPORT_START_DATE" "$REPORT_END_DATE" <<'PY'
+          from datetime import date
+          import sys
+          try:
+              start=date.fromisoformat(sys.argv[1]); end=date.fromisoformat(sys.argv[2])
+          except ValueError:
+              raise SystemExit("ERROR: report dates must use YYYY-MM-DD.")
+          today=date.today()
+          if start < today:
+              raise SystemExit("ERROR: live report date range must start today or in the future; historical windows require the historical audit workflow.")
+          if end < start:
+              raise SystemExit("ERROR: report end date is earlier than start date.")
+          days=(end-today).days+1
+          if not 1 <= days <= 31:
+              raise SystemExit("ERROR: report end date must be within 31 days of today.")
+          print(days)
+          PY
+          )
+          else
+            DAYS_AHEAD="${DAYS_AHEAD:-7}"
+          fi
           if ! [[ "$DAYS_AHEAD" =~ ^[0-9]+$ ]] || [ "$DAYS_AHEAD" -lt 1 ] || [ "$DAYS_AHEAD" -gt 31 ]; then
             echo "ERROR: DAYS_AHEAD must be an integer from 1 to 31; got '$DAYS_AHEAD'."
             exit 1
@@ -387,6 +423,9 @@ jobs:
 
       - name: Build curated Visual Intelligence Excel and PDF report
         working-directory: oracle
+        env:
+          REPORT_START_DATE: ${{ inputs.report_start_date }}
+          REPORT_END_DATE: ${{ inputs.report_end_date }}
         run: |
           set -euo pipefail
           python -m py_compile ../scripts/build_curated_visual_report.py
@@ -394,6 +433,19 @@ jobs:
           test -s reports/oracle_curated_visual_report.xlsx
           test -s reports/oracle_curated_visual_report.pdf
           test -s reports/oracle_curated_visual_report_audit.json
+
+      - name: Build full 22-market betting decision companion
+        working-directory: oracle
+        env:
+          REPORT_START_DATE: ${{ inputs.report_start_date }}
+          REPORT_END_DATE: ${{ inputs.report_end_date }}
+        run: |
+          set -euo pipefail
+          python -m py_compile ../scripts/build_betting_decision_pack.py
+          python ../scripts/build_betting_decision_pack.py
+          test -s reports/oracle_betting_decision_pack.xlsx
+          test -s reports/oracle_betting_decision_guide.pdf
+          test -s reports/oracle_betting_decision_audit.json
 
       - name: Upload sanitized aggregate completion report
         if: always()
@@ -421,6 +473,9 @@ jobs:
             oracle/reports/oracle_curated_visual_report.xlsx
             oracle/reports/oracle_curated_visual_report.pdf
             oracle/reports/oracle_curated_visual_report_audit.json
+            oracle/reports/oracle_betting_decision_pack.xlsx
+            oracle/reports/oracle_betting_decision_guide.pdf
+            oracle/reports/oracle_betting_decision_audit.json
             /tmp/oracle-fixture-audit.json
             /tmp/oracle-live-reconciliation.json
           if-no-files-found: warn
