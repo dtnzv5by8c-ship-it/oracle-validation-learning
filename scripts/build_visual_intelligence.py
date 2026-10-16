@@ -356,7 +356,19 @@ def fetch_openfoot_standings(league_codes, league_names):
                     "data_keys":sorted(raw_rows.keys()) if isinstance(raw_rows,dict) else [],
                     "selected_rows_path":selected_rows_path,
                     "data_count":len(raw_rows) if isinstance(raw_rows,(list,dict)) else None,
-                    "first_row_keys":sorted(rows[0].keys()) if isinstance(rows,list) and rows and isinstance(rows[0],dict) else []
+                    "first_row_keys":sorted(rows[0].keys()) if isinstance(rows,list) and rows and isinstance(rows[0],dict) else [],
+                    "nested_shape":(lambda root: (lambda visit: visit(root,"data",0))(
+                        lambda node,path,depth: (
+                            [{"path":path,"type":type(node).__name__,"keys":sorted(node.keys())[:40] if isinstance(node,dict) else [],
+                              "count":len(node) if isinstance(node,(dict,list)) else None,
+                              "first_item_keys":sorted(node[0].keys())[:40] if isinstance(node,list) and node and isinstance(node[0],dict) else []}]
+                            + sum((visit(child,path+"."+str(key),depth+1) for key,child in list(node.items())[:20] if isinstance(child,(dict,list))),[])
+                        ) if isinstance(node,dict) and depth<3 else (
+                            [{"path":path,"type":"list","count":len(node),
+                              "first_item_keys":sorted(node[0].keys())[:40] if node and isinstance(node[0],dict) else []}]
+                            + sum((visit(child,path+"["+str(i)+"]",depth+1) for i,child in enumerate(node[:3]) if isinstance(child,(dict,list))),[])
+                        ) if isinstance(node,list) and depth<3 else []
+                    ))(raw_rows)
                 })
         except Exception as exc:
             audit["competition_failures"].append({
