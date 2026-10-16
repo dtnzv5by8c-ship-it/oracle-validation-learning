@@ -178,6 +178,15 @@ jobs:
           set -euo pipefail
           python scripts/oracle_all_markets_walk_forward_v1.py
 
+      - name: Run research-only selection threshold audit
+        id: threshold_audit
+        continue-on-error: true
+        if: steps.backtest.outcome == 'success'
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python ../scripts/analyze_oos_thresholds.py research/all_markets/oracle_all_markets_oos_predictions.csv /tmp/oracle-oos-thresholds.csv
+
       - name: Gate live prediction on fresh verified team state
         id: freshness_gate
         working-directory: oracle
@@ -381,5 +390,7 @@ jobs:
             oracle/database/matches.csv
             /tmp/oracle-fixture-audit.json
             /tmp/oracle-live-reconciliation.json
+            /tmp/oracle-oos-thresholds.csv
+            /tmp/oracle-oos-thresholds.summary.json
           if-no-files-found: warn
           retention-days: 14
