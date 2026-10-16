@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/oracle-completion-run.yml"
+  schedule:
+    # Weekly Monday 06:00 South Africa time (04:00 UTC).
+    - cron: "0 4 * * 1"
   workflow_dispatch:
     inputs:
       days_ahead:
@@ -106,9 +109,8 @@ jobs:
             echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
             exit 1
           fi
-          # On push-triggered runs, workflow_dispatch inputs are empty.
-          # Match the governed workflow_dispatch default (3 days) to avoid silently
-          # broadening the forecast horizon on automatic runs.
+          # Scheduled and push-triggered runs have no workflow_dispatch input.
+          # Use a fixed 7-day horizon for autonomous weekly reporting.
           DAYS_AHEAD="${DAYS_AHEAD:-7}"
           if ! [[ "$DAYS_AHEAD" =~ ^[0-9]+$ ]] || [ "$DAYS_AHEAD" -lt 1 ] || [ "$DAYS_AHEAD" -gt 31 ]; then
             echo "ERROR: DAYS_AHEAD must be an integer from 1 to 31; got '$DAYS_AHEAD'."
