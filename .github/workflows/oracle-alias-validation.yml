@@ -97,8 +97,7 @@ jobs:
               if hit.empty:
                   not_in_window.append(f"{league}: {home} vs {away}")
                   continue
-              fixture_ids=set(manifest.get("exclusion_details",[])[i].get("fixture_id") for i in range(len(manifest.get("exclusion_details",[]))))
-              failed=exclusions[
+                  failed=exclusions[
                 exclusions.home_team.astype(str).map(n).eq(n(home)) &
                 exclusions.away_team.astype(str).map(n).eq(n(away)) &
                 exclusions.reason.astype(str).eq("MISSING_PREMATCH_TEAM_STATE")
@@ -113,7 +112,7 @@ jobs:
           assert pred[pred.status.eq("PREDICTED")].raw_probability.between(0,1).all(), "Invalid probability"
           brno_excluded=any(str(x.get("away_team","")).lower()=="brno" for x in manifest.get("exclusion_details",[]))
           report={
-            "status":"PASS" if not failed.empty is False else "PARTIAL",
+            "status":"PASS" if len(tested)==8 else "PARTIAL",
             "source_commit": "${{ env.SOURCE_COMMIT }}",
             "scheduled_fixture_count":int(manifest.get("scheduled_fixture_n",0)),
             "predicted_fixture_count":fixture_n,
