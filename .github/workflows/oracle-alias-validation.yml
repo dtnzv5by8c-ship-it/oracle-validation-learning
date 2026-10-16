@@ -1,0 +1,147 @@
+name: Oracle Alias Coverage Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-alias-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-alias-validation
+  cancel-in-progress: false
+
+jobs:
+  validate-alias-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Clone governed Oracle source with proposed exact aliases
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${ORACLE_READ_TOKEN}" || { echo "Missing ORACLE_PRIVATE_READ_TOKEN"; exit 1; }
+          git clone --depth 1 --branch fix/oracle-role-history-alias-coverage \
+            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
+          git -C oracle log -1 --oneline
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pandas numpy scikit-learn requests beautifulsoup4
+      - name: Verify governed historical spine
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          echo "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc  database/matches.csv" | sha256sum --check -
+          echo "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78  database/prematch_team_state.csv" | sha256sum --check -
+          python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/ingest_current_fotmob.py scripts/reconcile_current_data.py scripts/reconcile_current_sources.py scripts/build_current_team_state.py scripts/oracle_four_model_live_predict.py
+      - name: Refresh current verified results and rebuild prematch state
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/ingest_current_fotmob.py
+          python scripts/reconcile_current_data.py
+          python scripts/reconcile_current_sources.py
+          python scripts/build_current_team_state.py
+      - name: Ingest governed upcoming fixtures
+        working-directory: oracle
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "${OPENFOOT_API_KEY:-}" || { echo "Missing OPENFOOT_API_KEY"; exit 1; }
+          python scripts/ingest_upcoming_fixtures.py 7 data/fixtures/oracle_upcoming_fixtures.csv
+      - name: Run governed prediction reconciliation against proposed aliases
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/oracle_four_model_live_predict.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path("research/four_model/outputs")
+          manifest=json.loads((root/"four_model_live_prediction_manifest.json").read_text())
+          exclusions_path=root/"four_model_schedule_filter_exclusions.csv"
+          exclusions=pd.read_csv(exclusions_path) if exclusions_path.exists() and exclusions_path.stat().st_size else pd.DataFrame()
+          if exclusions.empty:
+              exclusions=pd.DataFrame(columns=["fixture_id","home_team","away_team","reason","missing_components"])
+          schedule=pd.read_csv("data/fixtures/oracle_upcoming_fixtures.csv")
+          expected=[
+            ("2. Bundesliga","Greuther Furth","Braunschweig"),
+            ("Eredivisie","Den Haag","PSV"),
+            ("Eerste Divisie","FC Emmen","Almere City"),
+            ("Eerste Divisie","Jong Utrecht","Roda"),
+            ("Ligue 2","Pau FC","Grenoble"),
+            ("Eerste Divisie","Almere City","Roda"),
+            ("Eerste Divisie","Jong AZ","Helmond"),
+            ("Eerste Divisie","Oss","Jong Ajax"),
+          ]
+          def n(x): return "".join(ch.lower() for ch in str(x or "") if ch.isalnum())
+          tested=[]; not_in_window=[]
+          for league,home,away in expected:
+              hit=schedule[
+                schedule.league.astype(str).map(n).eq(n(league)) &
+                schedule.home_team.astype(str).map(n).eq(n(home)) &
+                schedule.away_team.astype(str).map(n).eq(n(away))
+              ]
+              if hit.empty:
+                  not_in_window.append(f"{league}: {home} vs {away}")
+                  continue
+              fixture_ids=set(manifest.get("exclusion_details",[])[i].get("fixture_id") for i in range(len(manifest.get("exclusion_details",[]))))
+              failed=exclusions[
+                exclusions.home_team.astype(str).map(n).eq(n(home)) &
+                exclusions.away_team.astype(str).map(n).eq(n(away)) &
+                exclusions.reason.astype(str).eq("MISSING_PREMATCH_TEAM_STATE")
+              ]
+              if not failed.empty:
+                  raise SystemExit(f"ALIAS_VALIDATION_FAILED: {league}: {home} vs {away} remains excluded for missing team state")
+              tested.append(f"{league}: {home} vs {away}")
+          pred=pd.read_csv(root/"four_model_live_predictions.csv")
+          fixture_n=int(pred.fixture_id.nunique()) if not pred.empty else 0
+          assert len(pred)==fixture_n*22, "22-market prediction matrix does not reconcile"
+          assert pred.groupby("fixture_id").selection.nunique().eq(22).all(), "A fixture lacks one or more markets"
+          assert pred[pred.status.eq("PREDICTED")].raw_probability.between(0,1).all(), "Invalid probability"
+          brno_excluded=any(str(x.get("away_team","")).lower()=="brno" for x in manifest.get("exclusion_details",[]))
+          report={
+            "status":"PASS" if not failed.empty is False else "PARTIAL",
+            "source_commit": "${{ env.SOURCE_COMMIT }}",
+            "scheduled_fixture_count":int(manifest.get("scheduled_fixture_n",0)),
+            "predicted_fixture_count":fixture_n,
+            "prediction_rows":int(len(pred)),
+            "markets":int(manifest.get("market_count",0)),
+            "excluded_fixture_count":int(manifest.get("excluded_fixture_n",0)),
+            "exclusion_reason_counts":manifest.get("exclusion_reason_counts",{}),
+            "alias_fixtures_tested":tested,
+            "alias_fixtures_not_in_window":not_in_window,
+            "ambiguous_brno_left_fail_closed":brno_excluded,
+            "calibration":"NOT_APPLIED",
+            "production_promotion":"BLOCKED",
+            "governance":"research/identity validation only; no production model changes"
+          }
+          Path("/tmp/oracle-alias-validation.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps(report,indent=2))
+          if len(tested) < 8:
+              print("NOTE: not all eight expected fixtures were in the 7-day ingestion window; untested fixtures remain open.")
+          PY
+      - name: Upload alias validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-alias-validation-report
+          path: |
+            /tmp/oracle-alias-validation.json
+            oracle/research/four_model/outputs/four_model_live_prediction_manifest.json
+            oracle/research/four_model/outputs/four_model_live_predictions.csv
+            oracle/research/four_model/outputs/four_model_schedule_filter_exclusions.csv
+          if-no-files-found: warn
+          retention-days: 14
