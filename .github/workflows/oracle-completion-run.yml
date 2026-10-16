@@ -273,13 +273,31 @@ jobs:
               # A zero-byte ledger is valid when there are no schedule exclusions.
               exclusions=pd.DataFrame()
           reason_counts=exclusions.reason.value_counts().to_dict() if len(exclusions) and "reason" in exclusions else {}
+          # A complete 22-market matrix is not sufficient if eligible schedule fixtures
+          # were excluded before prediction. Surface that gap in the top-level status.
+          scheduled_fixture_n=int(manifest.get("scheduled_fixture_n", manifest.get("source_schedule_fixture_n", fixture_n)))
+          excluded_fixture_n=int(manifest.get("excluded_fixture_n", 0))
+          exclusion_details=manifest.get("exclusion_details", [])
+          audit_path=Path("/tmp/oracle-fixture-audit.json")
+          audit=json.loads(audit_path.read_text()) if audit_path.exists() else {}
+          coverage=(fixture_n/scheduled_fixture_n) if scheduled_fixture_n else 0.0
+          coverage_complete=(excluded_fixture_n == 0 and fixture_n == scheduled_fixture_n)
           result={
-            "status":"PASS","fixture_count":fixture_n,"prediction_rows":len(pred),
+            "status":"PASS" if coverage_complete else "PARTIAL",
+            "fixture_count":fixture_n,"scheduled_fixture_count":scheduled_fixture_n,
+            "excluded_fixture_count":excluded_fixture_n,
+            "fixture_coverage":round(coverage,6),
+            "fixture_coverage_complete":coverage_complete,
+            "excluded_fixture_reason_counts":manifest.get("exclusion_reason_counts", {}),
+            "excluded_fixture_details":exclusion_details,
+            "prediction_rows":len(pred),
             "markets":sorted(expected),"predicted_rows":len(predicted),
             "no_prediction_rows":int(len(pred)-len(predicted)),
             "probability_completeness":float(predicted.raw_probability.notna().mean()) if len(predicted) else 0.0,
             "fixture_date_complete":bool(pred.fixture_date.notna().all()) if len(pred) else True,
             "kickoff_time_available":bool(pred.kickoff_utc.notna().all()) if len(pred) else True,
+            "scheduled_fixtures_missing_verified_kickoff":audit.get("fixtures_missing_verified_kickoff"),
+            "scheduled_fixtures_with_verified_kickoff":audit.get("fixtures_with_verified_kickoff"),
             "kickoff_time_required_for_eligibility":False,
             "strict_prematch_state":True,"schedule_exclusion_reason_counts":reason_counts,
             "calibration":"NOT_APPLIED","promotion":"BLOCKED"
