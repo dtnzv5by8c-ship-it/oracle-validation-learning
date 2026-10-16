@@ -256,15 +256,31 @@ def main():
         elif col in ("Risk Rationale","Gem's Independent Match Analysis","Risk Profile","Home Risk Rationale","Away Risk Rationale","Historical Accuracy Status","A+ Setup Status"): width=52
         elif col in ("H2H Last5 Summary","Home Team","Away Team"): width=28
         fx.column_dimensions[get_column_letter(i)].width=width
-    percentage_headers=set([label for _,label in MARKETS] + ["Draw Probability (derived)"])
-    # Excel stores Oracle probabilities as decimals; format the cells as percentages only.
+    # Use the actual curated report headers (case/spacing insensitive), not provider label spellings.
+    # This prevents a display-label mismatch from silently leaving a probability column unformatted.
+    percentage_headers_norm={str(label).strip().casefold() for _,label in MARKETS}
+    percentage_headers_norm.add("draw probability (derived)")
+    percentage_headers_norm.update({
+      "btts yes","home 1x","away x2","over 1.5","over 2.5","under 4.5",
+      "home over 1.5 goals","away over 1.5 goals","home 1x + over 1.5","away x2 + over 1.5",
+      "home 1x + under 4.5","away x2 + under 4.5","m-1up home","m-1up away"
+    })
+    # Excel stores Oracle probabilities as decimals; format display only.
     # Never multiply or otherwise mutate the underlying values.
     for row in fx.iter_rows(min_row=2):
         for cell in row:
             cell.alignment=Alignment(wrap_text=True,vertical="top")
-            if fx.cell(row=1,column=cell.column).value in percentage_headers and isinstance(cell.value,(int,float)):
-                if 0.0 <= cell.value <= 1.0:
-                    cell.number_format="0.0%"
+            header=str(fx.cell(row=1,column=cell.column).value or "").strip().casefold()
+            if header in percentage_headers_norm and isinstance(cell.value,(int,float)) and 0.0 <= cell.value <= 1.0:
+                cell.number_format="0.0%"
+    # Fail report generation if any numeric probability cell is not percentage-formatted.
+    for col_idx, header_cell in enumerate(fx[1], start=1):
+        header=str(header_cell.value or "").strip().casefold()
+        if header in percentage_headers_norm:
+            for row_idx in range(2,fx.max_row+1):
+                value=fx.cell(row_idx,col_idx).value
+                if isinstance(value,(int,float)) and 0.0 <= value <= 1.0 and "%" not in fx.cell(row_idx,col_idx).number_format:
+                    raise SystemExit(f"BLOCKED: probability display formatting missing for {header_cell.value} at {fx.cell(row_idx,col_idx).coordinate}.")
     wb.save(XLSX)
     # Compact multi-page PDF with match identity, selected Oracle markets and evidence/risk flags.
     styles=getSampleStyleSheet()
