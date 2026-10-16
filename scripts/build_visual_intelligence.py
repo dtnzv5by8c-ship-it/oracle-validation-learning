@@ -294,9 +294,25 @@ def fetch_openfoot_standings(league_codes, league_names):
                 cache[code]=table
                 audit["competitions_fetched"]+=1
             else:
-                audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings_or_positions"})
+                # Diagnostic only: preserve enough provider response metadata to identify
+                # empty/wrong-season/schema cases without logging credentials or raw payloads.
+                raw_rows=body.get("data",[]) if isinstance(body,dict) else body
+                audit["competition_failures"].append({
+                    "league_code":code,"reason":"empty_or_unrecognized_standings_or_positions",
+                    "provider_competition_id":str(cid),"provider_competition_code":provider_code,
+                    "provider_competition_name":provider_name,
+                    "response_top_level_keys":sorted(body.keys()) if isinstance(body,dict) else [],
+                    "data_type":type(raw_rows).__name__,
+                    "data_count":len(raw_rows) if isinstance(raw_rows,(list,dict)) else None,
+                    "first_row_keys":sorted(raw_rows[0].keys()) if isinstance(raw_rows,list) and raw_rows and isinstance(raw_rows[0],dict) else []
+                })
         except Exception as exc:
-            audit["competition_failures"].append({"league_code":code,"reason":type(exc).__name__})
+            audit["competition_failures"].append({
+                "league_code":code,"reason":type(exc).__name__,
+                "provider_competition_id":str(cid),"provider_competition_code":provider_code,
+                "provider_competition_name":provider_name,
+                "http_status":getattr(getattr(exc,"response",None),"status_code",None)
+            })
             # Stop after an explicit provider rate-limit response; do not burn quota
             # by retrying the same unavailable endpoint for every remaining league.
             if getattr(getattr(exc,"response",None),"status_code",None)==429:
