@@ -256,9 +256,59 @@ def fetch_openfoot_standings(league_codes, league_names):
             rr=requests.get(f"{base}/standings",params={"competition":cid},headers=headers,timeout=25)
             rr.raise_for_status()
             body=rr.json()
-            rows=body.get("data",[])
-            if isinstance(rows,dict):
-                rows=rows.get("standings",rows.get("table",rows.get("items",[])))
+            raw_data=body.get("data",[]) if isinstance(body,dict) else body
+            rows=raw_data if isinstance(raw_data,list) else []
+            selected_rows_path="data" if isinstance(raw_data,list) else ""
+            data_keys=sorted(raw_data.keys()) if isinstance(raw_data,dict) else []
+            # OpenFoot's documented envelope permits data to be an object or a list.
+            # Standings objects can contain overall/home/away split tables; only the
+            # overall table is valid for general league position. Never substitute a
+            # venue-specific table when the overall table is missing.
+            def is_standing_row_list(value):
+                if not isinstance(value,list) or not value:
+                    return False
+                for candidate in value:
+                    if not isinstance(candidate,dict):
+                        continue
+                    has_team=any(k in candidate for k in ("team","participant","club","teamName","name","participantName"))
+                    has_position=any(k in candidate for k in ("position","rank","place","positionNumber"))
+                    if has_team and has_position:
+                        return True
+                return False
+            if isinstance(raw_data,dict):
+                preferred=("overall","overallTable","overall_table","standings","table","entries","rows","items","total","all")
+                candidates=[]
+                def scan_standings(node,path,depth=0):
+                    if is_standing_row_list(node):
+                        candidates.append((path,node))
+                        return
+                    if not isinstance(node,dict) or depth>=4:
+                        return
+                    keys=sorted(node.keys(),key=lambda k:(preferred.index(k) if k in preferred else len(preferred),str(k)))
+                    for key in keys:
+                        child=node[key]
+                        if isinstance(child,(dict,list)):
+                            scan_standings(child,path+"."+str(key),depth+1)
+                scan_standings(raw_data,"data")
+                def path_rank(path):
+                    parts=[p.casefold().replace("_","") for p in path.split(".")]
+                    if any(p in {"home","away","homestandings","awaystandings"} for p in parts):
+                        return -1
+                    if any(p in {"overall","overalltable"} for p in parts):
+                        return 100
+                    if any(p in {"standings","table","entries","rows","items","total","all"} for p in parts):
+                        return 50
+                    return 0
+                ranked=[(path_rank(path),path,values) for path,values in candidates]
+                ranked=[item for item in ranked if item[0]>=0]
+                if ranked:
+                    ranked.sort(key=lambda item:(item[0],-len(item[2])),reverse=True)
+                    best_rank=ranked[0][0]
+                    best=[item for item in ranked if item[0]==best_rank]
+                    if best_rank>0 and len(best)==1:
+                        _,selected_rows_path,rows=best[0]
+                    elif best_rank==0 and len(ranked)==1:
+                        _,selected_rows_path,rows=ranked[0]
             if not isinstance(rows,list):
                 raise ValueError("unexpected standings schema")
             table={}
@@ -303,8 +353,10 @@ def fetch_openfoot_standings(league_codes, league_names):
                     "provider_competition_name":provider_name,
                     "response_top_level_keys":sorted(body.keys()) if isinstance(body,dict) else [],
                     "data_type":type(raw_rows).__name__,
+                    "data_keys":sorted(raw_rows.keys()) if isinstance(raw_rows,dict) else [],
+                    "selected_rows_path":selected_rows_path,
                     "data_count":len(raw_rows) if isinstance(raw_rows,(list,dict)) else None,
-                    "first_row_keys":sorted(raw_rows[0].keys()) if isinstance(raw_rows,list) and raw_rows and isinstance(raw_rows[0],dict) else []
+                    "first_row_keys":sorted(rows[0].keys()) if isinstance(rows,list) and rows and isinstance(rows[0],dict) else []
                 })
         except Exception as exc:
             audit["competition_failures"].append({
