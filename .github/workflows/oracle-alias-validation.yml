@@ -77,25 +77,25 @@ jobs:
               exclusions=pd.DataFrame(columns=["fixture_id","home_team","away_team","reason","missing_components"])
           schedule=pd.read_csv("data/fixtures/oracle_upcoming_fixtures.csv")
           expected=[
-            ("2. Bundesliga","Greuther Furth","Braunschweig"),
-            ("Eredivisie","Den Haag","PSV"),
-            ("Eerste Divisie","FC Emmen","Almere City"),
-            ("Eerste Divisie","Jong Utrecht","Roda"),
-            ("Ligue 2","Pau FC","Grenoble"),
-            ("Eerste Divisie","Almere City","Roda"),
-            ("Eerste Divisie","Jong AZ","Helmond"),
-            ("Eerste Divisie","Oss","Jong Ajax"),
+            ("D2","Greuther Furth","Braunschweig"),
+            ("N1","Den Haag","PSV"),
+            ("NED2","FC Emmen","Almere City"),
+            ("NED2","Jong Utrecht","Roda"),
+            ("F2","Pau FC","Grenoble"),
+            ("NED2","Almere City","Roda"),
+            ("NED2","Jong AZ","Helmond"),
+            ("NED2","Oss","Jong Ajax"),
           ]
           def n(x): return "".join(ch.lower() for ch in str(x or "") if ch.isalnum())
           tested=[]; not_in_window=[]
-          for league,home,away in expected:
+          for league_code,home,away in expected:
               hit=schedule[
-                schedule.league.astype(str).map(n).eq(n(league)) &
+                schedule.league_code.astype(str).map(n).eq(n(league_code)) &
                 schedule.home_team.astype(str).map(n).eq(n(home)) &
                 schedule.away_team.astype(str).map(n).eq(n(away))
               ]
               if hit.empty:
-                  not_in_window.append(f"{league}: {home} vs {away}")
+                  not_in_window.append(f"{league_code}: {home} vs {away}")
                   continue
                   failed=exclusions[
                 exclusions.home_team.astype(str).map(n).eq(n(home)) &
@@ -103,8 +103,8 @@ jobs:
                 exclusions.reason.astype(str).eq("MISSING_PREMATCH_TEAM_STATE")
               ]
               if not failed.empty:
-                  raise SystemExit(f"ALIAS_VALIDATION_FAILED: {league}: {home} vs {away} remains excluded for missing team state")
-              tested.append(f"{league}: {home} vs {away}")
+                  raise SystemExit(f"ALIAS_VALIDATION_FAILED: {league_code}: {home} vs {away} remains excluded for missing team state")
+              tested.append(f"{league_code}: {home} vs {away}")
           pred=pd.read_csv(root/"four_model_live_predictions.csv")
           fixture_n=int(pred.fixture_id.nunique()) if not pred.empty else 0
           assert len(pred)==fixture_n*22, "22-market prediction matrix does not reconcile"
