@@ -401,6 +401,8 @@ jobs:
               raise SystemExit("BLOCKED: expected fixture report sheet missing.")
           ws=wb["Fixture Predictions 16-19 Oct"]
           headers={cell.value:cell.column for cell in ws[1]}
+          # Validate only probability columns included in the locked curated report.
+          # The full Oracle runner emits 22 markets, but the curated 38-column view intentionally selects a subset.
           prob_headers={"BTTS Yes","Home 1X","Away X2","Over 1.5","Over 2.5","Under 4.5",
             "Home over 1.5 goals","Away over 1.5 goals","Home 1X + Over 1.5","Away X2 + Over 1.5",
             "Home 1X + Under 4.5","Away X2 + Under 4.5","M-1UP Home","M-1UP Away","Draw Probability (derived)"}
