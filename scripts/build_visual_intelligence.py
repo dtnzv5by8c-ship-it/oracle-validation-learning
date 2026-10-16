@@ -217,6 +217,13 @@ def fetch_openfoot_standings(league_codes, league_names):
             if not suffix or any(suffix.startswith(s) for s in safe_suffixes):
                 return 2
         return 0
+    # Explicit provider codes confirmed by the catalogue diagnostics from run #92.
+    # These codes are league-specific; unlike generic names such as "Premier League"
+    # or "Primera Division", they cannot accidentally bind to another country's league.
+    provider_code_aliases={
+        "B1":{"BEL1"}, "E0":{"EPL"}, "F1":{"FR1"},
+        "I1":{"IT1"}, "I2":{"IT2"}, "SP1":{"ES1"},
+    }
     candidates=[]
     for comp in catalog:
         if not isinstance(comp,dict): continue
@@ -225,6 +232,10 @@ def fetch_openfoot_standings(league_codes, league_names):
         cid=field(comp,"id","competitionId","competition_id")
         if not cid: continue
         scores={str(local):competition_matches(str(local),code,name) for local in league_codes}
+        provider_code_norm=norm(code)
+        for local in league_codes:
+            if provider_code_norm in {norm(x) for x in provider_code_aliases.get(str(local),set())}:
+                scores[str(local)]=4  # reviewed exact provider-code match outranks label heuristics
         best=max(scores.values(),default=0)
         matched_codes=[local for local,score in scores.items() if score==best and best>0]
         # A provider competition must map to exactly one governed local code.
