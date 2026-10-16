@@ -2,6 +2,7 @@
 """Reporting-only Visual Intelligence build. Oracle prediction values are never modified."""
 from pathlib import Path
 import json, re, os, requests, unicodedata
+from difflib import SequenceMatcher
 import pandas as pd
 
 # Reporting-only canonical aliases. The source feeds use inconsistent abbreviations,
@@ -293,6 +294,32 @@ def fetch_openfoot_standings(league_codes, league_names):
     audit["status"]="PASS" if cache and not audit["competition_failures"] else "PARTIAL" if cache else "UNAVAILABLE"
     audit["competitions_requested"]=len(by_code)
     audit["competitions_unresolved"]=sorted(set(map(str,league_codes))-set(by_code))
+    # Permanent diagnostic: expose actual provider catalogue candidates for unmapped
+    # governed competitions. Do not auto-select fuzzy matches; this evidence is used
+    # to build a reviewed alias map without risking a wrong division/season.
+    provider_catalog=[]
+    for comp in catalog:
+        if not isinstance(comp,dict): continue
+        cid=field(comp,"id","competitionId","competition_id")
+        cname=field(comp,"name","title","competitionName")
+        ccode=field(comp,"code","leagueCode","shortCode")
+        if cid and (cname or ccode):
+            provider_catalog.append({"id":str(cid),"code":str(ccode),"name":str(cname)})
+    unresolved_candidates={}
+    for local in audit["competitions_unresolved"]:
+        expected=[local_names.get(str(local),"")] + aliases.get(str(local),[])
+        expected_tokens={norm(t) for phrase in expected for t in re.split(r"[^A-Za-z0-9]+",str(phrase)) if len(t)>2}
+        scored=[]
+        for item in provider_catalog:
+            provider_text=f"{item['code']} {item['name']}"
+            provider_tokens={norm(t) for t in re.split(r"[^A-Za-z0-9]+",provider_text) if len(t)>2}
+            overlap=len(expected_tokens & provider_tokens)/max(1,len(expected_tokens))
+            similarity=max((SequenceMatcher(None,norm(phrase),norm(provider_text)).ratio() for phrase in expected if phrase),default=0)
+            score=round(max(overlap,similarity),3)
+            if score>=0.2:
+                scored.append({**item,"diagnostic_score":score})
+        unresolved_candidates[str(local)]=sorted(scored,key=lambda x:x["diagnostic_score"],reverse=True)[:8]
+    audit["catalog_candidates_for_unresolved_competitions"]=unresolved_candidates
     return cache,audit
 
 def main():
@@ -399,7 +426,9 @@ def main():
                          "H2H Avg Total Goals":"","H2H BTTS %":"","H2H Over 2.5 %":""})
         base["Data As-Of Date"]=str(hist.date_dt.max().date()) if len(hist) else ""
         history_ok=len(h_rows)>=3 and len(a_rows)>=3
-        standings_ok=bool(home_table and away_table)
+        # Evidence is standings-verified only when both source-backed positions are valid.
+        # A non-empty table object with a blank/ambiguous position is not sufficient.
+        standings_ok=(home_table.get("position") not in ("",None) and away_table.get("position") not in ("",None))
         base["Evidence Status"]="VERIFIED_STANDINGS_AND_HISTORY" if history_ok and standings_ok else "PARTIAL" if history_ok or standings_ok else "INSUFFICIENT_HISTORY"
         base["Visual Evidence Components"]="; ".join(x for x,ok in [
             ("Recent results/form",history_ok),("Head-to-head",len(h2h)>0),("League standings",standings_ok),("Form-based attack/defence indices",str(hidx_status).startswith("DERIVED") and str(aidx_status).startswith("DERIVED")),
@@ -415,6 +444,17 @@ def main():
     out.to_csv(OUT,index=False)
     audit_path=OUT.with_name("visual_intelligence_audit.json")
     positions_missing=((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED"))
+    missing_team_positions={}
+    for _, r in out[positions_missing].iterrows():
+        code=str(r.get("League","UNKNOWN"))
+        entry=missing_team_positions.setdefault(code,{"fixtures":0,"home_position_missing":0,"away_position_missing":0,"unresolved_teams":[]})
+        entry["fixtures"]+=1
+        if str(r.get("Home League Position Verification",""))!="VERIFIED":
+            entry["home_position_missing"]+=1
+            entry["unresolved_teams"].append({"side":"home","team":str(r.get("Home Team","")),"fixture_id":str(r.get("Fixture ID",""))})
+        if str(r.get("Away League Position Verification",""))!="VERIFIED":
+            entry["away_position_missing"]+=1
+            entry["unresolved_teams"].append({"side":"away","team":str(r.get("Away Team","")),"fixture_id":str(r.get("Fixture ID",""))})
     audit={"status":"PARTIAL" if positions_missing.any() else "PASS","generation_status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
            "fixture_id_unique":True,"oracle_probabilities_modified":False,
            "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
@@ -425,6 +465,7 @@ def main():
            "fixtures_both_positions_verified":int(((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),
            "fixtures_missing_one_or_both_positions":int(positions_missing.sum()),
            "standings_coverage_by_league":{str(k):{"fixtures":int(len(g)),"both_positions_verified":int(((g.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (g.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),"missing_one_or_both":int(((g.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (g.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).sum())} for k,g in out.groupby("League",dropna=False)},
+           "unresolved_team_positions_by_league":missing_team_positions,
            "betting_readiness":"PARTIAL_NOT_READY" if positions_missing.any() else "STANDINGS_COMPLETE_PENDING_OTHER_GATES",
            "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
            "output":str(OUT)}
