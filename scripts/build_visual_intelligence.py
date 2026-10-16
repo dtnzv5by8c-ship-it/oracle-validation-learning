@@ -2,6 +2,7 @@
 """Reporting-only Visual Intelligence build. Oracle prediction values are never modified."""
 from pathlib import Path
 import json, re, os, requests, unicodedata
+from difflib import SequenceMatcher
 import pandas as pd
 
 # Reporting-only canonical aliases. The source feeds use inconsistent abbreviations,
@@ -191,6 +192,38 @@ def fetch_openfoot_standings(league_codes, league_names):
       "CRO":["Croatian Football League (HNL)","HNL Croatia"],"UKR":["Ukrainian Premier League"],
       "RSA":["South African Premier Division","South African Premiership","Betway Premiership","Premier Soccer League"]
     }
+    # Use both the governed local code and the fixture's own league label.
+    # Exact matches are preferred. Season/country suffix matching is allowed only
+    # when it produces one unique provider competition; ambiguous mappings stay unresolved.
+    local_names={str(code):str(name) for code,name in zip(league_codes,league_names)}
+    def competition_matches(local_code, provider_code, provider_name):
+        pc, pn = norm(provider_code), norm(provider_name)
+        if pc and pc == norm(local_code):
+            return 3
+        expected=[local_names.get(str(local_code),"")] + aliases.get(str(local_code),[])
+        expected=[norm(x) for x in expected if norm(x)]
+        if pn and pn in expected:
+            return 3
+        # Provider labels commonly append season/region qualifiers. Do not use
+        # unrestricted substring matching: it can confuse top divisions with U21/2nd leagues.
+        safe_suffixes=("2025","2026","2027","2028","england","france","italy","spain","germany",
+                       "scotland","portugal","turkey","romania","southafrica","czechia","austria",
+                       "switzerland","poland","croatia","ukraine","netherlands","belgium","wales",
+                       "northernireland","ireland","league")
+        for alias in expected:
+            if len(alias) < 6 or not pn.startswith(alias):
+                continue
+            suffix=pn[len(alias):]
+            if not suffix or any(suffix.startswith(s) for s in safe_suffixes):
+                return 2
+        return 0
+    # Explicit provider codes confirmed by the catalogue diagnostics from run #92.
+    # These codes are league-specific; unlike generic names such as "Premier League"
+    # or "Primera Division", they cannot accidentally bind to another country's league.
+    provider_code_aliases={
+        "B1":{"BEL1"}, "E0":{"EPL"}, "F1":{"FR1"},
+        "I1":{"IT1"}, "I2":{"IT2"}, "SP1":{"ES1"},
+    }
     candidates=[]
     for comp in catalog:
         if not isinstance(comp,dict): continue
@@ -198,24 +231,84 @@ def fetch_openfoot_standings(league_codes, league_names):
         name=field(comp,"name","title","competitionName")
         cid=field(comp,"id","competitionId","competition_id")
         if not cid: continue
-        normalized_names={norm(name)}
-        matched_codes=[str(local) for local in league_codes if norm(code)==norm(local) and norm(code)]
-        matched_codes += [str(local) for local in league_codes if any(norm(alias)==norm(name) for alias in aliases.get(str(local),[]))]
-        if matched_codes:
-            candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes))))
+        scores={str(local):competition_matches(str(local),code,name) for local in league_codes}
+        provider_code_norm=norm(code)
+        for local in league_codes:
+            if provider_code_norm in {norm(x) for x in provider_code_aliases.get(str(local),set())}:
+                scores[str(local)]=4  # reviewed exact provider-code match outranks label heuristics
+        best=max(scores.values(),default=0)
+        matched_codes=[local for local,score in scores.items() if score==best and best>0]
+        # A provider competition must map to exactly one governed local code.
+        # If two local leagues tie, preserve the ambiguity for audit instead of reusing one table.
+        if len(set(matched_codes))==1:
+            candidates.append((str(cid),str(code),str(name),sorted(set(matched_codes)),best))
     by_code={}
     for code in league_codes:
         matches=[c for c in candidates if str(code) in c[3]]
-        if len(matches)==1: by_code[str(code)]=(matches[0][0],matches[0][1],matches[0][2])
+        # Never choose between two provider competitions for one governed league.
+        top=max((c[4] for c in matches),default=0)
+        best=[c for c in matches if c[4]==top]
+        if len(best)==1 and top>0:
+            by_code[str(code)]=(best[0][0],best[0][1],best[0][2])
     for code,comp in by_code.items():
         cid,provider_code,provider_name=comp
         try:
             rr=requests.get(f"{base}/standings",params={"competition":cid},headers=headers,timeout=25)
             rr.raise_for_status()
             body=rr.json()
-            rows=body.get("data",[])
-            if isinstance(rows,dict):
-                rows=rows.get("standings",rows.get("table",rows.get("items",[])))
+            raw_data=body.get("data",[]) if isinstance(body,dict) else body
+            rows=raw_data if isinstance(raw_data,list) else []
+            selected_rows_path="data" if isinstance(raw_data,list) else ""
+            data_keys=sorted(raw_data.keys()) if isinstance(raw_data,dict) else []
+            # OpenFoot's documented envelope permits data to be an object or a list.
+            # Standings objects can contain overall/home/away split tables; only the
+            # overall table is valid for general league position. Never substitute a
+            # venue-specific table when the overall table is missing.
+            def is_standing_row_list(value):
+                if not isinstance(value,list) or not value:
+                    return False
+                for candidate in value:
+                    if not isinstance(candidate,dict):
+                        continue
+                    has_team=any(k in candidate for k in ("team","participant","club","teamName","name","participantName"))
+                    has_position=any(k in candidate for k in ("position","rank","place","positionNumber"))
+                    if has_team and has_position:
+                        return True
+                return False
+            if isinstance(raw_data,dict):
+                preferred=("overall","overallTable","overall_table","standings","table","entries","rows","items","total","all")
+                candidates=[]
+                def scan_standings(node,path,depth=0):
+                    if is_standing_row_list(node):
+                        candidates.append((path,node))
+                        return
+                    if not isinstance(node,dict) or depth>=4:
+                        return
+                    keys=sorted(node.keys(),key=lambda k:(preferred.index(k) if k in preferred else len(preferred),str(k)))
+                    for key in keys:
+                        child=node[key]
+                        if isinstance(child,(dict,list)):
+                            scan_standings(child,path+"."+str(key),depth+1)
+                scan_standings(raw_data,"data")
+                def path_rank(path):
+                    parts=[p.casefold().replace("_","") for p in path.split(".")]
+                    if any(p in {"home","away","homestandings","awaystandings"} for p in parts):
+                        return -1
+                    if any(p in {"overall","overalltable"} for p in parts):
+                        return 100
+                    if any(p in {"standings","table","entries","rows","items","total","all"} for p in parts):
+                        return 50
+                    return 0
+                ranked=[(path_rank(path),path,values) for path,values in candidates]
+                ranked=[item for item in ranked if item[0]>=0]
+                if ranked:
+                    ranked.sort(key=lambda item:(item[0],-len(item[2])),reverse=True)
+                    best_rank=ranked[0][0]
+                    best=[item for item in ranked if item[0]==best_rank]
+                    if best_rank>0 and len(best)==1:
+                        _,selected_rows_path,rows=best[0]
+                    elif best_rank==0 and len(ranked)==1:
+                        _,selected_rows_path,rows=ranked[0]
             if not isinstance(rows,list):
                 raise ValueError("unexpected standings schema")
             table={}
@@ -225,20 +318,69 @@ def fetch_openfoot_standings(league_codes, league_names):
                 team_name=field(team,"name","title","displayName") if isinstance(team,dict) else str(team)
                 team_name=team_name or field(item,"teamName","name","participantName")
                 if not team_name: continue
-                table[norm(team_name)]={
-                    "position":field(item,"position","rank","place","positionNumber"),
+                position=field(item,"position","rank","place","positionNumber")
+                # Position must be a positive integer; malformed rows are not verified standings.
+                try:
+                    position_int=int(position)
+                    if position_int < 1: continue
+                except (TypeError,ValueError):
+                    continue
+                team_key=norm(team_name)
+                if not team_key: continue
+                # Duplicate normalized names are ambiguous and must not silently overwrite.
+                if team_key in table:
+                    table[team_key]["position"]=""
+                    table[team_key]["match_status"]="AMBIGUOUS_DUPLICATE_TEAM_NAME"
+                    continue
+                table[team_key]={
+                    "position":position_int,
                     "points":field(item,"points","pts"),
                     "played":field(item,"played","matchesPlayed","gamesPlayed","matches"),
                     "goal_difference":field(item,"goalDifference","goal_difference","gd"),
                     "form":field(item,"form","recentForm","lastFive"),
-                    "provider":"OpenFoot API","competition":provider_name}
-            if table:
+                    "provider":"OpenFoot API","competition":provider_name,
+                    "match_status":"VERIFIED_POSITION"}
+            if table and any(v.get("position") not in ("",None) for v in table.values()):
                 cache[code]=table
                 audit["competitions_fetched"]+=1
             else:
-                audit["competition_failures"].append({"league_code":code,"reason":"empty_or_unrecognized_standings"})
+                # Diagnostic only: preserve enough provider response metadata to identify
+                # empty/wrong-season/schema cases without logging credentials or raw payloads.
+                raw_rows=body.get("data",[]) if isinstance(body,dict) else body
+                audit["competition_failures"].append({
+                    "league_code":code,"reason":"empty_or_unrecognized_standings_or_positions",
+                    "provider_competition_id":str(cid),"provider_competition_code":provider_code,
+                    "provider_competition_name":provider_name,
+                    "response_top_level_keys":sorted(body.keys()) if isinstance(body,dict) else [],
+                    "data_type":type(raw_rows).__name__,
+                    "data_keys":sorted(raw_rows.keys()) if isinstance(raw_rows,dict) else [],
+                    "selected_rows_path":selected_rows_path,
+                    "data_count":len(raw_rows) if isinstance(raw_rows,(list,dict)) else None,
+                    "first_row_keys":sorted(rows[0].keys()) if isinstance(rows,list) and rows and isinstance(rows[0],dict) else [],
+                    "nested_shape":(
+                        {"type":"dict","keys":sorted(raw_rows.keys())[:40],
+                         "children":{
+                           str(key):{
+                             "type":type(value).__name__,
+                             "keys":sorted(value.keys())[:40] if isinstance(value,dict) else [],
+                             "count":len(value) if isinstance(value,(dict,list)) else None,
+                             "first_item_keys":sorted(value[0].keys())[:40] if isinstance(value,list) and value and isinstance(value[0],dict) else []
+                           }
+                           for key,value in list(raw_rows.items())[:20] if isinstance(value,(dict,list))
+                         }}
+                        if isinstance(raw_rows,dict) else
+                        {"type":"list","count":len(raw_rows),
+                         "first_item_keys":sorted(raw_rows[0].keys())[:40] if raw_rows and isinstance(raw_rows[0],dict) else []}
+                        if isinstance(raw_rows,list) else {"type":type(raw_rows).__name__}
+                    )
+                })
         except Exception as exc:
-            audit["competition_failures"].append({"league_code":code,"reason":type(exc).__name__})
+            audit["competition_failures"].append({
+                "league_code":code,"reason":type(exc).__name__,
+                "provider_competition_id":str(cid),"provider_competition_code":provider_code,
+                "provider_competition_name":provider_name,
+                "http_status":getattr(getattr(exc,"response",None),"status_code",None)
+            })
             # Stop after an explicit provider rate-limit response; do not burn quota
             # by retrying the same unavailable endpoint for every remaining league.
             if getattr(getattr(exc,"response",None),"status_code",None)==429:
@@ -247,6 +389,32 @@ def fetch_openfoot_standings(league_codes, league_names):
     audit["status"]="PASS" if cache and not audit["competition_failures"] else "PARTIAL" if cache else "UNAVAILABLE"
     audit["competitions_requested"]=len(by_code)
     audit["competitions_unresolved"]=sorted(set(map(str,league_codes))-set(by_code))
+    # Permanent diagnostic: expose actual provider catalogue candidates for unmapped
+    # governed competitions. Do not auto-select fuzzy matches; this evidence is used
+    # to build a reviewed alias map without risking a wrong division/season.
+    provider_catalog=[]
+    for comp in catalog:
+        if not isinstance(comp,dict): continue
+        cid=field(comp,"id","competitionId","competition_id")
+        cname=field(comp,"name","title","competitionName")
+        ccode=field(comp,"code","leagueCode","shortCode")
+        if cid and (cname or ccode):
+            provider_catalog.append({"id":str(cid),"code":str(ccode),"name":str(cname)})
+    unresolved_candidates={}
+    for local in audit["competitions_unresolved"]:
+        expected=[local_names.get(str(local),"")] + aliases.get(str(local),[])
+        expected_tokens={norm(t) for phrase in expected for t in re.split(r"[^A-Za-z0-9]+",str(phrase)) if len(t)>2}
+        scored=[]
+        for item in provider_catalog:
+            provider_text=f"{item['code']} {item['name']}"
+            provider_tokens={norm(t) for t in re.split(r"[^A-Za-z0-9]+",provider_text) if len(t)>2}
+            overlap=len(expected_tokens & provider_tokens)/max(1,len(expected_tokens))
+            similarity=max((SequenceMatcher(None,norm(phrase),norm(provider_text)).ratio() for phrase in expected if phrase),default=0)
+            score=round(max(overlap,similarity),3)
+            if score>=0.2:
+                scored.append({**item,"diagnostic_score":score})
+        unresolved_candidates[str(local)]=sorted(scored,key=lambda x:x["diagnostic_score"],reverse=True)[:8]
+    audit["catalog_candidates_for_unresolved_competitions"]=unresolved_candidates
     return cache,audit
 
 def main():
@@ -319,14 +487,19 @@ def main():
         away_table=table.get(norm(f.away_team),{})
         base["Home League Position"]=home_table.get("position","")
         base["Away League Position"]=away_table.get("position","")
+        base["Home League Position Verification"]="VERIFIED" if home_table.get("position") not in ("",None) else "UNVERIFIED"
+        base["Away League Position Verification"]="VERIFIED" if away_table.get("position") not in ("",None) else "UNVERIFIED"
         base["Home League Points"]=home_table.get("points","")
         base["Away League Points"]=away_table.get("points","")
         base["Home League Played"]=home_table.get("played","")
         base["Away League Played"]=away_table.get("played","")
         base["Home League Form"]=home_table.get("form","")
         base["Away League Form"]=away_table.get("form","")
-        base["Standings Source"]="OpenFoot API" if home_table and away_table else "UNAVAILABLE"
-        base["Standings As-Of UTC"]=pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds") if home_table and away_table else ""
+        base["Standings Source"]="OpenFoot API" if home_table and away_table and home_table.get("position") not in ("",None) and away_table.get("position") not in ("",None) else "PARTIAL/UNAVAILABLE"
+        # Retrieval time is not the same as the provider's table effective/as-of time.
+        # Do not label a fetch timestamp as a source snapshot date.
+        base["Standings As-Of UTC"]=""
+        base["Standings Retrieved UTC"]=pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds") if home_table or away_table else ""
         base["Standings Competition"]=home_table.get("competition","") if home_table and away_table else ""
         h2h=league_hist[( ((league_hist.home_n==norm(f.home_team))&(league_hist.away_n==norm(f.away_team))) |
                           ((league_hist.home_n==norm(f.away_team))&(league_hist.away_n==norm(f.home_team))) ) &
@@ -348,7 +521,9 @@ def main():
                          "H2H Avg Total Goals":"","H2H BTTS %":"","H2H Over 2.5 %":""})
         base["Data As-Of Date"]=str(hist.date_dt.max().date()) if len(hist) else ""
         history_ok=len(h_rows)>=3 and len(a_rows)>=3
-        standings_ok=bool(home_table and away_table)
+        # Evidence is standings-verified only when both source-backed positions are valid.
+        # A non-empty table object with a blank/ambiguous position is not sufficient.
+        standings_ok=(home_table.get("position") not in ("",None) and away_table.get("position") not in ("",None))
         base["Evidence Status"]="VERIFIED_STANDINGS_AND_HISTORY" if history_ok and standings_ok else "PARTIAL" if history_ok or standings_ok else "INSUFFICIENT_HISTORY"
         base["Visual Evidence Components"]="; ".join(x for x,ok in [
             ("Recent results/form",history_ok),("Head-to-head",len(h2h)>0),("League standings",standings_ok),("Form-based attack/defence indices",str(hidx_status).startswith("DERIVED") and str(aidx_status).startswith("DERIVED")),
@@ -363,14 +538,33 @@ def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     out.to_csv(OUT,index=False)
     audit_path=OUT.with_name("visual_intelligence_audit.json")
-    audit={"status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
+    positions_missing=((out.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (out.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED"))
+    missing_team_positions={}
+    for _, r in out[positions_missing].iterrows():
+        code=str(r.get("League","UNKNOWN"))
+        entry=missing_team_positions.setdefault(code,{"fixtures":0,"home_position_missing":0,"away_position_missing":0,"unresolved_teams":[]})
+        entry["fixtures"]+=1
+        if str(r.get("Home League Position Verification",""))!="VERIFIED":
+            entry["home_position_missing"]+=1
+            entry["unresolved_teams"].append({"side":"home","team":str(r.get("Home Team","")),"fixture_id":str(r.get("Fixture ID",""))})
+        if str(r.get("Away League Position Verification",""))!="VERIFIED":
+            entry["away_position_missing"]+=1
+            entry["unresolved_teams"].append({"side":"away","team":str(r.get("Away Team","")),"fixture_id":str(r.get("Fixture ID",""))})
+    audit={"status":"PARTIAL" if positions_missing.any() else "PASS","generation_status":"PASS","fixture_count":len(fixtures),"visual_intelligence_rows":len(out),
            "fixture_id_unique":True,"oracle_probabilities_modified":False,
            "evidence_status_counts":out["Evidence Status"].value_counts().to_dict(),
            "standings_source_audit":standings_audit,
            "standings_matched_fixture_count":int((out.get("Standings Source",pd.Series(dtype=str))=="OpenFoot API").sum()),
+           "home_position_verified_count":int((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
+           "away_position_verified_count":int((out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED").sum()),
+           "fixtures_both_positions_verified":int(((out.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (out.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),
+           "fixtures_missing_one_or_both_positions":int(positions_missing.sum()),
+           "standings_coverage_by_league":{str(k):{"fixtures":int(len(g)),"both_positions_verified":int(((g.get("Home League Position Verification",pd.Series(dtype=str))=="VERIFIED") & (g.get("Away League Position Verification",pd.Series(dtype=str))=="VERIFIED")).sum()),"missing_one_or_both":int(((g.get("Home League Position Verification",pd.Series(dtype=str))!="VERIFIED") | (g.get("Away League Position Verification",pd.Series(dtype=str))!="VERIFIED")).sum())} for k,g in out.groupby("League",dropna=False)},
+           "unresolved_team_positions_by_league":missing_team_positions,
+           "betting_readiness":"PARTIAL_NOT_READY" if positions_missing.any() else "STANDINGS_COMPLETE_PENDING_OTHER_GATES",
            "fixtures_with_h2h":int((pd.to_numeric(out.get("H2H Last5 Count",pd.Series(dtype=float)),errors="coerce").fillna(0)>0).sum()),
            "output":str(OUT)}
-    audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\\n",encoding="utf-8")
+    audit_path.write_text(json.dumps(audit,indent=2,default=str)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2,default=str))
 
 if __name__=="__main__": main()
