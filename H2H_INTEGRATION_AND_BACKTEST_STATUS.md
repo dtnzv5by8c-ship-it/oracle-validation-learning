@@ -73,3 +73,39 @@ To unblock the experiment, populate the governed settlement ledger with verified
 - The H2H reporting workflow already has a scheduled trigger for Tuesdays and Saturdays at 05:30 UTC, as well as manual dispatch and relevant code-push triggers. The new audit is wired into that workflow so future scheduled runs can continue accumulating development-only evidence.
 
 **Interpretation guardrail:** a settled challenger scorecard is not, by itself, a test that H2H adds incremental value. That requires a matched, chronological comparison between predictions made with and without H2H features, using identical fixtures and markets. No production promotion or probability update is authorized by this reporting work.
+
+
+## Verified Run #20 results — 2026-10-17
+
+**Workflow:** [Run #20 — successful](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39054874140)  
+**Artifact:** [oracle-h2h-report-20](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39054874140/artifacts/12108993962)
+
+### Reporting integration
+
+- Upcoming fixtures: 112.
+- Canonical Fixture ID export: 112 unique IDs; PASS.
+- Exact-ID H2H join: 112/112 rows (100%); zero unmatched IDs; fuzzy matching not used.
+- Oracle probabilities modified: no. Production model logic modified: no.
+- Historical archive: 75,104 rows, 2018-07-20 through 2026-10-17; 0 duplicate keys after merge; source acquisition errors: 0.
+- H2H audit: 83 fixtures with one or more H2H meetings; 53 with at least five meetings; 24 with 1UP truth; 16 unresolved team/league mapping cases; 13 fixtures with no prior meeting found in the available archive. Unresolved mapping rate 14.29%, below the 20% gate. Overall H2H status remains `PASS_WITH_REVIEW_ITEMS`.
+
+### Development-only challenger shadow settlement
+
+The new audit processed 210 prospective challenger prediction rows across 42 fixtures. 200 rows were scored (95.24% coverage); 10 rows remain unscored because exact league/date/team results were not found. There were zero chronology failures and zero unsupported-market rows. It did not write to canonical ledgers and did not change Oracle predictions.
+
+| Market | Settled rows | 50%-threshold classification accuracy | Brier score | Log loss | Non-NO_BET rows | Non-NO_BET hit rate |
+|---|---:|---:|---:|---:|---:|---:|
+| HOME_1X | 40 | 70.0% | 0.177736 | 0.534945 | 20 | 85.0% |
+| HOME_1X_U45 | 40 | 62.5% | 0.216474 | 0.623642 | 20 | 70.0% |
+| AWAY_X2 | 40 | 62.5% | 0.231720 | 0.656514 | 20 | 45.0% |
+| AWAY_X2_U45 | 40 | 65.0% | 0.226494 | 0.645179 | 20 | 65.0% |
+| BTTS_YES | 40 | 52.5% | 0.264493 | 0.723510 | 20 | 50.0% |
+
+These are preliminary descriptive results on a small challenger cohort, not evidence of sustained profitability or incremental H2H value. The 10 unscored rows are five markets for each of two Bundesliga fixture records: Borussia Dortmund–Werder Bremen (2026-10-09) and Mainz 05–Bayer Leverkusen (2026-10-10). Confirm those fixture identities/dates against an independent fixture/result source before treating their absence as an archive-only defect.
+
+### Next actions
+
+1. Investigate the two unmatched Bundesliga fixture records and retain them as unscored until the fixture/date and final result are verified.
+2. Review the 16 unresolved H2H team/league mappings using the new cross-league team-presence columns. Do not auto-reassign a team to another competition; league history is not interchangeable.
+3. Add an independent result-source reconciliation and a fixture-validity gate to the shadow audit before using its metrics for decisions.
+4. To test whether H2H adds predictive value, compare matched predictions with/without H2H using the same fixtures, market definitions, and pre-kickoff chronology. Run multiple chronological out-of-sample windows before any promotion discussion.
