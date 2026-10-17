@@ -37,6 +37,10 @@ jobs:
         run: python scripts/fetch_opta_power_rankings.py
       - name: Join Opta ratings to upcoming Oracle fixtures
         run: python scripts/join_opta_to_oracle_fixtures.py oracle/data/fixtures/oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/mens_power_rankings.csv
+      - name: Probe live OpenFoot xG access and coverage
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+        run: python scripts/probe_openfoot_xg_access.py
       - name: Upload report-only rankings and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
