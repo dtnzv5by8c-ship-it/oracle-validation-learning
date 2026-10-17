@@ -16,7 +16,7 @@ def main():
         raise RuntimeError("GITHUB_TOKEN_missing")
     headers = {"Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json",
                "X-GitHub-Api-Version": "2022-11-28"}
-    r = requests.get(f"{API}/repos/{REPO}/actions/runs?per_page=30", headers=headers, timeout=30)
+    r = requests.get(f"{API}/repos/{REPO}/actions/runs?per_page=100", headers=headers, timeout=30)
     r.raise_for_status()
     runs = r.json().get("workflow_runs", [])
     candidates = [x for x in runs if x.get("name") == "Oracle Completion Run"
