@@ -36,15 +36,15 @@ jobs:
 
       - name: Clone governed private Oracle source (read-only)
         env:
-          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+          ORACLE_PRIVATE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "${ORACLE_READ_TOKEN}" ]; then
-            echo "ERROR: ORACLE_READ_TOKEN secret is missing."
+          if [ -z "${ORACLE_PRIVATE_READ_TOKEN}" ]; then
+            echo "ERROR: ORACLE_PRIVATE_READ_TOKEN secret is missing."
             exit 1
           fi
           git clone --depth 1 --branch fix/epl-btts-team-state-aliases \
-            "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+            "https://x-access-token:${ORACLE_PRIVATE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
           cp scripts/build_h2h_report.py oracle/scripts/build_h2h_report.py
 
