@@ -4,7 +4,7 @@
 **Branch:** `feature/h2h-exact-id-join-and-market-backtest`  
 **Scope:** reporting and offline validation only. No production model logic, probabilities, thresholds, or calibration have been changed.
 
-## Completed in this branch
+## Completed and merged to reporting main
 
 - Added `fixture_id` to the H2H fixture report export using the same canonical format defined by Oracle's existing publication adapter: `{league_code}-{date}-{slug(home_team)}-{slug(away_team)}`.
 - Added a strict exact-ID join utility. It rejects missing ID columns, blank IDs, duplicate IDs, and empty inputs; it preserves original Oracle values and emits a coverage audit.
@@ -14,7 +14,7 @@
 
 ## Validation status
 
-The exact-ID join and H2H ID-format tests are committed but must be considered **pending CI confirmation** until a successful GitHub Actions run is observed. The current curated workbook is not yet automatically populated with its canonical ID; it must be exported from a fixture-level source that carries the governed `league_code`, date, and team fields, or updated at its reporting boundary to preserve the canonical ID.
+The automated CI checks passed in [run #11](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39053182357), including syntax compilation and the exact-ID test suite. The live H2H workflow still needs to complete an end-to-end run on the merged main branch to confirm the private source checkout, fixture ID export, H2H report, join, and artifact upload together. The current separate Visual Intelligence workbook is not itself rebuilt by this H2H workflow; the workflow produces a canonical-ID fixture-level report with H2H attached.
 
 The latest H2H archive audit (workflow run #17) processed 149 fixtures: 107 had H2H meetings, 23 were unmatched source fixtures, and 19 had no prior meeting found in the available archive. The audit status was `PASS_WITH_REVIEW_ITEMS`, not a clean pass.
 
