@@ -46,7 +46,7 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse --branch fix/epl-btts-team-state-aliases \
             "https://x-access-token:${ORACLE_PRIVATE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           cd oracle
-          git sparse-checkout set --no-cone database/matches.csv database/one_up_truth.csv scripts/ingest_upcoming_fixtures.py scripts/restore_historical_match_spine.py config/data_config.json
+          git sparse-checkout set --no-cone database/matches.csv database/one_up_truth.csv archive/PREDICTION_LEDGER.csv scripts/ingest_upcoming_fixtures.py scripts/restore_historical_match_spine.py config/data_config.json
           cd ..
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
           cp scripts/build_h2h_report.py oracle/scripts/build_h2h_report.py
@@ -145,6 +145,14 @@ jobs:
           if audit["duplicate_keys_after_merge"]!=0: raise SystemExit("Duplicate match keys detected after merge.")
           PY
 
+      - name: Build development-only prospective challenger settlement audit
+        run: |
+          set -euo pipefail
+          python scripts/build_prospective_challenger_settlement_audit.py \
+            --predictions oracle/archive/PREDICTION_LEDGER.csv \
+            --matches oracle/database/matches.csv \
+            --out-dir reports/backtest
+
       - name: Build H2H report and audit
         working-directory: oracle
         run: python scripts/build_h2h_report.py
@@ -180,6 +188,7 @@ jobs:
             oracle/reports/h2h/oracle_h2h_exact_id_join_audit.json
             oracle/data/fixtures/h2h_history_extension_manifest.json
             oracle/data/fixtures/h2h_history_merge_audit.json
+            reports/backtest/**
           if-no-files-found: error
           retention-days: 30
 
