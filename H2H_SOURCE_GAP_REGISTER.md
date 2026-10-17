@@ -1,70 +1,83 @@
 # Oracle H2H Source-Gap Register
 
 **As-of:** 2026-10-17  
-**Reference audit:** [H2H workflow run #17](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39047414354)  
-**Scope:** reporting/source coverage only. No production model changes.
+**Latest reference audit:** [H2H workflow run #18](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39053245770)  
+**Scope:** reporting/source coverage only. No production model changes or Oracle probability changes.
 
-## Audit summary
+## Latest audit summary
 
-- Fixtures processed: 149
-- Fixtures with H2H meetings: 107
-- Unmatched source fixtures: 23
-- Fixtures with no prior meeting found in the available archive: 19
-- H2H audit status: `PASS_WITH_REVIEW_ITEMS`
-- Unmatched rate: 15.44% (below the 20% threshold, but not evidence of complete coverage)
+- Upcoming fixtures processed: 113
+- Exact canonical Fixture ID joins: 113/113 (100%); fuzzy matching: not used
+- Fixtures with historical H2H meetings: 84
+- Unresolved team/league archive mappings: 16
+- Fixtures with no prior meeting found in the available archive: 13
+- Fixtures with at least five H2H meetings: 53
+- Fixtures with 1UP truth records: 24
+- Historical archive: 75,104 rows; date range 2018-07-20 to 2026-10-17
+- Archive merge duplicate keys: 0; source extension acquisition errors: 0
+- H2H quality status: `PASS_WITH_REVIEW_ITEMS`
 
-These categories are intentionally separate. “No prior meeting found” is bounded by archive coverage and must not be presented as proof the teams have never played.
+The successful exact-ID join confirms that each upcoming fixture has a report row. It does not mean every fixture has historical meetings or that source coverage is complete. “No prior meeting found” is bounded by the archive's available coverage and is not proof the clubs have never played.
 
-## Unmatched records requiring source investigation
+## Current unresolved team/league mappings (16)
 
-### Possible league-code/competition mismatch — do not auto-reassign
+These are the exact current rows in `h2h_unmatched_fixtures.csv` from Run #18. The report diagnoses a team missing from the archive under the fixture's current league code; it does not establish whether the cause is an alias, a league/season coverage gap, a competition mismatch, or absent source history.
 
-| Current league code | Fixture | Why it is flagged | Required verification |
+| Fixture date | League | Home team | Away team | Team(s) not found in this league archive |
+|---|---|---|---|---|
+| 2026-10-18 | CZE | Slovacko | Brno | Brno |
+| 2026-10-18 | E0 | Leeds | Manchester Utd | Manchester Utd |
+| 2026-10-18 | E0 | Nottingham | Arsenal | Nottingham |
+| 2026-10-18 | NED2 | Maastricht | Heracles | Maastricht |
+| 2026-10-18 | NED2 | Waalwijk | FC Volendam | Waalwijk |
+| 2026-10-18 | POL | Zaglebie | Jagiellonia | Zaglebie; Jagiellonia |
+| 2026-10-18 | ROU | Univ. Craiova | Farul Constanta | Farul Constanta |
+| 2026-10-18 | SP2 | Ceuta | Oviedo | Ceuta |
+| 2026-10-18 | SP2 | Granada CF | Cadiz CF | Granada CF; Cadiz CF |
+| 2026-10-18 | T1 | Kasimpasa | Samsunspor | Kasimpasa |
+| 2026-10-19 | NED2 | Jong Utrecht | Roda | Jong Utrecht; Roda |
+| 2026-10-19 | POL | Wisla Plock | Radomiak Radom | Wisla Plock |
+| 2026-10-19 | ROU | U. Cluj | FC Arges | U. Cluj; FC Arges |
+| 2026-10-20 | E2 | AFC Wimbledon | Mansfield | AFC Wimbledon |
+| 2026-10-20 | E2 | Burton | Bradford City | Bradford City |
+| 2026-10-20 | E2 | Cambridge Utd | Wycombe | Cambridge Utd |
+
+## No prior H2H found within available archive (13)
+
+These are kept distinct from unresolved mappings because both clubs were found in the relevant league archive, but no prior meeting was found in the available coverage window.
+
+| Fixture date | League | Home team | Away team |
 |---|---|---|---|
-| E0 | Fulham vs Hull | Same normalized pair appears in E1 history | Verify actual competition and fixture source for this date |
-| SP2 | Eibar vs Mallorca | Same normalized pair appears in SP1 history | Verify actual competition and fixture source for this date |
+| 2026-10-17 | ROU | FC Rapid Bucuresti | Corvinul |
+| 2026-10-18 | I2 | Sampdoria | Arezzo |
+| 2026-10-18 | SP1 | Malaga | Real Sociedad |
+| 2026-10-18 | SP1 | Osasuna | Racing Santander |
+| 2026-10-18 | SP2 | Burgos CF | Sabadell |
+| 2026-10-18 | SP2 | Girona | Andorra |
+| 2026-10-19 | E0 | Tottenham | Coventry |
+| 2026-10-19 | UKR | FC Kharkiv | Liviy Bereh |
+| 2026-10-20 | E1 | Wolves | Portsmouth |
+| 2026-10-20 | E2 | Bromley | Leicester |
+| 2026-10-20 | E2 | Notts County | Sheffield Wed |
+| 2026-10-20 | E3 | Rotherham | Newport |
+| 2026-10-20 | E3 | York City | Accrington |
 
-No competition reassignment or cross-league history join is permitted until the fixture's competition is independently verified.
+## Required root-cause checks
 
-### Team absent from the historical archive for the reported league
-
-| League code | Fixture |
-|---|---|
-| E1 | Bristol City vs Sheffield United |
-| E2 | Barnsley vs Cambridge United |
-| E2 | Bradford City vs Stevenage |
-| E2 | Sheffield Wednesday vs AFC Wimbledon |
-| E2 | AFC Wimbledon vs Mansfield Town |
-| E2 | Burton Albion vs Bradford City |
-| E2 | Cambridge United vs Wycombe Wanderers |
-| NED2 | FC Emmen vs Almere City |
-| NED2 | MVV Maastricht vs Heracles Almelo |
-| NED2 | RKC Waalwijk vs FC Volendam |
-| NED2 | Jong FC Utrecht vs Roda JC |
-| CZE | 1. FC Slovacko vs Zbrojovka Brno |
-| E0 | Leeds United vs Manchester United |
-| E0 | Nottingham Forest vs Arsenal |
-| POL | Zaglebie Lubin vs Jagiellonia Bialystok |
-| POL | Wisla Plock vs Radomiak Radom |
-| ROU | Universitatea Craiova vs Farul Constanta |
-| ROU | Universitatea Cluj vs FC Arges |
-| SP2 | AD Ceuta vs Real Oviedo |
-| SP2 | Granada vs Cadiz |
-| T1 | Kasimpasa vs Samsunspor |
-
-This diagnosis means at least one normalized team name was not found in the archive under the fixture's current league code. It does **not** prove the team name is wrong or the league history does not exist.
+1. **Team alias versus missing history:** inspect canonical names actually present in the same league archive before adding an alias. If the team has no rows in that league, an alias alone cannot restore missing history.
+2. **Competition and season:** verify the source fixture's competition and season. Do not auto-reassign a fixture based on a same-named pair in another league.
+3. **Coverage:** compare league/season match counts and dates against an independent source. Successful FotMob acquisition with zero request errors is not independent completeness validation.
+4. **H2H temporal validity:** only include meetings completed before the target fixture's kickoff.
+5. **Before/after audit:** any alias or source correction must be independently supported and must not create cross-league contamination.
 
 ## Permanent handling rules
 
-1. Preserve each raw source team name and league code for auditability.
-2. Add aliases only when verified against the provider's canonical team identity and competition/season.
-3. Do not use fuzzy matching, silently reassign a fixture to another league, or promote a zero-match result as “no H2H ever.”
-4. On each run, report source row counts, source/season coverage, unmatched fixtures, no-meeting fixtures, and per-league exact-ID join coverage.
-5. Keep fixture identity and H2H history joins separate: canonical fixture IDs identify the upcoming fixture; H2H history is selected only from prior completed matches in the same verified competition.
-6. Re-run the coverage audit after a source or alias change and retain before/after counts. A fix is accepted only if it resolves a verified root cause without creating cross-league contamination.
+- Preserve raw source team names and league codes for auditability.
+- Add aliases only when the provider's canonical identity and competition/season are verified.
+- Do not use fuzzy matching, silently reassign a fixture to another league, or promote a zero-match result as “no H2H ever.”
+- On every run, report source row counts, league/season coverage, unresolved mappings, no-meeting cases, and exact-ID join coverage.
+- Keep canonical upcoming-fixture IDs separate from H2H history selection. H2H history must be selected only from prior completed matches in the same verified competition.
 
-## What is not yet resolved
+## Predictive-value test status
 
-The above records are diagnosed but not all source gaps have been repaired. The available evidence does not justify automatic alias edits or competition changes. The 19 no-prior-meeting fixtures should remain explicitly marked as no meeting found in archive coverage until historical coverage is verified.
-
-See also: [Integration and backtest status](H2H_INTEGRATION_AND_BACKTEST_STATUS.md).
+**NOT TESTABLE from the currently verified canonical ledgers.** The private repository's canonical `archive/SETTLEMENT_LEDGER.csv` is header-only, and its current main prediction ledger has no verified historical prediction/outcome pairing. No hit-rate lift, Brier-score, log-loss, or calibration improvement should be claimed until immutable pre-kickoff predictions are linked to verified settled outcomes. Do not fabricate historical predictions or backfill synthetic settlements.
