@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
-          git clone --depth 1 --branch fix/epl-btts-team-state-aliases "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          git clone --depth 1 --branch main "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with:
