@@ -63,3 +63,13 @@ To unblock the experiment, populate the governed settlement ledger with verified
 - H2H archive completeness: **requires review**.
 - H2H-driven model promotion: **not approved / not evaluated**.
 - Historical predictive value: **not testable until settled outcomes are linked to the immutable prediction ledger**.
+
+
+## Follow-up work started — 2026-10-17
+
+- Expanded H2H diagnostics to show which *other league codes* contain each unresolved team identity, where such rows exist. This is evidence for investigation only; it does not auto-reassign leagues or change matching rules. Code commit: [`cc0ce47`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/cc0ce477a64e44195d4838d15c197fc2a73b3454).
+- Added a reporting-only, development shadow settlement audit for the immutable challenger prediction rows in the source branch. It scores only supported markets when the prediction timestamp is strictly before kickoff and an exact league/date/home/away result exists in the merged match archive. It reports unmatched and ambiguous outcomes instead of guessing, and never writes to the canonical prediction or settlement ledgers.
+- The new shadow audit is being exercised by [workflow run #20](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39054874140). Its result is pending at the time of this update.
+- The H2H reporting workflow already has a scheduled trigger for Tuesdays and Saturdays at 05:30 UTC, as well as manual dispatch and relevant code-push triggers. The new audit is wired into that workflow so future scheduled runs can continue accumulating development-only evidence.
+
+**Interpretation guardrail:** a settled challenger scorecard is not, by itself, a test that H2H adds incremental value. That requires a matched, chronological comparison between predictions made with and without H2H features, using identical fixtures and markets. No production promotion or probability update is authorized by this reporting work.
