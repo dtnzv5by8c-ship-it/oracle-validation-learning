@@ -146,9 +146,23 @@ jobs:
           PY
 
       - name: Build H2H report and audit
-
         working-directory: oracle
         run: python scripts/build_h2h_report.py
+
+      - name: Expose canonical Fixture ID and join H2H by exact ID
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python ../scripts/prepare_oracle_fixture_id_export.py \
+            --input data/fixtures/oracle_upcoming_fixtures.csv \
+            --output reports/h2h/oracle_fixture_id_export.csv \
+            --audit reports/h2h/oracle_fixture_id_export_audit.json
+          python ../scripts/join_h2h_by_fixture_id.py \
+            --oracle reports/h2h/oracle_fixture_id_export.csv \
+            --h2h reports/h2h/h2h_fixture_report.csv \
+            --out reports/h2h/oracle_fixture_report_with_h2h.csv \
+            --audit reports/h2h/oracle_h2h_exact_id_join_audit.json \
+            --oracle-id fixture_id --h2h-id fixture_id --league-column league_code
 
       - name: Upload H2H outputs
         uses: actions/upload-artifact@v4
@@ -160,6 +174,10 @@ jobs:
             oracle/reports/h2h/h2h_no_historical_meetings.csv
             oracle/reports/h2h/h2h_match_diagnostics.csv
             oracle/reports/h2h/h2h_audit.json
+            oracle/reports/h2h/oracle_fixture_id_export.csv
+            oracle/reports/h2h/oracle_fixture_id_export_audit.json
+            oracle/reports/h2h/oracle_fixture_report_with_h2h.csv
+            oracle/reports/h2h/oracle_h2h_exact_id_join_audit.json
             oracle/data/fixtures/h2h_history_extension_manifest.json
             oracle/data/fixtures/h2h_history_merge_audit.json
           if-no-files-found: error
