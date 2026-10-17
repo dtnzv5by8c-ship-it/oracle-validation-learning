@@ -109,3 +109,36 @@ These are preliminary descriptive results on a small challenger cohort, not evid
 2. Review the 16 unresolved H2H team/league mappings using the new cross-league team-presence columns. Do not auto-reassign a team to another competition; league history is not interchangeable.
 3. Add an independent result-source reconciliation and a fixture-validity gate to the shadow audit before using its metrics for decisions.
 4. To test whether H2H adds predictive value, compare matched predictions with/without H2H using the same fixtures, market definitions, and pre-kickoff chronology. Run multiple chronological out-of-sample windows before any promotion discussion.
+
+
+## Verified Run #21 results — 2026-10-17
+
+**Workflow:** [Run #21 — successful](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39071598767)  
+**Artifact:** [oracle-h2h-report-21](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39071598767/artifacts/12116055163)
+
+### Reporting and source validation
+
+- Upcoming fixtures: 92, dated 2026-10-18 through 2026-10-20.
+- Canonical Fixture ID export: 92 rows, 92 unique IDs; PASS.
+- Exact-ID H2H join: 92/92 (100%), zero unmatched IDs; fuzzy matching not used.
+- Oracle probability values modified: false. Production model logic changed: false.
+- Historical archive: 75,104 rows spanning 2018-07-20 through 2026-10-17; 62,268 extension rows added, zero rejected, zero duplicate keys after merge, zero source acquisition errors.
+- H2H audit: 64 fixtures with H2H, 38 with at least five meetings, 19 with 1UP truth, 16 unresolved team/league mappings, and 12 fixtures with no prior meeting found in the available archive. Mapping-unmatched rate 17.39%; below the 20% gate, but review items remain. Overall status PASS_WITH_REVIEW_ITEMS.
+
+### Verified result reconciliation and shadow settlement
+
+The sourced reconciliation was successfully applied to all ten previously unscored market rows: five for Borussia Dortmund 2-2 Werder Bremen (2026-10-09) and five for Mainz 05 3-4 Bayer Leverkusen (2026-10-10). The output includes the independent Bundesliga source URL on each override row.
+
+- Shadow prediction rows: 210 across 42 fixtures.
+- Settled rows: 210/210 (100%); zero chronology failures; zero unsupported-market rows.
+- Canonical ledgers written: false. Production model changed: false.
+
+| Market | Settled rows | 50%-threshold classification accuracy | Brier score | Log loss | Non-NO_BET rows | Non-NO_BET hit rate |
+|---|---:|---:|---:|---:|---:|---:|
+| HOME_1X | 42 | 69.05% | 0.181928 | 0.543237 | 22 | 81.82% |
+| HOME_1X_U45 | 42 | 61.90% | 0.216410 | 0.623280 | 22 | 68.18% |
+| AWAY_X2 | 42 | 61.90% | 0.234872 | 0.662989 | 22 | 45.45% |
+| AWAY_X2_U45 | 42 | 64.29% | 0.231525 | 0.655660 | 22 | 63.64% |
+| BTTS_YES | 42 | 54.76% | 0.260507 | 0.715422 | 22 | 54.55% |
+
+These are exploratory challenger metrics on a small cohort, not evidence of profitability, calibration quality, production readiness, or incremental H2H lift. A matched, chronological with-H2H versus without-H2H comparison remains blocked until verified historical outcomes are linked to immutable pre-kickoff predictions. The canonical settlement ledger remains unchanged.
