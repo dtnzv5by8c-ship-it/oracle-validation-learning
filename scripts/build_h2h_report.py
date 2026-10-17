@@ -53,18 +53,22 @@ def main():
     age=(now.date()-datetime.strptime(latest,"%Y-%m-%d").date()).days
     # The historical H2H archive is intentionally historical; do not mistake its last match date for fixture-feed freshness.
     league_name_to_code={norm(r.get("league","")):r.get("league_code","") for r in ms if r.get("league") and r.get("league_code")}
-    hist=defaultdict(list); truth=defaultdict(list)
+    hist=defaultdict(list); truth=defaultdict(list); team_presence=defaultdict(set); pair_leagues=defaultdict(set)
     for r in ms:
         try: hg,ag=int(float(r["home_goals"])),int(float(r["away_goals"]))
         except (ValueError,TypeError):continue
         if r.get("home_team") and r.get("away_team"):
-            hist[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
+            league_key=r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),"")
+            pair_key=tuple(sorted((team(r["home_team"]),team(r["away_team"]))))
+            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
+            team_presence[league_key].update((team(r["home_team"]),team(r["away_team"])))
+            pair_leagues[pair_key].add(league_key)
     for r in us:
         if r.get("home_team") and r.get("away_team"):
             truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
-    out=[]; unmatched=[]
+    out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
-        h,a=f.get("home_team",""),f.get("away_team",""); pair=tuple(sorted((team(h),team(a)))); league=f.get("league_code",""); date=f.get("date","")[:10]
+        h,a=f.get("home_team",""),f.get("away_team",""); pair=tuple(sorted((team(h),team(a)))); league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),""); date=f.get("date","")[:10]
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
         for d,mh,ma,gh,ga in games:
@@ -82,8 +86,29 @@ def main():
         rates={"BTTS Yes":rate(bt,n),"Over 1.5":rate(o15,n),"Over 2.5":rate(o25,n),"Under 3.5":rate(u35,n)}
         eligible=[(k,v) for k,v in rates.items() if v!=""]
         best=max(eligible,key=lambda z:z[1]) if n>=MIN_SAMPLE and eligible else ("","")
-        status="MATCHED" if n>=MIN_SAMPLE else ("MATCHED - SMALL SAMPLE" if n else "UNMATCHED - REVIEW TEAM ALIAS/HISTORY")
-        if n==0:unmatched.append({"date":date,"league":f.get("league_code",""),"home_team":h,"away_team":a,"status":status})
+        if n>=MIN_SAMPLE:
+            status="MATCHED"
+        elif n:
+            status="MATCHED - SMALL SAMPLE"
+        else:
+            home_known=team(h) in team_presence.get(league,set())
+            away_known=team(a) in team_presence.get(league,set())
+            other_leagues=sorted(x for x in pair_leagues.get(pair,set()) if x and x!=league)
+            if other_leagues:
+                diagnosis="POSSIBLE_LEAGUE_CODE_MISMATCH"
+                detail="Same normalized team pair exists in other league code(s): "+",".join(other_leagues)
+            elif not home_known or not away_known:
+                diagnosis="TEAM_NOT_FOUND_IN_LEAGUE_ARCHIVE"
+                missing=";".join(name for name,known in ((h,home_known),(a,away_known)) if not known)
+                detail="Team(s) absent from historical records for this league: "+missing
+            else:
+                diagnosis="NO_HISTORICAL_H2H"
+                detail="Both teams appear in this league's archive, but no prior meeting was found in the available date range."
+            status=diagnosis
+            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
+            diagnostics.append(record)
+            if diagnosis=="NO_HISTORICAL_H2H": no_history.append(record)
+            else: unmatched.append(record)
         risk="UNAVAILABLE" if best[1]=="" else ("LOW (historical frequency)" if best[1]>=70 else "MODERATE (historical frequency)" if best[1]>=40 else "HIGH (historical frequency)")
         last=max((g[0] for g in games),default="")
         note=f"Meetings={n}; latest H2H={last or 'none'}; latest archive result={latest}; 1UP truth rows={len(ts)}."
@@ -91,7 +116,12 @@ def main():
         if not ts:note+=" No matching 1UP truth rows; 1UP unavailable."
         out.append({"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,"H2H_Meetings":n,"H2H_Latest_Meeting":last,"H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "","H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),"H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,"H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,"H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
     OUT.mkdir(parents=True,exist_ok=True)
-    for name,data,fields in [("h2h_fixture_report.csv",out,list(out[0].keys()) if out else []),("h2h_unmatched_fixtures.csv",unmatched,["date","league","home_team","away_team","status"])]:
+    diagnostic_fields=["date","league","home_team","away_team","status","home_team_found_in_league_archive","away_team_found_in_league_archive","other_league_codes_with_pair","diagnostic_detail"]
+    for name,data,fields in [
+        ("h2h_fixture_report.csv",out,list(out[0].keys()) if out else []),
+        ("h2h_unmatched_fixtures.csv",unmatched,diagnostic_fields),
+        ("h2h_no_historical_meetings.csv",no_history,diagnostic_fields),
+        ("h2h_match_diagnostics.csv",diagnostics,diagnostic_fields)]:
         with (OUT/name).open("w",newline="",encoding="utf-8-sig") as f:
             w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(data)
     unmatched_rate=round(len(unmatched)/len(fs),4) if fs else 1.0
@@ -99,7 +129,7 @@ def main():
     gate_failures=[]
     if unmatched_rate>MAX_UNMATCHED_RATE: gate_failures.append(f"unmatched_rate {unmatched_rate:.1%} exceeds {MAX_UNMATCHED_RATE:.0%}")
     if age>MAX_ARCHIVE_AGE_DAYS: gate_failures.append(f"historical archive is {age} days old; freshness limit is {MAX_ARCHIVE_AGE_DAYS}")
-    audit={"pipeline":"ORACLE-H2H-REPORTING-1.1","generated_utc":now.isoformat(),"source_files":{str(p.relative_to(ROOT)):{"sha256":sha(p),"bytes":p.stat().st_size} for p in (MATCHES,ONEUP,FIXTURES)},"historical_match_rows":len(ms),"fixtures_processed":len(fs),"fixtures_with_h2h":sum(int(r["H2H_Meetings"])>0 for r in out),"fixtures_unmatched":len(unmatched),"unmatched_rate":unmatched_rate,"fixtures_with_minimum_5_h2h":sample_ge5,"fixtures_with_1up_truth":sum(bool(r["H2H_Home_1UP_%"]!="" or r["H2H_Away_1UP_%"]!="") for r in out),"latest_historical_match_date":latest,"archive_age_days":age,"quality_gates":{"max_unmatched_rate":MAX_UNMATCHED_RATE,"max_archive_age_days":MAX_ARCHIVE_AGE_DAYS,"failures":gate_failures},"minimum_h2h_sample":MIN_SAMPLE,"production_model_changed":False,"status":"FAIL_QUALITY_GATES" if gate_failures else ("PASS_WITH_REVIEW_ITEMS" if unmatched or sample_ge5<len(out) else "PASS")}
+    audit={"pipeline":"ORACLE-H2H-REPORTING-1.1","generated_utc":now.isoformat(),"source_files":{str(p.relative_to(ROOT)):{"sha256":sha(p),"bytes":p.stat().st_size} for p in (MATCHES,ONEUP,FIXTURES)},"historical_match_rows":len(ms),"fixtures_processed":len(fs),"fixtures_with_h2h":sum(int(r["H2H_Meetings"])>0 for r in out),"fixtures_unmatched":len(unmatched),"fixtures_without_historical_h2h":len(no_history),"fixtures_diagnosed_zero_h2h":len(diagnostics),"unmatched_rate":unmatched_rate,"unmatched_rate_definition":"unresolved team/league mapping cases only; genuine no-H2H cases reported separately","fixtures_with_minimum_5_h2h":sample_ge5,"fixtures_with_1up_truth":sum(bool(r["H2H_Home_1UP_%"]!="" or r["H2H_Away_1UP_%"]!="") for r in out),"latest_historical_match_date":latest,"archive_age_days":age,"quality_gates":{"max_unmatched_rate":MAX_UNMATCHED_RATE,"max_archive_age_days":MAX_ARCHIVE_AGE_DAYS,"failures":gate_failures},"minimum_h2h_sample":MIN_SAMPLE,"production_model_changed":False,"status":"FAIL_QUALITY_GATES" if gate_failures else ("PASS_WITH_REVIEW_ITEMS" if unmatched or sample_ge5<len(out) else "PASS")}
     (OUT/"h2h_audit.json").write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2))
     # Do not abort before artifacts are uploaded; workflow evaluates this audit after upload.
