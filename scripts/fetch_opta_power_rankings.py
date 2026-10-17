@@ -31,7 +31,7 @@ def parse_block(raw):
 def main():
     response = requests.get(URL, timeout=30, headers={"User-Agent": "Oracle-Visual-Intelligence/1.0"})
     response.raise_for_status()
-    source = response.text
+    source = response.content.decode("utf-8-sig")
     blocks = re.findall(r"JSON\.parse\(\s*\x60(.*?)\x60\s*\)", source, re.DOTALL)
     tables, parse_errors = [], []
     for idx, block in enumerate(blocks):
