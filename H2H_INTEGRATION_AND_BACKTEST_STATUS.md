@@ -142,3 +142,8 @@ The sourced reconciliation was successfully applied to all ten previously unscor
 | BTTS_YES | 42 | 54.76% | 0.260507 | 0.715422 | 22 | 54.55% |
 
 These are exploratory challenger metrics on a small cohort, not evidence of profitability, calibration quality, production readiness, or incremental H2H lift. A matched, chronological with-H2H versus without-H2H comparison remains blocked until verified historical outcomes are linked to immutable pre-kickoff predictions. The canonical settlement ledger remains unchanged.
+
+
+## Historical validation readiness audit — 2026-10-18
+
+Added [H2H_VALIDATION_READINESS.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/H2H_VALIDATION_READINESS.md) after inspecting the governed source ledgers and existing research assets. The audit confirms that the canonical settlement ledger is header-only; the prediction ledger has one finite 210-row/42-fixture batch; the 10,365-row BTTS OOS file lacks team/league/fixture identity; the August 2026 prediction file has fixture identities but lacks per-row immutable prediction timestamps and H2H feature snapshots; and the four-model historical audit is aggregate evidence rather than fixture-level paired predictions. The reporting workflow clones the source read-only and therefore cannot itself append new canonical prediction/settlement rows. A matched chronological with-H2H versus without-H2H test remains NOT TESTABLE until the governed prediction-producing workflow captures immutable baseline/challenger predictions and feature provenance for the same fixtures, and verified results are linked without changing the canonical ledger from this reporting workflow.
