@@ -64,6 +64,14 @@ def team(s):
 def rows(p):
     with p.open(newline="",encoding="utf-8-sig") as f:return list(csv.DictReader(f))
 def rate(n,d):return round(100*n/d,1) if d else ""
+def slug(s):
+    # Must remain byte-for-byte consistent with the canonical Oracle publication adapter.
+    return re.sub(r"[^a-z0-9]+","-",str(s).lower()).strip("-")
+def fixture_id(r):
+    required=("league_code","date","home_team","away_team")
+    if any(not str(r.get(k) or "").strip() for k in required):
+        raise ValueError("Cannot form canonical Fixture ID: required governed fixture field missing")
+    return f"{r['league_code']}-{r['date']}-{slug(r['home_team'])}-{slug(r['away_team'])}"
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
     now=datetime.now(timezone.utc)
@@ -138,7 +146,7 @@ def main():
         note=f"Meetings={n}; latest H2H={last or 'none'}; latest archive result={latest}; 1UP truth rows={len(ts)}."
         if n<MIN_SAMPLE:note+=f" Fewer than {MIN_SAMPLE} H2H meetings: no best market promoted."
         if not ts:note+=" No matching 1UP truth rows; 1UP unavailable."
-        out.append({"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,"H2H_Meetings":n,"H2H_Latest_Meeting":last,"H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "","H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),"H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,"H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,"H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
+        out.append({"fixture_id":fixture_id(f),"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,"H2H_Meetings":n,"H2H_Latest_Meeting":last,"H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "","H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),"H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,"H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,"H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
     OUT.mkdir(parents=True,exist_ok=True)
     diagnostic_fields=["date","league","home_team","away_team","status","home_team_found_in_league_archive","away_team_found_in_league_archive","other_league_codes_with_pair","diagnostic_detail"]
     for name,data,fields in [
