@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Combine report-only Opta and xG layers by exact Oracle fixture_id."""
-import csv, json, sys
+import csv, json, sys, re, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
 def read_csv(path):
     with Path(path).open(encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
+
+def slug(value):
+    value = unicodedata.normalize("NFKD", str(value or "").casefold()).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "", value)
 
 def unique_by_fixture(rows, label):
     out = {}
@@ -23,6 +27,10 @@ def main():
     if len(sys.argv) != 4:
         raise SystemExit("Usage: combine_external_visual_intelligence.py <fixture_csv> <opta_fixture_csv> <xg_fixture_csv>")
     schedule, opta, xg = map(read_csv, sys.argv[1:])
+    # The governed schedule CSV intentionally omits fixture_id; recreate Oracle's SCHED identity convention.
+    for row in schedule:
+        if not str(row.get("fixture_id") or "").strip():
+            row["fixture_id"] = "SCHED-" + str(row.get("league_code", "")).upper() + "-" + str(row.get("date", "")) + "-" + slug(row.get("home_team")) + "-" + slug(row.get("away_team"))
     schedule_map = unique_by_fixture(schedule, "Oracle schedule")
     opta_map = unique_by_fixture(opta, "Opta layer")
     xg_map = unique_by_fixture(xg, "xG layer")
