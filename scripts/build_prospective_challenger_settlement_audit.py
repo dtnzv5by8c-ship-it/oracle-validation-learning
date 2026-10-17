@@ -74,6 +74,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--predictions", required=True)
     ap.add_argument("--matches", required=True)
+    ap.add_argument("--verified-results", default="")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
     preds = read_csv(a.predictions)
@@ -97,7 +98,7 @@ def main():
             continue
         if not m.get("home_team") or not m.get("away_team") or not m.get("date"):
             continue
-        result_groups[match_key(m)].append((hg, ag, m.get("date","")[:10]))
+        result_groups[match_key(m)].append((hg, ag, m.get("date","")[:10], "historical_archive", ""))
 
     result_lookup = {}
     ambiguous = set()
@@ -107,6 +108,25 @@ def main():
             result_lookup[key] = vals[0]
         else:
             ambiguous.add(key)
+
+    verified_overrides = {}
+    if a.verified_results and Path(a.verified_results).exists():
+        for row in read_csv(a.verified_results):
+            required_v = {"league_code","date","home_team","away_team","home_goals","away_goals","source_name","source_url"}
+            if required_v - set(row) or not row.get("source_url","").startswith("https://"):
+                raise SystemExit("DATA_GATED: verified result override is missing required fields or source URL")
+            key = match_key(row)
+            try:
+                hg, ag = int(row["home_goals"]), int(row["away_goals"])
+                if hg < 0 or ag < 0: raise ValueError()
+            except Exception:
+                raise SystemExit("DATA_GATED: invalid score in verified result override")
+            if key in verified_overrides:
+                raise SystemExit("DATA_GATED: duplicate exact fixture key in verified result overrides")
+            verified_overrides[key] = (hg, ag, row["date"][:10], "independent_verified_override", row["source_url"])
+    for key, val in verified_overrides.items():
+        result_lookup[key] = val
+        ambiguous.discard(key)
 
     settled = []
     chronology_failures = 0
@@ -144,7 +164,7 @@ def main():
                 status = "RESULT_NOT_FOUND"
                 detail = "No exact league/date/home/away result in merged archive"
             else:
-                hg, ag, result_date = result_lookup[key]
+                hg, ag, result_date, result_source, result_source_url = result_lookup[key]
                 y = truth_for(market, hg, ag)
                 hit = int((prob >= 0.5) == bool(y))
                 brier = round((prob - y) ** 2, 8)
@@ -161,6 +181,7 @@ def main():
             "model_status": p.get("model_status",""), "decision": p.get("decision",""),
             "raw_probability": prob if prob is not None else "",
             "final_home_score": hg if hg is not None else "", "final_away_score": ag if ag is not None else "",
+            "result_source": result_source if y is not None else "", "result_source_url": result_source_url if y is not None else "",
             "actual_truth": y if y is not None else "", "prediction_hit": hit,
             "brier_score": brier, "log_loss": ll, "settlement_status": status, "diagnostic": detail,
         })
