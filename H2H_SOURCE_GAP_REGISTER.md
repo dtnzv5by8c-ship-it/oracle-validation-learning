@@ -90,3 +90,16 @@ The [successful Run #20](https://github.com/dtnzv5by8c-ship-it/oracle-validation
 The development-only challenger settlement audit scored 200/210 prediction rows (95.24%). Ten rows were left unscored because exact result records were absent for two fixture identities: Borussia Dortmund–Werder Bremen on 2026-10-09 and Mainz 05–Bayer Leverkusen on 2026-10-10 (five markets per fixture). Verify these fixtures and results independently before deciding whether the issue is a fixture-feed problem or missing result history.
 
 The preliminary settled metrics by market are recorded in [H2H_INTEGRATION_AND_BACKTEST_STATUS.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/H2H_INTEGRATION_AND_BACKTEST_STATUS.md). They are descriptive challenger metrics only; no claim of H2H incremental lift, calibrated probabilities, profitability, or production readiness is supported yet.
+
+
+## Verified Run #21 update — 2026-10-17
+
+[Run #21](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39071598767) completed successfully. [Artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39071598767/artifacts/12116055163).
+
+- Upcoming fixture window: 2026-10-18 through 2026-10-20; 92 fixtures.
+- Exact canonical Fixture ID join: 92/92 (100%); no fuzzy matching; Oracle probabilities and production logic unchanged.
+- Historical archive: 75,104 rows, 2018-07-20 through 2026-10-17; 62,268 extension rows added; zero rejected rows, duplicate keys, or acquisition errors.
+- Current audit: 16 unresolved team/league mappings (17.39%, below the 20% workflow gate) and 12 fixtures with no prior meeting found in the available archive. These are separate states; neither should be silently remapped or described as proof of no historical meeting ever.
+- Verified sourced reconciliation corrected the ten missing shadow settlement rows across Dortmund–Werder (2-2, 2026-10-09) and Mainz–Leverkusen (3-4, 2026-10-10). Shadow settlement is now 210/210 (100%) with zero chronology failures.
+
+The 16 unresolved mappings remain open. Cross-league appearances are diagnostic clues only, not authorization to combine competitions. The archive's successful ingestion and freshness checks do not prove complete independent coverage for every league/season. H2H predictive-value testing remains blocked by the absence of verified historical outcome pairings in the canonical settlement ledger; do not claim H2H incremental lift from the challenger metrics.
