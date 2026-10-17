@@ -34,3 +34,32 @@ jobs:
           name: oracle-opta-power-rankings
           path: artifacts/opta_power_rankings/
           retention-days: 14
+
+  historical-xg-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Clone governed private Oracle source
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
+          git clone --depth 1 --branch fix/epl-btts-team-state-aliases "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests
+      - name: Scan persisted SportMonks statistics and xGFixture payloads
+        run: python oracle/scripts/audit_historical_xg_payloads.py
+      - name: Upload read-only xG archive audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-historical-xg-archive-audit
+          path: |
+            oracle/research/xg_repair/xg_archive_payload_audit.json
+            oracle/research/xg_repair/xg_archive_payload_audit.md
+          if-no-files-found: warn
+          retention-days: 30
