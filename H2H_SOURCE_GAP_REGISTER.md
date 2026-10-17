@@ -103,3 +103,8 @@ The preliminary settled metrics by market are recorded in [H2H_INTEGRATION_AND_B
 - Verified sourced reconciliation corrected the ten missing shadow settlement rows across Dortmund–Werder (2-2, 2026-10-09) and Mainz–Leverkusen (3-4, 2026-10-10). Shadow settlement is now 210/210 (100%) with zero chronology failures.
 
 The 16 unresolved mappings remain open. Cross-league appearances are diagnostic clues only, not authorization to combine competitions. The archive's successful ingestion and freshness checks do not prove complete independent coverage for every league/season. H2H predictive-value testing remains blocked by the absence of verified historical outcome pairings in the canonical settlement ledger; do not claim H2H incremental lift from the challenger metrics.
+
+
+## Historical validation readiness audit — 2026-10-18
+
+See [H2H_VALIDATION_READINESS.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/H2H_VALIDATION_READINESS.md) for the verified inventory of prediction/settlement artifacts and the root cause blocking incremental H2H testing. In particular, the reporting runner is read-only against the governed private source, so repeated reporting runs do not accumulate new canonical predictions or settlements. Do not manufacture historical prediction rows from final scores or aggregate OOS metrics. Keep the with-H2H versus without-H2H comparison blocked until paired immutable pre-kickoff prediction arms and verified outcomes exist.
