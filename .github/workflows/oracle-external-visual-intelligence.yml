@@ -54,7 +54,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: oracle-opta-power-rankings
-          path: artifacts/opta_power_rankings/
+          path: |
+            artifacts/opta_power_rankings/
+            artifacts/openfoot_xg_probe/
           if-no-files-found: warn
           retention-days: 14
 
