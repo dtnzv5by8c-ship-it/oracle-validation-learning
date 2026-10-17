@@ -58,10 +58,13 @@ def main():
     matches["btts"]=(matches["hg"]>0)&(matches["ag"]>0)
     # Deduplicate only exact same source key/score representations; conflicting duplicates fail closed.
     matches["fixture_key"]=matches["date_key"].dt.strftime("%Y-%m-%d")+"|"+matches["league_key"]+"|"+matches["home_key"]+"|"+matches["away_key"]
-    conflicts=matches.groupby("fixture_key").agg(rows=("btts","size"),scores=("hg",lambda x: len(set(x)))).reset_index()
-    bad=conflicts[conflicts["rows"]>1]
+    matches["score_pair"]=list(zip(matches["hg"],matches["ag"]))
+    conflicts=matches.groupby("fixture_key").agg(rows=("btts","size"),score_versions=("score_pair","nunique")).reset_index()
+    bad=conflicts[conflicts["score_versions"]>1]
     if len(bad):
-        raise SystemExit(f"Historical archive contains {len(bad)} duplicate fixture keys; inspect archive before H2H test.")
+        raise SystemExit(f"Historical archive contains {len(bad)} duplicate fixture keys with conflicting scores; inspect archive before H2H test.")
+    # Exact normalized duplicate representations with identical scores are collapsed; conflicting scores fail closed.
+    matches=matches.drop_duplicates(subset=["fixture_key"],keep="first")
     # Build exact same-league, unordered pair history; only matches strictly earlier than fixture date count.
     hist=defaultdict(list)
     for r in matches.itertuples(index=False):
@@ -82,7 +85,7 @@ def main():
         # Fixed Beta(1,1) smoothing; prior outcomes are restricted to earlier fixtures in the same league.
         rate=(b+1)/(n+2)
         rows.append({"match_id":getattr(r,"match_id",""),"date":r.date_key.strftime("%Y-%m-%d"),"league_code":r.league_key,
-                     "home_team":r.home_team,"away_team":r.away_team,"prob_BTTS":float(r.prob),"actual_BTTS":int(r.y),
+                     "home_team":r.home_team,"away_team":r.away_team,"prob":float(r.prob),"prob_BTTS":float(r.prob),"actual_BTTS":int(r.y),
                      "prior_h2h_n":n,"prior_h2h_btts":b,"prior_h2h_btts_rate_smoothed":rate,
                      "h2h_available":int(n>0)})
     df=pd.DataFrame(rows).sort_values(["date","league_code","home_team","away_team"]).reset_index(drop=True)
@@ -131,6 +134,7 @@ def main():
         "resamples":2000,"seed":41},
       "limitations":[
         "Single August 2026 cohort; research-only, not production promotion evidence.",
+        "Source CSV does not contain a per-row immutable prediction timestamp, feature snapshot hash, or explicit H2H/no-H2H prediction arms; therefore this is a proxy research comparison, not the required governed paired incremental-value test.",
         "Team identity matching is strict normalized text and same league only; no aliases or fuzzy matching are inferred.",
         "H2H features use only results with fixture dates strictly earlier than each target date.",
         "The H2H model is a research challenger fit on early-August rows and evaluated on later-August rows; this is not a production Oracle with-H2H/without-H2H controlled run.",
