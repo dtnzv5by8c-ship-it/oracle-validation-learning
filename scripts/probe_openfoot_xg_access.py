@@ -37,7 +37,6 @@ LEAGUES = {
  "CRO": ("Croatia", ["Croatian Football League (HNL)", "Croatian HNL", "HNL"]),
  "UKR": ("Ukraine", ["Ukrainian Premier League", "UPL"]),
  "RSA": ("South Africa", ["South African Premier Division", "South African PSL", "Betway Premiership", "Premier Soccer League"]),
- "SAU": ("Saudi Arabia", ["Saudi Pro League"]),
 }
 
 def norm(value):
