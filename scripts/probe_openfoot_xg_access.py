@@ -110,17 +110,26 @@ def main():
                     cid = comp.get("id") or comp.get("competitionId") or comp.get("identifier")
                     season = comp.get("season") or comp.get("currentSeason") or comp.get("seasonName")
                     if name and cid:
-                        catalog_rows.append({"name": str(name), "id": str(cid), "season": season, "raw": comp})
+                        country_value = comp.get("country") or comp.get("countryName") or comp.get("country_name") or comp.get("country_name_en")
+                        if isinstance(country_value, dict):
+                            country_value = country_value.get("name") or country_value.get("countryName")
+                        catalog_rows.append({"name": str(name), "id": str(cid), "season": season,
+                                             "country": str(country_value or ""), "raw": comp})
                 for code, (country, aliases) in LEAGUES.items():
                     targets = {norm(x) for x in aliases}
                     candidates = [c for c in catalog_rows if norm(c["name"]) in targets]
+                    country_matches = [c for c in candidates if c.get("country") and norm(c["country"]) == norm(country)]
+                    if len(country_matches) == 1:
+                        candidates = country_matches
+                    elif len(candidates) > 1 and country_matches:
+                        candidates = country_matches
                     result = {"league_code": code, "expected_country": country,
                               "status": "COMPETITION_NOT_FOUND" if not candidates else
                                         ("COMPETITION_AMBIGUOUS" if len(candidates) > 1 else "NOT_TESTED"),
                               "team_rows": 0, "teams_with_xg": 0}
                     if len(candidates) == 1:
                         comp = candidates[0]
-                        result.update({"competition_name": comp["name"], "competition_id": comp["id"],
+                        result.update({"competition_name": comp["name"], "competition_id": comp["id"], "competition_country": comp.get("country"),
                                        "season": comp.get("season")})
                         params = {"league": comp["id"]}
                         if comp.get("season"):
