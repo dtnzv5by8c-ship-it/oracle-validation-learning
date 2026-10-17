@@ -63,6 +63,7 @@ jobs:
           path: |
             artifacts/opta_power_rankings/
             artifacts/openfoot_xg_probe/
+            artifacts/external_visual_intelligence/
           if-no-files-found: warn
           retention-days: 14
 
