@@ -193,18 +193,26 @@ jobs:
           h2h_path=Path("reports/h2h/h2h_audit.json")
           merge_path=Path("data/fixtures/h2h_history_merge_audit.json")
           source_path=Path("data/fixtures/h2h_history_extension_manifest.json")
-          for p in (h2h_path,merge_path,source_path):
+          id_export_path=Path("reports/h2h/oracle_fixture_id_export_audit.json")
+          join_path=Path("reports/h2h/oracle_h2h_exact_id_join_audit.json")
+          for p in (h2h_path,merge_path,source_path,id_export_path,join_path):
               if not p.exists():
                   raise SystemExit(f"Required audit artifact missing: {p}")
           audit=json.loads(h2h_path.read_text(encoding="utf-8"))
           merge=json.loads(merge_path.read_text(encoding="utf-8"))
           source=json.loads(source_path.read_text(encoding="utf-8"))
+          id_export=json.loads(id_export_path.read_text(encoding="utf-8"))
+          exact_join=json.loads(join_path.read_text(encoding="utf-8"))
           failures=list(audit.get("quality_gates",{}).get("failures",[]))
           if source.get("status") != "OK": failures.append(f"historical source status is {source.get('status')}; errors={len(source.get('errors',[]))}")
           if len(source.get("errors",[])): failures.append(f"historical source has {len(source.get('errors',[]))} league/season acquisition errors")
           if merge.get("latest_match_age_days",999)>7: failures.append("merged historical archive is stale")
           if merge.get("duplicate_keys_after_merge",1)!=0: failures.append("duplicate match keys after historical merge")
-          print(json.dumps({"h2h_quality_gates":audit.get("quality_gates",{}),"history_merge":merge,"source_status":source.get("status"),"source_errors":len(source.get("errors",[])),"combined_failures":failures},indent=2))
+          if id_export.get("status")!="PASS": failures.append("canonical fixture ID export did not pass")
+          if exact_join.get("exact_id_matches")!=exact_join.get("oracle_rows"): failures.append("not every Oracle fixture has an exact-ID H2H report row")
+          if exact_join.get("joined_rows")!=exact_join.get("oracle_rows"): failures.append("joined report row count differs from Oracle fixture export")
+          if exact_join.get("fuzzy_matching_used") is not False: failures.append("exact-ID join governance violation")
+          print(json.dumps({"h2h_quality_gates":audit.get("quality_gates",{}),"history_merge":merge,"source_status":source.get("status"),"source_errors":len(source.get("errors",[])),"id_export":id_export,"exact_id_join":exact_join,"combined_failures":failures},indent=2))
           if failures:
               raise SystemExit("H2H artifacts were preserved, but one or more quality gates failed. Review the audit and diagnostics artifacts.")
           PY
