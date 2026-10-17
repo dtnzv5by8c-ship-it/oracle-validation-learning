@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Exact-name, report-only join of Opta Power Rankings to Oracle upcoming fixtures."""
-import csv, json, re, sys
+import csv, json, re, sys, unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
 def norm(value):
-    return re.sub(r"[^a-z0-9]+", "", str(value or "").casefold())
+    value = unicodedata.normalize("NFKD", str(value or "").casefold()).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "", value)
+
+def slug(value):
+    return norm(value)
 
 def main():
     if len(sys.argv) != 3:
@@ -25,6 +29,9 @@ def main():
     output = []
     for fixture in fixtures:
         row = dict(fixture)
+        # Oracle's scheduled fixture identity convention, used only when source CSV lacks fixture_id.
+        if not row.get("fixture_id"):
+            row["fixture_id"] = "SCHED-" + str(fixture.get("league_code", "")).upper() + "-" + str(fixture.get("date", "")) + "-" + slug(fixture.get("home_team", "")) + "-" + slug(fixture.get("away_team", ""))
         matched = {}
         for side in ("home", "away"):
             name = fixture.get(side + "_team", "")
@@ -76,7 +83,7 @@ def main():
         "fixtures_with_both_teams_matched": both,
         "both_team_fixture_coverage": both / len(output) if output else 0,
         "coverage_by_league_code": league_coverage,
-        "matching_policy": "Exact normalized name only; ambiguous and unmatched teams remain unavailable. No fuzzy aliases.",
+        "matching_policy": "Exact normalized team-name match only; ambiguous and unmatched teams remain unavailable. Missing fixture_id is generated using Oracle SCHED-{league_code}-{date}-{home_slug}-{away_slug} convention; no fuzzy aliases.",
         "rating_field": "currentRating as published by Opta Analyst; rank is not converted to rating.",
         "source": "https://dataviz.theanalyst.com/opta-power-rankings/index.js",
         "limitations": [
