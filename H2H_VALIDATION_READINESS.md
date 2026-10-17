@@ -5,7 +5,7 @@
 
 ## Decision
 
-**A defensible matched chronological H2H incremental-value test is not yet executable from the currently verified artifacts.** This is a data-lineage and pairing limitation, not evidence that H2H has or has not predictive value.
+**The governed matched chronological H2H incremental-value test remains NOT TESTABLE from current production-ledger evidence.** A reporting-only proxy experiment has now run on an August 2026 cohort; it does not remove the data-lineage and pairing limitation and is not proof for or against production H2H value.
 
 ## Verified inputs and what each can support
 
@@ -52,3 +52,41 @@ For an incremental H2H test, the same chronological fixtures and markets must ha
 - Shadow settlement: 210/210 (100%), zero chronology failures.
 - H2H source audit: 16 unresolved mappings and 12 no-prior-meeting-found fixtures; review remains open.
 - Production logic/probabilities unchanged; canonical ledgers untouched.
+
+
+## Verified H2H incremental-value experiment — Run #23 (2026-10-18)
+
+**Workflow:** [Run #23 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39074892414)  
+**Artifact:** [oracle-h2h-report-23](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39074892414/artifacts/12115779527)
+
+Run #22 failed before producing an artifact. The log identifies a reporting-script KeyError: 'prob': the assembled August rows exposed prob_BTTS, while the model-fitting step expected prob. The reporting-only fix added the normalized prob field, retained prob_BTTS, made identical-score duplicate handling deterministic, and left conflicting score duplicates fail-closed. The workflow was also made resilient so an exploratory audit failure cannot suppress the normal H2H report artifacts. Run #23 then completed successfully and uploaded the requested JSON and fixture-level CSV.
+
+### Cohort and chronology checks
+
+- Source cohort: August 2026 BTTS predictions; historical match archive rows used after validation/deduplication: **75,104**.
+- Valid resolved August prediction rows: **606**.
+- Training cohort: **279** fixtures dated **2026-08-01 through 2026-08-20**.
+- Held-out cohort: **327** fixtures dated **2026-08-21 through 2026-08-31**, spanning **27 league codes**.
+- Held-out H2H coverage: **318/327 (97.25%)** had at least one qualifying prior meeting; mean qualifying prior H2H count across all test fixtures: **10.254**.
+- The fixture audit contains 606 rows, no blank or duplicate match_id values, and its H2H availability flag agrees with whether prior_h2h_n is greater than zero.
+- Code review of scripts/run_h2h_incremental_value_experiment.py confirms the H2H key is the normalized, unordered home/away team pair within the exact same normalized league code. It selects history using bisect_left on the target fixture date, so only archive matches with dates **strictly earlier** than the target date are included. Same-day meetings are excluded. No aliases, fuzzy matching, or league reassignment are used.
+
+### Held-out BTTS (Yes) results
+
+| Held-out metric | Raw Oracle probability | Logistic recalibration baseline | Logistic baseline + H2H features |
+|---|---:|---:|---:|
+| Fixtures scored | 327 | 327 | 327 |
+| Classification accuracy at 50% | 55.046% | 59.021% | 58.410% |
+| Brier score (lower is better) | 0.244695 | **0.244093** | 0.244483 |
+| Log loss (lower is better) | 0.682436 | **0.681105** | 0.681934 |
+| ROC AUC (higher is better) | 0.565797 | 0.565797 | 0.566440 |
+
+**Paired H2H-augmented minus logistic-baseline differences:** Brier **+0.000391** (worse); log loss **+0.000829** (worse). The 2,000-resample paired bootstrap 95% confidence interval for the Brier difference is **[-0.001429, +0.002204]**, which crosses zero. H2H-augmented classification accuracy is 0.611 percentage points below the logistic baseline, while AUC is only marginally higher.
+
+### Interpretation and limitations
+
+This single August proxy cohort provides **no evidence of positive incremental H2H lift** on Brier score, log loss, or 50%-threshold accuracy versus the logistic-recalibrated baseline. The Brier difference is small and uncertain; the confidence interval includes both improvement and deterioration. AUC is marginally higher, but that isolated change does not establish useful incremental value.
+
+This is **not** the governed paired H2H/no-H2H Oracle experiment: the source prediction CSV lacks immutable per-row prediction timestamps, feature snapshot hashes, and explicit paired predictions for the same fixture-market under both arms. The research challenger is fit on the early-August rows and tested on later-August rows; the comparison cannot establish causal incremental value for the production Oracle. One month and 327 test fixtures are insufficient for model promotion or profitability claims; odds and a governed staking rule were not tested.
+
+**Decision:** H2H predictive lift remains **UNPROVEN**. Do not promote the H2H challenger, alter production probabilities or logic, or write canonical ledgers based on this proxy result. Continue with multiple rolling chronological cohorts and immutable, paired, pre-kickoff prediction/feature provenance before making any production decision.
