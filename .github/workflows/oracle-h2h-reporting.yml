@@ -27,7 +27,7 @@ concurrency:
 jobs:
   h2h-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       PYTHONUNBUFFERED: "1"
     steps:
@@ -79,7 +79,7 @@ jobs:
       - name: Extend and validate H2H historical archive
         working-directory: oracle
         env:
-          H2H_HISTORY_START: "2023-07-01"
+          H2H_HISTORY_START: "2018-07-01"
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -91,7 +91,7 @@ jobs:
           s=s.replace('START="2025-03-20"; END="2026-09-20"',
                       'START=os.getenv("H2H_HISTORY_START","2023-07-01"); END=datetime.now(timezone.utc).date().isoformat()')
           s=s.replace('for season in ("2024/2025","2025/2026","2026/2027"):',
-                      'for season in ("2023/2024","2024/2025","2025/2026","2026/2027"):')
+                      'for season in ("2018/2019","2019/2020","2020/2021","2021/2022","2022/2023","2023/2024","2024/2025","2025/2026","2026/2027"):')
           p.write_text(s,encoding="utf-8")
           PY
           python scripts/restore_historical_match_spine.py \
