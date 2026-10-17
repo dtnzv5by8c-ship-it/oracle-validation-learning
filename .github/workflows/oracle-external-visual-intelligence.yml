@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: oracle-external-visual-intelligence-v2
+  group: oracle-external-visual-intelligence-v3
   cancel-in-progress: false
 
 jobs:
