@@ -6,6 +6,8 @@ on:
       - research/external-visual-intelligence-xg-opta
     paths:
       - "scripts/fetch_opta_power_rankings.py"
+      - "scripts/join_opta_to_oracle_fixtures.py"
+      - "scripts/probe_openfoot_xg_access.py"
       - ".github/workflows/oracle-external-visual-intelligence.yml"
   workflow_dispatch:
 
@@ -33,6 +35,8 @@ jobs:
           set -euo pipefail
           test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
           git clone --depth 1 --branch main "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+      - name: Compile report-only scripts
+        run: python -m py_compile scripts/fetch_opta_power_rankings.py scripts/join_opta_to_oracle_fixtures.py scripts/probe_openfoot_xg_access.py
       - name: Fetch and validate Opta public rankings
         run: python scripts/fetch_opta_power_rankings.py
       - name: Join Opta ratings to upcoming Oracle fixtures
