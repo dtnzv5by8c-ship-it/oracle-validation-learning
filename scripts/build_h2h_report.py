@@ -33,7 +33,31 @@ ALIASES={
  "fcrapidbucuresti":"rapidbucuresti","rapidbucuresti":"rapidbucuresti",
  "univcraiova":"universitateacraiova","universitateacraiova":"universitateacraiova",
  "redstar":"redstarfc","redstarfc":"redstarfc","stetienne":"saintetienne","saintetienne":"saintetienne",
- "sheffieldwednesday":"sheffwed","stockportcounty":"stockport","stockport":"stockport"
+ "sheffieldwednesday":"sheffwed","stockportcounty":"stockport","stockport":"stockport",
+ "austriavienna":"austriawien","austriawien":"austriawien",
+ "liberec":"slovanliberec","slovanliberec":"slovanliberec",
+ "plzen":"viktoriaplzen","viktoriaplzen":"viktoriaplzen",
+ "ostrava":"banikostrava","banikostrava":"banikostrava",
+ "brno":"zbrojovkabrno","zbrojovkabrno":"zbrojovkabrno",
+ "hannover":"hannover96","hannover96":"hannover96",
+ "sgdynamodresden":"dynamodresden","dynamodresden":"dynamodresden",
+ "psveindhoven":"psv","psv":"psv",
+ "fcgroningen":"groningen","groningen":"groningen",
+ "fctwente":"twente","twente":"twente",
+ "fcutrecht":"utrecht","utrecht":"utrecht",
+ "peczwolle":"zwolle","zwolle":"zwolle",
+ "gaeagles":"goaheadeagles","gajewagles":"goaheadeagles",
+ "almerecity":"almerecity","fcvolendam":"volendam","volendam":"volendam",
+ "legiawarsaw":"legiawarszawa","legiawarszawa":"legiawarszawa","legia":"legiawarszawa",
+ "zaglebie":"zaglebie lubin".replace(" ",""),"zaglebie lubin".replace(" ",""):"zaglebie lubin".replace(" ",""),
+ "jagielloniabialystok":"jagiellonia","jagiellonia":"jagiellonia",
+ "corvinulhunedoara":"corvinul","corvinul":"corvinul",
+ "deportivoalaves":"alaves","alaves":"alaves",
+ "sportinggijon":"sportinggijon","gijon":"sportinggijon",
+ "adceuta":"ceuta","ceuta":"ceuta","realoviedo":"oviedo","oviedo":"oviedo",
+ "fcandorra":"andorra","andorra":"andorra","realvalladolid":"valladolid","valladolid":"valladolid",
+ "gaziantepfk":"gaziantep","gaziantep":"gaziantep",
+ "kasımpaşa":"kasimpasa","kasimpasa":"kasimpasa","samsunspor":"samsunspor"
 }
 def team(s):
     k=norm(s); return ALIASES.get(k,k)
@@ -103,7 +127,7 @@ def main():
                 detail="Team(s) absent from historical records for this league: "+missing
             else:
                 diagnosis="NO_HISTORICAL_H2H"
-                detail="Both teams appear in this league's archive, but no prior meeting was found in the available date range."
+                detail="Both teams appear in this league archive, but no prior meeting was found within the archive coverage window."
             status=diagnosis
             record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
             diagnostics.append(record)
