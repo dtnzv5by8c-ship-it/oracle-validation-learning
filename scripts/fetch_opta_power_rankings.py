@@ -10,15 +10,16 @@ OUT = Path("artifacts/opta_power_rankings")
 
 def parse_block(raw):
     # Preserve the ranking JSON while safely replacing the embedded comps string.
-    cleaned = re.sub(r'"comps":(".*?")(?=,)', '"comps":"__COMPS__"', raw, flags=re.DOTALL)
-    data = json.loads(cleaned)
-    comps = re.findall(r'"comps":("(?:\\\\.|[^"\\\\])*")', raw, re.DOTALL)
-    for row, match in zip(data, comps):
+    data = json.loads(raw)
+    for row in data:
+        value = row.get("comps")
         try:
-            value = json.loads(match)
-            row["comps"] = ast.literal_eval(value)
+            row["comps"] = json.loads(value) if isinstance(value, str) else (value or [])
         except Exception:
-            row["comps"] = []
+            try: row["comps"] = ast.literal_eval(value) if isinstance(value, str) else []
+            except Exception: row["comps"] = []
+        try:
+        except Exception:
     return data
 
 def main():
