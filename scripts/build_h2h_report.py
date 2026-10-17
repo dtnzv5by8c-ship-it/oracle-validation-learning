@@ -85,7 +85,7 @@ def main():
     age=(now.date()-datetime.strptime(latest,"%Y-%m-%d").date()).days
     # The historical H2H archive is intentionally historical; do not mistake its last match date for fixture-feed freshness.
     league_name_to_code={norm(r.get("league","")):r.get("league_code","") for r in ms if r.get("league") and r.get("league_code")}
-    hist=defaultdict(list); truth=defaultdict(list); team_presence=defaultdict(set); pair_leagues=defaultdict(set)
+    hist=defaultdict(list); truth=defaultdict(list); team_presence=defaultdict(set); team_leagues=defaultdict(set); pair_leagues=defaultdict(set)
     for r in ms:
         try: hg,ag=int(float(r["home_goals"])),int(float(r["away_goals"]))
         except (ValueError,TypeError):continue
@@ -94,6 +94,8 @@ def main():
             pair_key=tuple(sorted((team(r["home_team"]),team(r["away_team"]))))
             hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
             team_presence[league_key].update((team(r["home_team"]),team(r["away_team"])))
+            team_leagues[team(r["home_team"])].add(league_key)
+            team_leagues[team(r["away_team"])].add(league_key)
             pair_leagues[pair_key].add(league_key)
     for r in us:
         if r.get("home_team") and r.get("away_team"):
@@ -137,7 +139,7 @@ def main():
                 diagnosis="NO_HISTORICAL_H2H"
                 detail="Both teams appear in this league archive, but no prior meeting was found within the archive coverage window."
             status=diagnosis
-            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
+            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h),set()) if x and x!=league)),"away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a),set()) if x and x!=league)),"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
             diagnostics.append(record)
             if diagnosis=="NO_HISTORICAL_H2H": no_history.append(record)
             else: unmatched.append(record)
@@ -148,7 +150,7 @@ def main():
         if not ts:note+=" No matching 1UP truth rows; 1UP unavailable."
         out.append({"fixture_id":fixture_id(f),"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,"H2H_Meetings":n,"H2H_Latest_Meeting":last,"H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "","H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),"H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,"H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,"H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
     OUT.mkdir(parents=True,exist_ok=True)
-    diagnostic_fields=["date","league","home_team","away_team","status","home_team_found_in_league_archive","away_team_found_in_league_archive","other_league_codes_with_pair","diagnostic_detail"]
+    diagnostic_fields=["date","league","home_team","away_team","status","home_team_found_in_league_archive","away_team_found_in_league_archive","home_team_other_league_codes","away_team_other_league_codes","other_league_codes_with_pair","diagnostic_detail"]
     for name,data,fields in [
         ("h2h_fixture_report.csv",out,list(out[0].keys()) if out else []),
         ("h2h_unmatched_fixtures.csv",unmatched,diagnostic_fields),
