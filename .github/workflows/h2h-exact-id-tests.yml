@@ -1,0 +1,32 @@
+name: H2H Exact-ID Join Tests
+
+on:
+  push:
+    branches: ["feature/h2h-exact-id-join-and-market-backtest"]
+    paths:
+      - "scripts/join_h2h_by_fixture_id.py"
+      - "scripts/build_h2h_report.py"
+      - "tests/**"
+      - ".github/workflows/h2h-exact-id-tests.yml"
+  pull_request:
+    paths:
+      - "scripts/join_h2h_by_fixture_id.py"
+      - "scripts/build_h2h_report.py"
+      - "tests/**"
+      - ".github/workflows/h2h-exact-id-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-id-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile reporting scripts
+        run: python -m py_compile scripts/join_h2h_by_fixture_id.py scripts/build_h2h_report.py
+      - name: Run exact-ID join tests
+        run: python -m unittest discover -s tests -v
