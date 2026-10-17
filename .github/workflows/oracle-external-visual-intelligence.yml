@@ -10,6 +10,7 @@ on:
       - "scripts/probe_openfoot_xg_access.py"
       - "scripts/fetch_latest_oracle_fixture_artifact.py"
       - "scripts/join_openfoot_xg_to_oracle_fixtures.py"
+      - "scripts/combine_external_visual_intelligence.py"
       - ".github/workflows/oracle-external-visual-intelligence.yml"
   workflow_run:
     workflows: ["Oracle Completion Run"]
@@ -41,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/fetch_latest_oracle_fixture_artifact.py
       - name: Compile report-only scripts
-        run: python -m py_compile scripts/fetch_opta_power_rankings.py scripts/join_opta_to_oracle_fixtures.py scripts/probe_openfoot_xg_access.py scripts/fetch_latest_oracle_fixture_artifact.py scripts/join_openfoot_xg_to_oracle_fixtures.py
+        run: python -m py_compile scripts/fetch_opta_power_rankings.py scripts/join_opta_to_oracle_fixtures.py scripts/probe_openfoot_xg_access.py scripts/fetch_latest_oracle_fixture_artifact.py scripts/join_openfoot_xg_to_oracle_fixtures.py scripts/combine_external_visual_intelligence.py
       - name: Fetch and validate Opta public rankings
         run: python scripts/fetch_opta_power_rankings.py
       - name: Join Opta ratings to upcoming Oracle fixtures
@@ -52,6 +53,8 @@ jobs:
         run: python scripts/probe_openfoot_xg_access.py
       - name: Join verified OpenFoot xG aggregates to Oracle fixtures
         run: python scripts/join_openfoot_xg_to_oracle_fixtures.py oracle_upcoming_fixtures.csv artifacts/openfoot_xg_probe/openfoot_xg_team_season.csv
+      - name: Combine Opta and xG layers by exact fixture ID
+        run: python scripts/combine_external_visual_intelligence.py oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/oracle_fixture_opta_ratings.csv artifacts/openfoot_xg_probe/oracle_fixture_xg_season_aggregates.csv
       - name: Upload report-only rankings and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
