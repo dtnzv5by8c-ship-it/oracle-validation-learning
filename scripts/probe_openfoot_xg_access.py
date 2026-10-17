@@ -13,14 +13,24 @@ TIMEOUT = 25
 def norm(v):
     return re.sub(r"[^a-z0-9]+", "", str(v or "").casefold())
 
-def rows(payload):
+def rows(payload, depth=0):
     if isinstance(payload, list):
         return [x for x in payload if isinstance(x, dict)]
-    if isinstance(payload, dict):
-        for key in ("data", "competitions", "results", "items"):
+    if isinstance(payload, dict) and depth < 4:
+        for key in ("data", "competitions", "results", "items", "teams", "table", "standings", "statistics"):
             val = payload.get(key)
             if isinstance(val, list):
-                return [x for x in val if isinstance(x, dict)]
+                found = [x for x in val if isinstance(x, dict)]
+                if found:
+                    return found
+            if isinstance(val, dict):
+                found = rows(val, depth + 1)
+                if found:
+                    return found
+        # Some APIs return a map keyed by team ID/name instead of a list.
+        values = [v for v in payload.values() if isinstance(v, dict)]
+        if values and any(any(k in v for k in ("xg_for", "xg_for_avg", "expected_goals_for", "xG", "xg_against", "xGAgainst")) for v in values):
+            return values
     return []
 
 def main():
@@ -108,8 +118,12 @@ def main():
                             data = xr.json()
                         except Exception:
                             data = {}
+                        report["sample_payload_top_level_keys"] = sorted(data.keys()) if isinstance(data, dict) else []
+                        if isinstance(data, dict) and isinstance(data.get("data"), dict):
+                            report["sample_payload_data_keys"] = sorted(data["data"].keys())[:50]
                         team_rows = rows(data)
                         report["sample_team_rows"] = len(team_rows)
+                        report["sample_row_field_names"] = sorted(team_rows[0].keys()) if team_rows else []
                         valid = []
                         for row in team_rows:
                             xgf = next((row[k] for k in ("xg_for", "xg_for_avg", "expected_goals_for", "xG") if k in row), None)
