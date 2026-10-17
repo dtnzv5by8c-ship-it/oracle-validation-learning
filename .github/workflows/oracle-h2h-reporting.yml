@@ -151,6 +151,7 @@ jobs:
           python scripts/build_prospective_challenger_settlement_audit.py \
             --predictions oracle/archive/PREDICTION_LEDGER.csv \
             --matches oracle/database/matches.csv \
+            --verified-results data/verified_shadow_result_reconciliations.csv \
             --out-dir reports/backtest
 
       - name: Build H2H report and audit
@@ -189,6 +190,7 @@ jobs:
             oracle/data/fixtures/h2h_history_extension_manifest.json
             oracle/data/fixtures/h2h_history_merge_audit.json
             reports/backtest/**
+            data/verified_shadow_result_reconciliations.csv
           if-no-files-found: error
           retention-days: 30
 
