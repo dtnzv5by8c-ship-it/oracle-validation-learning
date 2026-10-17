@@ -18,7 +18,7 @@ def parse_block(raw):
 def main():
     response = requests.get(URL, timeout=30, headers={"User-Agent":"Oracle-Visual-Intelligence/1.0"})
     response.raise_for_status()
-    blocks = re.findall(r"JSON\.parse\(`([.*?])`\)", response.text, re.DOTALL)
+    blocks = re.findall(r"JSON\\.parse\\(\\x60(\\[.*?\\])\\x60\\)", response.text, re.DOTALL)
     tables = []
     for block in blocks:
         try:
