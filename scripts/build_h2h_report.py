@@ -99,7 +99,7 @@ def main():
     if unmatched_rate>MAX_UNMATCHED_RATE: gate_failures.append(f"unmatched_rate {unmatched_rate:.1%} exceeds {MAX_UNMATCHED_RATE:.0%}")
     if age>MAX_ARCHIVE_AGE_DAYS: gate_failures.append(f"historical archive is {age} days old; freshness limit is {MAX_ARCHIVE_AGE_DAYS}")
     audit={"pipeline":"ORACLE-H2H-REPORTING-1.1","generated_utc":now.isoformat(),"source_files":{str(p.relative_to(ROOT)):{"sha256":sha(p),"bytes":p.stat().st_size} for p in (MATCHES,ONEUP,FIXTURES)},"historical_match_rows":len(ms),"fixtures_processed":len(fs),"fixtures_with_h2h":sum(int(r["H2H_Meetings"])>0 for r in out),"fixtures_unmatched":len(unmatched),"unmatched_rate":unmatched_rate,"fixtures_with_minimum_5_h2h":sample_ge5,"fixtures_with_1up_truth":sum(bool(r["H2H_Home_1UP_%"]!="" or r["H2H_Away_1UP_%"]!="") for r in out),"latest_historical_match_date":latest,"archive_age_days":age,"quality_gates":{"max_unmatched_rate":MAX_UNMATCHED_RATE,"max_archive_age_days":MAX_ARCHIVE_AGE_DAYS,"failures":gate_failures},"minimum_h2h_sample":MIN_SAMPLE,"production_model_changed":False,"status":"FAIL_QUALITY_GATES" if gate_failures else ("PASS_WITH_REVIEW_ITEMS" if unmatched or sample_ge5<len(out) else "PASS")}
-    (OUT/"h2h_audit.json").write_text(json.dumps(audit,indent=2)+"\\n",encoding="utf-8")
+    (OUT/"h2h_audit.json").write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2))
     # Do not abort before artifacts are uploaded; workflow evaluates this audit after upload.
 if __name__=="__main__":main()
