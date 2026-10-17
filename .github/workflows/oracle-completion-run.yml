@@ -40,6 +40,9 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
 
     steps:
+      - name: Checkout public runner tooling
+        uses: actions/checkout@v4
+
       - name: Clone governed private Oracle source
         env:
           ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
