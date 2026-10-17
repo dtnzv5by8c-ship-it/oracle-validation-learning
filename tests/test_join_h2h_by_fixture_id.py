@@ -6,7 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import build_h2h_report\nimport prepare_oracle_fixture_id_export
+import build_h2h_report
+import prepare_oracle_fixture_id_export
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "join_h2h_by_fixture_id.py"
 
@@ -17,7 +18,11 @@ def write_csv(path, rows):
         w.writerows(rows)
 
 class ExactFixtureJoinTests(unittest.TestCase):
-    def test_oracle_export_adapter_uses_canonical_id_format(self):\n        fixture = {"league_code":"E0","date":"2026-10-18","home_team":"Arsenal","away_team":"Chelsea"}\n        self.assertEqual(prepare_oracle_fixture_id_export.canonical_fixture_id(fixture), "E0-2026-10-18-arsenal-chelsea")\n\n    def test_h2h_export_uses_canonical_oracle_fixture_id_format(self):
+    def test_oracle_export_adapter_uses_canonical_id_format(self):
+        fixture = {"league_code":"E0","date":"2026-10-18","home_team":"Arsenal","away_team":"Chelsea"}
+        self.assertEqual(prepare_oracle_fixture_id_export.canonical_fixture_id(fixture), "E0-2026-10-18-arsenal-chelsea")
+
+    def test_h2h_export_uses_canonical_oracle_fixture_id_format(self):
         fixture = {"league_code":"E0","date":"2026-10-18","home_team":"Arsenal","away_team":"Chelsea"}
         self.assertEqual(build_h2h_report.fixture_id(fixture), "E0-2026-10-18-arsenal-chelsea")
 
