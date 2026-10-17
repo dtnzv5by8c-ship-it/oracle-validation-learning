@@ -57,6 +57,7 @@ jobs:
         working-directory: oracle
         env:
           SPORTMONKS_API_TOKEN: ${{ secrets.SPORTMONKS_API_TOKEN }}
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
         run: |
           set -euo pipefail
           DAYS_AHEAD="${{ inputs.days_ahead || '3' }}"
