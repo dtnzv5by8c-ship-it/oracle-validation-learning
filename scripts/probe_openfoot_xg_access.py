@@ -61,18 +61,21 @@ def main():
                 comps = rows(catalog)
                 report["catalog_status"] = "OK"
                 xg_comps = []
+                all_named_comps = []
                 for comp in comps:
                     name = comp.get("name") or comp.get("competitionName") or comp.get("title")
                     cid = comp.get("id") or comp.get("competitionId") or comp.get("identifier")
                     season = comp.get("season") or comp.get("currentSeason") or comp.get("seasonName")
                     features = comp.get("features") or comp.get("coverage") or comp.get("dataAvailability") or {}
+                    if name and cid:
+                        all_named_comps.append({"name": name, "id": str(cid), "season": season, "coverage_metadata": features})
                     serialized = json.dumps(features, ensure_ascii=False).casefold()
                     has_xg = bool(comp.get("xg") is True or comp.get("xgAvailable") is True or comp.get("xg_analytics") is True or "xg" in serialized)
                     if name and cid and has_xg:
                         xg_comps.append({"name": name, "id": str(cid), "season": season, "coverage_metadata": features})
                 report["xg_competitions_detected"] = xg_comps
                 # Prefer a Premier League xG-enabled competition; otherwise first explicit xG-enabled listing.
-                candidates = [c for c in xg_comps if "premierleague" in norm(c["name"])]
+                candidates = [c for c in all_named_comps if "premierleague" in norm(c["name"])]
                 if not candidates:
                     candidates = xg_comps[:1]
                 if not candidates:
