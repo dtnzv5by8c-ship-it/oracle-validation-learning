@@ -28,19 +28,30 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install requests
-      - name: Clone governed private Oracle source for fixture identities
+      - name: Fetch only the governed Oracle fixture schedule
         env:
           ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
           test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
-          git clone --depth 1 --branch main "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          python - <<'PY'
+          import base64, json, os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          url = "https://api.github.com/repos/dtnzv5by8c-ship-it/oracle-football-data/contents/data/fixtures/oracle_upcoming_fixtures.csv?ref=main"
+          req = Request(url, headers={"Authorization": "Bearer " + os.environ["ORACLE_READ_TOKEN"], "Accept": "application/vnd.github+json"})
+          with urlopen(req, timeout=30) as response:
+              payload = json.load(response)
+          data = base64.b64decode(payload["content"]).decode("utf-8-sig")
+          Path("oracle_upcoming_fixtures.csv").write_text(data, encoding="utf-8")
+          print("Fetched governed fixture schedule via GitHub Contents API; rows=" + str(max(0, len(data.splitlines()) - 1)))
+          PY
       - name: Compile report-only scripts
         run: python -m py_compile scripts/fetch_opta_power_rankings.py scripts/join_opta_to_oracle_fixtures.py scripts/probe_openfoot_xg_access.py
       - name: Fetch and validate Opta public rankings
         run: python scripts/fetch_opta_power_rankings.py
       - name: Join Opta ratings to upcoming Oracle fixtures
-        run: python scripts/join_opta_to_oracle_fixtures.py oracle/data/fixtures/oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/mens_power_rankings.csv
+        run: python scripts/join_opta_to_oracle_fixtures.py oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/mens_power_rankings.csv
       - name: Probe live OpenFoot xG access and coverage
         env:
           OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
