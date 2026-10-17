@@ -26,8 +26,17 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install requests
+      - name: Clone governed private Oracle source for fixture identities
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
+          git clone --depth 1 --branch main "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
       - name: Fetch and validate Opta public rankings
         run: python scripts/fetch_opta_power_rankings.py
+      - name: Join Opta ratings to upcoming Oracle fixtures
+        run: python scripts/join_opta_to_oracle_fixtures.py oracle/data/fixtures/oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/mens_power_rankings.csv
       - name: Upload report-only rankings and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
