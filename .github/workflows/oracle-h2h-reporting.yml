@@ -87,3 +87,19 @@ jobs:
             oracle/reports/h2h/h2h_audit.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Enforce H2H quality gates after preserving artifacts
+        if: always()
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("reports/h2h/h2h_audit.json")
+          if not p.exists():
+              raise SystemExit("H2H audit missing; report generation did not produce auditable output.")
+          audit=json.loads(p.read_text(encoding="utf-8"))
+          print(json.dumps(audit.get("quality_gates", {}), indent=2))
+          if audit.get("status") == "FAIL_QUALITY_GATES":
+              raise SystemExit("H2H report generated and artifacts preserved, but quality gates failed. Review h2h_audit.json.")
+          PY
