@@ -52,15 +52,16 @@ def main():
     latest=max(r["date"][:10] for r in ms if r.get("date"))
     age=(now.date()-datetime.strptime(latest,"%Y-%m-%d").date()).days
     # The historical H2H archive is intentionally historical; do not mistake its last match date for fixture-feed freshness.
+    league_name_to_code={norm(r.get("league","")):r.get("league_code","") for r in ms if r.get("league") and r.get("league_code")}
     hist=defaultdict(list); truth=defaultdict(list)
     for r in ms:
         try: hg,ag=int(float(r["home_goals"])),int(float(r["away_goals"]))
         except (ValueError,TypeError):continue
         if r.get("home_team") and r.get("away_team"):
-            hist[(r.get("league_code",""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
+            hist[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
     for r in us:
         if r.get("home_team") and r.get("away_team"):
-            truth[(r.get("league_code",""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
+            truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
     out=[]; unmatched=[]
     for f in fs:
         h,a=f.get("home_team",""),f.get("away_team",""); pair=tuple(sorted((team(h),team(a)))); league=f.get("league_code",""); date=f.get("date","")[:10]
