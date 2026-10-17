@@ -81,3 +81,12 @@ These are kept distinct from unresolved mappings because both clubs were found i
 ## Predictive-value test status
 
 **NOT TESTABLE from the currently verified canonical ledgers.** The private repository's canonical `archive/SETTLEMENT_LEDGER.csv` is header-only, and its current main prediction ledger has no verified historical prediction/outcome pairing. No hit-rate lift, Brier-score, log-loss, or calibration improvement should be claimed until immutable pre-kickoff predictions are linked to verified settled outcomes. Do not fabricate historical predictions or backfill synthetic settlements.
+
+
+## Run #20 follow-up — 2026-10-17
+
+The [successful Run #20](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39054874140) refreshed the exact-ID join to 112/112 fixtures (100%). The H2H archive remained at 75,104 rows with zero duplicate keys after merge and zero source-acquisition errors. Coverage review remains open: 16 team/league mapping cases and 13 fixtures with no prior meeting found in the available archive. The updated diagnostic CSV now records other league codes where each team appears, but those cross-league records are investigative clues only—not permission to merge cross-competition history.
+
+The development-only challenger settlement audit scored 200/210 prediction rows (95.24%). Ten rows were left unscored because exact result records were absent for two fixture identities: Borussia Dortmund–Werder Bremen on 2026-10-09 and Mainz 05–Bayer Leverkusen on 2026-10-10 (five markets per fixture). Verify these fixtures and results independently before deciding whether the issue is a fixture-feed problem or missing result history.
+
+The preliminary settled metrics by market are recorded in [H2H_INTEGRATION_AND_BACKTEST_STATUS.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/H2H_INTEGRATION_AND_BACKTEST_STATUS.md). They are descriptive challenger metrics only; no claim of H2H incremental lift, calibrated probabilities, profitability, or production readiness is supported yet.
