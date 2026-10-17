@@ -156,6 +156,7 @@ jobs:
             --out-dir reports/backtest
 
       - name: Run research-only chronological H2H incremental-value experiment
+        continue-on-error: true
         run: |
           set -euo pipefail
           python scripts/run_h2h_incremental_value_experiment.py \
