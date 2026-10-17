@@ -16,6 +16,7 @@ on:
     paths:
       - ".github/workflows/oracle-h2h-reporting.yml"
       - "scripts/build_h2h_report.py"
+      - "scripts/run_h2h_incremental_value_experiment.py"
 
 permissions:
   contents: read
@@ -46,7 +47,7 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse --branch fix/epl-btts-team-state-aliases \
             "https://x-access-token:${ORACLE_PRIVATE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           cd oracle
-          git sparse-checkout set --no-cone database/matches.csv database/one_up_truth.csv archive/PREDICTION_LEDGER.csv scripts/ingest_upcoming_fixtures.py scripts/restore_historical_match_spine.py config/data_config.json
+          git sparse-checkout set --no-cone database/matches.csv database/one_up_truth.csv archive/PREDICTION_LEDGER.csv scripts/ingest_upcoming_fixtures.py scripts/restore_historical_match_spine.py config/data_config.json research/august_2026_backtest/august_2026_predictions.csv
           cd ..
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
           cp scripts/build_h2h_report.py oracle/scripts/build_h2h_report.py
@@ -54,7 +55,7 @@ jobs:
       - name: Install ingestion dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pandas numpy requests beautifulsoup4
+          python -m pip install pandas numpy requests beautifulsoup4 scikit-learn
 
       - name: Refresh upcoming fixtures in isolated checkout
         working-directory: oracle
@@ -152,6 +153,14 @@ jobs:
             --predictions oracle/archive/PREDICTION_LEDGER.csv \
             --matches oracle/database/matches.csv \
             --verified-results data/verified_shadow_result_reconciliations.csv \
+            --out-dir reports/backtest
+
+      - name: Run research-only chronological H2H incremental-value experiment
+        run: |
+          set -euo pipefail
+          python scripts/run_h2h_incremental_value_experiment.py \
+            --matches oracle/database/matches.csv \
+            --predictions oracle/research/august_2026_backtest/august_2026_predictions.csv \
             --out-dir reports/backtest
 
       - name: Build H2H report and audit
