@@ -1,0 +1,98 @@
+name: Oracle External Visual Intelligence Research
+
+on:
+  push:
+    branches:
+      - research/external-visual-intelligence-xg-opta
+    paths:
+      - "scripts/fetch_opta_power_rankings.py"
+      - "scripts/join_opta_to_oracle_fixtures.py"
+      - "scripts/probe_openfoot_xg_access.py"
+      - "scripts/fetch_latest_oracle_fixture_artifact.py"
+      - "scripts/join_openfoot_xg_to_oracle_fixtures.py"
+      - "scripts/combine_external_visual_intelligence.py"
+      - ".github/workflows/oracle-external-visual-intelligence.yml"
+  workflow_run:
+    workflows: ["Oracle Completion Run"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: oracle-external-visual-intelligence-v3
+  cancel-in-progress: false
+
+jobs:
+  opta-rankings:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests
+      - name: Fetch latest successful Oracle fixture schedule
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/fetch_latest_oracle_fixture_artifact.py
+      - name: Compile report-only scripts
+        run: python -m py_compile scripts/fetch_opta_power_rankings.py scripts/join_opta_to_oracle_fixtures.py scripts/probe_openfoot_xg_access.py scripts/fetch_latest_oracle_fixture_artifact.py scripts/join_openfoot_xg_to_oracle_fixtures.py scripts/combine_external_visual_intelligence.py
+      - name: Fetch and validate Opta public rankings
+        run: python scripts/fetch_opta_power_rankings.py
+      - name: Join Opta ratings to upcoming Oracle fixtures
+        run: python scripts/join_opta_to_oracle_fixtures.py oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/mens_power_rankings.csv
+      - name: Probe live OpenFoot xG access and coverage
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+        run: python scripts/probe_openfoot_xg_access.py
+      - name: Join verified OpenFoot xG aggregates to Oracle fixtures
+        run: python scripts/join_openfoot_xg_to_oracle_fixtures.py oracle_upcoming_fixtures.csv artifacts/openfoot_xg_probe/openfoot_xg_team_season.csv
+      - name: Combine Opta and xG layers by exact fixture ID
+        run: python scripts/combine_external_visual_intelligence.py oracle_upcoming_fixtures.csv artifacts/opta_power_rankings/oracle_fixture_opta_ratings.csv artifacts/openfoot_xg_probe/oracle_fixture_xg_season_aggregates.csv
+      - name: Upload report-only rankings and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-opta-power-rankings
+          path: |
+            artifacts/opta_power_rankings/
+            artifacts/openfoot_xg_probe/
+            artifacts/external_visual_intelligence/
+          if-no-files-found: warn
+          retention-days: 14
+
+  historical-xg-audit:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Clone governed private Oracle source
+        env:
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${ORACLE_READ_TOKEN}" || { echo "Missing private source read token"; exit 1; }
+          git clone --depth 1 --branch main "https://x-access-token:${ORACLE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
+          echo "SOURCE_COMMIT=$(git -C oracle rev-parse HEAD)" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests
+      - name: Scan persisted SportMonks statistics and xGFixture payloads
+        run: python oracle/scripts/audit_historical_xg_payloads.py
+      - name: Upload read-only xG archive audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-historical-xg-archive-audit
+          path: |
+            oracle/research/xg_repair/xg_archive_payload_audit.json
+            oracle/research/xg_repair/xg_archive_payload_audit.md
+          if-no-files-found: warn
+          retention-days: 30
