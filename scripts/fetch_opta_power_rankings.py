@@ -26,7 +26,7 @@ def main():
     response = requests.get(URL, timeout=30, headers={"User-Agent":"Oracle-Visual-Intelligence/1.0"})
     response.raise_for_status()
     source = response.text
-    blocks = re.findall(r"JSON\\.parse\\(\\s*`(.*?)`\\s*\\)", source, re.DOTALL)
+    blocks = re.findall(r"JSON\.parse\(\s*`(.*?)`\s*\)", source, re.DOTALL)
     tables, parse_errors = [], []
     for idx, block in enumerate(blocks):
         try:
