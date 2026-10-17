@@ -1,0 +1,36 @@
+name: Oracle External Visual Intelligence Research
+
+on:
+  push:
+    branches:
+      - research/external-visual-intelligence-xg-opta
+    paths:
+      - "scripts/fetch_opta_power_rankings.py"
+      - ".github/workflows/oracle-external-visual-intelligence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-external-visual-intelligence
+  cancel-in-progress: false
+
+jobs:
+  opta-rankings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install requests
+      - name: Fetch and validate Opta public rankings
+        run: python scripts/fetch_opta_power_rankings.py
+      - name: Upload report-only rankings and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-opta-power-rankings
+          path: artifacts/opta_power_rankings/
+          retention-days: 14
