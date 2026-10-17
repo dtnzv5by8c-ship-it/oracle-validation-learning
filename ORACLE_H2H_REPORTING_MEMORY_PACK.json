@@ -1,0 +1,50 @@
+{
+  "memory_pack_name": "ORACLE_H2H_REPORTING_MEMORY_PACK",
+  "version": "1.0",
+  "status": "LOCKED_REPORTING_ONLY_SPEC",
+  "last_updated_utc": "2026-10-17",
+  "scope": {
+    "report": "Oracle Curated Market Predictions Visual Intelligence",
+    "report_window": "2026-10-16 to 2026-10-19",
+    "h2h_archive_as_of": "2026-10-17"
+  },
+  "source_of_truth": {
+    "reporting_repository": "https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning",
+    "h2h_workflow": "https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39047414354",
+    "h2h_source_workbook": "Oracle_H2H_Report_Updated_17_Oct_2026.xlsx",
+    "oracle_source_workbook": "Oracle_Curated_Market_Predictions_Visual_Intelligence_16-19_Oct_2026.xlsx"
+  },
+  "locked_rules": [
+    "H2H integration is reporting-only.",
+    "Do not change Oracle production prediction logic, probabilities, calibration, weights, thresholds or promotion gates.",
+    "Preserve the original Oracle report columns and values.",
+    "Current supplied curated report does not expose canonical Oracle Fixture ID; current integration therefore uses strict exact date + normalized home team + normalized away team. Do not use fuzzy matching.",
+    "Ambiguous duplicate keys must not be joined; missing matches remain explicitly unavailable.",
+    "H2H percentages are historical frequencies, not future probabilities or calibrated confidence.",
+    "1UP H2H values remain blank when no valid 1UP truth rows are available.",
+    "No historical meeting means none found within the archive coverage window, not that the teams have never met.",
+    "H2H audit status PASS_WITH_REVIEW_ITEMS; 23 unresolved fixtures and 19 no-meeting cases remain explicitly reported.",
+    "For future automation, include canonical Oracle Fixture ID in the curated export and join H2H on that exact ID."
+  ],
+  "integration_result": {
+    "oracle_fixture_rows": 175,
+    "h2h_source_rows": 149,
+    "unique_exact_joins": 122,
+    "joined_rows_with_historical_meetings": 64,
+    "no_exact_h2h_row": 53,
+    "ambiguous_keys": 0,
+    "appended_h2h_columns": 16,
+    "oracle_probabilities_changed": false,
+    "production_model_logic_changed": false,
+    "calibration_applied": false,
+    "output_workbook": "Oracle_Curated_Market_Predictions_WITH_H2H_16-19_Oct_2026.xlsx",
+    "output_pdf": "Oracle_Curated_Market_Predictions_WITH_H2H_16-19_Oct_2026.pdf",
+    "note": "Reporting-only integration; no refreshed Oracle prediction run was generated."
+  },
+  "next_actions": [
+    "Add canonical Oracle Fixture ID to the curated Oracle report export.",
+    "Automate H2H join by exact Fixture ID in the isolated reporting workflow.",
+    "Resolve or retain flags for 23 unresolved H2H source fixtures; do not guess mappings.",
+    "Validate historical H2H value usefulness through chronological backtesting before any future model change."
+  ]
+}
