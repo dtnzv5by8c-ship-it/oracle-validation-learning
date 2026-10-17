@@ -172,11 +172,21 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path("reports/h2h/h2h_audit.json")
-          if not p.exists():
-              raise SystemExit("H2H audit missing; report generation did not produce auditable output.")
-          audit=json.loads(p.read_text(encoding="utf-8"))
-          print(json.dumps(audit.get("quality_gates", {}), indent=2))
-          if audit.get("status") == "FAIL_QUALITY_GATES":
-              raise SystemExit("H2H report generated and artifacts preserved, but quality gates failed. Review h2h_audit.json.")
+          h2h_path=Path("reports/h2h/h2h_audit.json")
+          merge_path=Path("data/fixtures/h2h_history_merge_audit.json")
+          source_path=Path("data/fixtures/h2h_history_extension_manifest.json")
+          for p in (h2h_path,merge_path,source_path):
+              if not p.exists():
+                  raise SystemExit(f"Required audit artifact missing: {p}")
+          audit=json.loads(h2h_path.read_text(encoding="utf-8"))
+          merge=json.loads(merge_path.read_text(encoding="utf-8"))
+          source=json.loads(source_path.read_text(encoding="utf-8"))
+          failures=list(audit.get("quality_gates",{}).get("failures",[]))
+          if source.get("status") != "OK": failures.append(f"historical source status is {source.get('status')}; errors={len(source.get('errors',[]))}")
+          if len(source.get("errors",[])): failures.append(f"historical source has {len(source.get('errors',[]))} league/season acquisition errors")
+          if merge.get("latest_match_age_days",999)>7: failures.append("merged historical archive is stale")
+          if merge.get("duplicate_keys_after_merge",1)!=0: failures.append("duplicate match keys after historical merge")
+          print(json.dumps({"h2h_quality_gates":audit.get("quality_gates",{}),"history_merge":merge,"source_status":source.get("status"),"source_errors":len(source.get("errors",[])),"combined_failures":failures},indent=2))
+          if failures:
+              raise SystemExit("H2H artifacts were preserved, but one or more quality gates failed. Review the audit and diagnostics artifacts.")
           PY
