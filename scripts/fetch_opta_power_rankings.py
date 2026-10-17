@@ -32,7 +32,7 @@ def main():
     response = requests.get(URL, timeout=30, headers={"User-Agent": "Oracle-Visual-Intelligence/1.0"})
     response.raise_for_status()
     source = response.text
-    blocks = re.findall(r"JSON\\.parse\\(\\s*\\x60(.*?)\\x60\\s*\\)", source, re.DOTALL)
+    blocks = re.findall(r"JSON\.parse\(\s*\x60(.*?)\x60\s*\)", source, re.DOTALL)
     tables, parse_errors = [], []
     for idx, block in enumerate(blocks):
         try:
@@ -47,7 +47,7 @@ def main():
           "backtick_count": source.count(chr(96)), "candidate_blocks": len(blocks),
           "parse_errors": parse_errors[:10], "message": "Opta ranking payload could not be parsed; no values emitted."}
         OUT.mkdir(parents=True, exist_ok=True)
-        (OUT / "manifest.json").write_text(json.dumps(diagnostic, indent=2) + "\\n", encoding="utf-8")
+        (OUT / "manifest.json").write_text(json.dumps(diagnostic, indent=2) + "\n", encoding="utf-8")
         print(json.dumps(diagnostic, indent=2))
         sys.exit(1)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -72,7 +72,7 @@ def main():
       "Published rank and rating fields are preserved as-is; no rank-to-rating conversion.",
       "Team-to-fixture matching remains a separate exact-match step.",
       "Use subject to source terms and schema changes."]
-    (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+    (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(manifest, indent=2))
 
 if __name__ == "__main__":
