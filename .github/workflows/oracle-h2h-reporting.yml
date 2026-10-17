@@ -157,7 +157,11 @@ jobs:
           path: |
             oracle/reports/h2h/h2h_fixture_report.csv
             oracle/reports/h2h/h2h_unmatched_fixtures.csv
+            oracle/reports/h2h/h2h_no_historical_meetings.csv
+            oracle/reports/h2h/h2h_match_diagnostics.csv
             oracle/reports/h2h/h2h_audit.json
+            oracle/data/fixtures/h2h_history_extension_manifest.json
+            oracle/data/fixtures/h2h_history_merge_audit.json
           if-no-files-found: error
           retention-days: 30
 
