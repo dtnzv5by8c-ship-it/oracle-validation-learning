@@ -23,8 +23,15 @@ def main():
     if fixtures and not required.issubset(fixtures[0]):
         raise ValueError("Fixture file lacks required identity/date columns")
     lookup = {}
+    alias_fields = ("contestantName", "contestantShortName", "contestantClubName")
     for row in rankings:
-        lookup.setdefault(norm(row.get("contestantName")), []).append(row)
+        identity = str(row.get("contestantId") or row.get("optaId") or row.get("contestantName") or "")
+        for field in alias_fields:
+            alias = norm(row.get(field))
+            if not alias:
+                continue
+            bucket = lookup.setdefault(alias, {})
+            bucket.setdefault(identity, {"row": row, "matched_field": field})
     retrieved = datetime.now(timezone.utc).isoformat()
     output = []
     for fixture in fixtures:
@@ -35,16 +42,19 @@ def main():
         matched = {}
         for side in ("home", "away"):
             name = fixture.get(side + "_team", "")
-            candidates = lookup.get(norm(name), [])
-            item = candidates[0] if len(candidates) == 1 else None
+            candidates = list(lookup.get(norm(name), {}).values())
+            matched_entry = candidates[0] if len(candidates) == 1 else None
+            item = matched_entry["row"] if matched_entry else None
             status = "MATCHED_EXACT_NORMALIZED" if item else (
                 "AMBIGUOUS_OPTA_TEAM_NAME" if len(candidates) > 1 else "NO_EXACT_OPTA_MATCH")
             matched[side] = item
             row[f"opta_{side}_match_status"] = status
             row[f"opta_{side}_rating"] = item.get("currentRating") if item else ""
-            row[f"opta_{side}_global_rank"] = item.get("currentGlobalRank") or (item.get("rank") if item else "") if item else ""
+            row[f"opta_{side}_global_rank"] = (item.get("currentGlobalRank") or item.get("rank") or "") if item else ""
             row[f"opta_{side}_league"] = item.get("league", "") if item else ""
             row[f"opta_{side}_country"] = item.get("country", "") if item else ""
+            row[f"opta_{side}_matched_source_name"] = item.get("contestantName", "") if item else ""
+            row[f"opta_{side}_match_basis"] = matched_entry["matched_field"] if matched_entry else ""
         try:
             h = float(matched["home"]["currentRating"])
             a = float(matched["away"]["currentRating"])
@@ -83,7 +93,7 @@ def main():
         "fixtures_with_both_teams_matched": both,
         "both_team_fixture_coverage": both / len(output) if output else 0,
         "coverage_by_league_code": league_coverage,
-        "matching_policy": "Exact normalized team-name match only; ambiguous and unmatched teams remain unavailable. Missing fixture_id is generated using Oracle SCHED-{league_code}-{date}-{home_slug}-{away_slug} convention; no fuzzy aliases.",
+        "matching_policy": "Exact normalized match against Opta contestantName, contestantShortName, or contestantClubName. Aliases are deduplicated by Opta contestant ID; multiple distinct teams with the same normalized name remain ambiguous. Missing fixture_id is generated using Oracle SCHED-{league_code}-{date}-{home_slug}-{away_slug} convention; no fuzzy matching.",
         "rating_field": "currentRating as published by Opta Analyst; rank is not converted to rating.",
         "source": "https://dataviz.theanalyst.com/opta-power-rankings/index.js",
         "limitations": [
