@@ -41,7 +41,7 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse --branch fix/epl-btts-team-state-aliases \
             "https://x-access-token:${ORACLE_PRIVATE_READ_TOKEN}@github.com/dtnzv5by8c-ship-it/oracle-football-data.git" oracle
           cd oracle
-          git sparse-checkout set --no-cone database/matches.csv archive/PREDICTION_LEDGER.csv research/august_2026_backtest/august_2026_predictions.csv
+          git sparse-checkout set --no-cone database/matches.csv archive/PREDICTION_LEDGER.csv research/august_2026_backtest/august_2026_predictions.csv scripts/restore_historical_match_spine.py config/data_config.json
           cd ..
           echo "Read-only Oracle source commit: $(git -C oracle rev-parse HEAD)"
           test -s oracle/database/matches.csv
@@ -52,6 +52,76 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pandas numpy scikit-learn
+
+      - name: Extend isolated historical match archive
+        working-directory: oracle
+        env:
+          H2H_HISTORY_START: "2018-07-01"
+        run: |
+          set -euo pipefail
+          mkdir -p data/fixtures
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("scripts/restore_historical_match_spine.py")
+          s=p.read_text(encoding="utf-8")
+          s=s.replace("import argparse,csv,hashlib,json,re,time,urllib.parse,urllib.request",
+                      "import argparse,csv,hashlib,json,re,time,urllib.parse,urllib.request,os")
+          s=s.replace('START="2025-03-20"; END="2026-09-20"',
+                      'START=os.getenv("H2H_HISTORY_START","2023-07-01"); END=datetime.now(timezone.utc).date().isoformat()')
+          s=s.replace('for season in ("2024/2025","2025/2026","2026/2027"):',
+                      'for season in ("2018/2019","2019/2020","2020/2021","2021/2022","2022/2023","2023/2024","2024/2025","2025/2026","2026/2027"):')
+          p.write_text(s,encoding="utf-8")
+          PY
+          python scripts/restore_historical_match_spine.py \
+            --output data/fixtures/h2h_history_extension.csv \
+            --manifest data/fixtures/h2h_history_extension_manifest.json
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          from datetime import date
+          root=Path(".")
+          base=root/"database/matches.csv"
+          ext=root/"data/fixtures/h2h_history_extension.csv"
+          audit_path=root/"data/fixtures/h2h_history_merge_audit.json"
+          with base.open(newline="",encoding="utf-8-sig") as f: old=list(csv.DictReader(f))
+          with ext.open(newline="",encoding="utf-8-sig") as f: new=list(csv.DictReader(f))
+          if not old: raise SystemExit("Existing governed match archive is empty; refusing to replace it.")
+          fields=list(old[0].keys())
+          required={"date","league_code","home_team","away_team","home_goals","away_goals"}
+          if not required.issubset(fields) or not new or not required.issubset(new[0].keys()):
+              raise SystemExit("Historical archive schema mismatch; no merge performed.")
+          today=date.today().isoformat()
+          seen=set()
+          for r in old:
+              seen.add((r["date"][:10],r["league_code"],r["home_team"].strip().casefold(),r["away_team"].strip().casefold()))
+          valid=[]; rejected=[]
+          for r in new:
+              try:
+                  d=date.fromisoformat(r["date"][:10]); hg=int(float(r["home_goals"])); ag=int(float(r["away_goals"]))
+                  if d.isoformat()>today or hg<0 or ag<0: raise ValueError("future date or invalid score")
+              except Exception as e:
+                  rejected.append({"date":r.get("date"),"league_code":r.get("league_code"),"home_team":r.get("home_team"),"away_team":r.get("away_team"),"reason":str(e)})
+                  continue
+              key=(d.isoformat(),r["league_code"],r["home_team"].strip().casefold(),r["away_team"].strip().casefold())
+              if key in seen: continue
+              seen.add(key); valid.append({k:r.get(k,"") for k in fields})
+          merged=old+valid
+          merged.sort(key=lambda r:(r["date"],r["league_code"],r["home_team"],r["away_team"]))
+          with base.open("w",newline="",encoding="utf-8-sig") as f:
+              writer=csv.DictWriter(f,fieldnames=fields); writer.writeheader(); writer.writerows(merged)
+          dates=[r["date"][:10] for r in merged if r.get("date")]
+          keys={(r["date"][:10],r["league_code"],r["home_team"].strip().casefold(),r["away_team"].strip().casefold()) for r in merged}
+          audit={"existing_rows":len(old),"extension_rows_received":len(new),"extension_rows_added":len(valid),
+                 "extension_rows_rejected":len(rejected),"rejected_examples":rejected[:20],
+                 "merged_rows":len(merged),"earliest_match_date":min(dates),"latest_match_date":max(dates),
+                 "latest_match_age_days":(date.today()-date.fromisoformat(max(dates))).days,
+                 "duplicate_keys_after_merge":len(merged)-len(keys),"existing_records_preserved":len(old)<=len(merged)}
+          audit_path.write_text(json.dumps(audit,indent=2)+"\\n",encoding="utf-8")
+          print(json.dumps(audit,indent=2))
+          if not valid: raise SystemExit("No verified historical records were added; archive freshness gate must not pass.")
+          if audit["latest_match_age_days"]>7: raise SystemExit("Historical archive still older than 7 days after extension.")
+          if audit["duplicate_keys_after_merge"]!=0: raise SystemExit("Duplicate match keys detected after merge.")
+          PY
 
       - name: Settle challenger predictions in isolated shadow output
         run: |
@@ -94,6 +164,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: oracle-league-team-validation-${{ github.run_number }}
-          path: reports/backtest/**
+          path: |
+            reports/backtest/**
+            oracle/data/fixtures/h2h_history_extension_manifest.json
+            oracle/data/fixtures/h2h_history_merge_audit.json
           if-no-files-found: error
           retention-days: 30
