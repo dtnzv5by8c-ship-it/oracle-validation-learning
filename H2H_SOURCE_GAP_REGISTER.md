@@ -78,6 +78,10 @@ These are kept distinct from unresolved mappings because both clubs were found i
 - On every run, report source row counts, league/season coverage, unresolved mappings, no-meeting cases, and exact-ID join coverage.
 - Keep canonical upcoming-fixture IDs separate from H2H history selection. H2H history must be selected only from prior completed matches in the same verified competition.
 
+## League/team audit status — 2026-10-18
+
+See [LEAGUE_TEAM_VALIDATION_READINESS.md](LEAGUE_TEAM_VALIDATION_READINESS.md) for the detailed league × market and team alignment evidence. Production Oracle accuracy by league/team remains data-gated: the canonical settlement ledger is header-only and the 210-row prediction batch is explicitly marked CHALLENGER. The August 2026 research export has 606 rows marked PREDICTED across 27 league codes but lacks immutable per-row prediction timestamps and feature snapshot hashes; use only as descriptive research evidence. The corrected rolling and scorecard workflow is [Run #27](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104920282).
+
 ## Predictive-value test status
 
 **NOT TESTABLE from the currently verified canonical ledgers.** The private repository's canonical `archive/SETTLEMENT_LEDGER.csv` is header-only, and its current main prediction ledger has no verified historical prediction/outcome pairing. No hit-rate lift, Brier-score, log-loss, or calibration improvement should be claimed until immutable pre-kickoff predictions are linked to verified settled outcomes. Do not fabricate historical predictions or backfill synthetic settlements.
