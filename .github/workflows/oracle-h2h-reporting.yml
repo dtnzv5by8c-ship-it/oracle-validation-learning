@@ -20,6 +20,7 @@ on:
       - "scripts/run_goal_result_feature_experiments.py"
       - "scripts/run_rolling_goal_result_validation.py"
       - "scripts/build_shadow_league_team_alignment.py"
+      - "scripts/build_august_research_league_team_audit.py"
 
 permissions:
   contents: read
@@ -186,6 +187,17 @@ jobs:
             --out-dir reports/backtest \
             --min-team-fixtures 8 \
             --min-league-market 20
+
+      - name: Build August research league and team market scorecards
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_august_research_league_team_audit.py
+          python scripts/build_august_research_league_team_audit.py \
+            --predictions oracle/research/august_2026_backtest/august_2026_predictions.csv \
+            --out-dir reports/backtest \
+            --min-team-fixtures 8 \
+            --min-league-market 15
 
       - name: Run multi-window chronological Over 2.5 and match-result validation
         continue-on-error: true
