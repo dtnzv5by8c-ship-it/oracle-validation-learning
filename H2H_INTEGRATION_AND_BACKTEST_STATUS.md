@@ -185,3 +185,12 @@ This single August proxy cohort provides **no evidence of positive incremental H
 This is **not** the governed paired H2H/no-H2H Oracle experiment: the source prediction CSV lacks immutable per-row prediction timestamps, feature snapshot hashes, and explicit paired predictions for the same fixture-market under both arms. The research challenger is fit on the early-August rows and tested on later-August rows; the comparison cannot establish causal incremental value for the production Oracle. One month and 327 test fixtures are insufficient for model promotion or profitability claims; odds and a governed staking rule were not tested.
 
 **Decision:** H2H predictive lift remains **UNPROVEN**. Do not promote the H2H challenger, alter production probabilities or logic, or write canonical ledgers based on this proxy result. Continue with multiple rolling chronological cohorts and immutable, paired, pre-kickoff prediction/feature provenance before making any production decision.
+
+
+## Run #25 — chronological goal/result feature experiment
+
+[Run #25](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39077017138) completed successfully and uploaded [artifact 12117373764](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39077017138/artifacts/12117373764). The research experiment used 74,999 valid unique historical matches, 71,176 train rows through 2026-03-31 and 3,823 held-out rows from 2026-04-01 through 2026-10-16 across 27 exact league codes.
+
+Best results: home-goal MAE 0.9837 (mean baseline 1.0512); away-goal MAE 0.8809 (baseline 0.9105); total-goal MAE 1.3349 (baseline 1.3793); 1X2 accuracy 47.89% (majority baseline 43.29%); BTTS best probability metrics Brier 0.24671/log loss 0.68648 but accuracy 54.17% versus 55.19% baseline; Over 2.5 accuracy 57.55%, balanced accuracy 57.65%, Brier 0.24241 and log loss 0.67772. The model-fit metrics contain no recorded errors.
+
+These are experimental models trained on historical match outcomes, not Oracle production prediction accuracy. Use only as research evidence; do not change production logic/probabilities or infer profitability. A per-league/per-team production alignment audit still requires fixture-level historical Oracle predictions paired to verified outcomes; the 75k match-score archive alone cannot establish which teams aligned with Oracle's actual predictions.
