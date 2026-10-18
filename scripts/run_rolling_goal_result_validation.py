@@ -75,7 +75,7 @@ def main():
     for r in clean:
         d,lg,h,a=r["date"],r["league"],r["home"],r["away"]
         th,ta,lh=list(teams[(lg,h)]),list(teams[(lg,a)]),list(league_hist[lg])
-        ph=list(h2h[(lg,tuple(sorted((h,a)))])
+        ph=list(h2h[(lg,tuple(sorted((h,a))))])
         f={"date":d,"league":lg,"home":h,"away":a,
            "league_home_avg":avg([x[0] for x in lh]),"league_away_avg":avg([x[1] for x in lh]),
            "league_total_avg":avg([x[0]+x[1] for x in lh]),
