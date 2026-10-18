@@ -72,23 +72,33 @@ def main():
             out[f"{prefix}_btts{n}"]=avg([int(x[0]>0 and x[1]>0) for x in z])
             out[f"{prefix}_o25{n}"]=avg([int(x[0]+x[1]>2) for x in z])
         return out
-    for r in clean:
-        d,lg,h,a=r["date"],r["league"],r["home"],r["away"]
-        th,ta,lh=list(teams[(lg,h)]),list(teams[(lg,a)]),list(league_hist[lg])
-        ph=list(h2h[(lg,tuple(sorted((h,a))))])
-        f={"date":d,"league":lg,"home":h,"away":a,
-           "league_home_avg":avg([x[0] for x in lh]),"league_away_avg":avg([x[1] for x in lh]),
-           "league_total_avg":avg([x[0]+x[1] for x in lh]),
-           "h2h_n":len(ph),"h2h_total_avg":avg([x[0]+x[1] for x in ph]),
-           "h2h_home_goals_avg":avg([x[0] if x[2]==h else x[1] for x in ph]),
-           "h2h_away_goals_avg":avg([x[1] if x[2]==h else x[0] for x in ph]),
-           "h2h_btts":avg([int(x[0]>0 and x[1]>0) for x in ph]),
-           "h2h_o25":avg([int(x[0]+x[1]>2) for x in ph])}
-        f.update(team_feats(th,"home")); f.update(team_feats(ta,"away"))
-        built.append({**f,"result":"H" if r["hg"]>r["ag"] else "D" if r["hg"]==r["ag"] else "A",
-                      "over25":int(r["hg"]+r["ag"]>2)})
-        teams[(lg,h)].append((r["hg"],r["ag"])); teams[(lg,a)].append((r["ag"],r["hg"]))
-        league_hist[lg].append((r["hg"],r["ag"])); h2h[(lg,tuple(sorted((h,a))))].append((r["hg"],r["ag"],h))
+    # Batch by date: all fixtures on a date use only strictly earlier-dated results.
+    dates=sorted({r["date"] for r in clean})
+    for current_date in dates:
+        day_rows=[r for r in clean if r["date"]==current_date]
+        prepared=[]
+        for r in day_rows:
+            d,lg,h,a=r["date"],r["league"],r["home"],r["away"]
+            th,ta,lh=list(teams[(lg,h)]),list(teams[(lg,a)]),list(league_hist[lg])
+            ph=list(h2h[(lg,tuple(sorted((h,a))))])
+            f={"date":d,"league":lg,"home":h,"away":a,
+               "league_home_avg":avg([x[0] for x in lh]),"league_away_avg":avg([x[1] for x in lh]),
+               "league_total_avg":avg([x[0]+x[1] for x in lh]),
+               "h2h_n":len(ph),"h2h_total_avg":avg([x[0]+x[1] for x in ph]),
+               "h2h_home_goals_avg":avg([x[0] if x[2]==h else x[1] for x in ph]),
+               "h2h_away_goals_avg":avg([x[1] if x[2]==h else x[0] for x in ph]),
+               "h2h_btts":avg([int(x[0]>0 and x[1]>0) for x in ph]),
+               "h2h_o25":avg([int(x[0]+x[1]>2) for x in ph])}
+            f.update(team_feats(th,"home")); f.update(team_feats(ta,"away"))
+            prepared.append((r,f))
+        # Only after every fixture on this date has features, append the day's results.
+        for r,f in prepared:
+            built.append({**f,"result":"H" if r["hg"]>r["ag"] else "D" if r["hg"]==r["ag"] else "A",
+                          "over25":int(r["hg"]+r["ag"]>2)})
+            lg,h,a=r["league"],r["home"],r["away"]
+            teams[(lg,h)].append((r["hg"],r["ag"])); teams[(lg,a)].append((r["ag"],r["hg"]))
+            league_hist[lg].append((r["hg"],r["ag"]))
+            h2h[(lg,tuple(sorted((h,a))))].append((r["hg"],r["ag"],h))
     df=pd.DataFrame(built)
     drop={"date","home","away","result","over25"}
     X=pd.get_dummies(df.drop(columns=[c for c in drop if c in df]),columns=["league"],dummy_na=True)
