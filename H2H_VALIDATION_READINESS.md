@@ -54,6 +54,12 @@ For an incremental H2H test, the same chronological fixtures and markets must ha
 - Production logic/probabilities unchanged; canonical ledgers untouched.
 
 
+## League × market and team alignment validation — 2026-10-18
+
+The expanded evidence inventory and preliminary August research-file metrics are documented in [LEAGUE_TEAM_VALIDATION_READINESS.md](LEAGUE_TEAM_VALIDATION_READINESS.md). The governed source branch has 210 prediction rows across 42 fixtures, all explicitly marked `CHALLENGER`; `archive/SETTLEMENT_LEDGER.csv` and `archive/MODEL_SCORECARD.csv` are header-only. Therefore production Oracle league/team accuracy remains **DATA-GATED**. Run #25's shadow settlement supports only a small descriptive challenger audit. The August research export has 606 `PREDICTED` rows across 27 league codes, but no immutable per-row prediction timestamp or feature snapshot hash, so its market/league/team metrics remain descriptive research evidence.
+
+[Run #28](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105003590) is running the corrected reporting-only league/team scorecards and rolling validation for Over 2.5 and 1X2 result. The rolling validator batches all fixtures by date before appending outcomes, preventing same-day result leakage. Production logic, probabilities, thresholds and canonical ledgers remain unchanged.
+
 ## Verified H2H incremental-value experiment — Run #23 (2026-10-18)
 
 **Workflow:** [Run #23 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39074892414)  
