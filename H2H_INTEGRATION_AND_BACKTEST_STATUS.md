@@ -7,7 +7,7 @@
 
 The expanded readiness report is maintained in [LEAGUE_TEAM_VALIDATION_READINESS.md](LEAGUE_TEAM_VALIDATION_READINESS.md). The governed source branch currently has 210 challenger prediction rows across 42 fixtures, but its canonical settlement, model scorecard, postmortem, and probability-error ledgers are header-only. Production Oracle league/team accuracy is therefore **DATA-GATED**. The August 2026 research export supports descriptive research-only scorecards, but it lacks immutable per-row prediction timestamps and feature snapshot hashes. Do not treat those metrics as production Oracle accuracy.
 
-[Run #27](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104920282) is running the corrected rolling goal/result validation and league/team research scorecards. No production logic or canonical ledger writes are involved.
+[Run #3 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105299938) completed the expanded archive, full shadow settlement, August research-file scorecards, and date-batched rolling Over 2.5 / 1X2 tests. See [LEAGUE_TEAM_VALIDATION_READINESS.md](LEAGUE_TEAM_VALIDATION_READINESS.md) for metrics and limitations. No production logic or canonical ledger writes were involved.
 
 ## Completed and verified on reporting main
 
