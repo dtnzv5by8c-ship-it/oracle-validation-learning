@@ -90,3 +90,25 @@ This single August proxy cohort provides **no evidence of positive incremental H
 This is **not** the governed paired H2H/no-H2H Oracle experiment: the source prediction CSV lacks immutable per-row prediction timestamps, feature snapshot hashes, and explicit paired predictions for the same fixture-market under both arms. The research challenger is fit on the early-August rows and tested on later-August rows; the comparison cannot establish causal incremental value for the production Oracle. One month and 327 test fixtures are insufficient for model promotion or profitability claims; odds and a governed staking rule were not tested.
 
 **Decision:** H2H predictive lift remains **UNPROVEN**. Do not promote the H2H challenger, alter production probabilities or logic, or write canonical ledgers based on this proxy result. Continue with multiple rolling chronological cohorts and immutable, paired, pre-kickoff prediction/feature provenance before making any production decision.
+
+
+## Goal-count, match-result and market-feature experiment — Run #25
+
+- Workflow: [Run #25 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39077017138); artifact: [oracle-h2h-report-25](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39077017138/artifacts/12117373764).
+- Research-only archive experiment: 75,104 source rows; 74,999 valid unique matches after validation/deduplication; 71,176 training matches (2018-07-20 to 2026-03-31); 3,823 chronological holdout matches (2026-04-01 to 2026-10-16); 27 exact league codes.
+- Targets: home goals, away goals, total goals, 1X2 result, BTTS and Over 2.5. Four feature sets: league baseline, recent form, recent form + H2H, all features. All 120 model/feature-set evaluations completed without recorded model-fit errors.
+
+### Best exploratory holdout results
+
+| Target | Best model / features | Result | Baseline comparison |
+|---|---|---|---|
+| Home goals | HistGradientBoosting / all features | MAE 0.9837; RMSE 1.2460 | Mean baseline MAE 1.0512 |
+| Away goals | HistGradientBoosting / all features | MAE 0.8809; RMSE 1.1252 | Mean baseline MAE 0.9105 |
+| Total goals | Poisson / all features | MAE 1.3349; RMSE 1.6892; rounded exact-count 24.93% | Mean baseline MAE 1.3793; exact-count 22.50% |
+| 1X2 result | Logistic / all features (accuracy); HistGradientBoosting / all features (log loss) | Accuracy 47.89%; balanced accuracy 41.32%; best log loss 1.02953 | Majority baseline accuracy 43.29%; log loss 1.07604 |
+| BTTS | HistGradientBoosting / all features (probability metrics) | Accuracy 54.17%; Brier 0.24671; log loss 0.68648 | Majority accuracy 55.19%; Brier 0.24868; log loss 0.69051 |
+| Over 2.5 | Logistic / all features | Accuracy 57.55%; balanced accuracy 57.65%; Brier 0.24241; log loss 0.67772 | Most-common baseline accuracy 45.46%; Brier 0.25070; log loss 0.69455 |
+
+Interpretation: promising research lift for Over 2.5 and modest improvement for 1X2 classification; goal-count errors improved against mean baselines. BTTS probability metrics improved slightly but classification accuracy did not beat the majority baseline. This is a feature-engineering experiment on historical scores, not a replay of Oracle's original market predictions. It must not be described as Oracle production accuracy or used to claim betting profitability.
+
+Feature importance is model-dependent and not causal. High-ranked signals included league scoring averages, home/away rolling 10-match goals for/against and goal difference, and prior H2H goal averages. The next validation step is multi-window rolling holdouts and league-level reporting; no production changes are authorized.
