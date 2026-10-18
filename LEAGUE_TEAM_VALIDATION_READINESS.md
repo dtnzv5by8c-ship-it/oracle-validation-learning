@@ -68,24 +68,68 @@ Therefore:
 - Team-level descriptive rows must state that they measure match-market forecasts in fixtures involving that team, not a team-specific forecast.
 - Exact team and competition identity must be preserved; no fuzzy aliases or cross-league reassignment.
 
-## Validation work in progress
+## Completed validation — Run #3
 
-Run #26 was cancelled after the first implementation exposed a syntax issue in the rolling validation script. The correction and additional August research-file audit were merged through [PR #8](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/8). The replacement run [Run #27](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104920282) was superseded by a final date-batched correction so that same-day result leakage is excluded.
+[Run #3 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105299938) · [Artifact 12128332429](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105299938/artifacts/12128332429)
 
-Run #28 adds:
-- a reporting-only league/market shadow scorecard and team-context audit with explicit sample-size gates;
-- a descriptive August research-export market/league/team scorecard using only rows marked PREDICTED;
-- a rolling chronological comparison of Over 2.5 and 1X2 result classifiers across 2025 Q4, 2026 Q1, and 2026-04-01 through 2026-10-16, comparing league baseline, recent form, recent form + H2H, and all features.
+The isolated archive extension completed with **75,160 merged rows**, **75,102 valid unique matches**, 27 league codes, no rejected extension rows, no duplicate fixture keys, and match coverage from 2018-07-20 through 2026-10-18. The three held-out periods were scored with date-batched feature construction so matches on the same date do not leak into each other's pre-match features.
 
-The rolling result should be judged by whether feature sets improve probability quality and balanced accuracy consistently across windows, not whether one model wins one period. H2H remains a challenger feature set only.
+### Rolling Over 2.5 validation
 
-## Dedicated validation Run #2 — verified limitations
+| Held-out period | Test fixtures | Best feature set/model by log loss | Accuracy | Balanced accuracy | Log loss | Brier |
+|---|---:|---|---:|---:|---:|---:|
+| 2025 Q4 | 2,609 | All features / HistGradientBoosting | 55.08% | 55.20% | 0.685776 | 0.246361 |
+| 2026 Q1 | 2,776 | All features / HistGradientBoosting | 54.50% | 54.68% | 0.686039 | 0.246530 |
+| 2026-04-01–2026-10-16 | 3,821 | All features / Logistic | 57.66% | 57.75% | 0.677813 | 0.242452 |
 
-[Run #2](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105153249) completed successfully and produced [artifact 12128466025](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105153249/artifacts/12128466025). It validated the scripts and produced the first rolling-window outputs, but the source branch's unextended `database/matches.csv` contained only 12,836 historical rows. Therefore those rolling results are a preliminary smaller-archive baseline and are not the final expanded-history comparison.
+The majority baseline's accuracy was 48.14%, 47.88%, and 45.43% in the three windows, respectively, with log loss around 0.694. The all-feature models beat the baseline on probability quality in all three periods. The latest window was the strongest, but the result remains moderate—not close to certainty.
 
-The standalone settlement step settled only 10/210 challenger rows (4.76%) because 200 exact fixture results were absent from the unextended local archive. The shadow scorecard consequently covered just two fixtures in one competition and is **not rankable**. This does not contradict Run #25's separate 210/210 shadow settlement, which used the expanded archive and verified result overrides. Run #2's limited shadow output must not be used to identify aligned teams or best leagues.
+### Rolling 1X2 match-result validation
 
-[Run #3](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105299938) now extends the isolated research archive before re-running the same audits. The aim is to match the expanded historical coverage used by Run #25, without running the unrelated upcoming-fixture refresh step. Its output will supersede Run #2 where coverage differs.
+| Held-out period | Test fixtures | Best feature set/model by log loss | Accuracy | Balanced accuracy | Log loss |
+|---|---:|---|---:|---:|---:|
+| 2025 Q4 | 2,609 | All features / HistGradientBoosting | 46.19% | 39.63% | 1.041921 |
+| 2026 Q1 | 2,776 | All features / HistGradientBoosting | 48.45% | 41.03% | 1.029289 |
+| 2026-04-01–2026-10-16 | 3,821 | All features / HistGradientBoosting | 47.45% | 40.71% | 1.030449 |
+
+The most-common-class baseline had 42.74%, 43.91%, and 43.31% accuracy, with balanced accuracy of 33.33%. Recent form materially improves on a league-only baseline, but 1X2 performance remains far from a high-confidence match-winner model.
+
+### What the feature comparisons say
+
+- **All features** (league scoring + recent form + H2H) achieved the best log loss in every held-out period for both Over 2.5 and 1X2.
+- In logistic-only comparisons, adding H2H to recent form reduced Over 2.5 log loss by approximately **0.0019, 0.0009, and 0.0017** across the three windows. This is a small, directionally consistent gain.
+- For 1X2, adding H2H to recent form reduced log loss by approximately **0.0048, 0.0046, and 0.0072** across the three windows. Accuracy was mixed in the first window but improved slightly in the later two.
+- These are point estimates without confidence intervals for the feature-set deltas. The signal is worth further testing, but is not sufficient to change production. It is also **market-specific**: the separate August BTTS experiment did not establish positive H2H lift for BTTS (see Run #23).
+
+**Research decision:** prioritise all-feature probability modelling for Over 2.5 and 1X2, with recent form as a key component and H2H retained as a challenger feature. Do not promote the challenger or alter production probabilities until more rolling cohorts and uncertainty estimates confirm the gain.
+
+### Shadow market and team scorecards
+
+The extended archive settled **210/210 challenger predictions across 42 fixtures and 9 competitions**, with zero chronology failures. This confirms the shadow settlement audit is complete, but it is still a small challenger cohort, not production Oracle performance.
+
+| Shadow market | Accuracy (42 rows) | Non-NO-BET hit rate (22 active rows) |
+|---|---:|---:|
+| HOME_1X | 69.05% | 81.82% |
+| HOME_1X_U45 | 61.90% | 68.18% |
+| AWAY_X2_U45 | 64.29% | 63.64% |
+| AWAY_X2 | 61.90% | 45.45% |
+| BTTS_YES | 54.76% | 54.55% |
+
+All 45 league-market groups in this shadow batch and all 420 team-role-market groups fall below the configured sample thresholds. No league or team should be ranked from this 42-fixture sample. The ledger contains no predicted home/away goal counts, so team goal-count residuals cannot be computed.
+
+### August 2026 research-export market patterns
+
+The separate August research file has 606 rows marked PREDICTED across 27 league codes; 176 rows marked DATA_GATED_NO_TEAM_HISTORY were excluded. Its descriptive market accuracy included Under 5.5 at 91.42%, Under 4.5 at 82.51%, Over 1.5 at 77.06%, Double Chance Home at 67.82%, Over 2.5 at 60.73%, and BTTS at 56.77%. High accuracy on high-base-rate markets such as Under 5.5 is not evidence of a betting edge.
+
+Within leagues with at least 15 fixtures in this one-month cohort:
+- Over 2.5 was highest in N1 (84.0%, n=25), SWZ (76.2%, n=21), E3 (73.9%, n=23), and I1 (72.2%, n=18); lowest in E1 (32.0%, n=25), SP1 (40.9%, n=22), AUT (42.9%, n=21), and T1 (47.4%, n=19).
+- BTTS was highest in E1 (80.0%, n=25), NED2 (76.5%, n=34), SWZ (76.2%, n=21), and N1 (76.0%, n=25); lowest in AUT (33.3%, n=21), POR2 (37.5%, n=24), SP2 (38.1%, n=21), and I1 (38.9%, n=18).
+
+These are useful hypotheses for future league-specific validation, not stable league DNA. The August export has no immutable per-row prediction timestamp or feature snapshot hash, so it cannot be treated as a governed production backtest.
+
+### Team alignment finding
+
+**No team can currently be labelled reliably aligned or divergent.** In the August export, the largest team × league × home/away role group has only 3 fixtures; none meets the eight-fixture minimum. The 42-fixture shadow batch has only one fixture per team-role group. A 3/3 hit rate can occur by chance and is not enough to identify a dependable team pattern. The team scorecard files are available in the artifact, but their statuses correctly remain INSUFFICIENT_SAMPLE.
 
 ## Data needed to complete production Oracle team/league accuracy
 
