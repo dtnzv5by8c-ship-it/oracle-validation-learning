@@ -72,7 +72,7 @@ Therefore:
 
 Run #26 was cancelled after the first implementation exposed a syntax issue in the rolling validation script. The correction and additional August research-file audit were merged through [PR #8](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/8). The replacement run [Run #27](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104920282) was superseded by a final date-batched correction so that same-day result leakage is excluded.
 
-Run #27 adds:
+Run #28 adds:
 - a reporting-only league/market shadow scorecard and team-context audit with explicit sample-size gates;
 - a descriptive August research-export market/league/team scorecard using only rows marked PREDICTED;
 - a rolling chronological comparison of Over 2.5 and 1X2 result classifiers across 2025 Q4, 2026 Q1, and 2026-04-01 through 2026-10-16, comparing league baseline, recent form, recent form + H2H, and all features.
