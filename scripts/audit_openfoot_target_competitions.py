@@ -84,6 +84,56 @@ def sample_fields(payload):
             for v in nested.values()
         )
     }
+
+def value_quality(payload, endpoint):
+    """Check actual key values needed for match analysis, not just object presence."""
+    root = payload.get("data", payload) if isinstance(payload, dict) else {}
+    result = {"sample_values_checked": True}
+    if endpoint == "match_context":
+        home = root.get("home", {}) if isinstance(root, dict) else {}
+        away = root.get("away", {}) if isinstance(root, dict) else {}
+        analytics = root.get("analytics", {}) if isinstance(root, dict) else {}
+        xg = analytics.get("expectedGoals", {}) if isinstance(analytics, dict) else {}
+        result["teams"] = {
+            side: {
+                "team_name_present": bool((team.get("team") or {}).get("name")) if isinstance(team, dict) else False,
+                "form_present": bool(team.get("form")) if isinstance(team, dict) else False,
+                "form_sample": team.get("form") if isinstance(team, dict) else None,
+                "goals_scored_last5_present": isinstance(team.get("goalsScoredLast5"), (int, float)) if isinstance(team, dict) else False,
+                "goals_conceded_last5_present": isinstance(team.get("goalsConcededLast5"), (int, float)) if isinstance(team, dict) else False,
+                "table_position_present": isinstance(team.get("tablePosition"), (int, float)) if isinstance(team, dict) else False,
+                "goals_average_present": isinstance(team.get("goalsAverage"), (int, float)) if isinstance(team, dict) else False,
+                "form_freshness": (root.get("freshness") or {}).get("form") if isinstance(root.get("freshness"), dict) else None
+            } for side, team in (("home", home), ("away", away))
+        }
+        result["xg_values"] = {
+            "home_xg_present": isinstance(xg.get("homeXG"), (int, float)),
+            "away_xg_present": isinstance(xg.get("awayXG"), (int, float)),
+            "total_xg_present": isinstance(xg.get("totalExpectedGoals"), (int, float))
+        }
+        result["match_date_present"] = bool((root.get("match") or {}).get("kickoffAt")) if isinstance(root, dict) else False
+        result["score_values_present"] = all(isinstance(v, (int, float)) for v in ((root.get("match") or {}).get("score") or {}).values()) if isinstance(root, dict) else False
+    elif endpoint == "h2h":
+        meetings = root.get("recentMeetings", []) if isinstance(root, dict) else []
+        result["meeting_count"] = len(meetings) if isinstance(meetings, list) else 0
+        result["meetings_with_date"] = sum(bool(m.get("date")) for m in meetings if isinstance(m, dict)) if isinstance(meetings, list) else 0
+        result["meetings_with_numeric_score"] = sum(
+            isinstance((m.get("score") or {}).get("home"), (int, float)) and
+            isinstance((m.get("score") or {}).get("away"), (int, float))
+            for m in meetings if isinstance(m, dict)
+        ) if isinstance(meetings, list) else 0
+        result["summary_total_matches"] = (root.get("summary") or {}).get("totalMatches") if isinstance(root.get("summary"), dict) else None
+    elif endpoint == "standings":
+        table = root.get("table", []) if isinstance(root, dict) else []
+        result["table_rows"] = len(table) if isinstance(table, list) else 0
+        result["rows_with_position_points_gd"] = sum(
+            isinstance(row.get("position"), (int, float)) and
+            isinstance((row.get("total") or {}).get("points"), (int, float)) and
+            isinstance((row.get("total") or {}).get("goalDifference"), (int, float))
+            for row in table if isinstance(row, dict)
+        ) if isinstance(table, list) else 0
+        result["standings_season"] = root.get("season") if isinstance(root, dict) else None
+    return result
 def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     report={"generated_utc":datetime.now(timezone.utc).isoformat(),"mode":"READ_ONLY_TARGET_COMPETITION_FIELD_AUDIT","source":"OpenFoot API","credential_configured":bool(KEY),"credential_value_logged":False,"target_count":len(TARGETS),"targets":[],"governance":"No Oracle production code, predictions, calibration, or historical database is modified."}
@@ -119,17 +169,17 @@ def main():
             rec["sample_fixture"]={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"score_field_present":first(m,("score","scores","homeScore")) is not None}
             if mid:
                 cp,cm2=get("/matches/"+str(mid)+"/context")
-                rec["tests"]["match_context"]={**cm2,**(sample_fields(cp) if cp is not None else {})}
+                rec["tests"]["match_context"]={**cm2,**(sample_fields(cp) if cp is not None else {}),**(value_quality(cp,"match_context") if cp is not None else {})}
             else: rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_MATCH_ID"}
             if tid(home) and tid(away):
                 hp,hm=get("/teams/"+str(tid(home))+"/h2h",{"opponent":str(tid(away))})
-                rec["tests"]["h2h"]={**hm,**(sample_fields(hp) if hp is not None else {})}
+                rec["tests"]["h2h"]={**hm,**(sample_fields(hp) if hp is not None else {}),**(value_quality(hp,"h2h") if hp is not None else {})}
             else: rec["tests"]["h2h"]={"status":"NOT_TESTED_TEAM_IDS_MISSING"}
         else:
             rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_FIXTURE"}; rec["tests"]["h2h"]={"status":"NOT_TESTED_NO_FIXTURE"}
         if kind=="league":
             sp,sm=get("/standings",{"competition":cid,"season":season})
-            rec["tests"]["standings"]={**sm,**(sample_fields(sp) if sp is not None else {})}
+            rec["tests"]["standings"]={**sm,**(sample_fields(sp) if sp is not None else {}),**(value_quality(sp,"standings") if sp is not None else {})}
         report["targets"].append(rec); time.sleep(1.0)
     # xG endpoint is documented as Developer-tier. Probe once; avoid repeated calls if plan-gated.
     mapped=next((r for r in report["targets"] if r["mapping_status"]=="MAPPED" and r["kind"]=="league"),None)
@@ -142,7 +192,7 @@ def main():
                 if r is mapped or r.get("mapping_status")!="MAPPED" or r.get("kind")!="league": continue
                 xx,xm2=get("/analytics/xg",{"league":r["competition_id"],"season":r["catalogue_season"]})
                 r["tests"]["league_xg"]={**xm2,**(sample_fields(xx) if xx is not None else {})}; time.sleep(1.0)
-    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" and r.get("tests",{}).get("standings",{}).get("has_populated_nested_data") for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" and r.get("tests",{}).get("match_context",{}).get("has_populated_nested_data") for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" and r.get("tests",{}).get("h2h",{}).get("has_populated_nested_data") for r in report["targets"])}
+    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" and r.get("tests",{}).get("standings",{}).get("has_populated_nested_data") for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" and r.get("tests",{}).get("match_context",{}).get("has_populated_nested_data") for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" and r.get("tests",{}).get("h2h",{}).get("has_populated_nested_data") for r in report["targets"]), "h2h_with_scored_meetings":sum((r.get("tests",{}).get("h2h",{}).get("meetings_with_numeric_score",0) or 0)>0 for r in report["targets"]), "context_with_both_teams_recent_goals":sum(all(r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_scored_last5_present") and r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_conceded_last5_present") for side in ("home","away")) for r in report["targets"]), "standings_with_numeric_core_fields":sum(r.get("tests",{}).get("standings",{}).get("rows_with_position_points_gd",0)>0 for r in report["targets"])}
     required_ok = True
     for r in report["targets"]:
         if r.get("mapping_status") != "MAPPED":
