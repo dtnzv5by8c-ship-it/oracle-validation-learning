@@ -226,7 +226,37 @@ def main():
             result = t.get(endpoint, {})
             if result.get("status") != "OK" or not result.get("has_populated_nested_data"):
                 required_ok = False
+    # Field-level acceptance labels for the report; these do not alter Oracle.
+    for r in report["targets"]:
+        tests = r.get("tests", {})
+        ctx = tests.get("match_context", {})
+        h2h = tests.get("h2h", {})
+        standings = tests.get("standings", {})
+        team_values = ctx.get("teams", {})
+        both_goals = all(
+            team_values.get(side, {}).get("goals_scored_last5_present") and
+            team_values.get(side, {}).get("goals_conceded_last5_present")
+            for side in ("home", "away")
+        )
+        form_present = all(team_values.get(side, {}).get("form_present") for side in ("home", "away"))
+        h2h_count = h2h.get("meeting_count", 0) or 0
+        h2h_scored = h2h.get("meetings_with_numeric_score", 0) or 0
+        table_count = standings.get("table_rows", 0) or 0
+        table_core = standings.get("rows_with_position_points_gd", 0) or 0
+        fx_ok = tests.get("fixtures", {}).get("status") == "OK" and tests.get("fixtures", {}).get("usable_sample")
+        r["field_acceptance"] = {
+            "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
+            "recent_form_and_last5_goals": "SUPPORTED" if form_present and both_goals else ("PARTIAL" if form_present or both_goals else "UNSUPPORTED"),
+            "h2h": "SUPPORTED" if h2h_count > 0 and h2h_scored > 0 else ("PARTIAL" if h2h_count > 0 else "UNSUPPORTED"),
+            "standings": "SUPPORTED" if table_count > 0 and table_core > 0 else ("PARTIAL" if table_count > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
+            "xg": "SUPPORTED" if ctx.get("xg_values", {}).get("home_xg_present") and ctx.get("xg_values", {}).get("away_xg_present") else ("PARTIAL" if (tests.get("league_xg", {}).get("status") == "OK" or report.get("xg_plan_probe", {}).get("status") == "OK") else "UNSUPPORTED")
+        }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
+    report["summary"]["field_acceptance_counts"] = {
+        field: {status: sum(r.get("field_acceptance", {}).get(field) == status for r in report["targets"])
+                for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
+        for field in ("fixtures", "recent_form_and_last5_goals", "h2h", "standings", "xg")
+    }
     report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
     OUT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":report["status"],"summary":report["summary"],"catalogue_rows":report["catalogue_rows"],"xg_plan_probe":report.get("xg_plan_probe"),"report":str(OUT)},ensure_ascii=False))
