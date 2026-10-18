@@ -185,21 +185,53 @@ def main():
         fx,fm=get("/matches",{"competition":cid,"season":season,"limit":10})
         frows=rows(fx) if fx is not None else []
         rec["tests"]["fixtures"]={**fm,"rows_returned":len(frows),"usable_sample":bool(frows)}
-        if frows and isinstance(frows[0],dict):
-            m=frows[0]; mid=first(m,("id","matchId","match_id"))
+        def tid(t): return first(t,("id","teamId","team_id","key")) if isinstance(t,dict) else None
+        sampled_checks=[]
+        sample_matches=[m for m in frows[:5] if isinstance(m,dict)]
+        for idx,m in enumerate(sample_matches):
+            mid=first(m,("id","matchId","match_id"))
             home=first(m,("homeTeam","home_team","home")); away=first(m,("awayTeam","away_team","away"))
-            def tid(t): return first(t,("id","teamId","team_id","key")) if isinstance(t,dict) else None
-            rec["sample_fixture"]={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"score_field_present":first(m,("score","scores","homeScore")) is not None}
+            check={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"context_status":"NOT_TESTED","h2h_status":"NOT_TESTED"}
+            cp=None; hp=None
             if mid:
                 cp,cm2=get("/matches/"+str(mid)+"/context")
-                rec["tests"]["match_context"]={**cm2,**(sample_fields(cp) if cp is not None else {}),**(value_quality(cp,"match_context") if cp is not None else {})}
-            else: rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_MATCH_ID"}
+                cq=value_quality(cp,"match_context") if cp is not None else {}
+                check["context_status"]=cm2.get("status")
+                teams=cq.get("teams",{})
+                check["complete_form_and_goals"]=all(teams.get(side,{}).get("form_is_wdl_sequence") and teams.get(side,{}).get("goals_scored_last5_present") and teams.get(side,{}).get("goals_conceded_last5_present") for side in ("home","away"))
+                xgv=cq.get("xg_values",{})
+                check["xg_both_teams_present"]=bool(xgv.get("home_xg_present") and xgv.get("away_xg_present"))
+                check["match_date_present"]=bool(cq.get("match_date_present"))
+                if idx==0:
+                    rec["sample_fixture"]={"match_id_present":check["match_id_present"],"kickoff_present":check["kickoff_present"],"home_team_id_present":check["home_team_id_present"],"away_team_id_present":check["away_team_id_present"],"score_field_present":first(m,("score","scores","homeScore")) is not None}
+                    rec["tests"]["match_context"]={**cm2,**sample_fields(cp),**cq}
+            else:
+                check.update({"complete_form_and_goals":False,"xg_both_teams_present":False,"match_date_present":False})
+                if idx==0: rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_MATCH_ID"}
             if tid(home) and tid(away):
                 hp,hm=get("/teams/"+str(tid(home))+"/h2h",{"opponent":str(tid(away))})
-                rec["tests"]["h2h"]={**hm,**(sample_fields(hp) if hp is not None else {}),**(value_quality(hp,"h2h") if hp is not None else {})}
-            else: rec["tests"]["h2h"]={"status":"NOT_TESTED_TEAM_IDS_MISSING"}
-        else:
-            rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_FIXTURE"}; rec["tests"]["h2h"]={"status":"NOT_TESTED_NO_FIXTURE"}
+                hq=value_quality(hp,"h2h") if hp is not None else {}
+                check["h2h_status"]=hm.get("status")
+                check["h2h_meeting_count"]=hq.get("meeting_count",0)
+                check["h2h_scored_meetings"]=hq.get("meetings_with_numeric_score",0)
+                check["h2h_dated_meetings"]=hq.get("meetings_with_date",0)
+                if idx==0: rec["tests"]["h2h"]={**hm,**sample_fields(hp),**hq}
+            else:
+                check.update({"h2h_meeting_count":0,"h2h_scored_meetings":0,"h2h_dated_meetings":0})
+                if idx==0: rec["tests"]["h2h"]={"status":"NOT_TESTED_TEAM_IDS_MISSING"}
+            sampled_checks.append(check)
+            time.sleep(0.15)
+        if not sample_matches:
+            rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_FIXTURE"}
+            rec["tests"]["h2h"]={"status":"NOT_TESTED_NO_FIXTURE"}
+        rec["tests"]["multi_fixture_validation"]={
+            "sample_size":len(sampled_checks),
+            "fixtures_with_complete_form_and_last5_goals":sum(bool(x.get("complete_form_and_goals")) for x in sampled_checks),
+            "fixtures_with_both_xg_values":sum(bool(x.get("xg_both_teams_present")) for x in sampled_checks),
+            "fixtures_with_match_date":sum(bool(x.get("match_date_present")) for x in sampled_checks),
+            "fixtures_with_at_least_five_scored_h2h_meetings":sum((x.get("h2h_meeting_count",0) or 0)>=5 and (x.get("h2h_scored_meetings",0) or 0)>=5 for x in sampled_checks),
+            "sample_checks":sampled_checks
+        }
         if kind=="league":
             sp,sm=get("/standings",{"competition":cid,"season":season})
             rec["tests"]["standings"]={**sm,**(sample_fields(sp) if sp is not None else {}),**(value_quality(sp,"standings") if sp is not None else {})}
@@ -235,12 +267,18 @@ def main():
         h2h = tests.get("h2h", {})
         standings = tests.get("standings", {})
         team_values = ctx.get("teams", {})
+        multi = tests.get("multi_fixture_validation", {})
+        sample_size = multi.get("sample_size", 0) or 0
+        complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals", 0) or 0
+        complete_xg_samples = multi.get("fixtures_with_both_xg_values", 0) or 0
+        complete_h2h_samples = multi.get("fixtures_with_at_least_five_scored_h2h_meetings", 0) or 0
         both_goals = all(
             team_values.get(side, {}).get("goals_scored_last5_present") and
             team_values.get(side, {}).get("goals_conceded_last5_present")
             for side in ("home", "away")
         )
         form_present = all(team_values.get(side, {}).get("form_is_wdl_sequence") for side in ("home", "away"))
+        sample_threshold = max(1, int(sample_size * 0.8 + 0.999)) if sample_size else 1
         season_label = str(r.get("catalogue_season") or "")
         season_current = season_label in ("2026", "2026/27", "2026-2027")
         xg_context = bool(ctx.get("xg_values", {}).get("home_xg_present") and ctx.get("xg_values", {}).get("away_xg_present"))
@@ -254,13 +292,14 @@ def main():
         fx_ok = tests.get("fixtures", {}).get("status") == "OK" and tests.get("fixtures", {}).get("usable_sample")
         r["field_acceptance"] = {
             "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
-            "recent_form_and_last5_goals": "SUPPORTED" if form_present and both_goals else ("PARTIAL" if any(team_values.get(side, {}).get("form_present") or (team_values.get(side, {}).get("goals_scored_last5_present") and team_values.get(side, {}).get("goals_conceded_last5_present")) for side in ("home", "away")) else "UNSUPPORTED"),
-            "h2h": "SUPPORTED" if h2h_count >= 5 and h2h_scored >= 5 else ("PARTIAL" if h2h_count > 0 and h2h_scored > 0 else "UNSUPPORTED"),
+            "recent_form_and_last5_goals": "SUPPORTED" if sample_size and complete_form_samples >= sample_threshold else ("PARTIAL" if complete_form_samples > 0 or (form_present and both_goals) else "UNSUPPORTED"),
+            "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or (h2h_count > 0 and h2h_scored > 0) else "UNSUPPORTED"),
             "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
-            "xg_in_match_context": "SUPPORTED" if xg_context else "UNSUPPORTED",
+            "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
             "league_xg_endpoint": "SUPPORTED" if xg_endpoint.get("status") == "OK" and xg_endpoint.get("has_populated_nested_data") else ("UNSUPPORTED" if xg_endpoint.get("status") in ("NOT_FOUND_OR_UNAVAILABLE", "AUTH_OR_PLAN_RESTRICTION", "RATE_LIMIT_OR_QUOTA") else "UNVERIFIED")
         }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
+    report["summary"]["competitions_with_multi_fixture_samples"] = sum((r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_size", 0) or 0) >= 3 for r in report["targets"])
     report["summary"]["field_acceptance_counts"] = {
         field: {status: sum(r.get("field_acceptance", {}).get(field) == status for r in report["targets"])
                 for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
