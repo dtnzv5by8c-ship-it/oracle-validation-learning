@@ -18,6 +18,8 @@ on:
       - "scripts/build_h2h_report.py"
       - "scripts/run_h2h_incremental_value_experiment.py"
       - "scripts/run_goal_result_feature_experiments.py"
+      - "scripts/run_rolling_goal_result_validation.py"
+      - "scripts/build_shadow_league_team_alignment.py"
 
 permissions:
   contents: read
@@ -173,6 +175,26 @@ jobs:
             --matches oracle/database/matches.csv \
             --out-dir reports/backtest \
             --test-start 2026-04-01
+
+      - name: Build reporting-only shadow league and team alignment scorecards
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_shadow_league_team_alignment.py
+          python scripts/build_shadow_league_team_alignment.py \
+            --settlements reports/backtest/prospective_shadow_settlements.csv \
+            --out-dir reports/backtest \
+            --min-team-fixtures 8 \
+            --min-league-market 20
+
+      - name: Run multi-window chronological Over 2.5 and match-result validation
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/run_rolling_goal_result_validation.py
+          python scripts/run_rolling_goal_result_validation.py \
+            --matches oracle/database/matches.csv \
+            --out-dir reports/backtest
 
       - name: Build H2H report and audit
         working-directory: oracle
