@@ -45,7 +45,7 @@ def main():
   z["_hit"]=(z[prcol]==truth).astype(int); z["_brier"]=(z[p]-truth)**2
   z["_logloss"]=-(truth*np.log(p)+(1-truth)*np.log(1-p))
   rows.append({"market":market,"fixtures":int(z.match_id.nunique()),"prediction_rows":len(z),
-   "accuracy_pct":round(100*z._hit.mean(),2),"brier_score":round(z._brier.mean(),5),"log_loss":round(z._logloss.mean(),5),
+   "accuracy_pct":round(100*z["_hit"].mean(),2),"brier_score":round(z["_brier"].mean(),5),"log_loss":round(z["_logloss"].mean(),5),
    "mean_predicted_probability_pct":round(100*z[pcol].mean(),2),"observed_truth_pct":round(100*truth.mean(),2),
    "source_class":"AUGUST_RESEARCH_EXPORT_PROVENANCE_INCOMPLETE"})
  overall=pd.DataFrame(rows); overall.to_csv(out/"august_research_market_scorecard.csv",index=False)
@@ -56,16 +56,16 @@ def main():
   z["_hit"]=(z[prcol]==truth).astype(int); z["_brier"]=(p-truth)**2
   z["_logloss"]=-(truth*np.log(p)+(1-truth)*np.log(1-p))
   for league,g in z.groupby("league_code"):
-   lm.append({"league_code":league,"market":market,"fixtures":int(g.match_id.nunique()),"accuracy_pct":round(100*g._hit.mean(),2),
-    "brier_score":round(g._brier.mean(),5),"log_loss":round(g._logloss.mean(),5),
+   lm.append({"league_code":league,"market":market,"fixtures":int(g.match_id.nunique()),"accuracy_pct":round(100*g["_hit"].mean(),2),
+    "brier_score":round(g["_brier"].mean(),5),"log_loss":round(g["_logloss"].mean(),5),
     "evidence_status":"DESCRIPTIVE_ONLY" if g.match_id.nunique()>=a.min_league_market else "LOW_SAMPLE"})
   for role,teamcol in (("HOME","home_team"),("AWAY","away_team")):
    for (league,team),g in z.groupby(["league_code",teamcol]):
     n=int(g.match_id.nunique())
     tm.append({"league_code":league,"team":team,"team_role":role,"market":market,"fixtures":n,
-     "accuracy_pct":round(100*g._hit.mean(),2),"brier_score":round(g._brier.mean(),5),"log_loss":round(g._logloss.mean(),5),
+     "accuracy_pct":round(100*g["_hit"].mean(),2),"brier_score":round(g["_brier"].mean(),5),"log_loss":round(g["_logloss"].mean(),5),
      "mean_predicted_probability_pct":round(100*g[pcol].mean(),2),"observed_truth_pct":round(100*g[ycol].mean(),2),
-     "alignment_status":"INSUFFICIENT_SAMPLE" if n<a.min_team_fixtures else ("PROVISIONAL_ALIGNED" if g._hit.mean()>=.60 else "PROVISIONAL_DIVERGENT" if g._hit.mean()<.45 else "MIXED_OR_UNCLEAR")})
+     "alignment_status":"INSUFFICIENT_SAMPLE" if n<a.min_team_fixtures else ("PROVISIONAL_ALIGNED" if g["_hit"].mean()>=.60 else "PROVISIONAL_DIVERGENT" if g["_hit"].mean()<.45 else "MIXED_OR_UNCLEAR")})
  pd.DataFrame(lm).sort_values(["league_code","market"]).to_csv(out/"august_research_league_market_scorecard.csv",index=False)
  pd.DataFrame(tm).sort_values(["league_code","market","fixtures","accuracy_pct"],ascending=[True,True,False,False]).to_csv(out/"august_research_team_alignment.csv",index=False)
  audit={"artifact":"ORACLE_AUGUST_RESEARCH_LEAGUE_TEAM_AUDIT_V1","status":"DESCRIPTIVE_RESEARCH_ONLY",
