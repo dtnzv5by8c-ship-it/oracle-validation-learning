@@ -128,7 +128,8 @@ def main():
         for endpoint in (["match_context", "h2h"] + (["standings"] if r.get("kind") == "league" else [])):
             if t.get(endpoint, {}).get("status") != "OK":
                 required_ok = False
-    report["summary"]["required_feature_endpoints_passed"] = required_ok\n    report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
+    report["summary"]["required_feature_endpoints_passed"] = required_ok
+    report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
     OUT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":report["status"],"summary":report["summary"],"catalogue_rows":report["catalogue_rows"],"xg_plan_probe":report.get("xg_plan_probe"),"report":str(OUT)},ensure_ascii=False))
     return 0
