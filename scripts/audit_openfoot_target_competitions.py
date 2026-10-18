@@ -117,7 +117,17 @@ def main():
                 xx,xm2=get("/analytics/xg",{"league":r["competition_id"],"season":r["catalogue_season"]})
                 r["tests"]["league_xg"]={**xm2,**(sample_fields(xx) if xx is not None else {})}; time.sleep(1.0)
     report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" for r in report["targets"])}
-    required_ok = True\n    for r in report["targets"]:\n        if r.get("mapping_status") != "MAPPED":\n            required_ok = False\n            continue\n        t = r.get("tests", {})\n        if t.get("fixtures", {}).get("status") != "OK" or not t.get("fixtures", {}).get("usable_sample"):\n            required_ok = False\n        for endpoint in (["match_context", "h2h"] + (["standings"] if r.get("kind") == "league" else [])):\n            if t.get(endpoint, {}).get("status") != "OK":\n                required_ok = False\n    report["summary"]["required_feature_endpoints_passed"] = required_ok\n    report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
+    required_ok = True
+    for r in report["targets"]:
+        if r.get("mapping_status") != "MAPPED":
+            required_ok = False
+            continue
+        t = r.get("tests", {})
+        if t.get("fixtures", {}).get("status") != "OK" or not t.get("fixtures", {}).get("usable_sample"):
+            required_ok = False
+        for endpoint in (["match_context", "h2h"] + (["standings"] if r.get("kind") == "league" else [])):
+            if t.get(endpoint, {}).get("status") != "OK":
+                required_ok = False\n    report["summary"]["required_feature_endpoints_passed"] = required_ok\n    report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
     OUT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":report["status"],"summary":report["summary"],"catalogue_rows":report["catalogue_rows"],"xg_plan_probe":report.get("xg_plan_probe"),"report":str(OUT)},ensure_ascii=False))
     return 0
