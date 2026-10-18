@@ -79,6 +79,14 @@ Run #28 adds:
 
 The rolling result should be judged by whether feature sets improve probability quality and balanced accuracy consistently across windows, not whether one model wins one period. H2H remains a challenger feature set only.
 
+## Dedicated validation Run #2 — verified limitations
+
+[Run #2](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105153249) completed successfully and produced [artifact 12128466025](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105153249/artifacts/12128466025). It validated the scripts and produced the first rolling-window outputs, but the source branch's unextended `database/matches.csv` contained only 12,836 historical rows. Therefore those rolling results are a preliminary smaller-archive baseline and are not the final expanded-history comparison.
+
+The standalone settlement step settled only 10/210 challenger rows (4.76%) because 200 exact fixture results were absent from the unextended local archive. The shadow scorecard consequently covered just two fixtures in one competition and is **not rankable**. This does not contradict Run #25's separate 210/210 shadow settlement, which used the expanded archive and verified result overrides. Run #2's limited shadow output must not be used to identify aligned teams or best leagues.
+
+[Run #3](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39105299938) now extends the isolated research archive before re-running the same audits. The aim is to match the expanded historical coverage used by Run #25, without running the unrelated upcoming-fixture refresh step. Its output will supersede Run #2 where coverage differs.
+
 ## Data needed to complete production Oracle team/league accuracy
 
 The governed prediction-producing process must accumulate immutable, append-only records with prediction ID, exact fixture ID, competition, teams, market, probability, decision, prediction timestamp, kickoff timestamp, model/version/code hash, data cutoff and feature snapshot. Verified outcomes must be reconciled to those IDs. Until then, production league/team accuracy is **NOT TESTABLE**. The reporting workflow is read-only against the private source and must not write shadow results to canonical ledgers.
