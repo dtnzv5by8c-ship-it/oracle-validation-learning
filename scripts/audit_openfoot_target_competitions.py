@@ -155,7 +155,28 @@ def main():
             rec["mapping_status"]="AMBIGUOUS"; rec["candidates"]=[{"id":c["id"],"name":c["name"],"country":c["country"]} for c in unique.values()]
             report["targets"].append(rec); continue
         if not unique:
-            rec["mapping_status"]="NOT_IN_CATALOGUE"; rec["tests"]["fixtures"]={"status":"NOT_TESTED_NO_COMPETITION_ID"}
+            rec["mapping_status"]="NOT_IN_CATALOGUE"
+            # Preserve nearby catalogue entries to diagnose aliases/country labels.
+            country_aliases = {
+                "USA": {"usa", "united states", "united states of america", "us"},
+                "Ireland": {"ireland", "republic of ireland"},
+                "Greece": {"greece", "hellas"},
+                "Iceland": {"iceland"},
+                "Argentina": {"argentina"},
+                "Portugal": {"portugal"},
+            }.get(country, {country.lower()})
+            tokens = [norm(a) for a in aliases]
+            candidates = []
+            for item in catalog:
+                cname = norm(item.get("country"))
+                nname = norm(item.get("name"))
+                same_country = cname in {norm(x) for x in country_aliases}
+                name_related = any(tok and (tok in nname or nname in tok) for tok in tokens)
+                if same_country and name_related:
+                    candidates.append({"id": item.get("id"), "name": item.get("name"),
+                                       "country": item.get("country"), "season": item.get("season")})
+            rec["nearby_catalogue_candidates"] = candidates[:15]
+            rec["tests"]["fixtures"]={"status":"NOT_TESTED_NO_COMPETITION_ID"}
             report["targets"].append(rec); continue
         c=next(iter(unique.values())); cid=c["id"]; season=c.get("season")
         rec.update({"mapping_status":"MAPPED","competition_id":cid,"catalogue_name":c["name"],"catalogue_season":season,"season_freshness":"CURRENT_LABEL" if season in ("2026","2026/27","2026-2027") else ("UNVERIFIED" if not season else "STALE_OR_UNVERIFIED"),"catalogue_coverage":c["coverage"]})
