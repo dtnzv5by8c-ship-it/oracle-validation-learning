@@ -42,7 +42,7 @@ def main():
   z=d.dropna(subset=[ycol,pcol,prcol]).copy()
   if z.empty: continue
   p=z[pcol].clip(1e-15,1-1e-15); truth=z[ycol]
-  z["_hit"]=(z[prcol]==truth).astype(int); z["_brier"]=(z[p]-truth)**2
+  z["_hit"]=(z[prcol]==truth).astype(int); z["_brier"]=(p-truth)**2
   z["_logloss"]=-(truth*np.log(p)+(1-truth)*np.log(1-p))
   rows.append({"market":market,"fixtures":int(z.match_id.nunique()),"prediction_rows":len(z),
    "accuracy_pct":round(100*z["_hit"].mean(),2),"brier_score":round(z["_brier"].mean(),5),"log_loss":round(z["_logloss"].mean(),5),
