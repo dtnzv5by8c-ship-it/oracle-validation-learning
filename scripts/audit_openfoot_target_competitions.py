@@ -54,10 +54,36 @@ def first(d, keys):
     if not isinstance(d,dict): return None
     return next((d[k] for k in keys if d.get(k) is not None and d.get(k)!=""),None)
 def sample_fields(payload):
-    rs=rows(payload)
-    sample=rs[0] if rs and isinstance(rs[0],dict) else payload.get("data",payload) if isinstance(payload,dict) else {}
-    if not isinstance(sample,dict): sample={}
-    return {"rows_returned":len(rs),"sample_fields":sorted(sample.keys())[:80]}
+    # Many OpenFoot endpoints return useful records nested inside objects rather
+    # than as top-level lists. Report nested population, not just HTTP 200.
+    rs = rows(payload)
+    root = payload if isinstance(payload, dict) else {}
+    nested = {}
+    def walk(obj, path="", depth=0):
+        if depth > 3 or not isinstance(obj, dict):
+            return
+        for key, value in obj.items():
+            p = f"{path}.{key}" if path else str(key)
+            if isinstance(value, list):
+                nested[p] = {"type": "list", "count": len(value),
+                             "sample_item_fields": sorted(value[0].keys())[:40] if value and isinstance(value[0], dict) else []}
+                for i, item in enumerate(value[:1]):
+                    if isinstance(item, dict):
+                        walk(item, p + "[0]", depth + 1)
+            elif isinstance(value, dict):
+                nested[p] = {"type": "object", "keys": sorted(value.keys())[:40],
+                             "nonempty_values": sum(v not in (None, "", [], {}) for v in value.values())}
+                walk(value, p, depth + 1)
+    walk(root)
+    return {
+        "top_level_fields": sorted(root.keys())[:80],
+        "top_level_rows_returned": len(rs),
+        "nested_payloads": nested,
+        "has_populated_nested_data": any(
+            (v.get("count", 0) > 0 if v.get("type") == "list" else v.get("nonempty_values", 0) > 0)
+            for v in nested.values()
+        )
+    }
 def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     report={"generated_utc":datetime.now(timezone.utc).isoformat(),"mode":"READ_ONLY_TARGET_COMPETITION_FIELD_AUDIT","source":"OpenFoot API","credential_configured":bool(KEY),"credential_value_logged":False,"target_count":len(TARGETS),"targets":[],"governance":"No Oracle production code, predictions, calibration, or historical database is modified."}
@@ -116,7 +142,7 @@ def main():
                 if r is mapped or r.get("mapping_status")!="MAPPED" or r.get("kind")!="league": continue
                 xx,xm2=get("/analytics/xg",{"league":r["competition_id"],"season":r["catalogue_season"]})
                 r["tests"]["league_xg"]={**xm2,**(sample_fields(xx) if xx is not None else {})}; time.sleep(1.0)
-    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" for r in report["targets"])}
+    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" and r.get("tests",{}).get("standings",{}).get("has_populated_nested_data") for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" and r.get("tests",{}).get("match_context",{}).get("has_populated_nested_data") for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" and r.get("tests",{}).get("h2h",{}).get("has_populated_nested_data") for r in report["targets"])}
     required_ok = True
     for r in report["targets"]:
         if r.get("mapping_status") != "MAPPED":
@@ -126,7 +152,8 @@ def main():
         if t.get("fixtures", {}).get("status") != "OK" or not t.get("fixtures", {}).get("usable_sample"):
             required_ok = False
         for endpoint in (["match_context", "h2h"] + (["standings"] if r.get("kind") == "league" else [])):
-            if t.get(endpoint, {}).get("status") != "OK":
+            result = t.get(endpoint, {})
+            if result.get("status") != "OK" or not result.get("has_populated_nested_data"):
                 required_ok = False
     report["summary"]["required_feature_endpoints_passed"] = required_ok
     report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
