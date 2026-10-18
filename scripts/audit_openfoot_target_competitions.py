@@ -99,6 +99,8 @@ def value_quality(payload, endpoint):
                 "team_name_present": bool((team.get("team") or {}).get("name")) if isinstance(team, dict) else False,
                 "form_present": bool(team.get("form")) if isinstance(team, dict) else False,
                 "form_sample": team.get("form") if isinstance(team, dict) else None,
+                "form_length": len(str(team.get("form") or "")) if isinstance(team, dict) else 0,
+                "form_is_wdl_sequence": bool(re.fullmatch(r"[WDL]{5}", str(team.get("form") or "").upper())) if isinstance(team, dict) else False,
                 "goals_scored_last5_present": isinstance(team.get("goalsScoredLast5"), (int, float)) if isinstance(team, dict) else False,
                 "goals_conceded_last5_present": isinstance(team.get("goalsConcededLast5"), (int, float)) if isinstance(team, dict) else False,
                 "table_position_present": isinstance(team.get("tablePosition"), (int, float)) if isinstance(team, dict) else False,
@@ -238,7 +240,13 @@ def main():
             team_values.get(side, {}).get("goals_conceded_last5_present")
             for side in ("home", "away")
         )
-        form_present = all(team_values.get(side, {}).get("form_present") for side in ("home", "away"))
+        form_present = all(team_values.get(side, {}).get("form_is_wdl_sequence") for side in ("home", "away"))
+        season_label = str(r.get("catalogue_season") or "")
+        season_current = season_label in ("2026", "2026/27", "2026-2027")
+        xg_context = bool(ctx.get("xg_values", {}).get("home_xg_present") and ctx.get("xg_values", {}).get("away_xg_present"))
+        xg_endpoint = tests.get("league_xg", {})
+        if not xg_endpoint and report.get("xg_plan_probe", {}).get("competition_tested") == r.get("target"):
+            xg_endpoint = report.get("xg_plan_probe", {})
         h2h_count = h2h.get("meeting_count", 0) or 0
         h2h_scored = h2h.get("meetings_with_numeric_score", 0) or 0
         table_count = standings.get("table_rows", 0) or 0
@@ -246,16 +254,17 @@ def main():
         fx_ok = tests.get("fixtures", {}).get("status") == "OK" and tests.get("fixtures", {}).get("usable_sample")
         r["field_acceptance"] = {
             "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
-            "recent_form_and_last5_goals": "SUPPORTED" if form_present and both_goals else ("PARTIAL" if form_present or both_goals else "UNSUPPORTED"),
-            "h2h": "SUPPORTED" if h2h_count > 0 and h2h_scored > 0 else ("PARTIAL" if h2h_count > 0 else "UNSUPPORTED"),
-            "standings": "SUPPORTED" if table_count > 0 and table_core > 0 else ("PARTIAL" if table_count > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
-            "xg": "SUPPORTED" if ctx.get("xg_values", {}).get("home_xg_present") and ctx.get("xg_values", {}).get("away_xg_present") else ("PARTIAL" if (tests.get("league_xg", {}).get("status") == "OK" or report.get("xg_plan_probe", {}).get("status") == "OK") else "UNSUPPORTED")
+            "recent_form_and_last5_goals": "SUPPORTED" if form_present and both_goals else ("PARTIAL" if any(team_values.get(side, {}).get("form_present") or (team_values.get(side, {}).get("goals_scored_last5_present") and team_values.get(side, {}).get("goals_conceded_last5_present")) for side in ("home", "away")) else "UNSUPPORTED"),
+            "h2h": "SUPPORTED" if h2h_count >= 5 and h2h_scored >= 5 else ("PARTIAL" if h2h_count > 0 and h2h_scored > 0 else "UNSUPPORTED"),
+            "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
+            "xg_in_match_context": "SUPPORTED" if xg_context else "UNSUPPORTED",
+            "league_xg_endpoint": "SUPPORTED" if xg_endpoint.get("status") == "OK" and xg_endpoint.get("has_populated_nested_data") else ("UNSUPPORTED" if xg_endpoint.get("status") in ("NOT_FOUND_OR_UNAVAILABLE", "AUTH_OR_PLAN_RESTRICTION", "RATE_LIMIT_OR_QUOTA") else "UNVERIFIED")
         }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
     report["summary"]["field_acceptance_counts"] = {
         field: {status: sum(r.get("field_acceptance", {}).get(field) == status for r in report["targets"])
                 for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
-        for field in ("fixtures", "recent_form_and_last5_goals", "h2h", "standings", "xg")
+        for field in ("fixtures", "recent_form_and_last5_goals", "h2h", "standings", "xg_in_match_context", "league_xg_endpoint")
     }
     report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
     OUT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
