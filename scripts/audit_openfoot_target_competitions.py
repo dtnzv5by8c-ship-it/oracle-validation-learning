@@ -35,8 +35,9 @@ def rows(p):
                     if isinstance(v.get(kk),list): return v[kk]
     return []
 def get(path, params=None):
-    try: r=requests.get(BASE+path,headers={"Accept":"application/json","Authorization":"Bearer "+KEY},params=params,timeout=30)
+    try: r=requests.get(BASE+path,headers={"Accept":"application/json","Authorization":"Bearer "+KEY},params=params,timeout=12)
     except requests.RequestException as e: return None,{"status":"NETWORK_ERROR","exception_type":type(e).__name__}
+    time.sleep(1.05)  # Respect OpenFoot's published 60 requests/minute Starter limit.
     meta={"http_status":r.status_code}
     try: body=r.json()
     except Exception: body=None
@@ -187,7 +188,7 @@ def main():
         rec["tests"]["fixtures"]={**fm,"rows_returned":len(frows),"usable_sample":bool(frows)}
         def tid(t): return first(t,("id","teamId","team_id","key")) if isinstance(t,dict) else None
         sampled_checks=[]
-        sample_matches=[m for m in frows[:5] if isinstance(m,dict)]
+        sample_matches=[m for m in frows[:3] if isinstance(m,dict)]
         for idx,m in enumerate(sample_matches):
             mid=first(m,("id","matchId","match_id"))
             home=first(m,("homeTeam","home_team","home")); away=first(m,("awayTeam","away_team","away"))
