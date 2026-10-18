@@ -70,11 +70,14 @@ Therefore:
 
 ## Validation work in progress
 
-Run #26 adds:
+Run #26 was cancelled after the first implementation exposed a syntax issue in the rolling validation script. The correction and additional August research-file audit were merged through [PR #8](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/8). The replacement run is [Run #27](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104920282) and is currently running.
+
+Run #27 adds:
 - a reporting-only league/market shadow scorecard and team-context audit with explicit sample-size gates;
+- a descriptive August research-export market/league/team scorecard using only rows marked PREDICTED;
 - a rolling chronological comparison of Over 2.5 and 1X2 result classifiers across 2025 Q4, 2026 Q1, and 2026-04-01 through 2026-10-16, comparing league baseline, recent form, recent form + H2H, and all features.
 
-The rolling result should be judged by whether feature sets improve probability quality and balanced accuracy consistently across windows, not whether one model wins one period. H2H remains a challenger feature set only. See [Run #26](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39104640209).
+The rolling result should be judged by whether feature sets improve probability quality and balanced accuracy consistently across windows, not whether one model wins one period. H2H remains a challenger feature set only.
 
 ## Data needed to complete production Oracle team/league accuracy
 
