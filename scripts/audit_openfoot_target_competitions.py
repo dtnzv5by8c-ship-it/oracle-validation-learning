@@ -295,7 +295,7 @@ def main():
             "recent_form_and_last5_goals": "SUPPORTED" if sample_size and complete_form_samples >= sample_threshold else ("PARTIAL" if complete_form_samples > 0 or (form_present and both_goals) else "UNSUPPORTED"),
             "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or (h2h_count > 0 and h2h_scored > 0) else "UNSUPPORTED"),
             "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
-            "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
+            "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold and r.get("catalogue_coverage", {}).get("advancedStats") is True else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
             "league_xg_endpoint": "SUPPORTED" if xg_endpoint.get("status") == "OK" and xg_endpoint.get("has_populated_nested_data") else ("UNSUPPORTED" if xg_endpoint.get("status") in ("NOT_FOUND_OR_UNAVAILABLE", "AUTH_OR_PLAN_RESTRICTION", "RATE_LIMIT_OR_QUOTA") else "UNVERIFIED")
         }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
@@ -305,7 +305,23 @@ def main():
                 for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
         for field in ("fixtures", "recent_form_and_last5_goals", "h2h", "standings", "xg_in_match_context", "league_xg_endpoint")
     }
-    report["status"]="AUDIT_COMPLETE" if required_ok else "AUDIT_COMPLETE_WITH_GAPS"
+    # Final acceptance requires every requested competition mapped and all requested
+    # data classes supported. A successful HTTP workflow alone is never acceptance.
+    required_fields = ("fixtures", "recent_form_and_last5_goals", "h2h", "xg_in_match_context")
+    final_acceptance = True
+    for r in report["targets"]:
+        fa = r.get("field_acceptance", {})
+        if r.get("mapping_status") != "MAPPED":
+            final_acceptance = False
+            continue
+        if any(fa.get(field) != "SUPPORTED" for field in required_fields):
+            final_acceptance = False
+        if r.get("kind") == "league" and fa.get("standings") != "SUPPORTED":
+            final_acceptance = False
+        if fa.get("league_xg_endpoint") != "SUPPORTED":
+            final_acceptance = False
+    report["summary"]["final_acceptance_passed"] = final_acceptance
+    report["status"]="AUDIT_COMPLETE" if final_acceptance else "AUDIT_COMPLETE_WITH_GAPS"
     OUT.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"status":report["status"],"summary":report["summary"],"catalogue_rows":report["catalogue_rows"],"xg_plan_probe":report.get("xg_plan_probe"),"report":str(OUT)},ensure_ascii=False))
     return 0
