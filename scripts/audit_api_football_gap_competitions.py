@@ -120,9 +120,9 @@ def main():
             report["targets"].append(item)
             continue
 
-        fx, fm = get("/fixtures", {"league": league_id, "season": season_year, "last": 1, "status": "FT"}, key)
+        fx, fm = get("/fixtures", {"league": league_id, "season": season_year, "status": "FT"}, key)
         fixtures = fx.get("response", []) if isinstance(fx, dict) else []
-        item["fixture_probe"] = {"http_status": fm.get("http_status"), "error_present": bool(fm.get("errors")), "finished_fixture_count": len(fixtures)}
+        item["fixture_probe"] = {"http_status": fm.get("http_status"), "error_present": bool(fm.get("errors")), "provider_error_summary": fm.get("error_summary"), "finished_fixture_count": len(fixtures)}
         if fixtures:
             counters["fixture_probe_ok"] += 1
             fixture = fixtures[0]
@@ -135,7 +135,7 @@ def main():
             st, sm = get("/standings", {"league": league_id, "season": season_year}, key)
             standings_response = st.get("response", []) if isinstance(st, dict) else []
             has_standings = bool(standings_response and standings_response[0].get("league", {}).get("standings"))
-            item["standings_probe"] = {"http_status": sm.get("http_status"), "error_present": bool(sm.get("errors")), "has_standings_rows": has_standings}
+            item["standings_probe"] = {"http_status": sm.get("http_status"), "error_present": bool(sm.get("errors")), "provider_error_summary": sm.get("error_summary"), "has_standings_rows": has_standings}
             if has_standings:
                 counters["standings_probe_ok"] += 1
 
@@ -148,13 +148,13 @@ def main():
                         if norm(stat.get("type")) in ("expectedgoals", "expectedgoalsxg", "xg"):
                             if stat.get("value") not in (None, "", "-"):
                                 xg_values.append({"team": team_stats.get("team", {}).get("name"), "value_present": True})
-                item["xg_probe"] = {"http_status": stm.get("http_status"), "error_present": bool(stm.get("errors")), "xg_team_values_found": len(xg_values), "both_teams_xg_present": len(xg_values) >= 2}
+                item["xg_probe"] = {"http_status": stm.get("http_status"), "error_present": bool(stm.get("errors")), "provider_error_summary": stm.get("error_summary"), "xg_team_values_found": len(xg_values), "both_teams_xg_present": len(xg_values) >= 2}
                 if len(xg_values) >= 2:
                     counters["xg_probe_with_value"] += 1
 
                 h2h, hm = get("/fixtures/headtohead", {"h2h": str(home.get("id")) + "-" + str(away.get("id")), "last": 5}, key)
                 h2h_rows = h2h.get("response", []) if isinstance(h2h, dict) else []
-                item["h2h_probe"] = {"http_status": hm.get("http_status"), "error_present": bool(hm.get("errors")), "meetings_returned": len(h2h_rows), "any_meetings": bool(h2h_rows)}
+                item["h2h_probe"] = {"http_status": hm.get("http_status"), "error_present": bool(hm.get("errors")), "provider_error_summary": hm.get("error_summary"), "meetings_returned": len(h2h_rows), "any_meetings": bool(h2h_rows)}
                 if hm.get("http_status") == 200 and not hm.get("errors"):
                     counters["h2h_probe_ok"] += 1
 
@@ -176,6 +176,7 @@ def main():
                             scored.append({"scored": ag, "conceded": hg})
                     item.setdefault("recent_form_goals_probe", {})[side] = {
                         "http_status": rm.get("http_status"),
+                        "provider_error_summary": rm.get("error_summary"),
                         "finished_fixtures_returned": len(rows),
                         "scored_scorelines_found": len(scored),
                         "five_match_goal_totals_available": len(scored) >= 5,
