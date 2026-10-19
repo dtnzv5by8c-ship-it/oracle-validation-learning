@@ -260,7 +260,9 @@ def main():
         for idx,m in enumerate(sample_matches):
             mid=first(m,("id","matchId","match_id"))
             home=first(m,("homeTeam","home_team","home")); away=first(m,("awayTeam","away_team","away"))
-            check={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"context_status":"NOT_TESTED","h2h_status":"NOT_TESTED"}
+            fixture_comp_obj = m.get("competition") if isinstance(m.get("competition"), dict) else {}
+            fixture_comp_id = first(m,("competitionId","competition_id","leagueId","league_id")) or first(fixture_comp_obj,("id","competitionId","competition_id","slug","code"))
+            check={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"fixture_competition_id":fixture_comp_id,"context_competition_id":None,"competition_identity_status":"NOT_VERIFIED","context_status":"NOT_TESTED","h2h_status":"NOT_TESTED"}
             cp=None; hp=None
             if mid:
                 cp,cm2=get("/matches/"+str(mid)+"/context")
@@ -268,6 +270,18 @@ def main():
                 check["context_status"]=cm2.get("status")
                 teams=cq.get("teams",{})
                 context_root = cp.get("data", cp) if isinstance(cp, dict) else {}
+                context_match = context_root.get("match", {}) if isinstance(context_root, dict) else {}
+                context_comp_obj = context_match.get("competition") if isinstance(context_match.get("competition"), dict) else {}
+                context_comp_id = first(context_match,("competitionId","competition_id","leagueId","league_id")) or first(context_comp_obj,("id","competitionId","competition_id","slug","code"))
+                check["context_competition_id"] = context_comp_id
+                observed_ids = [str(v) for v in (fixture_comp_id, context_comp_id) if v not in (None, "")]
+                expected_id = str(cid)
+                if any(v != expected_id for v in observed_ids):
+                    check["competition_identity_status"] = "MISMATCH"
+                elif observed_ids:
+                    check["competition_identity_status"] = "VERIFIED"
+                else:
+                    check["competition_identity_status"] = "UNVERIFIED_ID_MISSING"
                 for side in ("home", "away"):
                     side_obj = context_root.get(side, {}) if isinstance(context_root, dict) else {}
                     side_team = side_obj.get("team", {}) if isinstance(side_obj, dict) else {}
@@ -287,6 +301,9 @@ def main():
                 hp,hm=get("/teams/"+str(tid(home))+"/h2h",{"opponent":str(tid(away))})
                 hq=value_quality(hp,"h2h") if hp is not None else {}
                 check["h2h_status"]=hm.get("status")
+                check["h2h_http_status"]=hm.get("http_status")
+                check["h2h_provider_error_code"]=hm.get("provider_error_code")
+                check["h2h_exception_type"]=hm.get("exception_type")
                 check["h2h_attempts"]=hm.get("attempts", 1)
                 check["h2h_retry_exhausted"]=bool(hm.get("retry_exhausted", False))
                 check["h2h_meeting_count"]=hq.get("meeting_count",0)
@@ -294,7 +311,7 @@ def main():
                 check["h2h_dated_meetings"]=hq.get("meetings_with_date",0)
                 if idx==0: rec["tests"]["h2h"]={**hm,**sample_fields(hp),**hq}
             else:
-                check.update({"h2h_meeting_count":0,"h2h_scored_meetings":0,"h2h_dated_meetings":0})
+                check.update({"h2h_meeting_count":0,"h2h_scored_meetings":0,"h2h_dated_meetings":0,"h2h_http_status":None,"h2h_provider_error_code":None,"h2h_exception_type":None})
                 if idx==0: rec["tests"]["h2h"]={"status":"NOT_TESTED_TEAM_IDS_MISSING"}
             sampled_checks.append(check)
             time.sleep(0.15)
@@ -428,7 +445,31 @@ def main():
     h2h_ok = [x for x in h2h_samples if x.get("h2h_status") == "OK"]
     h2h_failed = [x for x in h2h_samples if x.get("h2h_status") not in (None, "OK", "NOT_TESTED")]
     h2h_with_meetings = [x for x in h2h_ok if (x.get("h2h_meeting_count", 0) or 0) > 0]
+    report["summary"]["competition_identity_diagnostics"] = {
+        "sampled_fixtures": len([x for x in h2h_samples if x.get("match_id_present")]),
+        "verified": sum(x.get("competition_identity_status") == "VERIFIED" for x in h2h_samples),
+        "mismatches": sum(x.get("competition_identity_status") == "MISMATCH" for x in h2h_samples),
+        "unverified_id_missing": sum(x.get("competition_identity_status") == "UNVERIFIED_ID_MISSING" for x in h2h_samples),
+        "mismatch_details": [
+            {"target": r.get("target"), "fixture_competition_id": x.get("fixture_competition_id"), "context_competition_id": x.get("context_competition_id"), "expected_competition_id": r.get("competition_id")}
+            for r in report["targets"] for x in r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_checks", [])
+            if x.get("competition_identity_status") == "MISMATCH"
+        ],
+        "interpretation": "Competition identity is verified only when at least one fixture/context competition ID is present and every observed ID matches the mapped target ID."
+    }
     report["summary"]["h2h_diagnostics"] = {
+        "http_status_counts": {
+            str(code): sum(str(x.get("h2h_http_status")) == str(code) for x in h2h_samples)
+            for code in sorted({x.get("h2h_http_status") for x in h2h_samples if x.get("h2h_http_status") is not None}, key=lambda v: str(v))
+        },
+        "provider_error_code_counts": {
+            str(code): sum(str(x.get("h2h_provider_error_code")) == str(code) for x in h2h_samples)
+            for code in sorted({x.get("h2h_provider_error_code") for x in h2h_samples if x.get("h2h_provider_error_code")}, key=lambda v: str(v))
+        },
+        "exception_type_counts": {
+            str(code): sum(str(x.get("h2h_exception_type")) == str(code) for x in h2h_samples if x.get("h2h_exception_type") is not None)
+            for code in sorted({x.get("h2h_exception_type") for x in h2h_samples if x.get("h2h_exception_type")}, key=lambda v: str(v))
+        },
         "sampled_requests": len([x for x in h2h_samples if x.get("h2h_status") not in (None, "NOT_TESTED")]),
         "successful_requests": len(h2h_ok),
         "successful_empty_meeting_responses": sum((x.get("h2h_meeting_count", 0) or 0) == 0 for x in h2h_ok),
@@ -465,6 +506,9 @@ def main():
         if r.get("mapping_status") != "MAPPED":
             final_acceptance = False
             continue
+        identity_checks = r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_checks", [])
+        if not identity_checks or any(x.get("competition_identity_status") != "VERIFIED" for x in identity_checks):
+            final_acceptance = False
         if any(fa.get(field) != "SUPPORTED" for field in required_fields):
             final_acceptance = False
         if r.get("kind") == "league" and fa.get("standings") != "SUPPORTED":
