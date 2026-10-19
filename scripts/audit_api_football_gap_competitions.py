@@ -44,7 +44,7 @@ def safe_error_summary(errors, key):
     text = json.dumps(errors, ensure_ascii=False, sort_keys=True)
     if key:
         text = text.replace(key, "[REDACTED]")
-    text = re.sub(r"(?i)(api[_ -]?key|token|authorization)(\\s*[:=]\\s*)[^,}\\s]+", r"\\1\\2[REDACTED]", text)
+    text = re.sub(r"(?i)(api[_ -]?key|token|authorization)(\s*[:=]\s*)[^,}\s]+", r"\1\2[REDACTED]", text)
     return text[:400]
 
 
@@ -95,7 +95,7 @@ def main():
         league_rows = payload.get("response", []) if isinstance(payload, dict) else []
         exact = [x for x in league_rows if norm(x.get("league", {}).get("name")) == norm(target["search"]) and norm(x.get("country", {}).get("name")) == norm(target["country"])]
         candidates = exact or [x for x in league_rows if norm(x.get("country", {}).get("name")) == norm(target["country"])]
-        item["search"] = {"http_status": meta.get("http_status"), "error_present": bool(meta.get("errors")), "candidate_count": len(candidates), "candidates": [{"id": x.get("league", {}).get("id"), "name": x.get("league", {}).get("name"), "country": x.get("country", {}).get("name"), "type": x.get("league", {}).get("type")} for x in candidates[:8]]}
+        item["search"] = {"http_status": meta.get("http_status"), "error_present": bool(meta.get("errors")), "provider_error_summary": meta.get("error_summary"), "candidate_count": len(candidates), "candidates": [{"id": x.get("league", {}).get("id"), "name": x.get("league", {}).get("name"), "country": x.get("country", {}).get("name"), "type": x.get("league", {}).get("type")} for x in candidates[:8]]}
         if not exact:
             item["status"] = "NO_EXACT_VERIFIED_COMPETITION_MATCH"
             item["interpretation"] = "Search candidates are recorded for review only; no candidate ID is probed or accepted unless both normalized competition name and country match exactly."
