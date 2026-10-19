@@ -362,21 +362,64 @@ def main():
         table_count = standings.get("table_rows", 0) or 0
         table_core = standings.get("rows_with_position_points_gd", 0) or 0
         fx_ok = tests.get("fixtures", {}).get("status") == "OK" and tests.get("fixtures", {}).get("usable_sample")
+        # Keep xG evidence layers independent: observed match-context values, the
+        # provider's catalogue capability flag, and the dedicated league endpoint
+        # are different facts and must not be conflated.
+        observed_xg_pct = (complete_xg_samples / sample_size) if sample_size else 0.0
+        catalogue_advanced_stats = r.get("catalogue_coverage", {}).get("advancedStats")
+        r["xg_diagnostics"] = {
+            "sample_size": sample_size,
+            "fixtures_with_both_home_away_xg": complete_xg_samples,
+            "observed_match_context_xg_coverage_pct": round(100 * observed_xg_pct, 1),
+            "observed_xg_evidence": "OBSERVED_IN_SAMPLE" if complete_xg_samples else "NOT_OBSERVED_IN_SAMPLE",
+            "catalogue_advanced_stats_flag": catalogue_advanced_stats,
+            "catalogue_flag_interpretation": "DECLARED_SUPPORTED" if catalogue_advanced_stats is True else "DECLARED_UNSUPPORTED" if catalogue_advanced_stats is False else "NOT_DECLARED",
+            "dedicated_league_xg_endpoint_status": xg_endpoint.get("status", "NOT_TESTED"),
+            "interpretation": "Observed sample values do not prove full competition coverage; catalogue flags do not negate directly observed match-context values."
+        }
         r["field_acceptance"] = {
             "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
             "recent_form_only": "SUPPORTED" if sample_size and form_only_samples >= sample_threshold else ("PARTIAL" if form_only_samples > 0 or form_present else "UNSUPPORTED"),
             "recent_form_and_last5_goals": "SUPPORTED" if sample_size and complete_form_samples >= sample_threshold else ("PARTIAL" if complete_form_samples > 0 or (form_present and both_goals) else "UNSUPPORTED"),
             "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or any_h2h_data else "UNSUPPORTED"),
             "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
-            "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold and r.get("catalogue_coverage", {}).get("advancedStats") is True else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
+            "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
             "league_xg_endpoint": "SUPPORTED" if xg_endpoint.get("status") == "OK" and xg_endpoint.get("has_populated_nested_data") else ("UNSUPPORTED" if xg_endpoint.get("status") in ("NOT_FOUND_OR_UNAVAILABLE", "AUTH_OR_PLAN_RESTRICTION", "RATE_LIMIT_OR_QUOTA") else "UNVERIFIED")
         }
+    # Aggregate H2H quality across every sampled fixture, not only the first
+    # fixture's endpoint payload. Empty successful responses are distinct from
+    # request/network failures and from meetings with incomplete scores/dates.
+    h2h_samples = [x for r in report["targets"] for x in r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_checks", [])]
+    h2h_ok = [x for x in h2h_samples if x.get("h2h_status") == "OK"]
+    h2h_failed = [x for x in h2h_samples if x.get("h2h_status") not in (None, "OK", "NOT_TESTED")]
+    h2h_with_meetings = [x for x in h2h_ok if (x.get("h2h_meeting_count", 0) or 0) > 0]
+    report["summary"]["h2h_diagnostics"] = {
+        "sampled_requests": len([x for x in h2h_samples if x.get("h2h_status") not in (None, "NOT_TESTED")]),
+        "successful_requests": len(h2h_ok),
+        "successful_empty_meeting_responses": sum((x.get("h2h_meeting_count", 0) or 0) == 0 for x in h2h_ok),
+        "successful_responses_with_meetings": len(h2h_with_meetings),
+        "responses_with_meetings_and_at_least_one_scored_meeting": sum((x.get("h2h_scored_meetings", 0) or 0) > 0 for x in h2h_with_meetings),
+        "responses_with_all_meetings_scored": sum((x.get("h2h_meeting_count", 0) or 0) > 0 and x.get("h2h_scored_meetings", 0) == x.get("h2h_meeting_count", 0) for x in h2h_with_meetings),
+        "responses_with_all_meetings_dated": sum((x.get("h2h_meeting_count", 0) or 0) > 0 and x.get("h2h_dated_meetings", 0) == x.get("h2h_meeting_count", 0) for x in h2h_with_meetings),
+        "failed_requests": len(h2h_failed),
+        "transient_retries_exhausted": sum(bool(x.get("h2h_retry_exhausted")) for x in h2h_samples),
+        "interpretation": "A successful empty response is not counted as a network failure; meeting count, score completeness and date completeness are reported separately."
+    }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
     report["summary"]["competitions_with_multi_fixture_samples"] = sum((r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_size", 0) or 0) >= 3 for r in report["targets"])
     report["summary"]["field_acceptance_counts"] = {
         field: {status: sum(r.get("field_acceptance", {}).get(field) == status for r in report["targets"])
                 for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
         for field in ("fixtures", "recent_form_only", "recent_form_and_last5_goals", "h2h", "standings", "xg_in_match_context", "league_xg_endpoint")
+    }
+    report["summary"]["xg_diagnostics"] = {
+        "competitions_with_any_observed_match_context_xg": sum((r.get("xg_diagnostics", {}).get("fixtures_with_both_home_away_xg", 0) or 0) > 0 for r in report["targets"]),
+        "competitions_with_sample_threshold_match_context_xg": sum(r.get("field_acceptance", {}).get("xg_in_match_context") == "SUPPORTED" for r in report["targets"]),
+        "catalogue_advanced_stats_declared_true": sum(r.get("xg_diagnostics", {}).get("catalogue_advanced_stats_flag") is True for r in report["targets"]),
+        "catalogue_advanced_stats_declared_false": sum(r.get("xg_diagnostics", {}).get("catalogue_advanced_stats_flag") is False for r in report["targets"]),
+        "catalogue_advanced_stats_undeclared": sum(r.get("xg_diagnostics", {}).get("catalogue_advanced_stats_flag") is None for r in report["targets"]),
+        "dedicated_league_xg_endpoint_supported": sum(r.get("field_acceptance", {}).get("league_xg_endpoint") == "SUPPORTED" for r in report["targets"]),
+        "note": "Match-context sample evidence, catalogue capability declaration, and dedicated league xG endpoint status are separate measurements."
     }
     # Final acceptance requires every requested competition mapped and all requested
     # data classes supported. A successful HTTP workflow alone is never acceptance.
