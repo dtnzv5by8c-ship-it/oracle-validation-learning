@@ -153,7 +153,7 @@ def standings_form_map(payload):
     """Extract valid five-match form only when a team name is present."""
     root = payload.get("data", payload) if isinstance(payload, dict) else {}
     table = root.get("table", []) if isinstance(root, dict) else []
-    out = {}
+    out = {"by_name": {}, "by_id": {}}
     if not isinstance(table, list):
         return out
     for row in table:
@@ -167,7 +167,11 @@ def standings_form_map(payload):
             form = "".join(str(x.get("result", x.get("outcome", "")) if isinstance(x, dict) else x) for x in form)
         form = re.sub(r"[^WDL]", "", str(form or "").upper())
         if name and re.fullmatch(r"[WDL]{5}", form):
-            out[norm(name)] = {"team_name": name, "form": form}
+            rec = {"team_name": name, "form": form}
+            out["by_name"][norm(name)] = rec
+            team_id = first(team, ("id", "teamId", "team_id")) if isinstance(team, dict) else first(row, ("teamId", "team_id", "participantId", "participant_id"))
+            if team_id is not None and str(team_id).strip():
+                out["by_id"][str(team_id)] = rec
     return out
 
 def score_pair(match):
@@ -373,7 +377,7 @@ def main():
                     goal_probe["goals_conceded_last5"] = sum(x["conceded"] for x in scored[:5])
                     check[side+"_goals_last5_available"] = True
                 check["team_recent_goals_diagnostics"][side] = goal_probe
-            check["complete_form_and_goals_with_derived_sources"] = all(
+            check["complete_form_and_goals_after_verified_form_fallback"] = all(
                 bool(re.fullmatch(r"[WDL]{5}", str(check.get(side+"_context_form") or "").upper()))
                 and bool(check.get(side+"_goals_last5_available"))
                 for side in ("home","away")
@@ -414,23 +418,28 @@ def main():
         if kind=="league":
             sp,sm=get("/standings",{"competition":cid,"season":season})
             rec["tests"]["standings"]={**sm,**(sample_fields(sp) if sp is not None else {}),**(value_quality(sp,"standings") if sp is not None else {})}
-            form_map = standings_form_map(sp) if sp is not None and sm.get("status") == "OK" else {}
+            form_map = standings_form_map(sp) if sp is not None and sm.get("status") == "OK" else {"by_name": {}, "by_id": {}}
             verified_fallbacks = 0
             verified_matches = 0
             for sample in sampled_checks:
                 for side in ("home", "away"):
                     team_name = sample.get(side+"_team_name")
                     context_form = sample.get(side+"_context_form", "")
-                    stand_form = form_map.get(norm(team_name)) if team_name else None
+                    sample_team_id = sample.get(side+"_team_id")
+                    stand_form = form_map["by_id"].get(str(sample_team_id)) if sample_team_id is not None else None
+                    form_match_source = "exact_team_id"
+                    if not stand_form and team_name:
+                        stand_form = form_map["by_name"].get(norm(team_name))
+                        form_match_source = "exact_normalized_team_name"
                     if stand_form:
                         verified_matches += 1
                         if not re.fullmatch(r"[WDL]{5}", context_form):
                             sample[side+"_standings_form_fallback"] = stand_form["form"]
-                            sample[side+"_form_source"] = "standings_fallback_exact_team_name_match"
+                            sample[side+"_form_source"] = "standings_fallback_"+form_match_source+"_match"
                             verified_fallbacks += 1
                         else:
                             sample[side+"_form_source"] = "match_context"
-            rec["tests"]["standings_form_validation"] = {"standings_teams_with_valid_five_match_form":len(form_map),"sampled_team_name_matches_with_valid_standings_form":verified_matches,"verified_fallbacks_used_for_missing_context_form":verified_fallbacks,"fallback_is_reporting_only":True,"note":"Exact normalized team-name match and five-character W/D/L sequence required; fallback does not fill recent goals scored/conceded."}
+            rec["tests"]["standings_form_validation"] = {"standings_teams_with_valid_five_match_form":len(form_map["by_name"]),"standings_team_ids_with_valid_five_match_form":len(form_map["by_id"]),"sampled_team_matches_with_valid_standings_form":verified_matches,"verified_fallbacks_used_for_missing_context_form":verified_fallbacks,"fallback_is_reporting_only":True,"note":"Exact team-ID match is preferred; exact normalized team-name match is the fallback. Only five-character W/D/L sequences are accepted. This repairs form coverage only and does not fill recent goals scored/conceded."}
             # Separate form completeness from the stricter form + last-five-goals requirement.
             # This is reporting-only and never feeds Oracle predictions.
             for sample in sampled_checks:
@@ -447,7 +456,7 @@ def main():
                     and bool(sample.get(side+"_goals_last5_available"))
                     for side in ("home","away")
                 )
-            rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_with_derived_sources"] = sum(bool(x.get("complete_form_and_goals_with_derived_sources")) for x in sampled_checks)
+            rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_after_verified_form_fallback"] = sum(bool(x.get("complete_form_and_goals_with_derived_sources")) for x in sampled_checks)
             rec["tests"]["multi_fixture_validation"]["goal_probe_is_reporting_only"] = True
             rec["tests"]["multi_fixture_validation"]["form_completeness_is_reporting_only"] = True
         report["targets"].append(rec); time.sleep(1.0)
@@ -580,11 +589,14 @@ def main():
         "interpretation": "A successful empty response is not counted as a network failure; meeting count, score completeness and date completeness are reported separately. Failed requests include the target and fixture/team identifiers for diagnosis."
     }
     report["summary"]["recent_goals_probe_diagnostics"] = {
+        "sampled_fixture_sides": 2 * len(h2h_samples),
+        "sampled_fixture_sides_with_context_last5_goals": sum(bool(x.get("home_context_goals_complete") and x.get("away_context_goals_complete")) for x in h2h_samples),
+        "sampled_fixture_sides_missing_context_last5_goals": sum(not bool(x.get("home_context_goals_complete")) for x in h2h_samples) + sum(not bool(x.get("away_context_goals_complete")) for x in h2h_samples),
         "team_probes": sum(len(x.get("team_recent_goals_diagnostics", {})) for x in h2h_samples),
         "team_probes_with_five_scored_matches": sum(bool(v.get("five_match_goal_totals_available")) for x in h2h_samples for v in x.get("team_recent_goals_diagnostics", {}).values()),
         "team_probes_without_five_scored_matches": sum(not bool(v.get("five_match_goal_totals_available")) for x in h2h_samples for v in x.get("team_recent_goals_diagnostics", {}).values()),
         "reporting_only": True,
-        "interpretation": "Last-five goals are derived only when five numeric scorelines are available from completed matches for the same team, competition and season; these values are audit evidence only and are not written to Oracle."
+        "interpretation": "Context goal fields are counted separately from any fallback probes. A fallback probe is attempted only when context goal fields are missing, and only five numeric scorelines from completed matches in the same team, competition and season qualify. All audit values are reporting-only and never written to Oracle."
     }
     report["summary"]["provider_mapping_gaps"] = [
         {"target": r.get("target"), "mapping_status": r.get("mapping_status"), "diagnosis": r.get("mapping_diagnosis", {}).get("resolution")}
