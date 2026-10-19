@@ -273,6 +273,7 @@ def main():
         complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals", 0) or 0
         complete_xg_samples = multi.get("fixtures_with_both_xg_values", 0) or 0
         complete_h2h_samples = multi.get("fixtures_with_at_least_five_scored_h2h_meetings", 0) or 0
+        any_h2h_data = any((x.get("h2h_meeting_count", 0) or 0) > 0 and (x.get("h2h_scored_meetings", 0) or 0) > 0 for x in multi.get("sample_checks", []))
         both_goals = all(
             team_values.get(side, {}).get("goals_scored_last5_present") and
             team_values.get(side, {}).get("goals_conceded_last5_present")
@@ -294,7 +295,7 @@ def main():
         r["field_acceptance"] = {
             "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
             "recent_form_and_last5_goals": "SUPPORTED" if sample_size and complete_form_samples >= sample_threshold else ("PARTIAL" if complete_form_samples > 0 or (form_present and both_goals) else "UNSUPPORTED"),
-            "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or (h2h_count > 0 and h2h_scored > 0) else "UNSUPPORTED"),
+            "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or any_h2h_data else "UNSUPPORTED"),
             "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
             "xg_in_match_context": "SUPPORTED" if sample_size and complete_xg_samples >= sample_threshold and r.get("catalogue_coverage", {}).get("advancedStats") is True else ("PARTIAL" if complete_xg_samples > 0 or xg_context else "UNSUPPORTED"),
             "league_xg_endpoint": "SUPPORTED" if xg_endpoint.get("status") == "OK" and xg_endpoint.get("has_populated_nested_data") else ("UNSUPPORTED" if xg_endpoint.get("status") in ("NOT_FOUND_OR_UNAVAILABLE", "AUTH_OR_PLAN_RESTRICTION", "RATE_LIMIT_OR_QUOTA") else "UNVERIFIED")
