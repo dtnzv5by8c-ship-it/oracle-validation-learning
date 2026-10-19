@@ -212,10 +212,45 @@ def main():
                     candidates.append({"id": item.get("id"), "name": item.get("name"),
                                        "country": item.get("country"), "season": item.get("season")})
             rec["nearby_catalogue_candidates"] = candidates[:15]
-            rec["tests"]["fixtures"]={"status":"NOT_TESTED_NO_COMPETITION_ID"}
+            # Supplement the full catalogue with OpenFoot's documented fuzzy search.
+            # Search hits are diagnostic only: never auto-map an ambiguous or approximate hit.
+            search_queries = list(dict.fromkeys([aliases[0], label.split("—", 1)[-1].strip()]))[:2]
+            search_evidence = []
+            for query in search_queries:
+                search_payload, search_meta = get("/search", {"q": query})
+                search_rows = rows(search_payload) if search_payload is not None else []
+                compact = []
+                for item in search_rows[:10]:
+                    if isinstance(item, dict):
+                        compact.append({
+                            "id": first(item, ("id", "competitionId", "competition_id", "teamId", "team_id", "slug", "code")),
+                            "name": first(item, ("name", "competitionName", "competition_name", "title", "displayName")),
+                            "country": first(item, ("country", "countryName", "country_name", "nation")),
+                            "type": first(item, ("type", "entityType", "entity_type", "kind")),
+                            "season": first(item, ("season", "currentSeason", "current_season"))
+                        })
+                search_evidence.append({"query": query, **search_meta, "result_count": len(search_rows), "results": compact})
+            rec["provider_search_diagnostics"] = search_evidence
+            rec["tests"]["fixtures"]={"status":"NOT_TESTED_NO_VERIFIED_COMPETITION_ID"}
             report["targets"].append(rec); continue
         c=next(iter(unique.values())); cid=c["id"]; season=c.get("season")
         rec.update({"mapping_status":"MAPPED","competition_id":cid,"catalogue_name":c["name"],"catalogue_season":season,"season_freshness":"CURRENT_LABEL" if season in ("2026","2026/27","2026-2027") else ("UNVERIFIED" if not season else "STALE_OR_UNVERIFIED"),"catalogue_coverage":c["coverage"]})
+        if rec["season_freshness"] != "CURRENT_LABEL":
+            # Verify stale/unclear season labels through provider search, without changing season.
+            search_payload, search_meta = get("/search", {"q": c["name"] or label.split("—", 1)[-1].strip()})
+            search_rows = rows(search_payload) if search_payload is not None else []
+            rec["season_search_diagnostics"] = {
+                "query": c["name"] or label.split("—", 1)[-1].strip(),
+                **search_meta,
+                "result_count": len(search_rows),
+                "results": [{
+                    "id": first(item, ("id", "competitionId", "competition_id", "slug", "code")),
+                    "name": first(item, ("name", "competitionName", "competition_name", "title", "displayName")),
+                    "country": first(item, ("country", "countryName", "country_name", "nation")),
+                    "season": first(item, ("season", "currentSeason", "current_season")),
+                    "seasons": item.get("seasons") if isinstance(item, dict) else None
+                } for item in search_rows[:10] if isinstance(item, dict)]
+            }
         fx,fm=get("/matches",{"competition":cid,"season":season,"limit":10})
         frows=rows(fx) if fx is not None else []
         rec["tests"]["fixtures"]={**fm,"rows_returned":len(frows),"usable_sample":bool(frows)}
