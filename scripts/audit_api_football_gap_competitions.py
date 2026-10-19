@@ -91,7 +91,8 @@ def main():
     counters = {"mapped": 0, "not_found": 0, "fixture_probe_ok": 0, "standings_probe_ok": 0, "xg_probe_with_value": 0, "h2h_probe_ok": 0, "recent_form_goals_probe_ok": 0}
     for target in TARGETS:
         item = {"target": target["label"], "country": target["country"]}
-        payload, meta = get("/leagues", {"search": target["search"], "country": target["country"]}, key)
+        # API-Football rejects combining the search and country filters. Search first, then verify country locally.
+        payload, meta = get("/leagues", {"search": target["search"]}, key)
         league_rows = payload.get("response", []) if isinstance(payload, dict) else []
         exact = [x for x in league_rows if norm(x.get("league", {}).get("name")) == norm(target["search"]) and norm(x.get("country", {}).get("name")) == norm(target["country"])]
         candidates = exact or [x for x in league_rows if norm(x.get("country", {}).get("name")) == norm(target["country"])]
