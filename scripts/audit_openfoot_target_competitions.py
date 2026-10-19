@@ -211,6 +211,13 @@ def main():
         rec={"target":label,"kind":kind,"mapping_status":"UNMAPPED","candidate_count":len(unique),"tests":{}}
         if len(unique)>1:
             rec["mapping_status"]="AMBIGUOUS"; rec["candidates"]=[{"id":c["id"],"name":c["name"],"country":c["country"]} for c in unique.values()]
+            rec["mapping_diagnosis"] = {
+                "catalogue_exact_match": False,
+                "provider_search_queries": [x.get("query") for x in rec.get("provider_search_diagnostics", [])],
+                "provider_search_hits": sum(x.get("result_count", 0) for x in rec.get("provider_search_diagnostics", [])),
+                "resolution": "NO_VERIFIED_PROVIDER_MAPPING_FOUND",
+                "next_safe_action": "Keep unmapped; request provider coverage/competition ID or validate a separate licensed source. Do not guess an ID."
+            }
             report["targets"].append(rec); continue
         if not unique:
             rec["mapping_status"]="NOT_IN_CATALOGUE"
@@ -236,7 +243,12 @@ def main():
             rec["nearby_catalogue_candidates"] = candidates[:15]
             # Supplement the full catalogue with OpenFoot's documented fuzzy search.
             # Search hits are diagnostic only: never auto-map an ambiguous or approximate hit.
-            search_queries = list(dict.fromkeys([aliases[0], label.split("—", 1)[-1].strip()]))[:2]
+            search_queries = list(dict.fromkeys([
+                aliases[0],
+                label.split("—", 1)[-1].strip(),
+                country + " " + aliases[0],
+                *aliases[1:3]
+            ]))[:5]
             search_evidence = []
             for query in search_queries:
                 search_payload, search_meta = get("/search", {"q": query})
@@ -259,19 +271,28 @@ def main():
         rec.update({"mapping_status":"MAPPED","competition_id":cid,"catalogue_name":c["name"],"catalogue_season":season,"season_freshness":"CURRENT_LABEL" if season in ("2026","2026/27","2026-2027") else ("UNVERIFIED" if not season else "STALE_OR_UNVERIFIED"),"catalogue_coverage":c["coverage"]})
         if rec["season_freshness"] != "CURRENT_LABEL":
             # Verify stale/unclear season labels through provider search, without changing season.
-            search_payload, search_meta = get("/search", {"q": c["name"] or label.split("—", 1)[-1].strip()})
-            search_rows = rows(search_payload) if search_payload is not None else []
-            rec["season_search_diagnostics"] = {
-                "query": c["name"] or label.split("—", 1)[-1].strip(),
-                **search_meta,
-                "result_count": len(search_rows),
-                "results": [{
-                    "id": first(item, ("id", "competitionId", "competition_id", "slug", "code")),
-                    "name": first(item, ("name", "competitionName", "competition_name", "title", "displayName")),
-                    "country": first(item, ("country", "countryName", "country_name", "nation")),
-                    "season": first(item, ("season", "currentSeason", "current_season")),
-                    "seasons": item.get("seasons") if isinstance(item, dict) else None
-                } for item in search_rows[:10] if isinstance(item, dict)]
+            season_queries = list(dict.fromkeys([c["name"] or label.split("—", 1)[-1].strip(), country + " " + (aliases[0] if aliases else label)]))[:2]
+            season_evidence = []
+            for season_query in season_queries:
+                search_payload, search_meta = get("/search", {"q": season_query})
+                search_rows = rows(search_payload) if search_payload is not None else []
+                season_evidence.append({
+                    "query": season_query, **search_meta, "result_count": len(search_rows),
+                    "results": [{
+                        "id": first(item, ("id", "competitionId", "competition_id", "slug", "code")),
+                        "name": first(item, ("name", "competitionName", "competition_name", "title", "displayName")),
+                        "country": first(item, ("country", "countryName", "country_name", "nation")),
+                        "season": first(item, ("season", "currentSeason", "current_season")),
+                        "seasons": item.get("seasons") if isinstance(item, dict) else None
+                    } for item in search_rows[:10] if isinstance(item, dict)]
+                })
+            rec["season_search_diagnostics"] = season_evidence
+            rec["season_resolution"] = {
+                "catalogue_season": season,
+                "current_season_confirmed": season in ("2026", "2026/27", "2026-2027"),
+                "search_results_available": any(x.get("result_count", 0) > 0 for x in season_evidence),
+                "resolution": "CURRENT_SEASON_CONFIRMED" if season in ("2026", "2026/27", "2026-2027") else "STALE_OR_UNVERIFIED_DO_NOT_USE_AS_CURRENT",
+                "next_safe_action": "Do not substitute another season until provider confirms the competition's current season."
             }
         fx,fm=get("/matches",{"competition":cid,"season":season,"limit":10})
         frows=rows(fx) if fx is not None else []
@@ -565,6 +586,14 @@ def main():
         "reporting_only": True,
         "interpretation": "Last-five goals are derived only when five numeric scorelines are available from completed matches for the same team, competition and season; these values are audit evidence only and are not written to Oracle."
     }
+    report["summary"]["provider_mapping_gaps"] = [
+        {"target": r.get("target"), "mapping_status": r.get("mapping_status"), "diagnosis": r.get("mapping_diagnosis", {}).get("resolution")}
+        for r in report["targets"] if r.get("mapping_status") != "MAPPED"
+    ]
+    report["summary"]["season_freshness_gaps"] = [
+        {"target": r.get("target"), "catalogue_season": r.get("catalogue_season"), "resolution": r.get("season_resolution", {}).get("resolution", r.get("season_freshness"))}
+        for r in report["targets"] if r.get("mapping_status") == "MAPPED" and r.get("season_freshness") != "CURRENT_LABEL"
+    ]
     report["summary"]["required_feature_endpoints_passed"] = required_ok
     report["summary"]["competitions_with_multi_fixture_samples"] = sum((r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_size", 0) or 0) >= 3 for r in report["targets"])
     report["summary"]["field_acceptance_counts"] = {
