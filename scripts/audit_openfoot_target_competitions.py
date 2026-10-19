@@ -294,6 +294,17 @@ def main():
                         else:
                             sample[side+"_form_source"] = "match_context"
             rec["tests"]["standings_form_validation"] = {"standings_teams_with_valid_five_match_form":len(form_map),"sampled_team_name_matches_with_valid_standings_form":verified_matches,"verified_fallbacks_used_for_missing_context_form":verified_fallbacks,"fallback_is_reporting_only":True,"note":"Exact normalized team-name match and five-character W/D/L sequence required; fallback does not fill recent goals scored/conceded."}
+            # Separate form completeness from the stricter form + last-five-goals requirement.
+            # This is reporting-only and never feeds Oracle predictions.
+            for sample in sampled_checks:
+                valid_forms = []
+                for side in ("home", "away"):
+                    context_form = str(sample.get(side+"_context_form", "")).upper()
+                    fallback_form = sample.get(side+"_standings_form_fallback", "")
+                    valid_forms.append(bool(re.fullmatch(r"[WDL]{5}", context_form) or re.fullmatch(r"[WDL]{5}", fallback_form)))
+                sample["both_teams_five_match_form_available"] = all(valid_forms)
+            rec["tests"]["multi_fixture_validation"]["fixtures_with_both_teams_five_match_form"] = sum(bool(x.get("both_teams_five_match_form_available")) for x in sampled_checks)
+            rec["tests"]["multi_fixture_validation"]["form_completeness_is_reporting_only"] = True
         report["targets"].append(rec); time.sleep(1.0)
     # xG endpoint is documented as Developer-tier. Probe once; avoid repeated calls if plan-gated.
     mapped=next((r for r in report["targets"] if r["mapping_status"]=="MAPPED" and r["kind"]=="league"),None)
@@ -329,6 +340,7 @@ def main():
         multi = tests.get("multi_fixture_validation", {})
         sample_size = multi.get("sample_size", 0) or 0
         complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals", 0) or 0
+        form_only_samples = multi.get("fixtures_with_both_teams_five_match_form", 0) or 0
         complete_xg_samples = multi.get("fixtures_with_both_xg_values", 0) or 0
         complete_h2h_samples = multi.get("fixtures_with_at_least_five_scored_h2h_meetings", 0) or 0
         any_h2h_data = any((x.get("h2h_meeting_count", 0) or 0) > 0 and (x.get("h2h_scored_meetings", 0) or 0) > 0 for x in multi.get("sample_checks", []))
@@ -352,6 +364,7 @@ def main():
         fx_ok = tests.get("fixtures", {}).get("status") == "OK" and tests.get("fixtures", {}).get("usable_sample")
         r["field_acceptance"] = {
             "fixtures": "SUPPORTED" if fx_ok else "UNSUPPORTED",
+            "recent_form_only": "SUPPORTED" if sample_size and form_only_samples >= sample_threshold else ("PARTIAL" if form_only_samples > 0 or form_present else "UNSUPPORTED"),
             "recent_form_and_last5_goals": "SUPPORTED" if sample_size and complete_form_samples >= sample_threshold else ("PARTIAL" if complete_form_samples > 0 or (form_present and both_goals) else "UNSUPPORTED"),
             "h2h": "SUPPORTED" if sample_size and complete_h2h_samples >= sample_threshold else ("PARTIAL" if (sample_size and complete_h2h_samples > 0) or any_h2h_data else "UNSUPPORTED"),
             "standings": "SUPPORTED" if table_count > 0 and table_core > 0 and season_current else ("PARTIAL" if table_count > 0 and table_core > 0 else ("NOT_APPLICABLE" if r.get("kind") == "cup" else "UNSUPPORTED")),
@@ -363,7 +376,7 @@ def main():
     report["summary"]["field_acceptance_counts"] = {
         field: {status: sum(r.get("field_acceptance", {}).get(field) == status for r in report["targets"])
                 for status in ("SUPPORTED", "PARTIAL", "UNSUPPORTED", "NOT_APPLICABLE")}
-        for field in ("fixtures", "recent_form_and_last5_goals", "h2h", "standings", "xg_in_match_context", "league_xg_endpoint")
+        for field in ("fixtures", "recent_form_only", "recent_form_and_last5_goals", "h2h", "standings", "xg_in_match_context", "league_xg_endpoint")
     }
     # Final acceptance requires every requested competition mapped and all requested
     # data classes supported. A successful HTTP workflow alone is never acceptance.
