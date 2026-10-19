@@ -170,6 +170,28 @@ def standings_form_map(payload):
             out[norm(name)] = {"team_name": name, "form": form}
     return out
 
+def score_pair(match):
+    """Return a numeric (home, away) score pair from known normalized score fields."""
+    if not isinstance(match, dict):
+        return None
+    score = first(match, ("score", "scores", "fullTime", "full_time", "result"))
+    if isinstance(score, dict):
+        home = first(score, ("home", "homeScore", "home_score", "homeGoals", "home_goals"))
+        away = first(score, ("away", "awayScore", "away_score", "awayGoals", "away_goals"))
+        if isinstance(home, (int, float)) and isinstance(away, (int, float)):
+            return home, away
+        nested = score.get("fullTime") or score.get("full_time")
+        if isinstance(nested, dict):
+            home = first(nested, ("home", "homeScore", "home_score"))
+            away = first(nested, ("away", "awayScore", "away_score"))
+            if isinstance(home, (int, float)) and isinstance(away, (int, float)):
+                return home, away
+    home = first(match, ("homeScore", "home_score", "homeGoals", "home_goals"))
+    away = first(match, ("awayScore", "away_score", "awayGoals", "away_goals"))
+    if isinstance(home, (int, float)) and isinstance(away, (int, float)):
+        return home, away
+    return None
+
 def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     report={"generated_utc":datetime.now(timezone.utc).isoformat(),"mode":"READ_ONLY_TARGET_COMPETITION_FIELD_AUDIT","source":"OpenFoot API","credential_configured":bool(KEY),"credential_value_logged":False,"target_count":len(TARGETS),"targets":[],"governance":"No Oracle production code, predictions, calibration, or historical database is modified."}
@@ -262,7 +284,7 @@ def main():
             home=first(m,("homeTeam","home_team","home")); away=first(m,("awayTeam","away_team","away"))
             fixture_comp_obj = m.get("competition") if isinstance(m.get("competition"), dict) else {}
             fixture_comp_id = first(m,("competitionId","competition_id","leagueId","league_id")) or first(fixture_comp_obj,("id","competitionId","competition_id","slug","code"))
-            check={"match_id_present":bool(mid),"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"fixture_competition_id":fixture_comp_id,"context_competition_id":None,"competition_identity_status":"NOT_VERIFIED","context_status":"NOT_TESTED","h2h_status":"NOT_TESTED"}
+            check={"match_id_present":bool(mid),"match_id":mid,"kickoff_present":bool(first(m,("kickoffAt","date","kickoff","datetime"))),"home_team_id_present":bool(tid(home)),"away_team_id_present":bool(tid(away)),"home_team_id":tid(home),"away_team_id":tid(away),"fixture_competition_id":fixture_comp_id,"context_competition_id":None,"competition_identity_status":"NOT_VERIFIED","context_status":"NOT_TESTED","h2h_status":"NOT_TESTED","home_context_goals_complete":False,"away_context_goals_complete":False,"home_goals_last5_available":False,"away_goals_last5_available":False,"team_recent_goals_diagnostics":{}}
             cp=None; hp=None
             if mid:
                 cp,cm2=get("/matches/"+str(mid)+"/context")
@@ -288,6 +310,9 @@ def main():
                     check[side+"_team_name"] = first(side_team, ("name", "teamName")) or first(side_obj, ("teamName", "team_name", "name"))
                     check[side+"_context_form"] = str(side_obj.get("form") or "").upper() if isinstance(side_obj, dict) else ""
                 check["complete_form_and_goals"]=all(teams.get(side,{}).get("form_is_wdl_sequence") and teams.get(side,{}).get("goals_scored_last5_present") and teams.get(side,{}).get("goals_conceded_last5_present") for side in ("home","away"))
+                for side in ("home","away"):
+                    check[side+"_context_goals_complete"] = bool(teams.get(side,{}).get("goals_scored_last5_present") and teams.get(side,{}).get("goals_conceded_last5_present"))
+                    check[side+"_goals_last5_available"] = check[side+"_context_goals_complete"]
                 xgv=cq.get("xg_values",{})
                 check["xg_both_teams_present"]=bool(xgv.get("home_xg_present") and xgv.get("away_xg_present"))
                 check["match_date_present"]=bool(cq.get("match_date_present"))
@@ -297,6 +322,41 @@ def main():
             else:
                 check.update({"complete_form_and_goals":False,"xg_both_teams_present":False,"match_date_present":False})
                 if idx==0: rec["tests"]["match_context"]={"status":"NOT_TESTED_NO_MATCH_ID"}
+            # Reporting-only fallback probe: derive last-five goals from this team's
+            # five most recent completed matches in the same competition/season.
+            # Never writes to Oracle and never feeds prediction logic.
+            for side, team_obj in (("home", home), ("away", away)):
+                if not tid(team_obj) or check.get(side+"_context_goals_complete"):
+                    continue
+                goal_payload, goal_meta = get("/matches", {"team":str(tid(team_obj)),"competition":str(cid),"season":season,"status":"finished","limit":10})
+                goal_rows = rows(goal_payload) if goal_payload is not None else []
+                dated_rows = sorted([x for x in goal_rows if isinstance(x,dict)], key=lambda x:str(first(x,("kickoffAt","date","kickoff","datetime")) or ""), reverse=True)
+                scored = []
+                for gm in dated_rows:
+                    pair = score_pair(gm)
+                    if pair is None:
+                        continue
+                    gh = first(gm,("homeTeam","home_team","home")); ga = first(gm,("awayTeam","away_team","away"))
+                    team_id = str(tid(team_obj))
+                    home_id = str(tid(gh)) if tid(gh) is not None else ""
+                    away_id = str(tid(ga)) if tid(ga) is not None else ""
+                    if home_id == team_id:
+                        scored.append({"scored":pair[0],"conceded":pair[1],"date":first(gm,("kickoffAt","date","kickoff","datetime"))})
+                    elif away_id == team_id:
+                        scored.append({"scored":pair[1],"conceded":pair[0],"date":first(gm,("kickoffAt","date","kickoff","datetime"))})
+                    if len(scored) >= 5:
+                        break
+                goal_probe = {**goal_meta,"rows_returned":len(goal_rows),"completed_scored_matches_found":len(scored),"five_match_goal_totals_available":len(scored)>=5,"source":"same_competition_completed_match_scores","reporting_only":True}
+                if len(scored) >= 5:
+                    goal_probe["goals_scored_last5"] = sum(x["scored"] for x in scored[:5])
+                    goal_probe["goals_conceded_last5"] = sum(x["conceded"] for x in scored[:5])
+                    check[side+"_goals_last5_available"] = True
+                check["team_recent_goals_diagnostics"][side] = goal_probe
+            check["complete_form_and_goals_with_derived_sources"] = all(
+                bool(re.fullmatch(r"[WDL]{5}", str(check.get(side+"_context_form") or "").upper()))
+                and bool(check.get(side+"_goals_last5_available"))
+                for side in ("home","away")
+            )
             if tid(home) and tid(away):
                 hp,hm=get("/teams/"+str(tid(home))+"/h2h",{"opponent":str(tid(away))})
                 hq=value_quality(hp,"h2h") if hp is not None else {}
@@ -306,6 +366,10 @@ def main():
                 check["h2h_exception_type"]=hm.get("exception_type")
                 check["h2h_attempts"]=hm.get("attempts", 1)
                 check["h2h_retry_exhausted"]=bool(hm.get("retry_exhausted", False))
+                check["h2h_target_competition"] = label
+                check["h2h_fixture_match_id"] = mid
+                check["h2h_home_team_id"] = tid(home)
+                check["h2h_away_team_id"] = tid(away)
                 check["h2h_meeting_count"]=hq.get("meeting_count",0)
                 check["h2h_scored_meetings"]=hq.get("meetings_with_numeric_score",0)
                 check["h2h_dated_meetings"]=hq.get("meetings_with_date",0)
@@ -356,6 +420,14 @@ def main():
                     valid_forms.append(bool(re.fullmatch(r"[WDL]{5}", context_form) or re.fullmatch(r"[WDL]{5}", fallback_form)))
                 sample["both_teams_five_match_form_available"] = all(valid_forms)
             rec["tests"]["multi_fixture_validation"]["fixtures_with_both_teams_five_match_form"] = sum(bool(x.get("both_teams_five_match_form_available")) for x in sampled_checks)
+            for sample in sampled_checks:
+                sample["complete_form_and_goals_with_derived_sources"] = all(
+                    bool(re.fullmatch(r"[WDL]{5}", str(sample.get(side+"_context_form") or sample.get(side+"_standings_form_fallback") or "").upper()))
+                    and bool(sample.get(side+"_goals_last5_available"))
+                    for side in ("home","away")
+                )
+            rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_with_derived_sources"] = sum(bool(x.get("complete_form_and_goals_with_derived_sources")) for x in sampled_checks)
+            rec["tests"]["multi_fixture_validation"]["goal_probe_is_reporting_only"] = True
             rec["tests"]["multi_fixture_validation"]["form_completeness_is_reporting_only"] = True
         report["targets"].append(rec); time.sleep(1.0)
     # xG endpoint is documented as Developer-tier. Probe once; avoid repeated calls if plan-gated.
@@ -391,7 +463,7 @@ def main():
         team_values = ctx.get("teams", {})
         multi = tests.get("multi_fixture_validation", {})
         sample_size = multi.get("sample_size", 0) or 0
-        complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals", 0) or 0
+        complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals_with_derived_sources", multi.get("fixtures_with_complete_form_and_last5_goals", 0)) or 0
         form_only_samples = multi.get("fixtures_with_both_teams_five_match_form", 0) or 0
         complete_xg_samples = multi.get("fixtures_with_both_xg_values", 0) or 0
         complete_h2h_samples = multi.get("fixtures_with_at_least_five_scored_h2h_meetings", 0) or 0
@@ -479,7 +551,19 @@ def main():
         "responses_with_all_meetings_dated": sum((x.get("h2h_meeting_count", 0) or 0) > 0 and x.get("h2h_dated_meetings", 0) == x.get("h2h_meeting_count", 0) for x in h2h_with_meetings),
         "failed_requests": len(h2h_failed),
         "transient_retries_exhausted": sum(bool(x.get("h2h_retry_exhausted")) for x in h2h_samples),
-        "interpretation": "A successful empty response is not counted as a network failure; meeting count, score completeness and date completeness are reported separately."
+        "failed_request_details": [
+            {"target": r.get("target"), "fixture_match_id": x.get("h2h_fixture_match_id"), "home_team_id": x.get("h2h_home_team_id"), "away_team_id": x.get("h2h_away_team_id"), "status": x.get("h2h_status"), "http_status": x.get("h2h_http_status"), "exception_type": x.get("h2h_exception_type"), "provider_error_code": x.get("h2h_provider_error_code"), "attempts": x.get("h2h_attempts"), "retry_exhausted": x.get("h2h_retry_exhausted")}
+            for r in report["targets"] for x in r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_checks", [])
+            if x.get("h2h_status") not in (None, "OK", "NOT_TESTED")
+        ],
+        "interpretation": "A successful empty response is not counted as a network failure; meeting count, score completeness and date completeness are reported separately. Failed requests include the target and fixture/team identifiers for diagnosis."
+    }
+    report["summary"]["recent_goals_probe_diagnostics"] = {
+        "team_probes": sum(len(x.get("team_recent_goals_diagnostics", {})) for x in h2h_samples),
+        "team_probes_with_five_scored_matches": sum(bool(v.get("five_match_goal_totals_available")) for x in h2h_samples for v in x.get("team_recent_goals_diagnostics", {}).values()),
+        "team_probes_without_five_scored_matches": sum(not bool(v.get("five_match_goal_totals_available")) for x in h2h_samples for v in x.get("team_recent_goals_diagnostics", {}).values()),
+        "reporting_only": True,
+        "interpretation": "Last-five goals are derived only when five numeric scorelines are available from completed matches for the same team, competition and season; these values are audit evidence only and are not written to Oracle."
     }
     report["summary"]["required_feature_endpoints_passed"] = required_ok
     report["summary"]["competitions_with_multi_fixture_samples"] = sum((r.get("tests", {}).get("multi_fixture_validation", {}).get("sample_size", 0) or 0) >= 3 for r in report["targets"])
