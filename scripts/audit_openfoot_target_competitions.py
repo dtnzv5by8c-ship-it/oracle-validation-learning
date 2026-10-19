@@ -451,12 +451,12 @@ def main():
                 sample["both_teams_five_match_form_available"] = all(valid_forms)
             rec["tests"]["multi_fixture_validation"]["fixtures_with_both_teams_five_match_form"] = sum(bool(x.get("both_teams_five_match_form_available")) for x in sampled_checks)
             for sample in sampled_checks:
-                sample["complete_form_and_goals_with_derived_sources"] = all(
+                sample["complete_form_and_goals_after_verified_form_fallback"] = all(
                     bool(re.fullmatch(r"[WDL]{5}", str(sample.get(side+"_context_form") or sample.get(side+"_standings_form_fallback") or "").upper()))
                     and bool(sample.get(side+"_goals_last5_available"))
                     for side in ("home","away")
                 )
-            rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_after_verified_form_fallback"] = sum(bool(x.get("complete_form_and_goals_with_derived_sources")) for x in sampled_checks)
+            rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_after_verified_form_fallback"] = sum(bool(x.get("complete_form_and_goals_after_verified_form_fallback")) for x in sampled_checks)
             rec["tests"]["multi_fixture_validation"]["goal_probe_is_reporting_only"] = True
             rec["tests"]["multi_fixture_validation"]["form_completeness_is_reporting_only"] = True
         report["targets"].append(rec); time.sleep(1.0)
@@ -493,7 +493,7 @@ def main():
         team_values = ctx.get("teams", {})
         multi = tests.get("multi_fixture_validation", {})
         sample_size = multi.get("sample_size", 0) or 0
-        complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals_with_derived_sources", multi.get("fixtures_with_complete_form_and_last5_goals", 0)) or 0
+        complete_form_samples = multi.get("fixtures_with_complete_form_and_last5_goals_after_verified_form_fallback", multi.get("fixtures_with_complete_form_and_last5_goals", 0)) or 0
         form_only_samples = multi.get("fixtures_with_both_teams_five_match_form", 0) or 0
         complete_xg_samples = multi.get("fixtures_with_both_xg_values", 0) or 0
         complete_h2h_samples = multi.get("fixtures_with_at_least_five_scored_h2h_meetings", 0) or 0
