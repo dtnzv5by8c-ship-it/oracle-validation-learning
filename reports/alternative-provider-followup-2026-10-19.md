@@ -36,11 +36,11 @@ The script is read-only and targets all 13 competitions in the OpenFoot audit. I
 
 Run #29: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39244855517
 
-The workflow itself succeeded, but its sanitized artifact reports:
+The initial workflow run [Run #29](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39244855517) and the exact-identity follow-up [Run #30](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39244958933) both executed successfully, but their sanitized artifacts report:
 
 `BLOCKED_MISSING_API_FOOTBALL_KEY`
 
-No API-Football API requests were made. The repository does not currently expose an `API_FOOTBALL_KEY` GitHub Actions secret to this workflow. The script was subsequently tightened to require exact competition identity before any candidate is used; that update triggers a new audit run, which will also remain blocked until the secret is configured.
+No API-Football API requests were made in either run. The repository does not currently expose an `API_FOOTBALL_KEY` GitHub Actions secret to this workflow. The script was tightened before Run #30 to require exact competition identity before any candidate is used; fuzzy candidates are now recorded for review only and are never probed or accepted.
 
 ## Required action to finish runtime verification
 
