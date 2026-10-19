@@ -78,14 +78,15 @@ def main():
         exact = [x for x in league_rows if norm(x.get("league", {}).get("name")) == norm(target["search"]) and norm(x.get("country", {}).get("name")) == norm(target["country"])]
         candidates = exact or [x for x in league_rows if norm(x.get("country", {}).get("name")) == norm(target["country"])]
         item["search"] = {"http_status": meta.get("http_status"), "error_present": bool(meta.get("errors")), "candidate_count": len(candidates), "candidates": [{"id": x.get("league", {}).get("id"), "name": x.get("league", {}).get("name"), "country": x.get("country", {}).get("name"), "type": x.get("league", {}).get("type")} for x in candidates[:8]]}
-        if not candidates:
-            item["status"] = "NOT_FOUND_IN_API_FOOTBALL_SEARCH"
+        if not exact:
+            item["status"] = "NO_EXACT_VERIFIED_COMPETITION_MATCH"
+            item["interpretation"] = "Search candidates are recorded for review only; no candidate ID is probed or accepted unless both normalized competition name and country match exactly."
             counters["not_found"] += 1
             report["targets"].append(item)
             time.sleep(0.2)
             continue
 
-        league = candidates[0]
+        league = exact[0]
         league_obj = league.get("league", {})
         league_id = league_obj.get("id")
         seasons = league.get("seasons", []) or []
