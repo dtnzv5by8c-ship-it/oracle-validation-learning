@@ -1,0 +1,39 @@
+name: API-Football Alternative Coverage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_api_football_gap_competitions.py"
+      - ".github/workflows/api-football-alternative-coverage-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  coverage-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout validation repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run read-only alternative-provider audit
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python scripts/audit_api_football_gap_competitions.py
+
+      - name: Upload sanitized coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-football-alternative-coverage
+          path: api_football_gap_coverage.json
+          if-no-files-found: warn
+          retention-days: 30
