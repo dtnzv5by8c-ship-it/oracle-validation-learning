@@ -211,13 +211,6 @@ def main():
         rec={"target":label,"kind":kind,"mapping_status":"UNMAPPED","candidate_count":len(unique),"tests":{}}
         if len(unique)>1:
             rec["mapping_status"]="AMBIGUOUS"; rec["candidates"]=[{"id":c["id"],"name":c["name"],"country":c["country"]} for c in unique.values()]
-            rec["mapping_diagnosis"] = {
-                "catalogue_exact_match": False,
-                "provider_search_queries": [x.get("query") for x in rec.get("provider_search_diagnostics", [])],
-                "provider_search_hits": sum(x.get("result_count", 0) for x in rec.get("provider_search_diagnostics", [])),
-                "resolution": "NO_VERIFIED_PROVIDER_MAPPING_FOUND",
-                "next_safe_action": "Keep unmapped; request provider coverage/competition ID or validate a separate licensed source. Do not guess an ID."
-            }
             report["targets"].append(rec); continue
         if not unique:
             rec["mapping_status"]="NOT_IN_CATALOGUE"
@@ -266,6 +259,13 @@ def main():
                 search_evidence.append({"query": query, **search_meta, "result_count": len(search_rows), "results": compact})
             rec["provider_search_diagnostics"] = search_evidence
             rec["tests"]["fixtures"]={"status":"NOT_TESTED_NO_VERIFIED_COMPETITION_ID"}
+            rec["mapping_diagnosis"] = {
+                "catalogue_exact_match": False,
+                "provider_search_queries": [x.get("query") for x in rec.get("provider_search_diagnostics", [])],
+                "provider_search_hits": sum(x.get("result_count", 0) for x in rec.get("provider_search_diagnostics", [])),
+                "resolution": "NO_VERIFIED_PROVIDER_MAPPING_FOUND",
+                "next_safe_action": "Keep unmapped; request provider coverage/competition ID or validate a separate licensed source. Do not guess an ID."
+            }
             report["targets"].append(rec); continue
         c=next(iter(unique.values())); cid=c["id"]; season=c.get("season")
         rec.update({"mapping_status":"MAPPED","competition_id":cid,"catalogue_name":c["name"],"catalogue_season":season,"season_freshness":"CURRENT_LABEL" if season in ("2026","2026/27","2026-2027") else ("UNVERIFIED" if not season else "STALE_OR_UNVERIFIED"),"catalogue_coverage":c["coverage"]})
