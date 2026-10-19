@@ -451,9 +451,12 @@ def main():
                 sample["both_teams_five_match_form_available"] = all(valid_forms)
             rec["tests"]["multi_fixture_validation"]["fixtures_with_both_teams_five_match_form"] = sum(bool(x.get("both_teams_five_match_form_available")) for x in sampled_checks)
             for sample in sampled_checks:
+                def valid_context_or_fallback_form(side):
+                    context_form = str(sample.get(side+"_context_form") or "").upper()
+                    fallback_form = str(sample.get(side+"_standings_form_fallback") or "").upper()
+                    return bool(re.fullmatch(r"[WDL]{5}", context_form) or re.fullmatch(r"[WDL]{5}", fallback_form))
                 sample["complete_form_and_goals_after_verified_form_fallback"] = all(
-                    bool(re.fullmatch(r"[WDL]{5}", str(sample.get(side+"_context_form") or sample.get(side+"_standings_form_fallback") or "").upper()))
-                    and bool(sample.get(side+"_goals_last5_available"))
+                    valid_context_or_fallback_form(side) and bool(sample.get(side+"_goals_last5_available"))
                     for side in ("home","away")
                 )
             rec["tests"]["multi_fixture_validation"]["fixtures_with_complete_form_and_last5_goals_after_verified_form_fallback"] = sum(bool(x.get("complete_form_and_goals_after_verified_form_fallback")) for x in sampled_checks)
