@@ -35,8 +35,20 @@ def rows(p):
                     if isinstance(v.get(kk),list): return v[kk]
     return []
 def get(path, params=None):
-    try: r=requests.get(BASE+path,headers={"Accept":"application/json","Authorization":"Bearer "+KEY},params=params,timeout=12)
-    except requests.RequestException as e: return None,{"status":"NETWORK_ERROR","exception_type":type(e).__name__}
+    # Retry only transient transport failures and HTTP 5xx. Do not retry 401/403, 404, or 429.
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        try:
+            r = requests.get(BASE+path, headers={"Accept":"application/json", "Authorization":"Bearer "+KEY}, params=params, timeout=12)
+        except requests.RequestException as e:
+            if attempt < attempts:
+                time.sleep(1.5 * attempt)
+                continue
+            return None, {"status":"NETWORK_ERROR", "exception_type":type(e).__name__, "attempts":attempt, "retry_exhausted":True}
+        if r.status_code >= 500 and attempt < attempts:
+            time.sleep(1.5 * attempt)
+            continue
+        break
     time.sleep(1.05)  # Respect OpenFoot's published 60 requests/minute Starter limit.
     meta={"http_status":r.status_code}
     try: body=r.json()
@@ -137,6 +149,27 @@ def value_quality(payload, endpoint):
         ) if isinstance(table, list) else 0
         result["standings_season"] = root.get("season") if isinstance(root, dict) else None
     return result
+def standings_form_map(payload):
+    """Extract valid five-match form only when a team name is present."""
+    root = payload.get("data", payload) if isinstance(payload, dict) else {}
+    table = root.get("table", []) if isinstance(root, dict) else []
+    out = {}
+    if not isinstance(table, list):
+        return out
+    for row in table:
+        if not isinstance(row, dict):
+            continue
+        team = first(row, ("team", "club", "participant"))
+        name = first(team, ("name", "teamName", "displayName")) if isinstance(team, dict) else None
+        name = name or first(row, ("teamName", "team_name", "name", "clubName"))
+        form = first(row, ("form", "recentForm", "lastFive", "last5"))
+        if isinstance(form, list):
+            form = "".join(str(x.get("result", x.get("outcome", "")) if isinstance(x, dict) else x) for x in form)
+        form = re.sub(r"[^WDL]", "", str(form or "").upper())
+        if name and re.fullmatch(r"[WDL]{5}", form):
+            out[norm(name)] = {"team_name": name, "form": form}
+    return out
+
 def main():
     OUT.parent.mkdir(parents=True,exist_ok=True)
     report={"generated_utc":datetime.now(timezone.utc).isoformat(),"mode":"READ_ONLY_TARGET_COMPETITION_FIELD_AUDIT","source":"OpenFoot API","credential_configured":bool(KEY),"credential_value_logged":False,"target_count":len(TARGETS),"targets":[],"governance":"No Oracle production code, predictions, calibration, or historical database is modified."}
@@ -199,6 +232,12 @@ def main():
                 cq=value_quality(cp,"match_context") if cp is not None else {}
                 check["context_status"]=cm2.get("status")
                 teams=cq.get("teams",{})
+                context_root = cp.get("data", cp) if isinstance(cp, dict) else {}
+                for side in ("home", "away"):
+                    side_obj = context_root.get(side, {}) if isinstance(context_root, dict) else {}
+                    side_team = side_obj.get("team", {}) if isinstance(side_obj, dict) else {}
+                    check[side+"_team_name"] = first(side_team, ("name", "teamName")) or first(side_obj, ("teamName", "team_name", "name"))
+                    check[side+"_context_form"] = str(side_obj.get("form") or "").upper() if isinstance(side_obj, dict) else ""
                 check["complete_form_and_goals"]=all(teams.get(side,{}).get("form_is_wdl_sequence") and teams.get(side,{}).get("goals_scored_last5_present") and teams.get(side,{}).get("goals_conceded_last5_present") for side in ("home","away"))
                 xgv=cq.get("xg_values",{})
                 check["xg_both_teams_present"]=bool(xgv.get("home_xg_present") and xgv.get("away_xg_present"))
@@ -213,6 +252,8 @@ def main():
                 hp,hm=get("/teams/"+str(tid(home))+"/h2h",{"opponent":str(tid(away))})
                 hq=value_quality(hp,"h2h") if hp is not None else {}
                 check["h2h_status"]=hm.get("status")
+                check["h2h_attempts"]=hm.get("attempts", 1)
+                check["h2h_retry_exhausted"]=bool(hm.get("retry_exhausted", False))
                 check["h2h_meeting_count"]=hq.get("meeting_count",0)
                 check["h2h_scored_meetings"]=hq.get("meetings_with_numeric_score",0)
                 check["h2h_dated_meetings"]=hq.get("meetings_with_date",0)
@@ -236,6 +277,23 @@ def main():
         if kind=="league":
             sp,sm=get("/standings",{"competition":cid,"season":season})
             rec["tests"]["standings"]={**sm,**(sample_fields(sp) if sp is not None else {}),**(value_quality(sp,"standings") if sp is not None else {})}
+            form_map = standings_form_map(sp) if sp is not None and sm.get("status") == "OK" else {}
+            verified_fallbacks = 0
+            verified_matches = 0
+            for sample in sampled_checks:
+                for side in ("home", "away"):
+                    team_name = sample.get(side+"_team_name")
+                    context_form = sample.get(side+"_context_form", "")
+                    stand_form = form_map.get(norm(team_name)) if team_name else None
+                    if stand_form:
+                        verified_matches += 1
+                        if not re.fullmatch(r"[WDL]{5}", context_form):
+                            sample[side+"_standings_form_fallback"] = stand_form["form"]
+                            sample[side+"_form_source"] = "standings_fallback_exact_team_name_match"
+                            verified_fallbacks += 1
+                        else:
+                            sample[side+"_form_source"] = "match_context"
+            rec["tests"]["standings_form_validation"] = {"standings_teams_with_valid_five_match_form":len(form_map),"sampled_team_name_matches_with_valid_standings_form":verified_matches,"verified_fallbacks_used_for_missing_context_form":verified_fallbacks,"fallback_is_reporting_only":True,"note":"Exact normalized team-name match and five-character W/D/L sequence required; fallback does not fill recent goals scored/conceded."}
         report["targets"].append(rec); time.sleep(1.0)
     # xG endpoint is documented as Developer-tier. Probe once; avoid repeated calls if plan-gated.
     mapped=next((r for r in report["targets"] if r["mapping_status"]=="MAPPED" and r["kind"]=="league"),None)
@@ -248,7 +306,7 @@ def main():
                 if r is mapped or r.get("mapping_status")!="MAPPED" or r.get("kind")!="league": continue
                 xx,xm2=get("/analytics/xg",{"league":r["competition_id"],"season":r["catalogue_season"]})
                 r["tests"]["league_xg"]={**xm2,**(sample_fields(xx) if xx is not None else {})}; time.sleep(1.0)
-    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" and r.get("tests",{}).get("standings",{}).get("has_populated_nested_data") for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" and r.get("tests",{}).get("match_context",{}).get("has_populated_nested_data") for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" and r.get("tests",{}).get("h2h",{}).get("has_populated_nested_data") for r in report["targets"]), "h2h_with_scored_meetings":sum((r.get("tests",{}).get("h2h",{}).get("meetings_with_numeric_score",0) or 0)>0 for r in report["targets"]), "context_with_both_teams_recent_goals":sum(all(r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_scored_last5_present") and r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_conceded_last5_present") for side in ("home","away")) for r in report["targets"]), "standings_with_numeric_core_fields":sum(r.get("tests",{}).get("standings",{}).get("rows_with_position_points_gd",0)>0 for r in report["targets"])}
+    report["summary"]={"mapped":sum(r["mapping_status"]=="MAPPED" for r in report["targets"]),"not_in_catalogue":sum(r["mapping_status"]=="NOT_IN_CATALOGUE" for r in report["targets"]),"ambiguous":sum(r["mapping_status"]=="AMBIGUOUS" for r in report["targets"]),"fixture_probes_ok_with_rows":sum(r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample") for r in report["targets"]),"fixture_empty_or_failed":sum(r["mapping_status"]=="MAPPED" and not (r.get("tests",{}).get("fixtures",{}).get("status")=="OK" and r.get("tests",{}).get("fixtures",{}).get("usable_sample")) for r in report["targets"]),"standings_probes_ok":sum(r.get("tests",{}).get("standings",{}).get("status")=="OK" and r.get("tests",{}).get("standings",{}).get("has_populated_nested_data") for r in report["targets"]),"context_probes_ok":sum(r.get("tests",{}).get("match_context",{}).get("status")=="OK" and r.get("tests",{}).get("match_context",{}).get("has_populated_nested_data") for r in report["targets"]),"h2h_probes_ok":sum(r.get("tests",{}).get("h2h",{}).get("status")=="OK" and r.get("tests",{}).get("h2h",{}).get("has_populated_nested_data") for r in report["targets"]), "h2h_with_scored_meetings":sum((r.get("tests",{}).get("h2h",{}).get("meetings_with_numeric_score",0) or 0)>0 for r in report["targets"]), "context_with_both_teams_recent_goals":sum(all(r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_scored_last5_present") and r.get("tests",{}).get("match_context",{}).get("teams",{}).get(side,{}).get("goals_conceded_last5_present") for side in ("home","away")) for r in report["targets"]), "standings_with_numeric_core_fields":sum(r.get("tests",{}).get("standings",{}).get("rows_with_position_points_gd",0)>0 for r in report["targets"]), "h2h_transient_retries_exhausted":sum(bool(x.get("h2h_retry_exhausted")) for r in report["targets"] for x in r.get("tests",{}).get("multi_fixture_validation",{}).get("sample_checks",[])), "verified_standings_form_fallbacks":sum(r.get("tests",{}).get("standings_form_validation",{}).get("verified_fallbacks_used_for_missing_context_form",0) for r in report["targets"])}
     required_ok = True
     for r in report["targets"]:
         if r.get("mapping_status") != "MAPPED":
