@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 
 BASE = "https://v3.football.api-sports.io"
 OUT = "api_football_gap_coverage.json"
+MIN_REQUEST_INTERVAL_SECONDS = 6.2  # Keep below the free-tier burst rate; avoid cascading 429s.
+_last_request_at = 0.0
 TARGETS = [
     {"label": "USA — MLS Next Pro", "country": "USA", "search": "MLS Next Pro", "cup": False},
     {"label": "Argentina — Copa Argentina", "country": "Argentina", "search": "Copa Argentina", "cup": True},
@@ -35,16 +37,32 @@ def norm(value):
     value = value.replace("ã", "a").replace("á", "a").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("é", "e").replace("ç", "c").replace("ñ", "n")
     return re.sub(r"[^a-z0-9]+", "", value)
 
+def safe_error_summary(errors, key):
+    """Return useful provider diagnostics without exposing credentials or large payloads."""
+    if not errors:
+        return None
+    text = json.dumps(errors, ensure_ascii=False, sort_keys=True)
+    if key:
+        text = text.replace(key, "[REDACTED]")
+    text = re.sub(r"(?i)(api[_ -]?key|token|authorization)(\\s*[:=]\\s*)[^,}\\s]+", r"\\1\\2[REDACTED]", text)
+    return text[:400]
+
+
 def get(path, params, key):
+    global _last_request_at
+    wait = MIN_REQUEST_INTERVAL_SECONDS - (time.monotonic() - _last_request_at)
+    if wait > 0:
+        time.sleep(wait)
+    _last_request_at = time.monotonic()
     url = BASE + path + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"x-apisports-key": key, "Accept": "application/json", "User-Agent": "oracle-validation-audit/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=25) as response:
             payload = json.loads(response.read().decode("utf-8"))
-            return payload, {"http_status": response.status, "errors": payload.get("errors") or {}, "results": payload.get("results")}
+            return payload, {"http_status": response.status, "errors": payload.get("errors") or {}, "error_summary": safe_error_summary(payload.get("errors") or {}, key), "results": payload.get("results")}
     except Exception as exc:
         status = getattr(exc, "code", None)
-        return None, {"http_status": status, "exception_type": type(exc).__name__, "error": str(exc)[:240]}
+        return None, {"http_status": status, "exception_type": type(exc).__name__, "error": str(exc).replace(key, "[REDACTED]")[:240], "error_summary": str(exc).replace(key, "[REDACTED]")[:240]}
 
 def write(report):
     with open(OUT, "w", encoding="utf-8") as handle:
@@ -83,7 +101,7 @@ def main():
             item["interpretation"] = "Search candidates are recorded for review only; no candidate ID is probed or accepted unless both normalized competition name and country match exactly."
             counters["not_found"] += 1
             report["targets"].append(item)
-            time.sleep(0.2)
+            time.sleep(0.1)
             continue
 
         league = exact[0]
