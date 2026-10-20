@@ -10,12 +10,13 @@ MATCH_CANDIDATES = ["matches.csv", "match_stats.csv"]
 TEAM_CANDIDATES = ["teams.csv", "team_stats.csv"]
 
 def choose_file(root: Path, hints: list[str]) -> Path:
-    files = [p for p in root.rglob("*.csv") if not p.name.startswith("._")]
+    # FootyStats sometimes names CSV exports with a trailing .html suffix (for example *.csv.html).
+    files = [p for p in root.rglob("*") if p.is_file() and (p.name.lower().endswith(".csv") or p.name.lower().endswith(".csv.html")) and not p.name.startswith("._")]
     for hint in hints:
         found = [p for p in files if hint in p.name.lower()]
         if found:
             return found[0]
-    raise FileNotFoundError(f"No CSV found under {root} matching any of {hints}")
+    raise FileNotFoundError(f"No CSV or .csv.html export found under {root} matching any of {hints}")
 
 def form_asof(matches: pd.DataFrame, team: str, cutoff: pd.Timestamp) -> tuple[str, int]:
     prior = matches[
