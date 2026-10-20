@@ -1,0 +1,193 @@
+name: FootyStats API Endpoint Coverage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/footystats-api-endpoint-coverage-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  endpoint-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check API secret is configured
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          if [ -z "$FOOTYSTATS_API_KEY" ]; then
+            echo "::error::Repository secret FOOTYSTATS_API_KEY is missing or empty."
+            exit 1
+          fi
+          echo "API secret is configured; value will not be displayed."
+
+      - name: Test selected league-season endpoints
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import csv, json, os, re, time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          KEY = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
+          BASE = "https://api.football-data-api.com/"
+          # Exact provider catalogue aliases observed in the governed Oracle registry.
+          ALIASES = {
+            "ENG_E0": ("England", "Premier League", ["England Premier League"]),
+            "ENG_E1": ("England", "Championship", ["England Championship"]),
+            "ENG_E2": ("England", "League One", ["England League One", "England EFL League One"]),
+            "ENG_E3": ("England", "League Two", ["England League Two", "England EFL League Two"]),
+            "ESP_SP1": ("Spain", "La Liga", ["Spain La Liga"]),
+            "ESP_SP2": ("Spain", "Segunda División", ["Spain Segunda División", "Spain Segunda Division"]),
+            "DEU_D1": ("Germany", "Bundesliga", ["Germany Bundesliga"]),
+            "DEU_D2": ("Germany", "2. Bundesliga", ["Germany 2. Bundesliga"]),
+            "ITA_I1": ("Italy", "Serie A", ["Italy Serie A"]),
+            "ITA_I2": ("Italy", "Serie B", ["Italy Serie B"]),
+            "FRA_F1": ("France", "Ligue 1", ["France Ligue 1"]),
+            "FRA_F2": ("France", "Ligue 2", ["France Ligue 2"]),
+            "NLD_N1": ("Netherlands", "Eredivisie", ["Netherlands Eredivisie"]),
+            "NLD_N2": ("Netherlands", "Eerste Divisie", ["Netherlands Eerste Divisie"]),
+            "PRT_P1": ("Portugal", "Primeira Liga", ["Portugal Liga NOS", "Portugal Primeira Liga"]),
+            "PRT_P2": ("Portugal", "Liga Portugal 2", ["Portugal LigaPro", "Portugal Liga Portugal 2"]),
+            "TUR_T1": ("Turkey", "Süper Lig", ["Turkey Süper Lig", "Turkey Super Lig"]),
+            "BEL_B1": ("Belgium", "Pro League", ["Belgium Pro League"]),
+            "SCO_SC0": ("Scotland", "Premiership", ["Scotland Premiership"]),
+            "AUT_A1": ("Austria", "Austrian Bundesliga", ["Austria Bundesliga", "Austria Austrian Bundesliga"]),
+            "CHE_S1": ("Switzerland", "Swiss Super League", ["Switzerland Super League", "Switzerland Swiss Super League"]),
+            "POL_P1": ("Poland", "Ekstraklasa", ["Poland Ekstraklasa"]),
+            "ROU_R1": ("Romania", "Liga I", ["Romania Liga I"]),
+            "CZE_CZ1": ("Czech Republic", "Czech First League", ["Czech First League", "Czech Republic First League"]),
+            "HRV_HR1": ("Croatia", "HNL", ["Croatia HNL", "Croatia Croatian HNL"]),
+            "UKR_UA1": ("Ukraine", "Premier League", ["Ukraine Premier League", "Ukraine Ukrainian Premier League"]),
+            "ZAF_PSL": ("South Africa", "Premier Soccer League", ["South Africa Premier Soccer League"]),
+          }
+
+          def api(endpoint, params):
+              query = dict(params)
+              query["key"] = KEY
+              url = BASE + endpoint + "?" + urlencode(query)
+              try:
+                  req = Request(url, headers={"User-Agent": "Oracle-FootyStats-ReadOnly-Audit/1.0"})
+                  with urlopen(req, timeout=25) as r:
+                      body = json.loads(r.read().decode("utf-8"))
+                      return {"http_status": r.status, "success": body.get("success") is True,
+                              "payload": body, "error_class": ""}
+              except HTTPError as e:
+                  # Do not log exception strings, URLs, headers, or response bodies.
+                  return {"http_status": e.code, "success": False, "payload": None, "error_class": "HTTP_ERROR"}
+              except Exception as e:
+                  return {"http_status": None, "success": False, "payload": None,
+                          "error_class": type(e).__name__}
+
+          cat = api("league-list", {"chosen_leagues_only": "true"})
+          if not cat["success"] or not isinstance(cat["payload"].get("data"), list):
+              raise SystemExit("Catalogue fetch failed; details withheld to protect credentials.")
+          catalogue = cat["payload"]["data"]
+          by_name = {}
+          for league in catalogue:
+              if not isinstance(league, dict): continue
+              name = str(league.get("name", "")).strip()
+              seasons = league.get("season") or []
+              if name and isinstance(seasons, list):
+                  by_name[name] = [s for s in seasons if isinstance(s, dict) and s.get("id") not in (None, "")]
+          rows = []
+          endpoint_rows = []
+          for code, (country, comp, aliases) in ALIASES.items():
+              matched = next((name for name in aliases if name in by_name), "")
+              if not matched:
+                  rows.append({"oracle_code": code, "country": country, "oracle_competition": comp,
+                    "provider_name": "", "season_year": "", "season_id": "",
+                    "catalogue_status": "NO_CATALOGUE_NAME_MATCH", "matches_status": "NOT_TESTED",
+                    "teams_status": "NOT_TESTED", "tables_status": "NOT_TESTED",
+                    "season_stats_status": "NOT_TESTED", "matches_count": "", "teams_count": "",
+                    "table_payload_type": "", "season_stats_count": "", "sample_fields": "",
+                    "xg_fields_present": "", "prematch_xg_fields_present": "", "odds_fields_present": "",
+                    "interpretation": "No selected catalogue alias; may be an account selection gap or a naming/mapping gap."})
+                  continue
+              seasons = by_name[matched]
+              def year_key(s):
+                  v = str(s.get("year", ""))
+                  m = re.search(r"(19|20)\d{2}", v)
+                  return (int(m.group(0)) if m else 0, str(v), str(s.get("id", "")))
+              latest = sorted(seasons, key=year_key)[-1]
+              sid, sy = str(latest.get("id")), str(latest.get("year", ""))
+              checks = {}
+              for endpoint, label, params in [
+                ("league-matches", "matches", {"season_id": sid, "max_per_page": 1, "page": 1}),
+                ("league-teams", "teams", {"season_id": sid, "include": "stats"}),
+                ("league-tables", "tables", {"season_id": sid}),
+                ("league-season", "season_stats", {"season_id": sid}),
+              ]:
+                  result = api(endpoint, params)
+                  payload = result["payload"]
+                  data = payload.get("data") if isinstance(payload, dict) else None
+                  count = len(data) if isinstance(data, list) else ""
+                  if label == "tables":
+                      shape = "dict" if isinstance(data, dict) else "list" if isinstance(data, list) else type(data).__name__
+                      count = ""
+                  else:
+                      shape = ""
+                  checks[label] = {"status": "SUCCESS" if result["success"] else
+                    ("HTTP_" + str(result["http_status"]) if result["http_status"] else result["error_class"]),
+                    "count": count, "data": data, "shape": shape}
+                  time.sleep(0.15)
+              match_data = checks["matches"]["data"]
+              sample = match_data[0] if isinstance(match_data, list) and match_data and isinstance(match_data[0], dict) else {}
+              keys = sorted(sample.keys())
+              xg = [k for k in keys if "xg" in k.lower()]
+              prematch_xg = [k for k in keys if "pre" in k.lower() and "xg" in k.lower()]
+              odds = [k for k in keys if "odds" in k.lower()]
+              rows.append({"oracle_code": code, "country": country, "oracle_competition": comp,
+                "provider_name": matched, "season_year": sy, "season_id": sid,
+                "catalogue_status": "MATCHED", "matches_status": checks["matches"]["status"],
+                "teams_status": checks["teams"]["status"], "tables_status": checks["tables"]["status"],
+                "season_stats_status": checks["season_stats"]["status"],
+                "matches_count": checks["matches"]["count"], "teams_count": checks["teams"]["count"],
+                "table_payload_type": checks["tables"]["shape"], "season_stats_count": checks["season_stats"]["count"],
+                "sample_fields": ";".join(keys), "xg_fields_present": ";".join(xg),
+                "prematch_xg_fields_present": ";".join(prematch_xg), "odds_fields_present": ";".join(odds),
+                "interpretation": "Endpoint probe only. One match page/sample does not establish full-season completeness, historical pre-match validity, or production readiness."})
+          fields = list(rows[0].keys())
+          with Path("footystats-27-league-endpoint-audit.csv").open("w", newline="", encoding="utf-8") as f:
+              w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
+          summary = {
+            "status": "ENDPOINT_AUDIT_COMPLETED",
+            "governed_leagues": len(rows),
+            "catalogue_matches": sum(r["catalogue_status"] == "MATCHED" for r in rows),
+            "no_catalogue_name_match": sum(r["catalogue_status"] != "MATCHED" for r in rows),
+            "matches_endpoint_success": sum(r["matches_status"] == "SUCCESS" for r in rows),
+            "teams_endpoint_success": sum(r["teams_status"] == "SUCCESS" for r in rows),
+            "tables_endpoint_success": sum(r["tables_status"] == "SUCCESS" for r in rows),
+            "season_stats_endpoint_success": sum(r["season_stats_status"] == "SUCCESS" for r in rows),
+            "raw_provider_payloads_saved": False,
+            "api_key_logged": False,
+            "governance": "READ_ONLY_REPORT_ONLY; no Oracle production changes; no raw API payloads retained.",
+            "limitations": ["Tests only latest selected season per matched competition.",
+              "Match endpoint is limited to one row for schema probing; returned count is not full-season count.",
+              "Endpoint success does not prove historical pre-match feature coverage, correct competition phases, or production readiness.",
+              "Missing catalogue aliases may be selection gaps or naming gaps, not proof of unsupported leagues."]
+          }
+          Path("footystats-27-league-endpoint-audit-summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+          print("Endpoint audit finished. Raw responses and API key were not written to artifacts.")
+          print("Catalogue matches:", summary["catalogue_matches"], "/", len(rows))
+          print("Matches endpoint success:", summary["matches_endpoint_success"])
+          print("Teams endpoint success:", summary["teams_endpoint_success"])
+          print("Tables endpoint success:", summary["tables_endpoint_success"])
+          print("Season stats endpoint success:", summary["season_stats_endpoint_success"])
+          PY
+
+      - name: Upload sanitized endpoint audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-27-league-endpoint-audit
+          path: |
+            footystats-27-league-endpoint-audit.csv
+            footystats-27-league-endpoint-audit-summary.json
+          if-no-files-found: error
+          retention-days: 14
