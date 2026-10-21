@@ -1,0 +1,163 @@
+name: Audit private FootyStats history and H2H readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-private-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download existing private historical archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=footystats-all-selected-leagues-2024-2026-20261021
+          mkdir -p audit-input
+          gh release download "$TAG" --repo "$TARGET" --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir audit-input
+          test -s audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip
+          echo "Downloaded existing private archive. No FootyStats API calls were made."
+
+      - name: Audit historical records, field coverage and H2H availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, zipfile, hashlib, collections, re
+          from pathlib import Path
+          zpath=Path("audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip")
+          with zipfile.ZipFile(zpath) as z:
+            names=z.namelist()
+            z.extractall("audit-extracted")
+          root=Path("audit-extracted")
+          summary_files=list(root.rglob("summary.json"))
+          manifest_files=list(root.rglob("ingestion_manifest.csv"))
+          mapping_files=list(root.rglob("league_season_mapping.csv"))
+          if not manifest_files:
+            raise SystemExit("ingestion_manifest.csv missing from private archive")
+          manifest=[]
+          with manifest_files[0].open(encoding="utf-8-sig",newline="") as f:
+            manifest=list(csv.DictReader(f))
+          match_files=list(root.rglob("matches.json"))
+          team_files=list(root.rglob("teams.json"))
+          table_files=list(root.rglob("tables.json"))
+          stats_files=list(root.rglob("season_stats.json"))
+          seasons=[]
+          all_matches=[]
+          field_counts=collections.Counter()
+          league_fields=collections.defaultdict(collections.Counter)
+          season_years=collections.Counter()
+          file_errors=[]
+          seen_fixture_ids={}
+          duplicate_ids=[]
+          total_records=0
+          for mf in match_files:
+            try:
+              data=json.loads(mf.read_text(encoding="utf-8"))
+              if not isinstance(data,list):
+                file_errors.append({"file":str(mf.relative_to(root)),"error":"matches_not_list"}); continue
+              total_records+=len(data)
+              parts=mf.parts
+              league=parts[-3] if len(parts)>=3 else "unknown"
+              season_dir=parts[-2] if len(parts)>=2 else "unknown"
+              m=re.match(r"(20\d{2})_",season_dir)
+              yr=int(m.group(1)) if m else None
+              season_years[str(yr or "unknown")]+=1
+              nonempty=sum(1 for x in data if isinstance(x,dict))
+              row={"league_folder":league,"season_folder":season_dir,"season_start_year":yr,"match_records":len(data),"object_records":nonempty}
+              seasons.append(row)
+              for idx,item in enumerate(data):
+                if not isinstance(item,dict): continue
+                for k,v in item.items():
+                  if v is not None and v!="":
+                    field_counts[k]+=1
+                    league_fields[league][k]+=1
+                ident=next((item.get(k) for k in ("id","match_id","fixture_id","game_id") if item.get(k) not in (None,"")),None)
+                if ident is not None:
+                  key=str(ident)
+                  if key in seen_fixture_ids:
+                    duplicate_ids.append({"fixture_id":key,"first":seen_fixture_ids[key],"duplicate":str(mf.relative_to(root))})
+                  else: seen_fixture_ids[key]=str(mf.relative_to(root))
+                home=next((item.get(k) for k in ("homeID","home_id","team_a_id","home_team_id") if item.get(k) not in (None,"")),None)
+                away=next((item.get(k) for k in ("awayID","away_id","team_b_id","away_team_id") if item.get(k) not in (None,"")),None)
+                date=next((item.get(k) for k in ("date_unix","kickoff","date","timestamp") if item.get(k) not in (None,"")),None)
+                all_matches.append({"league_folder":league,"season_folder":season_dir,"season_start_year":yr,"id":ident,"home":str(home) if home is not None else None,"away":str(away) if away is not None else None,"date":date,"record":item})
+            except Exception as e:
+              file_errors.append({"file":str(mf.relative_to(root)),"error":type(e).__name__})
+          # Count pairwise H2H observations for each unordered team pair within each league folder.
+          pair_matches=collections.defaultdict(list)
+          for m in all_matches:
+            if m["home"] and m["away"]:
+              pair=tuple(sorted((m["home"],m["away"])))
+              pair_matches[(m["league_folder"],pair)].append(m)
+          pair_dist=collections.Counter()
+          pairs_five_plus=[]
+          for (league,pair),rows in pair_matches.items():
+            n=len(rows); pair_dist[str(n)]+=1
+            if n>=5: pairs_five_plus.append({"league_folder":league,"team_a_id":pair[0],"team_b_id":pair[1],"matches":n})
+          keys=("id","match_id","fixture_id","date_unix","homeID","awayID","team_a_xg_prematch","team_b_xg_prematch","total_xg_prematch","team_a_goals","team_b_goals","homeGoals","awayGoals","status","competition_id","season_id")
+          key_stats={}
+          for k in keys:
+            nonnull=sum(1 for m in all_matches if k in m["record"] and m["record"][k] not in (None,""))
+            key_stats[k]={"non_null":nonnull,"coverage_pct":round(100*nonnull/len(all_matches),2) if all_matches else 0}
+          result={
+            "status":"AUDIT_COMPLETED",
+            "source_release":"footystats-all-selected-leagues-2024-2026-20261021",
+            "archive_sha256":hashlib.sha256(zpath.read_bytes()).hexdigest(),
+            "archive_files":len(zipfile.ZipFile(zpath).namelist()),
+            "manifest_rows":len(manifest),
+            "manifest_status_counts":dict(collections.Counter(r.get("status","") for r in manifest)),
+            "catalogue_league_names":len(set(r.get("provider_league_name","") for r in manifest if r.get("provider_league_name"))),
+            "season_data_files":len(match_files),
+            "teams_data_files":len(team_files),
+            "tables_data_files":len(table_files),
+            "season_stats_data_files":len(stats_files),
+            "total_match_records_in_json":total_records,
+            "distinct_fixture_ids_detected":len(seen_fixture_ids),
+            "duplicate_fixture_id_occurrences":len(duplicate_ids),
+            "league_season_year_folder_counts":dict(season_years),
+            "key_field_coverage":key_stats,
+            "non_null_field_top_30":field_counts.most_common(30),
+            "h2h_pair_count_by_observation_count":dict(pair_dist),
+            "team_pairs_with_5plus_records":len(pairs_five_plus),
+            "team_pairs_with_5plus_examples":pairs_five_plus[:100],
+            "parse_errors":file_errors,
+            "production_readiness":"NOT_ASSESSED",
+            "notes":["H2H pair counts are only within each provider league folder and depend on team IDs being consistent across seasons.","Five records per pair is a historical-count check, not proof the last five H2H are correctly date-sorted or available before each target kickoff.","Field coverage uses observed non-null values in the downloaded match records; source aliases may need mapping.","No FootyStats API requests were made in this audit."]
+          }
+          out=Path("audit-output"); out.mkdir()
+          (out/"history_h2h_audit_summary.json").write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
+          with (out/"season_audit.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(seasons[0].keys()) if seasons else ["league_folder","season_folder","season_start_year","match_records","object_records"])
+            w.writeheader(); w.writerows(seasons)
+          with (out/"manifest_reconciliation.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(manifest[0].keys()) if manifest else ["status"])
+            w.writeheader(); w.writerows(manifest)
+          with (out/"h2h_pairs_5plus.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=["league_folder","team_a_id","team_b_id","matches"]); w.writeheader(); w.writerows(pairs_five_plus)
+          print(json.dumps({k:result[k] for k in ["status","manifest_rows","manifest_status_counts","catalogue_league_names","season_data_files","total_match_records_in_json","distinct_fixture_ids_detected","duplicate_fixture_id_occurrences","key_field_coverage","team_pairs_with_5plus_records","parse_errors"]}))
+          PY
+
+      - name: Upload private-data audit report to private Oracle release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG="footystats-history-h2h-audit-20261021"
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Audit release tag already exists; refusing overwrite."; exit 1
+          fi
+          cd audit-output
+          sha256sum history_h2h_audit_summary.json season_audit.csv manifest_reconciliation.csv h2h_pairs_5plus.csv > SHA256SUMS
+          cd ..
+          zip -qr history-h2h-audit.zip audit-output
+          gh release create "$TAG" history-h2h-audit.zip --repo "$TARGET" --title "FootyStats historical and H2H readiness audit 2026-10-21" --notes "Private audit of the existing 2024-2026 data archive. No provider API calls made. Five-match H2H counts are exploratory and require chronology/team-identity validation before model use."
+          echo "Private history and H2H audit report uploaded."
