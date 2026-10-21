@@ -9,10 +9,21 @@ from collections import defaultdict, Counter
 from pathlib import Path
 
 def normalize(value):
-    value = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode().lower()
-    value = re.sub(r"\b(fc|afc|cf|sc|club|the)\b", " ", value)
-    return re.sub(r"[^a-z0-9]+", " ", value).strip()
+    """Generate a conservative name-comparison key; never establishes identity.
 
+    Keep this aligned with the fixture-candidate audit: strip known club prefixes,
+    plus common club suffixes, after Unicode normalization. Original names remain
+    in the audit output and normalized matches remain candidates only.
+    """
+    value = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode().lower()
+    tokens = re.sub(r"[^a-z0-9]+", " ", value).split()
+    prefixes = {"fc", "afc", "cf", "sc", "club", "the", "hnk", "nk", "fk", "sk"}
+    suffixes = {"fc", "afc", "cf", "sc"}
+    while tokens and tokens[0] in prefixes:
+        tokens.pop(0)
+    while tokens and tokens[-1] in suffixes:
+        tokens.pop()
+    return " ".join(tokens)
 def read_jsonl(path):
     rows=[]
     with Path(path).open(encoding="utf-8") as f:
