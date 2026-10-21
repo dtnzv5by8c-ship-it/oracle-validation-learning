@@ -62,3 +62,19 @@ Workflow: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actio
 
 ## Progress estimate
 Project-management estimate: 78% for research audit infrastructure and groundwork before this adapter integration. The adapter implementation and workflow integration are additional progress, but the overall percentage is held at 78% until the new workflow run and artifact are verified. This is not model accuracy, production readiness, or a claim that the end-to-end autonomous prediction/settlement/evaluation pipeline is complete.
+
+
+## Checkpoint correction — execution/verification loop identified
+
+Owner-facing status correction: repeated checkpoint messages had restated the same next steps without confirming the newly integrated workflow or its artifact. That is a genuine execution/verification loop, not evidence that the end-to-end project is progressing through all stages.
+
+The adapter and its workflow integration are committed, including explicit fail-closed market-label handling. However, this session could not retrieve the latest Actions run list through the connected GitHub interface, and the commit status query returned no status checks. Therefore the adapter workflow is **UNVERIFIED**, not passed. No accepted/quarantined counts are claimed.
+
+The current critical path is narrowed to:
+1. Obtain a readable Actions run/result and inspect the artifact for the adapter commit(s).
+2. If the workflow did not trigger, manually run the existing research-only workflow from GitHub Actions; do not run production workflows.
+3. Confirm adapter counts and quarantine reasons; preserve challenger/shadow status and quarantine unsupported composite markets.
+4. Use genuine frozen result evidence and an independently reviewed allowlist before producing any performance metrics.
+5. If genuine immutable production predictions do not exist, document production historical accuracy as unreconstructable from the available canonical ledgers and start prospective capture only through an explicitly approved, isolated research workflow.
+
+No model logic or production data was changed. No performance metric is established by this checkpoint.
