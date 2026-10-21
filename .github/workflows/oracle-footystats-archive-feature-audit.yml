@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/oracle-footystats-archive-feature-audit.yml"
       - "scripts/build_footystats_archive_features.py"
+      - "tests/test_footystats_archive_features.py"
 
 permissions:
   contents: read
@@ -17,6 +18,9 @@ jobs:
     steps:
       - name: Checkout research repository
         uses: actions/checkout@v4
+
+      - name: Validate parser and chronology helper unit tests
+        run: python -m unittest discover -s tests -p "test_footystats_archive_features.py" -v
 
       - name: Download private FootyStats archive without new API calls
         env:
