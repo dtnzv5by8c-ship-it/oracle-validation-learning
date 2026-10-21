@@ -258,3 +258,33 @@ Safe remediation:
 5. Keep absent or ambiguous identities excluded from scoring.
 
 This explains the immediate missing-ID blocker; it does not resolve the 17 archive team-pair absences or establish trusted result-source provenance. Evaluation remains blocked and no accuracy metrics are warranted.
+
+
+## Run #53 — manually dispatched audit completed (2026-10-21)
+
+Run #53 completed successfully on `main`, commit `66c2c17eb7b5d5dcb1adf01de3f56285ecf05507`.
+- Workflow: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39662641163
+- Artifact ID: `12375010712`
+- Artifact SHA-256 reported by GitHub: `455efdbd9317cbf788793699fdb603d56ffdf525f9422415ea2802fc514359b1`
+- All workflow steps, including test suite, archive/catalogue retrieval, archive integrity, feature coverage, crosswalk, prediction adapter, team identity, fixture candidates and artifact upload, completed successfully.
+- Archive freshness: `FRESH`, 0.62 days old at the workflow check; no new provider API calls were required.
+
+### Run #53 verified results
+
+- Archive: 35,819 match rows, 126 season groups, zero parser errors, no missing archive team IDs, zero duplicate non-empty fixture IDs.
+- Prediction input/staged: 210 / 210; quarantined 0; blocked from evaluation 210.
+- Blocker counts: `MISSING_HOME_TEAM_ID=210`, `MISSING_AWAY_TEAM_ID=210`.
+- Team-name candidate audit: both team names have unique candidates in 150 rows; 60 rows unresolved; zero fixture identities verified.
+- Fixture candidate audit: 105 prediction rows provisionally competition-aligned, 20 competition mismatch/crosswalk gap, 85 no exact kickoff/team candidate; zero eligible scoring rows.
+- Crosswalk: 43 provider competition names, 25 candidates requiring review, 18 unmatched, zero approved mappings; intended 44-league universe still not reconciled with the canonical 27-league registry.
+- Pre-match xG/odds provenance remains unverified; production eligibility remains `NOT_GRANTED`.
+
+### New source-schema finding
+
+Inspection of the actual source rows inside the Run #53 artifact confirms the canonical prediction export contains `fixture_id`, `competition`, team **names**, `fixture_date`, `kickoff_time`, `prediction_timestamp`, `feature_snapshot_id`, `source_manifest_hash`, probabilities, model version and hashes. It does **not** contain provider/canonical home-team or away-team ID columns, nor a distinct provider fixture ID. The research adapter is therefore correctly refusing to infer those IDs from names.
+
+A search of the private repository found the canonical ledger schema and the prediction publisher, but no matching provider IDs for the staged predictions in the available searched artifacts. The source-export schema gap is verified; whether upstream data can supply IDs without changing the production model is still unresolved. The safe path is to recover provider IDs from the original fixture source/catalogue if present, or use a reviewed external crosswalk that proves competition, season, team and fixture identity. Do not mutate the canonical prediction ledger or assign IDs by name similarity.
+
+### Decision and next step
+
+Run #53 is a successful **research audit**, not a successful evaluation. It confirms that the current data is insufficient for exact identity joins. The next useful step is a research-only diagnostic that compares the 42 source fixture IDs and source schedule rows against the acquired provider catalogue/season manifest, documenting which identities can be linked by authoritative provider identifiers and which remain absent. No further workflow rerun is needed until that source-level diagnostic or a trusted results snapshot changes the evidence. Do not report accuracy/calibration/profitability or production readiness.
