@@ -38,6 +38,32 @@ class OraclePredictionAdapterTests(unittest.TestCase):
         self.assertEqual(result["quarantine_reasons"], [])
         self.assertEqual(result["adapted_prediction"]["probability"], 0.7)
 
+    def test_known_model_alias_is_normalized_explicitly(self):
+        row = {
+            "prediction_id":"p4", "fixture_id":"f4", "competition":"ENG_PL",
+            "scheduled_kickoff_utc":"2026-10-22T19:00:00Z", "home_team_id":"h",
+            "away_team_id":"a", "model":"BTTS_YES", "selection":"BTTS_YES",
+            "raw_probability":"0.65", "prediction_timestamp_utc":"2026-10-22T10:00:00Z",
+            "model_version":"v1", "model_code_sha":"abc", "feature_snapshot_id":"r",
+            "source_manifest_hash":"b"*64, "model_status":"PRODUCTION"
+        }
+        result = adapt_row(row, 2)
+        self.assertEqual(result["adapted_prediction"]["market"], "BTTS")
+        self.assertEqual(result["adapted_prediction"]["selection"], "YES")
+        self.assertFalse(any(x.startswith("UNRECOGNIZED_MARKET_LABEL") for x in result["quarantine_reasons"]))
+
+    def test_unsupported_composite_market_is_quarantined(self):
+        row = {
+            "prediction_id":"p5", "fixture_id":"f5", "competition":"ENG_PL",
+            "scheduled_kickoff_utc":"2026-10-22T19:00:00Z", "home_team_id":"h",
+            "away_team_id":"a", "model":"HOME_1X_U45", "selection":"HOME_1X_U45",
+            "raw_probability":"0.65", "prediction_timestamp_utc":"2026-10-22T10:00:00Z",
+            "model_version":"v1", "model_code_sha":"abc", "feature_snapshot_id":"r",
+            "source_manifest_hash":"b"*64, "model_status":"PRODUCTION"
+        }
+        result = adapt_row(row, 2)
+        self.assertTrue(any(x.startswith("UNSUPPORTED_COMPOSITE_MARKET:") for x in result["quarantine_reasons"]))
+
     def test_invalid_probability_quarantined(self):
         row = {"prediction_id":"p3", "fixture_id":"f3", "competition_id":"c",
             "scheduled_kickoff_utc":"2026-10-22T19:00:00Z","home_team_id":"h",
