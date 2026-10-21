@@ -1,0 +1,43 @@
+name: Validate private Oracle transfer token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-token:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate access to private Oracle repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::ORACLE_PRIVATE_REPO_TOKEN secret is missing or empty."
+            exit 1
+          fi
+          # Do not enable shell tracing or print the token or raw response.
+          if ! repo_json="$(gh api "repos/$TARGET_REPO" --jq '[.full_name, (.private|tostring), .default_branch] | @tsv' 2>/dev/null)"; then
+            echo "::error::Token could not read the target repository. Check resource owner, selected repository, token expiry, and Contents permission."
+            exit 1
+          fi
+          IFS=$'\t' read -r full_name is_private default_branch <<< "$repo_json"
+          if [[ "$is_private" != "true" ]]; then
+            echo "::error::Target repository did not report private=true; stopping."
+            exit 1
+          fi
+          if ! gh api "repos/$TARGET_REPO/contents/config/oracle_major_league_registry_v1.json" --silent >/dev/null 2>&1; then
+            echo "::error::Token can read repository metadata but cannot read the canonical registry. Check repository selection and Contents: Read and write permission."
+            exit 1
+          fi
+          echo "PASS: token authenticated and can read the private target repository."
+          echo "Target: $full_name"
+          echo "Private: $is_private"
+          echo "Default branch: $default_branch"
+          echo "No token or provider data was printed."
