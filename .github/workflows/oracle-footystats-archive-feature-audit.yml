@@ -9,7 +9,8 @@ on:
       - "tests/test_footystats_archive_features.py"
       - "scripts/build_oracle_competition_crosswalk.py"
       - "scripts/audit_oracle_archive_integrity.py"
-      - "scripts/reconstruct_provisional_historical_standings.py"\n      - "scripts/build_feature_coverage_matrix.py"
+      - "scripts/reconstruct_provisional_historical_standings.py"
+      - "scripts/build_feature_coverage_matrix.py"
 
 permissions:
   contents: read
