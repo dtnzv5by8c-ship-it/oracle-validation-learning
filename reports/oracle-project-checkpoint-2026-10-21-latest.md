@@ -35,7 +35,7 @@ Important limitations remain: the manifest's approval flag and source URI are no
 - Feature coverage is not equivalent to production eligibility.
 
 ## Source-trust control added in this checkpoint
-A research-only policy document now defines the required independent allowlist, acquisition evidence, raw-snapshot hash, fixture reconciliation, score-derived outcomes, audit trail and fail-closed exclusions. It is a governance specification, not yet an enforced code gate; source approval remains pending.
+A research-only policy document defines the required independent allowlist, acquisition evidence, raw-snapshot hash, fixture reconciliation, audit trail and fail-closed exclusions. A new validator and regression tests were added to the research repository. Workflow #34 is currently running to test the changes. Until it passes and the allowlist is independently pinned/reviewed, source approval remains pending. Structural validation does not independently authenticate a provider.
 
 Policy: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/docs/oracle-result-source-trust-policy-research-only-2026-10-21.md
 
