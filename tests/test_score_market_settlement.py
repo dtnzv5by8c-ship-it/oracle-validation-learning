@@ -16,7 +16,7 @@ class ScoreSettlementTests(unittest.TestCase):
         self.r["away_score"]=0
         self.assertEqual(settle(self.p,self.r)["outcome"],"LOSS")
     def test_over_under_push(self):
-        self.p.update({"market":"TOTAL_GOALS","selection":"OVER_2.0"})
+        self.p.update({"market":"TOTAL_GOALS","selection":"OVER_3.0"})
         self.assertEqual(settle(self.p,self.r)["outcome"],"PUSH")
     def test_1x2(self):
         self.p.update({"market":"1X2","selection":"HOME"})
