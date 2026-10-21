@@ -87,3 +87,17 @@ A further static review found that the adapter previously allowed the prediction
 This is a meaningful correctness fix, but it is **not yet runtime-verified**. The connected GitHub workflow-run lookup returns no runs for these commits (it only exposes pull-request-triggered runs), and combined commit status has no checks. Therefore do not claim the new adapter tests or workflow succeeded. The canonical ledger's known missing UTC kickoff and team IDs mean the adapter is expected to quarantine rows unless an authoritative source supplies those values; this must be confirmed by artifact counts, not assumed.
 
 Immediate next action: verify a workflow run through the repository Actions UI or another authorized Actions endpoint and inspect its artifact. If no run exists, manually dispatch the research-only workflow. Continue no further feature expansion until this run has a confirmed result.
+
+
+## Checkpoint update — 2026-10-21 follow-up
+
+Further code review found an adapter validation-order defect: required fields were assessed before an explicitly supported market alias could populate market and selection. The adapter now recomputes missing fields after explicit alias mapping (commit `7ce28866ad51953dd599c515a7eae61c6befc381`). This is a static code correction only; runtime tests remain unverified because the connected workflow lookup has not exposed a run or status checks.
+
+Current status remains:
+- Last confirmed complete research workflow: run #36, `39645298749`; this predates the adapter integration and follow-up corrections.
+- Adapter workflow after the later commits: UNVERIFIED.
+- Adapter accepted/quarantined counts: UNKNOWN; no artifact inspected.
+- Production accuracy: UNAVAILABLE from current canonical ledgers; settlement ledger has no rows.
+- Overall project-management estimate: 78%, held until workflow and artifact verification.
+
+The next useful action is still to obtain an actual run of the research-only workflow and inspect the adapter output. Do not add further adapter features until the current changes have passed runtime tests. No production logic, probabilities, calibration, or registry was changed.
