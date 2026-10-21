@@ -1,0 +1,185 @@
+name: Oracle governed 27-league mapping and kickoff-safe H2H audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-governed-27-h2h-cutoff-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Download existing private archive
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release download footystats-all-selected-leagues-2024-2026-20261021 --repo dtnzv5by8c-ship-it/oracle-football-data --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Map governed leagues and test H2H cutoff by fixture
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re,collections,datetime
+          from pathlib import Path
+
+          root=Path("input")
+          mf=next(root.rglob("ingestion_manifest.csv"),None)
+          if not mf: raise SystemExit("ingestion manifest missing")
+          base=mf.parent
+          manifest=list(csv.DictReader(mf.open(encoding="utf-8-sig",newline="")))
+          # Explicit provider folder aliases. The governed 27 IDs and names are copied from
+          # the approved registry; Greece and other excluded competitions are deliberately absent.
+          registry=[
+          ("ENG_E0","England","Premier League",["England_Premier_League"]),
+          ("ENG_E1","England","Championship",["England_Championship"]),
+          ("ENG_E2","England","League One",["England_EFL_League_One"]),
+          ("ENG_E3","England","League Two",["England_EFL_League_Two"]),
+          ("ESP_SP1","Spain","La Liga",["Spain_La_Liga"]),
+          ("ESP_SP2","Spain","Segunda División",["Spain_Segunda_Divisi_n","Spain_Segunda_Division"]),
+          ("DEU_D1","Germany","Bundesliga",["Germany_Bundesliga"]),
+          ("DEU_D2","Germany","2. Bundesliga",["Germany_2._Bundesliga","Germany_2_Bundesliga"]),
+          ("ITA_I1","Italy","Serie A",["Italy_Serie_A"]),
+          ("ITA_I2","Italy","Serie B",["Italy_Serie_B"]),
+          ("FRA_F1","France","Ligue 1",["France_Ligue_1"]),
+          ("FRA_F2","France","Ligue 2",["France_Ligue_2"]),
+          ("NLD_N1","Netherlands","Eredivisie",["Netherlands_Eredivisie"]),
+          ("NLD_N2","Netherlands","Eerste Divisie",["Netherlands_Eerste_Divisie"]),
+          ("PRT_P1","Portugal","Primeira Liga",["Portugal_Liga_NOS","Portugal_Primeira_Liga"]),
+          ("PRT_P2","Portugal","Liga Portugal 2",["Portugal_LigaPro","Portugal_Liga_Pro"]),
+          ("TUR_T1","Turkey","Turkish Super Lig",["Turkey_S_per_Lig","Turkey_Super_Lig"]),
+          ("BEL_B1","Belgium","Belgian Pro League",["Belgium_Pro_League"]),
+          ("SCO_SC0","Scotland","Scottish Premiership",["Scotland_Premiership"]),
+          ("AUT_A1","Austria","Austrian Bundesliga",["Austria_Bundesliga"]),
+          ("CHE_S1","Switzerland","Swiss Super League",["Switzerland_Super_League"]),
+          ("POL_P1","Poland","Ekstraklasa",["Poland_Ekstraklasa"]),
+          ("ROU_R1","Romania","Romanian Liga I",["Romania_Liga_I"]),
+          ("CZE_CZ1","Czech Republic","Czech First League",["Czech_Republic_First_League"]),
+          ("HRV_HR1","Croatia","Croatian HNL",["Croatia_Prva_HNL"]),
+          ("UKR_UA1","Ukraine","Ukrainian Premier League",["Ukraine_Ukrainian_Premier_League"]),
+          ("ZAF_PSL","South Africa","South African PSL",["South_Africa_Premier_Soccer_League"]),
+          ]
+          def epoch(v):
+            try:
+              n=float(v)
+              if n>1e12:n/=1000
+              if n<=0:return None
+              return int(n)
+            except:return None
+          def settled(m):
+            hg=m.get("homeGoals"); ag=m.get("awayGoals")
+            if hg in (None,"") or ag in (None,""):return False
+            try: float(hg);float(ag)
+            except:return False
+            st=str(m.get("status","")).lower()
+            return not any(x in st for x in ("scheduled","fixture","not started","live","inplay","postponed","cancelled","abandoned"))
+          alias_to_reg={alias:row for row in registry for alias in row[3]}
+          seen_folders=set()
+          matches_by_reg=collections.defaultdict(list)
+          parse_errors=[]
+          for fp in base.rglob("matches.json"):
+            folder=fp.parent.parent.name
+            if folder not in alias_to_reg: continue
+            reg=alias_to_reg[folder]; seen_folders.add(folder)
+            try:data=json.loads(fp.read_text(encoding="utf-8"))
+            except Exception as e:
+              parse_errors.append({"file":str(fp.relative_to(base)),"error":type(e).__name__});continue
+            if not isinstance(data,list):
+              parse_errors.append({"file":str(fp.relative_to(base)),"error":"NOT_LIST"});continue
+            for m in data:
+              if not isinstance(m,dict):continue
+              dt=epoch(m.get("date_unix"))
+              h=str(m.get("homeID","")).strip(); a=str(m.get("awayID","")).strip()
+              if not dt or not h or not a:continue
+              matches_by_reg[reg[0]].append({
+                "date":dt,"id":str(m.get("id","")),"home":h,"away":a,
+                "homeGoals":m.get("homeGoals"),"awayGoals":m.get("awayGoals"),
+                "settled":settled(m),"folder":folder,"status":str(m.get("status","")),
+                "home_xg":m.get("team_a_xg_prematch"),"away_xg":m.get("team_b_xg_prematch"),
+                "total_xg":m.get("total_xg_prematch")
+              })
+          league_rows=[]; fixture_rows=[]
+          for rid,country,competition,aliases in registry:
+            ms=matches_by_reg.get(rid,[])
+            ms.sort(key=lambda x:(x["date"],x["id"]))
+            # For each fixture, count only settled same-pair meetings strictly before its kickoff.
+            # Same-day matches at the exact same epoch are excluded unless the timestamp is earlier.
+            for target in ms:
+              prior=[x for x in ms if x["settled"] and x["date"]<target["date"] and
+                {x["home"],x["away"]}=={target["home"],target["away"]}]
+              prior.sort(key=lambda x:(x["date"],x["id"]))
+              target["h2h_prior_settled_count"]=len(prior)
+              target["h2h_last5_available"]=len(prior)>=5
+              target["cutoff_pass"]=all(x["date"]<target["date"] for x in prior)
+              target["fixture_date_utc"]=datetime.datetime.fromtimestamp(target["date"],datetime.timezone.utc).isoformat()
+              fixture_rows.append({
+                "league_id":rid,"country":country,"competition":competition,"provider_folder":target["folder"],
+                "fixture_id":target["id"],"kickoff_utc":target["fixture_date_utc"],
+                "home_team_id":target["home"],"away_team_id":target["away"],
+                "is_settled":target["settled"],"home_goals":target["homeGoals"],"away_goals":target["awayGoals"],
+                "home_xg_prematch_present":target["home_xg"] not in (None,""),
+                "away_xg_prematch_present":target["away_xg"] not in (None,""),
+                "total_xg_prematch_present":target["total_xg"] not in (None,""),
+                "prior_settled_h2h_count":len(prior),"at_least_5_prior_h2h":len(prior)>=5,
+                "h2h_cutoff_pass":all(x["date"]<target["date"] for x in prior)
+              })
+            settled_ms=[x for x in ms if x["settled"]]
+            league_rows.append({
+              "league_id":rid,"country":country,"competition":competition,
+              "provider_folder_aliases":";".join(aliases),
+              "provider_folder_found":bool(set(seen_folders).intersection(aliases)),
+              "matched_provider_folder":";".join(sorted(set(x["folder"] for x in ms))),
+              "match_records_with_valid_dates_and_team_ids":len(ms),
+              "settled_records":len(settled_ms),
+              "records_with_home_xg_pct":round(100*sum(x["home_xg"] not in (None,"") for x in ms)/len(ms),2) if ms else None,
+              "records_with_away_xg_pct":round(100*sum(x["away_xg"] not in (None,"") for x in ms)/len(ms),2) if ms else None,
+              "records_with_total_xg_pct":round(100*sum(x["total_xg"] not in (None,"") for x in ms)/len(ms),2) if ms else None,
+              "fixtures_with_5plus_prior_settled_h2h":sum(x["h2h_prior_settled_count"]>=5 for x in ms),
+              "fixtures_with_any_prior_settled_h2h":sum(x["h2h_prior_settled_count"]>0 for x in ms),
+              "production_readiness":"NOT_ASSESSED"
+            })
+          summary={
+            "status":"GOVERNED_27_AUDIT_COMPLETED",
+            "governed_leagues_expected":27,
+            "governed_leagues_with_provider_folder":sum(r["provider_folder_found"] for r in league_rows),
+            "governed_leagues_with_records":sum(r["match_records_with_valid_dates_and_team_ids"]>0 for r in league_rows),
+            "match_records_in_governed_universe":sum(r["match_records_with_valid_dates_and_team_ids"] for r in league_rows),
+            "fixture_rows_audited":len(fixture_rows),
+            "fixture_rows_with_5plus_prior_settled_h2h":sum(r["at_least_5_prior_h2h"] for r in fixture_rows),
+            "fixture_rows_with_any_prior_settled_h2h":sum(r["prior_settled_h2h_count"]>0 for r in fixture_rows),
+            "all_h2h_cutoffs_strictly_before_target_kickoff":all(r["h2h_cutoff_pass"] for r in fixture_rows),
+            "parse_errors":parse_errors,
+            "production_readiness":"NOT_ASSESSED",
+            "caveats":["This audit covers the exact 27 registry IDs only and does not alter registry or production model.","Provider folder mapping is explicit and must be reviewed if an expected folder is absent.","Historical H2H cutoff is strictly earlier than target fixture timestamp; it does not assert a minimum sample size or prediction value.","Source xG fields are checked for non-null presence only, not point-in-time provenance or calibration validity.","2026 season may include upcoming fixtures and incomplete season coverage.","No API calls; archive read-only."]
+          }
+          out=Path("governed-27-output");out.mkdir()
+          for filename,rows in [("governed_27_league_coverage.csv",league_rows),("governed_27_fixture_h2h_cutoff.csv",fixture_rows)]:
+            with (out/filename).open("w",newline="",encoding="utf-8") as f:
+              fields=list(rows[0].keys()) if rows else ["league_id"]
+              w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
+          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(summary))
+          PY
+
+      - name: Publish governed 27-league audit to private Oracle
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=oracle-governed-27-h2h-cutoff-audit-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Release tag already exists; refusing overwrite."; exit 1
+          fi
+          cd governed-27-output
+          sha256sum *.csv *.json > SHA256SUMS
+          cd ..
+          zip -qr oracle-governed-27-h2h-cutoff-audit.zip governed-27-output
+          gh release create "$TAG" oracle-governed-27-h2h-cutoff-audit.zip --repo "$TARGET" --title "Oracle governed 27 league H2H cutoff audit 2026-10-21" --notes "Read-only audit of canonical 27 league universe, provider folder mapping, xG field presence, and fixture-specific H2H cutoff. No API calls or production changes."
