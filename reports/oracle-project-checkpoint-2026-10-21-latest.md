@@ -101,3 +101,31 @@ Current status remains:
 - Overall project-management estimate: 78%, held until workflow and artifact verification.
 
 The next useful action is still to obtain an actual run of the research-only workflow and inspect the adapter output. Do not add further adapter features until the current changes have passed runtime tests. No production logic, probabilities, calibration, or registry was changed.
+
+
+## Artifact review — workflow #44 (user-uploaded ZIP)
+
+The uploaded `oracle-footystats-archive-feature-audit.zip` was inspected directly. Workflow #44 succeeded and produced the artifact, but the adapter summary revealed:
+- 210 input prediction rows;
+- 0 accepted rows and 210 quarantined rows;
+- all 210 were marked CHALLENGER, so the adapter's previous production-only gate blocked research use;
+- all 210 lacked `scheduled_kickoff_utc`, `home_team_id`, `away_team_id`, and `archive_sha256` in the target schema;
+- all 210 carried `source_manifest_hash`, which correctly cannot be substituted for an archive hash;
+- 84 rows had unsupported composite market labels (`*_U45`).
+
+This is not evidence that predictions lost. It exposes an adapter/schema issue plus unresolved evaluation identity evidence. Archive audit itself passed: 35,819 records, 126 season groups, zero parse errors; production readiness remains NOT_ASSESSED. Feature coverage still does not verify pre-match xG/odds provenance. Competition crosswalk remains 25 candidate matches requiring review, 18 unmatched, 0 approved; 44-league universe not reconciled.
+
+## Adapter correction committed after #44
+
+The adapter was revised to separate research staging from production eligibility:
+- Challenger rows can be staged for research without being relabelled production.
+- The source manifest hash is retained under its correct field rather than requiring/pretending it is an archive SHA.
+- Kickoff date/time is combined only when the source time carries an explicit timezone offset; naive times remain untrusted.
+- Missing canonical home/away team IDs are recorded as evaluation blockers rather than silently invented.
+- Unsupported composite markets, invalid probabilities, missing core fields and predictions at/after kickoff remain quarantined.
+- Tests were rewritten for these semantics.
+
+Adapter commit: `5208d0c648358f4d6c41dd4f844f8e49bcbd53aa`
+Test commit: `c668a17ab96b58c72c9b93a3d5635de11f0b96f4`
+
+These changes should trigger the existing research-only workflow, but runtime result is not yet verified. The next run must be inspected for research-staged counts and evaluation blockers. Even staged rows are not yet eligible for scoring until canonical team IDs are resolved and result truth is independently verified. No production logic, probabilities, calibration, or registry changed.
