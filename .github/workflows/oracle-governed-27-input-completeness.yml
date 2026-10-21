@@ -112,7 +112,7 @@ jobs:
           with (out/"governed_27_input_completeness.csv").open("w",newline="",encoding="utf-8") as f:
             w=csv.DictWriter(f,fieldnames=list(rows[0].keys()));w.writeheader();w.writerows(rows)
           summary={"status":"INPUT_COMPLETENESS_AUDIT_COMPLETED","governed_leagues":27,"leagues_with_matched_provider_folders":len(found),
-            "leagues_with_records":sum(1 for r in rows if (r["records"] or 0)>0),"records":sum(r["records"] for r in rows),
+            "leagues_with_records":len({r["league_id"] for r in rows if (r["records"] or 0)>0}),"records":sum(r["records"] for r in rows),
             "settled_records":sum(r["settled_records"] or 0 for r in rows),"missing_date":sum(r["missing_date"] or 0 for r in rows),
             "future_dated_rows":sum(r["future_dated_rows"] or 0 for r in rows),"missing_ids":sum(r["missing_id"] or 0 for r in rows),
             "duplicate_id_across_files":sum(r["duplicate_id_across_files"] or 0 for r in rows),
