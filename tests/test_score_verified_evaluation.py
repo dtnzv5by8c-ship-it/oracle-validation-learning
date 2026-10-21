@@ -30,6 +30,11 @@ class ScoreVerifiedEvaluationTests(unittest.TestCase):
         out=build_rows([self.p],[self.r],m,self.sha)
         self.assertEqual(out["accepted_count"],0)
 
+    def test_result_observed_before_kickoff_rejected(self):
+        r=dict(self.r,result_observed_at_utc="2026-10-20T17:59:59Z")
+        with self.assertRaisesRegex(ValueError,"RESULT_OBSERVED_BEFORE_KICKOFF"):
+            build_rows([self.p],[r],self.manifest,self.sha)
+
     def test_prediction_at_kickoff_rejected(self):
         p=dict(self.p,prediction_timestamp_utc=self.p["scheduled_kickoff_utc"])
         out=build_rows([p],[self.r],self.manifest,self.sha)
