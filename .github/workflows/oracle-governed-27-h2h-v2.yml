@@ -1,0 +1,112 @@
+name: Oracle governed H2H audit v2 — provider goal-event schema
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-governed-27-h2h-v2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Download private archive
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release download footystats-all-selected-leagues-2024-2026-20261021 --repo dtnzv5by8c-ship-it/oracle-football-data --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Audit exact governed 27 with correct goal-event parsing and kickoff-safe H2H
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re,collections,datetime
+          from pathlib import Path
+          root=Path("input"); mf=next(root.rglob("ingestion_manifest.csv"),None)
+          if not mf:raise SystemExit("manifest missing")
+          base=mf.parent
+          registry=[
+          ("ENG_E0","England","Premier League",["England_Premier_League"]),("ENG_E1","England","Championship",["England_Championship"]),("ENG_E2","England","League One",["England_EFL_League_One"]),("ENG_E3","England","League Two",["England_EFL_League_Two"]),
+          ("ESP_SP1","Spain","La Liga",["Spain_La_Liga"]),("ESP_SP2","Spain","Segunda División",["Spain_Segunda_Divisi_n","Spain_Segunda_Division"]),
+          ("DEU_D1","Germany","Bundesliga",["Germany_Bundesliga"]),("DEU_D2","Germany","2. Bundesliga",["Germany_2._Bundesliga","Germany_2_Bundesliga"]),
+          ("ITA_I1","Italy","Serie A",["Italy_Serie_A"]),("ITA_I2","Italy","Serie B",["Italy_Serie_B"]),("FRA_F1","France","Ligue 1",["France_Ligue_1"]),("FRA_F2","France","Ligue 2",["France_Ligue_2"]),
+          ("NLD_N1","Netherlands","Eredivisie",["Netherlands_Eredivisie"]),("NLD_N2","Netherlands","Eerste Divisie",["Netherlands_Eerste_Divisie"]),("PRT_P1","Portugal","Primeira Liga",["Portugal_Liga_NOS","Portugal_Primeira_Liga"]),("PRT_P2","Portugal","Liga Portugal 2",["Portugal_LigaPro","Portugal_Liga_Pro"]),
+          ("TUR_T1","Turkey","Turkish Super Lig",["Turkey_S_per_Lig","Turkey_Super_Lig"]),("BEL_B1","Belgium","Belgian Pro League",["Belgium_Pro_League"]),("SCO_SC0","Scotland","Scottish Premiership",["Scotland_Premiership"]),("AUT_A1","Austria","Austrian Bundesliga",["Austria_Bundesliga"]),("CHE_S1","Switzerland","Swiss Super League",["Switzerland_Super_League"]),("POL_P1","Poland","Ekstraklasa",["Poland_Ekstraklasa"]),("ROU_R1","Romania","Romanian Liga I",["Romania_Liga_I"]),("CZE_CZ1","Czech Republic","Czech First League",["Czech_Republic_First_League"]),("HRV_HR1","Croatia","Croatian HNL",["Croatia_Prva_HNL"]),("UKR_UA1","Ukraine","Ukrainian Premier League",["Ukraine_Ukrainian_Premier_League"]),("ZAF_PSL","South Africa","South African PSL",["South_Africa_Premier_Soccer_League"])]
+          def epoch(v):
+            try:
+              n=float(v)
+              if n>1e12:n/=1000
+              return int(n) if n>0 else None
+            except:return None
+          def goal_count(m, side):
+            # FootyStats match records store goal events as arrays such as ["42","52"]; array length is goals scored.
+            # Scalar score aliases are used only when explicitly numeric.
+            event=m.get(side+"Goals")
+            if isinstance(event,list):return len(event)
+            if isinstance(event,(int,float)):return int(event) if event>=0 else None
+            if isinstance(event,str) and event.strip().isdigit():return int(event.strip())
+            aliases=("homeGoalCount","home_goals","team_a_goals","home_score") if side=="home" else ("awayGoalCount","away_goals","team_b_goals","away_score")
+            for k in aliases:
+              v=m.get(k)
+              if isinstance(v,(int,float)) and v>=0:return int(v)
+              if isinstance(v,str) and v.strip().isdigit():return int(v.strip())
+            return None
+          def is_settled(m):
+            st=str(m.get("status","")).lower()
+            if st not in ("complete","completed","finished","ft","full time"):return False
+            return goal_count(m,"home") is not None and goal_count(m,"away") is not None
+          folder_to_reg={a:row for row in registry for a in row[3]}
+          matches=collections.defaultdict(list); found=set(); errors=[]; all_fields=collections.Counter(); sample_keys={}
+          for fp in base.rglob("matches.json"):
+            folder=fp.parent.parent.name
+            if folder not in folder_to_reg:continue
+            reg=folder_to_reg[folder];found.add(folder)
+            try:data=json.loads(fp.read_text(encoding="utf-8"))
+            except Exception as e:errors.append({"file":str(fp.relative_to(base)),"error":type(e).__name__});continue
+            if not isinstance(data,list):errors.append({"file":str(fp.relative_to(base)),"error":"NOT_LIST"});continue
+            for m in data:
+              if not isinstance(m,dict):continue
+              all_fields.update(m.keys())
+              if len(sample_keys)<4:sample_keys[folder]={"keys":sorted(m.keys()),"homeGoals_type":type(m.get("homeGoals")).__name__,"awayGoals_type":type(m.get("awayGoals")).__name__,"homeGoals_sample":m.get("homeGoals"),"awayGoals_sample":m.get("awayGoals"),"status":m.get("status")}
+              dt=epoch(m.get("date_unix"));h=str(m.get("homeID","")).strip();a=str(m.get("awayID","")).strip()
+              if not dt or not h or not a:continue
+              hg=goal_count(m,"home");ag=goal_count(m,"away")
+              matches[reg[0]].append({"date":dt,"id":str(m.get("id","")),"home":h,"away":a,"hg":hg,"ag":ag,"settled":is_settled(m),"folder":folder,"status":str(m.get("status","")),"hxg":m.get("team_a_xg_prematch"),"axg":m.get("team_b_xg_prematch"),"txg":m.get("total_xg_prematch")})
+          league_rows=[];fixture_rows=[]; pair_history=collections.defaultdict(list)
+          for rid,country,competition,aliases in registry:
+            ms=matches.get(rid,[]);ms.sort(key=lambda x:(x["date"],x["id"]))
+            settled_ms=[m for m in ms if m["settled"]]
+            for m in settled_ms:pair_history[(rid,tuple(sorted((m["home"],m["away"]))))].append(m)
+            for target in ms:
+              prior=[x for x in pair_history.get((rid,tuple(sorted((target["home"],target["away"])))),[]) if x["date"]<target["date"]]
+              fixture_rows.append({"league_id":rid,"country":country,"competition":competition,"provider_folder":target["folder"],"fixture_id":target["id"],"kickoff_utc":datetime.datetime.fromtimestamp(target["date"],datetime.timezone.utc).isoformat(),"home_team_id":target["home"],"away_team_id":target["away"],"settled":target["settled"],"home_goals":target["hg"],"away_goals":target["ag"],"home_xg_present":target["hxg"] not in (None,""),"away_xg_present":target["axg"] not in (None,""),"total_xg_present":target["txg"] not in (None,""),"prior_settled_h2h_count":len(prior),"at_least_5_prior_h2h":len(prior)>=5,"h2h_cutoff_pass":all(x["date"]<target["date"] for x in prior)})
+            league_rows.append({"league_id":rid,"country":country,"competition":competition,"provider_folder_found":any(a in found for a in aliases),"matched_folders":";".join(sorted(set(m["folder"] for m in ms))),"records_with_date_and_team_ids":len(ms),"settled_records":len(settled_ms),"records_with_home_xg_pct":round(100*sum(m["hxg"] not in (None,"") for m in ms)/len(ms),2) if ms else None,"records_with_away_xg_pct":round(100*sum(m["axg"] not in (None,"") for m in ms)/len(ms),2) if ms else None,"records_with_total_xg_pct":round(100*sum(m["txg"] not in (None,"") for m in ms)/len(ms),2) if ms else None,"target_rows_with_5plus_prior_h2h":sum(1 for f in fixture_rows if f["league_id"]==rid and f["at_least_5_prior_h2h"]),"production_readiness":"NOT_ASSESSED"})
+          summary={"status":"GOVERNED_27_H2H_V2_COMPLETED","governed_leagues":27,"leagues_with_provider_folders":sum(r["provider_folder_found"] for r in league_rows),"leagues_with_records":sum(r["records_with_date_and_team_ids"]>0 for r in league_rows),"records_in_governed_universe":sum(r["records_with_date_and_team_ids"] for r in league_rows),"settled_records":sum(r["settled_records"] for r in league_rows),"fixture_rows":len(fixture_rows),"fixtures_with_5plus_prior_settled_h2h":sum(f["at_least_5_prior_h2h"] for f in fixture_rows),"fixtures_with_any_prior_settled_h2h":sum(f["prior_settled_h2h_count"]>0 for f in fixture_rows),"strict_kickoff_cutoff_pass":all(f["h2h_cutoff_pass"] for f in fixture_rows),"parse_errors":errors,"sample_record_schema":sample_keys,"production_readiness":"NOT_ASSESSED","caveats":["Goal-event arrays are interpreted by event count, not numeric conversion of the array itself.","Only completed status records with usable home/away goal counts are considered settled.","Only H2H records strictly earlier than each target kickoff are included.","xG fields are checked for presence, not proof of point-in-time availability.","No provider API calls and no production changes."]}
+          out=Path("governed-27-v2");out.mkdir()
+          for fn,rows in [("league_coverage.csv",league_rows),("fixture_h2h_cutoff.csv",fixture_rows)]:
+            with (out/fn).open("w",newline="",encoding="utf-8") as f:
+              fields=list(rows[0].keys()) if rows else ["league_id"];w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
+          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print(json.dumps(summary))
+          PY
+
+      - name: Publish v2 report to private Oracle
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=oracle-governed-27-h2h-v2-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then echo "Release exists; refusing overwrite."; exit 1; fi
+          cd governed-27-v2
+          sha256sum *.csv *.json > SHA256SUMS
+          cd ..
+          zip -qr oracle-governed-27-h2h-v2.zip governed-27-v2
+          gh release create "$TAG" oracle-governed-27-h2h-v2.zip --repo "$TARGET" --title "Oracle governed 27 H2H audit v2 2026-10-21" --notes "Read-only corrected goal-event parsing and fixture-specific H2H cutoffs. No API calls and no production changes."
