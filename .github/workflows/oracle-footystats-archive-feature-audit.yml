@@ -15,6 +15,9 @@ on:
       - "scripts/classify_provider_competition_aliases.py"
       - "scripts/check_archive_freshness.py"
       - "tests/test_archive_freshness.py"
+      - "scripts/validate_prospective_prediction.py"
+      - "tests/test_prospective_prediction.py"
+      - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
 permissions:
   contents: read
@@ -27,7 +30,7 @@ jobs:
       - name: Checkout research repository
         uses: actions/checkout@v4
 
-      - name: Validate parser, chronology and freshness unit tests
+      - name: Validate parser, chronology, freshness and prospective-ledger tests
         run: python -m unittest discover -s tests -v
 
       - name: Download private FootyStats archive and enforce release freshness
