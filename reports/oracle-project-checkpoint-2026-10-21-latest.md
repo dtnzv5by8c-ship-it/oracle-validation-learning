@@ -129,3 +129,30 @@ Adapter commit: `5208d0c648358f4d6c41dd4f844f8e49bcbd53aa`
 Test commit: `c668a17ab96b58c72c9b93a3d5635de11f0b96f4`
 
 These changes should trigger the existing research-only workflow, but runtime result is not yet verified. The next run must be inspected for research-staged counts and evaluation blockers. Even staged rows are not yet eligible for scoring until canonical team IDs are resolved and result truth is independently verified. No production logic, probabilities, calibration, or registry changed.
+
+
+## Artifact review — updated workflow after adapter correction
+
+User uploaded the artifact from the newer successful run (Run #46). The archive audit summary reports 35,819 records, 126 match files/season groups, 35,819 parseable kickoffs, 28,491 settled-status-and-score-complete records, 35,819 feature rows, zero parse errors, and no duplicate/non-empty fixture IDs or missing archive team IDs. Production readiness remains NOT_ASSESSED; no provider API calls were made.
+
+Prediction adapter summary:
+- input_rows: 210
+- research_staged_rows: 126
+- quarantined_rows: 84
+- quarantines: 84 `UNSUPPORTED_COMPOSITE_MARKET` rows (labels ending `_U45`)
+- staged_rows_blocked_from_evaluation: 126
+- evaluation blockers: 126 missing home team ID and 126 missing away team ID (both blockers occur on each staged row)
+- production eligibility: NOT_GRANTED
+
+This is an improvement over the previous artifact: challenger rows are now research-staged rather than rejected solely because they are not production. Kickoff normalization was performed for rows whose source time explicitly carries a UTC offset. It does not yet make the rows evaluable: canonical home/away team IDs are absent from the prediction ledger and must be mapped to the archive's team IDs with deterministic, competition-scoped matching and ambiguity quarantine. Unsupported combined markets remain quarantined until settlement semantics are defined and tested; do not split them into simpler markets or score them as if they were simple markets.
+
+Archive feature coverage summary reports 126 league-season groups and 35,819 archive rows, but `prematch_xg_provenance_verified=false`, `prematch_odds_provenance_verified=false`, and production eligibility NOT_GRANTED. Provisional standings have both positions for 34,083/35,819 rows; league-specific formats/tie-breakers remain unverified. Competition crosswalk: 43 provider names, 25 candidate matches needing review, 18 unmatched, zero approved canonical mappings, intended 44-league universe not reconciled. Alias decisions: 31 likely leagues for review, 6 likely cup/supercup, 6 unresolved; 43 human decisions pending.
+
+Next work:
+1. Build a deterministic research-only team identity mapping audit for the 126 staged rows using provider archive team IDs/names, constrained by the correct competition/season where resolvable. Normalize names conservatively; never fuzzy-assign silently. Report exact matches, normalized matches, ambiguous and unmatched.
+2. Keep 84 composite-market rows quarantined until the combined market semantics and settlement logic are explicitly supported and tested.
+3. Only after team mapping and fixture identity are validated, pair predictions with independently verified final results and calculate market-specific metrics.
+4. Do not treat field presence as point-in-time provenance; xG/odds pre-match provenance remains unverified.
+5. Keep all work research-only; no production logic/probability/calibration/registry changes.
+
+The 126 staged rows are **not** 126 evaluated predictions. No hit rate, Brier score, log loss or production accuracy is established by this artifact.
