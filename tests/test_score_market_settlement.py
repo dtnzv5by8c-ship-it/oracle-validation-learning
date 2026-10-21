@@ -24,6 +24,41 @@ class ScoreSettlementTests(unittest.TestCase):
     def test_dnb_draw_push(self):
         self.p.update({"market":"DNB","selection":"HOME"}); self.r.update({"home_score":1,"away_score":1})
         self.assertEqual(settle(self.p,self.r)["outcome"],"PUSH")
+    def test_home_1x_under_45_wins_on_0_0(self):
+        self.p.update({"market":"COMPOSITE","selection":"HOME_1X_U45"})
+        self.r.update({"home_score":0,"away_score":0})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"WIN")
+
+    def test_home_1x_under_45_wins_on_four_total_goals_and_draw(self):
+        self.p.update({"market":"COMPOSITE","selection":"HOME_1X_U45"})
+        self.r.update({"home_score":2,"away_score":2})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"WIN")
+
+    def test_home_1x_under_45_loses_when_away_wins(self):
+        self.p.update({"market":"COMPOSITE","selection":"HOME_1X_U45"})
+        self.r.update({"home_score":0,"away_score":1})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"LOSS")
+
+    def test_home_1x_under_45_loses_at_five_goals(self):
+        self.p.update({"market":"COMPOSITE","selection":"HOME_1X_U45"})
+        self.r.update({"home_score":3,"away_score":2})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"LOSS")
+
+    def test_away_x2_under_45_wins_on_draw(self):
+        self.p.update({"market":"COMPOSITE","selection":"AWAY_X2_U45"})
+        self.r.update({"home_score":1,"away_score":1})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"WIN")
+
+    def test_away_x2_under_45_loses_when_home_wins(self):
+        self.p.update({"market":"COMPOSITE","selection":"AWAY_X2_U45"})
+        self.r.update({"home_score":1,"away_score":0})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"LOSS")
+
+    def test_away_x2_under_45_loses_at_five_goals(self):
+        self.p.update({"market":"COMPOSITE","selection":"AWAY_X2_U45"})
+        self.r.update({"home_score":1,"away_score":4})
+        self.assertEqual(settle(self.p,self.r)["outcome"],"LOSS")
+
     def test_fixture_identity_mismatch_fails_closed(self):
         self.r["away_team_id"]="other"
         with self.assertRaisesRegex(ValueError,"FIXTURE_IDENTITY_MISMATCH"): settle(self.p,self.r)

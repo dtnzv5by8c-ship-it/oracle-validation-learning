@@ -38,11 +38,22 @@ class OraclePredictionAdapterTests(unittest.TestCase):
         result = adapt_row(row, 2)
         self.assertIn("PREDICTION_NOT_STRICTLY_PRE_KICKOFF", result["quarantine_reasons"])
 
-    def test_composite_market_is_quarantined(self):
+    def test_home_composite_market_is_research_staged_with_explicit_semantics(self):
         row = self.base_row()
         row["model"] = "HOME_1X_U45"
         result = adapt_row(row, 2)
-        self.assertTrue(any(x.startswith("UNSUPPORTED_COMPOSITE_MARKET:") for x in result["quarantine_reasons"]))
+        self.assertEqual(result["quarantine_reasons"], [])
+        self.assertEqual(result["adapted_prediction"]["market"], "COMPOSITE")
+        self.assertEqual(result["adapted_prediction"]["selection"], "HOME_1X_U45")
+        self.assertEqual(result["adapted_prediction"]["production_eligibility"], "NOT_GRANTED")
+
+    def test_away_composite_market_is_research_staged_with_explicit_semantics(self):
+        row = self.base_row()
+        row["model"] = "AWAY_X2_U45"
+        result = adapt_row(row, 2)
+        self.assertEqual(result["quarantine_reasons"], [])
+        self.assertEqual(result["adapted_prediction"]["market"], "COMPOSITE")
+        self.assertEqual(result["adapted_prediction"]["selection"], "AWAY_X2_U45")
 
     def test_manifest_hash_kept_separate_not_mislabeled_as_archive_hash(self):
         result = adapt_row(self.base_row(), 2)

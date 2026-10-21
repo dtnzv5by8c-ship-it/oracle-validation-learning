@@ -58,6 +58,14 @@ def settle(prediction, result):
         if selection == "1X": outcome = h >= a
         elif selection == "X2": outcome = a >= h
         elif selection == "12": outcome = h != a
+    elif market in {"COMPOSITE", "COMBINED_MARKET", "HOME_1X_U45", "AWAY_X2_U45"}:
+        combo = selection if selection in {"HOME_1X_U45", "AWAY_X2_U45"} else market
+        total = h + a
+        # Confirmed against existing Oracle truth builders: double chance AND total goals < 4.5.
+        if combo == "HOME_1X_U45":
+            outcome = (h >= a) and (total <= 4)
+        elif combo == "AWAY_X2_U45":
+            outcome = (a >= h) and (total <= 4)
     elif market in {"DRAW_NO_BET", "DNB"}:
         if selection in {"HOME","1"}:
             outcome = "PUSH" if h == a else h > a
