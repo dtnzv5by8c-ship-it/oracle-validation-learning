@@ -156,3 +156,16 @@ Next work:
 5. Keep all work research-only; no production logic/probability/calibration/registry changes.
 
 The 126 staged rows are **not** 126 evaluated predictions. No hit rate, Brier score, log loss or production accuracy is established by this artifact.
+
+
+## Next step implemented — research team identity audit
+
+Added `scripts/audit_prediction_team_identity.py` and `tests/test_prediction_team_identity.py`. The workflow now runs this audit after the adapter and before artifact upload, using staged predictions and `match_field_audit.csv`.
+
+The audit uses conservative normalized team names and reports exact/normalized unique-name candidates, ambiguous identities and unmatched names. It does **not** assert fixture identity, assign canonical IDs to the prediction ledger, or enable scoring. Every candidate remains research-only until competition, season, kickoff and fixture identity are separately verified. The test suite includes diacritic/suffix normalization, unique candidate not equal to fixture verification, ambiguous IDs and unmatched names.
+
+Script commit: `0777e187136f77cecc465a6214c6dff0b4b7925e`
+Test commit: `3770a7e492cefa7a89c66a183e66f7fc9c5f10e3`
+Workflow integration commit: `76694afe5babf6a86b8909c60f6338cc378fc73d`
+
+Next step is to inspect the workflow run produced by these commits and report real identity candidate counts. Composite markets remain quarantined. No result evaluation should run until exact fixture identity and trusted result evidence pass their gates. No production logic, probabilities, calibration, or registry was changed.
