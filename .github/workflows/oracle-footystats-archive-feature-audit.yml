@@ -111,6 +111,16 @@ jobs:
             --accepted-out audit-output/prediction-adapter/accepted.jsonl \
             --quarantine-out audit-output/prediction-adapter/quarantine.jsonl \
             --summary-out audit-output/prediction-adapter/summary.json
+
+      - name: Audit prediction team-name identity against archive (research only)
+        run: |
+          set -euo pipefail
+          python scripts/audit_prediction_team_identity.py \
+            --predictions audit-output/prediction-adapter/accepted.jsonl \
+            --archive-matches audit-output/match_field_audit.csv \
+            --out audit-output/prediction-adapter/team_identity_audit.jsonl \
+            --summary audit-output/prediction-adapter/team_identity_summary.json
+
       - name: Upload reports and feature tables
         uses: actions/upload-artifact@v4
         with:
