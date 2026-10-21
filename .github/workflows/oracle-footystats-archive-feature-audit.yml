@@ -9,7 +9,7 @@ on:
       - "tests/test_footystats_archive_features.py"
       - "scripts/build_oracle_competition_crosswalk.py"
       - "scripts/audit_oracle_archive_integrity.py"
-      - "scripts/reconstruct_provisional_historical_standings.py"
+      - "scripts/reconstruct_provisional_historical_standings.py"\n      - "scripts/build_feature_coverage_matrix.py"
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ jobs:
       - name: Reconstruct provisional historical standings (research only)
         run: python scripts/reconstruct_provisional_historical_standings.py --audit-dir audit-output
 
-      - name: Build provisional competition crosswalk from acquired provider catalogue
+      - name: Build season-by-season feature coverage matrix (research only)\n        run: python scripts/build_feature_coverage_matrix.py --audit-dir audit-output\n\n      - name: Build provisional competition crosswalk from acquired provider catalogue
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
         run: |
