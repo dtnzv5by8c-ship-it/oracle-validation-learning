@@ -47,6 +47,25 @@ def adapt_row(row, row_number):
         else:
             missing.append(target)
     reasons = []
+    # Translate only explicitly recognized production ledger model labels. Unknown
+    # composite labels are quarantined rather than guessed into a market.
+    model_label = str(row.get("model", "")).strip().upper()
+    explicit_market = str(row.get("market", "")).strip()
+    if not explicit_market and model_label:
+        market_map = {
+            "BTTS_YES": ("BTTS", "YES"),
+            "BTTS_NO": ("BTTS", "NO"),
+            "HOME_1X": ("DOUBLE_CHANCE", "1X"),
+            "AWAY_X2": ("DOUBLE_CHANCE", "X2"),
+        }
+        if model_label in market_map:
+            adapted["market"], adapted["selection"] = market_map[model_label]
+            source_columns["market"] = "model (explicit alias map)"
+            source_columns["selection"] = "model (explicit alias map)"
+        elif model_label.endswith("_U45"):
+            reasons.append("UNSUPPORTED_COMPOSITE_MARKET:" + model_label)
+        else:
+            reasons.append("UNRECOGNIZED_MARKET_LABEL:" + model_label)
     if missing:
         reasons.append("MISSING_REQUIRED_FIELDS:" + ",".join(missing))
     # Preserve the source's original status and values; challenger/shadow rows
