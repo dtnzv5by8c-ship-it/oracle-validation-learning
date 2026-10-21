@@ -10,6 +10,10 @@ on:
       - "tests/test_chronology_leakage.py"
       - "scripts/build_oracle_competition_crosswalk.py"
       - "scripts/audit_oracle_archive_integrity.py"
+      - "scripts/audit_prediction_team_identity.py"
+      - "scripts/audit_prediction_fixture_candidates.py"
+      - "tests/test_prediction_team_identity.py"
+      - "tests/test_prediction_fixture_candidates.py"
       - "scripts/reconstruct_provisional_historical_standings.py"
       - "scripts/build_feature_coverage_matrix.py"
       - "scripts/classify_provider_competition_aliases.py"
@@ -120,6 +124,15 @@ jobs:
             --archive-matches audit-output/match_field_audit.csv \
             --out audit-output/prediction-adapter/team_identity_audit.jsonl \
             --summary audit-output/prediction-adapter/team_identity_summary.json
+
+      - name: Audit exact kickoff fixture candidates (research only)
+        run: |
+          set -euo pipefail
+          python scripts/audit_prediction_fixture_candidates.py \
+            --predictions audit-output/prediction-adapter/accepted.jsonl \
+            --archive-matches audit-output/match_field_audit.csv \
+            --out audit-output/prediction-adapter/fixture_candidate_audit.jsonl \
+            --summary audit-output/prediction-adapter/fixture_candidate_summary.json
 
       - name: Upload reports and feature tables
         uses: actions/upload-artifact@v4
