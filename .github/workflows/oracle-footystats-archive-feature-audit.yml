@@ -59,7 +59,8 @@ jobs:
       - name: Reconstruct provisional historical standings (research only)
         run: python scripts/reconstruct_provisional_historical_standings.py --audit-dir audit-output
 
-      - name: Build season-by-season feature coverage matrix (research only)\n        run: python scripts/build_feature_coverage_matrix.py --audit-dir audit-output\n\n      - name: Build provisional competition crosswalk from acquired provider catalogue
+      - name: Build season-by-season feature coverage matrix (research only)
+        run: python scripts/build_feature_coverage_matrix.py --audit-dir audit-output
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
         run: |
