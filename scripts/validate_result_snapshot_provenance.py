@@ -72,13 +72,20 @@ def validate_snapshot(snapshot_path, manifest_path, allowlist_path,
         raise ValueError("ACQUISITION_TIMESTAMP_IN_FUTURE")
     if not isinstance(allowlist.get("approved_sources"), list):
         raise ValueError("ALLOWLIST_APPROVED_SOURCES_REQUIRED")
-    source_ids = {str(x.get("source_id")) for x in allowlist["approved_sources"]
-                  if isinstance(x, dict) and x.get("source_id") and x.get("status") == "approved"}
+    approved = {str(x.get("source_id")): x for x in allowlist["approved_sources"]
+                if isinstance(x, dict) and x.get("source_id") and x.get("status") == "approved"}
     source_id = str(manifest["source_id"])
-    if source_id not in source_ids:
+    approved_source = approved.get(source_id)
+    if approved_source is None:
         raise ValueError("SOURCE_NOT_IN_INDEPENDENT_ALLOWLIST")
+    if not approved_source.get("source_uri"):
+        raise ValueError("ALLOWLIST_SOURCE_URI_REQUIRED")
+    if str(approved_source["source_uri"]).rstrip("/") != str(manifest["source_uri"]).rstrip("/"):
+        raise ValueError("SOURCE_URI_DIFFERS_FROM_INDEPENDENT_ALLOWLIST")
 
     rows = load_jsonl(snapshot_path)
+    if not rows:
+        raise ValueError("RESULT_SNAPSHOT_EMPTY")
     accepted, rejected = 0, []
     required = ("fixture_id", "competition_id", "scheduled_kickoff_utc",
                 "home_team_id", "away_team_id", "home_score", "away_score",
