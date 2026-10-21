@@ -1,0 +1,42 @@
+name: Oracle FootyStats Archive Feature Audit (Research Only)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-footystats-archive-feature-audit.yml"
+      - "scripts/build_footystats_archive_features.py"
+
+permissions:
+  contents: read
+
+jobs:
+  archive-feature-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout research repository
+        uses: actions/checkout@v4
+
+      - name: Download private FootyStats archive without new API calls
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=footystats-all-selected-leagues-2024-2026-20261021
+          mkdir -p audit-input
+          gh release download "$TAG" --repo "$TARGET" --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir audit-input
+          test -s audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip
+          sha256sum audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip > audit-input/archive.sha256
+
+      - name: Build archive-wide chronological research features
+        run: python scripts/build_footystats_archive_features.py --archive audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip --out audit-output
+
+      - name: Upload reports and feature tables
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-footystats-archive-feature-audit
+          path: audit-output/
+          if-no-files-found: error
+          retention-days: 30
