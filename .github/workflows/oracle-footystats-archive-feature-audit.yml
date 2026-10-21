@@ -26,6 +26,8 @@ on:
       - "scripts/settle_market_from_final_score.py"
       - "tests/test_score_market_settlement.py"
       - "scripts/build_score_verified_evaluation.py"
+      - "scripts/adapt_oracle_prediction_ledger.py"
+      - "tests/test_oracle_prediction_adapter.py"
       - "tests/test_score_verified_evaluation.py"
       - "scripts/validate_result_snapshot_provenance.py"
       - "tests/test_result_snapshot_provenance.py"
