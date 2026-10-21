@@ -8,6 +8,7 @@ on:
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_footystats_archive_features.py"
       - "scripts/build_oracle_competition_crosswalk.py"
+      - "scripts/audit_oracle_archive_integrity.py"
 
 permissions:
   contents: read
@@ -37,6 +38,9 @@ jobs:
 
       - name: Build archive-wide chronological research features
         run: python scripts/build_footystats_archive_features.py --archive audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip --out audit-output
+
+      - name: Independently audit archive identity and season coverage
+        run: python scripts/audit_oracle_archive_integrity.py --audit-dir audit-output
 
       - name: Build provisional competition crosswalk against protected registry
         env:
