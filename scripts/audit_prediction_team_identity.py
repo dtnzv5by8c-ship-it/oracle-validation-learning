@@ -24,16 +24,15 @@ def read_csv(path):
     with Path(path).open(encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 
-def index_names(archive_rows, side):
-    name_key = "home_team" if side == "home" else "away_team"
-    id_key = "home_team_id" if side == "home" else "away_team_id"
+def index_names(archive_rows):
     idx=defaultdict(list)
     for row in archive_rows:
-        name, ident = row.get(name_key, ""), row.get(id_key, "")
-        if name and ident:
-            idx[normalize(name)].append({"team_id":str(ident),"name":name,
-                                         "league_folder":row.get("league_folder",""),
-                                         "season_folder":row.get("season_folder","")})
+        for name_key, id_key in (("home_team","home_team_id"),("away_team","away_team_id")):
+            name, ident = row.get(name_key, ""), row.get(id_key, "")
+            if name and ident:
+                idx[normalize(name)].append({"team_id":str(ident),"name":name,
+                                             "league_folder":row.get("league_folder",""),
+                                             "season_folder":row.get("season_folder","")})
     return idx
 
 def resolve(name, index):
@@ -55,8 +54,7 @@ def resolve(name, index):
     return {"status":"UNMATCHED","normalized_name":key,"candidate_team_ids":[],"candidate_names":[]}
 
 def audit(predictions, archive_rows, out_jsonl, out_summary):
-    home_index=index_names(archive_rows,"home")
-    away_index=index_names(archive_rows,"away")
+    team_index=index_names(archive_rows)
     output=[]
     counts=Counter()
     for item in predictions:
@@ -64,7 +62,7 @@ def audit(predictions, archive_rows, out_jsonl, out_summary):
         source=item.get("source_row",{})
         home_name=source.get("home_team","")
         away_name=source.get("away_team","")
-        h=resolve(home_name,home_index); a=resolve(away_name,away_index)
+        h=resolve(home_name,team_index); a=resolve(away_name,team_index)
         both = h["status"] in {"EXACT_UNIQUE_MATCH","NORMALIZED_UNIQUE_MATCH"} and a["status"] in {"EXACT_UNIQUE_MATCH","NORMALIZED_UNIQUE_MATCH"}
         same_fixture_candidates=[]
         if both:
