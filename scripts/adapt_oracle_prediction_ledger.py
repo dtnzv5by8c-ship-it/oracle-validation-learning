@@ -26,7 +26,7 @@ ALIASES = {
     "model_version": ("model_version",),
     "model_commit": ("model_commit", "model_code_sha"),
     "archive_release_id": ("archive_release_id", "feature_snapshot_id"),
-    "archive_sha256": ("archive_sha256", "source_manifest_hash"),
+    "archive_sha256": ("archive_sha256",),
 }
 REQUIRED = tuple(ALIASES)
 
@@ -68,6 +68,8 @@ def adapt_row(row, row_number):
             reasons.append("UNRECOGNIZED_MARKET_LABEL:" + model_label)
     if missing:
         reasons.append("MISSING_REQUIRED_FIELDS:" + ",".join(missing))
+    if row.get("source_manifest_hash") and not row.get("archive_sha256"):
+        reasons.append("SOURCE_MANIFEST_HASH_IS_NOT_ARCHIVE_HASH")
     # Preserve the source's original status and values; challenger/shadow rows
     # must not be presented as production predictions.
     model_status = row.get("model_status", "")
