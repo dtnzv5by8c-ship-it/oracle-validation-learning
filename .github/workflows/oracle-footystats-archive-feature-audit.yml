@@ -11,6 +11,7 @@ on:
       - "scripts/audit_oracle_archive_integrity.py"
       - "scripts/reconstruct_provisional_historical_standings.py"
       - "scripts/build_feature_coverage_matrix.py"
+      - "scripts/classify_provider_competition_aliases.py"
 
 permissions:
   contents: read
@@ -69,6 +70,9 @@ jobs:
           set -euo pipefail
           gh api repos/dtnzv5by8c-ship-it/oracle-football-data/contents/config/oracle_major_league_registry_v1.json --jq .content | base64 --decode > audit-input/oracle_major_league_registry_v1.json
           python scripts/build_oracle_competition_crosswalk.py --registry audit-input/oracle_major_league_registry_v1.json --manifest audit-output/manifest_reconciliation.csv --catalogue audit-input/catalogue/extracted/private-catalogue-package/selected_leagues.csv --out audit-output/provisional_competition_crosswalk.csv
+
+      - name: Classify provider competition aliases for human review (research only)
+        run: python scripts/classify_provider_competition_aliases.py --crosswalk audit-output/provisional_competition_crosswalk.csv --out audit-output/provider_competition_alias_decisions.csv
 
       - name: Upload reports and feature tables
         uses: actions/upload-artifact@v4
