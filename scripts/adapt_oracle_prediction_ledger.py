@@ -33,6 +33,8 @@ MARKET_MAP = {
     "BTTS_NO": ("BTTS", "NO"),
     "HOME_1X": ("DOUBLE_CHANCE", "1X"),
     "AWAY_X2": ("DOUBLE_CHANCE", "X2"),
+    "HOME_1X_U45": ("COMPOSITE", "HOME_1X_U45"),
+    "AWAY_X2_U45": ("COMPOSITE", "AWAY_X2_U45"),
 }
 
 def parse_aware(value):
@@ -89,8 +91,6 @@ def adapt_row(row, row_number):
             adapted["market"], adapted["selection"] = MARKET_MAP[model_label]
             source_columns["market"] = "model (explicit alias map)"
             source_columns["selection"] = "model (explicit alias map)"
-        elif model_label.endswith("_U45"):
-            reasons.append("UNSUPPORTED_COMPOSITE_MARKET:" + model_label)
         else:
             reasons.append("UNRECOGNIZED_MARKET_LABEL:" + model_label)
 

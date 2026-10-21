@@ -6,6 +6,14 @@ class PredictionTeamIdentityTests(unittest.TestCase):
     def test_normalize_diacritics_and_club_suffix(self):
         self.assertEqual(normalize("FC Zürich"), "zurich")
 
+    def test_normalization_matches_fixture_audit_prefixes(self):
+        for name in ("HNK Gorica", "NK Gorica", "FK Gorica", "SK Gorica", "AFC Gorica"):
+            with self.subTest(name=name):
+                self.assertEqual(normalize(name), "gorica")
+
+    def test_normalization_removes_common_club_suffix(self):
+        self.assertEqual(normalize("Alpha FC"), "alpha")
+
     def test_unique_match_is_candidate_not_fixture_verification(self):
         predictions=[{"adapted_prediction":{"prediction_id":"p1","fixture_id":"f1","competition_id":"CRO"},
                       "source_row":{"home_team":"Alpha FC","away_team":"Beta"}}]
