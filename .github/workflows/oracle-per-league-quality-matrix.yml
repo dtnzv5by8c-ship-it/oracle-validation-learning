@@ -1,0 +1,150 @@
+name: Build Oracle per-league field and H2H quality matrix
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download existing private FootyStats archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=footystats-all-selected-leagues-2024-2026-20261021
+          gh release download "$TAG" --repo "$TARGET" --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Calculate league-season field coverage and H2H readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,collections,re,hashlib
+          from pathlib import Path
+          root=Path("input")
+          mf=next(root.rglob("ingestion_manifest.csv"),None)
+          if not mf: raise SystemExit("ingestion_manifest.csv missing")
+          with mf.open(encoding="utf-8-sig",newline="") as f: manifest=list(csv.DictReader(f))
+          base=mf.parent
+          rows=[]
+          seen_ids=collections.defaultdict(list)
+          pair_rows=collections.defaultdict(list)
+          total=0
+          all_field_counts=collections.Counter()
+          field_by_league=collections.defaultdict(collections.Counter)
+          league_totals=collections.Counter()
+          errors=[]
+          # Identify JSON file paths by archive layout: leagues/<safe_name>/<year>_<season_id>/matches.json
+          for fp in base.rglob("matches.json"):
+            season_dir=fp.parent.name
+            league=fp.parent.parent.name
+            m=re.match(r"(20\d{2})_",season_dir)
+            year=m.group(1) if m else "unknown"
+            try:
+              data=json.loads(fp.read_text(encoding="utf-8"))
+              if not isinstance(data,list): raise ValueError("matches_not_list")
+            except Exception as e:
+              errors.append({"file":str(fp.relative_to(base)),"error":type(e).__name__}); continue
+            n=len(data); total+=n; league_totals[league]+=n
+            nonnull=collections.Counter()
+            pair_matches=collections.defaultdict(list)
+            for item in data:
+              if not isinstance(item,dict): continue
+              for k,v in item.items():
+                if v not in (None,""):
+                  nonnull[k]+=1; all_field_counts[k]+=1; field_by_league[league][k]+=1
+              fid=next((item.get(k) for k in ("id","match_id","fixture_id","game_id") if item.get(k) not in (None,"")),None)
+              if fid is not None: seen_ids[str(fid)].append(str(fp.relative_to(base)))
+              home=next((item.get(k) for k in ("homeID","home_id","team_a_id","home_team_id") if item.get(k) not in (None,"")),None)
+              away=next((item.get(k) for k in ("awayID","away_id","team_b_id","away_team_id") if item.get(k) not in (None,"")),None)
+              date=next((item.get(k) for k in ("date_unix","kickoff","date","timestamp") if item.get(k) not in (None,"")),None)
+              if home is not None and away is not None:
+                pair=tuple(sorted((str(home),str(away))))
+                pair_matches[pair].append({"date":date,"id":fid,"home":str(home),"away":str(away)})
+                pair_rows[(league,pair)].append({"date":date,"id":fid,"home":str(home),"away":str(away),"year":year})
+            # field coverage per season; these are source payload non-null checks, not as-of-kickoff guarantees
+            fields=["id","date_unix","homeID","awayID","homeGoals","awayGoals","homeGoalCount","awayGoalCount","team_a_xg_prematch","team_b_xg_prematch","total_xg_prematch","team_a_shots","team_b_shots","team_a_corners","team_b_corners","status"]
+            record={"league_folder":league,"season_start_year":year,"season_folder":season_dir,"match_records":n}
+            for k in fields:
+              record[k+"_pct"]=round(100*nonnull[k]/n,2) if n else 0
+            rows.append(record)
+          # Pair counts across seasons, by league; stable IDs assumed only for this exploratory count.
+          pair_count_by_league=collections.Counter()
+          pairs5=[]
+          for (league,pair), meetings in pair_rows.items():
+            if len(meetings)>=5:
+              pair_count_by_league[league]+=1
+              dates=[x["date"] for x in meetings]
+              pairs5.append({"league_folder":league,"team_a_id":pair[0],"team_b_id":pair[1],"meeting_count":len(meetings),"all_dates_present":all(x not in (None,"") for x in dates),"chronology_validated":False})
+          summary={
+            "status":"PER_LEAGUE_QUALITY_MATRIX_BUILT",
+            "manifest_rows":len(manifest),
+            "manifest_league_names":len(set(x.get("provider_league_name","") for x in manifest)),
+            "season_json_files_audited":len(rows),
+            "match_records_audited":total,
+            "distinct_fixture_ids":len(seen_ids),
+            "duplicate_fixture_id_keys":sum(1 for k,v in seen_ids.items() if len(v)>1),
+            "leagues_with_at_least_one_5plus_h2h_pair":len(pair_count_by_league),
+            "team_pairs_5plus_by_league":dict(pair_count_by_league),
+            "global_field_nonnull_pct":{k:round(100*v/total,2) if total else 0 for k,v in all_field_counts.items()},
+            "parse_errors":errors,
+            "production_readiness":"NOT_ASSESSED",
+            "caveats":["Coverage is measured from non-null fields in stored payloads and may include scheduled fixtures.","H2H counts are based on team IDs in the same provider competition and combine the included seasons; chronology, neutral venue, team-ID continuity and pre-kickoff cut-off are not validated.","A 2026 season folder can be incomplete because the season is in progress.","No API calls made; this is a read-only audit of the private archive."]
+          }
+          out=Path("quality-matrix"); out.mkdir()
+          for name, data, fields in [
+            ("league_season_field_coverage.csv",rows,None),
+            ("h2h_5plus_pairs_by_league.csv",pairs5,["league_folder","team_a_id","team_b_id","meeting_count","all_dates_present","chronology_validated"])]:
+            with (out/name).open("w",newline="",encoding="utf-8") as f:
+              if fields is None: fields=list(rows[0].keys()) if rows else ["league_folder"]
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(data)
+          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          # Per-league Markdown rollup
+          byleague=collections.defaultdict(list)
+          for r in rows: byleague[r["league_folder"]].append(r)
+          md=["# Oracle per-league field and H2H quality matrix","",
+              f"Manifest leagues: {summary['manifest_league_names']}; season files audited: {len(rows)}; match records: {total}; duplicate fixture-ID keys: {summary['duplicate_fixture_id_keys']}.",
+              "",
+              "| Provider league folder | Match records | Seasons present | Home xG non-null | Away xG non-null | Total xG non-null | 5+ H2H pairs |",
+              "|---|---:|---|---:|---:|---:|---:|"]
+          for league,rr in sorted(byleague.items()):
+            cnt=sum(x["match_records"] for x in rr)
+            years=";".join(sorted({x["season_start_year"] for x in rr}))
+            denom=cnt or 1
+            home=round(sum((x["team_a_xg_prematch_pct"]*x["match_records"]/100) for x in rr)/denom*100,2)
+            away=round(sum((x["team_b_xg_prematch_pct"]*x["match_records"]/100) for x in rr)/denom*100,2)
+            totalxg=round(sum((x["total_xg_prematch_pct"]*x["match_records"]/100) for x in rr)/denom*100,2)
+            md.append(f"| {league} | {cnt} | {years} | {home}% | {away}% | {totalxg}% | {pair_count_by_league[league]} |")
+          md += ["","## Interpretation","",
+                 "- Field percentages describe non-null source values only; they do not establish that values are correctly timed before kickoff or that xG is comparable across providers.",
+                 "- H2H counts are exploratory. Every H2H row has chronology_validated=false until team identity and date ordering are checked.",
+                 "- Use this report for source readiness only. It does not promote leagues or alter Oracle production."]
+          (out/"oracle_per_league_quality_matrix.md").write_text("\n".join(md)+"\n",encoding="utf-8")
+          print(json.dumps(summary))
+          print("\n".join(md))
+          PY
+
+      - name: Publish quality matrix to private Oracle release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=oracle-per-league-quality-matrix-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Release tag already exists; refusing overwrite."; exit 1
+          fi
+          cd quality-matrix
+          sha256sum *.csv *.json *.md > SHA256SUMS
+          cd ..
+          zip -qr oracle-per-league-quality-matrix.zip quality-matrix
+          gh release create "$TAG" oracle-per-league-quality-matrix.zip --repo "$TARGET" --title "Oracle per-league data quality and H2H matrix 2026-10-21" --notes "Read-only audit of existing private FootyStats archive. Includes per-league/per-season non-null field coverage and exploratory H2H pairs. No API calls and no production changes."
