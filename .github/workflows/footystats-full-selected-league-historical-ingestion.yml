@@ -1,0 +1,152 @@
+name: FootyStats Full Selected-League Historical Ingestion to Private Oracle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ingest-and-transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Verify secrets and private target access
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY is missing."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
+          echo "Required secrets present; private target verified."
+
+      - name: Ingest every selected catalogue league for 2024-2026 seasons
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, re, time, zipfile, hashlib
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+
+          KEY=os.environ["FOOTYSTATS_API_KEY"].strip()
+          BASE="https://api.football-data-api.com/"
+          YEARS=(2024,2025,2026)
+          OUT=Path("private-package")
+          OUT.mkdir()
+          (OUT/"leagues").mkdir()
+          calls=0
+          def api(endpoint, params, retries=4):
+            global calls
+            q=dict(params); q["key"]=KEY
+            for attempt in range(retries):
+              try:
+                req=Request(BASE+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-Full-Catalogue-Historical-Ingestion/1.0"})
+                with urlopen(req,timeout=45) as response:
+                  payload=json.loads(response.read().decode("utf-8"))
+                calls+=1
+                if not isinstance(payload,dict) or payload.get("success") is not True:
+                  raise RuntimeError("provider_success_false")
+                time.sleep(0.15)
+                return payload
+              except HTTPError as e:
+                if e.code in (429,500,502,503,504) and attempt<retries-1:
+                  time.sleep(3*(attempt+1)); continue
+                raise RuntimeError(f"provider_http_{e.code}") from None
+              except Exception as e:
+                if attempt<retries-1 and not isinstance(e,RuntimeError):
+                  time.sleep(2*(attempt+1)); continue
+                if isinstance(e,RuntimeError): raise
+                raise RuntimeError(f"provider_request_{type(e).__name__}") from None
+            raise RuntimeError("retry_exhausted")
+          def start_year(s):
+            m=re.search(r"(19|20)\d{2}",str(s.get("year","")))
+            return int(m.group(0)) if m else 0
+          cat=api("league-list",{"chosen_leagues_only":"true"})
+          catalog=cat.get("data")
+          if not isinstance(catalog,list) or not catalog:
+            raise SystemExit("Catalogue empty or malformed; no package transferred.")
+          mapping=[]; manifest=[]; errors=[]
+          for league in catalog:
+            if not isinstance(league,dict) or not league.get("name"): continue
+            lname=str(league["name"]).strip()
+            lid=league.get("id")
+            seasons=league.get("season",[]) if isinstance(league.get("season"),list) else []
+            safe_name=re.sub(r"[^A-Za-z0-9._-]+","_",lname).strip("_")[:80] or "league"
+            season_root=OUT/"leagues"/safe_name
+            season_root.mkdir(parents=True,exist_ok=True)
+            for season in seasons:
+              if not isinstance(season,dict): continue
+              year=start_year(season)
+              if year not in YEARS or season.get("id") in (None,""): continue
+              sid=str(season["id"]); sy=str(season.get("year",""))
+              mapping.append({"provider_league_name":lname,"provider_league_id":lid,"season_year":sy,"season_start_year":year,"season_id":sid})
+              dest=season_root/f"{year}_{sid}"
+              if dest.exists(): raise SystemExit("Duplicate season destination detected; refusing ambiguous package.")
+              dest.mkdir()
+              row={"provider_league_name":lname,"provider_league_id":lid,"season_year":sy,"season_start_year":year,"season_id":sid}
+              try:
+                first=api("league-matches",{"season_id":sid,"max_per_page":1000,"page":1})
+                matches=first.get("data")
+                if not isinstance(matches,list): raise RuntimeError("matches_not_list")
+                pager=first.get("pager") if isinstance(first.get("pager"),dict) else {}
+                max_page=int(pager.get("max_page") or 1)
+                if max_page<1 or max_page>500: raise RuntimeError("pagination_bounds_rejected")
+                all_matches=list(matches)
+                for page in range(2,max_page+1):
+                  payload=api("league-matches",{"season_id":sid,"max_per_page":1000,"page":page})
+                  batch=payload.get("data")
+                  if not isinstance(batch,list): raise RuntimeError("paged_matches_not_list")
+                  all_matches.extend(batch)
+                teams_payload=api("league-teams",{"season_id":sid,"include":"stats"})
+                tables_payload=api("league-tables",{"season_id":sid})
+                stats_payload=api("league-season",{"season_id":sid})
+                teams=teams_payload.get("data")
+                (dest/"matches.json").write_text(json.dumps(all_matches,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+                (dest/"teams.json").write_text(json.dumps(teams,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+                (dest/"tables.json").write_text(json.dumps(tables_payload.get("data"),ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+                (dest/"season_stats.json").write_text(json.dumps(stats_payload.get("data"),ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+                manifest.append({**row,"status":"INGESTED","match_count":len(all_matches),"team_count":len(teams) if isinstance(teams,list) else 0,"matches_pages":max_page,"tables_status":"SUCCESS","season_stats_status":"SUCCESS"})
+              except Exception as e:
+                errors.append({**row,"error":str(e)})
+                manifest.append({**row,"status":"FAILED","match_count":0,"team_count":0,"error":str(e)})
+                # Stop early on rate limits or authentication issues instead of spending further credits.
+                if str(e).startswith("provider_http_429") or str(e).startswith("provider_http_401") or str(e).startswith("provider_http_403"):
+                  raise SystemExit("Provider rate limit or authorization failure; partial package retained for diagnostics, transfer halted.")
+          def write_csv(path, rows, fields):
+            with path.open("w",newline="",encoding="utf-8") as f:
+              w=csv.DictWriter(f,fieldnames=fields,extrasaction="ignore"); w.writeheader(); w.writerows(rows)
+          write_csv(OUT/"league_season_mapping.csv",mapping,["provider_league_name","provider_league_id","season_year","season_start_year","season_id"])
+          write_csv(OUT/"ingestion_manifest.csv",manifest,["provider_league_name","provider_league_id","season_year","season_start_year","season_id","status","match_count","team_count","matches_pages","tables_status","season_stats_status","error"])
+          (OUT/"ingestion_errors.json").write_text(json.dumps(errors,indent=2)+"\n",encoding="utf-8")
+          summary={"status":"COMPLETED_WITH_GAPS" if errors or any(r["status"]!="INGESTED" for r in manifest) else "COMPLETED","scope":"all provider selected catalogue leagues","catalogue_unique_leagues":len({str(l.get("name","")).strip() for l in catalog if isinstance(l,dict) and l.get("name")}),"season_start_years":list(YEARS),"season_rows_attempted":len(manifest),"season_rows_ingested":sum(r["status"]=="INGESTED" for r in manifest),"season_rows_failed":sum(r["status"]=="FAILED" for r in manifest),"total_match_records":sum(int(r.get("match_count",0) or 0) for r in manifest),"api_requests":calls,"raw_provider_records_private_only":True,"model_logic_changed":False,"production_readiness":"NOT_ASSESSED","limitations":["Only seasons whose provider year contains a 2024, 2025, or 2026 start year are included.","Provider selected catalogue is not the governed Oracle league registry.","Successful endpoint responses do not prove field-level completeness or as-of-kickoff validity."]}
+          (OUT/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          with zipfile.ZipFile("oracle-footystats-all-selected-leagues-2024-2026.zip","w",zipfile.ZIP_DEFLATED) as z:
+            for p in OUT.rglob("*"):
+              if p.is_file(): z.write(p,p.relative_to(OUT.parent))
+          digest=hashlib.sha256(Path("oracle-footystats-all-selected-leagues-2024-2026.zip").read_bytes()).hexdigest()
+          Path("package.sha256").write_text(digest+"  oracle-footystats-all-selected-leagues-2024-2026.zip\n")
+          print(json.dumps({"status":summary["status"],"catalogue_unique_leagues":summary["catalogue_unique_leagues"],"season_rows_attempted":summary["season_rows_attempted"],"season_rows_ingested":summary["season_rows_ingested"],"season_rows_failed":summary["season_rows_failed"],"total_match_records":summary["total_match_records"],"api_requests":summary["api_requests"],"sha256":digest,"production_readiness":"NOT_ASSESSED"}))
+          if summary["season_rows_ingested"]==0: raise SystemExit("No seasons ingested; refusing to transfer empty package.")
+          PY
+
+      - name: Transfer archive only to private Oracle release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=footystats-all-selected-leagues-2024-2026-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Release tag already exists; refusing to overwrite."; exit 1
+          fi
+          gh release create "$TAG" oracle-footystats-all-selected-leagues-2024-2026.zip package.sha256 --repo "$TARGET" --title "FootyStats all selected leagues historical data 2024-2026" --notes "Private historical data package for every selected provider catalogue league with season-start years 2024-2026. Inspect summary.json, league_season_mapping.csv, and ingestion_manifest.csv. Gaps and endpoint limitations are recorded. No Oracle production logic or probabilities changed."
+          echo "Private full-universe archive uploaded; validate the release and manifest before downstream use."
