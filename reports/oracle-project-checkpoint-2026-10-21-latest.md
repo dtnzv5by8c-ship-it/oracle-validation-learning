@@ -169,3 +169,15 @@ Test commit: `3770a7e492cefa7a89c66a183e66f7fc9c5f10e3`
 Workflow integration commit: `76694afe5babf6a86b8909c60f6338cc378fc73d`
 
 Next step is to inspect the workflow run produced by these commits and report real identity candidate counts. Composite markets remain quarantined. No result evaluation should run until exact fixture identity and trusted result evidence pass their gates. No production logic, probabilities, calibration, or registry was changed.
+
+
+## Fixture-level candidate audit added — 2026-10-21
+
+Added research-only `scripts/audit_prediction_fixture_candidates.py` and tests `tests/test_prediction_fixture_candidates.py`. The existing archive workflow now runs this step and includes its script/tests in push-trigger paths. It matches normalized home/away names and exact timezone-aware kickoff, then reports candidate archive fixture IDs, season/league folders, competition-hint consistency and ambiguity. Every row is explicitly marked `fixture_identity_verified=false` and `eligible_for_scoring=false`; no prediction or canonical ID is rewritten.
+
+Commits:
+- Script: `0123284de4e0bf99ac688113f4ae2fc071d04ada`
+- Tests: `280b0969bf8e64955b3ef233196ed7c340659475`
+- Workflow integration: `197c33a9e14a57a93af9f50195a88f25dc4ec4f2`
+
+The workflow should auto-trigger on the workflow-file push. Runtime outcome has not yet been verified. The new step is a candidate audit, not a validated prediction-to-result join. Competition hints are provisional and must be reviewed before any scoring. Existing 84 composite-market rows remain quarantined pending explicit market/settlement semantics. No production logic, probabilities, calibration or registry changed.
