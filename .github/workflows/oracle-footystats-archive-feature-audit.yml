@@ -9,6 +9,7 @@ on:
       - "tests/test_footystats_archive_features.py"
       - "scripts/build_oracle_competition_crosswalk.py"
       - "scripts/audit_oracle_archive_integrity.py"
+      - "scripts/reconstruct_provisional_historical_standings.py"
 
 permissions:
   contents: read
@@ -53,6 +54,9 @@ jobs:
 
       - name: Independently audit archive identity and season coverage
         run: python scripts/audit_oracle_archive_integrity.py --audit-dir audit-output
+
+      - name: Reconstruct provisional historical standings (research only)
+        run: python scripts/reconstruct_provisional_historical_standings.py --audit-dir audit-output
 
       - name: Build provisional competition crosswalk from acquired provider catalogue
         env:
