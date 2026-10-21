@@ -1,0 +1,98 @@
+name: Diagnose governed H2H zero-count anomaly
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-h2h-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download private archive
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release download footystats-all-selected-leagues-2024-2026-20261021 --repo dtnzv5by8c-ship-it/oracle-football-data --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Diagnose team identity, status, date, and repeat pairs
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,collections,datetime
+          from pathlib import Path
+          root=Path("input")
+          mf=next(root.rglob("ingestion_manifest.csv"),None)
+          base=mf.parent
+          folders={"England_Premier_League","England_Championship","England_EFL_League_One","England_EFL_League_Two","Spain_La_Liga","Spain_Segunda_Divisi_n","Germany_Bundesliga","Germany_2._Bundesliga","Italy_Serie_A","Italy_Serie_B","France_Ligue_1","France_Ligue_2","Netherlands_Eredivisie","Netherlands_Eerste_Divisie","Portugal_Liga_NOS","Portugal_LigaPro","Turkey_S_per_Lig","Belgium_Pro_League","Scotland_Premiership","Austria_Bundesliga","Switzerland_Super_League","Poland_Ekstraklasa","Romania_Liga_I","Czech_Republic_First_League","Croatia_Prva_HNL","Ukraine_Ukrainian_Premier_League","South_Africa_Premier_Soccer_League"}
+          status=collections.Counter(); pair_all=collections.Counter(); pair_scored=collections.Counter(); pair_settled=collections.Counter()
+          league_pairs=collections.Counter(); league_records=collections.Counter(); dates=[]; examples=[]
+          def ep(v):
+            try:
+              n=float(v)
+              if n>1e12:n/=1000
+              return int(n) if n>0 else None
+            except:return None
+          def has_score(m):
+            try:
+              if m.get("homeGoals") in (None,"") or m.get("awayGoals") in (None,""):return False
+              float(m["homeGoals"]);float(m["awayGoals"]);return True
+            except:return False
+          for fp in base.rglob("matches.json"):
+            folder=fp.parent.parent.name
+            if folder not in folders:continue
+            try:data=json.loads(fp.read_text(encoding="utf-8"))
+            except:continue
+            for m in data if isinstance(data,list) else []:
+              if not isinstance(m,dict):continue
+              league_records[folder]+=1
+              st=str(m.get("status","")).lower(); status[st]+=1
+              dt=ep(m.get("date_unix"))
+              if dt: dates.append(dt)
+              h=str(m.get("homeID","")).strip();a=str(m.get("awayID","")).strip()
+              if h and a:
+                p=(folder,tuple(sorted((h,a))))
+                pair_all[p]+=1
+                if has_score(m):pair_scored[p]+=1
+                bad=any(x in st for x in ("scheduled","fixture","not started","live","inplay","postponed","cancelled","abandoned"))
+                if has_score(m) and not bad:pair_settled[p]+=1
+                if len(examples)<8:examples.append({"folder":folder,"id":m.get("id"),"date_unix":m.get("date_unix"),"homeID":m.get("homeID"),"awayID":m.get("awayID"),"homeGoals":m.get("homeGoals"),"awayGoals":m.get("awayGoals"),"status":m.get("status")})
+          result={
+            "status":"DIAGNOSTIC_COMPLETE",
+            "matched_folders":len(league_records),
+            "records":sum(league_records.values()),
+            "status_top_20":status.most_common(20),
+            "pair_groups_any_records":len(pair_all),
+            "pair_groups_2plus_records":sum(v>=2 for v in pair_all.values()),
+            "pair_groups_5plus_records":sum(v>=5 for v in pair_all.values()),
+            "pair_groups_2plus_scored":sum(pair_scored.get(k,0)>=2 for k in pair_all),
+            "pair_groups_5plus_scored":sum(pair_scored.get(k,0)>=5 for k in pair_all),
+            "pair_groups_2plus_classified_settled":sum(pair_settled.get(k,0)>=2 for k in pair_all),
+            "pair_groups_5plus_classified_settled":sum(pair_settled.get(k,0)>=5 for k in pair_all),
+            "valid_date_min_utc":datetime.datetime.fromtimestamp(min(dates),datetime.timezone.utc).isoformat() if dates else None,
+            "valid_date_max_utc":datetime.datetime.fromtimestamp(max(dates),datetime.timezone.utc).isoformat() if dates else None,
+            "example_records":examples,
+            "no_raw_keys_or_tokens_logged":True
+          }
+          Path("diagnostic.json").write_text(json.dumps(result,indent=2)+"\n")
+          print(json.dumps(result))
+          PY
+
+      - name: Publish sanitized diagnostic
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=oracle-h2h-diagnostic-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then echo "Diagnostic release already exists; refusing overwrite."; exit 1; fi
+          zip diagnostic.zip diagnostic.json
+          gh release create "$TAG" diagnostic.zip --repo "$TARGET" --title "Oracle H2H diagnostic 2026-10-21" --notes "Sanitized diagnostic for unexpected zero H2H cutoff counts. No provider API calls and no production changes."
