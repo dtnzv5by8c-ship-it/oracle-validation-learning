@@ -66,6 +66,8 @@ def adapt_row(row, row_number):
             reasons.append("UNSUPPORTED_COMPOSITE_MARKET:" + model_label)
         else:
             reasons.append("UNRECOGNIZED_MARKET_LABEL:" + model_label)
+    # Recompute after explicit market alias mapping, which may supply market and selection.
+    missing = [key for key, value in adapted.items() if value in (None, "")]
     if missing:
         reasons.append("MISSING_REQUIRED_FIELDS:" + ",".join(missing))
     if row.get("source_manifest_hash") and not row.get("archive_sha256"):
