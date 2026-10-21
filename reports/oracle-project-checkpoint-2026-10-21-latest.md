@@ -181,3 +181,23 @@ Commits:
 - Workflow integration: `197c33a9e14a57a93af9f50195a88f25dc4ec4f2`
 
 The workflow should auto-trigger on the workflow-file push. Runtime outcome has not yet been verified. The new step is a candidate audit, not a validated prediction-to-result join. Competition hints are provisional and must be reviewed before any scoring. Existing 84 composite-market rows remain quarantined pending explicit market/settlement semantics. No production logic, probabilities, calibration or registry changed.
+
+
+## Current verified status — Run #52 (2026-10-21)
+
+The earlier sections above are chronological notes and include statuses that were accurate at the time but have since been superseded. **Use this section as the current status.**
+
+- [Research workflow Run #52](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39658148278) completed successfully on validation-repository `main`, commit `96bc5d800a0e1cafb53ec795b248fa17a5f7ba15`.
+- Artifact ID `12371679825`, SHA-256 `80a354dcd2b183c1a25416fb5ebfc05d8a32900b7d0c35076abf228d79132fab`.
+- The research-only PR [#14](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/14) has been merged to the **validation/research repository only**. This does not alter production model logic.
+- Archive audit: 35,819 match records across 126 season folders; zero parse errors; 35,819 parseable kickoffs and archive team IDs; 28,491 rows with score and settled status; archive freshness gate passed.
+- Prediction adapter: 210 rows staged, zero quarantined; all 210 remain blocked from evaluation due to missing canonical home and away team IDs.
+- Team-name audit: 150 rows have unique candidates for both team names; 60 remain unresolved. Fixture candidate audit: 105 provisional competition-hint-aligned, 20 competition mismatch/crosswalk gap, 85 without an exact kickoff/team candidate; **zero fixture identities verified and zero rows eligible for scoring**.
+- Crosswalk remains 43 provider competition names, 25 candidate mappings requiring review, 18 unmatched and zero approved mappings. The intended 44-league universe is not reconciled with the 27-league canonical registry.
+- Pre-match xG and odds provenance remain unverified. Canonical production settlement/scorecard evidence still does not support a production accuracy claim.
+
+**Current decision:** archive research audit is complete; historical prediction evaluation and autonomous production readiness remain blocked. Do not report hit rate, Brier score, log loss, calibration or profitability until immutable pre-kickoff predictions, approved exact fixture identities, and independently trusted frozen results pass all gates.
+
+Detailed current report: [Run #52 checkpoint](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/reports/oracle-project-checkpoint-2026-10-21-run52.md).
+
+Next work is a reviewable identity/crosswalk decision table based on the existing audit outputs, followed by authoritative mapping review and trusted result-source setup. Do not silently approve mappings, modify production logic, or purchase provider/API plans. Overall project estimate remains 78%; the successful archive audit does not justify increasing it.
