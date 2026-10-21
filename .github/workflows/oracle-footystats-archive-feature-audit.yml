@@ -27,6 +27,9 @@ on:
       - "tests/test_score_market_settlement.py"
       - "scripts/build_score_verified_evaluation.py"
       - "tests/test_score_verified_evaluation.py"
+      - "scripts/validate_result_snapshot_provenance.py"
+      - "tests/test_result_snapshot_provenance.py"
+      - "docs/oracle-result-source-trust-policy-research-only-2026-10-21.md"
       - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
 permissions:
