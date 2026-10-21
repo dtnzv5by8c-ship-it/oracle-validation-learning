@@ -64,6 +64,19 @@ class OraclePredictionAdapterTests(unittest.TestCase):
         result = adapt_row(row, 2)
         self.assertTrue(any(x.startswith("UNSUPPORTED_COMPOSITE_MARKET:") for x in result["quarantine_reasons"]))
 
+    def test_manifest_hash_is_not_accepted_as_archive_hash(self):
+        row = {
+            "prediction_id":"p6", "fixture_id":"f6", "competition":"ENG_PL",
+            "scheduled_kickoff_utc":"2026-10-22T19:00:00Z", "home_team_id":"h",
+            "away_team_id":"a", "model":"BTTS_YES", "selection":"YES",
+            "raw_probability":"0.65", "prediction_timestamp_utc":"2026-10-22T10:00:00Z",
+            "model_version":"v1", "model_code_sha":"abc", "feature_snapshot_id":"r",
+            "source_manifest_hash":"c"*64, "model_status":"PRODUCTION"
+        }
+        result = adapt_row(row, 2)
+        self.assertTrue(any(x == "SOURCE_MANIFEST_HASH_IS_NOT_ARCHIVE_HASH" for x in result["quarantine_reasons"]))
+        self.assertNotIn("archive_sha256", result["source_columns"])
+
     def test_invalid_probability_quarantined(self):
         row = {"prediction_id":"p3", "fixture_id":"f3", "competition_id":"c",
             "scheduled_kickoff_utc":"2026-10-22T19:00:00Z","home_team_id":"h",
