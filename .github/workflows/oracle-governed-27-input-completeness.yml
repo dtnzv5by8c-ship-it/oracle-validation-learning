@@ -1,0 +1,133 @@
+name: Oracle governed 27 input completeness audit — report only
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-governed-27-input-completeness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Download existing private historical archive
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing from the public research repository."; exit 1; }
+          gh release download footystats-all-selected-leagues-2024-2026-20261021 --repo dtnzv5by8c-ship-it/oracle-football-data --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Build governed 27 input completeness report
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,collections,datetime,hashlib
+          from pathlib import Path
+          root=Path("input")
+          mf=next(root.rglob("ingestion_manifest.csv"),None)
+          if not mf: raise SystemExit("ingestion_manifest.csv missing; archive layout changed.")
+          base=mf.parent
+          registry=[
+          ("ENG_E0","England_Premier_League"),("ENG_E1","England_Championship"),("ENG_E2","England_EFL_League_One"),("ENG_E3","England_EFL_League_Two"),
+          ("ESP_SP1","Spain_La_Liga"),("ESP_SP2","Spain_Segunda_Divisi_n","Spain_Segunda_Division"),("DEU_D1","Germany_Bundesliga"),("DEU_D2","Germany_2._Bundesliga","Germany_2_Bundesliga"),
+          ("ITA_I1","Italy_Serie_A"),("ITA_I2","Italy_Serie_B"),("FRA_F1","France_Ligue_1"),("FRA_F2","France_Ligue_2"),
+          ("NLD_N1","Netherlands_Eredivisie"),("NLD_N2","Netherlands_Eerste_Divisie"),("PRT_P1","Portugal_Liga_NOS","Portugal_Primeira_Liga"),("PRT_P2","Portugal_LigaPro","Portugal_Liga_Pro"),
+          ("TUR_T1","Turkey_S_per_Lig","Turkey_Super_Lig"),("BEL_B1","Belgium_Pro_League"),("SCO_SC0","Scotland_Premiership"),("AUT_A1","Austria_Bundesliga"),("CHE_S1","Switzerland_Super_League"),
+          ("POL_P1","Poland_Ekstraklasa"),("ROU_R1","Romania_Liga_I"),("CZE_CZ1","Czech_Republic_First_League"),("HRV_HR1","Croatia_Prva_HNL"),("UKR_UA1","Ukraine_Ukrainian_Premier_League"),("ZAF_PSL","South_Africa_Premier_Soccer_League")]
+          def epoch(v):
+            try:
+              n=float(v); n=n/1000 if n>1e12 else n
+              return int(n) if n>0 else None
+            except: return None
+          def goal_count(m,side):
+            x=m.get(side+"Goals")
+            if isinstance(x,list): return len(x)
+            if isinstance(x,(int,float)) and x>=0: return int(x)
+            if isinstance(x,str) and x.strip().isdigit(): return int(x.strip())
+            k="homeGoalCount" if side=="home" else "awayGoalCount"
+            x=m.get(k)
+            if isinstance(x,(int,float)) and x>=0:return int(x)
+            if isinstance(x,str) and x.strip().isdigit():return int(x.strip())
+            return None
+          def settled(m):
+            return str(m.get("status","")).lower() in ("complete","completed","finished","ft","full time") and goal_count(m,"home") is not None and goal_count(m,"away") is not None
+          aliases={a:(lid,aliases) for lid,*aliases in registry for a in aliases}
+          rows=[]; errors=[]; all_match_ids=set(); overall=collections.Counter()
+          for fp in base.rglob("matches.json"):
+            folder=fp.parent.parent.name
+            if folder not in aliases: continue
+            lid,alias=aliases[folder]
+            try: data=json.loads(fp.read_text(encoding="utf-8"))
+            except Exception as e:
+              errors.append({"file":str(fp.relative_to(base)),"error":type(e).__name__}); continue
+            if not isinstance(data,list):
+              errors.append({"file":str(fp.relative_to(base)),"error":"not_list"}); continue
+            c=collections.Counter(); dates=[]; ids=[]
+            for m in data:
+              if not isinstance(m,dict): c["invalid_rows"]+=1; continue
+              c["records"]+=1
+              if settled(m):c["settled"]+=1
+              st=str(m.get("status","")).lower()
+              if st in ("incomplete","scheduled","not started",""):c["non_settled_status"]+=1
+              dt=epoch(m.get("date_unix") or m.get("date") or m.get("kickoff"))
+              if dt:
+                dates.append(dt)
+                if dt>int(datetime.datetime.now(datetime.timezone.utc).timestamp()):c["future_dated"]+=1
+              else:c["missing_date"]+=1
+              mid=str(m.get("id") or m.get("fixture_id") or "")
+              if mid:
+                ids.append(mid)
+                if mid in all_match_ids:c["duplicate_id_across_files"]+=1
+                all_match_ids.add(mid)
+              else:c["missing_id"]+=1
+              for field in ("team_a_xg_prematch","team_b_xg_prematch","total_xg_prematch"):
+                v=m.get(field)
+                try: ok=v is not None and str(v).strip()!="" and float(v)>=0
+                except: ok=False
+                c[field+"_present"]+=int(ok)
+              for field in ("homeID","awayID","home_name","away_name","season","status"):
+                c[field+"_present"]+=int(m.get(field) not in (None,""))
+            rows.append({"league_id":lid,"provider_folder":folder,"records":c["records"],"settled_records":c["settled"],
+              "settled_pct":round(100*c["settled"]/c["records"],2) if c["records"] else None,
+              "prematch_home_xg_pct":round(100*c["team_a_xg_prematch_present"]/c["records"],2) if c["records"] else None,
+              "prematch_away_xg_pct":round(100*c["team_b_xg_prematch_present"]/c["records"],2) if c["records"] else None,
+              "prematch_total_xg_pct":round(100*c["total_xg_prematch_present"]/c["records"],2) if c["records"] else None,
+              "missing_date":c["missing_date"],"future_dated_rows":c["future_dated"],"missing_id":c["missing_id"],
+              "duplicate_id_across_files":c["duplicate_id_across_files"],"missing_home_team_id":c["records"]-c["homeID_present"],
+              "missing_away_team_id":c["records"]-c["awayID_present"],"missing_status":c["records"]-c["status_present"],
+              "min_date_utc":datetime.datetime.fromtimestamp(min(dates),datetime.timezone.utc).isoformat() if dates else "",
+              "max_date_utc":datetime.datetime.fromtimestamp(max(dates),datetime.timezone.utc).isoformat() if dates else ""})
+          found={r["league_id"] for r in rows}
+          for lid,*als in registry:
+            if lid not in found: rows.append({"league_id":lid,"provider_folder":"","records":0,"settled_records":0,"settled_pct":None,"prematch_home_xg_pct":None,"prematch_away_xg_pct":None,"prematch_total_xg_pct":None,"missing_date":None,"future_dated_rows":None,"missing_id":None,"duplicate_id_across_files":None,"missing_home_team_id":None,"missing_away_team_id":None,"missing_status":None,"min_date_utc":"","max_date_utc":""})
+          rows.sort(key=lambda x:x["league_id"])
+          out=Path("oracle-input-completeness");out.mkdir()
+          with (out/"governed_27_input_completeness.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.DictWriter(f,fieldnames=list(rows[0].keys()));w.writeheader();w.writerows(rows)
+          summary={"status":"INPUT_COMPLETENESS_AUDIT_COMPLETED","governed_leagues":27,"leagues_with_matched_provider_folders":len(found),
+            "leagues_with_records":sum(1 for r in rows if r["records"]>0),"records":sum(r["records"] for r in rows),
+            "settled_records":sum(r["settled_records"] or 0 for r in rows),"missing_date":sum(r["missing_date"] or 0 for r in rows),
+            "future_dated_rows":sum(r["future_dated_rows"] or 0 for r in rows),"missing_ids":sum(r["missing_id"] or 0 for r in rows),
+            "duplicate_id_across_files":sum(r["duplicate_id_across_files"] or 0 for r in rows),
+            "xg_field_presence_is_not_point_in_time_proof":True,"production_readiness":"NOT_ASSESSED",
+            "errors":errors,"source_archive":"oracle-footystats-all-selected-leagues-2024-2026-20261021"}
+          (out/"summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          (out/"README.md").write_text("# Oracle governed 27 input completeness audit\n\nRead-only coverage audit of the existing FootyStats archive. It does not call the provider API, change production logic, or establish point-in-time feature validity. Future-dated rows are counted, not automatically treated as errors because the archive includes upcoming fixtures. See CSV for per-league detail. Production readiness remains NOT_ASSESSED.\n",encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          if errors: raise SystemExit("One or more match files could not be parsed; report retained for diagnosis.")
+          PY
+
+      - name: Publish report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-governed-27-input-completeness
+          path: oracle-input-completeness/
+          if-no-files-found: error
+          retention-days: 30
