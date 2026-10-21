@@ -201,3 +201,18 @@ The earlier sections above are chronological notes and include statuses that wer
 Detailed current report: [Run #52 checkpoint](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/reports/oracle-project-checkpoint-2026-10-21-run52.md).
 
 Next work is a reviewable identity/crosswalk decision table based on the existing audit outputs, followed by authoritative mapping review and trusted result-source setup. Do not silently approve mappings, modify production logic, or purchase provider/API plans. Overall project estimate remains 78%; the successful archive audit does not justify increasing it.
+
+
+## Follow-up identity diagnosis — Run #52 archive rows (2026-10-21)
+
+A second diagnostic compared each of the 42 unique source fixtures against all 35,819 acquired archive match rows using the same conservative normalized home/away team names, ignoring kickoff only for diagnostic purposes. This is a candidate-discovery check, not a fixture-identity approval.
+
+- 25/42 unique source fixtures have exactly one archive candidate at the exact normalized home/away pair and kickoff: 21 provisionally competition-aligned and 4 marked competition mismatch/crosswalk gap.
+- 17/42 unique source fixtures have no exact normalized home-away team pair anywhere in the acquired archive, not merely a kickoff mismatch. These must be checked against the original fixture schedule and authoritative provider/team identifiers; do not create substitute IDs.
+- At prediction-row level, the counts remain 105 provisional competition-aligned rows, 20 competition mismatch/crosswalk-gap rows and 85 rows with no exact kickoff/team candidate (5 market rows per fixture).
+- The archive pair absence could indicate incomplete selected-league/season coverage, source schedule differences, alias/team-identity differences, or a bad upstream fixture row. The current evidence does not distinguish these causes; no one cause is asserted.
+
+A revised review workbook adds a **Missing Pair Diagnostics** tab listing the 17 unresolved fixtures and required next action:
+`Oracle_Run52_Identity_Review_v3.xlsx` (delivered in the conversation). Suggested canonical competition IDs in the workbook are explicitly marked NOT APPROVED and must not be treated as accepted mappings.
+
+Next technical priority is to compare those 17 fixtures with the original prediction-run schedule/manifest and source catalogue team/competition identifiers. If that source does not contain authoritative identifiers, quarantine them. For the 25 candidate fixtures, validate canonical competition/season/team/fixture identity with source evidence before any score join. The result-source allowlist and genuine frozen snapshot remain separate mandatory gates. Production logic and the canonical registry remain unchanged.
