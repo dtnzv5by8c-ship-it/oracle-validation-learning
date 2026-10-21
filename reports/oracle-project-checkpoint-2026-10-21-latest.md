@@ -78,3 +78,12 @@ The current critical path is narrowed to:
 5. If genuine immutable production predictions do not exist, document production historical accuracy as unreconstructable from the available canonical ledgers and start prospective capture only through an explicitly approved, isolated research workflow.
 
 No model logic or production data was changed. No performance metric is established by this checkpoint.
+
+
+## Follow-up static review — hash provenance correction
+
+A further static review found that the adapter previously allowed the prediction ledger's `source_manifest_hash` value to populate the `archive_sha256` field. These are not interchangeable hashes. This mapping has been removed; if the archive hash is absent, the row is quarantined with `SOURCE_MANIFEST_HASH_IS_NOT_ARCHIVE_HASH`. A regression test was added. Code commit: `382d226c8dc716db8d1be2bba1c5e886dfe675de`; test commit: `6ca6edef51e49c9904f1876e843af2d35cd1ba90`.
+
+This is a meaningful correctness fix, but it is **not yet runtime-verified**. The connected GitHub workflow-run lookup returns no runs for these commits (it only exposes pull-request-triggered runs), and combined commit status has no checks. Therefore do not claim the new adapter tests or workflow succeeded. The canonical ledger's known missing UTC kickoff and team IDs mean the adapter is expected to quarantine rows unless an authoritative source supplies those values; this must be confirmed by artifact counts, not assumed.
+
+Immediate next action: verify a workflow run through the repository Actions UI or another authorized Actions endpoint and inspect its artifact. If no run exists, manually dispatch the research-only workflow. Continue no further feature expansion until this run has a confirmed result.
