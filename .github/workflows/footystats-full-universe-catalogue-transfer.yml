@@ -1,0 +1,89 @@
+name: FootyStats Full League Universe Catalogue to Private Oracle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalogue-and-transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify secrets and private target access
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY is missing."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
+          echo "Required secrets present; private target verified."
+
+      - name: Retrieve current selected catalogue and estimate season scope
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, re, time, hashlib
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          key=os.environ['FOOTYSTATS_API_KEY'].strip()
+          url='https://api.football-data-api.com/league-list?'+urlencode({'key':key,'chosen_leagues_only':'true'})
+          try:
+            req=Request(url,headers={'User-Agent':'Oracle-Full-League-Catalogue-Audit/1.0'})
+            with urlopen(req,timeout=30) as resp: payload=json.loads(resp.read().decode('utf-8'))
+          except HTTPError as e:
+            raise SystemExit('Catalogue request failed with HTTP '+str(e.code)+'; response suppressed.')
+          except Exception as e:
+            raise SystemExit('Catalogue request failed ('+type(e).__name__+'); response suppressed.')
+          if not isinstance(payload,dict) or payload.get('success') is not True or not isinstance(payload.get('data'),list):
+            raise SystemExit('Unexpected catalogue response; response suppressed.')
+          root=Path('private-catalogue-package'); root.mkdir()
+          leagues=[]; seasons=[]
+          for league in payload['data']:
+            if not isinstance(league,dict) or not league.get('name'): continue
+            name=str(league['name']).strip()
+            ss=league.get('season',[]) if isinstance(league.get('season'),list) else []
+            leagues.append({'provider_league_name':name,'provider_league_id':league.get('id'),'season_count':len(ss)})
+            for season in ss:
+              if not isinstance(season,dict): continue
+              m=re.search(r'(19|20)\d{2}',str(season.get('year','')))
+              year=int(m.group(0)) if m else None
+              seasons.append({'provider_league_name':name,'provider_league_id':league.get('id'),'season_year':season.get('year'),'season_start_year':year,'season_id':season.get('id'),'selected':season.get('selected'),'country':league.get('country') or league.get('country_name')})
+          with (root/'selected_leagues.csv').open('w',newline='',encoding='utf-8') as f:
+            w=csv.DictWriter(f,fieldnames=list(leagues[0].keys()) if leagues else ['provider_league_name','provider_league_id','season_count']); w.writeheader(); w.writerows(leagues)
+          with (root/'selected_league_seasons.csv').open('w',newline='',encoding='utf-8') as f:
+            fields=['provider_league_name','provider_league_id','season_year','season_start_year','season_id','selected','country']
+            w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(seasons)
+          years=[2024,2025,2026]
+          target=[s for s in seasons if s['season_start_year'] in years]
+          summary={'status':'CATALOGUE_AUDIT_COMPLETE','catalogue_unique_leagues':len({x['provider_league_name'] for x in leagues}),'catalogue_season_rows':len(seasons),'season_rows_2024_2026':len(target),'season_start_years':years,'catalogue_api_calls':1,'full_match_ingestion_performed':False,'data_transferred_to_private_release':True,'production_readiness_assessed':False,'note':'Catalogue counts are provider selected-catalogue counts, not Oracle governed league count. Inspect aliases and estimated full-ingestion request volume before spending further API credits.'}
+          (root/'summary.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(summary))
+          PY
+
+      - name: Create private release with catalogue audit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=footystats-selected-catalogue-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Release already exists; refusing to overwrite."; exit 1
+          fi
+          cd private-catalogue-package
+          sha256sum selected_leagues.csv selected_league_seasons.csv summary.json > SHA256SUMS
+          cd ..
+          zip -qr footystats-selected-catalogue.zip private-catalogue-package
+          gh release create "$TAG" footystats-selected-catalogue.zip --repo "$TARGET" --title "FootyStats selected catalogue audit 2026-10-21" --notes "Private catalogue-only audit. This archive contains provider catalogue metadata, not match payloads. No full historical ingestion was performed and no Oracle production logic changed. Use the summary to estimate ingestion scope before consuming additional API credits."
+          echo "Private catalogue release uploaded."
