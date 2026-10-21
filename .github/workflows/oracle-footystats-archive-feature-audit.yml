@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/oracle-footystats-archive-feature-audit.yml"
+      - "scripts/build_footy_stats_archive_features.py"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_footystats_archive_features.py"
       - "tests/test_chronology_leakage.py"
@@ -17,6 +18,8 @@ on:
       - "tests/test_archive_freshness.py"
       - "scripts/validate_prospective_prediction.py"
       - "tests/test_prospective_prediction.py"
+      - "scripts/validate_prospective_settlement.py"
+      - "tests/test_prospective_settlement.py"
       - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
 permissions:
