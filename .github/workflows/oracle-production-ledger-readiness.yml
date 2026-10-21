@@ -1,0 +1,89 @@
+name: Oracle production ledger readiness audit — public runner
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-production-ledger-readiness.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout research tooling
+        uses: actions/checkout@v4
+      - name: Read governed private ledger branch without private Actions minutes
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" clone --depth 1 --branch fix/epl-btts-team-state-aliases https://github.com/dtnzv5by8c-ship-it/oracle-football-data.git oracle-source
+          echo "SOURCE_COMMIT=$(git -C oracle-source rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Audit canonical ledgers and prediction provenance
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,collections,datetime
+          from pathlib import Path
+          root=Path("oracle-source")
+          names=["PREDICTION_LEDGER.csv","SETTLEMENT_LEDGER.csv","MODEL_SCORECARD.csv","POSTMORTEM_LEDGER.csv","PROBABILITY_ERROR_LEDGER.csv"]
+          candidates=list(root.rglob("PREDICTION_LEDGER.csv"))
+          if not candidates: raise SystemExit("No PREDICTION_LEDGER.csv found in governed branch")
+          # Prefer canonical archive directory; otherwise report discovered location.
+          pred=next((p for p in candidates if p.as_posix().endswith("archive/PREDICTION_LEDGER.csv")),candidates[0])
+          base=pred.parent
+          def read(p):
+            if not p.exists(): return {"exists":False,"rows":0,"headers":[],"status_counts":{},"model_status_counts":{},"unique_fixture_ids":0,"missing_fixture_id":None,"missing_prediction_time":None,"sample_ids":[]}
+            with p.open(encoding="utf-8-sig",newline="") as f:
+              r=csv.DictReader(f); headers=r.fieldnames or []; rows=list(r)
+            fixture_key=next((k for k in ("fixture_id","Fixture ID","match_id","event_id") if k in headers),None)
+            time_key=next((k for k in ("prediction_timestamp","predicted_at","created_at","prediction_time","timestamp_utc") if k in headers),None)
+            status_key=next((k for k in ("model_status","prediction_status","status") if k in headers),None)
+            return {"exists":True,"rows":len(rows),"headers":headers,"status_counts":dict(collections.Counter(str(x.get(status_key,"")) for x in rows)) if status_key else {},
+             "model_status_counts":dict(collections.Counter(str(x.get("model_status","")) for x in rows)) if "model_status" in headers else {},
+             "unique_fixture_ids":len(set(str(x.get(fixture_key,"")).strip() for x in rows if str(x.get(fixture_key,"")).strip())) if fixture_key else None,
+             "missing_fixture_id":sum(not str(x.get(fixture_key,"")).strip() for x in rows) if fixture_key else None,
+             "missing_prediction_time":sum(not str(x.get(time_key,"")).strip() for x in rows) if time_key else None,
+             "sample_ids":list(dict.fromkeys(str(x.get(fixture_key,"")).strip() for x in rows if fixture_key and str(x.get(fixture_key,"")).strip()))[:5]}
+          files={}
+          for name in names:
+            p=base/name
+            if not p.exists():
+              found=list(root.rglob(name))
+              p=next((x for x in found if x.parent==base),found[0] if found else p)
+            files[name]=read(p)
+            files[name]["path"]=str(p.relative_to(root)) if p.exists() else None
+          prediction=files["PREDICTION_LEDGER.csv"]
+          settlements=files["SETTLEMENT_LEDGER.csv"]
+          # Keep claims strictly about actual source ledger contents; do not infer production performance.
+          production_rows=sum(1 for k,v in prediction.get("model_status_counts",{}).items() if k.upper()=="PRODUCTION" or k.upper()=="LIVE")
+          summary={"status":"PRODUCTION_LEDGER_READINESS_AUDIT_COMPLETED","source_branch":"fix/epl-btts-team-state-aliases",
+            "source_commit":__import__("os").environ.get("SOURCE_COMMIT"),"source_ledger_directory":str(base.relative_to(root)),
+            "ledgers":files,"production_or_live_prediction_rows":production_rows,
+            "settled_ledger_has_rows":bool(settlements.get("rows",0)),
+            "production_accuracy_calculable_from_canonical_ledgers":bool(production_rows and settlements.get("rows",0)),
+            "production_readiness":"NOT_ASSESSED",
+            "note":"Row presence alone does not prove valid prediction-to-settlement pairing. Production accuracy requires exact fixture/market/model joins, immutable pre-kickoff prediction timestamps, verified settled outcomes, and leakage-safe feature provenance."}
+          out=Path("oracle-ledger-readiness");out.mkdir()
+          (out/"summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          with (out/"ledger_counts.csv").open("w",newline="",encoding="utf-8") as f:
+            w=csv.writer(f);w.writerow(["ledger","path","exists","rows","unique_fixture_ids","missing_fixture_id","missing_prediction_time","model_status_counts"])
+            for name,d in files.items():w.writerow([name,d["path"],d["exists"],d["rows"],d["unique_fixture_ids"],d["missing_fixture_id"],d["missing_prediction_time"],json.dumps(d["model_status_counts"],sort_keys=True)])
+          (out/"README.md").write_text("# Oracle production ledger readiness audit\n\nRead-only inspection of canonical ledgers on the governed source branch. This checks existence, row counts, model status labels and timestamp/fixture ID fields. It does not change production files or calculate accuracy unless valid prediction-settlement pairing is available. See summary.json and ledger_counts.csv.\n",encoding="utf-8")
+          print(json.dumps({"status":summary["status"],"source_commit":summary["source_commit"],"source_ledger_directory":summary["source_ledger_directory"],
+            "ledgers":{k:{"path":v["path"],"exists":v["exists"],"rows":v["rows"],"unique_fixture_ids":v["unique_fixture_ids"],"model_status_counts":v["model_status_counts"]} for k,v in files.items()},
+            "production_or_live_prediction_rows":production_rows,"production_accuracy_calculable_from_canonical_ledgers":summary["production_accuracy_calculable_from_canonical_ledgers"],"production_readiness":"NOT_ASSESSED"},indent=2))
+          PY
+      - name: Publish ledger readiness artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-production-ledger-readiness
+          path: oracle-ledger-readiness/
+          if-no-files-found: error
+          retention-days: 30
