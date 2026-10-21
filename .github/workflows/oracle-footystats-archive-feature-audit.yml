@@ -21,6 +21,8 @@ on:
       - "tests/test_prospective_settlement.py"
       - "scripts/summarize_prospective_evaluation.py"
       - "tests/test_prospective_evaluation_summary.py"
+      - "scripts/verify_prospective_evaluation_provenance.py"
+      - "tests/test_prospective_evaluation_provenance.py"
       - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
 permissions:
