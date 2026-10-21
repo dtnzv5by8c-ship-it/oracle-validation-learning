@@ -39,12 +39,25 @@ A research-only policy document defines the required independent allowlist, acqu
 
 Policy: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/docs/oracle-result-source-trust-policy-research-only-2026-10-21.md
 
+## New work in this checkpoint — prediction-ledger adapter
+
+A research-only adapter was added:
+- `scripts/adapt_oracle_prediction_ledger.py`
+- `tests/test_oracle_prediction_adapter.py`
+
+The adapter preserves the original CSV row, records source-column mappings, and separates schema-adaptable rows from quarantined rows. It does not infer team IDs, convert local kickoff strings to UTC, or treat challenger rows as production. Invalid probabilities, missing required identifiers, missing timezone-aware timestamps, and non-production status are quarantined with explicit reasons.
+
+The research workflow was updated to read the canonical prediction ledger from the existing private branch `fix/epl-btts-team-state-aliases`, run the adapter, and include its outputs in the research artifact. Workflow trigger update commit: `4f12cda672552986f442683d7490cb29ff901585`. The resulting workflow run and adapter counts have **not yet been independently verified in this checkpoint**; do not interpret the commit as proof that the workflow passed.
+
+Code: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/scripts/adapt_oracle_prediction_ledger.py
+Tests: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/tests/test_oracle_prediction_adapter.py
+
 ## Next actions
-1. Prepare a separately reviewed allowlist and genuine frozen result snapshot before attempting a real provenance validation.
-2. Audit the actual immutable prediction exports and available settlement/result records, keeping research and production/challenger records separate.
-3. Implement a deterministic adapter from the real prediction ledger format into the evaluation schema, preserving raw values and source hashes.
-4. Run evaluation only where both the prediction and result evidence pass the gates; publish coverage/exclusion counts alongside any metrics.
+1. Verify the workflow triggered by the adapter integration commit; inspect test results and the adapter artifact.
+2. Confirm actual accepted/quarantined row counts and quarantine reasons from the canonical ledger; correct adapter field mappings only when the source schema supports them.
+3. Obtain a separately reviewed allowlist and genuine frozen result snapshot before attempting real source-provenance validation.
+4. Run evaluation only on prediction/result pairs that pass all gates; publish coverage and exclusion counts alongside any metrics.
 5. Review provider competition mappings and reconcile the intended league universe only with authoritative evidence.
 
 ## Progress estimate
-Project-management estimate: 78% for research audit infrastructure and groundwork. This is not model accuracy, production readiness, or a claim that the end-to-end autonomous prediction/settlement/evaluation pipeline is complete.
+Project-management estimate: 78% for research audit infrastructure and groundwork before this adapter integration. The adapter implementation and workflow integration are additional progress, but the overall percentage is held at 78% until the new workflow run and artifact are verified. This is not model accuracy, production readiness, or a claim that the end-to-end autonomous prediction/settlement/evaluation pipeline is complete.
