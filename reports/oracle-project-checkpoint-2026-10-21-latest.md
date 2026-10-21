@@ -216,3 +216,26 @@ A revised review workbook adds a **Missing Pair Diagnostics** tab listing the 17
 `Oracle_Run52_Identity_Review_v3.xlsx` (delivered in the conversation). Suggested canonical competition IDs in the workbook are explicitly marked NOT APPROVED and must not be treated as accepted mappings.
 
 Next technical priority is to compare those 17 fixtures with the original prediction-run schedule/manifest and source catalogue team/competition identifiers. If that source does not contain authoritative identifiers, quarantine them. For the 25 candidate fixtures, validate canonical competition/season/team/fixture identity with source evidence before any score join. The result-source allowlist and genuine frozen snapshot remain separate mandatory gates. Production logic and the canonical registry remain unchanged.
+
+
+## Follow-up diagnostic — missing fixture pairs (2026-10-21)
+
+A second comparison was performed against the exact Run #52 archive artifact, using normalized home/away team pairs independent of kickoff. This narrows the previous 42-fixture review:
+- 25 unique fixtures have one exact normalized team-pair candidate at the expected timezone-aware kickoff.
+- 21 of those are only provisionally competition-hint-aligned.
+- 4 have a competition mismatch/crosswalk gap.
+- 17 have no exact normalized home/away team pair anywhere in the acquired archive.
+
+This is a diagnostic finding, not a verified identity join. The 17 may reflect missing archive coverage, source-name/alias differences, schedule/source-row mismatches, or competition/season discrepancies; the current evidence does not distinguish those causes. Do not create IDs or score them by inference.
+
+The review workbook was extended with a `Missing Pair Diagnostics` tab listing the 17 affected fixtures and, where available, archive pair candidates. File produced in the working session: `Oracle_Run52_Identity_Review_v3.xlsx`. It contains 42 unique fixture review rows, 210 prediction-level rows, 43 competition alias review rows, and the missing-pair diagnostic. All approvals remain pending.
+
+## Next actions after Run #52
+
+1. Compare the 17 no-pair fixtures against the original immutable prediction-run schedule and provider fixture/team identifiers. If those records are absent, record an explicit archive-coverage gap and keep the fixtures quarantined.
+2. For the 25 exact kickoff/team candidates, verify canonical competition and season, team IDs, and unique fixture ID against authoritative evidence; provisional folder hints are not approval.
+3. Obtain a genuine frozen result snapshot and an independently reviewed allowlist with separately pinned hashes. No such trust root has been verified yet.
+4. Execute the exact-ID evaluation only for rows that pass every identity, chronology and source-provenance gate; report exclusion reasons before any performance metric.
+5. Validate prospective prediction capture and settlement on a repeatable schedule in research before any separate production-readiness decision.
+
+No production changes, provider API calls, or paid plan changes were made for this follow-up diagnostic. Evaluation remains blocked; no accuracy/calibration/profitability claim is supported.
