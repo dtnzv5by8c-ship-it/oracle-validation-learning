@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
-"""Research-only candidate crosswalk between FootyStats names and Oracle registry.
-
-Candidates are never production-approved automatically. Country prefixes and a
-small explicit alias table help surface likely matches for human review.
-"""
-import argparse
-import csv
-import json
-import re
-import unicodedata
+"""Research-only candidate crosswalk; all matches require human review."""
+import argparse, csv, json, re, unicodedata
 from pathlib import Path
 
-COUNTRY_PREFIXES = (
-    "argentina", "austria", "belgium", "brazil", "croatia", "czech republic",
-    "england", "france", "germany", "greece", "italy", "mexico", "netherlands",
-    "norway", "poland", "portugal", "qatar", "romania", "saudi arabia",
-    "scotland", "south africa", "spain", "switzerland", "turkey", "usa", "ukraine",
-)
+# Explicit full-name aliases only. Never strip a country prefix generically:
+# that can falsely map e.g. Brazil Serie A to Italy's Serie A.
 ALIASES = {
     "austria bundesliga": "austrian bundesliga",
     "belgium pro league": "belgian pro league",
@@ -24,13 +12,26 @@ ALIASES = {
     "czech republic first league": "czech first league",
     "england efl league one": "league one",
     "england efl league two": "league two",
+    "england championship": "championship",
+    "england premier league": "premier league",
+    "france ligue 1": "ligue 1",
+    "france ligue 2": "ligue 2",
+    "germany bundesliga": "bundesliga",
+    "germany 2 bundesliga": "2 bundesliga",
+    "italy serie a": "serie a",
+    "italy serie b": "serie b",
+    "netherlands eredivisie": "eredivisie",
+    "netherlands eerste divisie": "eerste divisie",
+    "poland ekstraklasa": "ekstraklasa",
     "portugal liga nos": "primeira liga",
     "portugal ligapro": "liga portugal 2",
-    "saudi arabia professional league": "saudi pro league",
     "scotland premiership": "scottish premiership",
     "south africa premier soccer league": "south african psl",
+    "spain la liga": "la liga",
+    "spain segunda division": "segunda division",
     "turkey super lig": "turkish super lig",
     "ukraine ukrainian premier league": "ukrainian premier league",
+    # Deliberately no Brazil Serie A alias to Italian Serie A.
 }
 
 def norm(value):
@@ -40,13 +41,7 @@ def norm(value):
 
 def candidate_norm(name):
     n = norm(name)
-    # Use normalized original first, then remove a known leading country.
-    stripped = n
-    for country in sorted((norm(x) for x in COUNTRY_PREFIXES), key=len, reverse=True):
-        if stripped.startswith(country + " "):
-            stripped = stripped[len(country) + 1:].strip()
-            break
-    return norm(ALIASES.get(n, ALIASES.get(stripped, stripped)))
+    return norm(ALIASES.get(n, n))
 
 def read_csv(path):
     with Path(path).open(encoding="utf-8-sig", newline="") as f:
@@ -57,7 +52,7 @@ def main():
     p.add_argument("--registry", required=True)
     p.add_argument("--manifest", required=True)
     p.add_argument("--out", required=True)
-    p.add_argument("--catalogue", help="Already acquired provider catalogue CSV; no API call is made.")
+    p.add_argument("--catalogue", help="Previously acquired provider catalogue CSV; no API call.")
     a = p.parse_args()
     reg = json.loads(Path(a.registry).read_text(encoding="utf-8"))
     manifest = read_csv(a.manifest)
@@ -87,38 +82,25 @@ def main():
             state, cid, comp = "AMBIGUOUS_CANONICAL_MATCH", "", "; ".join(x.get("competition", "") for x in matches)
         else:
             state, cid, comp = "UNMATCHED_REQUIRES_REVIEW", "", ""
-        rows.append({
-            "provider_competition_name": name,
-            "normalized_provider_name": norm(name),
-            "candidate_normalized_name": key,
-            "crosswalk_state": state,
-            "candidate_canonical_id": cid,
-            "candidate_canonical_competition": comp,
-            "source_name_type": source_type,
-            "human_approval_required": True,
-            "production_eligibility": "NOT_GRANTED",
-        })
-    out = Path(a.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
+        rows.append({"provider_competition_name": name, "normalized_provider_name": norm(name),
+                     "candidate_normalized_name": key, "crosswalk_state": state,
+                     "candidate_canonical_id": cid, "candidate_canonical_competition": comp,
+                     "source_name_type": source_type, "human_approval_required": True,
+                     "production_eligibility": "NOT_GRANTED"})
+    out = Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
     fields = list(rows[0]) if rows else ["provider_competition_name", "crosswalk_state"]
     with out.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-    summary = {
-        "status": "PROVISIONAL_CROSSWALK_BUILT",
-        "provider_unique_names": len(provider_names),
-        "source_name_type": source_type,
-        "candidate_matches_requiring_review": sum(r["crosswalk_state"] == "CANDIDATE_MATCH_REQUIRES_REVIEW" for r in rows),
-        "ambiguous": sum(r["crosswalk_state"] == "AMBIGUOUS_CANONICAL_MATCH" for r in rows),
-        "unmatched": sum(r["crosswalk_state"] == "UNMATCHED_REQUIRES_REVIEW" for r in rows),
-        "canonical_registry_leagues": len(canonical),
-        "registry_active_universe_count": reg.get("active_universe", {}).get("league_count"),
-        "intended_44_universe_reconciled": False,
-        "warning": "Country-prefix/alias normalization only generates candidates. Human review is required; no production eligibility is granted.",
-    }
-    out.with_suffix(".summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
+    summary = {"status":"PROVISIONAL_CROSSWALK_BUILT", "provider_unique_names":len(provider_names),
+               "source_name_type":source_type,
+               "candidate_matches_requiring_review":sum(r["crosswalk_state"]=="CANDIDATE_MATCH_REQUIRES_REVIEW" for r in rows),
+               "ambiguous":sum(r["crosswalk_state"]=="AMBIGUOUS_CANONICAL_MATCH" for r in rows),
+               "unmatched":sum(r["crosswalk_state"]=="UNMATCHED_REQUIRES_REVIEW" for r in rows),
+               "canonical_registry_leagues":len(canonical),
+               "registry_active_universe_count":reg.get("active_universe",{}).get("league_count"),
+               "intended_44_universe_reconciled":False,
+               "warning":"Full-name aliases generate candidates only. Human review required; no production eligibility granted. Generic country-prefix stripping is intentionally disabled to prevent cross-country false matches."}
+    out.with_suffix(".summary.json").write_text(json.dumps(summary, indent=2)+"\n", encoding="utf-8")
     print(json.dumps(summary))
-
 if __name__ == "__main__":
     main()
