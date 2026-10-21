@@ -47,14 +47,15 @@ A research-only adapter was added:
 
 The adapter preserves the original CSV row, records source-column mappings, and separates schema-adaptable rows from quarantined rows. It does not infer team IDs, convert local kickoff strings to UTC, or treat challenger rows as production. Invalid probabilities, missing required identifiers, missing timezone-aware timestamps, and non-production status are quarantined with explicit reasons.
 
-The research workflow was updated to read the canonical prediction ledger from the existing private branch `fix/epl-btts-team-state-aliases`, run the adapter, and include its outputs in the research artifact. Workflow trigger update commit: `4f12cda672552986f442683d7490cb29ff901585`. The resulting workflow run and adapter counts have **not yet been independently verified in this checkpoint**; do not interpret the commit as proof that the workflow passed.
+The research workflow was updated to read the canonical prediction ledger from the existing private branch `fix/epl-btts-team-state-aliases`, run the adapter, and include its outputs in the research artifact. Workflow integration commit: `4f12cda672552986f442683d7490cb29ff901585`. Follow-up commits added fail-closed handling for unsupported composite market labels (`e7dc615b435758f9e132b71cb63f46da914c6e40`) and regression tests for explicit market aliases and composite-market quarantine (`9d450df9c94ed4e209778c32f6eb76188ab36773`). The resulting workflow run and adapter counts have **not yet been independently verified**; do not interpret these commits as proof that the workflow passed. The available GitHub connector did not return run-listing data in this session, so the workflow run link/status remains unconfirmed.
 
 Code: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/scripts/adapt_oracle_prediction_ledger.py
 Tests: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/tests/test_oracle_prediction_adapter.py
+Workflow: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-footystats-archive-feature-audit.yml
 
 ## Next actions
-1. Verify the workflow triggered by the adapter integration commit; inspect test results and the adapter artifact.
-2. Confirm actual accepted/quarantined row counts and quarantine reasons from the canonical ledger; correct adapter field mappings only when the source schema supports them.
+1. Verify the workflow triggered by the adapter/test commits; inspect test results and the adapter artifact.
+2. Confirm actual accepted/quarantined row counts and quarantine reasons from the canonical ledger; validate market mapping only for explicit known labels.
 3. Obtain a separately reviewed allowlist and genuine frozen result snapshot before attempting real source-provenance validation.
 4. Run evaluation only on prediction/result pairs that pass all gates; publish coverage and exclusion counts alongside any metrics.
 5. Review provider competition mappings and reconcile the intended league universe only with authoritative evidence.
