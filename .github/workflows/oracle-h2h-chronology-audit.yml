@@ -1,0 +1,138 @@
+name: Validate chronological H2H and classify provider competitions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-h2h-chronology-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Download private FootyStats archive
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release download footystats-all-selected-leagues-2024-2026-20261021 --repo dtnzv5by8c-ship-it/oracle-football-data --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
+          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
+
+      - name: Validate match history and H2H chronology
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re,collections,datetime
+          from pathlib import Path
+          root=Path("input")
+          mf=next(root.rglob("ingestion_manifest.csv"),None)
+          if not mf: raise SystemExit("manifest missing")
+          manifest=list(csv.DictReader(mf.open(encoding="utf-8-sig",newline="")))
+          base=mf.parent
+          # These are the six obvious domestic/international cup or super-cup competitions,
+          # not league entries. Keep the original provider names in output for owner review.
+          cup_patterns=[r"copa argentina",r"copa do brasil",r"community shield",r"league cup",r"coppa italia",r"copa del rey"]
+          comp_rows=[]
+          byleague=collections.defaultdict(list)
+          completed_by_pair=collections.defaultdict(list)
+          duplicate_ids=collections.Counter()
+          id_first={}
+          parse_errors=[]
+          total=0; settled=0; with_scores=0; valid_date=0
+          def epoch(v):
+            try:
+              n=float(v)
+              if n>1e12: n/=1000
+              return int(n)
+            except Exception: return None
+          for r in manifest:
+            name=(r.get("provider_league_name") or "").strip()
+            lname=name.lower()
+            typ="CUP_OR_SUPER_CUP" if any(re.search(p,lname) for p in cup_patterns) else "LEAGUE_CANDIDATE"
+            comp_rows.append({"provider_league_name":name,"provider_league_id":r.get("provider_league_id"),"season_year":r.get("season_year"),"season_start_year":r.get("season_start_year"),"ingestion_status":r.get("status"),"match_count_manifest":r.get("match_count"),"competition_type_review":typ,"production_universe_status":"NOT_EVALUATED"})
+          for fp in base.rglob("matches.json"):
+            league=fp.parent.parent.name
+            try: data=json.loads(fp.read_text(encoding="utf-8"))
+            except Exception as e:
+              parse_errors.append({"file":str(fp.relative_to(base)),"error":type(e).__name__}); continue
+            if not isinstance(data,list):
+              parse_errors.append({"file":str(fp.relative_to(base)),"error":"NOT_LIST"}); continue
+            for m in data:
+              if not isinstance(m,dict): continue
+              total+=1
+              fid=str(m.get("id",""))
+              if fid:
+                if fid in id_first: duplicate_ids[fid]+=1
+                else: id_first[fid]=str(fp.relative_to(base))
+              dt=epoch(m.get("date_unix"))
+              h=str(m.get("homeID","")).strip(); a=str(m.get("awayID","")).strip()
+              hg=m.get("homeGoals"); ag=m.get("awayGoals")
+              has_scores=hg not in (None,"") and ag not in (None,"")
+              if has_scores: with_scores+=1
+              # Only regard a record as settled when numeric final score exists and status does not explicitly indicate scheduled/live.
+              status=str(m.get("status","")).lower()
+              status_bad=any(x in status for x in ("scheduled","fixture","not started","live","inplay","postponed","cancelled","abandoned"))
+              is_settled=has_scores and not status_bad
+              if is_settled: settled+=1
+              if dt: valid_date+=1
+              if dt and h and a and is_settled:
+                pair=tuple(sorted((h,a)))
+                completed_by_pair[(league,pair)].append({"date":dt,"fixture_id":fid,"home_id":h,"away_id":a,"home_goals":hg,"away_goals":ag,"status":status})
+          # Per team-pair: verify that chronological sorting is possible and that five settled records exist.
+          pair_rows=[]; pair_counts=collections.Counter(); pair_5=collections.Counter()
+          for (league,pair), meetings in completed_by_pair.items():
+            meetings.sort(key=lambda x:(x["date"],x["fixture_id"]))
+            n=len(meetings); pair_counts[league]+=1
+            if n>=5: pair_5[league]+=1
+            pair_rows.append({"provider_league_folder":league,"team_a_id":pair[0],"team_b_id":pair[1],"settled_meeting_count":n,"first_meeting_utc":datetime.datetime.fromtimestamp(meetings[0]["date"],datetime.timezone.utc).isoformat(),"latest_meeting_utc":datetime.datetime.fromtimestamp(meetings[-1]["date"],datetime.timezone.utc).isoformat(),"has_5plus_settled_meetings":n>=5,"chronology_sortable":True,"target_kickoff_cutoff_checked":False})
+          # Avoid falsely claiming every historical meeting is available for every target fixture;
+          # pair history is chronological but target-specific cutoff still must be applied at report generation.
+          summary={
+            "status":"CHRONOLOGY_AUDIT_COMPLETED",
+            "manifest_rows":len(manifest),
+            "provider_competition_names":len({r.get("provider_league_name","") for r in manifest}),
+            "match_records":total,
+            "records_with_numeric_scores":with_scores,
+            "records_classified_settled":settled,
+            "records_with_valid_epoch_dates":valid_date,
+            "duplicate_fixture_ids":len(duplicate_ids),
+            "duplicate_fixture_id_examples":list(duplicate_ids.keys())[:20],
+            "parse_errors":parse_errors,
+            "team_pairs_with_at_least_5_settled_chronological_meetings":sum(1 for p in pair_rows if p["has_5plus_settled_meetings"]),
+            "leagues_with_at_least_one_5plus_settled_pair":sum(1 for v in pair_5.values() if v>0),
+            "cup_or_supercup_candidates":sum(1 for r in comp_rows if r["competition_type_review"]=="CUP_OR_SUPER_CUP"),
+            "league_candidates_not_cups":sum(1 for r in comp_rows if r["competition_type_review"]=="LEAGUE_CANDIDATE"),
+            "production_readiness":"NOT_ASSESSED",
+            "caveats":["Cup classification uses conservative name patterns and requires owner review; other provider entries may also be cups or special competitions.","Settled classification uses numeric scores and excludes statuses containing scheduled/fixture/not started/live/inplay/postponed/cancelled/abandoned; provider status vocabulary needs review.","H2H meeting counts are within the same provider competition folder and stable provider team IDs.","This audit sorts completed meetings by epoch but does not yet apply target-specific kickoff cutoffs; reporting must use only meetings strictly before each target kickoff.","No provider API calls; archive read-only."]
+          }
+          out=Path("chronology-output"); out.mkdir()
+          with (out/"provider_competition_register.csv").open("w",newline="",encoding="utf-8") as f:
+            fields=list(comp_rows[0].keys()) if comp_rows else ["provider_league_name"]
+            w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(comp_rows)
+          with (out/"chronological_h2h_pairs.csv").open("w",newline="",encoding="utf-8") as f:
+            fields=list(pair_rows[0].keys()) if pair_rows else ["provider_league_folder","team_a_id","team_b_id","settled_meeting_count","has_5plus_settled_meetings","chronology_sortable","target_kickoff_cutoff_checked"]
+            w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(pair_rows)
+          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(summary))
+          PY
+
+      - name: Publish chronological audit to private release
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=oracle-h2h-chronology-audit-20261021
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Release already exists; refusing overwrite."; exit 1
+          fi
+          cd chronology-output
+          sha256sum *.csv *.json > SHA256SUMS
+          cd ..
+          zip -qr oracle-h2h-chronology-audit.zip chronology-output
+          gh release create "$TAG" oracle-h2h-chronology-audit.zip --repo "$TARGET" --title "Oracle chronological H2H audit 2026-10-21" --notes "Read-only chronology and competition-type review of private FootyStats archive. No API calls, no production changes. Target-kickoff H2H cutoff remains a separate reporting requirement."
