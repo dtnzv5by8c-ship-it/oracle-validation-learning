@@ -41,7 +41,12 @@ def build_rows(predictions, results, manifest, results_sha256):
         spec = sources.get(src)
         if not spec or spec.get("approved_for_evaluation") is not True or not spec.get("source_uri"):
             continue
-        utc(r["result_observed_at_utc"])
+        observed_at = utc(r["result_observed_at_utc"])
+        kickoff = utc(r["scheduled_kickoff_utc"])
+        # A result cannot be considered observed before the scheduled fixture kickoff.
+        # This is a chronology guard, not proof that the provider timestamp is authentic.
+        if observed_at < kickoff:
+            raise ValueError("RESULT_OBSERVED_BEFORE_KICKOFF")
         key = fixture_key(r)
         if key in by_fixture and by_fixture[key] != r:
             raise ValueError("CONFLICTING_RESULT_SNAPSHOTS")
