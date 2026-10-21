@@ -44,7 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           gh api repos/dtnzv5by8c-ship-it/oracle-football-data/contents/config/oracle_major_league_registry_v1.json --jq .content | base64 --decode > audit-input/oracle_major_league_registry_v1.json
-          python scripts/build_oracle_competition_crosswalk.py --registry audit-input/oracle_major_league_registry_v1.json --manifest audit-output/season_coverage.csv --out audit-output/provisional_competition_crosswalk.csv
+          python scripts/build_oracle_competition_crosswalk.py --registry audit-input/oracle_major_league_registry_v1.json --manifest audit-output/manifest_reconciliation.csv --out audit-output/provisional_competition_crosswalk.csv
 
       - name: Upload reports and feature tables
         uses: actions/upload-artifact@v4
