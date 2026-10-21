@@ -31,7 +31,7 @@ class ResultSnapshotProvenanceTests(unittest.TestCase):
         self.snapshot.write_text(json.dumps(row or self.row) + "\n", encoding="utf-8")
         self.allowlist.write_text(json.dumps({
             "schema_version": "oracle-result-source-allowlist-v1",
-            "approved_sources": [{"source_id": "official-results", "status": "approved"}]
+            "approved_sources": [{"source_id": "official-results", "status": "approved", "source_uri": "https://example.invalid/results"}]
         }, sort_keys=True), encoding="utf-8")
         self.manifest.write_text(json.dumps({
             "schema_version": "oracle-result-acquisition-manifest-v1",
@@ -99,6 +99,35 @@ class ResultSnapshotProvenanceTests(unittest.TestCase):
         result = self.validate()
         self.assertEqual(result["rows_rejected"], 1)
         self.assertEqual(result["rejected"][0]["reason"], "ROW_SOURCE_DIFFERS_FROM_MANIFEST")
+
+    def test_manifest_source_uri_must_match_independent_allowlist(self):
+        self.manifest.write_text(json.dumps({
+            "schema_version": "oracle-result-acquisition-manifest-v1",
+            "snapshot_id": "snapshot-001",
+            "snapshot_sha256": self.sha(self.snapshot),
+            "acquired_at_utc": "2026-10-02T10:00:00Z",
+            "acquisition_run_id": "workflow-123",
+            "acquisition_method": "manual-export",
+            "source_id": "official-results",
+            "source_uri": "https://impostor.invalid/results"
+        }, sort_keys=True), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "SOURCE_URI_DIFFERS_FROM_INDEPENDENT_ALLOWLIST"):
+            self.validate()
+
+    def test_empty_snapshot_rejected(self):
+        self.snapshot.write_text("", encoding="utf-8")
+        self.manifest.write_text(json.dumps({
+            "schema_version": "oracle-result-acquisition-manifest-v1",
+            "snapshot_id": "snapshot-001",
+            "snapshot_sha256": self.sha(self.snapshot),
+            "acquired_at_utc": "2026-10-02T10:00:00Z",
+            "acquisition_run_id": "workflow-123",
+            "acquisition_method": "manual-export",
+            "source_id": "official-results",
+            "source_uri": "https://example.invalid/results"
+        }, sort_keys=True), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "RESULT_SNAPSHOT_EMPTY"):
+            self.validate()
 
 
 if __name__ == "__main__":
