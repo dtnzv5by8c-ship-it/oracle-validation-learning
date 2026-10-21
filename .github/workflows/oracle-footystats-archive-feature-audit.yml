@@ -25,6 +25,8 @@ on:
       - "tests/test_prospective_evaluation_provenance.py"
       - "scripts/settle_market_from_final_score.py"
       - "tests/test_score_market_settlement.py"
+      - "scripts/build_score_verified_evaluation.py"
+      - "tests/test_score_verified_evaluation.py"
       - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
 permissions:
