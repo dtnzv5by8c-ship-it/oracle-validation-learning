@@ -35,12 +35,12 @@ Important limitations remain: the manifest's approval flag and source URI are no
 - Feature coverage is not equivalent to production eligibility.
 
 ## Source-trust control added in this checkpoint
-A research-only policy document defines the required independent allowlist, acquisition evidence, raw-snapshot hash, fixture reconciliation, audit trail and fail-closed exclusions. A new validator and regression tests were added to the research repository. Workflow #34 is currently running to test the changes. Until it passes and the allowlist is independently pinned/reviewed, source approval remains pending. Structural validation does not independently authenticate a provider.
+A research-only policy document defines the required independent allowlist, acquisition evidence, raw-snapshot hash, fixture reconciliation, audit trail and fail-closed exclusions. A new validator and regression tests were added to the research repository. The validator now requires caller-pinned hashes for the result snapshot, acquisition manifest and independent allowlist; verifies the manifest snapshot hash; requires an approved source ID and exact source URI match against the allowlist; rejects empty snapshots, non-final rows, malformed chronology and row/source mismatches. Workflow #34 passed, and workflow #36 is running after adding regression tests for source-URI mismatch and empty snapshots. Until #36 passes and a real allowlist is independently pinned/reviewed, source approval remains pending. Structural validation does not independently authenticate a provider.
 
 Policy: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/main/docs/oracle-result-source-trust-policy-research-only-2026-10-21.md
 
 ## Next actions
-1. Implement and test an enforced validator that requires a separately pinned allowlist and snapshot evidence; do not treat manifest metadata as proof.
+1. Verify workflow #36 and retain the result-source validator only if all regression tests pass.
 2. Audit the actual immutable prediction exports and available settlement/result records, keeping research and production/challenger records separate.
 3. Implement a deterministic adapter from the real prediction ledger format into the evaluation schema, preserving raw values and source hashes.
 4. Run evaluation only where both the prediction and result evidence pass the gates; publish coverage/exclusion counts alongside any metrics.
