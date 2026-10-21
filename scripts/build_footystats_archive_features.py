@@ -94,7 +94,18 @@ def main():
             if not isinstance(data,list): raise ValueError("matches.json root is not a list")
         except Exception as e:
             file_errors.append({"file":rel,"error":type(e).__name__}); continue
-        season_rows.append({"league_folder":league,"season_folder":season,"season_start_year":season_year,"records":len(data),"file":rel})
+        # Extract provider display names from match records when explicitly present; never infer from folder slugs.
+        name_keys=("league_name","competition_name","leagueName","competitionName","league","competition","league_name_display","competition_name_display")
+        provider_names=[]
+        for item in data:
+            if not isinstance(item,dict): continue
+            value=first(item,name_keys)
+            if isinstance(value,dict): value=first(value,("name","league_name","competition_name","display_name"))
+            if isinstance(value,str) and value.strip() and len(value.strip()) < 160:
+                provider_names.append(value.strip())
+        name_counts=collections.Counter(provider_names)
+        provider_name=name_counts.most_common(1)[0][0] if name_counts else ""
+        season_rows.append({"league_folder":league,"provider_competition_name":provider_name,"provider_name_records":len(provider_names),"season_folder":season,"season_start_year":season_year,"records":len(data),"file":rel})
         for i,d in enumerate(data):
             if not isinstance(d,dict): continue
             for k,v in d.items():
