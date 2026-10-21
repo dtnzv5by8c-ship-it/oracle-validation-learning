@@ -98,6 +98,19 @@ jobs:
       - name: Classify provider competition aliases for human review (research only)
         run: python scripts/classify_provider_competition_aliases.py --crosswalk audit-output/provisional_competition_crosswalk.csv --out audit-output/provider_competition_alias_decisions.csv
 
+      - name: Adapt canonical prediction ledger into research staging (fail closed)
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p audit-input/production-ledger audit-output/prediction-adapter
+          gh api "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/archive/PREDICTION_LEDGER.csv?ref=fix/epl-btts-team-state-aliases" --jq .content | base64 --decode > audit-input/production-ledger/PREDICTION_LEDGER.csv
+          test -s audit-input/production-ledger/PREDICTION_LEDGER.csv
+          python scripts/adapt_oracle_prediction_ledger.py \
+            --input audit-input/production-ledger/PREDICTION_LEDGER.csv \
+            --accepted-out audit-output/prediction-adapter/accepted.jsonl \
+            --quarantine-out audit-output/prediction-adapter/quarantine.jsonl \
+            --summary-out audit-output/prediction-adapter/summary.json
       - name: Upload reports and feature tables
         uses: actions/upload-artifact@v4
         with:
