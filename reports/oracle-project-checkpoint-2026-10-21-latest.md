@@ -239,3 +239,22 @@ The review workbook was extended with a `Missing Pair Diagnostics` tab listing t
 5. Validate prospective prediction capture and settlement on a repeatable schedule in research before any separate production-readiness decision.
 
 No production changes, provider API calls, or paid plan changes were made for this follow-up diagnostic. Evaluation remains blocked; no accuracy/calibration/profitability claim is supported.
+
+
+## Root-cause review — missing canonical team IDs (2026-10-21)
+
+Inspection of the live research adapter confirms the immediate blocker is explicit in the input schema:
+- `scripts/adapt_oracle_prediction_ledger.py` maps `home_team_id` only from a source column named `home_team_id`, and `away_team_id` only from `away_team_id`.
+- When those source fields are absent, it records `MISSING_HOME_TEAM_ID` and `MISSING_AWAY_TEAM_ID` as evaluation blockers. The adapter does not silently substitute team IDs from names.
+- The separate team identity audit can propose archive team IDs from unique normalized names, but marks those as candidates and leaves `fixture_identity_verified=false`. It does not write candidate IDs back into the adapted prediction or canonical ledger.
+
+**Immediate technical root cause:** the prediction export does not supply canonical home/away team IDs in the field names and form the adapter currently accepts. The upstream reason those IDs are absent—and whether authoritative provider IDs exist in the original run schedule/manifest—has not been established from the audited artifacts. Do not bypass this fail-closed behavior by filling IDs from name similarity.
+
+Safe remediation:
+1. Locate the immutable source prediction export and original run manifest.
+2. Check whether they contain stable provider home/away team IDs and fixture/competition IDs under alternate column names. If present, add an explicit research-only schema mapping with regression tests while preserving source columns.
+3. If absent, obtain a reviewed provider team/competition/fixture crosswalk from authoritative identifiers. Name-derived matches remain candidates until competition, season, kickoff and fixture identity are reconciled.
+4. Re-run the research workflow and verify row-level blocker reductions. Do not modify the production ledger, canonical registry or prediction probabilities.
+5. Keep absent or ambiguous identities excluded from scoring.
+
+This explains the immediate missing-ID blocker; it does not resolve the 17 archive team-pair absences or establish trusted result-source provenance. Evaluation remains blocked and no accuracy metrics are warranted.
