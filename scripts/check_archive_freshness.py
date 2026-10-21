@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed freshness gate for the research archive release. No provider calls."""
 import argparse
+import json
 from datetime import datetime, timezone
 
 def parse_utc(value):
@@ -30,7 +31,7 @@ def main():
     if a.max_age_days <= 0:
         raise SystemExit("--max-age-days must be positive")
     try:
-        print(check_freshness(a.published_at, a.now, a.max_age_days))
+        print(json.dumps(check_freshness(a.published_at, a.now, a.max_age_days), sort_keys=True))
     except (ValueError, OverflowError) as e:
         raise SystemExit(str(e))
 if __name__ == "__main__":
