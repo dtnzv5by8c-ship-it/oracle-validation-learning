@@ -199,10 +199,11 @@ def validate_market_output(
         return {"status": "BLOCKED", "errors": ["EXPECTED_MARKETS_EMPTY_OR_DUPLICATED"],
                 "row_count": 0, "fixture_count": 0}
     materialized = list(rows)
-    expected_fixtures = None if expected_fixture_ids is None else {
+    expected_fixture_list = None if expected_fixture_ids is None else [
         str(fixture_id).strip() for fixture_id in expected_fixture_ids
-    }
-    if expected_fixtures is not None and ("" in expected_fixtures or len(expected_fixtures) != len(list(expected_fixture_ids))):
+    ]
+    expected_fixtures = None if expected_fixture_list is None else set(expected_fixture_list)
+    if expected_fixture_list is not None and ("" in expected_fixtures or len(expected_fixtures) != len(expected_fixture_list)):
         return {"status": "BLOCKED", "errors": ["EXPECTED_FIXTURE_IDS_EMPTY_OR_DUPLICATED"],
                 "row_count": len(materialized), "fixture_count": 0}
     errors: list[str] = []
