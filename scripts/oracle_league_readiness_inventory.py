@@ -44,6 +44,19 @@ future_fixture_count = sum(1 for _, dt in valid_kickoffs if dt is not None and d
 unparseable_kickoff_count = sum(1 for _, dt in valid_kickoffs if dt is None)
 latest_fixture_kickoff = max((dt for _, dt in valid_kickoffs if dt is not None), default=None)
 source_columns = set(fixtures[0].keys()) if fixtures else set()
+APPROVED_44_SCOPE = [
+    "SA Premiership", "EPL", "Championship", "La Liga", "Bundesliga", "Serie A",
+    "Ligue 1", "Eredivisie", "Primeira Liga", "Belgium", "Turkey", "Denmark",
+    "Sweden", "Norway", "Finland", "Switzerland", "Austria", "Greece", "Poland",
+    "Czech", "Croatia", "Serbia", "Romania", "Ukraine", "Russia", "Ireland",
+    "Scotland", "MLS", "CPL", "Liga MX", "Brazil Serie A", "Argentina Primera",
+    "Colombia Primera A", "Chile Primera", "Uruguay Primera", "Paraguay Primera",
+    "Ecuador Liga Pro", "Peru Liga 1", "Venezuela Primera", "Australia A-League",
+    "Japan J1", "K League 1", "China CSL", "India ISL",
+]
+def scope_key(value):
+    return "".join(ch.lower() for ch in str(value) if ch.isalnum())
+
 provenance_columns = {"source_name", "source_match_id", "source_match_slug", "source_competition_id", "source_home_team_id", "source_away_team_id", "source_retrieved_utc", "source_record_sha256"}
 missing_provenance_columns = sorted(provenance_columns - source_columns)
 
@@ -78,6 +91,24 @@ with (OUT / "oracle_league_readiness_inventory.csv").open("w", newline="", encod
     writer.writeheader()
     writer.writerows(rows)
 
+registry_names = {scope_key(x.get("competition", "")): x for x in leagues}
+scope_rows = []
+for name in APPROVED_44_SCOPE:
+    exact = registry_names.get(scope_key(name))
+    scope_rows.append({
+        "approved_44_league_name": name,
+        "exact_normalized_registry_match": "YES" if exact else "NO",
+        "matched_registry_id": exact.get("id", "") if exact else "",
+        "matched_registry_competition": exact.get("competition", "") if exact else "",
+        "registry_readiness": exact.get("readiness", "") if exact else "",
+        "mapping_status": "EXACT_NAME_MATCH_REQUIRES_ID_REVIEW" if exact else "UNMAPPED_REQUIRES_HUMAN_REVIEW",
+        "production_eligibility": "NOT_GRANTED",
+    })
+with (OUT / "oracle_approved_44_scope_reconciliation.csv").open("w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=list(scope_rows[0].keys()))
+    writer.writeheader()
+    writer.writerows(scope_rows)
+
 major = memory.get("league_universe", {})
 named_legacy = []
 for group in ("MAJOR", "MINOR"):
@@ -94,7 +125,7 @@ summary = {
     "canonical_registry_status": registry.get("status"),
     "canonical_league_count": len(leagues),
     "canonical_readiness_counts": dict(readiness_counts),
-    "legacy_named_league_count": len(named_legacy),
+    "approved_44_scope_count": len(APPROVED_44_SCOPE),\n    "approved_44_exact_name_matches": sum(1 for x in scope_rows if x["exact_normalized_registry_match"] == "YES"),\n    "approved_44_unmapped_names": sum(1 for x in scope_rows if x["exact_normalized_registry_match"] == "NO"),\n    "legacy_named_league_count": len(named_legacy),
     "legacy_major_count": len(major.get("MAJOR", [])),
     "legacy_minor_count": len(major.get("MINOR", [])),
     "legacy_exotic_discovery_is_placeholder_categories": bool(major.get("EXOTIC_DISCOVERY")),
