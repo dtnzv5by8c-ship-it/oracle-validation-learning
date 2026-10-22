@@ -180,3 +180,66 @@ def run_isolated_leagues(
         "global_preflight_passed": True,
         "execution_scope": "RESEARCH_ONLY_LEAGUE_BATCHES",
     }
+
+
+def validate_market_output(
+    rows: Iterable[dict],
+    *,
+    expected_markets: Iterable[str],
+) -> dict:
+    """Research-only reconciliation for fixture/market output rows.
+
+    Checks schema-level completeness and probability bounds without changing
+    or recalculating any probability. This validator is intended to sit at
+    the research integration boundary after the existing predictor runs.
+    """
+    market_list = list(expected_markets)
+    if not market_list or len(market_list) != len(set(market_list)):
+        return {"status": "BLOCKED", "errors": ["EXPECTED_MARKETS_EMPTY_OR_DUPLICATED"],
+                "row_count": 0, "fixture_count": 0}
+    materialized = list(rows)
+    errors: list[str] = []
+    required = {"fixture_id", "selection", "raw_probability"}
+    for index, row in enumerate(materialized):
+        missing = required - set(row)
+        if missing:
+            errors.append(f"ROW_{index}_MISSING_FIELDS:{','.join(sorted(missing))}")
+    if errors:
+        return {"status": "BLOCKED", "errors": errors,
+                "row_count": len(materialized), "fixture_count": 0}
+
+    seen: set[tuple[str, str]] = set()
+    fixture_markets: dict[str, set[str]] = defaultdict(set)
+    for index, row in enumerate(materialized):
+        fixture_id = str(row["fixture_id"]).strip()
+        market = str(row["selection"]).strip()
+        if not fixture_id or not market:
+            errors.append(f"ROW_{index}_EMPTY_FIXTURE_OR_MARKET")
+            continue
+        key = (fixture_id, market)
+        if key in seen:
+            errors.append(f"DUPLICATE_FIXTURE_MARKET:{fixture_id}:{market}")
+        seen.add(key)
+        fixture_markets[fixture_id].add(market)
+        try:
+            probability = float(row["raw_probability"])
+        except (TypeError, ValueError):
+            errors.append(f"INVALID_PROBABILITY:{fixture_id}:{market}")
+            continue
+        if not 0.0 <= probability <= 1.0:
+            errors.append(f"PROBABILITY_OUT_OF_RANGE:{fixture_id}:{market}")
+    expected = set(market_list)
+    for fixture_id, markets in fixture_markets.items():
+        missing_markets = sorted(expected - markets)
+        unexpected_markets = sorted(markets - expected)
+        if missing_markets:
+            errors.append(f"MISSING_MARKETS:{fixture_id}:{','.join(missing_markets)}")
+        if unexpected_markets:
+            errors.append(f"UNEXPECTED_MARKETS:{fixture_id}:{','.join(unexpected_markets)}")
+    return {
+        "status": "PASS" if not errors else "FAIL",
+        "errors": errors,
+        "row_count": len(materialized),
+        "fixture_count": len(fixture_markets),
+        "expected_market_count": len(market_list),
+    }
