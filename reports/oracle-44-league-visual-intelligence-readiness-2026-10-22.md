@@ -113,3 +113,12 @@ The private repository's `ORACLE_BTTS_YES_MEMORY_PACK.json` defines a legacy lis
 - Measured inventory: 27 canonical leagues (13 CONTROLLED, 14 NOT_INGESTED); 35 named entries in the legacy memory pack; 80 rows in the retained fixture CSV.
 - The 80 retained fixture rows are not proof of current upcoming fixtures. The inventory intentionally labels current/future status and Visual Intelligence coverage as unaudited. No predictions were generated and no production eligibility was granted.
 - The scheduled inventory workflow runs every six hours and produces a downloadable artifact with a CSV per canonical league, the legacy named-universe list, a JSON summary and README.
+
+
+## Freshness/provenance gate added and executed (2026-10-22 04:22 UTC)
+- Updated the public inventory script to parse retained fixture kickoffs against current UTC and list required provider provenance columns.
+- Latest successful run #5: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39721989515
+- Artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39721989515/artifacts/12401621444
+- Observed: 80 retained rows; **0 future fixtures**; latest retained kickoff is 2026-10-17 13:30 UTC; all eight source provenance columns are absent from the current CSV (source name, provider fixture ID, slug, competition ID, home/away team IDs, retrieval time, record fingerprint).
+- This is a concrete upstream blocker: the retained fixture file is stale for upcoming predictions and cannot prove provider identity. The proposed private PR #20 addresses preserving provenance on future ingestion but remains draft and unmerged.
+- Do not produce live predictions from these 80 rows. Next safe step is validate the draft ingestion change against actual provider payload examples and final CSV/manifest/downstream readers, then request approval before any production merge or provider-backed refresh.
