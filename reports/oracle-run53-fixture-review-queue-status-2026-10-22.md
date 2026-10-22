@@ -66,3 +66,17 @@ The research-only identity investigation is complete to the extent of retained e
 - A repository tree audit found retained historical SportMonks canonical fixture and xG payload paths, but those are date-partitioned historical datasets and are not proven raw responses for the 42 prospective source fixtures. They cannot be used to approve those fixtures without an exact, independently verified match.
 - Current safe completion: the diagnosis and review queue are documented; the research audit passes mechanically but has zero eligible scoring rows. The live prediction/settlement and expansion workflows are not healthy based on their latest observed runs. Do not interpret a workflow's successful conclusion as model accuracy.
 - To finish historical validation honestly, the remaining blockers are: (1) authoritative identity evidence for source fixtures, (2) valid production prediction and settlement rows, and (3) a retrievable root-cause log for the scheduled workflow failures. The permanent ingestion/export change is still a separate production-governed change and was not applied.
+
+
+## Visibility and regression milestone update (2026-10-22 04:10 UTC)
+
+- Public research PR #15 adds a repeatable fixture-identity regression workflow: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/15
+- The public workflow retrieves only the proposed ingestion script and regression tests from private PR #20 using the existing repository secret. It does not call any football-data provider APIs, change production code, or spend private-repository Actions minutes.
+- Verified successful public runs:
+  - Run #4, PR-triggered: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39715822257
+  - Run #5, push-triggered with test evidence artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39720726994
+  - Run #6, PR-triggered with test evidence artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39720732512
+- Run #4 logs explicitly show `3 passed in 0.60s`. Runs #5 and #6 completed successfully after the workflow was updated to write a GitHub job summary and upload a 30-day test-evidence artifact.
+- The public workflow is now scheduled every six hours and also supports manual dispatch. This provides ongoing visible regression status in GitHub Actions while the chat is inactive. It is a test heartbeat only, not a claim that the entire Oracle build runs autonomously or that the production prediction/settlement workflows are healthy.
+- Current code review boundary: the tests cover three targeted extractor cases (provider IDs separate from slug; missing IDs remain missing; deterministic fingerprint). Further coverage is still required for alternate provider payload shapes and downstream CSV/manifest output. PR #20 remains a draft and is not merged.
+- Historical fixture review remains blocked at zero verified identities / zero eligible scoring rows in the last verified audit. The regression tests do not resolve old fixture identities or create valid historical production prediction rows.

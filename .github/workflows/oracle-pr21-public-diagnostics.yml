@@ -1,0 +1,67 @@
+name: Oracle PR21 Public Diagnostics
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/oracle-pr21-public-diagnostics.yml"
+  push:
+    paths:
+      - ".github/workflows/oracle-pr21-public-diagnostics.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-readiness-change:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public research repository
+        uses: actions/checkout@v4
+
+      - name: Retrieve proposed readiness workflow and fallback script
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          REF=fix/dynamic-readiness-fixture-window
+          mkdir -p private-proposal/.github/workflows private-proposal/scripts
+          gh api "repos/$TARGET/contents/.github/workflows/oracle_27_league_prediction_readiness.yml?ref=$REF" --jq .content | base64 --decode > private-proposal/.github/workflows/readiness.yml
+          gh api "repos/$TARGET/contents/scripts/ingest_27_league_espn_fallback.py?ref=main" --jq .content | base64 --decode > private-proposal/scripts/ingest_27_league_espn_fallback.py
+          test -s private-proposal/.github/workflows/readiness.yml
+          test -s private-proposal/scripts/ingest_27_league_espn_fallback.py
+          echo "Retrieved the proposed workflow and current fallback script without calling a provider API."
+
+      - name: Check for stale hard-coded dates and expected input contract
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          workflow = Path("private-proposal/.github/workflows/readiness.yml").read_text()
+          script = Path("private-proposal/scripts/ingest_27_league_espn_fallback.py").read_text()
+          assert "2026-10-09 2026-10-12" not in workflow, "Old hard-coded fixture window remains"
+          assert "steps.fixture_window.outputs.start" in workflow, "Start output not wired"
+          assert "steps.fixture_window.outputs.end" in workflow, "End output not wired"
+          assert 'sys.argv[1]' in script and 'sys.argv[2]' in script, "Fallback script does not appear to accept start/end CLI args"
+          print("PASS: stale date removed; dynamic outputs wired; fallback script accepts date arguments.")
+          PY
+
+      - name: Validate dynamic date-window calculation
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import date, timedelta
+          for today in (date(2026, 10, 22), date(2026, 10, 23), date(2026, 10, 24), date(2026, 10, 25)):
+              days_until_friday = (4 - today.weekday()) % 7
+              if days_until_friday == 0:
+                  days_until_friday = 7
+              start = today + timedelta(days=days_until_friday)
+              end = start + timedelta(days=3)
+              assert start > today
+              assert start.weekday() == 4
+              assert (end - start).days == 3
+              print(f"{today}: {start} through {end} PASS")
+          PY

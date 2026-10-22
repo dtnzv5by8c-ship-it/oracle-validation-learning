@@ -1,0 +1,69 @@
+name: Oracle Fixture Identity Regression (Public Research)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+  pull_request:
+    paths:
+      - ".github/workflows/oracle-fixture-identity-regression.yml"
+  push:
+    paths:
+      - ".github/workflows/oracle-fixture-identity-regression.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-identity-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public research repository
+        uses: actions/checkout@v4
+
+      - name: Retrieve proposed ingestion code and tests from private PR branch
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          REF=fix/preserve-fixture-source-identifiers
+          mkdir -p private-checkout/scripts private-checkout/tests
+          gh api "repos/$TARGET/contents/scripts/ingest_upcoming_fixtures.py?ref=$REF" --jq .content | base64 --decode > private-checkout/scripts/ingest_upcoming_fixtures.py
+          gh api "repos/$TARGET/contents/tests/test_ingest_fixture_identity_provenance.py?ref=$REF" --jq .content | base64 --decode > private-checkout/tests/test_ingest_fixture_identity_provenance.py
+          test -s private-checkout/scripts/ingest_upcoming_fixtures.py
+          test -s private-checkout/tests/test_ingest_fixture_identity_provenance.py
+          echo "Retrieved proposed code and tests from private PR branch; no provider API calls are made."
+
+      - name: Install minimal test dependencies
+        run: python -m pip install --disable-pip-version-check pandas requests pytest
+
+      - name: Run fixture identity regression tests and write visible summary
+        run: |
+          set +e
+          python -m pytest private-checkout/tests/test_ingest_fixture_identity_provenance.py -q --junitxml=fixture-identity-test-results.xml | tee fixture-identity-test-output.txt
+          test_rc=${PIPESTATUS[0]}
+          {
+            echo "## Oracle fixture identity regression — expanded duplicate/numeric-ID coverage"
+            echo ""
+            echo "- Repository: public research repository"
+            echo "- Private source branch: fix/preserve-fixture-source-identifiers"
+            echo "- Provider API calls: none"
+            echo "- Test exit code: $test_rc"
+            echo ""
+            echo "Test output:"
+            cat fixture-identity-test-output.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$test_rc"
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-fixture-identity-test-evidence
+          path: |
+            fixture-identity-test-results.xml
+            fixture-identity-test-output.txt
+          if-no-files-found: warn
+          retention-days: 30
