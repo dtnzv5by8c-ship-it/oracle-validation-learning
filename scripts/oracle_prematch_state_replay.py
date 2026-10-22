@@ -53,7 +53,7 @@ def replay(fixtures: list[dict], history: list[dict], aliases: list[dict], leagu
                                         if name == item.get("league", "").strip()), "")
         normalized_history.append(item)
     history = normalized_history
-    alias_map = {
+    alias_map = {}
     for a in aliases:
         key = (a.get("league_code", "").strip(), a.get("fixture_label", "").strip(), a.get("role", "").strip())
         canonical = a.get("canonical_label", "").strip()
