@@ -122,3 +122,18 @@ The private repository's `ORACLE_BTTS_YES_MEMORY_PACK.json` defines a legacy lis
 - Observed: 80 retained rows; **0 future fixtures**; latest retained kickoff is 2026-10-17 13:30 UTC; all eight source provenance columns are absent from the current CSV (source name, provider fixture ID, slug, competition ID, home/away team IDs, retrieval time, record fingerprint).
 - This is a concrete upstream blocker: the retained fixture file is stale for upcoming predictions and cannot prove provider identity. The proposed private PR #20 addresses preserving provenance on future ingestion but remains draft and unmerged.
 - Do not produce live predictions from these 80 rows. Next safe step is validate the draft ingestion change against actual provider payload examples and final CSV/manifest/downstream readers, then request approval before any production merge or provider-backed refresh.
+
+
+## Ingestion code review — additional defects corrected in draft PR #20 (2026-10-22 04:38 UTC)
+A deeper review of the draft ingestion code found two downstream correctness issues beyond the original missing-ID export:
+1. Duplicate fixture rows were deduplicated by keeping the first occurrence, which could discard the row with richer provider identity/provenance. The draft now prefers records with more source identity fields and sorts output duplicates by provenance completeness before deduplication.
+2. The fixture manifest was written before fields such as admitted league count, per-league fixture counts and status counts were populated. The draft now writes the manifest after all summary fields are set, so the retained JSON should match the printed summary.
+3. Added regression cases for duplicate fixtures where only one record carries provider IDs and for numeric provider IDs/team IDs.
+
+Code/test changes are on private draft PR #20 (not merged): https://github.com/dtnzv5by8c-ship-it/oracle-football-data/pull/20
+The public regression workflow was triggered against the updated private branch, run #17: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39723499279
+At checkpoint time, run #17 was queued/in progress; its result has not yet been verified. The original three tests passed, but the expanded suite must pass before claiming this milestone complete.
+
+## Scope and live prediction gate
+Repository search found a legacy 30-league readiness matrix and multiple other historical scopes, but the current canonical production registry and expansion workflow govern 27 active leagues. These different scopes must not be silently conflated into the requested 44. The exact approved 44 list remains unresolved in a governed artifact.
+No live predictions are generated from the retained fixture CSV because the latest audit confirms zero future fixtures and missing source provenance fields. No model probabilities or production settings have been changed.
