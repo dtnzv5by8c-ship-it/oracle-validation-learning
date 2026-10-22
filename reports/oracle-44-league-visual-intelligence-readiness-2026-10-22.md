@@ -137,3 +137,26 @@ At checkpoint time, run #17 was queued/in progress; its result has not yet been 
 ## Scope and live prediction gate
 Repository search found a legacy 30-league readiness matrix and multiple other historical scopes, but the current canonical production registry and expansion workflow govern 27 active leagues. These different scopes must not be silently conflated into the requested 44. The exact approved 44 list remains unresolved in a governed artifact.
 No live predictions are generated from the retained fixture CSV because the latest audit confirms zero future fixtures and missing source provenance fields. No model probabilities or production settings have been changed.
+
+
+## Latest build continuation — exact approved 44-league list recovered (2026-10-22)
+Prior conversation retrieval recovered the explicit approved 44-league scope. It contains the following names, with no canonical IDs supplied in that earlier specification:
+
+SA Premiership; EPL; Championship; La Liga; Bundesliga; Serie A; Ligue 1; Eredivisie; Primeira Liga; Belgium; Turkey; Denmark; Sweden; Norway; Finland; Switzerland; Austria; Greece; Poland; Czech; Croatia; Serbia; Romania; Ukraine; Russia; Ireland; Scotland; MLS; CPL; Liga MX; Brazil Serie A; Argentina Primera; Colombia Primera A; Chile Primera; Uruguay Primera; Paraguay Primera; Ecuador Liga Pro; Peru Liga 1; Venezuela Primera; Australia A-League; Japan J1; K League 1; China CSL; India ISL.
+
+A research-only reconciliation was added to `scripts/oracle_league_readiness_inventory.py`. It writes `oracle_approved_44_scope_reconciliation.csv`, comparing exact normalized names against the current 27-league canonical registry. It intentionally does not infer IDs or automatically map broad country/region labels to provider competitions.
+- Change commit: `38946f64e2cfb140c16e7c085fe614317a6b7c55`
+- Inventory workflow #12: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39734670630
+- Inventory workflow #13: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39734676596
+- Regression workflow #20: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39734676469
+These three runs were still in progress at the time of this checkpoint; do not mark them successful until completed.
+
+Latest confirmed regression run #19 passed all **5** tests in 0.71 seconds, including duplicate-fixture provenance preference and numeric provider-ID preservation: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39723534417
+
+## Next technical gates
+1. Confirm runs #12/#13/#20 and inspect the generated exact-44 reconciliation artifact.
+2. Add isolated tests for CSV/manifest output and compatibility with downstream readers; never call provider APIs inside unit tests.
+3. Before any live refresh, inspect existing ingestion workflow and provider rate/credit constraints. Do not dispatch paid or credit-consuming calls without explicit approval.
+4. Once the ingestion code passes static/output tests, request approval before merging private PR #20 or refreshing the production fixture file.
+5. Build Visual Intelligence joins from already available historical source snapshots first; exact fixture identity and pre-kickoff as-of cutoffs are mandatory.
+6. Keep prediction publication blocked until a fresh future-dated fixture snapshot and existing governed model outputs are available. No production model logic has changed.
