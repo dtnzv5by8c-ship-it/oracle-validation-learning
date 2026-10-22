@@ -288,3 +288,23 @@ A search of the private repository found the canonical ledger schema and the pre
 ### Decision and next step
 
 Run #53 is a successful **research audit**, not a successful evaluation. It confirms that the current data is insufficient for exact identity joins. The next useful step is a research-only diagnostic that compares the 42 source fixture IDs and source schedule rows against the acquired provider catalogue/season manifest, documenting which identities can be linked by authoritative provider identifiers and which remain absent. No further workflow rerun is needed until that source-level diagnostic or a trusted results snapshot changes the evidence. Do not report accuracy/calibration/profitability or production readiness.
+
+
+## Artifact-level continuation review — 2026-10-22
+
+Run #53 artifact was downloaded and inspected directly (artifact ID 12375010712; 51,603,721 bytes). This is a review of the existing artifact; no new provider calls were made.
+
+### Exact fixture-candidate counts
+The 210 staged market rows collapse to 42 distinct source fixtures. At distinct-fixture level:
+- 21 have one provisional archive candidate in a competition-aligned folder.
+- 4 have a competition mismatch/crosswalk gap.
+- 17 have no exact kickoff-and-team candidate.
+- 0 are verified fixture identities; 0 are eligible for scoring.
+
+The first example reviewed is HNK Gorica vs Rudeš, scheduled 2026-10-09 16:00 UTC. The artifact proposes FootyStats fixture ID 8546303 in Croatia_Prva_HNL / season 2026_17087; the team identity audit independently proposes home team ID 1875 (normalized unique candidate) and away team ID 1858 (exact unique candidate). These remain candidates only: the prediction export contains no canonical home/away IDs, and the competition crosswalk is not approved. Do not write these candidates back into the source ledger or score them as verified.
+
+### Root cause status
+The immediate structural cause is confirmed: the exported prediction rows include `fixture_id`, `competition`, `fixture_date`, `kickoff_time`, `home_team`, and `away_team`, but not separate provider/canonical home-team IDs, away-team IDs, or a distinct provider fixture ID. The research adapter intentionally fails closed rather than synthesizing IDs from names. Whether authoritative IDs can be recovered from an upstream source manifest/catalogue is still unproven.
+
+### Next controlled action
+Build a human-review queue for all 42 fixtures, retaining source fixture ID, kickoff, source team names, candidate archive fixture/team IDs, candidate season/competition, candidate status, and explicit approval fields. Keep all candidate IDs unapproved by default. Then trace the original source manifest/catalogue for authoritative provider IDs; if absent, document the required upstream export-schema change as a separate research recommendation. Competition aliases and the 44-vs-27 league-universe reconciliation remain independent review gates. Production eligibility remains NOT_GRANTED.
