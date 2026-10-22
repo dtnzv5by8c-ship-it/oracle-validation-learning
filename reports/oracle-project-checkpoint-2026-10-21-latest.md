@@ -314,3 +314,12 @@ Build a human-review queue for all 42 fixtures, retaining source fixture ID, kic
 Inspection of the private production repository's research publication adapter (`scripts/prepare_prospective_four_market_publication.py`) confirms the source of the ID mismatch: `fixture_id(r)` constructs a local synthetic ID from league code, date, and slugified home/away names. It does not carry a provider fixture ID. The publication schema and canonical ledger schema likewise contain fixture ID and team-name fields, but no separate provider home/away IDs. This explains why the archive join can find candidates but cannot satisfy exact canonical identity gates from the exported prediction rows alone.
 
 This is a schema/provenance gap, not a reason to loosen the research join. The safe fix path is to add source provider fixture/team IDs at the upstream fixture-ingestion/publication boundary, preserve them as separate provenance fields, and backfill only where authoritative source records prove the mapping. That would require a separately reviewed change in the private production repository and must not be implemented as an unapproved production change. Until approved, continue with candidate-only research reporting.
+
+
+## Run #53 review-queue milestone — 2026-10-22
+
+A fixture-level review queue was generated directly from artifact 12375010712 and saved locally for owner review as `oracle-run53-fixture-review-queue.csv` (42 distinct fixture rows, one per source fixture; each represents five market rows). Candidate IDs and team IDs are explicitly labelled as candidates; every row remains unverified, pending human review, and NOT_GRANTED for production eligibility.
+
+The accompanying research status report is committed at `reports/oracle-run53-fixture-review-queue-status-2026-10-22.md`. Distinct-fixture counts are 21 provisional competition-aligned candidates, 4 competition/crosswalk gaps, and 17 without exact kickoff/team candidates. This differs from market-row counts of 105/20/85 in the workflow summary. No fixture was approved or scored.
+
+Upstream inspection confirmed synthetic fixture ID generation in the private publication adapter and absence of separate provider fixture/team IDs in the canonical exported schema. The next unresolved decision is whether authoritative IDs exist in original upstream fixture inputs; if not, a separately reviewed schema change is required. No private production changes were made because this is outside the approved research-only scope. Historical production accuracy remains unavailable/data-gated.
