@@ -186,6 +186,7 @@ def validate_market_output(
     rows: Iterable[dict],
     *,
     expected_markets: Iterable[str],
+    expected_fixture_ids: Iterable[str] | None = None,
 ) -> dict:
     """Research-only reconciliation for fixture/market output rows.
 
@@ -198,6 +199,12 @@ def validate_market_output(
         return {"status": "BLOCKED", "errors": ["EXPECTED_MARKETS_EMPTY_OR_DUPLICATED"],
                 "row_count": 0, "fixture_count": 0}
     materialized = list(rows)
+    expected_fixtures = None if expected_fixture_ids is None else {
+        str(fixture_id).strip() for fixture_id in expected_fixture_ids
+    }
+    if expected_fixtures is not None and ("" in expected_fixtures or len(expected_fixtures) != len(list(expected_fixture_ids))):
+        return {"status": "BLOCKED", "errors": ["EXPECTED_FIXTURE_IDS_EMPTY_OR_DUPLICATED"],
+                "row_count": len(materialized), "fixture_count": 0}
     errors: list[str] = []
     required = {"fixture_id", "selection", "raw_probability"}
     for index, row in enumerate(materialized):
@@ -229,6 +236,13 @@ def validate_market_output(
         if not 0.0 <= probability <= 1.0:
             errors.append(f"PROBABILITY_OUT_OF_RANGE:{fixture_id}:{market}")
     expected = set(market_list)
+    if expected_fixtures is not None:
+        missing_fixtures = sorted(expected_fixtures - set(fixture_markets))
+        unexpected_fixtures = sorted(set(fixture_markets) - expected_fixtures)
+        for fixture_id in missing_fixtures:
+            errors.append(f"MISSING_FIXTURE_OUTPUT:{fixture_id}")
+        for fixture_id in unexpected_fixtures:
+            errors.append(f"UNEXPECTED_FIXTURE_OUTPUT:{fixture_id}")
     for fixture_id, markets in fixture_markets.items():
         missing_markets = sorted(expected - markets)
         unexpected_markets = sorted(markets - expected)
