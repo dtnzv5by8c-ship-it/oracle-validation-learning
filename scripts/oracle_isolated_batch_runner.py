@@ -91,8 +91,18 @@ def run_isolated_leagues(
     """
     global_preflight()  # Integrity/provenance/freshness gates fail closed.
     grouped: dict[str, list[BatchItem]] = defaultdict(list)
-    for item in items:
+    item_list = list(items)
+    for item in item_list:
         grouped[item.league].append(item)
+    if not item_list:
+        return {
+            "status": "NO_FIXTURES",
+            "results": [],
+            "fixture_outcomes": [],
+            "league_summary": {},
+            "global_preflight_passed": True,
+            "execution_scope": "RESEARCH_ONLY_LEAGUE_BATCHES",
+        }
 
     outcomes: list[dict] = []
     results: list[dict] = []
