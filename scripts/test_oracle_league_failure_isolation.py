@@ -5,7 +5,7 @@ These contract tests do not execute the production prediction model or live work
 from dataclasses import dataclass
 import unittest
 
-from scripts.oracle_isolated_batch_runner import BatchItem, run_isolated_batches
+from scripts.oracle_isolated_batch_runner import BatchItem, run_isolated_batches, run_isolated_leagues
 
 @dataclass(frozen=True)
 class Fixture:
@@ -172,6 +172,49 @@ class IsolatedBatchRunnerTests(unittest.TestCase):
         self.assertEqual(report["status"], "SUCCESS")
         self.assertEqual(report["league_summary"]["A"]["PREDICTED"], 2)
 
+
+
+class LeagueBatchIsolationTests(unittest.TestCase):
+    def test_one_failed_league_does_not_block_other_league_batches(self):
+        items = [
+            BatchItem("A1", "A"), BatchItem("A2", "A"),
+            BatchItem("B1", "B"), BatchItem("B2", "B", False, "MISSING_STATE"),
+            BatchItem("C1", "C"),
+        ]
+        def processor(league, ready_items):
+            if league == "B":
+                raise RuntimeError("simulated league source failure")
+            return {item.fixture_id: "test-only" for item in ready_items}
+        report = run_isolated_leagues(items, processor, global_preflight=lambda: None)
+        self.assertEqual(report["status"], "PARTIAL")
+        self.assertEqual({r["fixture_id"] for r in report["results"]}, {"A1", "A2", "C1"})
+        self.assertEqual(report["league_summary"]["B"]["FAILED_PROCESSING"], 1)
+        self.assertEqual(report["league_summary"]["B"]["SKIPPED_DATA_GAP"], 1)
+        self.assertEqual(report["execution_scope"], "RESEARCH_ONLY_LEAGUE_BATCHES")
+
+    def test_missing_output_is_explicit_and_other_leagues_continue(self):
+        items = [BatchItem("A1", "A"), BatchItem("A2", "A"), BatchItem("B1", "B")]
+        def processor(league, ready_items):
+            if league == "A":
+                return {"A1": "test-only"}  # A2 deliberately omitted
+            return {"B1": "test-only"}
+        report = run_isolated_leagues(items, processor, global_preflight=lambda: None)
+        by_id = {row["fixture_id"]: row for row in report["fixture_outcomes"]}
+        self.assertEqual(by_id["A2"]["status"], "FAILED_PROCESSING")
+        self.assertEqual(by_id["A2"]["reason"], "MISSING_RESULT_FROM_LEAGUE_BATCH")
+        self.assertEqual(by_id["B1"]["status"], "PREDICTED")
+
+    def test_global_preflight_stops_all_league_batches(self):
+        called = []
+        def processor(league, ready_items):
+            called.append(league)
+            return {item.fixture_id: "test-only" for item in ready_items}
+        def preflight():
+            raise RuntimeError("stale global source")
+        with self.assertRaisesRegex(RuntimeError, "stale global source"):
+            run_isolated_leagues([BatchItem("A1", "A"), BatchItem("B1", "B")],
+                                 processor, global_preflight=preflight)
+        self.assertEqual(called, [])
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
