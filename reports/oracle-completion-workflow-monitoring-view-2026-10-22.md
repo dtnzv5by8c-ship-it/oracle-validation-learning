@@ -41,5 +41,11 @@ Checkout public runner tooling
 4. Expand any failed step to inspect its error. Download artifacts only if needed.
 5. For the new research tests, open the **Oracle Research Isolation Tests** workflow and check whether the PR-triggered test job is queued, running, or complete.
 
+## Latest research CI check
+- Run #2 for `Oracle Research Isolation Tests`: completed successfully.
+- Run details: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39799690282
+- The `research-contract-tests` job and its `Run date gate and failure isolation tests` step both completed successfully.
+- This validates the deterministic research test suite only, not the live prediction workflow.
+
 ## Important limitations
 The completion workflow currently has one sequential job. It does not yet demonstrate true per-league job isolation. The research test workflow runs only deterministic date-gate/failure-isolation contract tests; it does not invoke live prediction or provider APIs. A live controlled completion check is still required after the orchestration change is implemented and validated.
