@@ -192,6 +192,21 @@ class LeagueBatchIsolationTests(unittest.TestCase):
         self.assertEqual(report["league_summary"]["B"]["SKIPPED_DATA_GAP"], 1)
         self.assertEqual(report["execution_scope"], "RESEARCH_ONLY_LEAGUE_BATCHES")
 
+    def test_duplicate_fixture_ids_fail_only_the_affected_league(self):
+        items = [BatchItem("A1", "A"), BatchItem("A1", "A"), BatchItem("B1", "B")]
+        called = []
+        def processor(league, ready_items):
+            called.append(league)
+            return {item.fixture_id: "test-only" for item in ready_items}
+        report = run_isolated_leagues(items, processor, global_preflight=lambda: None)
+        self.assertEqual(called, ["B"])
+        self.assertEqual(report["league_summary"]["A"]["FAILED_PROCESSING"], 2)
+        self.assertEqual(report["league_summary"]["B"]["PREDICTED"], 1)
+        self.assertTrue(all(
+            o["reason"] == "DUPLICATE_FIXTURE_ID_WITHIN_LEAGUE_BATCH"
+            for o in report["fixture_outcomes"] if o["league"] == "A"
+        ))
+
     def test_missing_output_is_explicit_and_other_leagues_continue(self):
         items = [BatchItem("A1", "A"), BatchItem("A2", "A"), BatchItem("B1", "B")]
         def processor(league, ready_items):
