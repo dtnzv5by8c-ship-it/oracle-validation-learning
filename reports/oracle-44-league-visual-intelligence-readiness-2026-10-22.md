@@ -217,3 +217,10 @@ A static source review was completed against the current production-branch consu
 - Public workflow run `39747921593` (Oracle PR21 Public Diagnostics #2) completed successfully. It fetched the proposed readiness workflow and current fallback script from the private repository using the existing private-repo token, made no provider API calls, confirmed the stale `2026-10-09`–`2026-10-12` window was removed, confirmed dynamic date outputs are wired, checked CLI date arguments, and tested the Friday-to-Monday calculation against several dates.
 - Public 44-league inventory run `39747921378` completed successfully. Public fixture identity regression run `39747921400` was still in progress at last check.
 - This is research-side validation only. It does not prove the private workflow jobs pass, does not refresh fixtures, and does not authorize merging PR #21. The private PR-triggered jobs still fail and expose no logs through the connector.
+
+
+## Follow-up verification (2026-10-22, latest check)
+- Public fixture identity regression workflow run `39747921400` completed successfully; job `fixture-identity-tests` succeeded, including retrieval of the proposed private-PR branch script/test, dependency install, regression test command, and upload of evidence artifact `oracle-fixture-identity-test-evidence` (artifact ID `12411584817`, digest `sha256:9b5a71752b11d5bd0b33e54cb1a3e25db609e7467ec8b6cc9cf59cc5ddd52d1c`).
+- Public readiness diagnostic run `39747921593` also completed successfully.
+- These results validate the focused ingestion regression tests and the static readiness workflow checks only. They do not validate a full live CSV/manifest refresh, downstream consumer compatibility against a real refreshed feed, or the failing private PR workflows. No provider API calls were made and no production model logic was changed.
+- Next gate remains a real, approved-source fixture refresh and end-to-end CSV/manifest/downstream validation; do not merge the ingestion change solely on these focused tests.
