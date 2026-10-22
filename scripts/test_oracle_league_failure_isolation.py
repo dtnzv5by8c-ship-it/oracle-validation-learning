@@ -242,6 +242,32 @@ class LeagueBatchIsolationTests(unittest.TestCase):
         self.assertTrue(any(e.startswith("MISSING_MARKETS") for e in report["errors"]))
         self.assertTrue(any(e.startswith("PROBABILITY_OUT_OF_RANGE") for e in report["errors"]))
 
+    def test_market_output_detects_entire_missing_fixture(self):
+        rows = [
+            {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 0.61},
+            {"fixture_id": "F1", "selection": "BTTS_NO", "raw_probability": 0.39},
+        ]
+        report = validate_market_output(
+            rows, expected_markets=["BTTS_YES", "BTTS_NO"],
+            expected_fixture_ids=["F1", "F2"],
+        )
+        self.assertEqual(report["status"], "FAIL")
+        self.assertIn("MISSING_FIXTURE_OUTPUT:F2", report["errors"])
+
+    def test_market_output_detects_unexpected_fixture(self):
+        rows = [
+            {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 0.61},
+            {"fixture_id": "F1", "selection": "BTTS_NO", "raw_probability": 0.39},
+            {"fixture_id": "EXTRA", "selection": "BTTS_YES", "raw_probability": 0.55},
+            {"fixture_id": "EXTRA", "selection": "BTTS_NO", "raw_probability": 0.45},
+        ]
+        report = validate_market_output(
+            rows, expected_markets=["BTTS_YES", "BTTS_NO"],
+            expected_fixture_ids=["F1"],
+        )
+        self.assertEqual(report["status"], "FAIL")
+        self.assertIn("UNEXPECTED_FIXTURE_OUTPUT:EXTRA", report["errors"])
+
     def test_market_output_blocks_duplicate_expected_market_definition(self):
         report = validate_market_output([], expected_markets=["BTTS_YES", "BTTS_YES"])
         self.assertEqual(report["status"], "BLOCKED")
