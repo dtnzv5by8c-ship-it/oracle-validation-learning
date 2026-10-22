@@ -1,0 +1,25 @@
+name: Oracle Research Isolation Tests
+
+on:
+  pull_request:
+    paths:
+      - "scripts/test_oracle_league_failure_isolation.py"
+      - ".github/workflows/oracle-research-isolation-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research-contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run date gate and failure isolation tests
+        run: python -m unittest scripts.test_oracle_league_failure_isolation -v
