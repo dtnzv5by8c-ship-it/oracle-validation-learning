@@ -13,6 +13,13 @@ import json
 import sys
 from pathlib import Path
 
+# Direct script execution sets sys.path[0] to the scripts directory, not the
+# repository root. Add the root explicitly so the shared research module loads
+# consistently both from the CLI and from the repository test runner.
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
 from scripts.oracle_isolated_batch_runner import validate_market_output
 
 
