@@ -186,3 +186,12 @@ A static source review was completed against the current production-branch consu
 - This is a **static compatibility review only**, not an executed integration test against the proposed branch or an actual generated CSV. Other consumers still require audit, and a full live ingestion run remains unverified.
 - Source: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/cb89e5bd1c24810fe821a6b2c3c2c1c19272b381/scripts/oracle_four_model_live_predict.py
 - PR #20 remains draft and unmerged; no production fixture file was refreshed.
+
+
+## Latest live workflow check (2026-10-22 09:50 SAST)
+- Public research regression workflow run 39740437745: completed successfully.
+- Public research 44-league inventory run 39740437741: completed successfully.
+- Private production repo latest autonomous league expansion run 39742184987: failed in `prepare`; all downstream jobs skipped; no fixture refresh or expansion output from that run.
+- Private production readiness run 39723492326: failed in its `readiness` job. The connector exposes no step summaries/logs for these jobs, so the precise exception is not confirmed and should not be guessed.
+- Private PR #20 is still draft/unmerged; branch head observed as `f20ed60c8d23684c9c00ab82fc6f1e7fd915f4f0`.
+- These failed production workflows mean the successful public research checks must not be interpreted as a live production prediction pass.
