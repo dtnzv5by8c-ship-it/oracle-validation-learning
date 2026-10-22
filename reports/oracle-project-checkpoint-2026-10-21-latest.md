@@ -323,3 +323,11 @@ A fixture-level review queue was generated directly from artifact 12375010712 an
 The accompanying research status report is committed at `reports/oracle-run53-fixture-review-queue-status-2026-10-22.md`. Distinct-fixture counts are 21 provisional competition-aligned candidates, 4 competition/crosswalk gaps, and 17 without exact kickoff/team candidates. This differs from market-row counts of 105/20/85 in the workflow summary. No fixture was approved or scored.
 
 Upstream inspection confirmed synthetic fixture ID generation in the private publication adapter and absence of separate provider fixture/team IDs in the canonical exported schema. The next unresolved decision is whether authoritative IDs exist in original upstream fixture inputs; if not, a separately reviewed schema change is required. No private production changes were made because this is outside the approved research-only scope. Historical production accuracy remains unavailable/data-gated.
+
+
+## 2026-10-22 continuation update
+- Inspected the actual private ingestion script again. Raw Football Charts extraction may populate `source_match_id` and `slug`, but the final CSV writer explicitly selects only `league_code,date,home_team,away_team,kickoff_time`; those source identifiers are dropped at export. The league-level manifest does not preserve a per-fixture crosswalk.
+- Updated report: [Run #53 fixture identity review queue status](oracle-run53-fixture-review-queue-status-2026-10-22.md). Commit: `cd19d7fcb23b3e3bdc4187a6698d65044bb50d9b`.
+- Latest observed private scheduled workflow: Oracle Autonomous League Expansion run #192 (`39706504130`) failed at `prepare`; downstream jobs skipped, no artifacts. Available job-log retrieval returned 404/BlobNotFound, so exact failure cause remains unknown. This is separate from the successful research archive audit.
+- Current outcome: identity root cause is located in the ingestion/export boundary; 42-fixture candidate-only review queue exists; zero fixtures approved and zero rows eligible for scoring. Historical model accuracy is not calculable from the retained production ledgers reviewed.
+- No production code changed, no paid API calls made, no workflow rerun. Permanent upstream schema change remains approval-gated.
