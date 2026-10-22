@@ -204,6 +204,12 @@ class LeagueBatchIsolationTests(unittest.TestCase):
         self.assertEqual(by_id["A2"]["reason"], "MISSING_RESULT_FROM_LEAGUE_BATCH")
         self.assertEqual(by_id["B1"]["status"], "PREDICTED")
 
+    def test_empty_batch_is_not_reported_as_success(self):
+        report = run_isolated_leagues([], lambda league, items: {}, global_preflight=lambda: None)
+        self.assertEqual(report["status"], "NO_FIXTURES")
+        self.assertEqual(report["results"], [])
+        self.assertEqual(report["league_summary"], {})
+
     def test_global_preflight_stops_all_league_batches(self):
         called = []
         def processor(league, ready_items):
