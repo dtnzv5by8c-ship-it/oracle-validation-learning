@@ -242,6 +242,13 @@ class LeagueBatchIsolationTests(unittest.TestCase):
         self.assertTrue(any(e.startswith("MISSING_MARKETS") for e in report["errors"]))
         self.assertTrue(any(e.startswith("PROBABILITY_OUT_OF_RANGE") for e in report["errors"]))
 
+    def test_market_output_blocks_empty_expected_fixture_schedule(self):
+        report = validate_market_output(
+            [], expected_markets=["BTTS_YES", "BTTS_NO"], expected_fixture_ids=[]
+        )
+        self.assertEqual(report["status"], "BLOCKED")
+        self.assertIn("EXPECTED_FIXTURE_IDS_EMPTY_OR_DUPLICATED", report["errors"])
+
     def test_market_output_detects_entire_missing_fixture(self):
         rows = [
             {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 0.61},
