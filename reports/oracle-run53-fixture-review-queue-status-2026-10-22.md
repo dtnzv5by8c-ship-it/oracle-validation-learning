@@ -35,3 +35,16 @@ The private production repository's scripts/prepare_prospective_four_market_publ
 
 ## Governance
 Research-only. No production model logic, probabilities, thresholds, calibration, model version, canonical registry, secrets, or provider plans changed. No paid API calls made. Production eligibility remains NOT_GRANTED.
+
+
+## Upstream source-manifest trace (completed 2026-10-22)
+The private repository's `data/fixtures/oracle_upcoming_fixtures.csv` contains only `league_code,date,home_team,away_team,kickoff_time`; it has no provider fixture ID or provider home/away team IDs. Its companion `data/fixtures/oracle_upcoming_fixtures_manifest.json` is a league-level acquisition summary (source priority, season, status and source row counts), not a per-fixture ID crosswalk. The ingestion script retrieves provider fixtures but normalizes the output to the five-column CSV. Thus the currently retained source CSV plus manifest cannot independently restore provider IDs for the 42 rows.
+
+### Root-cause conclusion
+The provider identifiers appear to be dropped at fixture ingestion/normalization, then a synthetic slug ID is generated at publication. The exact authoritative ID may still exist in provider raw responses or earlier workflow artifacts, but it is not present in the reviewed retained CSV/manifest schema. No claim is made that it is unrecoverable everywhere.
+
+### Remediation decision
+- Immediate: retain the 42-row candidate-only review queue; do not approve candidate IDs or score rows.
+- Required future upstream change (separate approval): extend fixture ingestion output and its manifest to preserve source/provider fixture ID, provider competition ID, provider home-team ID, provider away-team ID, source name, retrieval timestamp and raw-response/snapshot hash. Keep Oracle's synthetic fixture key as a separate internal ID rather than substituting it for provider identity.
+- Backfill: only map historical rows from retained raw provider evidence or an independently verified source snapshot; otherwise leave `UNRESOLVED`.
+- Production governance: no private production code has been changed in this research pass.
