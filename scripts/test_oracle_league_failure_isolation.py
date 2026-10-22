@@ -59,6 +59,39 @@ class FailureIsolationTests(unittest.TestCase):
         self.assertEqual(excluded[0]["status"], "FAILED_PROCESSING")
         self.assertTrue(excluded[0]["reason"].startswith("RuntimeError"))
 
+
+    def test_multiple_failures_in_one_league_do_not_block_other_leagues(self):
+        fs = [
+            Fixture("A1", "A"),
+            Fixture("B1", "B", False, "MISSING_HOME_STATE"),
+            Fixture("B2", "B"),
+            Fixture("B3", "B"),
+            Fixture("C1", "C"),
+        ]
+        def predictor(f):
+            if f.fixture_id in {"B2", "B3"}:
+                raise RuntimeError("simulated failure")
+            return "test-only"
+        results, excluded = process_independent_leagues(fs, predictor)
+        self.assertEqual([x["fixture_id"] for x in results], ["A1", "C1"])
+        self.assertEqual(
+            [(x["fixture_id"], x["status"]) for x in excluded],
+            [
+                ("B1", "SKIPPED_DATA_GAP"),
+                ("B2", "FAILED_PROCESSING"),
+                ("B3", "FAILED_PROCESSING"),
+            ],
+        )
+
+    def test_empty_league_window_is_explicitly_reported(self):
+        results, excluded = process_independent_leagues(
+            [Fixture("B1", "B", False, "NO_FIXTURES_IN_WINDOW")],
+            lambda f: "test-only",
+        )
+        self.assertEqual(results, [])
+        self.assertEqual(excluded[0]["status"], "SKIPPED_DATA_GAP")
+        self.assertEqual(excluded[0]["reason"], "NO_FIXTURES_IN_WINDOW")
+
     def test_all_ready_fixtures_continue(self):
         results, excluded = process_independent_leagues(
             [Fixture("A1", "A"), Fixture("A2", "A"), Fixture("C1", "C")], lambda f: "test-only")
