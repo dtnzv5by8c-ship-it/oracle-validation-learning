@@ -1,0 +1,57 @@
+name: Oracle Public Build Gate Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * *"
+  push:
+    paths:
+      - ".github/workflows/oracle-public-build-gate-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public research repository
+        uses: actions/checkout@v4
+      - name: Inspect public readiness evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from datetime import datetime, timezone
+          report_path=Path("reports/oracle-44-league-visual-intelligence-readiness-2026-10-22.md")
+          checkpoint=Path("reports/oracle-project-checkpoint-2026-10-21-latest.md")
+          report={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "scope":"public-repository evidence audit only",
+            "private_actions_minutes_used":False,
+            "provider_api_calls_made":False,
+            "production_model_changed":False,
+            "readiness_report_present":report_path.exists(),
+            "project_checkpoint_present":checkpoint.exists(),
+            "verified_fixture_refresh":"BLOCKED_NOT_PERFORMED",
+            "44_league_mapping":"BLOCKED_REQUIRES_APPROVED_CANONICAL_CROSSWALK",
+            "visual_intelligence_report":"BLOCKED_UNTIL_FIXTURE_IDENTITIES_AND_INPUTS_VERIFIED",
+            "production_accuracy":"NOT_CALCULABLE_FROM_VERIFIED_CANONICAL_SETTLEMENTS",
+            "publication":"BLOCKED"
+          }
+          Path("oracle-public-build-gate-audit.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps(report,indent=2))
+          assert report["readiness_report_present"], "Readiness report missing from public research branch"
+          PY
+      - name: Publish summary
+        if: always()
+        run: |
+          echo "# Oracle Public Build Gate Audit" >> "$GITHUB_STEP_SUMMARY"
+          cat oracle-public-build-gate-audit.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-build-gate-audit
+          path: oracle-public-build-gate-audit.json
+          retention-days: 30
