@@ -4,11 +4,11 @@ Date: 2026-10-22. Research-only. No production model logic, probabilities, calib
 ## Expanded crosswalk
 The Run #107 schedule has 244 fixtures across 27 configured league codes. The local FootyStats archive was reconciled to all league codes/competition folders and joined on competition, UTC calendar date and normalized home/away names.
 
-- 104 unique exact archive fixture joins.
-- 15 additional unique home/away team-ID joins in the same competition archive; these pass the date-only base identity gate but do not have an exact archive match-row join.
-- 125 fixture identities remain unresolved.
+- 104 unique archive fixture joins by competition folder + date + normalized home/away identity (archive match rows are marked incomplete, so these are identity joins only, not completed-result evidence).
+- 15 additional rows have unique home and away team IDs in the same competition archive and pass the date-only base identity gate, but have no exact archive fixture row.
+- 125 fixture identities remain unresolved because one or both team identities could not be established uniquely.
 - 0 ambiguous rows were promoted.
-- 0 competition-folder mapping gaps remain.
+- The archive-folder crosswalk covers the configured league codes; that does not imply fixture coverage or live readiness.
 
 119/244 have research-level identity evidence. This is not production eligibility and must not be interpreted as 119 approved live fixtures. The local workbook/CSV contain row-level evidence and unresolved cases.
 
@@ -16,7 +16,7 @@ The Run #107 schedule has 244 fixtures across 27 configured league codes. The lo
 Date + competition + home/away identity is allowed for a base join when the downstream feature does not depend on within-day ordering. Missing kickoff must still block time-dependent calculations (time-to-kickoff, match chronology, same-day ordering). No model feature or probability was changed.
 
 ## Failure isolation contract tests
-The local test suite `scripts/test_oracle_league_failure_isolation.py` passed 4/4 tests for missing prematch state, simulated provider/runtime failure, unaffected league continuation, and explicit exclusion reporting. These are deterministic contract tests, not a live GitHub Actions acceptance run.
+The local test suite `scripts/test_oracle_league_failure_isolation.py` passed 7/7 tests: missing prematch state, simulated runtime failure, unaffected fixture continuation, explicit exclusion statuses, date-only base identity allowed, missing kickoff blocks ordering-dependent features, and ambiguous identity blocks all joins. These are deterministic contract tests, not a live GitHub Actions acceptance run.
 
 ## Live workflow finding
 At inspected public commit `f86eaf2586e2d2dc7df73de773a0214116f231bb`, `.github/workflows/oracle-completion-run.yml` uses one `completion` job with sequential steps and `set -euo pipefail` in key stages. This does not yet establish league-scoped failure isolation. The next implementation must process each league or fixture batch independently, record `PREDICTED`, `SKIPPED_DATA_GAP`, `FAILED_SOURCE`, or `FAILED_PROCESSING`, continue unaffected work, and retain global blockers for integrity, provenance and stale-data failures. Do not apply `continue-on-error` indiscriminately to hide systemic failures.
