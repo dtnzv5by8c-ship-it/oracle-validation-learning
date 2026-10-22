@@ -108,7 +108,7 @@ The private repository's `ORACLE_BTTS_YES_MEMORY_PACK.json` defines a legacy lis
 ## Executed inventory milestone (2026-10-22 04:20 UTC)
 - Added `scripts/oracle_league_readiness_inventory.py` and public workflow `.github/workflows/oracle-league-readiness-inventory.yml`.
 - Workflow run #1 completed successfully: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39721747262
-- Artifact: https://github.com/github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39721747262/artifacts/12401815585
+- Artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39721747262/artifacts/12401815585
 - The job fetched the three retained source files through the existing private-repository token and made no provider API calls.
 - Measured inventory: 27 canonical leagues (13 CONTROLLED, 14 NOT_INGESTED); 35 named entries in the legacy memory pack; 80 rows in the retained fixture CSV.
 - The 80 retained fixture rows are not proof of current upcoming fixtures. The inventory intentionally labels current/future status and Visual Intelligence coverage as unaudited. No predictions were generated and no production eligibility was granted.
