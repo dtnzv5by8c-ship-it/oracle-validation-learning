@@ -210,3 +210,10 @@ A static source review was completed against the current production-branch consu
 - The new PR commit triggered Oracle Final 27-League Assessment run 153 (ID `39744286178`) and Oracle 27 League Prediction Readiness run 157 (ID `39744286213`); both completed with failure. The available connector returns no step summaries and job-log download endpoints return `BlobNotFound`, so the failing command cannot be identified from the current evidence.
 - Therefore the dynamic-window change is proposed but not validated. Do not merge PR #21 yet. Next diagnostic requirement: open each failed job in GitHub Actions and expand its step output, or add a separate minimal diagnostics workflow that prints step names and errors without secrets. Do not print tokens or environment secrets.
 - No production model logic was changed. No fresh fixture CSV or Visual Intelligence output has been verified. The 44-league publication gate remains blocked.
+
+
+## Public-only diagnostics added (2026-10-22)
+- Created draft public PR #16: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/16
+- Public workflow run `39747921593` (Oracle PR21 Public Diagnostics #2) completed successfully. It fetched the proposed readiness workflow and current fallback script from the private repository using the existing private-repo token, made no provider API calls, confirmed the stale `2026-10-09`–`2026-10-12` window was removed, confirmed dynamic date outputs are wired, checked CLI date arguments, and tested the Friday-to-Monday calculation against several dates.
+- Public 44-league inventory run `39747921378` completed successfully. Public fixture identity regression run `39747921400` was still in progress at last check.
+- This is research-side validation only. It does not prove the private workflow jobs pass, does not refresh fixtures, and does not authorize merging PR #21. The private PR-triggered jobs still fail and expose no logs through the connector.
