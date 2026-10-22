@@ -1,0 +1,64 @@
+name: Oracle 44-League Readiness Inventory (Research)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 */6 * * *"
+  pull_request:
+    paths:
+      - "scripts/oracle_league_readiness_inventory.py"
+      - ".github/workflows/oracle-league-readiness-inventory.yml"
+  push:
+    paths:
+      - "scripts/oracle_league_readiness_inventory.py"
+      - ".github/workflows/oracle-league-readiness-inventory.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public research branch
+        uses: actions/checkout@v4
+
+      - name: Retrieve canonical source files from private repository
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p oracle-input
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          REF=main
+          for item in             "config/oracle_major_league_registry_v1.json"             "ORACLE_BTTS_YES_MEMORY_PACK.json"             "data/fixtures/oracle_upcoming_fixtures.csv"; do
+            out="oracle-input/$(basename "$item")"
+            gh api "repos/$TARGET/contents/$item?ref=$REF" --jq .content | base64 --decode > "$out"
+            test -s "$out"
+          done
+          echo "Fetched registry, legacy universe memory pack and retained fixture CSV; no provider APIs called."
+
+      - name: Install date parser dependency
+        run: python -m pip install --disable-pip-version-check python-dateutil
+
+      - name: Generate inventory
+        run: python scripts/oracle_league_readiness_inventory.py
+
+      - name: Publish visible summary
+        run: |
+          {
+            echo "## Oracle 44-league readiness inventory"
+            echo ""
+            cat oracle-readiness-output/README.md
+            echo ""
+            echo "### Summary JSON"
+            cat oracle-readiness-output/oracle_readiness_summary.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload inventory artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-44-league-readiness-inventory
+          path: oracle-readiness-output/
+          retention-days: 30
