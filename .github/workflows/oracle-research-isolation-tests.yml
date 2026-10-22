@@ -7,6 +7,7 @@ on:
     paths:
       - "scripts/test_oracle_league_failure_isolation.py"
       - "scripts/oracle_isolated_batch_runner.py"
+      - "scripts/oracle_reconcile_outputs.py"
       - ".github/workflows/oracle-research-isolation-tests.yml"
   pull_request:
     paths:
@@ -29,5 +30,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run date gate and failure isolation tests
+      - name: Compile research reconciliation CLI
+        run: python -m py_compile scripts/oracle_reconcile_outputs.py scripts/oracle_isolated_batch_runner.py
+      - name: Run date gate, failure isolation, and output reconciliation tests
         run: python -m unittest scripts.test_oracle_league_failure_isolation -v
