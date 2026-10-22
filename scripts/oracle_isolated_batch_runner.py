@@ -111,6 +111,17 @@ def run_isolated_leagues(
     for league in sorted(grouped):
         league_items = grouped[league]
         counts = {"PREDICTED": 0, "SKIPPED_DATA_GAP": 0, "FAILED_PROCESSING": 0}
+        ids = [item.fixture_id for item in league_items]
+        if len(ids) != len(set(ids)):
+            for item in league_items:
+                outcomes.append({
+                    "fixture_id": item.fixture_id, "league": league,
+                    "status": "FAILED_PROCESSING",
+                    "reason": "DUPLICATE_FIXTURE_ID_WITHIN_LEAGUE_BATCH",
+                })
+                counts["FAILED_PROCESSING"] += 1
+            summary[league] = counts
+            continue
         ready = []
         for item in league_items:
             if not item.ready:
