@@ -45,7 +45,7 @@ jobs:
           python -m pytest private-checkout/tests/test_ingest_fixture_identity_provenance.py -q --junitxml=fixture-identity-test-results.xml | tee fixture-identity-test-output.txt
           test_rc=${PIPESTATUS[0]}
           {
-            echo "## Oracle fixture identity regression"
+            echo "## Oracle fixture identity regression — expanded duplicate/numeric-ID coverage"
             echo ""
             echo "- Repository: public research repository"
             echo "- Private source branch: fix/preserve-fixture-source-identifiers"
