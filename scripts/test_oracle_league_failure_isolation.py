@@ -5,7 +5,7 @@ These contract tests do not execute the production prediction model or live work
 from dataclasses import dataclass
 import unittest
 
-from scripts.oracle_isolated_batch_runner import BatchItem, run_isolated_batches, run_isolated_leagues
+from scripts.oracle_isolated_batch_runner import (BatchItem, run_isolated_batches, run_isolated_leagues, validate_market_output)
 
 @dataclass(frozen=True)
 class Fixture:
@@ -218,6 +218,34 @@ class LeagueBatchIsolationTests(unittest.TestCase):
         self.assertEqual(by_id["A2"]["status"], "FAILED_PROCESSING")
         self.assertEqual(by_id["A2"]["reason"], "MISSING_RESULT_FROM_LEAGUE_BATCH")
         self.assertEqual(by_id["B1"]["status"], "PREDICTED")
+
+    def test_market_output_reconciles_complete_fixture_market_matrix(self):
+        rows = [
+            {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 0.61},
+            {"fixture_id": "F1", "selection": "BTTS_NO", "raw_probability": 0.39},
+            {"fixture_id": "F2", "selection": "BTTS_YES", "raw_probability": 0.52},
+            {"fixture_id": "F2", "selection": "BTTS_NO", "raw_probability": 0.48},
+        ]
+        report = validate_market_output(rows, expected_markets=["BTTS_YES", "BTTS_NO"])
+        self.assertEqual(report["status"], "PASS")
+        self.assertEqual(report["fixture_count"], 2)
+        self.assertEqual(report["row_count"], 4)
+
+    def test_market_output_flags_duplicate_rows_missing_markets_and_bad_probability(self):
+        rows = [
+            {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 1.2},
+            {"fixture_id": "F1", "selection": "BTTS_YES", "raw_probability": 0.4},
+        ]
+        report = validate_market_output(rows, expected_markets=["BTTS_YES", "BTTS_NO"])
+        self.assertEqual(report["status"], "FAIL")
+        self.assertTrue(any(e.startswith("DUPLICATE_FIXTURE_MARKET") for e in report["errors"]))
+        self.assertTrue(any(e.startswith("MISSING_MARKETS") for e in report["errors"]))
+        self.assertTrue(any(e.startswith("PROBABILITY_OUT_OF_RANGE") for e in report["errors"]))
+
+    def test_market_output_blocks_duplicate_expected_market_definition(self):
+        report = validate_market_output([], expected_markets=["BTTS_YES", "BTTS_YES"])
+        self.assertEqual(report["status"], "BLOCKED")
+        self.assertIn("EXPECTED_MARKETS_EMPTY_OR_DUPLICATED", report["errors"])
 
     def test_empty_batch_is_not_reported_as_success(self):
         report = run_isolated_leagues([], lambda league, items: {}, global_preflight=lambda: None)
