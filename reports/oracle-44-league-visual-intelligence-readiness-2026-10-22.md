@@ -177,3 +177,12 @@ Latest confirmed regression run #19 passed all **5** tests in 0.71 seconds, incl
 - Private PR #20 remains open and draft. Its 5 targeted regression tests pass in public run #19; this still does not test the full network-backed ingestion workflow or all downstream consumers.
 - Exact 44-league mappings are not complete: 37 names need review; do not add guessed IDs to the production registry.
 - Visual Intelligence source joins and current production market probabilities have not yet been rebuilt into a publishable report because the fixture slate is stale and fixture IDs are not verified.
+
+
+## Downstream CSV compatibility review (2026-10-22)
+A static source review was completed against the current production-branch consumer `scripts/oracle_four_model_live_predict.py`.
+- It loads the fixture file with pandas `read_csv` and accesses the existing base columns `league_code`, `date`, `kickoff_time`, `home_team`, and `away_team` by name.
+- Adding extra provenance columns should not, by itself, break this consumer because it does not require an exact five-column schema in the reviewed path.
+- This is a **static compatibility review only**, not an executed integration test against the proposed branch or an actual generated CSV. Other consumers still require audit, and a full live ingestion run remains unverified.
+- Source: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/cb89e5bd1c24810fe821a6b2c3c2c1c19272b381/scripts/oracle_four_model_live_predict.py
+- PR #20 remains draft and unmerged; no production fixture file was refreshed.
