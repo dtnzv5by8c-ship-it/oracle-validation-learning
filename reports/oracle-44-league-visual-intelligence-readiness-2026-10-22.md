@@ -95,3 +95,11 @@ A fixture is publishable only when:
 
 ## Non-negotiable controls
 No model redesign, production probability changes, new thresholds, weights, calibration, synthetic IDs, fuzzy auto-approval, guessed league mapping, or unverified prediction claims. Keep this document and all associated experiments research-only.
+
+
+## Additional legacy universe evidence found (2026-10-22)
+The private repository's `ORACLE_BTTS_YES_MEMORY_PACK.json` defines a legacy list of 10 named MAJOR leagues and 24 named MINOR leagues (34 named leagues total), plus an `EXOTIC_DISCOVERY` section consisting of category placeholders rather than individually named leagues. This is not a reproducible, exact 44-league manifest. It must not be padded by guessing the remaining ten.
+- Legacy pack: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/main/ORACLE_BTTS_YES_MEMORY_PACK.json
+- Canonical production registry: 27 leagues, 13 CONTROLLED / 14 NOT_INGESTED.
+- Another readiness matrix search result states a separate baseline of 22/30 Major leagues connected, with partial results for six gated leagues; that matrix uses a different scope/status vocabulary and must be reconciled rather than merged blindly into the canonical 27.
+- Action: derive the intended 44 only from a governed list/artifact already used by the current 44-league prediction workflow. If no exact list is found, the scope remains UNRECONCILED and no missing leagues are invented.
