@@ -11,6 +11,8 @@ on:
       - "scripts/test_oracle_reconcile_cli.py"
       - "scripts/oracle_team_alias_audit.py"
       - "scripts/test_oracle_team_alias_audit.py"
+      - "scripts/oracle_prematch_state_replay.py"
+      - "scripts/test_oracle_prematch_state_replay.py"
       - ".github/workflows/oracle-research-isolation-tests.yml"
   pull_request:
     paths:
@@ -38,6 +40,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile research reconciliation and alias-audit tools
-        run: python -m py_compile scripts/oracle_reconcile_outputs.py scripts/oracle_isolated_batch_runner.py scripts/oracle_team_alias_audit.py
+        run: python -m py_compile scripts/oracle_reconcile_outputs.py scripts/oracle_isolated_batch_runner.py scripts/oracle_team_alias_audit.py scripts/oracle_prematch_state_replay.py
       - name: Run date gate, failure isolation, and output reconciliation tests
-        run: python -m unittest scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli scripts.test_oracle_team_alias_audit -v
+        run: python -m unittest scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli scripts.test_oracle_team_alias_audit scripts.test_oracle_prematch_state_replay -v
