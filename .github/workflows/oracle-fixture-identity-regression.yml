@@ -2,6 +2,8 @@ name: Oracle Fixture Identity Regression (Public Research)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
   pull_request:
     paths:
       - ".github/workflows/oracle-fixture-identity-regression.yml"
@@ -32,10 +34,36 @@ jobs:
           gh api "repos/$TARGET/contents/tests/test_ingest_fixture_identity_provenance.py?ref=$REF" --jq .content | base64 --decode > private-checkout/tests/test_ingest_fixture_identity_provenance.py
           test -s private-checkout/scripts/ingest_upcoming_fixtures.py
           test -s private-checkout/tests/test_ingest_fixture_identity_provenance.py
-          echo "Retrieved proposed code and tests from PR branch; no provider API calls are made."
+          echo "Retrieved proposed code and tests from private PR branch; no provider API calls are made."
 
       - name: Install minimal test dependencies
         run: python -m pip install --disable-pip-version-check pandas requests pytest
 
-      - name: Run fixture identity regression tests
-        run: python -m pytest private-checkout/tests/test_ingest_fixture_identity_provenance.py -q
+      - name: Run fixture identity regression tests and write visible summary
+        run: |
+          set +e
+          python -m pytest private-checkout/tests/test_ingest_fixture_identity_provenance.py -q --junitxml=fixture-identity-test-results.xml | tee fixture-identity-test-output.txt
+          test_rc=${PIPESTATUS[0]}
+          {
+            echo "## Oracle fixture identity regression"
+            echo ""
+            echo "- Repository: public research repository"
+            echo "- Private source branch: fix/preserve-fixture-source-identifiers"
+            echo "- Provider API calls: none"
+            echo "- Test exit code: $test_rc"
+            echo ""
+            echo "Test output:"
+            cat fixture-identity-test-output.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$test_rc"
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-fixture-identity-test-evidence
+          path: |
+            fixture-identity-test-results.xml
+            fixture-identity-test-output.txt
+          if-no-files-found: warn
+          retention-days: 30
