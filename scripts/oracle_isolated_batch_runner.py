@@ -203,7 +203,11 @@ def validate_market_output(
         str(fixture_id).strip() for fixture_id in expected_fixture_ids
     ]
     expected_fixtures = None if expected_fixture_list is None else set(expected_fixture_list)
-    if expected_fixture_list is not None and ("" in expected_fixtures or len(expected_fixtures) != len(expected_fixture_list)):
+    if expected_fixture_list is not None and (
+        not expected_fixture_list
+        or "" in expected_fixtures
+        or len(expected_fixtures) != len(expected_fixture_list)
+    ):
         return {"status": "BLOCKED", "errors": ["EXPECTED_FIXTURE_IDS_EMPTY_OR_DUPLICATED"],
                 "row_count": len(materialized), "fixture_count": 0}
     errors: list[str] = []
