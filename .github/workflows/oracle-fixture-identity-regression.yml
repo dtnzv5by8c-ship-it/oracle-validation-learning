@@ -2,6 +2,9 @@ name: Oracle Fixture Identity Regression (Public Research)
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/oracle-fixture-identity-regression.yml"
   push:
     paths:
       - ".github/workflows/oracle-fixture-identity-regression.yml"
