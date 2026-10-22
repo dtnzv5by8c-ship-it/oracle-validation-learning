@@ -40,8 +40,20 @@ def role_rows(history: list[dict], league: str, label: str, role: str, fixture_d
     return count
 
 
-def replay(fixtures: list[dict], history: list[dict], aliases: list[dict]) -> list[dict]:
-    alias_map = {}
+def replay(fixtures: list[dict], history: list[dict], aliases: list[dict], league_map: dict[str, str] | None = None) -> list[dict]:
+    # Production archive's prematch state uses league names, while fixture schedule
+    # uses league codes. Translate via an explicit mapping derived from archived
+    # matches; never compare code strings to league-name strings directly.
+    league_map = league_map or {}
+    normalized_history = []
+    for row in history:
+        item = dict(row)
+        if not item.get("league_code"):
+            item["league_code"] = next((code for code, name in league_map.items()
+                                        if name == item.get("league", "").strip()), "")
+        normalized_history.append(item)
+    history = normalized_history
+    alias_map = {
     for a in aliases:
         key = (a.get("league_code", "").strip(), a.get("fixture_label", "").strip(), a.get("role", "").strip())
         canonical = a.get("canonical_label", "").strip()
@@ -83,10 +95,15 @@ def main() -> int:
     p.add_argument("--fixtures", required=True, type=Path)
     p.add_argument("--history", required=True, type=Path)
     p.add_argument("--aliases", required=True, type=Path, help="Reviewed CSV: league_code,fixture_label,role,canonical_label,identity_evidence")
+    p.add_argument("--league-map", type=Path, help="Optional CSV mapping league_code,league from archived matches.csv")
     p.add_argument("--output", required=True, type=Path)
     a = p.parse_args()
     try:
-        rows = replay(read_csv(a.fixtures), read_csv(a.history), read_csv(a.aliases))
+        league_map = {}
+        if a.league_map:
+            league_map = {row["league_code"].strip(): row["league"].strip()
+                          for row in read_csv(a.league_map)}
+        rows = replay(read_csv(a.fixtures), read_csv(a.history), read_csv(a.aliases), league_map)
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(json.dumps({"status":"PASS_RESEARCH_ONLY","fixtures":len(rows),
