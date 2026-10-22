@@ -5,6 +5,8 @@ These contract tests do not execute the production prediction model or live work
 from dataclasses import dataclass
 import unittest
 
+from scripts.oracle_isolated_batch_runner import BatchItem, run_isolated_batches
+
 @dataclass(frozen=True)
 class Fixture:
     fixture_id: str
@@ -126,6 +128,50 @@ class DateGateTests(unittest.TestCase):
             kickoff_verified=False, feature_requires_ordering=False)
         self.assertFalse(ok)
         self.assertEqual(reason, "HOLD_UNVERIFIED_IDENTITY")
+
+
+class IsolatedBatchRunnerTests(unittest.TestCase):
+    def test_fixture_failures_are_isolated_and_reported(self):
+        items = [
+            BatchItem("A1", "A"),
+            BatchItem("B1", "B", False, "MISSING_STATE"),
+            BatchItem("B2", "B"),
+            BatchItem("C1", "C"),
+        ]
+        def processor(item):
+            if item.fixture_id == "B2":
+                raise RuntimeError("simulated failure")
+            return "test-only"
+        report = run_isolated_batches(items, processor, global_preflight=lambda: None)
+        self.assertEqual(report["status"], "PARTIAL")
+        self.assertEqual([x["fixture_id"] for x in report["results"]], ["A1", "C1"])
+        self.assertEqual(
+            [x["status"] for x in report["fixture_outcomes"]],
+            ["PREDICTED", "SKIPPED_DATA_GAP", "FAILED_PROCESSING", "PREDICTED"],
+        )
+        self.assertEqual(report["league_summary"]["B"]["FAILED_PROCESSING"], 1)
+        self.assertTrue(report["global_preflight_passed"])
+
+    def test_global_preflight_failure_aborts_before_processing(self):
+        called = []
+        def preflight():
+            raise RuntimeError("stale source")
+        def processor(item):
+            called.append(item.fixture_id)
+            return "must-not-run"
+        with self.assertRaisesRegex(RuntimeError, "stale source"):
+            run_isolated_batches([BatchItem("A1", "A")], processor, global_preflight=preflight)
+        self.assertEqual(called, [])
+
+    def test_all_success_reports_success(self):
+        report = run_isolated_batches(
+            [BatchItem("A1", "A"), BatchItem("A2", "A")],
+            lambda item: "test-only",
+            global_preflight=lambda: None,
+        )
+        self.assertEqual(report["status"], "SUCCESS")
+        self.assertEqual(report["league_summary"]["A"]["PREDICTED"], 2)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
