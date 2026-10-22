@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/test_oracle_league_failure_isolation.py"
+      - "scripts/oracle_isolated_batch_runner.py"
       - ".github/workflows/oracle-research-isolation-tests.yml"
   workflow_dispatch:
 
