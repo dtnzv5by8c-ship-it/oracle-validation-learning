@@ -160,3 +160,20 @@ Latest confirmed regression run #19 passed all **5** tests in 0.71 seconds, incl
 4. Once the ingestion code passes static/output tests, request approval before merging private PR #20 or refreshing the production fixture file.
 5. Build Visual Intelligence joins from already available historical source snapshots first; exact fixture identity and pre-kickoff as-of cutoffs are mandatory.
 6. Keep prediction publication blocked until a fresh future-dated fixture snapshot and existing governed model outputs are available. No production model logic has changed.
+
+
+## Exact 44-scope inventory result (2026-10-22 06:35 UTC)
+- The readiness inventory now emits `oracle_approved_44_scope_reconciliation.csv` for all 44 approved names recovered from the September 2026 conversation.
+- Successful run #15: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39734761612
+- Artifact ID 12406776729; 44 rows in the scope reconciliation.
+- Exact normalized competition-name matches: **7/44**. Remaining **37/44** need a controlled alias/competition mapping review. Even the seven exact-name matches are marked `NOT_GRANTED` pending stable-ID and readiness review; exact text match alone is not enough to enable production.
+- Inventory reconfirms 27 canonical leagues (13 CONTROLLED, 14 NOT_INGESTED), 80 retained fixture rows, zero future fixtures, and all eight source-provenance columns missing from the retained production CSV.
+- Regression workflow #21 passed after the inventory changes: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39734713834
+- Inventory workflow runs #12–#14 failed due to an accidentally literal escaped newline in the script. This was corrected in commit `abc6f128a8f8924ea235c1bfbe1ef1065f495d48`; run #15 succeeded. Earlier failures are retained in run history and are not presented as passes.
+
+## Remaining hard blockers
+- No verified fresh future fixture feed is available from the current retained production CSV.
+- No live ingestion was run because that would invoke external providers and could consume API quota; no approval to spend new credits was given.
+- Private PR #20 remains open and draft. Its 5 targeted regression tests pass in public run #19; this still does not test the full network-backed ingestion workflow or all downstream consumers.
+- Exact 44-league mappings are not complete: 37 names need review; do not add guessed IDs to the production registry.
+- Visual Intelligence source joins and current production market probabilities have not yet been rebuilt into a publishable report because the fixture slate is stale and fixture IDs are not verified.
