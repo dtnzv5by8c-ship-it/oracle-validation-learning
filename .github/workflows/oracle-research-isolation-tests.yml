@@ -8,12 +8,14 @@ on:
       - "scripts/test_oracle_league_failure_isolation.py"
       - "scripts/oracle_isolated_batch_runner.py"
       - "scripts/oracle_reconcile_outputs.py"
+      - "scripts/test_oracle_reconcile_cli.py"
       - ".github/workflows/oracle-research-isolation-tests.yml"
   pull_request:
     paths:
       - "scripts/test_oracle_league_failure_isolation.py"
       - "scripts/oracle_isolated_batch_runner.py"
       - "scripts/oracle_reconcile_outputs.py"
+      - "scripts/test_oracle_reconcile_cli.py"
       - ".github/workflows/oracle-research-isolation-tests.yml"
   workflow_dispatch:
 
@@ -34,4 +36,4 @@ jobs:
       - name: Compile research reconciliation CLI
         run: python -m py_compile scripts/oracle_reconcile_outputs.py scripts/oracle_isolated_batch_runner.py
       - name: Run date gate, failure isolation, and output reconciliation tests
-        run: python -m unittest scripts.test_oracle_league_failure_isolation -v
+        run: python -m unittest scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli -v
