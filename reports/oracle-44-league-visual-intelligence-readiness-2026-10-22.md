@@ -203,3 +203,10 @@ A static source review was completed against the current production-branch consu
 - PR: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/pull/21
 - Expansion run #193 (39742184987) fails at `prepare`; readiness run #156 (39723492326) fails at `readiness`. Job-log retrieval returns GitHub's `BlobNotFound`, so exact exceptions remain unconfirmed. Expansion prepare code queries prior workflow artifacts via `GITHUB_TOKEN`; this is a diagnostic lead, not a confirmed cause.
 - Existing ingestion PR #20 remains draft/unmerged. Public regression and inventory workflows pass, but that does not establish production readiness or live prediction availability.
+
+
+## Follow-up check after draft PR #21 (2026-10-22)
+- PR #21 remains open/draft/unmerged: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/pull/21 (head `33ace30da62c3eccb332c00e6ab1de9893606a9e`).
+- The new PR commit triggered Oracle Final 27-League Assessment run 153 (ID `39744286178`) and Oracle 27 League Prediction Readiness run 157 (ID `39744286213`); both completed with failure. The available connector returns no step summaries and job-log download endpoints return `BlobNotFound`, so the failing command cannot be identified from the current evidence.
+- Therefore the dynamic-window change is proposed but not validated. Do not merge PR #21 yet. Next diagnostic requirement: open each failed job in GitHub Actions and expand its step output, or add a separate minimal diagnostics workflow that prints step names and errors without secrets. Do not print tokens or environment secrets.
+- No production model logic was changed. No fresh fixture CSV or Visual Intelligence output has been verified. The 44-league publication gate remains blocked.
