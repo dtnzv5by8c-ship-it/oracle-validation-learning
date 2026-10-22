@@ -308,3 +308,9 @@ The immediate structural cause is confirmed: the exported prediction rows includ
 
 ### Next controlled action
 Build a human-review queue for all 42 fixtures, retaining source fixture ID, kickoff, source team names, candidate archive fixture/team IDs, candidate season/competition, candidate status, and explicit approval fields. Keep all candidate IDs unapproved by default. Then trace the original source manifest/catalogue for authoritative provider IDs; if absent, document the required upstream export-schema change as a separate research recommendation. Competition aliases and the 44-vs-27 league-universe reconciliation remain independent review gates. Production eligibility remains NOT_GRANTED.
+
+
+### Upstream fixture-ID generation traced
+Inspection of the private production repository's research publication adapter (`scripts/prepare_prospective_four_market_publication.py`) confirms the source of the ID mismatch: `fixture_id(r)` constructs a local synthetic ID from league code, date, and slugified home/away names. It does not carry a provider fixture ID. The publication schema and canonical ledger schema likewise contain fixture ID and team-name fields, but no separate provider home/away IDs. This explains why the archive join can find candidates but cannot satisfy exact canonical identity gates from the exported prediction rows alone.
+
+This is a schema/provenance gap, not a reason to loosen the research join. The safe fix path is to add source provider fixture/team IDs at the upstream fixture-ingestion/publication boundary, preserve them as separate provenance fields, and backfill only where authoritative source records prove the mapping. That would require a separately reviewed change in the private production repository and must not be implemented as an unapproved production change. Until approved, continue with candidate-only research reporting.
