@@ -195,3 +195,11 @@ A static source review was completed against the current production-branch consu
 - Private production readiness run 39723492326: failed in its `readiness` job. The connector exposes no step summaries/logs for these jobs, so the precise exception is not confirmed and should not be guessed.
 - Private PR #20 is still draft/unmerged; branch head observed as `f20ed60c8d23684c9c00ab82fc6f1e7fd915f4f0`.
 - These failed production workflows mean the successful public research checks must not be interpreted as a live production prediction pass.
+
+
+## Latest continuation update (2026-10-22)
+- Confirmed from the production readiness workflow file that the fixture fallback step hard-codes `2026-10-09` through `2026-10-12`, a historical window as of 22 October. This is a concrete workflow defect independent of the ingestion PR.
+- Opened draft production workflow PR #21 to calculate the next Friday-to-Monday fixture window at runtime and pass it to the existing fallback ingester. No model logic/probabilities/calibration changed. Do not merge until GitHub Actions run validates syntax, non-empty future fixtures, and governance assertions.
+- PR: https://github.com/dtnzv5by8c-ship-it/oracle-football-data/pull/21
+- Expansion run #193 (39742184987) fails at `prepare`; readiness run #156 (39723492326) fails at `readiness`. Job-log retrieval returns GitHub's `BlobNotFound`, so exact exceptions remain unconfirmed. Expansion prepare code queries prior workflow artifacts via `GITHUB_TOKEN`; this is a diagnostic lead, not a confirmed cause.
+- Existing ingestion PR #20 remains draft/unmerged. Public regression and inventory workflows pass, but that does not establish production readiness or live prediction availability.
