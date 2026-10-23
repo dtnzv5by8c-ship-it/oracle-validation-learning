@@ -132,7 +132,7 @@ jobs:
         run: |
           python -m py_compile scripts/oracle_prematch_state_replay.py scripts/oracle_team_alias_audit.py
           python -m unittest scripts.test_oracle_prematch_state_replay scripts.test_oracle_team_alias_audit scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli -v
-      - name: Replay actual archived fixtures with no unverified aliases
+      - name: Replay archived fixtures with research-only crosswalk candidates
         run: |
           python scripts/oracle_prematch_state_replay.py \
             --fixtures evidence/run107/replay-inputs/fixtures.csv \
