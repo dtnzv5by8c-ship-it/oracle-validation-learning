@@ -94,6 +94,7 @@ jobs:
 
       - name: Refresh verified current results and rebuild prematch team state
         id: current_state_refresh
+        timeout-minutes: 12
         working-directory: oracle
         run: |
           set -euo pipefail
