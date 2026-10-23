@@ -149,6 +149,11 @@ ELAPSED_BASELINE_KICKOFFS = {
         "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00",
         "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
     },
+    "SCHED-F2-2026-10-23-sochaux-annecy": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00; corroborated by ESPN UTC timestamp",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
+    },
     "SCHED-N1-2026-10-23-gaeagles-telstar": {
         "kickoff_utc":"2026-10-23T18:00:00Z",
         "evidence":"Pinned open-matchday 2026/27 Eredivisie CSV: 19:00 UTC+01:00",
