@@ -118,6 +118,91 @@ ELAPSED_BASELINE_KICKOFFS = {
         "kickoff_utc":"2026-10-23T18:00:00Z",
         "evidence":"LPF fixture listing: 21:00 Romania local (18:00 UTC)",
         "source":"https://lpf.ro/statistici/3694?tab=avancronica"
+    },
+    "SCHED-AUT-2026-10-23-altach-austriavienna": {
+        "kickoff_utc":"2026-10-23T17:30:00Z",
+        "evidence":"Austrian Bundesliga: 19:30 Austria local (CEST, UTC+02:00)",
+        "source":"https://www.bundesliga.at/de/news/artikel/vorschau-auf-die-10-runde-der-admiral-bundesliga-6"
+    },
+    "SCHED-E1-2026-10-23-bolton-middlesbrough": {
+        "kickoff_utc":"2026-10-23T19:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Championship CSV: 20:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/ENG_2_championship"
+    },
+    "SCHED-F2-2026-10-23-clermont-guingamp": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
+    },
+    "SCHED-F2-2026-10-23-dunkerque-metz": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
+    },
+    "SCHED-F2-2026-10-23-nancy-laval": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
+    },
+    "SCHED-F2-2026-10-23-paufc-grenoble": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Ligue 2 CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/FRA_2_ligue-2"
+    },
+    "SCHED-N1-2026-10-23-gaeagles-telstar": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eredivisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_1_eredivisie"
+    },
+    "SCHED-NED2-2026-10-23-almerecity-roda": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-NED2-2026-10-23-degraafschap-waalwijk": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-NED2-2026-10-23-denbosch-maastricht": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-NED2-2026-10-23-fcvolendam-jongutrecht": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-NED2-2026-10-23-jongaz-helmond": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-NED2-2026-10-23-oss-jongajax": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Eerste Divisie CSV: 19:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/NED_2_eerste-divisie"
+    },
+    "SCHED-POL-2026-10-23-widzewlodz-gornikzabrze": {
+        "kickoff_utc":"2026-10-23T18:30:00Z",
+        "evidence":"Official Ekstraklasa round schedule: 20:30 Poland local (CEST, UTC+02:00)",
+        "source":"https://legia.com/en/articles/pko-bank-polski-ekstraklasa-mecz-legia-warszawa-lech-poznan-w-niedziele-25-pazdziernika-o-godz-17-30"
+    },
+    "SCHED-POR2-2026-10-23-chaves-vizela": {
+        "kickoff_utc":"2026-10-23T16:45:00Z",
+        "evidence":"Soccerway Liga Portugal 2 fixtures: 17:45 Portugal local (WEST, UTC+01:00)",
+        "source":"https://www.soccerway.com/portugal/liga-portugal-2/fixtures/"
+    },
+    "SCHED-SP1-2026-10-23-alaves-malaga": {
+        "kickoff_utc":"2026-10-23T19:00:00Z",
+        "evidence":"Pinned open-matchday 2026/27 La Liga CSV: 20:00 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/ESP_1_la-liga"
+    },
+    "SCHED-SP2-2026-10-23-granadacf-valladolid": {
+        "kickoff_utc":"2026-10-23T18:30:00Z",
+        "evidence":"Pinned open-matchday 2026/27 Segunda División CSV: 19:30 UTC+01:00",
+        "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/ESP_2_segunda-division"
     }
 }
 
