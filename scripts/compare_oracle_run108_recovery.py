@@ -99,7 +99,7 @@ ELAPSED_BASELINE_KICKOFFS = {
         "evidence":"Pinned open-matchday 2026/27 fixture CSV: 18:00 CET-1 (UTC+01:00)",
         "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/TUR_1_super-lig"
     },
-    "SCHED-ROU-2026-10-23-fcbotosani-petrolulploiesti": {
+    "SCHED-ROU-2026-10-23-fcbotosani-petrolul": {
         "kickoff_utc":"2026-10-23T15:00:00Z",
         "evidence":"Official LPF and both clubs list 18:00 Romania local (15:00 UTC)",
         "source":"https://lpf.ro/cluburi/fc-botosani/8/calendar"
