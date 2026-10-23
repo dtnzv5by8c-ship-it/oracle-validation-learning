@@ -26,6 +26,7 @@ base_recon=json.loads(one(BASE,"tmp/oracle-live-reconciliation.json").read_text(
 current_recon=json.loads(Path("/tmp/oracle-live-reconciliation.json").read_text(encoding="utf-8"))
 base_schedule=read_csv(one(BASE,"oracle/data/fixtures/oracle_upcoming_fixtures.csv"))
 current_schedule=read_csv(CURRENT/"data/fixtures/oracle_upcoming_fixtures.csv")
+current_manifest=json.loads((CURRENT/"data/fixtures/oracle_upcoming_fixtures_manifest.json").read_text(encoding="utf-8"))
 
 def official_normalise(rows, baseline=False):
     """Apply only official, source-backed schedule corrections for the comparison window."""
@@ -98,6 +99,11 @@ ELAPSED_BASELINE_KICKOFFS = {
         "evidence":"Pinned open-matchday 2026/27 fixture CSV: 18:00 CET-1 (UTC+01:00)",
         "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/TUR_1_super-lig"
     },
+    "SCHED-ROU-2026-10-23-fcbotosani-petrolulploiesti": {
+        "kickoff_utc":"2026-10-23T15:00:00Z",
+        "evidence":"Official LPF and both clubs list 18:00 Romania local (15:00 UTC)",
+        "source":"https://lpf.ro/cluburi/fc-botosani/8/calendar"
+    },
     "SCHED-D1-2026-10-23-vfbstuttgart-borussiamonchengladbach": {
         "kickoff_utc":"2026-10-23T18:30:00Z",
         "evidence":"Bundesliga and VfB Stuttgart confirm 20:30 Germany local (18:30 UTC)",
@@ -130,21 +136,57 @@ def parse_aware_utc(value):
     return dt.astimezone(timezone.utc)
 
 now_utc=datetime.now(timezone.utc)
+# Build a source-backed kickoff lookup from enrichment evidence even when the
+# fixture is subsequently removed from the current-upcoming list as already started.
+current_source_kickoffs={}
+def register_source_kickoff(row, stamp, evidence, source):
+    key=fixture_key(row)
+    parsed=parse_aware_utc(stamp)
+    if parsed is not None:
+        current_source_kickoffs[key]={"kickoff_utc":parsed.isoformat().replace("+00:00","Z"),
+                                      "evidence":evidence,"source":source}
+for source_name in ("kickoff_enrichment_from_current_matches","kickoff_enrichment_from_espn","kickoff_enrichment_from_open_matchday"):
+    section=current_manifest.get(source_name,{})
+    for match in section.get("matches",[]) if isinstance(section,dict) else []:
+        row={"league_code":match.get("league_code"),"date":match.get("date"),
+             "home_team":match.get("schedule_home_team"),"away_team":match.get("schedule_away_team")}
+        register_source_kickoff(row,match.get("kickoff_utc"),match.get("source") or section.get("provider") or source_name,
+                                match.get("source_path") or match.get("source_commit") or section.get("provider") or source_name)
+eligibility=current_manifest.get("prematch_eligibility_filter",{})
+for item in eligibility.get("elapsed_fixtures_removed",[]):
+    register_source_kickoff(item,item.get("kickoff_time"),item.get("reason","verified elapsed fixture"),
+                            "current manifest prematch_eligibility_filter")
+for change in current_manifest.get("official_schedule_reconciliation",{}).get("changes",[]):
+    after=change.get("after") or {}
+    if after.get("league_code") and after.get("date") and after.get("home_team") and after.get("away_team"):
+        register_source_kickoff(after,after.get("kickoff_time"),change.get("evidence","official schedule correction"),
+                                "; ".join(change.get("sources",[])) or "official schedule correction")
+
+same_day_unverified_keys=set()
+same_day_unverified_rows=[]
+for item in eligibility.get("same_day_unverified_exclusions",[]):
+    key=fixture_key(item)
+    same_day_unverified_keys.add(key)
+    same_day_unverified_rows.append({"fixture_key":key,"reason":item.get("reason","same-day kickoff unverified")})
+
 elapsed_since_baseline=[]
+excluded_same_day_unverified=[]
 unresolved_removed=[]
 for key in removed_schedule:
     row=base_map[key]
-    source_entry=ELAPSED_BASELINE_KICKOFFS.get(key)
+    source_entry=ELAPSED_BASELINE_KICKOFFS.get(key) or current_source_kickoffs.get(key)
     kickoff=parse_aware_utc(row.get("kickoff_time"))
     evidence="Run 108 baseline timezone-qualified kickoff"
     source="Run 108 baseline schedule"
     if kickoff is None and source_entry:
         kickoff=parse_aware_utc(source_entry["kickoff_utc"])
-        evidence=source_entry["evidence"]
-        source=source_entry["source"]
+        evidence=source_entry.get("evidence","source-backed timezone-qualified kickoff")
+        source=source_entry.get("source","current manifest source evidence")
     if kickoff is not None and kickoff < now_utc:
         elapsed_since_baseline.append({"fixture_key":key,"kickoff_utc":kickoff.isoformat().replace("+00:00","Z"),
                                        "evidence":evidence,"source":source})
+    elif key in same_day_unverified_keys and str(row.get("date",""))[:10]==now_utc.date().isoformat():
+        excluded_same_day_unverified.append({"fixture_key":key,"reason":"excluded from current live predictions because same-day kickoff could not be verified"})
     else:
         unresolved_removed.append({"fixture_key":key,"reason":"baseline-only fixture has no verified kickoff before current UTC time",
                                    "baseline_kickoff_time":row.get("kickoff_time","")})
@@ -152,16 +194,20 @@ if new_schedule or unresolved_removed:
     raise SystemExit("BLOCKED_COMMON_VERIFIED_SCHEDULE_MISMATCH:"+json.dumps({
         "baseline_rows":len(base_schedule),"research_rows":len(current_schedule),
         "removed_from_research_schedule":removed_schedule,"new_in_research_schedule":new_schedule,
-        "elapsed_since_baseline":elapsed_since_baseline,"unresolved_removed":unresolved_removed
+        "elapsed_since_baseline":elapsed_since_baseline,
+        "excluded_same_day_unverified":excluded_same_day_unverified,
+        "unresolved_removed":unresolved_removed
     }))
 elapsed_keys={x["fixture_key"] for x in elapsed_since_baseline}
-active_baseline_keys=base_schedule_keys-elapsed_keys
+unverified_excluded_keys={x["fixture_key"] for x in excluded_same_day_unverified}
+active_baseline_keys=base_schedule_keys-elapsed_keys-unverified_excluded_keys
 if active_baseline_keys != current_schedule_keys:
     raise SystemExit("BLOCKED_COMMON_VERIFIED_ACTIVE_SCHEDULE_MISMATCH:"+json.dumps({
         "active_baseline_rows":len(active_baseline_keys),"research_rows":len(current_schedule),
         "active_baseline_only":sorted(active_baseline_keys-current_schedule_keys),
         "research_only":sorted(current_schedule_keys-active_baseline_keys),
-        "elapsed_since_baseline":elapsed_since_baseline
+        "elapsed_since_baseline":elapsed_since_baseline,
+        "excluded_same_day_unverified":excluded_same_day_unverified
     }))
 # The common fixture list covers only fixtures still upcoming at replay time.
 common_rows=[]
@@ -236,6 +282,8 @@ result={
         "new_in_research_schedule":new_schedule,
         "elapsed_since_baseline":elapsed_since_baseline,
         "elapsed_fixture_count":len(elapsed_since_baseline),
+        "excluded_same_day_unverified":excluded_same_day_unverified,
+        "same_day_unverified_excluded_count":len(excluded_same_day_unverified),
         "unresolved_removed_from_research_schedule":unresolved_removed,
         "schedule_sets_match":active_baseline_keys==current_schedule_keys
     },
