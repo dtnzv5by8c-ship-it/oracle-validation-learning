@@ -333,7 +333,7 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
-          python scripts/audit_prediction_cutoff_traceability.py --predictions oracle/research/four_model/outputs/four_model_live_predictions.csv --output /tmp/oracle-mandatory-cutoff-audit.json
+          python scripts/audit_prediction_cutoff_traceability.py --predictions oracle/research/four_model/outputs/four_model_live_predictions.csv --output /tmp/oracle-mandatory-cutoff-audit.json --live-outcome "${{ steps.live.outcome }}"
 
       - name: Validate research-only identity, state joins, kickoffs and cutoffs
         id: recovery_validation
