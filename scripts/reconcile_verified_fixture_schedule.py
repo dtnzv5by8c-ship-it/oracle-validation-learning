@@ -96,6 +96,23 @@ def main():
            "kickoff_policy":"Only timezone-qualified source-supported UTC timestamps are accepted; no inferred or date-only kickoffs are confirmed.",
            "production_promotion":"BLOCKED"}
     Path(args.audit).write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
+    # Keep the fixture manifest consistent with the corrected research schedule.
+    manifest_path=path.with_name("oracle_upcoming_fixtures_manifest.json")
+    if manifest_path.exists():
+        manifest=json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["admitted_fixture_count"]=len(rows)
+        manifest["admitted_league_count"]=len({str(r.get("league_code","")) for r in rows if r.get("league_code")})
+        counts={}
+        for row in rows:
+            code=str(row.get("league_code",""))
+            if code: counts[code]=counts.get(code,0)+1
+        manifest["fixture_counts_by_league"]=counts
+        manifest["official_schedule_reconciliation"]={
+            "status":audit["status"],"rows_before":original,"rows_after":len(rows),
+            "changes":changes,"sources":SOURCES,
+            "kickoff_policy":audit["kickoff_policy"]
+        }
+        manifest_path.write_text(json.dumps(manifest,indent=2)+"\\n",encoding="utf-8")
     print(json.dumps(audit,indent=2))
 
 if __name__=="__main__":
