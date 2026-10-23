@@ -27,7 +27,7 @@ class SeasonCrosswalkTests(unittest.TestCase):
 
     def test_missing_dates_warn_and_do_not_auto_approve(self):
         header = "target_code,catalogue_status,provider_league_id,provider_name,candidate_season_ids,candidate_season_labels,candidate_season_dates,decision\n"
-        row = "E0,EXACT_ALIAS_CANDIDATE,10,England Premier League,100,2025/26,,REVIEW_REQUIRED_NOT_AUTO_MAPPED\n"
+        row = "E0,EXACT_ALIAS_CANDIDATE,10,England Premier League,100,2025/26,/,REVIEW_REQUIRED_NOT_AUTO_MAPPED\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "crosswalk.csv"
             p.write_text(header + row, encoding="utf-8")
