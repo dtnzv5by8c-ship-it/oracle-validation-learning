@@ -122,7 +122,7 @@ def main():
             crosswalk.append({
                 "target_code": code, "target_country": country, "target_competition": competition,
                 "catalogue_status": status, "candidate_similarity_score": round(score, 4),
-                "provider_league_id": match.get("provider_league_id",""),
+                "provider_league_id": match.get("provider_league_id", match.get("id", "")),
                 "provider_name": match.get("provider_name",""), "provider_country": match.get("country",""),
                 "candidate_season_ids": ";".join(s["season_id"] for s in match.get("seasons",[])),
                 "candidate_season_labels": ";".join(s["season_label"] for s in match.get("seasons",[])),
@@ -135,7 +135,7 @@ def main():
     safe = {"generated_utc":datetime.now(timezone.utc).isoformat(), "catalogue_league_count":len(catalogue),
             "target_league_count":len(TARGETS), "targets_with_exact_alias_candidates":sum(any(r["target_code"]==t[0] and r["catalogue_status"]=="EXACT_ALIAS_CANDIDATE" for r in crosswalk) for t in TARGETS),
             "targets_with_fuzzy_candidates_for_review":sum(any(r["target_code"]==t[0] and r["catalogue_status"]=="FUZZY_CANDIDATE_REVIEW_ONLY" for r in crosswalk) for t in TARGETS),
-            "targets_with_no_candidate_found":sum(not any(r["target_code"]==t[0] and r["provider_league_id"] for r in crosswalk) for t in TARGETS),
+            "targets_with_no_candidate_found":sum(not any(r["target_code"]==t[0] and r["catalogue_status"] not in ("NO_CANDIDATE_FOUND", "NO_EXACT_ALIAS_MATCH") for r in crosswalk) for t in TARGETS),
             "catalogue_sha256":hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
             "scope":"Unfiltered catalogue discovery only; candidate mappings require human/independent validation; no matches or predictions fetched; production registry untouched."}
     (out/"oracle_44_league_broader_catalogue_summary.json").write_text(json.dumps(safe,indent=2)+"\n",encoding="utf-8")
