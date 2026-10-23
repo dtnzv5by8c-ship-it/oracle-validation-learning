@@ -97,6 +97,21 @@ ELAPSED_BASELINE_KICKOFFS = {
         "kickoff_utc":"2026-10-23T17:00:00Z",
         "evidence":"Pinned open-matchday 2026/27 fixture CSV: 18:00 CET-1 (UTC+01:00)",
         "source":"https://github.com/oladeeayo/open-matchday/tree/10c67c338ad1ba4b3828a94082eb46db57554d3f/data/TUR_1_super-lig"
+    },
+    "SCHED-D1-2026-10-23-vfbstuttgart-borussiamonchengladbach": {
+        "kickoff_utc":"2026-10-23T18:30:00Z",
+        "evidence":"Bundesliga and VfB Stuttgart confirm 20:30 Germany local (18:30 UTC)",
+        "source":"https://products.bundesliga.com/fixtures"
+    },
+    "SCHED-F1-2026-10-23-brest-nice": {
+        "kickoff_utc":"2026-10-23T18:45:00Z",
+        "evidence":"Official French league fixture: 20:45 France local (18:45 UTC)",
+        "source":"https://datencenter.dfb.de/datacenter/ligue-1/2026-2027/8-spieltag/stade-brest-ogc-nizza-2421835"
+    },
+    "SCHED-ROU-2026-10-23-corvinul-ucluj": {
+        "kickoff_utc":"2026-10-23T18:00:00Z",
+        "evidence":"LPF fixture listing: 21:00 Romania local (18:00 UTC)",
+        "source":"https://lpf.ro/statistici/3694?tab=avancronica"
     }
 }
 
