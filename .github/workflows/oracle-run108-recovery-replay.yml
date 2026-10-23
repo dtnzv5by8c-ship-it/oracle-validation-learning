@@ -122,6 +122,7 @@ jobs:
 
       - name: Refresh upcoming fixtures from public sources and OpenFoot fallback
         id: ingest
+        timeout-minutes: 15
         working-directory: oracle
         env:
           OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
