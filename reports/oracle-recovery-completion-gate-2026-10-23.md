@@ -58,5 +58,12 @@ The machine-readable evidence register is `oracle-ten-fixture-evidence-register-
 - The 27th code is explicitly identified: `RSA` = `South African PSL` exists in historical matches but has zero rows in the archived upcoming schedule. No schedule code exists without historical mapping. Determine from dated source/ingestion logs whether this was an expected no-fixture window or a schedule ingestion omission; do not silently mark RSA covered.
 - No kickoff time has been guessed or populated by this audit. Enrichment requires official fixture-level evidence, source timezone, and normalized UTC value.
 
+
+## Critical replay-workflow defect found and corrected (23 October 2026)
+- During an independent local check of the actual Run #107 ZIP, the replay workflow's original `rglob("matches.csv")` lookup could select `current_matches.csv` because its filename also ends with `matches.csv`. That file has no `league_code`, so the league crosswalk would silently be empty and every fixture would appear blocked. This would have made the first real-data replay misleading.
+- Corrected the workflow to select exactly one file whose basename is `matches.csv`, then validate required historical-match columns before building the league map. Added the kickoff coverage audit to the workflow's path triggers.
+- Independent local replay using the correct archived historical file verified 12,836 historical-match rows, 27 league mappings, zero mapping conflicts, zero unmapped prematch-state league names, and reproduced 146 exact-label fixtures with both role-state records / 98 blocked across 244 fixtures. These are research diagnostics, not a completed GitHub Actions run.
+- The new workflow commit is `6ed19876b03edfaeb1e51c720880b6166730ff06`. GitHub Actions run status and the uploaded artifact still need verification in the workflow page.
+
 ## Recommendation
 The evidence supports investigating a schedule-to-history canonical identity gap as a likely cause for several exclusions, but does not yet prove a single root cause for all ten. Do not implement a production fix until stable identities and minimum-history policy are verified and the actual replay is reproducible. Keep all unresolved cases blocked.
