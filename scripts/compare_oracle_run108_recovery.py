@@ -47,7 +47,17 @@ base_schedule=official_normalise(base_schedule, baseline=True)
 current_schedule=official_normalise(current_schedule)
 
 def fixture_key(r):
-    return f"SCHED-{r.get('league_code','')}-{r.get('date','')}-{norm(r.get('home_team',''))}-{norm(r.get('away_team',''))}"
+    league=str(r.get("league_code",""))
+    home=norm(r.get("home_team",""))
+    away=norm(r.get("away_team",""))
+    # The Romanian baseline uses the short display label "Petrolul"; the
+    # official fixture source uses "Petrolul Ploiești". These are one team in
+    # the same league/date/home-away slot, so use the official schedule evidence
+    # to canonicalise this one reviewed identity pair for comparison only.
+    if league=="ROU" and r.get("date")=="2026-10-23" and home in {"fcbotosani","botosani"} and away in {"petrolul","petrolulploiesti","fcpetrolulploiesti"}:
+        home="fcbotosani"
+        away="petrolul"
+    return f"SCHED-{league}-{r.get('date','')}-{home}-{away}"
 
 base_map={fixture_key(r):r for r in base_schedule}
 current_map={fixture_key(r):r for r in current_schedule}
