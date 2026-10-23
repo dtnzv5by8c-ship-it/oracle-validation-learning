@@ -90,9 +90,9 @@ jobs:
                       return {"ok":False,"http":None,"payload":None,"error":type(e).__name__}
               return {"ok":False,"http":None,"payload":None,"error":"RETRY_EXHAUSTED"}
 
-          cat=api("league-list",{"chosen_leagues_only":"true"})
+          cat=api("league-list",{"chosen_leagues_only":"false"})
           if not cat["ok"] or not isinstance(cat["payload"].get("data"),list):
-              raise SystemExit("Selected catalogue failed. Details withheld; check API entitlement and secret.")
+              raise SystemExit("Unfiltered catalogue failed. Details withheld; check API entitlement and secret.")
           catalog={}
           for league in cat["payload"]["data"]:
               if isinstance(league,dict) and league.get("name"):
