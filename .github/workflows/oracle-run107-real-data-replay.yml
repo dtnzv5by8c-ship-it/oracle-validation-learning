@@ -8,6 +8,7 @@ on:
       - ".github/workflows/oracle-run107-real-data-replay.yml"
       - "reports/oracle-ten-fixture-evidence-register-2026-10-23.csv"
       - "reports/oracle-recovery-completion-gate-2026-10-23.md"
+      - "reports/oracle-run107-kickoff-coverage-audit-2026-10-23.csv"
   workflow_dispatch:
 
 permissions:
@@ -53,14 +54,25 @@ jobs:
           python - <<'PY'
           import csv, pathlib
           root = pathlib.Path("evidence/run107/unpacked")
-          find = lambda name: next(root.rglob(name))
-          schedule, state, matches = find("oracle_upcoming_fixtures.csv"), find("current_prematch_team_state.csv"), find("matches.csv")
+          def find_exact_basename(name):
+              hits = [p for p in root.rglob("*") if p.is_file() and p.name == name]
+              if len(hits) != 1:
+                  raise SystemExit(f"EXPECTED_ONE_FILE_NAMED_{name}_FOUND_{len(hits)}")
+              return hits[0]
+          schedule = find_exact_basename("oracle_upcoming_fixtures.csv")
+          state = find_exact_basename("current_prematch_team_state.csv")
+          # Do not use rglob("matches.csv") or endswith("matches.csv"):
+          # that can silently select current_matches.csv, which has no league_code.
+          matches = find_exact_basename("matches.csv")
           out = pathlib.Path("evidence/run107/replay-inputs")
           out.mkdir(parents=True, exist_ok=True)
           (out/"fixtures.csv").write_bytes(schedule.read_bytes())
           (out/"history.csv").write_bytes(state.read_bytes())
           with matches.open(encoding="utf-8-sig", newline="") as f:
               rows = list(csv.DictReader(f))
+          required = {"match_id", "date", "league_code", "league", "home_team", "away_team"}
+          if not rows or not required.issubset(rows[0].keys()):
+              raise SystemExit(f"HISTORICAL_MATCHES_SCHEMA_MISMATCH: required={sorted(required)}; actual={sorted(rows[0].keys()) if rows else []}")
           mapping = {}
           for r in rows:
               code, name = r.get("league_code","").strip(), r.get("league","").strip()
