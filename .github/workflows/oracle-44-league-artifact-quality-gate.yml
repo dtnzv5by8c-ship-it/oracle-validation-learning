@@ -1,0 +1,68 @@
+name: Oracle 44-League Artifact Quality Gate
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Oracle 44-League FootyStats Full-Season Coverage Audit"
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  validate-artifact:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout research code
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-crosswalk-isolation-2026-10-22
+
+      - name: Download source audit artifact from completed workflow
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-44-league-footystats-full-season-audit
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: oracle-44-league-full-season-audit
+
+      - name: Explain manual-dispatch input requirement
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Manual runs require the source audit files to be supplied in the runner workspace."
+          echo "Use the workflow_run trigger after a source audit run to download its artifact."
+
+      - name: Compile scripts and run lifecycle unit tests
+        run: |
+          python -m py_compile scripts/validate_oracle_44_audit.py scripts/audit_fixture_lifecycle.py scripts/oracle_44_catalogue_discovery.py scripts/oracle_fail_closed_quality_gate.py
+          python -m unittest discover -s tests -v
+
+      - name: Structural validation of source artifact
+        if: github.event_name == 'workflow_run'
+        run: python scripts/validate_oracle_44_audit.py oracle-44-league-full-season-audit
+
+      - name: Lifecycle and point-in-time audit
+        if: github.event_name == 'workflow_run'
+        run: python scripts/audit_fixture_lifecycle.py oracle-44-league-full-season-audit/oracle_44_league_sanitized_fixture_audit.csv oracle-44-league-full-season-audit/lifecycle-output
+
+      - name: Fail-closed odds and historical timing gate
+        if: github.event_name == 'workflow_run'
+        run: python scripts/oracle_fail_closed_quality_gate.py oracle-44-league-full-season-audit
+
+      - name: Upload validation evidence even when gates fail
+        if: always() && github.event_name == 'workflow_run'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-44-league-quality-gate-results
+          path: |
+            oracle-44-league-full-season-audit/oracle_fail_closed_quality_gate.json
+            oracle-44-league-full-season-audit/lifecycle-output/*
+          if-no-files-found: warn
+          retention-days: 30
