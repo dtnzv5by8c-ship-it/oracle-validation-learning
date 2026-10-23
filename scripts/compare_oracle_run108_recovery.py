@@ -25,6 +25,52 @@ base_recon=json.loads(one(BASE,"tmp/oracle-live-reconciliation.json").read_text(
 current_recon=json.loads(Path("/tmp/oracle-live-reconciliation.json").read_text(encoding="utf-8"))
 base_schedule=read_csv(one(BASE,"oracle/data/fixtures/oracle_upcoming_fixtures.csv"))
 current_schedule=read_csv(CURRENT/"data/fixtures/oracle_upcoming_fixtures.csv")
+
+def official_normalise(rows, baseline=False):
+    """Apply only official, source-backed schedule corrections for the comparison window."""
+    out=[]
+    for original in rows:
+        r=dict(original)
+        league=str(r.get("league_code",""))
+        home=norm(r.get("home_team","")); away=norm(r.get("away_team",""))
+        if league=="F1" and home in {"parissaintgermain","paris"} and away in {"lyon","olympiquelyonnais"} and r.get("date") in {"2026-10-25","2026-10-26"}:
+            r["date"]="2026-10-26"
+            r["home_team"]="Paris Saint-Germain"; r["away_team"]="Lyon"
+            r["kickoff_time"]="2026-10-26T18:30:00Z"
+        out.append(r)
+    return out
+
+base_schedule=official_normalise(base_schedule, baseline=True)
+current_schedule=official_normalise(current_schedule)
+
+def fixture_key(r):
+    return f"SCHED-{r.get('league_code','')}-{r.get('date','')}-{norm(r.get('home_team',''))}-{norm(r.get('away_team',''))}"
+
+base_map={fixture_key(r):r for r in base_schedule}
+current_map={fixture_key(r):r for r in current_schedule}
+base_schedule_keys=set(base_map)
+current_schedule_keys=set(current_map)
+removed_schedule=sorted(base_schedule_keys-current_schedule_keys)
+new_schedule=sorted(current_schedule_keys-base_schedule_keys)
+if removed_schedule or new_schedule:
+    raise SystemExit("BLOCKED_COMMON_VERIFIED_SCHEDULE_MISMATCH:"+json.dumps({
+        "baseline_rows":len(base_schedule),"research_rows":len(current_schedule),
+        "removed_from_research_schedule":removed_schedule,"new_in_research_schedule":new_schedule
+    }))
+# The common fixture list is derived only after the two official-normalised key sets agree.
+common_rows=[]
+for key in sorted(base_schedule_keys):
+    r=dict(current_map[key])
+    r["fixture_key"]=key
+    r["baseline_fixture_present"]=True
+    r["research_fixture_present"]=True
+    r["official_schedule_reconciled"]=True
+    common_rows.append(r)
+common_path=Path("/tmp/oracle-common-verified-fixture-list.csv")
+fields=["fixture_key","league_code","date","home_team","away_team","kickoff_time",
+        "baseline_fixture_present","research_fixture_present","official_schedule_reconciled"]
+with common_path.open("w",encoding="utf-8",newline="") as f:
+    w=csv.DictWriter(f,fieldnames=fields,extrasaction="ignore");w.writeheader();w.writerows(common_rows)
 base_predictions=read_csv(one(BASE,"four_model_live_predictions.csv"))
 current_predictions=read_csv(CURRENT/"research/four_model/outputs/four_model_live_predictions.csv")
 base_audit=json.loads(one(BASE,"tmp/oracle-fixture-audit.json").read_text(encoding="utf-8"))
