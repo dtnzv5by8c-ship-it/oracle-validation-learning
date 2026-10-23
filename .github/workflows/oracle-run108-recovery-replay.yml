@@ -27,7 +27,7 @@ permissions:
 
 
 concurrency:
-  group: oracle-completion-run
+  group: oracle-run108-research-replay
   cancel-in-progress: false
 
 jobs:
@@ -41,6 +41,9 @@ jobs:
     steps:
       - name: Checkout public runner tooling
         uses: actions/checkout@v4
+
+      - name: Verify research comparison tooling
+        run: python -m py_compile scripts/compare_oracle_run108_recovery.py
 
       - name: Clone governed private Oracle source
         env:
@@ -69,7 +72,7 @@ jobs:
           set -euo pipefail
           echo "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc  database/matches.csv" | sha256sum --check -
           echo "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78  database/prematch_team_state.csv" | sha256sum --check -
-          python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_btts_cohort_gate_v1.py scripts/oracle_all_markets_walk_forward_v1.py scripts/oracle_four_model_live_predict.py
+          python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_btts_cohort_gate_v1.py scripts/oracle_all_markets_walk_forward_v1.py scripts/oracle_four_model_live_predict.py scripts/validate_oracle_run108_recovery_research.py
 
       - name: Refresh verified current results and rebuild prematch team state
         id: current_state_refresh
@@ -111,9 +114,8 @@ jobs:
             echo "ERROR: OPENFOOT_API_KEY secret is missing; refusing the ingestion script's demo-key fallback."
             exit 1
           fi
-          # Scheduled and push-triggered runs have no workflow_dispatch input.
-          # Use a fixed 7-day horizon for autonomous weekly reporting.
-          DAYS_AHEAD="${DAYS_AHEAD:-7}"
+          # Push-triggered research replay uses the same three-day horizon as Run 108.
+          DAYS_AHEAD="${DAYS_AHEAD:-3}"
           if ! [[ "$DAYS_AHEAD" =~ ^[0-9]+$ ]] || [ "$DAYS_AHEAD" -lt 1 ] || [ "$DAYS_AHEAD" -gt 31 ]; then
             echo "ERROR: DAYS_AHEAD must be an integer from 1 to 31; got '$DAYS_AHEAD'."
             exit 1
