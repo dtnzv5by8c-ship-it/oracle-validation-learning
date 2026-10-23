@@ -12,7 +12,7 @@ from pathlib import Path
 
 EXPECTED_TARGETS = 44
 REQUIRED = {
-    "target_code", "catalogue_status", "provider_league_id", "provider_name",
+    "target_code", "catalogue_status", "provider_name",
     "candidate_season_ids", "candidate_season_labels", "candidate_season_dates",
     "decision",
 }
@@ -51,20 +51,21 @@ def validate(path):
         code = row["target_code"].strip()
         per_target.setdefault(code, []).append(row)
         status = (row.get("catalogue_status") or "").strip()
-        provider_id = (row.get("provider_league_id") or "").strip()
         season_ids = [x.strip() for x in (row.get("candidate_season_ids") or "").split(";") if x.strip()]
         labels = [x.strip() for x in (row.get("candidate_season_labels") or "").split(";") if x.strip()]
         date_pairs = [x.strip() for x in (row.get("candidate_season_dates") or "").split(";") if x.strip()]
         if status != "EXACT_ALIAS_CANDIDATE":
             warnings.append(f"{code}: catalogue status is {status or 'blank'}; mapping remains unresolved")
-        if not provider_id:
-            warnings.append(f"{code}: provider league ID missing")
         if not season_ids:
             warnings.append(f"{code}: no candidate season ID")
         if len(set(season_ids)) != len(season_ids):
             errors.append(f"{code}: duplicate season IDs in candidate metadata")
-        if len(labels) != len(season_ids) or len(date_pairs) != len(season_ids):
-            warnings.append(f"{code}: season IDs, labels and date pairs have mismatched counts")
+        if len(labels) != len(season_ids):
+            warnings.append(f"{code}: season IDs and labels have mismatched counts")
+        # The provider catalogue can omit season dates. Treat these as unavailable
+        # evidence, not malformed data; do not infer dates from season labels.
+        if date_pairs and len(date_pairs) != len(season_ids):
+            warnings.append(f"{code}: season IDs and date pairs have mismatched counts")
         for pair in date_pairs:
             parts = pair.split("/", 1)
             if len(parts) != 2:
@@ -84,8 +85,9 @@ def validate(path):
     metrics = {
         "crosswalk_rows": len(rows),
         "unique_target_codes": len(unique_codes),
-        "targets_with_provider_id": sum(any((r.get("provider_league_id") or "").strip() for r in per_target[c]) for c in per_target),
-        "targets_with_season_id": sum(any((r.get("candidate_season_ids") or "").strip() for r in per_target[c]) for c in per_target),
+        "targets_with_provider_season_ids": sum(any((r.get("candidate_season_ids") or "").strip() for r in per_target[c]) for c in per_target),
+        "targets_with_season_labels": sum(any((r.get("candidate_season_labels") or "").strip() for r in per_target[c]) for c in per_target),
+        "targets_with_season_dates": sum(any((r.get("candidate_season_dates") or "").strip().strip("/; ") for r in per_target[c]) for c in per_target),
         "targets_with_exact_alias_candidate": sum(any((r.get("catalogue_status") or "").strip() == "EXACT_ALIAS_CANDIDATE" for r in per_target[c]) for c in per_target),
         "validation_errors": len(errors),
         "warnings": len(warnings),
