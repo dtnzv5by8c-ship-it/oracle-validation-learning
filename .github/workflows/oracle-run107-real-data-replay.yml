@@ -6,6 +6,8 @@ on:
       - "research/oracle-crosswalk-isolation-2026-10-22"
     paths:
       - ".github/workflows/oracle-run107-real-data-replay.yml"
+      - "reports/oracle-ten-fixture-evidence-register-2026-10-23.csv"
+      - "reports/oracle-recovery-completion-gate-2026-10-23.md"
   workflow_dispatch:
 
 permissions:
