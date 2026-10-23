@@ -111,9 +111,51 @@ for item in excluded:
             "runner_any_history_rows_for_team": item.get(f"{side}_any_role_history_rows", ""),
             "official_schedule_evidence": mapping.get("evidence_url", ""),
             "candidate_status": mapping.get("identity_status", "MISSING_CANDIDATE_ROW"),
+            "required_role_missing": required_role_missing,
             "diagnosis": diagnosis,
             "production_change": "NONE_RESEARCH_ONLY"
         })
+
+# Fixture-level counterfactual: test only whether historical same-role labels exist.
+# This does not apply mappings to the runner or assert production eligibility.
+fixture_groups = defaultdict(list)
+for row in out_rows:
+    fixture_groups[row["fixture_id"]].append(row)
+excluded_by_id = {r.get("fixture_id", ""): r for r in excluded}
+counterfactual_rows = []
+for fixture_id, group in sorted(fixture_groups.items()):
+    blocked_roles = [r for r in group if r["required_role_missing"]]
+    candidate_details = []
+    thin_details = []
+    recovered_candidates = 0
+    for r in blocked_roles:
+        role_count = safe_int(r["candidate_home_role_matches"] if r["role"] == "home" else r["candidate_away_role_matches"])
+        candidate_details.append(f'{r["role"]}:{r["schedule_team_label"]} -> {r["research_candidate_history_label"]} ({role_count} same-role historical rows)')
+        if role_count > 0:
+            recovered_candidates += 1
+        if 0 < role_count <= 5:
+            thin_details.append(f'{r["research_candidate_history_label"]}={role_count} same-role rows')
+    base = excluded_by_id.get(fixture_id, {})
+    counterfactual_rows.append({
+        "fixture_id": fixture_id,
+        "date": group[0]["date"],
+        "league_code": group[0]["league_code"],
+        "league": group[0]["league"],
+        "home_team": base.get("home_team", ""),
+        "away_team": base.get("away_team", ""),
+        "blocked_role_count": len(blocked_roles),
+        "blocked_roles_with_historical_same_role_candidate": recovered_candidates,
+        "candidate_role_evidence": " | ".join(candidate_details),
+        "thin_history_caution": " | ".join(thin_details),
+        "counterfactual_result": "CANDIDATE_EXISTS_FOR_EACH_BLOCKED_ROLE" if blocked_roles and recovered_candidates == len(blocked_roles) else "REMAINING_ROLE_GAPS",
+        "status": "RESEARCH_ONLY_NOT_APPLIED",
+        "production_eligibility": "NOT_APPROVED"
+    })
+counterfactual_path = OUT / "oracle-run108-crosswalk-counterfactual-2026-10-23.csv"
+if counterfactual_rows:
+    with counterfactual_path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(counterfactual_rows[0]))
+        w.writeheader(); w.writerows(counterfactual_rows)
 
 csv_path = OUT / "oracle-run108-missing-state-root-cause-audit-2026-10-23.csv"
 if out_rows:
@@ -157,6 +199,8 @@ summary = {
     "cutoff_issue_sample": pred_cutoff_examples,
     "cutoff_interpretation": "METADATA_REVIEW_REQUIRED; this audit does not infer model leakage or alter model output",
     "role_audit_csv": str(csv_path),
+    "fixture_counterfactual_csv": str(counterfactual_path),
+    "fixtures_with_candidates_for_every_blocked_role": sum(1 for r in counterfactual_rows if r["counterfactual_result"] == "CANDIDATE_EXISTS_FOR_EACH_BLOCKED_ROLE"),
     "diagnosis_counts": dict(Counter(r["diagnosis"] for r in out_rows)),
     "governance": "No production alias approved; no model logic/calibration/threshold/eligibility changes."
 }
