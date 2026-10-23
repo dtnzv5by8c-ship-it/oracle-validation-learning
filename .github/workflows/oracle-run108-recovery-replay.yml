@@ -7,6 +7,9 @@ on:
       - research/oracle-crosswalk-isolation-2026-10-22
     paths:
       - ".github/workflows/oracle-run108-recovery-replay.yml"
+      - "scripts/reconcile_verified_fixture_schedule.py"
+      - "scripts/audit_prediction_cutoff_traceability.py"
+      - "scripts/compare_oracle_run108_recovery.py"
   workflow_dispatch:
     inputs:
       days_ahead:
@@ -122,6 +125,12 @@ jobs:
           fi
           echo "Fixture ingestion window: $DAYS_AHEAD days ahead."
           python scripts/ingest_upcoming_fixtures.py "$DAYS_AHEAD" data/fixtures/oracle_upcoming_fixtures.csv
+
+      - name: Reconcile official schedule changes in research-only fixture list
+        id: official_schedule
+        run: |
+          set -euo pipefail
+          python scripts/reconcile_verified_fixture_schedule.py --schedule oracle/data/fixtures/oracle_upcoming_fixtures.csv --audit /tmp/oracle-official-schedule-reconciliation.json
 
       - name: Audit fixture coverage and prematch state readiness
         id: audit
@@ -319,6 +328,13 @@ jobs:
           print(json.dumps(result,indent=2))
           PY
 
+      - name: Mandatory prediction cutoff traceability audit
+        id: cutoff_audit
+        if: always()
+        run: |
+          set -euo pipefail
+          python scripts/audit_prediction_cutoff_traceability.py --predictions oracle/research/four_model/outputs/four_model_live_predictions.csv --output /tmp/oracle-mandatory-cutoff-audit.json
+
       - name: Validate research-only identity, state joins, kickoffs and cutoffs
         id: recovery_validation
         if: steps.live.outcome == 'success'
@@ -345,7 +361,7 @@ jobs:
 
       - name: Compare recovery reconciliation against Run 108
         id: compare_run108
-        if: always() && steps.ingest.outcome == 'success' && steps.live.outcome == 'success' && steps.baseline.outcome == 'success' && steps.reconcile.outcome == 'success'
+        if: always() && steps.ingest.outcome == 'success' && steps.official_schedule.outcome == 'success' && steps.live.outcome == 'success' && steps.baseline.outcome == 'success' && steps.reconcile.outcome == 'success' && steps.cutoff_audit.outcome == 'success'
         run: |
           set -euo pipefail
           python scripts/compare_oracle_run108_recovery.py
@@ -361,6 +377,8 @@ jobs:
           RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
           RECOVERY_VALIDATION_OUTCOME: ${{ steps.recovery_validation.outcome }}
           RUN108_COMPARE_OUTCOME: ${{ steps.compare_run108.outcome }}
+          OFFICIAL_SCHEDULE_OUTCOME: ${{ steps.official_schedule.outcome }}
+          CUTOFF_AUDIT_OUTCOME: ${{ steps.cutoff_audit.outcome }}
         run: |
           python - <<'PY'
           import json, os
@@ -372,6 +390,8 @@ jobs:
               "source_commit":os.environ.get("SOURCE_COMMIT"),
               "stage_outcomes":{
                   "fixture_ingestion":os.environ.get("INGEST_OUTCOME"),
+                  "official_schedule_reconciliation":os.environ.get("OFFICIAL_SCHEDULE_OUTCOME"),
+                  "mandatory_cutoff_traceability_audit":os.environ.get("CUTOFF_AUDIT_OUTCOME"),
                   "fixture_state_audit":os.environ.get("AUDIT_OUTCOME"),
                   "22_market_historical_backtest":os.environ.get("BACKTEST_OUTCOME"),
                   "22_market_live_runner":os.environ.get("LIVE_OUTCOME"),
@@ -383,6 +403,10 @@ jobs:
               "fixture_level_rows_in_artifact":False,
               "production_promotion":"NOT_ALLOWED"
           }
+          official=Path("/tmp/oracle-official-schedule-reconciliation.json")
+          if official.exists(): report["official_schedule_reconciliation"]=json.loads(official.read_text())
+          cutoff=Path("/tmp/oracle-mandatory-cutoff-audit.json")
+          if cutoff.exists(): report["mandatory_cutoff_traceability_audit"]=json.loads(cutoff.read_text())
           recon=Path("/tmp/oracle-live-reconciliation.json")
           if recon.exists(): report["live_reconciliation"]=json.loads(recon.read_text())
           audit=Path("/tmp/oracle-fixture-audit.json")
@@ -436,6 +460,9 @@ jobs:
             /tmp/oracle-oos-thresholds.csv
             /tmp/oracle-oos-thresholds.summary.json
             /tmp/oracle-run108-comparison.json
+            /tmp/oracle-common-verified-fixture-list.csv
+            /tmp/oracle-official-schedule-reconciliation.json
+            /tmp/oracle-mandatory-cutoff-audit.json
             oracle/config/oracle-run108-team-identity-crosswalk-research-2026-10-23.csv
             oracle/research/run108_recovery/
           if-no-files-found: warn
