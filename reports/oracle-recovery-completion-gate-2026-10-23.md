@@ -102,7 +102,18 @@ The evidence supports investigating a schedule-to-history canonical identity gap
 - Artifact `oracle-run107-actual-replay-diagnostics`, ID `12487741001`: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39921448005/artifacts/12487741001
 - With these explicit research-only candidates, 153/244 fixtures have role state available for review and 91 remain blocked, versus 146/244 review-only and 98 blocked with no aliases. This is a counterfactual data-readiness result, not prediction accuracy or production eligibility.
 - Of the ten named fixtures, seven now reach `ELIGIBLE_FOR_REVIEW_ONLY`: Pau FC–Grenoble, Almere City–Roda, Jong AZ–Helmond, TOP Oss–Jong Ajax, FC Dordrecht–VVV-Venlo, Eintracht Braunschweig–Hannover 96, and PSV–Feyenoord.
-- Three remain blocked by design: Westerlo–Beveren (minimum-history policy unresolved), Brno–Bohemians (historical identity ambiguity), and Wisła–Raków (home-team/competition conflict).
+- The three formerly blocked fixtures were researched against official date/competition schedules and the actual archived prematch-state rows. Westerlo–SK Beveren is now review-only with 28 home-role rows and only 3 away-role rows (thin-history warning; minimum-history policy unresolved). FC Zbrojovka Brno–Bohemians 1905 is review-only with 4 home-role rows and 26 away-role rows; Artis Brno remains a distinct club and must not be merged. Wisła Kraków–Raków Częstochowa is review-only with 4 home-role rows and 26 away-role rows; the official 24 October schedule distinguishes Wisła Kraków from Wisła Płock.
 - No production aliases were approved, no production predictions were generated, and no model logic or eligibility policy was changed. The result narrows the likely identity-mapping issue for research, but the durable production fix still requires provider IDs to be carried into historical and prematch-state records and independently verified.
 
-- Readable ten-fixture result table: `oracle-run107-ten-fixture-crosswalk-counterfactual-2026-10-23.csv`. It distinguishes the research-only candidate label/role-row counts from aliases actually applied, lists the three blockers, and explicitly marks every row `production_approved=NO`.
+- Updated ten-fixture result table: `oracle-run107-ten-fixture-crosswalk-counterfactual-2026-10-23.csv`. It lists role-row counts, flags low-history cases, and marks every row `production_approved=NO`.
+
+
+## Expedited date-anchored replay — Run #24 (23 October 2026)
+- Official fixture sources were checked for all three previously blocked fixtures: KVC Westerlo vs SK Beveren (24 Oct), FC Zbrojovka Brno vs Bohemians 1905 (24 Oct), and Wisła Kraków vs Raków Częstochowa (24 Oct). The official Ekstraklasa schedule separately lists Wisła Płock vs Jagiellonia on 25 Oct.
+- Added five additional explicit research-only alias rows to the existing eleven, for 16 total candidate mappings. No production alias approval was granted.
+- Run #24 passed end-to-end: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39931903650
+- Artifact `oracle-run107-actual-replay-diagnostics`, ID `12492340850`: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39931903650/artifacts/12492340850
+- Actual archived-data replay result: 244 fixtures processed; 156 `ELIGIBLE_FOR_REVIEW_ONLY`, 88 `BLOCKED`; all 10 target fixtures are present and now `ELIGIBLE_FOR_REVIEW_ONLY`. Role-state counts for the three cases are Westerlo 28 / Beveren 3, FC Zbrojovka Brno 4 / Bohemians 26, and Wisła Kraków 4 / Raków 26.
+- This is a research data-readiness replay only. It did not generate predictions, alter Oracle model logic, or approve production eligibility. The 3-row Beveren sample and 4-row home samples remain visibly flagged for review.
+- The latest research isolation CI run #102 passed: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39931895477
+- PR #20 remains open, draft, and unmerged. The production prediction run is a separate workflow and still needs to be triggered/verified; this research replay is not a substitute.
