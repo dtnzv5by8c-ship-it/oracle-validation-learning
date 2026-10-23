@@ -74,7 +74,9 @@ jobs:
           grep -q '^def fetch_open_matchday_fixtures' scripts/ingest_upcoming_fixtures.py
           grep -Fq 'OPEN_MATCHDAY_COMMIT = "10c67c338ad1ba4b3828a94082eb46db57554d3f"' scripts/ingest_upcoming_fixtures.py
           grep -Fq 'manifest["kickoff_enrichment_from_open_matchday"]=open_matchday_audit' scripts/ingest_upcoming_fixtures.py
-          echo "Strict unique timestamp joins, ESPN fallback, and pinned open-matchday fallback verified."
+          grep -Fq 'timeout=5)' scripts/ingest_upcoming_fixtures.py
+          grep -Fq 'timeout=10)' scripts/ingest_upcoming_fixtures.py
+          echo "Strict joins, pinned secondary sources, and bounded provider timeouts verified."
 
       - name: Install dependencies
         run: |
