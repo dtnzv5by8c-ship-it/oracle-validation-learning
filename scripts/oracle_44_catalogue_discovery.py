@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Research refresh marker: 2026-10-24 — broadened catalogue candidate review; fuzzy matches remain unapproved.
 """Research-only FootyStats catalogue discovery for Oracle's 44 target competitions.
 
 Does not fetch matches, create predictions, or alter the governed 27-league registry.
