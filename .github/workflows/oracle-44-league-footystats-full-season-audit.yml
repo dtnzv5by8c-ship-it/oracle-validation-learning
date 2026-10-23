@@ -168,7 +168,7 @@ jobs:
               if page>max_pages:
                   base["match_fetch_status"]="FAILED_PAGE_CEILING"
                   failed=True
-              if not failed: base["match_fetch_status"]="PAGINATION_COMPLETE_SHORT_PAGE"
+              if not failed: base["match_fetch_status"]="PAGINATION_STOPPED_SHORT_PAGE"
               ids=[str(m.get("id")) for m in fixtures if m.get("id") not in (None,"")]
               base["fixture_rows"]=len(fixtures); base["unique_match_ids"]=len(set(ids))
               base["duplicate_match_ids"]=len(ids)-len(set(ids)); base["missing_match_ids"]=sum(m.get("id") in (None,"") for m in fixtures)
@@ -202,13 +202,13 @@ jobs:
           summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"target_leagues":44,
             "candidate_crosswalk_rows":len(crosswalk),
             "candidate_season_ids":sum(bool(r.get("provider_season_id")) for r in crosswalk),
-            "full_pagination_completed":sum(r["match_fetch_status"]=="PAGINATION_COMPLETE_SHORT_PAGE" for r in coverage),
-            "pagination_failed_or_not_run":sum(r["match_fetch_status"]!="PAGINATION_COMPLETE_SHORT_PAGE" for r in coverage),
+            "pagination_stopped_on_short_page":sum(r["match_fetch_status"]=="PAGINATION_STOPPED_SHORT_PAGE" for r in coverage),
+            "pagination_failed_or_not_run":sum(r["match_fetch_status"]!="PAGINATION_STOPPED_SHORT_PAGE" for r in coverage),
             "fixture_rows":len(all_fixtures),
             "unique_target_season_match_keys":len(set((str(r["target_code"]),str(r["season_id"]),str(r["match_id"])) for r in all_fixtures if r["match_id"] not in (None,""))),
             "model_logic_changed":False,"production_registry_changed":False,"production_predictions_created":False,
             "catalogue_sha256":hashlib.sha256(json.dumps(cat["payload"],sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
-            "caveat":"Short-page pagination termination is not proof of complete season coverage; compare official fixture totals and audit API field semantics. This run intentionally does not create predictions."}
+            "coverage_status":"RETRIEVAL_AUDIT_ONLY_NOT_SEASON_COMPLETENESS","caveat":"Short-page pagination termination only means the API returned fewer than 100 rows; it does not prove complete season coverage. Compare official fixture totals and audit API field semantics. This run intentionally does not create predictions."}
           (out/"oracle_44_league_full_season_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(summary,indent=2))
           PY
