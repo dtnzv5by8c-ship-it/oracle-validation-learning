@@ -53,7 +53,10 @@ def validate(path):
         status = (row.get("catalogue_status") or "").strip()
         season_ids = [x.strip() for x in (row.get("candidate_season_ids") or "").split(";") if x.strip()]
         labels = [x.strip() for x in (row.get("candidate_season_labels") or "").split(";") if x.strip()]
-        date_pairs = [x.strip() for x in (row.get("candidate_season_dates") or "").split(";") if x.strip()]
+        # Catalogue exports use "/" placeholders when season dates are absent.
+        # Treat these as missing metadata, not malformed date pairs.
+        date_pairs = [x.strip() for x in (row.get("candidate_season_dates") or "").split(";")
+                      if x.strip() and x.strip() != "/"]
         if status != "EXACT_ALIAS_CANDIDATE":
             warnings.append(f"{code}: catalogue status is {status or 'blank'}; mapping remains unresolved")
         if not season_ids:
