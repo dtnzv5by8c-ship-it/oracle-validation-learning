@@ -69,7 +69,9 @@ jobs:
           set -euo pipefail
           grep -q '^def norm_team_key' scripts/ingest_upcoming_fixtures.py
           grep -Fq 'candidate_times=sorted(set(time_by_key.get(key,[])))' scripts/ingest_upcoming_fixtures.py
-          echo "Strict unique timestamp + accent-insensitive kickoff join verified."
+          grep -q '^def fetch_espn_schedule_fixtures' scripts/ingest_upcoming_fixtures.py
+          grep -Fq 'manifest["kickoff_enrichment_from_espn"]=espn_kickoff_audit' scripts/ingest_upcoming_fixtures.py
+          echo "Strict unique timestamp joins and secondary ESPN schedule enrichment verified."
 
       - name: Install dependencies
         run: |
