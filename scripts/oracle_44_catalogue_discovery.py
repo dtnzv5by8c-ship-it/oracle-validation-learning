@@ -70,7 +70,7 @@ def main():
     for league in leagues:
         seasons = league.get("season") if isinstance(league.get("season"), list) else []
         catalogue.append({
-            "provider_league_id": str(league.get("id", "")),
+            "provider_league_id": str(league.get("id") or league.get("league_id") or league.get("competition_id") or ""),
             "provider_name": str(league.get("name", "")),
             "country": str(league.get("country", league.get("country_name", ""))),
             "seasons": [{"season_id": str(s.get("id","")), "season_label": str(s.get("year","")),
