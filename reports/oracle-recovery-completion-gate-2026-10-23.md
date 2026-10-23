@@ -51,5 +51,12 @@ The machine-readable evidence register is `oracle-ten-fixture-evidence-register-
 - All ten target fixtures were found in the archived schedule. With zero approved aliases, each remains blocked for at least one exact-label role-state gap; no team identity was inferred from a similar name.
 - The workflow definition and register have been updated on the research branch. A completed run of the new real-data GitHub Actions workflow and its uploaded artifact are still not independently verified. The workflow page remains the monitoring location.
 
+
+## Kickoff and league-coverage audit
+- Added machine-readable league-level coverage: `oracle-run107-kickoff-coverage-audit-2026-10-23.csv`.
+- The 165 missing kickoff values are concentrated in entire competitions: 16/16 in I2, 12/12 each in E1, E2, E3 and SC0, and 10/10 in SP2, among others. This pattern is consistent with incomplete schedule-time ingestion at league/source level; it is not proof of the upstream cause.
+- The 27th code is explicitly identified: `RSA` = `South African PSL` exists in historical matches but has zero rows in the archived upcoming schedule. No schedule code exists without historical mapping. Determine from dated source/ingestion logs whether this was an expected no-fixture window or a schedule ingestion omission; do not silently mark RSA covered.
+- No kickoff time has been guessed or populated by this audit. Enrichment requires official fixture-level evidence, source timezone, and normalized UTC value.
+
 ## Recommendation
 The evidence supports investigating a schedule-to-history canonical identity gap as a likely cause for several exclusions, but does not yet prove a single root cause for all ten. Do not implement a production fix until stable identities and minimum-history policy are verified and the actual replay is reproducible. Keep all unresolved cases blocked.
