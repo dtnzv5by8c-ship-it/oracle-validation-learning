@@ -63,6 +63,14 @@ jobs:
           echo "Source commit: $(git -C oracle rev-parse HEAD)"
           echo "RESEARCH_ONLY_SOURCE_REF=research/run108-team-id-join-kickoff-2026-10-23"
 
+      - name: Verify strict kickoff join implementation
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          grep -q '^def norm_team_key' scripts/ingest_upcoming_fixtures.py
+          grep -Fq 'candidate_times=sorted(set(time_by_key.get(key,[])))' scripts/ingest_upcoming_fixtures.py
+          echo "Strict unique timestamp + accent-insensitive kickoff join verified."
+
       - name: Install dependencies
         run: |
           set -euo pipefail
