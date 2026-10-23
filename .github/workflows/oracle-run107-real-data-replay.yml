@@ -70,9 +70,19 @@ jobs:
           (out/"history.csv").write_bytes(state.read_bytes())
           with matches.open(encoding="utf-8-sig", newline="") as f:
               rows = list(csv.DictReader(f))
+          with schedule.open(encoding="utf-8-sig", newline="") as f:
+              fixture_rows = list(csv.DictReader(f))
+          with state.open(encoding="utf-8-sig", newline="") as f:
+              state_rows = list(csv.DictReader(f))
           required = {"match_id", "date", "league_code", "league", "home_team", "away_team"}
           if not rows or not required.issubset(rows[0].keys()):
               raise SystemExit(f"HISTORICAL_MATCHES_SCHEMA_MISMATCH: required={sorted(required)}; actual={sorted(rows[0].keys()) if rows else []}")
+          if len(rows) != 12836:
+              raise SystemExit(f"EXPECTED_12836_HISTORICAL_MATCH_ROWS_GOT_{len(rows)}")
+          if len(fixture_rows) != 244:
+              raise SystemExit(f"EXPECTED_244_SCHEDULE_ROWS_GOT_{len(fixture_rows)}")
+          if len(state_rows) != 13099:
+              raise SystemExit(f"EXPECTED_13099_PREMATCH_STATE_ROWS_GOT_{len(state_rows)}")
           mapping = {}
           for r in rows:
               code, name = r.get("league_code","").strip(), r.get("league","").strip()
@@ -80,6 +90,26 @@ jobs:
                   if code in mapping and mapping[code] != name:
                       raise SystemExit(f"LEAGUE_CROSSWALK_CONFLICT:{code}")
                   mapping[code] = name
+          if len(mapping) != 27:
+              raise SystemExit(f"EXPECTED_27_EXPLICIT_LEAGUE_MAPPINGS_GOT_{len(mapping)}")
+          state_leagues = {r.get("league","").strip() for r in state_rows if r.get("league","").strip()}
+          unmapped_state_leagues = sorted(state_leagues - set(mapping.values()))
+          if unmapped_state_leagues:
+              raise SystemExit(f"UNMAPPED_PREMATCH_STATE_LEAGUES:{unmapped_state_leagues}")
+          schedule_leagues = {r.get("league_code","").strip() for r in fixture_rows if r.get("league_code","").strip()}
+          missing_schedule_mappings = sorted(schedule_leagues - set(mapping.keys()))
+          if missing_schedule_mappings:
+              raise SystemExit(f"SCHEDULE_LEAGUE_CODES_WITHOUT_HISTORY_MAPPING:{missing_schedule_mappings}")
+          missing_kickoff = sum(not r.get("kickoff_time","").strip() for r in fixture_rows)
+          present_kickoff = len(fixture_rows) - missing_kickoff
+          if (missing_kickoff, present_kickoff) != (165, 79):
+              raise SystemExit(f"UNEXPECTED_KICKOFF_COVERAGE:missing={missing_kickoff};present={present_kickoff}")
+          print(json.dumps({"historical_match_rows":len(rows),"prematch_state_rows":len(state_rows),
+              "schedule_rows":len(fixture_rows),"historical_league_mappings":len(mapping),
+              "prematch_state_leagues_unmapped":unmapped_state_leagues,
+              "schedule_league_codes_missing_mapping":missing_schedule_mappings,
+              "schedule_league_codes":len(schedule_leagues),
+              "kickoff_missing":missing_kickoff,"kickoff_present":present_kickoff},indent=2))
           with (out/"league-map.csv").open("w", encoding="utf-8", newline="") as f:
               w = csv.writer(f); w.writerow(["league_code","league"])
               w.writerows(sorted(mapping.items()))
