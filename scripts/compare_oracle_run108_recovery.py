@@ -37,6 +37,9 @@ def official_normalise(rows, baseline=False):
             r["date"]="2026-10-26"
             r["home_team"]="Paris Saint-Germain"; r["away_team"]="Lyon"
             r["kickoff_time"]="2026-10-26T18:30:00Z"
+        if league=="ROU" and r.get("date")=="2026-10-23" and home in {"fcbotosani","botosani"} and away in {"petrolul","petrolulploiesti","fcpetrolulploiesti"}:
+            r["home_team"]="FC Botoșani"; r["away_team"]="Petrolul Ploiești"
+            r["kickoff_time"]="2026-10-23T15:00:00Z"
         out.append(r)
     return out
 
