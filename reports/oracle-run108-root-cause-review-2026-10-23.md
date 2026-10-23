@@ -17,7 +17,7 @@
 
 ## What the Run #108 archive shows about the 10 exclusions
 
-The research-only candidate register `oracle-run108-research-only-crosswalk-candidates-2026-10-23.csv` contains **20 fixture-side rows** (home and away for each excluded fixture). Each candidate label exists in the same-league historical match spine and has a recorded historical row count. The official fixture evidence supports the fixture/date and helps distinguish club identity, but it does not provide the stable provider IDs needed to approve a production alias.
+The research-only candidate register `oracle-run108-research-only-crosswalk-candidates-2026-10-23.csv` contains **20 fixture-side rows** (home and away for each excluded fixture). The counterfactual audit found a same-league, same-role historical label candidate for every blocked role across **all 10 excluded fixtures**. This is evidence that name mapping is a strong recovery path, not proof that the production join will accept those mappings. The official fixture evidence supports the fixture/date and helps distinguish club identity, but it does not provide the stable provider IDs needed to approve a production alias.
 
 - **16 fixture-side labels** differ from the proposed historical label and need stable-ID / competition / season validation before a mapping can be approved.
 - **4 fixture-side labels** already have an exact historical label, while the runner still reports a state-join gap for that fixture side. Investigate the state-builder join key, league filtering, role filtering and cutoff conditions rather than adding another alias.
