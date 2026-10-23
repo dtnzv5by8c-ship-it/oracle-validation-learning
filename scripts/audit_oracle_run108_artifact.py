@@ -79,8 +79,12 @@ for item in excluded:
         candidate_counts = role_counts[(code, norm(candidate))]
         exact_name = next((n for n in team_names[code] if norm(n) == norm(label)), "")
         candidate_name = next((n for n in team_names[code] if norm(n) == norm(candidate)), "")
-        if candidate and candidate_counts["any"] > 0:
-            diagnosis = ("EXACT_LABEL_HISTORY_EXISTS_BUT_STATE_JOIN_NEEDS_INVESTIGATION"
+        missing_components = str(item.get("missing_components", ""))
+        required_role_missing = f"{side.upper()}_ROLE_HISTORY" in missing_components.split(";")
+        if not required_role_missing:
+            diagnosis = "ROLE_STATE_NOT_MISSING_FOR_THIS_FIXTURE_SIDE_CONTROL_ROW"
+        elif candidate and candidate_counts["any"] > 0:
+            diagnosis = ("EXACT_LABEL_EXISTS_BUT_REQUIRED_ROLE_STATE_MISSING"
                          if norm(candidate) == norm(label)
                          else "CROSSWALK_CANDIDATE_HAS_HISTORY_REQUIRES_STABLE_ID_VALIDATION")
         elif candidate:
