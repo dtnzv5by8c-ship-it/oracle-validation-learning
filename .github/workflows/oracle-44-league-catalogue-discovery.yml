@@ -8,6 +8,7 @@ on:
     paths:
       - "scripts/oracle_44_catalogue_discovery.py"
       - ".github/workflows/oracle-44-league-catalogue-discovery.yml"
+      - "scripts/validate_oracle_season_crosswalk.py"
   schedule:
     - cron: "23 4 * * 1"
 
@@ -39,6 +40,10 @@ jobs:
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
         run: python scripts/oracle_44_catalogue_discovery.py
+
+      - name: Validate candidate crosswalk structure and season metadata
+        run: |
+          python scripts/validate_oracle_season_crosswalk.py oracle-catalogue-discovery/oracle_44_league_broader_catalogue_crosswalk.csv | tee oracle-catalogue-discovery/oracle_44_league_crosswalk_validation.json
 
       - name: Upload sanitized catalogue crosswalk
         uses: actions/upload-artifact@v4
