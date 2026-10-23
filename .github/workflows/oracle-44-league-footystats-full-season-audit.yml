@@ -8,6 +8,7 @@ on:
       - "research/**"
     paths:
       - ".github/workflows/oracle-44-league-footystats-full-season-audit.yml"
+      - "scripts/build_oracle_44_readiness.py"
 
 permissions:
   contents: read
@@ -21,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+
       - name: Verify secret exists without exposing it
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
@@ -212,6 +216,9 @@ jobs:
           (out/"oracle_44_league_full_season_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(summary,indent=2))
           PY
+
+      - name: Build conservative per-league readiness report
+        run: python scripts/build_oracle_44_readiness.py oracle-44-league-full-season-audit
 
       - name: Upload sanitized full-season audit
         uses: actions/upload-artifact@v4
