@@ -31,7 +31,7 @@ permissions:
 
 concurrency:
   group: oracle-run108-research-replay
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   completion:
