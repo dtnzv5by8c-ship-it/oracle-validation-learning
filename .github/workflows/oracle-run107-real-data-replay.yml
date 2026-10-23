@@ -9,6 +9,7 @@ on:
       - "reports/oracle-ten-fixture-evidence-register-2026-10-23.csv"
       - "reports/oracle-recovery-completion-gate-2026-10-23.md"
       - "reports/oracle-run107-kickoff-coverage-audit-2026-10-23.csv"
+      - "reports/oracle-run107-ten-fixture-role-state-diagnostic-2026-10-23.csv"
   workflow_dispatch:
 
 permissions:
