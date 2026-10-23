@@ -62,21 +62,31 @@ def best_candidates(league, label):
     return sorted(scored, reverse=True)[:5]
 
 excluded = recon.get("excluded_fixture_details", [])
+crosswalk_path = OUT / "oracle-run108-research-only-crosswalk-candidates-2026-10-23.csv"
+crosswalk = read_csv(crosswalk_path)
+crosswalk_by_key = {(r["fixture_id"], r["role"]): r for r in crosswalk}
 out_rows = []
 for item in excluded:
     league = item.get("league", "")
-    # Map from league display name to the code in the exact schedule row.
-    matching_schedule = [r for r in schedule if r.get("date") == item.get("fixture_id", "").split("-")[2]
-                         and r.get("home_team") == item.get("home_team")
-                         and r.get("away_team") == item.get("away_team")]
-    if not matching_schedule:
-        matching_schedule = [r for r in schedule if r.get("home_team") == item.get("home_team") and r.get("away_team") == item.get("away_team")]
+    matching_schedule = [r for r in schedule if r.get("home_team") == item.get("home_team") and r.get("away_team") == item.get("away_team")]
     code = matching_schedule[0].get("league_code", "") if matching_schedule else ""
     for side in ("home", "away"):
         label = item.get(f"{side}_team", "")
+        role_key = "home_team" if side == "home" else "away_team"
         exact = role_counts[(code, norm(label))]
-        candidates = best_candidates(code, label)
+        mapping = crosswalk_by_key.get((item.get("fixture_id", ""), side), {})
+        candidate = mapping.get("candidate_history_label", "")
+        candidate_counts = role_counts[(code, norm(candidate))]
         exact_name = next((n for n in team_names[code] if norm(n) == norm(label)), "")
+        candidate_name = next((n for n in team_names[code] if norm(n) == norm(candidate)), "")
+        if candidate and candidate_counts["any"] > 0:
+            diagnosis = ("EXACT_LABEL_HISTORY_EXISTS_BUT_STATE_JOIN_NEEDS_INVESTIGATION"
+                         if norm(candidate) == norm(label)
+                         else "CROSSWALK_CANDIDATE_HAS_HISTORY_REQUIRES_STABLE_ID_VALIDATION")
+        elif candidate:
+            diagnosis = "CROSSWALK_CANDIDATE_NOT_FOUND_IN_HISTORICAL_SPINE"
+        else:
+            diagnosis = "NO_RESEARCH_CROSSWALK_CANDIDATE"
         out_rows.append({
             "fixture_id": item.get("fixture_id", ""),
             "date": matching_schedule[0].get("date", "") if matching_schedule else "",
@@ -88,20 +98,16 @@ for item in excluded:
             "exact_home_role_matches": exact["home_team"],
             "exact_away_role_matches": exact["away_team"],
             "exact_any_history_matches": exact["any"],
+            "research_candidate_history_label": candidate,
+            "candidate_home_role_matches": candidate_counts["home_team"],
+            "candidate_away_role_matches": candidate_counts["away_team"],
+            "candidate_total_history_matches": candidate_counts["any"],
             "runner_home_role_state_rows": item.get("home_role_state_rows", ""),
             "runner_away_role_state_rows": item.get("away_role_state_rows", ""),
-            "runner_any_history_rows": item.get(f"{side}_any_role_history_rows", ""),
-            "top_history_candidate": candidates[0][1] if candidates else "",
-            "top_candidate_similarity": round(candidates[0][0], 3) if candidates else "",
-            "top_candidate_any_history_matches": candidates[0][4] if candidates else 0,
-            "next_candidates": " | ".join(f"{c} ({s:.3f}; any={a})" for s,c,h,a2,a in candidates[1:4]),
-            "diagnosis": (
-                "EXACT_LABEL_HAS_HISTORY_BUT_ROLE_STATE_NOT_JOINED"
-                if exact["any"] > 0 else
-                "LIKELY_ALIAS_REQUIRES_ID_OR_LEAGUE_VALIDATION"
-                if candidates and candidates[0][0] >= 0.75 and candidates[0][4] > 0 else
-                "NO_STRONG_HISTORICAL_CANDIDATE"
-            ),
+            "runner_any_history_rows_for_team": item.get(f"{side}_any_role_history_rows", ""),
+            "official_schedule_evidence": mapping.get("evidence_url", ""),
+            "candidate_status": mapping.get("identity_status", "MISSING_CANDIDATE_ROW"),
+            "diagnosis": diagnosis,
             "production_change": "NONE_RESEARCH_ONLY"
         })
 
