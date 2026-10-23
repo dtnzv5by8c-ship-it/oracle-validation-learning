@@ -33,7 +33,7 @@ class SeasonCrosswalkTests(unittest.TestCase):
             p.write_text(header + row, encoding="utf-8")
             errors, warnings, metrics = MODULE.validate(p)
         self.assertFalse(errors)
-        self.assertTrue(any("missing or invalid ISO season dates" in w for w in warnings))
+        self.assertFalse(any("malformed season date pair" in w or "missing or invalid ISO season dates" in w for w in warnings))
         self.assertEqual(metrics["mapping_approval"], "NOT_GRANTED")
 
 
