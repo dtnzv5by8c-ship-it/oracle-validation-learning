@@ -92,13 +92,26 @@ jobs:
           p=pathlib.Path("evidence/run107/replay-inputs/actual-replay.json")
           rows=json.loads(p.read_text(encoding="utf-8"))
           counts=collections.Counter(r["counterfactual_status"] for r in rows)
-          targets={"Pau FC vs Grenoble","Almere City vs Roda","Jong AZ vs Helmond","Oss vs Jong Ajax","Westerlo vs Beveren","Brno vs Bohemians","Dordrecht vs Venlo","Wisla vs Rakow","Braunschweig vs Hannover","PSV vs Feyenoord"}
-          selected=[r for r in rows if f'{r.get("home_team","")} vs {r.get("away_team","")}' in targets]
-          report={"scope":"RESEARCH_ONLY_ACTUAL_ARCHIVED_RUN107","fixture_count":len(rows),"status_counts":dict(counts),"alias_approvals":0,"ten_fixture_rows_found":len(selected),"ten_fixture_dispositions":[{"league_code":r["league_code"],"date":r["date"],"home_team":r["home_team"],"away_team":r["away_team"],"status":r["counterfactual_status"],"blockers":r["blockers"]} for r in selected],"production_predictions_generated":False}
+          targets={
+            ("F2","2026-10-23","Pau FC","Grenoble"),
+            ("NED2","2026-10-23","Almere City","Roda"),
+            ("NED2","2026-10-23","Jong AZ","Helmond"),
+            ("NED2","2026-10-23","Oss","Jong Ajax"),
+            ("B1","2026-10-24","Westerlo","Beveren"),
+            ("CZE","2026-10-24","Brno","Bohemians"),
+            ("NED2","2026-10-24","Dordrecht","Venlo"),
+            ("POL","2026-10-24","Wisla","Rakow"),
+            ("D2","2026-10-25","Braunschweig","Hannover"),
+            ("N1","2026-10-25","PSV","Feyenoord"),
+          }
+          selected=[r for r in rows if (r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) in targets]
+          found={(r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) for r in selected}
+          missing_targets=[list(t) for t in sorted(targets-found)]
+          report={"scope":"RESEARCH_ONLY_ACTUAL_ARCHIVED_RUN107","fixture_count":len(rows),"status_counts":dict(counts),"alias_approvals":0,"ten_fixture_rows_found":len(selected),"expected_ten_fixture_rows":10,"missing_target_fixtures":missing_targets,"ten_fixture_dispositions":[{"league_code":r["league_code"],"date":r["date"],"home_team":r["home_team"],"away_team":r["away_team"],"status":r["counterfactual_status"],"blockers":r["blockers"],"role_state_audit":r["role_state_audit"]} for r in selected],"production_predictions_generated":False}
           pathlib.Path("evidence/run107/replay-inputs/replay-summary.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
           print(json.dumps(report,indent=2,ensure_ascii=False))
           if len(rows)!=244: raise SystemExit(f"EXPECTED_244_FIXTURES_GOT_{len(rows)}")
-          if len(selected)!=10: print("WARNING: target labels differ from archive labels; see full replay output.")
+          if len(selected)!=10: raise SystemExit(f"EXPECTED_10_TARGET_FIXTURES_FOUND_{len(selected)}; missing={missing_targets}")
           PY
       - name: Upload actual-data replay and blockers
         if: always()
