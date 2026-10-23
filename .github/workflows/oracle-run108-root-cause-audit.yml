@@ -50,6 +50,7 @@ jobs:
           name: oracle-run108-root-cause-audit
           path: |
             reports/oracle-run108-missing-state-root-cause-audit-2026-10-23.csv
+            reports/oracle-run108-crosswalk-counterfactual-2026-10-23.csv
             reports/oracle-run108-root-cause-summary-2026-10-23.json
           if-no-files-found: error
           retention-days: 14
