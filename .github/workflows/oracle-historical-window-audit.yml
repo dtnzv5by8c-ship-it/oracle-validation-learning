@@ -1,0 +1,42 @@
+name: Oracle Historical Window Fixture Audit (Research Only)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "research/**"
+    paths:
+      - ".github/workflows/oracle-historical-window-audit.yml"
+      - "scripts/oracle_historical_window_audit.py"
+permissions:
+  contents: read
+concurrency:
+  group: oracle-historical-window-audit
+  cancel-in-progress: false
+jobs:
+  historical-window-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Verify API secret exists without exposing it
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing"; exit 1; }
+          echo "API secret present; value withheld."
+      - name: Compile historical-window script
+        run: python -m py_compile scripts/oracle_historical_window_audit.py scripts/oracle_44_catalogue_discovery.py
+      - name: Retrieve candidate seasons and exact historical-window fixtures
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: python scripts/oracle_historical_window_audit.py
+      - name: Upload sanitized research artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-44-historical-window-audit
+          path: oracle-44-historical-window-audit/
+          if-no-files-found: error
+          retention-days: 30
