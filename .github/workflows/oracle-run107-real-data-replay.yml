@@ -53,7 +53,7 @@ jobs:
               raise SystemExit("ARCHIVED_ARTIFACT_HASH_MISMATCH")
           PY
           python - <<'PY'
-          import csv, pathlib
+          import csv, pathlib, json
           root = pathlib.Path("evidence/run107/unpacked")
           def find_exact_basename(name):
               hits = [p for p in root.rglob("*") if p.is_file() and p.name == name]
