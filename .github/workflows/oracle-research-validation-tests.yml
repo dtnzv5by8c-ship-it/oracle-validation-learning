@@ -7,6 +7,10 @@ on:
       - "research/**"
     paths:
       - "scripts/validate_oracle_44_audit.py"
+      - "scripts/validate_oracle_season_crosswalk.py"
+      - "scripts/oracle_fail_closed_quality_gate.py"
+      - "tests/test_oracle_season_crosswalk.py"
+      - "tests/test_oracle_odds_quality_gate.py"
       - "scripts/audit_fixture_lifecycle.py"
       - "tests/test_oracle_research_validators.py"
       - ".github/workflows/oracle-research-validation-tests.yml"
@@ -21,6 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compile research audit scripts
-        run: python -m py_compile scripts/validate_oracle_44_audit.py scripts/audit_fixture_lifecycle.py scripts/oracle_44_catalogue_discovery.py
+        run: python -m py_compile scripts/validate_oracle_44_audit.py scripts/validate_oracle_season_crosswalk.py scripts/audit_fixture_lifecycle.py scripts/oracle_44_catalogue_discovery.py scripts/oracle_fail_closed_quality_gate.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
