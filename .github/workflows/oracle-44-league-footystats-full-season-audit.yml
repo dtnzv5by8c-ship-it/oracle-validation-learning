@@ -1,4 +1,5 @@
 name: Oracle 44-League FootyStats Full-Season Coverage Audit
+# Research refresh marker: 2026-10-24 — trigger a fresh run on this branch after audit fixes.
 
 on:
   workflow_dispatch:
