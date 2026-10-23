@@ -2,13 +2,14 @@
 
 ## Latest research changes
 - Added `scripts/validate_oracle_season_crosswalk.py` to check the 44-target candidate crosswalk structure, provider IDs, season IDs, ISO date syntax, date ordering, duplicate rows and unresolved mappings.
+- Updated `scripts/oracle_44_catalogue_discovery.py` so unresolved exact-name misses receive up to five ranked fuzzy candidates, with normalized-name similarity scores. These are explicitly review-only and never auto-mapped.
 - Added `tests/test_oracle_season_crosswalk.py` for valid date parsing, invalid date ordering and missing/invalid season dates.
 - Added `tests/test_oracle_odds_quality_gate.py` for zero, one, negative, blank, non-numeric and non-finite odds.
 - Updated `.github/workflows/oracle-research-validation-tests.yml` to compile the validators and run the complete test suite on relevant research-branch pushes.
 - All mapping decisions remain `REVIEW_REQUIRED_NOT_AUTO_MAPPED`; syntactically valid season dates do not approve league identity or prove full-season completeness.
 
 ## What is not yet verified
-- No live unfiltered FootyStats catalogue artifact has been inspected in this checkpoint.
+- No live unfiltered FootyStats catalogue artifact has been inspected in this checkpoint. The new fuzzy-candidate ranking is code-only until the provider catalogue runs; it does not resolve IDs by itself.
 - No verified 44-of-44 provider league/season mapping exists yet.
 - No live successful Actions result for the latest test workflow is available from the connected run-inspection tool.
 - No timestamped odds/features establish pre-kickoff availability.
