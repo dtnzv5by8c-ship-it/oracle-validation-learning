@@ -345,7 +345,7 @@ jobs:
 
       - name: Compare recovery reconciliation against Run 108
         id: compare_run108
-        if: always() && steps.baseline.outcome == 'success' && steps.reconcile.outcome == 'success'
+        if: always() && steps.ingest.outcome == 'success' && steps.live.outcome == 'success' && steps.baseline.outcome == 'success' && steps.reconcile.outcome == 'success'
         run: |
           set -euo pipefail
           python scripts/compare_oracle_run108_recovery.py
