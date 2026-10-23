@@ -9,13 +9,19 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--predictions",default="oracle/research/four_model/outputs/four_model_live_predictions.csv")
     p.add_argument("--output",default="/tmp/oracle-mandatory-cutoff-audit.json")
+    p.add_argument("--live-outcome",default="unknown")
     a=p.parse_args()
     source=Path(a.predictions); out=Path(a.output)
     result={"scope":"MANDATORY_CUTOFF_TRACEABILITY","source":str(source),
             "status":"BLOCKED","rows":0,"unique_fixtures":0,
             "missing_cutoff_utc_rows":None,"missing_cutoff_date_rows":None,
             "cutoff_after_prediction_rows":None,"cutoff_after_fixture_date_rows":None,
-            "production_promotion":"BLOCKED"}
+            "production_promotion":"BLOCKED","live_runner_outcome":a.live_outcome}
+    if a.live_outcome != "success":
+        result["reason"]="live runner did not succeed; stale outputs are not eligible for cutoff validation"
+        out.write_text(json.dumps(result,indent=2)+"\\n",encoding="utf-8")
+        print(json.dumps(result,indent=2))
+        raise SystemExit(2)
     if not source.exists():
         result["reason"]="prediction output absent; audit ran but no current output exists to validate"
         out.write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
