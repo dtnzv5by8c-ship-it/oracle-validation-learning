@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/oracle-run108-root-cause-audit.yml"
       - "scripts/audit_oracle_run108_artifact.py"
+      - "reports/oracle-run108-research-only-crosswalk-candidates-2026-10-23.csv"
   workflow_dispatch:
 
 permissions:
