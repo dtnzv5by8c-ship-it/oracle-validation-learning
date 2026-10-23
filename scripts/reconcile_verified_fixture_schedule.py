@@ -112,7 +112,7 @@ def main():
             "changes":changes,"sources":SOURCES,
             "kickoff_policy":audit["kickoff_policy"]
         }
-        manifest_path.write_text(json.dumps(manifest,indent=2)+"\\n",encoding="utf-8")
+        manifest_path.write_text(json.dumps(manifest,indent=2),encoding="utf-8")
     print(json.dumps(audit,indent=2))
 
 if __name__=="__main__":
