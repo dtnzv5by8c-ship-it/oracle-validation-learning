@@ -27,24 +27,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 39772347617 --repo dtnzv5by8c-ship-it/oracle-validation-learning --name oracle-fixture-level-predictions --dir evidence/run107
-          test -n "$(find evidence/run107 -name oracle_upcoming_fixtures.csv -print -quit)"
-          test -n "$(find evidence/run107 -name current_prematch_team_state.csv -print -quit)"
-          test -n "$(find evidence/run107 -name matches.csv -print -quit)"
+          mkdir -p evidence/run107
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/dtnzv5by8c-ship-it/oracle-validation-learning/actions/artifacts/12425136901/zip" \
+            -o evidence/run107/oracle-fixture-level-predictions.zip
+          echo "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299  evidence/run107/oracle-fixture-level-predictions.zip" | sha256sum --check
+          unzip -q evidence/run107/oracle-fixture-level-predictions.zip -d evidence/run107/unpacked
+          test -n "$(find evidence/run107/unpacked -name oracle_upcoming_fixtures.csv -print -quit)"
+          test -n "$(find evidence/run107/unpacked -name current_prematch_team_state.csv -print -quit)"
+          test -n "$(find evidence/run107/unpacked -name matches.csv -print -quit)"
       - name: Verify archived artifact digest and prepare isolated inputs
         run: |
           python - <<'PY'
           import hashlib, pathlib, zipfile, json
           p = pathlib.Path("evidence/run107/oracle-fixture-level-predictions.zip")
-          if p.exists():
-              digest = hashlib.sha256(p.read_bytes()).hexdigest()
-              print(json.dumps({"downloaded_zip_sha256": digest, "expected_sha256": "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299"}))
-              if digest != "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299":
-                  raise SystemExit("ARCHIVED_ARTIFACT_HASH_MISMATCH")
+          digest = hashlib.sha256(p.read_bytes()).hexdigest()
+          print(json.dumps({"downloaded_zip_sha256": digest, "expected_sha256": "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299"}))
+          if digest != "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299":
+              raise SystemExit("ARCHIVED_ARTIFACT_HASH_MISMATCH")
           PY
           python - <<'PY'
           import csv, pathlib
-          root = pathlib.Path("evidence/run107")
+          root = pathlib.Path("evidence/run107/unpacked")
           find = lambda name: next(root.rglob(name))
           schedule, state, matches = find("oracle_upcoming_fixtures.csv"), find("current_prematch_team_state.csv"), find("matches.csv")
           out = pathlib.Path("evidence/run107/replay-inputs")
