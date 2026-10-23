@@ -1,0 +1,217 @@
+name: Oracle 44-League FootyStats Full-Season Coverage Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "research/**"
+    paths:
+      - ".github/workflows/oracle-44-league-footystats-full-season-audit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-44-league-footystats-full-season-audit
+  cancel-in-progress: false
+
+jobs:
+  full-season-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Verify secret exists without exposing it
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing."; exit 1; }
+          echo "FootyStats API secret present; value withheld."
+
+      - name: Fetch complete paginated fixtures for exact candidate seasons
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, os, re, time
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+
+          KEY=os.environ.get("FOOTYSTATS_API_KEY","").strip()
+          BASE="https://api.football-data-api.com/"
+          TARGETS=[
+          ("ZA","South Africa","Premier Soccer League",["South Africa Premier Soccer League","South Africa PSL"]),
+          ("E0","England","Premier League",["England Premier League"]),("E1","England","Championship",["England Championship"]),
+          ("SP1","Spain","La Liga",["Spain La Liga"]),("D1","Germany","Bundesliga",["Germany Bundesliga"]),
+          ("I1","Italy","Serie A",["Italy Serie A"]),("F1","France","Ligue 1",["France Ligue 1"]),
+          ("N1","Netherlands","Eredivisie",["Netherlands Eredivisie"]),("P1","Portugal","Primeira Liga",["Portugal Liga NOS","Portugal Primeira Liga"]),
+          ("B1","Belgium","Pro League",["Belgium Pro League"]),("T1","Turkey","Süper Lig",["Turkey Süper Lig","Turkey Super Lig"]),
+          ("DK","Denmark","Superliga",["Denmark Superliga","Denmark Superligaen"]),("SE","Sweden","Allsvenskan",["Sweden Allsvenskan"]),
+          ("NO","Norway","Eliteserien",["Norway Eliteserien"]),("FI","Finland","Veikkausliiga",["Finland Veikkausliiga"]),
+          ("SWZ","Switzerland","Super League",["Switzerland Super League","Switzerland Swiss Super League"]),
+          ("AUT","Austria","Bundesliga",["Austria Bundesliga","Austria Austrian Bundesliga"]),("GR","Greece","Super League",["Greece Super League"]),
+          ("POL","Poland","Ekstraklasa",["Poland Ekstraklasa"]),("CZE","Czech Republic","First League",["Czech First League","Czech Republic First League"]),
+          ("CRO","Croatia","HNL",["Croatia HNL","Croatia Croatian HNL"]),("RS","Serbia","SuperLiga",["Serbia SuperLiga"]),
+          ("ROU","Romania","Liga I",["Romania Liga I"]),("UKR","Ukraine","Premier League",["Ukraine Premier League","Ukraine Ukrainian Premier League"]),
+          ("RU","Russia","Premier League",["Russia Premier League","Russia Russian Premier League"]),
+          ("IE","Republic of Ireland","Premier Division",["Republic of Ireland Premier Division","Ireland Premier Division"]),
+          ("SC0","Scotland","Premiership",["Scotland Premiership"]),("US","United States","MLS",["USA MLS","United States MLS"]),
+          ("CA","Canada","Canadian Premier League",["Canada Canadian Premier League"]),("MX","Mexico","Liga MX",["Mexico Liga MX"]),
+          ("BR","Brazil","Serie A",["Brazil Serie A","Brazil Serie A (Brasileiro)"]),("AR","Argentina","Primera División",["Argentina Primera Division","Argentina Primera División"]),
+          ("CO","Colombia","Primera A",["Colombia Primera A"]),("CL","Chile","Primera División",["Chile Primera Division","Chile Primera División"]),
+          ("UY","Uruguay","Primera División",["Uruguay Primera Division","Uruguay Primera División"]),("PY","Paraguay","Division Profesional",["Paraguay Division Profesional"]),
+          ("EC","Ecuador","Serie A",["Ecuador Serie A"]),("PE","Peru","Primera División",["Peru Primera Division","Peru Primera División"]),
+          ("VE","Venezuela","Primera División",["Venezuela Primera Division","Venezuela Primera División"]),("AU","Australia","A-League",["Australia A-League"]),
+          ("JP","Japan","J1 League",["Japan J1 League"]),("KR","South Korea","K League 1",["South Korea K League 1","Korea Republic K League 1"]),
+          ("CN","China","Chinese Super League",["China Chinese Super League"]),("IN","India","Indian Super League",["India Indian Super League"])]
+
+          def api(ep, params, attempts=4):
+              for n in range(attempts):
+                  q=dict(params); q["key"]=KEY
+                  try:
+                      req=Request(BASE+ep+"?"+urlencode(q),headers={"User-Agent":"Oracle-44-League-Full-Season-Audit/1.0"})
+                      with urlopen(req,timeout=30) as resp:
+                          payload=json.loads(resp.read().decode("utf-8"))
+                          ok=isinstance(payload,dict) and payload.get("success") is True
+                          if ok: return {"ok":True,"http":resp.status,"payload":payload,"error":""}
+                          return {"ok":False,"http":resp.status,"payload":payload,"error":"API_SUCCESS_FALSE"}
+                  except HTTPError as e:
+                      if e.code in (429,500,502,503,504) and n<attempts-1:
+                          time.sleep(min(2**n,12)); continue
+                      return {"ok":False,"http":e.code,"payload":None,"error":"HTTP_ERROR"}
+                  except Exception as e:
+                      if n<attempts-1:
+                          time.sleep(min(2**n,12)); continue
+                      return {"ok":False,"http":None,"payload":None,"error":type(e).__name__}
+              return {"ok":False,"http":None,"payload":None,"error":"RETRY_EXHAUSTED"}
+
+          cat=api("league-list",{"chosen_leagues_only":"true"})
+          if not cat["ok"] or not isinstance(cat["payload"].get("data"),list):
+              raise SystemExit("Selected catalogue failed. Details withheld; check API entitlement and secret.")
+          catalog={}
+          for league in cat["payload"]["data"]:
+              if isinstance(league,dict) and league.get("name"):
+                  seasons=league.get("season") if isinstance(league.get("season"),list) else []
+                  catalog[str(league["name"]).strip()]=[s for s in seasons if isinstance(s,dict) and s.get("id") not in ("",None)]
+
+          out=Path("oracle-44-league-full-season-audit"); out.mkdir()
+          crosswalk=[]; coverage=[]; all_fixtures=[]; raw_meta=[]
+          def season_year(s):
+              text=str(s.get("year",""))
+              nums=re.findall(r"(?:19|20)\d{2}",text)
+              return int(nums[0]) if nums else 0
+
+          for code,country,competition,aliases in TARGETS:
+              found=[a for a in aliases if a in catalog]
+              base={"target_code":code,"country":country,"target_competition":competition,
+                    "provider_name":"","provider_season_id":"","season_label":"","catalogue_status":"",
+                    "match_fetch_status":"NOT_RUN","pages_fetched":0,"fixture_rows":0,"unique_match_ids":0,
+                    "duplicate_match_ids":0,"missing_match_ids":0,"missing_home_team_ids":0,"missing_away_team_ids":0,
+                    "missing_kickoff":0,"missing_status":0,"final_rows":0,"upcoming_rows":0,"xg_fields":"",
+                    "xg_nonnull_rows":0,"prematch_xg_nonnull_rows":0,"odds_fields":"","odds_nonnull_rows":0,
+                    "cutoff_provenance":"NOT_ESTABLISHED","notes":""}
+              if len(found)==0:
+                  base.update(catalogue_status="NO_EXACT_ALIAS_MATCH",match_fetch_status="NOT_RUN",
+                              notes="Selected catalogue alias miss only; investigate alternate names, unfiltered catalogue and entitlement.")
+                  crosswalk.append({k:base[k] for k in ("target_code","country","target_competition","provider_name","provider_season_id","season_label","catalogue_status","notes")})
+                  coverage.append(base); continue
+              if len(found)>1:
+                  base.update(provider_name=";".join(found),catalogue_status="AMBIGUOUS_ALIAS",
+                              notes="More than one exact alias exists; do not auto-select.")
+                  crosswalk.append({k:base[k] for k in ("target_code","country","target_competition","provider_name","provider_season_id","season_label","catalogue_status","notes")})
+                  coverage.append(base); continue
+              name=found[0]; seasons=catalog[name]
+              if not seasons:
+                  base.update(provider_name=name,catalogue_status="NO_SEASON_ID",notes="Catalogue name exists but no season ID.")
+                  crosswalk.append({k:base[k] for k in ("target_code","country","target_competition","provider_name","provider_season_id","season_label","catalogue_status","notes")})
+                  coverage.append(base); continue
+              season=sorted(seasons,key=lambda s:(season_year(s),str(s.get("id",""))))[-1]
+              sid=str(season["id"]); label=str(season.get("year",""))
+              base.update(provider_name=name,provider_season_id=sid,season_label=label,catalogue_status="CANDIDATE_ONLY")
+              # 100 per page; stop on a short page, API failure, or safety ceiling. Save only sanitized row data.
+              page=1; fixtures=[]; failed=False; max_pages=100
+              while page<=max_pages:
+                  result=api("league-matches",{"season_id":sid,"max_per_page":100,"page":page})
+                  if not result["ok"]:
+                      base["match_fetch_status"]="FAILED_HTTP_"+str(result["http"]) if result["http"] else "FAILED_"+result["error"]
+                      base["notes"]="Pagination stopped on API error; inspect sanitized status and provider limits."
+                      failed=True; break
+                  data=result["payload"].get("data")
+                  if not isinstance(data,list):
+                      base["match_fetch_status"]="FAILED_UNEXPECTED_DATA_SHAPE"; failed=True; break
+                  raw_meta.append({"target_code":code,"season_id":sid,"page":page,"http":result["http"],
+                      "api_success":True,"rows_returned":len(data),
+                      "response_sha256":hashlib.sha256(json.dumps(result["payload"],sort_keys=True,ensure_ascii=False).encode()).hexdigest()})
+                  for m in data:
+                      if isinstance(m,dict):
+                          # Do not export provider payloads wholesale; retain only fields needed for audit.
+                          all_fixtures.append({"target_code":code,"provider_name":name,"season_id":sid,
+                            "match_id":m.get("id"),"homeID":m.get("homeID"),"awayID":m.get("awayID"),
+                            "home_name":m.get("home_name"),"away_name":m.get("away_name"),
+                            "date_unix":m.get("date_unix"),"status":m.get("status"),
+                            "homeGoals":m.get("homeGoalCount"),"awayGoals":m.get("awayGoalCount"),
+                            "team_a_xg":m.get("team_a_xg"),"team_b_xg":m.get("team_b_xg"),
+                            "team_a_xg_prematch":m.get("team_a_xg_prematch"),"team_b_xg_prematch":m.get("team_b_xg_prematch"),
+                            "odds_ft_1":m.get("odds_ft_1"),"odds_ft_x":m.get("odds_ft_x"),"odds_ft_2":m.get("odds_ft_2")})
+                  fixtures.extend([m for m in data if isinstance(m,dict)])
+                  base["pages_fetched"]=page
+                  if len(data)<100: break
+                  page+=1; time.sleep(0.25)
+              if page>max_pages:
+                  base["match_fetch_status"]="FAILED_PAGE_CEILING"
+                  failed=True
+              if not failed: base["match_fetch_status"]="PAGINATION_COMPLETE_SHORT_PAGE"
+              ids=[str(m.get("id")) for m in fixtures if m.get("id") not in (None,"")]
+              base["fixture_rows"]=len(fixtures); base["unique_match_ids"]=len(set(ids))
+              base["duplicate_match_ids"]=len(ids)-len(set(ids)); base["missing_match_ids"]=sum(m.get("id") in (None,"") for m in fixtures)
+              base["missing_home_team_ids"]=sum(m.get("homeID") in (None,"",0,"0") for m in fixtures)
+              base["missing_away_team_ids"]=sum(m.get("awayID") in (None,"",0,"0") for m in fixtures)
+              base["missing_kickoff"]=sum(m.get("date_unix") in (None,"",0,"0") for m in fixtures)
+              base["missing_status"]=sum(m.get("status") in (None,"") for m in fixtures)
+              base["final_rows"]=sum(str(m.get("status","")).lower() in ("complete","completed","finished","ft","full_time","true","1") for m in fixtures)
+              base["upcoming_rows"]=sum(m.get("homeGoalCount") in (None,"") or m.get("awayGoalCount") in (None,"") for m in fixtures)
+              xg_keys=[k for k in (fixtures[0].keys() if fixtures else []) if "xg" in k.lower()]
+              base["xg_fields"]=";".join(xg_keys)
+              base["xg_nonnull_rows"]=sum(any(m.get(k) not in (None,"") for k in ("team_a_xg","team_b_xg")) for m in fixtures)
+              base["prematch_xg_nonnull_rows"]=sum(any(m.get(k) not in (None,"") for k in ("team_a_xg_prematch","team_b_xg_prematch")) for m in fixtures)
+              base["odds_fields"]="odds_ft_1;odds_ft_x;odds_ft_2"
+              base["odds_nonnull_rows"]=sum(any(m.get(k) not in (None,"") for k in ("odds_ft_1","odds_ft_x","odds_ft_2")) for m in fixtures)
+              base["cutoff_provenance"]="NOT_ESTABLISHED"
+              if not failed and base["duplicate_match_ids"]==0 and base["missing_match_ids"]==0 and base["missing_kickoff"]==0:
+                  base["notes"]="Fixture pagination ended on short page. Identity/count sanity checks pass only; completeness vs official schedule and point-in-time feature provenance not established."
+              crosswalk.append({k:base[k] for k in ("target_code","country","target_competition","provider_name","provider_season_id","season_label","catalogue_status","notes")})
+              coverage.append(base)
+
+          def write_csv(path, rows):
+              if not rows: path.write_text("",encoding="utf-8"); return
+              with path.open("w",newline="",encoding="utf-8") as f:
+                  w=csv.DictWriter(f,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+          write_csv(out/"oracle_44_league_candidate_crosswalk.csv",crosswalk)
+          write_csv(out/"oracle_44_league_full_season_coverage.csv",coverage)
+          write_csv(out/"oracle_44_league_sanitized_fixture_audit.csv",all_fixtures)
+          write_csv(out/"oracle_44_league_page_provenance.csv",raw_meta)
+          summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"target_leagues":44,
+            "candidate_crosswalk_rows":len(crosswalk),
+            "candidate_season_ids":sum(bool(r.get("provider_season_id")) for r in crosswalk),
+            "full_pagination_completed":sum(r["match_fetch_status"]=="PAGINATION_COMPLETE_SHORT_PAGE" for r in coverage),
+            "pagination_failed_or_not_run":sum(r["match_fetch_status"]!="PAGINATION_COMPLETE_SHORT_PAGE" for r in coverage),
+            "fixture_rows":len(all_fixtures),
+            "unique_target_season_match_keys":len(set((str(r["target_code"]),str(r["season_id"]),str(r["match_id"])) for r in all_fixtures if r["match_id"] not in (None,""))),
+            "model_logic_changed":False,"production_registry_changed":False,"production_predictions_created":False,
+            "catalogue_sha256":hashlib.sha256(json.dumps(cat["payload"],sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
+            "caveat":"Short-page pagination termination is not proof of complete season coverage; compare official fixture totals and audit API field semantics. This run intentionally does not create predictions."}
+          (out/"oracle_44_league_full_season_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload sanitized full-season audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-44-league-footystats-full-season-audit
+          path: oracle-44-league-full-season-audit/*
+          if-no-files-found: error
+          retention-days: 14
