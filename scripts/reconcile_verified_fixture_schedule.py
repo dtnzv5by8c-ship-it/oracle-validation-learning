@@ -70,7 +70,7 @@ def main():
         botosani=[r for r in rows if r.get("league_code")=="ROU" and
                   r.get("date")=="2026-10-23" and
                   r.get("home_team","").strip().casefold() in {"fc botoșani","fc botosani","botoșani","botosani"} and
-                  r.get("away_team","").strip().casefold() in {"petrolul ploiești","fc petrolul ploiești","petrolul ploiesti","fc petrolul ploiesti"}]
+                  r.get("away_team","").strip().casefold() in {"petrolul","petrolul ploiești","fc petrolul ploiești","petrolul ploiesti","fc petrolul ploiesti"}]
         if len(botosani)>1:
             raise SystemExit("BLOCKED: duplicate FC Botoșani–Petrolul rows")
         if not botosani:
