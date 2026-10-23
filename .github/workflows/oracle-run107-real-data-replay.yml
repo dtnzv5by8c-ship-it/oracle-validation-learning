@@ -10,6 +10,7 @@ on:
       - "reports/oracle-recovery-completion-gate-2026-10-23.md"
       - "reports/oracle-run107-kickoff-coverage-audit-2026-10-23.csv"
       - "reports/oracle-run107-ten-fixture-role-state-diagnostic-2026-10-23.csv"
+      - "reports/oracle-run107-research-only-crosswalk-candidates-2026-10-23.csv"
   workflow_dispatch:
 
 permissions:
@@ -114,9 +115,18 @@ jobs:
           with (out/"league-map.csv").open("w", encoding="utf-8", newline="") as f:
               w = csv.writer(f); w.writerow(["league_code","league"])
               w.writerows(sorted(mapping.items()))
-          with (out/"aliases.csv").open("w", encoding="utf-8", newline="") as f:
-              csv.writer(f).writerow(["league_code","fixture_label","role","canonical_label","identity_evidence"])
-          print(f"Prepared actual archived inputs: {len(mapping)} explicit league mappings; 0 aliases approved.")
+          alias_source = pathlib.Path("reports/oracle-run107-research-only-crosswalk-candidates-2026-10-23.csv")
+          with alias_source.open(encoding="utf-8-sig", newline="") as f:
+              alias_rows = list(csv.DictReader(f))
+          alias_required = {"league_code","fixture_label","role","canonical_label","identity_evidence"}
+          if not alias_rows or not alias_required.issubset(alias_rows[0].keys()):
+              raise SystemExit("RESEARCH_ALIAS_CANDIDATE_SCHEMA_MISMATCH")
+          if len(alias_rows) != 11:
+              raise SystemExit(f"EXPECTED_11_RESEARCH_ONLY_ALIAS_CANDIDATES_GOT_{len(alias_rows)}")
+          if any(not r.get("identity_evidence","").startswith("RESEARCH_ONLY;") or "not production-approved" not in r.get("identity_evidence","") for r in alias_rows):
+              raise SystemExit("RESEARCH_ALIAS_CANDIDATE_MISSING_RESEARCH_ONLY_GUARD")
+          (out/"aliases.csv").write_bytes(alias_source.read_bytes())
+          print(f"Prepared actual archived inputs: {len(mapping)} league mappings; {len(alias_rows)} research-only crosswalk candidates; 0 production aliases approved.")
           PY
       - name: Compile replay and run research contract tests
         run: |
@@ -150,7 +160,11 @@ jobs:
           selected=[r for r in rows if (r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) in targets]
           found={(r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) for r in selected}
           missing_targets=[list(t) for t in sorted(targets-found)]
-          report={"scope":"RESEARCH_ONLY_ACTUAL_ARCHIVED_RUN107","fixture_count":len(rows),"status_counts":dict(counts),"alias_approvals":0,"ten_fixture_rows_found":len(selected),"expected_ten_fixture_rows":10,"missing_target_fixtures":missing_targets,"ten_fixture_dispositions":[{"league_code":r["league_code"],"date":r["date"],"home_team":r["home_team"],"away_team":r["away_team"],"status":r["counterfactual_status"],"blockers":r["blockers"],"role_state_audit":r["role_state_audit"]} for r in selected],"production_predictions_generated":False}
+          target_counts=collections.Counter(r["counterfactual_status"] for r in selected)
+          if target_counts != {"ELIGIBLE_FOR_REVIEW_ONLY":7,"BLOCKED":3}:
+              raise SystemExit(f"UNEXPECTED_TEN_FIXTURE_RESEARCH_DISPOSITION:{dict(target_counts)}")
+          alias_rows=list(csv.DictReader((pathlib.Path("evidence/run107/replay-inputs/aliases.csv")).open(encoding="utf-8-sig",newline="")))
+          report={"scope":"RESEARCH_ONLY_ACTUAL_ARCHIVED_RUN107","fixture_count":len(rows),"status_counts":dict(counts),"production_aliases_approved":0,"research_only_crosswalk_candidates_applied":len(alias_rows),"ten_fixture_rows_found":len(selected),"expected_ten_fixture_rows":10,"ten_fixture_status_counts":dict(target_counts),"missing_target_fixtures":missing_targets,"ten_fixture_dispositions":[{"league_code":r["league_code"],"date":r["date"],"home_team":r["home_team"],"away_team":r["away_team"],"status":r["counterfactual_status"],"blockers":r["blockers"],"role_state_audit":r["role_state_audit"]} for r in selected],"production_predictions_generated":False}
           pathlib.Path("evidence/run107/replay-inputs/replay-summary.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
           print(json.dumps(report,indent=2,ensure_ascii=False))
           if len(rows)!=244: raise SystemExit(f"EXPECTED_244_FIXTURES_GOT_{len(rows)}")
