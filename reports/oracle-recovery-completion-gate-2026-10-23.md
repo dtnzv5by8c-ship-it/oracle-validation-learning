@@ -42,5 +42,14 @@ The machine-readable evidence register is `oracle-ten-fixture-evidence-register-
 6. Audit all 165 missing kickoff fields. Enrich only rows with fixture-specific official evidence, recorded source timezone, and UTC normalization. Date-only rows must remain time-unverified.
 7. Rerun real-data replay and regression tests, publish JSON/CSV before/after diagnostics and a final report.
 
+
+
+## Expedited build update (23 October 2026, 07:45 SAST)
+- Recomputed the exact-label diagnostic against the archived Run #107 ZIP locally using its actual schedule, prematch-state and historical-match CSVs. Results reproduce the baseline: 244 schedule rows; 79 kickoff values and 165 missing; 26 schedule league codes versus 27 in historical matches; 146 fixtures have both role-state rows and 98 are blocked. This is a research diagnostic only, not a production runner replay or prediction validation.
+- Exact matching now checks the ten target fixtures by the full tuple `league_code + date + home label + away label`, and the workflow fails closed unless all 10 archive records are found. This avoids a false warning caused by abbreviated labels such as Dordrecht/Venlo.
+- Corrected the evidence register: unsupported historical-role counts for Westerlo home and Jong Ajax away are now `UNVERIFIED`; they are not treated as measured values. The Beveren away-role count remains 3 as recorded in the source review.
+- All ten target fixtures were found in the archived schedule. With zero approved aliases, each remains blocked for at least one exact-label role-state gap; no team identity was inferred from a similar name.
+- The workflow definition and register have been updated on the research branch. A completed run of the new real-data GitHub Actions workflow and its uploaded artifact are still not independently verified. The workflow page remains the monitoring location.
+
 ## Recommendation
 The evidence supports investigating a schedule-to-history canonical identity gap as a likely cause for several exclusions, but does not yet prove a single root cause for all ten. Do not implement a production fix until stable identities and minimum-history policy are verified and the actual replay is reproducible. Keep all unresolved cases blocked.
