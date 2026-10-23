@@ -65,5 +65,16 @@ The machine-readable evidence register is `oracle-ten-fixture-evidence-register-
 - Independent local replay using the correct archived historical file verified 12,836 historical-match rows, 27 league mappings, zero mapping conflicts, zero unmapped prematch-state league names, and reproduced 146 exact-label fixtures with both role-state records / 98 blocked across 244 fixtures. These are research diagnostics, not a completed GitHub Actions run.
 - The new workflow commit is `6ed19876b03edfaeb1e51c720880b6166730ff06`. GitHub Actions run status and the uploaded artifact still need verification in the workflow page.
 
+
+
+## Expedited follow-up verification (23 October 2026)
+- Re-ran the archived Run #107 CSV checks against the actual ZIP: 244 upcoming fixtures, 13,099 prematch-state rows, 12,836 historical match rows, 27 historical league mappings with no conflicts, zero prematch-state league names unmapped, and 26 league codes in the upcoming schedule.
+- Reconfirmed kickoff coverage: 79 present, 165 missing. No kickoff values were filled by inference.
+- Replayed the exact-label role-state check for all 244 fixtures: 146 have both role-state rows and 98 are blocked. This is an isolated research eligibility diagnostic, not the production runner and not a prediction replay.
+- Published oracle-run107-ten-fixture-role-state-diagnostic-2026-10-23.csv. All ten target fixtures are present and remain blocked with zero approved aliases. Exact-label home/away state gaps are separated from candidate historical-label counts, so possible mappings are visible without being treated as approved.
+- Updated the evidence register with verified archived counts for TOP Oss/Jong Ajax (25 home-role rows for TOP Oss; 27 away-role rows for Jong Ajax) and Westerlo/SK Beveren (28 home-role rows for Westerlo; 3 away-role rows for SK Beveren). The three SK Beveren away-role rows still require the actual minimum-history policy before any eligibility decision.
+- Tightened the GitHub Actions workflow again: it now fails closed unless the archive has exactly 12,836 historical matches, 13,099 prematch-state rows, 244 fixtures, 27 consistent league mappings, complete mapping of prematch-state league names, and the known 165/79 kickoff split. It also requires all ten target fixture tuples to be found.
+- A completed run of this updated workflow is still not independently visible through the GitHub actions-run tools available in this session. The commits trigger the workflow on push, but do not claim the remote run passed until its actual job and artifact are inspected.
+
 ## Recommendation
 The evidence supports investigating a schedule-to-history canonical identity gap as a likely cause for several exclusions, but does not yet prove a single root cause for all ten. Do not implement a production fix until stable identities and minimum-history policy are verified and the actual replay is reproducible. Keep all unresolved cases blocked.
