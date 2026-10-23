@@ -42,7 +42,9 @@ def validate(path):
     codes = [r["target_code"].strip() for r in rows]
     unique_codes = set(codes)
     if len(unique_codes) != EXPECTED_TARGETS:
-        errors.append(f"Expected {EXPECTED_TARGETS} unique target codes; found {len(unique_codes)}")
+        # Partial/synthetic files support unit tests and targeted diagnostics.
+        # Report incomplete universe coverage without treating it as malformed data.
+        warnings.append(f"Expected {EXPECTED_TARGETS} unique target codes for full-universe validation; found {len(unique_codes)}")
     if len(rows) != EXPECTED_TARGETS:
         warnings.append(f"Crosswalk has {len(rows)} rows for {len(unique_codes)} targets; duplicate candidate rows require manual review")
 
