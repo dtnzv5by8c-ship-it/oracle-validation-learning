@@ -136,7 +136,7 @@ jobs:
               # 100 per page; stop on a short page, API failure, or safety ceiling. Save only sanitized row data.
               page=1; fixtures=[]; failed=False; max_pages=100
               while page<=max_pages:
-                  result=api("league-matches",{"season_id":sid,"max_per_page":100,"page":page})
+                  result=api("league-matches",{"league_id":sid,"max_per_page":100,"page":page})
                   if not result["ok"]:
                       base["match_fetch_status"]="FAILED_HTTP_"+str(result["http"]) if result["http"] else "FAILED_"+result["error"]
                       base["notes"]="Pagination stopped on API error; see sanitized failure diagnostics."
