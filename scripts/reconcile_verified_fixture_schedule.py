@@ -61,19 +61,31 @@ def main():
                             "after":{"date":r["date"],"kickoff_time":r["kickoff_time"]},
                             "evidence":"LFP: 26 Oct 2026, 20:30 France local (18:30 UTC)",
                             "sources":SOURCES["psg_lyon"]})
-    # Add the officially scheduled Romanian fixture only if its date is within
-    # the current schedule window and has not passed in UTC. This is not a model
-    # prediction; it is a fixture metadata correction.
-    today=datetime.now(timezone.utc).date().isoformat()
+    # Reconcile the Romanian fixture identity whether it is still upcoming or has
+    # already started. If absent from the live scheduled feed, append it only while
+    # the source-verified kickoff is still in the future.
+    now_utc=datetime.now(timezone.utc)
+    botosani_kickoff=datetime(2026,10,23,15,0,tzinfo=timezone.utc)
     dates=[str(r.get("date","")) for r in rows if r.get("date")]
-    if dates and min(dates) <= "2026-10-23" <= max(dates) and today <= "2026-10-23":
+    if dates and min(dates) <= "2026-10-23" <= max(dates):
         botosani=[r for r in rows if r.get("league_code")=="ROU" and
                   r.get("date")=="2026-10-23" and
                   r.get("home_team","").strip().casefold() in {"fc botoșani","fc botosani","botoșani","botosani"} and
                   r.get("away_team","").strip().casefold() in {"petrolul","petrolul ploiești","fc petrolul ploiești","petrolul ploiesti","fc petrolul ploiesti"}]
         if len(botosani)>1:
             raise SystemExit("BLOCKED: duplicate FC Botoșani–Petrolul rows")
-        if not botosani:
+        if botosani:
+            r=botosani[0]
+            before={"home_team":r.get("home_team"),"away_team":r.get("away_team"),"kickoff_time":r.get("kickoff_time","")}
+            r["home_team"]="FC Botoșani"; r["away_team"]="Petrolul Ploiești"
+            r["kickoff_time"]="2026-10-23T15:00:00Z"
+            if before != {"home_team":r["home_team"],"away_team":r["away_team"],"kickoff_time":r["kickoff_time"]}:
+                changes.append({"fixture":"FC Botoșani vs Petrolul Ploiești","before":before,
+                                "after":{"league_code":"ROU","date":"2026-10-23","home_team":"FC Botoșani",
+                                         "away_team":"Petrolul Ploiești","kickoff_time":"2026-10-23T15:00:00Z"},
+                                "evidence":"LPF and both clubs list 23 Oct 2026 at 18:00 Romania local (15:00 UTC)",
+                                "sources":SOURCES["botosani_petrolul"]})
+        elif now_utc < botosani_kickoff:
             rows.append({"league_code":"ROU","date":"2026-10-23","home_team":"FC Botoșani",
                          "away_team":"Petrolul Ploiești","kickoff_time":"2026-10-23T15:00:00Z"})
             changes.append({"fixture":"FC Botoșani vs Petrolul Ploiești","before":None,
@@ -81,10 +93,37 @@ def main():
                                      "away_team":"Petrolul Ploiești","kickoff_time":"2026-10-23T15:00:00Z"},
                             "evidence":"LPF and both clubs list 23 Oct 2026 at 18:00 Romania local (15:00 UTC)",
                             "sources":SOURCES["botosani_petrolul"]})
-        else:
-            botosani[0]["home_team"]="FC Botoșani"
-            botosani[0]["away_team"]="Petrolul Ploiești"
-            botosani[0]["kickoff_time"]="2026-10-23T15:00:00Z"
+    # Enforce prematch eligibility for the current UTC date. Verified kickoffs at or
+    # before replay time are no longer upcoming; same-day rows without a verified
+    # timezone-qualified kickoff are excluded rather than risk a post-kickoff prediction.
+    elapsed_fixtures_removed=[]
+    same_day_unverified_exclusions=[]
+    eligible_rows=[]
+    today_utc=now_utc.date().isoformat()
+    for r in rows:
+        stamp=str(r.get("kickoff_time") or "").strip()
+        dt=None
+        if stamp:
+            value=stamp[:-1]+"+00:00" if stamp.endswith("Z") else stamp
+            try:
+                parsed=datetime.fromisoformat(value)
+                if parsed.tzinfo is not None:
+                    dt=parsed.astimezone(timezone.utc)
+            except ValueError:
+                dt=None
+        if dt is not None and dt <= now_utc:
+            elapsed_fixtures_removed.append({"league_code":r.get("league_code"),"date":r.get("date"),
+                "home_team":r.get("home_team"),"away_team":r.get("away_team"),
+                "kickoff_time":dt.isoformat().replace("+00:00","Z"),
+                "reason":"VERIFIED_KICKOFF_AT_OR_BEFORE_REPLAY_UTC"})
+            continue
+        if str(r.get("date") or "")[:10] == today_utc and dt is None:
+            same_day_unverified_exclusions.append({"league_code":r.get("league_code"),"date":r.get("date"),
+                "home_team":r.get("home_team"),"away_team":r.get("away_team"),
+                "reason":"SAME_DAY_KICKOFF_UNVERIFIED; excluded to preserve prematch eligibility"})
+            continue
+        eligible_rows.append(r)
+    rows=eligible_rows
     # Require unique fixture identity after normalisation.
     keys=[(r.get("league_code"),r.get("date"),r.get("home_team","").casefold(),r.get("away_team","").casefold()) for r in rows]
     if len(keys)!=len(set(keys)):
@@ -93,7 +132,9 @@ def main():
     audit={"scope":"RESEARCH_ONLY_OFFICIAL_FIXTURE_RECONCILIATION","status":"PASS",
            "schedule_path":str(path),"rows_before":original,"rows_after":len(rows),
            "changes":changes,"official_sources":SOURCES,
-           "kickoff_policy":"Only timezone-qualified source-supported UTC timestamps are accepted; no inferred or date-only kickoffs are confirmed.",
+           "elapsed_fixtures_removed":elapsed_fixtures_removed,
+           "same_day_unverified_exclusions":same_day_unverified_exclusions,
+           "kickoff_policy":"Only timezone-qualified source-supported UTC timestamps are accepted; no inferred or date-only kickoffs are confirmed. Same-day fixtures without a verified kickoff and fixtures whose verified kickoff has passed are excluded from live predictions.",
            "production_promotion":"BLOCKED"}
     Path(args.audit).write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
     # Keep the fixture manifest consistent with the corrected research schedule.
@@ -110,7 +151,15 @@ def main():
         manifest["official_schedule_reconciliation"]={
             "status":audit["status"],"rows_before":original,"rows_after":len(rows),
             "changes":changes,"sources":SOURCES,
+            "elapsed_fixtures_removed":elapsed_fixtures_removed,
+            "same_day_unverified_exclusions":same_day_unverified_exclusions,
             "kickoff_policy":audit["kickoff_policy"]
+        }
+        manifest["prematch_eligibility_filter"]={
+            "elapsed_fixtures_removed":elapsed_fixtures_removed,
+            "same_day_unverified_exclusions":same_day_unverified_exclusions,
+            "eligible_fixture_count":len(rows),
+            "generated_utc":now_utc.isoformat()
         }
         manifest_path.write_text(json.dumps(manifest,indent=2),encoding="utf-8")
     print(json.dumps(audit,indent=2))
