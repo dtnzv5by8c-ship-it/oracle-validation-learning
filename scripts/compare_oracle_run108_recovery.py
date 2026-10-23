@@ -76,11 +76,6 @@ current_predictions=read_csv(CURRENT/"research/four_model/outputs/four_model_liv
 base_audit=json.loads(one(BASE,"tmp/oracle-fixture-audit.json").read_text(encoding="utf-8"))
 current_audit=json.loads(Path("/tmp/oracle-fixture-audit.json").read_text(encoding="utf-8"))
 
-def fixture_key(r):
-    return f"SCHED-{r.get('league_code','')}-{r.get('date','')}-{norm(r.get('home_team',''))}-{norm(r.get('away_team',''))}"
-
-base_schedule_keys={fixture_key(r) for r in base_schedule}
-current_schedule_keys={fixture_key(r) for r in current_schedule}
 base_predicted={r.get("fixture_id","") for r in base_predictions if r.get("fixture_id")}
 current_predicted={r.get("fixture_id","") for r in current_predictions if r.get("fixture_id")}
 base_excluded={r.get("fixture_id","") for r in base_recon.get("excluded_fixture_details",[]) if r.get("fixture_id")}
@@ -129,8 +124,11 @@ result={
     "schedule_diff":{
         "baseline_schedule_rows":len(base_schedule),
         "research_schedule_rows":len(current_schedule),
+        "common_verified_fixture_rows":len(common_rows),
+        "common_verified_fixture_list":str(common_path),
         "removed_from_research_schedule":removed_schedule,
-        "new_in_research_schedule":new_schedule
+        "new_in_research_schedule":new_schedule,
+        "schedule_sets_match":base_schedule_keys==current_schedule_keys
     },
     "fixture_recovery":{
         "baseline_excluded_fixture_ids":sorted(base_excluded),
