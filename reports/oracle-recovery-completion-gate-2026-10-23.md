@@ -104,3 +104,5 @@ The evidence supports investigating a schedule-to-history canonical identity gap
 - Of the ten named fixtures, seven now reach `ELIGIBLE_FOR_REVIEW_ONLY`: Pau FC–Grenoble, Almere City–Roda, Jong AZ–Helmond, TOP Oss–Jong Ajax, FC Dordrecht–VVV-Venlo, Eintracht Braunschweig–Hannover 96, and PSV–Feyenoord.
 - Three remain blocked by design: Westerlo–Beveren (minimum-history policy unresolved), Brno–Bohemians (historical identity ambiguity), and Wisła–Raków (home-team/competition conflict).
 - No production aliases were approved, no production predictions were generated, and no model logic or eligibility policy was changed. The result narrows the likely identity-mapping issue for research, but the durable production fix still requires provider IDs to be carried into historical and prematch-state records and independently verified.
+
+- Readable ten-fixture result table: `oracle-run107-ten-fixture-crosswalk-counterfactual-2026-10-23.csv`. It distinguishes the research-only candidate label/role-row counts from aliases actually applied, lists the three blockers, and explicitly marks every row `production_approved=NO`.
