@@ -1,0 +1,56 @@
+name: Oracle Run 108 Artifact Root-Cause Audit (Research Only)
+
+on:
+  push:
+    branches:
+      - "research/oracle-crosswalk-isolation-2026-10-22"
+    paths:
+      - ".github/workflows/oracle-run108-root-cause-audit.yml"
+      - "scripts/audit_oracle_run108_artifact.py"
+      - "reports/oracle-run108-research-only-crosswalk-candidates-2026-10-23.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit-run108:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download completed Run 108 artifact and verify digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/run108/unpacked
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/dtnzv5by8c-ship-it/oracle-validation-learning/actions/artifacts/12498426651/zip" \
+            -o evidence/run108/oracle-fixture-level-predictions.zip
+          echo "bbee097ef3d15b4c229517ddf42a1d6ad2580e491da432fb0001ed233e3622e0  evidence/run108/oracle-fixture-level-predictions.zip" | sha256sum --check
+          unzip -q evidence/run108/oracle-fixture-level-predictions.zip -d evidence/run108/unpacked
+          test -n "$(find evidence/run108/unpacked -name oracle_upcoming_fixtures.csv -print -quit)"
+          test -n "$(find evidence/run108/unpacked -name current_prematch_team_state.csv -print -quit)"
+          test -n "$(find evidence/run108/unpacked -name matches.csv -print -quit)"
+          test -n "$(find evidence/run108/unpacked -name oracle-live-reconciliation.json -print -quit)"
+      - name: Build research-only root-cause audit
+        run: python scripts/audit_oracle_run108_artifact.py
+      - name: Upload root-cause audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-run108-root-cause-audit
+          path: |
+            reports/oracle-run108-missing-state-root-cause-audit-2026-10-23.csv
+            reports/oracle-run108-crosswalk-counterfactual-2026-10-23.csv
+            reports/oracle-run108-root-cause-summary-2026-10-23.json
+          if-no-files-found: error
+          retention-days: 14
