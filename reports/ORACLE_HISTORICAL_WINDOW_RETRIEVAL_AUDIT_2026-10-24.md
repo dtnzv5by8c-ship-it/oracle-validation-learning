@@ -56,3 +56,21 @@ Research branch only. No production logic or registry changed. No predictions or
 - The 50-target catalogue artifact reviewed is `12549039980`, generated 2026-10-24 05:32:42 UTC: 1,737 provider catalogue entries, 50/50 exact alias candidates, 50 season IDs and labels, 0 season dates, mapping approval NOT_GRANTED. All candidates remain review-only; exact-alias status is not independent proof of competition identity.
 - Existing script/workflow retains the 3-second request pacing. No production logic or protected 27-league registry was changed. Prediction/backtest gates remain closed pending independent season-completeness and point-in-time provenance proof.
 - Prior audit runtime was approximately 20 minutes 36 seconds. Based on that observed runtime and the retry start, a reasonable first refreshed coverage-report ETA is **09:05–09:20 South Africa time on 2026-10-24**, assuming provider responses remain stable. This is an estimate, not a guarantee; the new artifact must be inspected before counts or access status are updated.
+
+
+## Latest retry after new-league selection refresh — verified 2026-10-24 07:04 UTC
+
+- Workflow [#40066911282, attempt 2](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911282) completed successfully; latest inspected artifact ID: `12551956833`.
+- Historical window: 2025-03-20 through 2026-09-20 inclusive. Summary reports **50 target codes, 132 candidate-season rows, 21,199 fixture rows, 48 targets with fixtures, and 7 API failure rows**. This supersedes the prior 19,530-row retrieval count for reporting retrieval volume only.
+- Compared with the previous attempt, England EFL League One (E2) and Germany 2. Bundesliga (D2) now have returned fixtures. The only target codes without fixture rows are **Spain Segunda División (SP2)** and **Portugal Primeira Liga (P1)**.
+- Remaining errors: HTTP 417 on three candidate seasons each for SP2 and P1; one separate unexpected payload for Uruguay (UY), season ID 14626, page 4. Treat the 417 selection/cache message and Uruguay payload as different issues.
+- Fixture status counts: 21,164 complete, 24 canceled, 6 incomplete, 5 suspended. Match IDs are unique across the export. All exported timestamps fall within the requested window, but this is not evidence that all eligible fixtures were retrieved.
+- All 132 candidate-season rows still have blank provider competition IDs and season start/end dates. 125 retrievals ended on a short page; none of these facts independently proves season completeness. Prematch xG includes literal zeros (1,270 home-side and 1,272 away-side), whose meaning and pre-kickoff provenance remain unverified.
+- Gates remain closed: `season_completeness_proven=false`, `point_in_time_provenance_established=false`, `prediction_ready_targets=0`, and odds are absent. **No backtest, accuracy claim, or prediction report is authorised from this artifact.**
+
+### Next safe build steps
+
+1. Continue reporting-only integrity checks on the 50-target export: lifecycle/status validity, score settlement, xG semantic checks, and duplicate team/fixture identity.
+2. Identify an authoritative source for competition identity, season date boundaries, and fixture totals; do not infer missing IDs/dates.
+3. After the user-requested refresh wait, retry only SP2/P1; diagnose Uruguay page 4 separately, retaining the 3-second pacing.
+4. Keep the private production repository, production model logic, probabilities, thresholds, calibration, markets, and protected 27-league registry untouched. Draft PR #20 remains open and unmerged.
