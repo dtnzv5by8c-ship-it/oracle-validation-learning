@@ -37,7 +37,7 @@
 - Quality matrix [run #4](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40135938108): `completed/success`; all seven job steps succeeded.
 - Artifact: `oracle-per-league-quality-matrix-40135938108`, ID `12576693830`, GitHub digest `sha256:1684c954d875d109dc0af639f67291cd5ba0b2858e5e148d243446cd1717e552`, expires 2026-11-23.
 - Private release: [run 4 quality-matrix release](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/releases/tag/oracle-per-league-quality-matrix-40135938108), release ID `423001351`; asset `oracle-per-league-quality-matrix.zip` is uploaded.
-- Private expansion workflow [run #206](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40125710200): `completed/failure`; `prepare` failed and downstream jobs were skipped. Job-log retrieval returned GitHub `BlobNotFound`, so root cause remains unverified. No rerun or new dispatch was made during this audit pass.
+- Private expansion workflow [run #206](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40125710200): `completed/failure`; `prepare` failed and downstream jobs were skipped. Job-log retrieval returned GitHub `BlobNotFound`, so root cause remains unverified. No rerun or new dispatch was made during this audit pass. **Exact execution blocker:** the connected GitHub tool surface exposes repository/file/run/job/artifact reads and repository content writes, but no workflow-dispatch action; this run could not trigger the private refresh. No direct FootyStats API execution action was available in this audit context either.
 
 ## Next safe actions
 1. Identify a provider response/manifest retaining the actual competition/league ID separately from season ID, with source timestamps.
