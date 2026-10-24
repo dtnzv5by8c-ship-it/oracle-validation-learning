@@ -26,6 +26,16 @@
 - The historical-window audit workflow run #40060562649 also completed successfully and uploaded artifact `12546993898`. Its verified summary matches run #40060453877: 17,589 fixtures, 110 candidate-season entries, 41 targets with fixtures, 1 logged provider payload failure, 0 prediction-ready targets.
 - The report now records pre-match xG zero-value diagnostics: 1,064 home-side and 1,066 away-side pre-match xG values are literal zero. These need semantic validation; nonblank is not equivalent to valid point-in-time data.
 
+## Corrected season-scoped retrieval result
+- Corrected workflow run #40061136588 completed successfully and uploaded artifact `12546949922`.
+- The match endpoint request now uses the documented `season_id` parameter. The previous 17,589-row run used the wrong parameter and its coverage count is superseded.
+- Corrected artifact: 11,493 fixture rows from 24 target codes; 110 candidate-season rows comprise 68 short-page retrievals, 39 HTTP 417 failures, and 3 parked targets.
+- Core identifiers/team names/kickoff/status/score/xG fields have no blank cells in the returned rows; duplicate keys are zero. Fixture statuses: 11,483 complete, 5 canceled, 3 suspended, 2 incomplete. These are structural checks, not independent truth/completeness validation.
+- Literal zero in pre-match xG: 767 home-side rows and 770 away-side rows; semantics and point-in-time availability remain unverified.
+- The 39 HTTP 417 failures are unresolved because the error response body was not retained. Do not attribute them to subscription entitlement or another cause without evidence.
+- Follow-up research validation run #40061136578 succeeded; all 108 tests passed.
+- No predictions/backtests from the corrected fixture extraction. Completeness and point-in-time gates remain closed.
+
 ## Root cause confirmed for missing catalogue IDs/dates
 A sanitized provider-schema diagnostic run #40060695146 completed successfully. The sampled `league-list` payload has top-level keys `country`, `image`, `league_name`, `name`, `season`; season objects expose `id` and `year` only. Competition IDs and season start/end dates are not present in this endpoint response. This explains why trying alternate field names did not populate them. Season IDs can be used as retrieval handles but are not proof of the provider competition identity or exact season boundaries. Use another documented endpoint or independent official schedule evidence; never infer or fabricate these fields.
 
