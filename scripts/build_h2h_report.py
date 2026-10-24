@@ -106,7 +106,7 @@ def main():
         if r.get("home_team") and r.get("away_team"):
             league_key=r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),"")
             pair_key=tuple(sorted((team(r["home_team"], league_key),team(r["away_team"], league_key))))
-            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
+            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"], league_key),team(r["away_team"], league_key),hg,ag))
             team_presence[league_key].update((team(r["home_team"], league_key),team(r["away_team"], league_key)))
             team_leagues[team(r["home_team"], league_key)].add(league_key)
             team_leagues[team(r["away_team"], league_key)].add(league_key)
@@ -120,7 +120,7 @@ def main():
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
         for d,mh,ma,gh,ga in games:
-            x,y=(gh,ga) if mh==team(h) else (ga,gh)
+            x,y=(gh,ga) if mh==team(h, league) else (ga,gh)
             hw+=x>y; dr+=x==y; aw+=x<y; bt+=gh>0 and ga>0
             total=gh+ga; o15+=total>=2; o25+=total>=3; u35+=total<=3
         ts=[r for r in truth[(league,pair)] if not date or r.get("match_date","")[:10]<date]
@@ -128,7 +128,7 @@ def main():
         if ts:
             hv=av=0
             for r in ts:
-                if team(r["home_team"])==team(h): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
+                if team(r["home_team"], league)==team(h, league): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
                 else: hv+=int(float(r.get("away_1up") or 0)); av+=int(float(r.get("home_1up") or 0))
             h1=rate(hv,len(ts)); a1=rate(av,len(ts))
         rates={"BTTS Yes":rate(bt,n),"Over 1.5":rate(o15,n),"Over 2.5":rate(o25,n),"Under 3.5":rate(u35,n)}
