@@ -21,6 +21,8 @@ on:
       - "scripts/run_rolling_goal_result_validation.py"
       - "scripts/build_shadow_league_team_alignment.py"
       - "scripts/build_august_research_league_team_audit.py"
+      - "scripts/audit_h2h_unmatched_fixtures.py"
+      - "tests/test_audit_h2h_unmatched_fixtures.py"
 
 permissions:
   contents: read
@@ -211,6 +213,16 @@ jobs:
       - name: Build H2H report and audit
         working-directory: oracle
         run: python scripts/build_h2h_report.py
+
+      - name: Audit unresolved H2H team and league mappings (research-only)
+        run: |
+          set -euo pipefail
+          python -m unittest tests.test_audit_h2h_unmatched_fixtures -v
+          python scripts/audit_h2h_unmatched_fixtures.py \\
+            --matches oracle/database/matches.csv \\
+            --unmatched oracle/reports/h2h/h2h_unmatched_fixtures.csv \\
+            --out-csv oracle/reports/h2h/h2h_unmatched_team_review.csv \\
+            --out-json oracle/reports/h2h/h2h_unmatched_team_review_audit.json
 
       - name: Expose canonical Fixture ID and join H2H by exact ID
         working-directory: oracle
