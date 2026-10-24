@@ -136,6 +136,23 @@ jobs:
           print("\n".join(md))
           PY
 
+      - name: Package quality matrix with checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd quality-matrix
+          sha256sum *.csv *.json *.md > SHA256SUMS
+          cd ..
+          zip -qr oracle-per-league-quality-matrix.zip quality-matrix
+
+      - name: Upload quality matrix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-per-league-quality-matrix-${{ github.run_id }}
+          path: oracle-per-league-quality-matrix.zip
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Publish quality matrix to private Oracle release
         shell: bash
         env:
@@ -143,12 +160,5 @@ jobs:
         run: |
           set -euo pipefail
           TARGET=dtnzv5by8c-ship-it/oracle-football-data
-          TAG=oracle-per-league-quality-matrix-20261021
-          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
-            echo "::error::Release tag already exists; refusing overwrite."; exit 1
-          fi
-          cd quality-matrix
-          sha256sum *.csv *.json *.md > SHA256SUMS
-          cd ..
-          zip -qr oracle-per-league-quality-matrix.zip quality-matrix
-          gh release create "$TAG" oracle-per-league-quality-matrix.zip --repo "$TARGET" --title "Oracle per-league data quality and H2H matrix 2026-10-21" --notes "Read-only audit of existing private FootyStats archive. Includes per-league/per-season non-null field coverage and exploratory H2H pairs. No API calls and no production changes."
+          TAG="oracle-per-league-quality-matrix-${GITHUB_RUN_ID}"
+          gh release create "$TAG" oracle-per-league-quality-matrix.zip --repo "$TARGET" --title "Oracle per-league data quality and H2H matrix run ${GITHUB_RUN_NUMBER}" --notes "Read-only audit of existing private FootyStats archive. Includes per-league/per-season non-null field coverage and exploratory H2H pairs. No API calls and no production changes. Research evidence only; production readiness NOT_ASSESSED."
