@@ -87,10 +87,10 @@ def main():
     write_csv(output/"oracle_44_historical_window_seasons.csv",seasons)
     write_csv(output/"oracle_44_historical_window_pages.csv",pages)
     write_csv(output/"oracle_44_historical_window_failures.csv",failures)
-    summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"window_start":"2025-03-20","window_end":"2026-09-20","target_leagues":len(TARGETS),"season_candidates":len(seasons),"fixture_rows_in_window":len(fixtures),"targets_with_fixtures":len(set(r["target_code"] for r in fixtures)),"season_completeness_proven":False,"point_in_time_provenance_established":False,"prediction_ready_targets":0,"odds_included":False,"production_logic_changed":False,"production_registry_changed":False,"interpretation":"Research ingestion only; no predictions/backtests. Candidate season labels and short-page pagination are not completeness proof."}
+    summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"window_start":"2025-03-20","window_end":"2026-09-20","target_leagues":len(TARGETS),"season_candidates":len(seasons),"fixture_rows_in_window":len(fixtures),"api_failure_rows":len(failures),"targets_with_fixtures":len(set(r["target_code"] for r in fixtures)),"season_completeness_proven":False,"point_in_time_provenance_established":False,"prediction_ready_targets":0,"odds_included":False,"production_logic_changed":False,"production_registry_changed":False,"interpretation":"Research ingestion only; no predictions/backtests. Candidate season labels and short-page pagination are not completeness proof."}
     (output/"oracle_44_historical_window_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(summary,indent=2))
-    return 1 if failures else 0
+    return 0  # Partial retrieval is reported in the artifact; preserve outputs for diagnosis.
 if __name__=="__main__":
     try: raise SystemExit(main())
     except Exception:
