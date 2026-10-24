@@ -38,3 +38,13 @@ A follow-up sanitized schema-diagnostic run (#40060695146) confirmed the provide
 
 ## Governance
 Research branch only. No production logic or registry changed. No predictions or calibration changes were made. The result is not a profitability claim or a production readiness approval.
+
+
+
+## Latest 50-target extraction update — 2026-10-24 05:57 UTC
+- Latest historical-window workflow [#40066911282](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911282) completed with workflow conclusion **success**; inspected artifact ID `12550016743` (artifact label `oracle-44-historical-window-audit` is stale/misleading; its summary reports 50 targets).
+- Exact requested window remains 2025-03-20 through 2026-09-20 inclusive. Summary reports **50 target codes**, **132 candidate-season rows**, **19,530 fixture rows**, and **46 target codes with returned fixtures**. Four target codes have no fixture rows: **E2, SP2, D2, P1**.
+- There are **15 API failure rows**: HTTP 417 for three seasons each of E2, SP2, D2, and P1; two I2 season requests; and one separate Uruguay (UY) page-4 unexpected-payload failure. The other 117 candidate-season rows are marked `RETRIEVED_SHORT_PAGE_NOT_COMPLETENESS_PROOF`; this is retrieval status, not completeness proof.
+- Fixture export has 19,530 rows and 19,530 unique match IDs; status counts are 19,498 complete, 22 canceled, 5 suspended, and 5 incomplete. These are structural observations only. All rows fall within the requested kickoff window; the artifact's first/last UTC kickoff timestamps are 2025-03-20 01:30 and 2026-09-20 23:30.
+- Crucial gates remain closed: `season_completeness_proven=false`, `point_in_time_provenance_established=false`, `prediction_ready_targets=0`, and odds are absent. **Do not run predictions/backtests or treat this as a verified complete historical dataset.**
+- The new 50-target run supersedes prior 44-target fixture-count baselines for retrieval-volume reporting only; it does not resolve completeness or provenance. Production logic and protected production registry remain unchanged.
