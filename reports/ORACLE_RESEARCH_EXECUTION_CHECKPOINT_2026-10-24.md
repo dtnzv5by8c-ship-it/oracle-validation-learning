@@ -77,3 +77,12 @@ These remain parked until independent evidence confirms provider competition ide
 - Sanitized error messages now distinguish two causes: HTTP 417 reports the league is “not chosen by the user” (provider message notes a possible cache delay after a league is newly selected); HTTP 429 explicitly reports rate limiting.
 - Treat 417 as an account league-selection/entitlement or provider-side selection-state blocker until verified with FootyStats. Treat 429 as request pacing/throttling. Do not merge these into one cause or retry aggressively.
 - Latest artifact: 7,167 fixture rows, 16 target codes with fixtures, 60 failed candidate-season requests, 3 parked target codes. Completeness and point-in-time provenance remain unproven; prediction-ready targets remain zero.
+
+
+## Post-selection paced extraction — verified 2026-10-24
+- Run #40063692505 completed successfully: [workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40063692505).
+- The research script now paces API requests at one request every 3 seconds (approximately 1,200/hour), below the user's stated Hobby package allowance of 1,800/hour. This is per-run pacing; it is not a shared account-wide limiter across separate workflows.
+- Latest artifact: **15,202 fixture rows**, 110 candidate-season entries, 34 target codes with fixtures, 18 failed season/page requests, 3 parked target codes. Statuses: 89 short-page retrievals, 18 failed, 3 parked. The earlier 7,167-row run is superseded by this latest run.
+- The user reported selecting all leagues, but 17 HTTP 417 failures persist: Denmark (3 seasons), Russia (3), Serbia (3), Sweden (2), Finland (2), Republic of Ireland (2), Canada (2). The provider's message allows for a cache delay after selection; wait for account/cache state to refresh before retrying. If still failing, compare exact provider UI names and confirm package entitlement with FootyStats support.
+- One separate unexpected payload failure remains: Uruguay (UY), season ID 14626, page 4. It must be investigated independently; no HTTP 429 was present in this latest artifact.
+- Validation workflow #40063692395 succeeded after the pacing change. No predictions/backtests are authorised: completeness and point-in-time provenance remain unproven; prediction-ready targets remain zero. Production model logic and the protected registry remain unchanged.
