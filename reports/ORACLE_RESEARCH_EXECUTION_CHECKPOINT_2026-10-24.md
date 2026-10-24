@@ -20,6 +20,12 @@
 - Detailed audit: [ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md).
 - Disposition: retrieval baseline succeeded; **not backtest-ready**. No prediction or accuracy analysis was generated from this fixture artifact.
 
+## Latest validation-test result
+- Research validation workflow run #40060905544: [success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40060905544).
+- The workflow compiled the historical-window audit script alongside the other research audit scripts and ran the full unit suite: **108 tests passed**.
+- The historical-window audit workflow run #40060562649 also completed successfully and uploaded artifact `12546993898`. Its verified summary matches run #40060453877: 17,589 fixtures, 110 candidate-season entries, 41 targets with fixtures, 1 logged provider payload failure, 0 prediction-ready targets.
+- The report now records pre-match xG zero-value diagnostics: 1,064 home-side and 1,066 away-side pre-match xG values are literal zero. These need semantic validation; nonblank is not equivalent to valid point-in-time data.
+
 ## Root cause confirmed for missing catalogue IDs/dates
 A sanitized provider-schema diagnostic run #40060695146 completed successfully. The sampled `league-list` payload has top-level keys `country`, `image`, `league_name`, `name`, `season`; season objects expose `id` and `year` only. Competition IDs and season start/end dates are not present in this endpoint response. This explains why trying alternate field names did not populate them. Season IDs can be used as retrieval handles but are not proof of the provider competition identity or exact season boundaries. Use another documented endpoint or independent official schedule evidence; never infer or fabricate these fields.
 
