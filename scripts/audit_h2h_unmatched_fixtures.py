@@ -13,11 +13,16 @@ import unicodedata
 from collections import Counter, defaultdict
 from difflib import SequenceMatcher
 from pathlib import Path
+from importlib.util import module_from_spec, spec_from_file_location
+
+# Reuse the report builder canonicalizer so diagnostics and report use identical team identities.
+_spec = spec_from_file_location("oracle_h2h_report_builder", Path(__file__).with_name("build_h2h_report.py"))
+_builder = module_from_spec(_spec)
+_spec.loader.exec_module(_builder)
 
 
 def norm(value):
-    value = unicodedata.normalize("NFKD", (value or "")).encode("ascii", "ignore").decode().lower()
-    return re.sub(r"[^a-z0-9]", "", value)
+    return _builder.team(value)
 
 
 def read_csv(path):
