@@ -24,3 +24,15 @@ The full-season audit workflow has been updated to emit `oracle_44_league_readin
 
 ## Governance
 Research-only. No production model logic, weights, probabilities, thresholds, calibration, markets or governed 27-league registry changed. Odds validation remains parked. No prediction-readiness claims are made.
+
+
+## User-supplied FootyStats display names — 2026-10-24
+The user confirmed these exact display names from their selected-league screen. These are useful identity evidence and should be preferred over prior guessed aliases:
+- Colombia target CO: `Colombia - Categoria Primera A` (provider display name likely `Colombia Categoria Primera A`); this is a stronger exact-name candidate for the intended top-flight than the earlier generic `Primera A` target label.
+- Croatia target CRO: `Croatia - Prva HNL`; this appears to be the intended top-flight competition and should be added as an exact alias, subject to checking the current provider catalogue spelling.
+- Ecuador target EC: `Ecuador - Primera Categoría Serie A`; add accent/diacritic-normalised exact alias variants, subject to checking the current provider catalogue spelling.
+- Russia display name is `Russia - Russian Premier League`, consistent with the intended target.
+- Ukraine display name is `Ukraine - Ukrainian Premier League`, consistent with the intended target.
+- Portugal is shown as `Portugal - LigaPro`. Do **not** map this to the Oracle Portugal Primeira Liga target without verification: LigaPro may denote a different division than the intended top flight.
+- Qatar Stars League and Saudi Arabia Professional League appear in the account's selected list but are not part of the current governed 44-target research list. Do not add them to the target registry without explicit governance approval.
+The current extraction run was already in progress when these names were supplied, so it cannot validate the new exact aliases. Apply the alias updates after that run completes, then run the lightweight catalogue discovery before any targeted match extraction.
