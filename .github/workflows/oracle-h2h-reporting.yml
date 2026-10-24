@@ -217,7 +217,7 @@ jobs:
       - name: Audit unresolved H2H team and league mappings (research-only)
         run: |
           set -euo pipefail
-          python -m unittest tests.test_audit_h2h_unmatched_fixtures -v
+          python -m unittest discover -s tests -p 'test_audit_h2h_unmatched_fixtures.py' -v
           python scripts/audit_h2h_unmatched_fixtures.py \\
             --matches oracle/database/matches.csv \\
             --unmatched oracle/reports/h2h/h2h_unmatched_fixtures.csv \\
