@@ -83,5 +83,22 @@ class H2HUnmatchedDiagnosticsTests(unittest.TestCase):
         self.assertTrue(all(not row["mapping_approved"] for row in rows))
 
 
+
+    def test_archive_aliases_for_verified_short_names(self):
+        cases = [
+            ("B1", "Waregem", "Zulte Waregem"),
+            ("POL", "Rakow", "Raków Częstochowa"),
+            ("I2", "Entella", "Virtus Entella"),
+            ("ROU", "Sepsi Sf. Gheorghe", "Sepsi OSK"),
+        ]
+        for league, short, canonical in cases:
+            with self.subTest(short=short):
+                rows = diagnose(
+                    [{"league_code": league, "home_team": short, "away_team": "Opponent"}],
+                    [{"date": "2026-10-24", "league": league, "home_team": canonical, "away_team": "Opponent"}],
+                )
+                home = next(row for row in rows if row["unresolved_team_side"] == "home")
+                self.assertEqual(home["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
+
 if __name__ == "__main__":
     unittest.main()
