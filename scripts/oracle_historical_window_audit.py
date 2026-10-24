@@ -9,7 +9,7 @@ from urllib.error import HTTPError
 from oracle_44_catalogue_discovery import TARGETS
 
 BASE="https://api.football-data-api.com/"
-START=datetime(2025,3,20,tzinfo=timezone.utc)
+START=datetime(2024,1,1,tzinfo=timezone.utc)
 END=datetime(2026,9,20,23,59,59,tzinfo=timezone.utc)
 START_TS=int(START.timestamp()); END_TS=int(END.timestamp())
 
@@ -87,7 +87,7 @@ def main():
             for s in entry.get("season",[]) if isinstance(entry.get("season"),list) else []:
                 if not isinstance(s,dict) or s.get("id") in ("",None): continue
                 pair=year_pair(s.get("year",""))
-                if pair and pair[0]<=2026 and pair[1]>=2025:
+                if pair and pair[0]<=2026 and pair[1]>=2024:
                     candidates.append((entry,s))
         if not candidates:
             seasons.append({"target_code":code,"country":country,"competition":competition,"season_id":"","season_label":"","status":"PARKED_NO_EXACT_ALIAS_OR_OVERLAPPING_LABEL","rows_total":0,"rows_in_window":0,"pages":0,"notes":"No exact alias/season candidate; no fuzzy mapping used."})
@@ -127,7 +127,7 @@ def main():
     write_csv(output/"oracle_44_historical_window_seasons.csv",seasons)
     write_csv(output/"oracle_44_historical_window_pages.csv",pages)
     write_csv(output/"oracle_44_historical_window_failures.csv",failures)
-    summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"window_start":"2025-03-20","window_end":"2026-09-20","target_leagues":len(TARGETS),"target_codes":[t[0] for t in TARGETS],"targets_with_season_candidates":len(set(r["target_code"] for r in seasons if r.get("season_id"))),"targets_with_fixtures":len(set(r["target_code"] for r in fixtures)),"targets_without_fixtures":[t[0] for t in TARGETS if t[0] not in set(r["target_code"] for r in fixtures)],"season_candidates":len(seasons),"fixture_rows_in_window":len(fixtures),"api_failure_rows":len(failures),"season_completeness_proven":False,"point_in_time_provenance_established":False,"prediction_ready_targets":0,"odds_included":False,"production_logic_changed":False,"production_registry_changed":False,"interpretation":"Research ingestion only; no predictions/backtests. Candidate season labels and short-page pagination are not completeness proof."}
+    summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"window_start":"2024-01-01","window_end":"2026-09-20","target_leagues":len(TARGETS),"target_codes":[t[0] for t in TARGETS],"targets_with_season_candidates":len(set(r["target_code"] for r in seasons if r.get("season_id"))),"targets_with_fixtures":len(set(r["target_code"] for r in fixtures)),"targets_without_fixtures":[t[0] for t in TARGETS if t[0] not in set(r["target_code"] for r in fixtures)],"season_candidates":len(seasons),"fixture_rows_in_window":len(fixtures),"api_failure_rows":len(failures),"season_completeness_proven":False,"point_in_time_provenance_established":False,"prediction_ready_targets":0,"odds_included":False,"production_logic_changed":False,"production_registry_changed":False,"interpretation":"Research ingestion only; no predictions/backtests. Candidate season labels and short-page pagination are not completeness proof."}
     (output/"oracle_44_historical_window_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(summary,indent=2))
     return 0  # Partial retrieval is reported in the artifact; preserve outputs for diagnosis.
