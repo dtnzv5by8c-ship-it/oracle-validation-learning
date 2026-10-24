@@ -10,7 +10,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-EXPECTED_TARGETS = 44
+EXPECTED_TARGETS = 50
 REQUIRED = {
     "target_code", "catalogue_status", "provider_name",
     "candidate_season_ids", "candidate_season_labels", "candidate_season_dates",
@@ -44,7 +44,7 @@ def validate(path):
     if len(unique_codes) != EXPECTED_TARGETS:
         # Partial/synthetic files support unit tests and targeted diagnostics.
         # Report incomplete universe coverage without treating it as malformed data.
-        warnings.append(f"Expected {EXPECTED_TARGETS} unique target codes for full-universe validation; found {len(unique_codes)}")
+        warnings.append(f"Expected {EXPECTED_TARGETS} unique target codes for current 50-target research-universe validation; found {len(unique_codes)}")
     if len(rows) != EXPECTED_TARGETS:
         warnings.append(f"Crosswalk has {len(rows)} rows for {len(unique_codes)} targets; duplicate candidate rows require manual review")
 
