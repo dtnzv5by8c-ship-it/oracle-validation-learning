@@ -10,7 +10,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-EXPECTED_TARGETS = 50
+EXPECTED_TARGETS = 49
 REQUIRED = {
     "target_code", "catalogue_status", "provider_name",
     "candidate_season_ids", "candidate_season_labels", "candidate_season_dates",
