@@ -29,7 +29,7 @@
 ## Corrected season-scoped retrieval result
 - Corrected workflow run #40061136588 completed successfully and uploaded artifact `12546949922`.
 - The match endpoint request now uses the documented `season_id` parameter. The previous 17,589-row run used the wrong parameter and its coverage count is superseded.
-- Corrected artifact: 11,493 fixture rows from 24 target codes; 110 candidate-season rows comprise 68 short-page retrievals, 39 HTTP 417 failures, and 3 parked targets.
+- Corrected artifact: 7,167 fixture rows from 16 target codes; 110 candidate-season rows comprise 68 short-page retrievals, 39 HTTP 417 and HTTP 429 failures, and 3 parked targets.
 - Core identifiers/team names/kickoff/status/score/xG fields have no blank cells in the returned rows; duplicate keys are zero. Fixture statuses: 11,483 complete, 5 canceled, 3 suspended, 2 incomplete. These are structural checks, not independent truth/completeness validation.
 - Literal zero in pre-match xG: 767 home-side rows and 770 away-side rows; semantics and point-in-time availability remain unverified.
 - The 39 HTTP 417 failures are unresolved because the error response body was not retained. Do not attribute them to subscription entitlement or another cause without evidence.
@@ -71,3 +71,9 @@ These remain parked until independent evidence confirms provider competition ide
 - No production predictions or backtests created.
 - Draft PR #20 remains open and unmerged.
 - Status: **research ingestion baseline verified; historical 44-league pipeline not complete or prediction-ready**.
+
+
+### Provider error diagnosis (2026-10-24 latest run #40061366856)
+- Sanitized error messages now distinguish two causes: HTTP 417 reports the league is “not chosen by the user” (provider message notes a possible cache delay after a league is newly selected); HTTP 429 explicitly reports rate limiting.
+- Treat 417 as an account league-selection/entitlement or provider-side selection-state blocker until verified with FootyStats. Treat 429 as request pacing/throttling. Do not merge these into one cause or retry aggressively.
+- Latest artifact: 7,167 fixture rows, 16 target codes with fixtures, 60 failed candidate-season requests, 3 parked target codes. Completeness and point-in-time provenance remain unproven; prediction-ready targets remain zero.
