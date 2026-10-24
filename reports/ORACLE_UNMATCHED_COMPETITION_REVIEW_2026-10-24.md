@@ -34,5 +34,13 @@ The user confirmed these exact display names from their selected-league screen. 
 - Russia display name is `Russia - Russian Premier League`, consistent with the intended target.
 - Ukraine display name is `Ukraine - Ukrainian Premier League`, consistent with the intended target.
 - Portugal is shown as `Portugal - LigaPro`. Do **not** map this to the Oracle Portugal Primeira Liga target without verification: LigaPro may denote a different division than the intended top flight.
-- Qatar Stars League and Saudi Arabia Professional League appear in the account's selected list but are not part of the current governed 44-target research list. Do not add them to the target registry without explicit governance approval.
+- User has now explicitly requested a research-catalogue scope change: exclude Qatar Stars League; include Saudi Arabia Professional League plus Spain Segunda División, Germany 2. Bundesliga, England EFL League One, Italy Serie B, and France Ligue 2. The research catalogue now has 50 target competitions. This is a research-only catalogue expansion and does not alter the protected production 27-league registry. These new competition identities and seasons still require validation against the live provider catalogue before ingestion; adding them to the research list does not certify data coverage or prediction readiness.
 The current extraction run was already in progress when these names were supplied, so it cannot validate the new exact aliases. Apply the alias updates after that run completes, then run the lightweight catalogue discovery before any targeted match extraction.
+
+
+## Research scope change — 2026-10-24
+- Updated `scripts/oracle_44_catalogue_discovery.py` to expand the research catalogue from 44 to 50 competitions on branch `research/oracle-crosswalk-isolation-2026-10-22`.
+- Added Saudi Arabia Professional League, Spain Segunda División, Germany 2. Bundesliga, England EFL League One, Italy Serie B, and France Ligue 2; Qatar is excluded.
+- Added exact-name alias candidates for Croatia Prva HNL, Colombia Categoria Primera A, and Ecuador Primera Categoría Serie A. These aliases remain candidates until the next live catalogue output verifies exact matches.
+- Portugal LigaPro remains unmapped to Primeira Liga pending independent identity confirmation.
+- No production model logic or protected 27-league registry changed. Historical ingestion and prediction readiness remain blocked on validation/completeness gates.
