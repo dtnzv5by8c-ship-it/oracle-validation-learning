@@ -23,6 +23,13 @@ on:
       - "scripts/build_august_research_league_team_audit.py"
       - "scripts/audit_h2h_unmatched_fixtures.py"
       - "tests/test_audit_h2h_unmatched_fixtures.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-h2h-reporting.yml"
+      - "scripts/build_h2h_report.py"
+      - "scripts/audit_h2h_unmatched_fixtures.py"
+      - "tests/test_audit_h2h_unmatched_fixtures.py"
 
 permissions:
   contents: read
