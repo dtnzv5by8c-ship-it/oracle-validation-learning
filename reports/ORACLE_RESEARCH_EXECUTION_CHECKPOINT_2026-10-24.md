@@ -101,6 +101,6 @@ These remain parked until independent evidence confirms provider competition ide
 
 ## Provider-refresh retry checkpoint — 2026-10-24 06:42 UTC
 - No active research audit was present at the recheck. Historical-window workflow run #40066911282 was re-run as attempt 2; the new job is in progress at the retrieval step. See [workflow run #40066911282](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911282).
-- Last completed artifact remains #12550016743: 19,530 fixture rows, 46/50 targets with fixtures, 15 API failure rows; no-fixure codes E2, SP2, D2 and P1; two additional HTTP 417 requests for I2; separate UY page-4 payload error. These are baseline results only, not the outcome of the new retry.
+- Last completed artifact remains #12550016743: 19,530 fixture rows, 46/50 targets with fixtures, 15 API failure rows; no-fixture codes E2, SP2, D2 and P1; two additional HTTP 417 requests for I2; separate UY page-4 payload error. These are baseline results only, not the outcome of the new retry.
 - Latest catalogue artifact #12549039980 confirms 50 targets, 50 exact alias candidates, season IDs/labels for all 50, no season dates, and mapping approval NOT_GRANTED. No alias has been auto-approved.
 - The refreshed artifact is pending. Based on the previous observed 20m36s runtime, estimated first refreshed coverage report: 09:05–09:20 SAST on 2026-10-24, subject to provider response time. No prediction/backtest gate is open; completeness and point-in-time provenance remain unproven.
