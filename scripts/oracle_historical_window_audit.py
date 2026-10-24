@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
-from scripts.oracle_44_catalogue_discovery import TARGETS
+from oracle_44_catalogue_discovery import TARGETS
 
 BASE="https://api.football-data-api.com/"
 START=datetime(2025,3,20,tzinfo=timezone.utc)
@@ -29,7 +29,7 @@ def call(key, endpoint, params):
     raise RuntimeError("Provider retries exhausted")
 
 def year_pair(label):
-    y=[int(v) for v in re.findall(r"(?:19|20)\\d{2}",str(label or ""))]
+    y=[int(v) for v in re.findall(r"(?:19|20)\d{2}",str(label or ""))]
     if not y: return None
     return (min(y),max(y)) if len(y)>1 else (y[0],y[0])
 
