@@ -8,6 +8,18 @@
 - Readiness output contains 41 PARTIAL and 3 PARKED_UNVERIFIED targets; 0 prediction-ready targets.
 - Core identity checks show no missing match IDs, home/away team IDs, kickoff timestamps, or statuses in retrieved rows; no duplicate target-season-match keys were reported.
 
+## Historical-window retrieval — newly verified
+- Historical-window audit run #40060453877: [workflow success and artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40060453877).
+- Requested window: 20 March 2025–20 September 2026 inclusive.
+- Retrieved 17,589 fixture rows from 110 candidate season entries, spanning 41 of 44 target codes.
+- Export structural audit: no blank core identifiers/team names/kickoff/status/score/xG fields in the exported rows; 0 duplicate target-season-match keys and 0 duplicate target-match keys.
+- Status counts in the export: 17,559 complete, 22 canceled, 5 incomplete, 3 suspended. These status/field checks are structural, not independent validation of provider correctness.
+- One API payload failure: target UY, season ID 14626, page 4. The failure is recorded in the artifact.
+- CRO, CO and EC remain parked with no exact alias/season candidate.
+- All 110 candidate rows have blank provider league/competition IDs and blank season start/end dates in the catalogue metadata. Short-page termination does not prove season completeness. Historical point-in-time feature provenance is still not established.
+- Detailed audit: [ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md).
+- Disposition: retrieval baseline succeeded; **not backtest-ready**. No prediction or accuracy analysis was generated from this fixture artifact.
+
 ## Critical scope limitation discovered
 The full-season retrieval workflow selects the most recent season label available for each exact alias. It does not yet select and fetch all provider seasons overlapping the approved historical window (20 March 2025–20 September 2026). Therefore the 10,853 rows must not be represented as the complete historical modelling lake. Some retrieved seasons are labelled 2026/27 and are not the requested historical sample.
 
