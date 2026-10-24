@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-24  
 **Research branch:** `research/oracle-50-league-readiness-audit`  
+**Machine-readable 50-row register:** [CSV crosswalk and readiness matrix](oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-24.csv)  
 **Starting branch head inspected:** `c5f97cf038b6afcc4f763b4f74c7872ac46cbf88`  
 **Status:** RESEARCH ONLY — production eligibility NOT GRANTED
 
@@ -24,7 +25,7 @@ The owner-selected FootyStats list is now recovered and preserved as exactly 50 
 1. The recovered manifest `oracle-footystats-selected-50-league-manifest-2026-10-24.md` records the supplied saved FootyStats settings page, 1,737 checkbox inputs and exactly 50 checked league entries, including provider IDs.
 2. The protected canonical registry `config/oracle_major_league_registry_v1.json` on the private production repository declares 27 active-universe entries. Membership/readiness labels in that file are not the same as production eligibility.
 3. `config/data_config.json` and `research/team_fixture_intelligence/league_intelligence_matrix.csv` expose separate research-code names and historical row counts. These are recorded in separate columns and **not** treated as direct FootyStats ID joins.
-4. The separate prior 44-target FootyStats full-season run #7 completed successfully on 2026-10-23. Its committed review reports 10,853 rows across 41 target codes and 130/130 successful HTTP/API page-provenance records. However, all 44 targets had `cutoff_provenance=NOT_ESTABLISHED`; the run did not cross-join the recovered 50 provider IDs.
+4. The separate prior 44-target FootyStats [full-season run #7](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40038407226) completed successfully on 2026-10-23; its [committed review](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_FULL_SEASON_AUDIT_REVIEW_2026-10-24-run7.md) is from a different research branch and scope. Its committed review reports 10,853 rows across 41 target codes and 130/130 successful HTTP/API page-provenance records. However, all 44 targets had `cutoff_provenance=NOT_ESTABLISHED`; the run did not cross-join the recovered 50 provider IDs.
 5. The run-7 review explicitly says Croatia HNL, Colombia Primera A and Ecuador Serie A were not fetched because no exact alias matched. Those selected entries remain unfetched in that evidence path; this is not proof that FootyStats does not support them.
 6. The run-7 review also flags zero-valued odds fields and says the number of rows with all three valid 1X2 odds greater than 1.0 was not reported. Field presence is not valid odds coverage.
 
@@ -55,16 +56,16 @@ The private repository's `data/current_source_manifest.json` was generated **202
 
 - Pre-match xG point-in-time provenance: **NOT ESTABLISHED**.
 - Odds point-in-time provenance: **NOT ESTABLISHED**; valid 1X2 odds completeness is not established by non-null fields.
-- M-1UP: **BLOCKED** in the current global four-model readiness manifest.
-- BTTS (Yes), Double Chance and DC + Under 4.5: no 50-league × market pass was found. Generic development-readiness flags do not establish per-league production eligibility, and DC + Under 4.5 must not be inferred from a generic COMBO flag.
+- M-1UP: **NOT VERIFIED CURRENTLY**. The latest accessible four-model readiness manifest in the private repository is dated 2026-10-07 and marked M-1UP `BLOCKED`; that snapshot is stale. The 50-league market gate remains blocked pending fresh current results, chronological goal events and pre-match team state.
+- BTTS (Yes), Double Chance and DC + Under 4.5: no 50-league × market pass was found. The same 2026-10-07 development-readiness flags are stale and do not establish per-league production eligibility; DC + Under 4.5 must not be inferred from a generic COMBO flag.
 
 ## Workflow inspection and blockers
 
 - **Research H2H tests #31:** success on 2026-10-24; this validates the H2H test workflow only, not the 50-league readiness gate.
 - **Research H2H reporting #47:** success on 2026-10-24; likewise not a 50-league readiness pass.
 - **Separate 44-target full-season audit #7:** success on 2026-10-23; useful retrieval evidence, but the exact selected-50 provider-ID join and cutoff provenance remain missing.
-- **Private Oracle Autonomous League Expansion #206:** failed at the `prepare` job on 2026-10-24 with no artifacts. The connected job-log endpoint returned 404, so the underlying failure cause could not be verified in this run. Do not infer the cause.
-- **Private Oracle Current Data Staging #365:** failed in its `current` job on 2026-10-24; its log endpoint also returned 404 through the connected inspection path. Exact failure cause remains unverified.
+- **Private Oracle Autonomous League Expansion #206:** [run](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40125710200) failed at the `prepare` job on 2026-10-24 with no artifacts. The connected job-log endpoint returned 404, so the underlying failure cause could not be verified in this run. Do not infer the cause.
+- **Private Oracle Current Data Staging #365:** [run](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40079744021) failed in its `current` job on 2026-10-24; its log endpoint also returned 404 through the connected inspection path. Exact failure cause remains unverified.
 
 No workflow was dispatched from this audit. The connected GitHub tooling exposed read and file-write operations but no supported workflow-dispatch operation. The failures above are recorded as evidence, not repaired by bypassing gates.
 
