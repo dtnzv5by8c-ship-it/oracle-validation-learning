@@ -28,8 +28,7 @@ The owner-selected FootyStats list has now been recovered from the supplied save
 ## Registry and competition crosswalk
 - Canonical registry: 27 leagues per the cited checkpoint.
 - Intended 44-league universe: not reconciled to the canonical registry.
-- Provider catalogue: 43 distinct provider competition names in the cited audit.
-- Crosswalk decisions: 25 candidate mappings require review, 18 provider names unmatched, 0 approved canonical mappings in the cited checkpoint.
+- Prior catalogue audit: 43 distinct provider competition names; 25 candidate mappings required review, 18 provider names were unmatched, and 0 canonical mappings were approved in that checkpoint. These counts are from the earlier catalogue audit, not a direct reconciliation of the recovered 50 provider IDs; see the current 50-row register for the separate, explicit status of each selected ID.
 - Some provider competitions are cups/supercups or unresolved by name alone; they must not be silently classified as ordinary leagues.
 - The owner-selected 50-league manifest is now established for research scope. It must remain separate from the protected 27-league production registry and the earlier 44-target audit until every provider ID is reconciled with evidence. Do not infer missing canonical codes or approve aliases from name similarity alone.
 
