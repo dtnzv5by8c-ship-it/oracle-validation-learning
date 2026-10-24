@@ -255,6 +255,8 @@ jobs:
             oracle/reports/h2h/h2h_unmatched_fixtures.csv
             oracle/reports/h2h/h2h_no_historical_meetings.csv
             oracle/reports/h2h/h2h_match_diagnostics.csv
+            oracle/reports/h2h/h2h_unmatched_team_review.csv
+            oracle/reports/h2h/h2h_unmatched_team_review_audit.json
             oracle/reports/h2h/h2h_audit.json
             oracle/reports/h2h/oracle_fixture_id_export.csv
             oracle/reports/h2h/oracle_fixture_id_export_audit.json
