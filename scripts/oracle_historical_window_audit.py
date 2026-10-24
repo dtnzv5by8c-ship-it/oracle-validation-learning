@@ -9,6 +9,7 @@ from urllib.error import HTTPError
 from oracle_44_catalogue_discovery import TARGETS
 
 BASE="https://api.football-data-api.com/"
+# Research scope correction: Portugal Primeira Liga removed; SP2 retained.
 START=datetime(2024,1,1,tzinfo=timezone.utc)
 END=datetime(2026,9,20,23,59,59,tzinfo=timezone.utc)
 START_TS=int(START.timestamp()); END_TS=int(END.timestamp())
