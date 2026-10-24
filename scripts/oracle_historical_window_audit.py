@@ -25,7 +25,20 @@ def call(key, endpoint, params):
         except HTTPError as e:
             if e.code in (429,500,502,503,504) and attempt<3:
                 time.sleep(min(2**attempt,8)); continue
-            raise RuntimeError("Provider request failed with HTTP "+str(e.code)) from None
+            # Preserve only a bounded, sanitized provider error explanation. Never
+            # log the request URL, query string, API key, or raw response payload.
+            detail=""
+            try:
+                raw=e.read(4096).decode("utf-8","replace")
+                obj=json.loads(raw)
+                if isinstance(obj,dict):
+                    candidate=obj.get("message") or obj.get("error") or obj.get("detail") or ""
+                    if isinstance(candidate,(str,int,float)):
+                        detail=str(candidate).replace(key,"[REDACTED]")[:180]
+            except Exception:
+                detail=""
+            suffix=("; provider_message="+detail) if detail else ""
+            raise RuntimeError("Provider request failed with HTTP "+str(e.code)+suffix) from None
     raise RuntimeError("Provider retries exhausted")
 
 def year_pair(label):
