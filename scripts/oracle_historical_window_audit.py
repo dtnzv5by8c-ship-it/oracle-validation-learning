@@ -66,7 +66,7 @@ def main():
             seen.add((lid,name,sid)); total=0; inwin=0; page=1; short=False; error=""
             while page<=100:
                 try:
-                    status,p=call(key,"league-matches",{"league_id":sid,"max_per_page":100,"page":page})
+                    status,p=call(key,"league-matches",{"season_id":sid,"max_per_page":100,"page":page})
                     data=p.get("data")
                     if not isinstance(data,list): raise RuntimeError("Unexpected fixture payload")
                     pages.append({"target_code":code,"provider_name":name,"provider_league_id":lid,"season_id":sid,"page":page,"http":status,"rows":len(data),"response_sha256":hashlib.sha256(json.dumps(p,sort_keys=True).encode()).hexdigest()})
