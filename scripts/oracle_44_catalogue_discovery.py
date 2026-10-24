@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Research refresh marker: 2026-10-24 — broadened catalogue candidate review; fuzzy matches remain unapproved.
-"""Research-only FootyStats catalogue discovery for Oracle's 44 target competitions.
+"""Research-only FootyStats catalogue discovery for Oracle's 50 research target competitions.
 
 Does not fetch matches, create predictions, or alter the governed 27-league registry.
 Writes a sanitized catalogue snapshot and a candidate crosswalk; never writes the API key.
@@ -15,9 +15,10 @@ from urllib.error import HTTPError
 BASE = "https://api.football-data-api.com/"
 TARGETS = [
 ("ZA","South Africa","Premier Soccer League",["South Africa Premier Soccer League","South Africa PSL"]),
-("E0","England","Premier League",["England Premier League"]),("E1","England","Championship",["England Championship"]),
-("SP1","Spain","La Liga",["Spain La Liga"]),("D1","Germany","Bundesliga",["Germany Bundesliga"]),
-("I1","Italy","Serie A",["Italy Serie A"]),("F1","France","Ligue 1",["France Ligue 1"]),
+("E0","England","Premier League",["England Premier League"]),("E1","England","Championship",["England Championship"]),("E2","England","EFL League One",["England EFL League One","England League One"]),
+("SP1","Spain","La Liga",["Spain La Liga"]),("SP2","Spain","Segunda División",["Spain Segunda Division","Spain Segunda División"]),
+("D1","Germany","Bundesliga",["Germany Bundesliga"]),("D2","Germany","2. Bundesliga",["Germany 2 Bundesliga","Germany 2. Bundesliga"]),
+("I1","Italy","Serie A",["Italy Serie A"]),("I2","Italy","Serie B",["Italy Serie B"]),("F1","France","Ligue 1",["France Ligue 1"]),("F2","France","Ligue 2",["France Ligue 2"]),
 ("N1","Netherlands","Eredivisie",["Netherlands Eredivisie"]),("P1","Portugal","Primeira Liga",["Portugal Liga NOS","Portugal Primeira Liga"]),
 ("B1","Belgium","Pro League",["Belgium Pro League"]),("T1","Turkey","Süper Lig",["Turkey Süper Lig","Turkey Super Lig"]),
 ("DK","Denmark","Superliga",["Denmark Superliga","Denmark Superligaen"]),("SE","Sweden","Allsvenskan",["Sweden Allsvenskan"]),
@@ -25,19 +26,20 @@ TARGETS = [
 ("SWZ","Switzerland","Super League",["Switzerland Super League","Switzerland Swiss Super League"]),
 ("AUT","Austria","Bundesliga",["Austria Bundesliga","Austria Austrian Bundesliga"]),("GR","Greece","Super League",["Greece Super League"]),
 ("POL","Poland","Ekstraklasa",["Poland Ekstraklasa"]),("CZE","Czech Republic","First League",["Czech First League","Czech Republic First League"]),
-("CRO","Croatia","HNL",["Croatia HNL","Croatia Croatian HNL"]),("RS","Serbia","SuperLiga",["Serbia SuperLiga"]),
+("CRO","Croatia","HNL",["Croatia HNL","Croatia Croatian HNL","Croatia Prva HNL"]),("RS","Serbia","SuperLiga",["Serbia SuperLiga"]),
 ("ROU","Romania","Liga I",["Romania Liga I"]),("UKR","Ukraine","Premier League",["Ukraine Premier League","Ukraine Ukrainian Premier League"]),
 ("RU","Russia","Premier League",["Russia Premier League","Russia Russian Premier League"]),
 ("IE","Republic of Ireland","Premier Division",["Republic of Ireland Premier Division","Ireland Premier Division"]),
 ("SC0","Scotland","Premiership",["Scotland Premiership"]),("US","United States","MLS",["USA MLS","United States MLS"]),
 ("CA","Canada","Canadian Premier League",["Canada Canadian Premier League"]),("MX","Mexico","Liga MX",["Mexico Liga MX"]),
 ("BR","Brazil","Serie A",["Brazil Serie A","Brazil Serie A (Brasileiro)"]),("AR","Argentina","Primera División",["Argentina Primera Division","Argentina Primera División"]),
-("CO","Colombia","Primera A",["Colombia Primera A"]),("CL","Chile","Primera División",["Chile Primera Division","Chile Primera División"]),
+("CO","Colombia","Primera A",["Colombia Primera A","Colombia Categoria Primera A","Colombia Categoría Primera A"]),("CL","Chile","Primera División",["Chile Primera Division","Chile Primera División"]),
 ("UY","Uruguay","Primera División",["Uruguay Primera Division","Uruguay Primera División"]),("PY","Paraguay","Division Profesional",["Paraguay Division Profesional"]),
-("EC","Ecuador","Serie A",["Ecuador Serie A"]),("PE","Peru","Primera División",["Peru Primera Division","Peru Primera División"]),
+("EC","Ecuador","Serie A",["Ecuador Serie A","Ecuador Primera Categoria Serie A","Ecuador Primera Categoría Serie A"]),("PE","Peru","Primera División",["Peru Primera Division","Peru Primera División"]),
 ("VE","Venezuela","Primera División",["Venezuela Primera Division","Venezuela Primera División"]),("AU","Australia","A-League",["Australia A-League"]),
 ("JP","Japan","J1 League",["Japan J1 League"]),("KR","South Korea","K League 1",["South Korea K League 1","Korea Republic K League 1"]),
-("CN","China","Chinese Super League",["China Chinese Super League"]),("IN","India","Indian Super League",["India Indian Super League"])
+("CN","China","Chinese Super League",["China Chinese Super League"]),("IN","India","Indian Super League",["India Indian Super League"]),
+("SA","Saudi Arabia","Professional League",["Saudi Arabia Professional League","Saudi Arabia Pro League","Saudi Arabia Saudi Professional League"])
 ]
 
 def api_catalogue(key):
