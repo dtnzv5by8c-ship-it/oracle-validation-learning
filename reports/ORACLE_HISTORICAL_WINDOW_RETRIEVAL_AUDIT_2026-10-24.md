@@ -10,13 +10,13 @@ Branch: `research/oracle-crosswalk-isolation-2026-10-22`
 - Corrected artifact ID: `12546949922`
 - Research validation workflow after the parameter correction: [#40061136578](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40061136578), success; full unit suite passed.
 - The corrected extraction uses the documented `season_id` parameter for the `league-matches` endpoint. The earlier 17,589-row extraction used the wrong parameter and is superseded; do not use its counts as validated season-scoped coverage.
-- Corrected run summary (latest diagnostic run #40061366856): **7,167 fixture rows**, 110 candidate-season entries, 16 target codes with returned fixtures, 60 failed candidate-season requests, 3 targets parked without exact alias candidates. The earlier 11,493-row run is superseded by this latest run's retry/rate-limit conditions; counts are retrieval observations, not completeness proof.
-- The latest artifact retained sanitized provider messages. **HTTP 417** failures say the league is “not chosen by the user” (the message also notes this may be delayed by cache after a recent league selection). This is direct evidence of provider account/league-entitlement or provider-side selection-state restrictions for those seasons; it is not safe to assume the API key has access to every target league. **HTTP 429** failures explicitly say “Rate limit exceeded. Too Many Requests.” These are a separate throttling problem, not the same as the 417 entitlement/selection issue. The diagnostic run recorded 60 failures total. Do not retry aggressively; use bounded backoff and reduce request concurrency before any subsequent research run.
+- Latest rerun after the user's league selections and pacing change: [run #40063692505](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40063692505), **15,202 fixture rows**, 110 candidate-season entries, 34 target codes with returned fixtures, 18 failed candidate-season requests, and 3 targets parked without exact alias candidates. This is an improvement over the previous 7,167-row run. Counts are retrieval observations, not completeness proof.
+- Latest failure artifact contains **17 HTTP 417** errors and **one separate Uruguay (UY) unexpected payload failure at page 4**. The 417 message says the league is “not chosen by the user” and notes this may be delayed by cache after a recent selection. Despite the user's selection of all leagues, these still affect Denmark (3 season requests), Russia (3), Serbia (3), Sweden (2), Finland (2), Republic of Ireland (2), and Canada (2). The next step is to allow provider cache/account selection state to refresh, then verify exact displayed competition names and package access before targeted retries. No HTTP 429 failures appeared in this latest artifact. The extraction now paces requests at one every three seconds (about 1,200/hour) to stay below the 1,800/hour plan limit.
 
 ## Structural checks and limits on the corrected artifact
-- Corrected fixture rows: 11,493 across 24 target codes.
-- Latest candidate-season rows: 110; the latest run reports 60 failed requests and 3 parked targets; retrieved/failed counts must be read from the latest artifact rather than carried over from an earlier run.
-- The 60 latest-run failures are a material coverage gap. A short page does not prove completeness, and a successful workflow status means the diagnostic completed—not that the dataset passed quality gates.
+- Latest fixture rows: 15,202 across 34 target codes.
+- Latest candidate-season rows: 110; statuses: 89 short-page retrievals, 18 failed requests, 3 parked targets.
+- The 18 latest-run failures remain a material coverage gap. A short page does not prove completeness, and a successful workflow status means the diagnostic completed—not that the dataset passed quality gates.
 - Competition IDs and season boundaries remain unavailable in the sampled catalogue schema. The crosswalk and season alignment are therefore not independently verified.
 - Point-in-time provenance of xG, standings, form, and odds has not been established. No odds were included in the corrected extraction.
 - No prediction/backtest is authorised from this artifact. `prediction_ready_targets=0` remains the correct gate result.
@@ -29,7 +29,7 @@ A follow-up sanitized schema-diagnostic run (#40060695146) confirmed the provide
 
 ## Next gates
 1. Repair provider identity extraction so competition IDs and season date metadata are populated where the API actually supplies them; do not infer IDs from names.
-2. Resolve provider league-selection entitlements for HTTP 417 targets in the FootyStats account/settings or with provider support; only retry after access is confirmed. For HTTP 429 targets, implement bounded exponential backoff and request pacing, then rerun only the affected candidates.
+2. After FootyStats selection/cache has had time to refresh, retry only the 17 HTTP 417 season requests in a controlled run; if they persist, verify exact league labels and package entitlement with provider support. Investigate the UY page-4 payload separately. Keep the 3-second request pacing and bounded backoff.
 3. Resolve CRO, CO and EC only through exact provider evidence; otherwise retain parked status.
 4. Prove season completeness independently (provider totals or an authoritative fixture archive), not by short-page termination alone.
 5. Establish timestamp/cutoff provenance for all features used in any historical prediction replay.
