@@ -104,3 +104,17 @@ These remain parked until independent evidence confirms provider competition ide
 - Last completed artifact remains #12550016743: 19,530 fixture rows, 46/50 targets with fixtures, 15 API failure rows; no-fixture codes E2, SP2, D2 and P1; two additional HTTP 417 requests for I2; separate UY page-4 payload error. These are baseline results only, not the outcome of the new retry.
 - Latest catalogue artifact #12549039980 confirms 50 targets, 50 exact alias candidates, season IDs/labels for all 50, no season dates, and mapping approval NOT_GRANTED. No alias has been auto-approved.
 - The refreshed artifact is pending. Based on the previous observed 20m36s runtime, estimated first refreshed coverage report: 09:05–09:20 SAST on 2026-10-24, subject to provider response time. No prediction/backtest gate is open; completeness and point-in-time provenance remain unproven.
+
+
+## Latest completed 50-target retry and independent structural inspection — 2026-10-24 07:04 UTC
+
+- Retry attempt 2 of [historical audit run #40066911282](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911282) completed successfully. Latest artifact ID `12551956833` was downloaded and inspected.
+- The current retrieval baseline is **21,199 fixture rows, 48/50 target codes with fixtures, 132 candidate-season rows, and 7 API failure rows**. This supersedes the previous 19,530-row count for retrieval-volume reporting only.
+- E2 (England EFL League One) and D2 (Germany 2. Bundesliga) now have returned fixtures. Only SP2 (Spain Segunda División) and P1 (Portugal Primeira Liga) have no fixture rows.
+- Remaining failures: three HTTP 417 requests for SP2, three HTTP 417 requests for P1, and one separate Uruguay (UY) unexpected payload at season 14626/page 4.
+- Fixture status counts: 21,164 complete; 24 canceled; 6 incomplete; 5 suspended. Match IDs are unique, and all exported timestamps lie within the requested window. These structural checks do not prove complete coverage or verified final settlement.
+- Provider competition IDs and season start/end dates remain blank. Prematch xG has literal-zero values in 1,270 home-side and 1,272 away-side rows. These require source/semantic validation; no odds are included.
+- Gates remain closed: season completeness unproven, point-in-time provenance unestablished, and 0/50 prediction-ready targets. Do not produce model accuracy claims, predictions, or backtests from this extraction.
+- Research-only integrity findings were documented in [ORACLE_ADDITIONAL_DATA_INTEGRITY_FINDINGS_2026-10-24.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_ADDITIONAL_DATA_INTEGRITY_FINDINGS_2026-10-24.md), and this checkpoint was refreshed alongside the [historical retrieval audit](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md).
+- The existing research validation run [#40066911315](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911315) passed all 108 tests. The report-only updates do not alter executable code.
+- Governance unchanged: public research repo/branch only; private production repo untouched; production model logic and protected 27-league registry unchanged; draft PR #20 remains open and unmerged.
