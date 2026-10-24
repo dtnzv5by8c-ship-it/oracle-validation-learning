@@ -1,5 +1,6 @@
 import unittest
 
+from scripts.build_h2h_report import team
 from scripts.audit_h2h_unmatched_fixtures import diagnose
 
 
@@ -83,6 +84,18 @@ class H2HUnmatchedDiagnosticsTests(unittest.TestCase):
         self.assertTrue(all(not row["mapping_approved"] for row in rows))
 
 
+
+    def test_manchester_united_fc_variant_uses_explicit_alias(self):
+        self.assertEqual(team("Manchester United FC"), "manutd")
+        self.assertEqual(team("Manchester Utd"), "manutd")
+        self.assertEqual(team("Manchester City"), "mancity")
+
+    def test_lusitania_short_name_is_scoped_to_portuguese_second_tier(self):
+        self.assertEqual(team("Lusitânia", "POR2"), "lusitanialourosa")
+        self.assertEqual(team("Lusitânia Lourosa", "POR2"), "lusitanialourosa")
+        # Do not conflate SC Lusitânia dos Açores with Lusitânia Lourosa.
+        self.assertEqual(team("Lusitânia", "POR"), "lusitania")
+        self.assertEqual(team("SC Lusitânia dos Açores", "POR"), "sclusitaniadosacores")
 
     def test_archive_aliases_for_verified_short_names(self):
         cases = [
