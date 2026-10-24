@@ -86,3 +86,14 @@ These remain parked until independent evidence confirms provider competition ide
 - The user reported selecting all leagues, but 17 HTTP 417 failures persist: Denmark (3 seasons), Russia (3), Serbia (3), Sweden (2), Finland (2), Republic of Ireland (2), Canada (2). The provider's message allows for a cache delay after selection; wait for account/cache state to refresh before retrying. If still failing, compare exact provider UI names and confirm package entitlement with FootyStats support.
 - One separate unexpected payload failure remains: Uruguay (UY), season ID 14626, page 4. It must be investigated independently; no HTTP 429 was present in this latest artifact.
 - Validation workflow #40063692395 succeeded after the pacing change. No predictions/backtests are authorised: completeness and point-in-time provenance remain unproven; prediction-ready targets remain zero. Production model logic and the protected registry remain unchanged.
+
+
+
+## Latest 50-target historical extraction — verified 2026-10-24 05:57 UTC
+- Latest run [#40066911282](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911282) completed successfully; inspected artifact ID `12550016743`. The artifact filename still says `oracle_44`, but its summary reports 50 targets; use the summary rather than the stale filename.
+- Historical window: 2025-03-20–2026-09-20 inclusive. Summary: **50 target codes; 132 candidate-season rows; 19,530 fixture rows; 46 targets with fixtures; 4 targets without fixtures (E2, SP2, D2, P1); 15 API failure rows**.
+- Failures: HTTP 417 on all three retrieved seasons for each of E2, SP2, D2 and P1; two I2 seasons also returned HTTP 417; UY season 14626 page 4 returned an unexpected fixture payload. The other 117 candidate-season rows ended on a short page, which does not prove completeness.
+- Structural check: 19,530 unique match IDs; status counts 19,498 complete, 22 canceled, 5 suspended, 5 incomplete. Structural consistency does not prove the provider archive is complete or that features were available before kickoff.
+- Gate status remains **NOT prediction-ready**: season completeness false, point-in-time provenance false, odds absent, prediction-ready targets 0. Do not generate predictions/backtests or claim model accuracy from this extraction.
+- Latest research tests: [run #40066911315](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40066911315) succeeded; 108 tests passed. This validates the research code tests, not historical data completeness.
+- No production model logic or protected 27-league registry changes; draft PR #20 remains unmerged.
