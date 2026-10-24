@@ -21,6 +21,9 @@ Branch: `research/oracle-crosswalk-isolation-2026-10-22`
 - Fixture status counts: 17,559 `complete`, 22 `canceled`, 5 `incomplete`, 3 `suspended`.
 - These checks establish basic structural integrity only. Nonblank values are not independent proof of correctness; zero-valued xG fields must not be confused with missing data, and completed status/score semantics still require provider validation.
 
+## Additional feature-field diagnostic
+The export has no blank cells in the two pre-match xG columns, but **1,064 rows have home pre-match xG equal to zero and 1,066 rows have away pre-match xG equal to zero**. A literal zero is not automatically missing, but this concentration must be checked against provider semantics and historical feature availability before these columns are used for a backtest. Nonblank xG values alone do not prove the values were available before kickoff.
+
 ## Coverage limitations
 - Retrieved target codes: 41/44.
 - No exact alias/season candidate was accepted for `CRO` (Croatia HNL), `CO` (Colombia Primera A), or `EC` (Ecuador Serie A). These remain parked; no fuzzy mapping was promoted.
