@@ -60,7 +60,10 @@ def main():
                 result["error"]=""
             else:
                 result["outcome"]="UNEXPECTED_PAYLOAD_SHAPE"
+                message = payload.get("message") or payload.get("error") or payload.get("detail") or ""
+                safe_message = str(message).replace(key, "[REDACTED]")[:180] if isinstance(message, (str, int, float)) else ""
                 result["error"]="Provider response lacked success=true and a list-valued data field; raw response withheld"
+                if safe_message: result["provider_message_sanitized"] = safe_message
     except HTTPError as e:
         result["http_status"]=e.code
         result["outcome"]="HTTP_ERROR"
