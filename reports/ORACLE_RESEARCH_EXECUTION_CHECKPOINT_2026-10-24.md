@@ -20,6 +20,9 @@
 - Detailed audit: [ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-crosswalk-isolation-2026-10-22/reports/ORACLE_HISTORICAL_WINDOW_RETRIEVAL_AUDIT_2026-10-24.md).
 - Disposition: retrieval baseline succeeded; **not backtest-ready**. No prediction or accuracy analysis was generated from this fixture artifact.
 
+## Root cause confirmed for missing catalogue IDs/dates
+A sanitized provider-schema diagnostic run #40060695146 completed successfully. The sampled `league-list` payload has top-level keys `country`, `image`, `league_name`, `name`, `season`; season objects expose `id` and `year` only. Competition IDs and season start/end dates are not present in this endpoint response. This explains why trying alternate field names did not populate them. Season IDs can be used as retrieval handles but are not proof of the provider competition identity or exact season boundaries. Use another documented endpoint or independent official schedule evidence; never infer or fabricate these fields.
+
 ## Critical scope limitation discovered
 The full-season retrieval workflow selects the most recent season label available for each exact alias. It does not yet select and fetch all provider seasons overlapping the approved historical window (20 March 2025–20 September 2026). Therefore the 10,853 rows must not be represented as the complete historical modelling lake. Some retrieved seasons are labelled 2026/27 and are not the requested historical sample.
 
