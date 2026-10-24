@@ -12,56 +12,56 @@ This pass accessed the live private repository successfully and inspected `confi
 
 | Country | Selected FootyStats competition | Provider ID | Candidate Oracle code | Canonical readiness | Matrix status | Historical results rows | Current fixtures | Historical window | BTTS / DC / Combo / M1UP |
 |---|---|---:|---|---|---|---:|---:|---|---|
-| Australia | A-League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Argentina | Primera División | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Austria | Bundesliga | see manifest | AUT_A1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Belgium | Pro League | see manifest | BEL_B1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Brazil | Serie A | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Canada | Canadian Premier League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Chile | Primera División | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| China | Chinese Super League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Colombia | Categoria Primera A | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Croatia | Prva HNL | see manifest | HRV_HR1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Czech Republic | First League | see manifest | CZE_CZ1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Denmark | Superliga | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Ecuador | Primera Categoría Serie A | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| England | Premier League | see manifest | ENG_E0 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| England | Championship | see manifest | ENG_E1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| England | EFL League One | see manifest | ENG_E2 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Finland | Veikkausliiga | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| France | Ligue 1 | see manifest | FRA_F1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| France | Ligue 2 | see manifest | FRA_F2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Germany | Bundesliga | see manifest | DEU_D1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Germany | 2. Bundesliga | see manifest | DEU_D2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Greece | Super League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| India | Indian Super League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Italy | Serie A | see manifest | ITA_I1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Italy | Serie B | see manifest | ITA_I2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Japan | J1 League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Mexico | Liga MX | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Netherlands | Eredivisie | see manifest | NLD_N1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Norway | Eliteserien | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Paraguay | Division Profesional | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Peru | Primera División | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Poland | Ekstraklasa | see manifest | POL_P1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Portugal | LigaPro | see manifest | PRT_P2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Republic of Ireland | Premier Division | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Romania | Liga I | see manifest | ROU_R1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Russia | Russian Premier League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Saudi Arabia | Professional League | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Scotland | Premiership | see manifest | SCO_SC0 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Serbia | SuperLiga | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| South Africa | Premier Soccer League | see manifest | ZAF_PSL | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| South Korea | K League 1 | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Spain | La Liga | see manifest | ESP_SP1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Spain | Segunda División | see manifest | ESP_SP2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Sweden | Allsvenskan | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Switzerland | Super League | see manifest | CHE_S1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Turkey | Süper Lig | see manifest | TUR_T1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| USA | MLS | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Ukraine | Ukrainian Premier League | see manifest | UKR_UA1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Uruguay | Primera División | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
-| Venezuela | Primera División | see manifest | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Australia | A-League | 17326 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Argentina | Primera División | 16571 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Austria | Bundesliga | 17181 | AUT_A1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Belgium | Pro League | 17171 | BEL_B1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Brazil | Serie A | 16544 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Canada | Canadian Premier League | 16741 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Chile | Primera División | 16615 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| China | Chinese Super League | 16789 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Colombia | Categoria Primera A | 16614 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Croatia | Prva HNL | 17087 | HRV_HR1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Czech Republic | First League | 17157 | CZE_CZ1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Denmark | Superliga | 17091 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Ecuador | Primera Categoría Serie A | 16714 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| England | Premier League | 17146 | ENG_E0 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| England | Championship | 17184 | ENG_E1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| England | EFL League One | 17180 | ENG_E2 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Finland | Veikkausliiga | 16572 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| France | Ligue 1 | 17102 | FRA_F1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| France | Ligue 2 | 17117 | FRA_F2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Germany | Bundesliga | 17210 | DEU_D1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Germany | 2. Bundesliga | 17212 | DEU_D2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Greece | Super League | 17356 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| India | Indian Super League | 17964 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Italy | Serie A | 17084 | ITA_I1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Italy | Serie B | 17404 | ITA_I2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Japan | J1 League | 17115 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Mexico | Liga MX | 17099 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Netherlands | Eredivisie | 17097 | NLD_N1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Norway | Eliteserien | 16558 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Paraguay | Division Profesional | 16533 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Peru | Primera División | 16905 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Poland | Ekstraklasa | 17112 | POL_P1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Portugal | LigaPro | 17215 | PRT_P2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Republic of Ireland | Premier Division | 16537 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Romania | Liga I | 17247 | ROU_R1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Russia | Russian Premier League | 17178 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Saudi Arabia | Professional League | 17426 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Scotland | Premiership | 17148 | SCO_SC0 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Serbia | SuperLiga | 17119 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| South Africa | Premier Soccer League | 17444 | ZAF_PSL | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| South Korea | K League 1 | 16627 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Spain | La Liga | 17199 | ESP_SP1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Spain | Segunda División | 17269 | ESP_SP2 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Sweden | Allsvenskan | 16576 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Switzerland | Super League | 17129 | CHE_S1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Turkey | Süper Lig | 17265 | TUR_T1 | CONTROLLED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| USA | MLS | 16504 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Ukraine | Ukrainian Premier League | 17191 | UKR_UA1 | NOT_INGESTED | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Uruguay | Primera División | 16708 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
+| Venezuela | Primera División | 16617 | UNRESOLVED | N/A | NO_CANONICAL_MATRIX_ROW | N/A | N/A | N/A | NOT ASSESSED |
 
 ## Evidence summary
 
