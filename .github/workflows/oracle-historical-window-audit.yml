@@ -11,7 +11,7 @@ permissions:
   contents: read
 concurrency:
   group: oracle-historical-window-audit
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   historical-window-audit:
     runs-on: ubuntu-latest
