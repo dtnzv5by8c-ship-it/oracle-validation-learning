@@ -48,6 +48,22 @@ class H2HUnmatchedDiagnosticsTests(unittest.TestCase):
         home = next(row for row in rows if row["unresolved_team_side"] == "home")
         self.assertEqual(home["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
 
+    def test_heerenveen_short_name_matches_full_archive_name(self):
+        rows = diagnose(
+            [{"league_code": "N1", "home_team": "Den Haag", "away_team": "Heerenveen"}],
+            [{"date": "2026-10-24", "league": "N1", "home_team": "Den Haag", "away_team": "SC Heerenveen"}],
+        )
+        away = next(row for row in rows if row["unresolved_team_side"] == "away")
+        self.assertEqual(away["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
+
+    def test_polish_l_stroke_name_variant_matches_archive(self):
+        rows = diagnose(
+            [{"league_code": "POL", "home_team": "Wisła Płock", "away_team": "Raków"}],
+            [{"date": "2026-10-24", "league": "POL", "home_team": "Wisla Plock", "away_team": "Rakow"}],
+        )
+        home = next(row for row in rows if row["unresolved_team_side"] == "home")
+        self.assertEqual(home["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
+
     def test_official_variant_alias_is_not_auto_approved_as_new_mapping(self):
         rows = diagnose(
             [{"league_code": "B1", "home_team": "SK Beveren", "away_team": "Westerlo"}],
