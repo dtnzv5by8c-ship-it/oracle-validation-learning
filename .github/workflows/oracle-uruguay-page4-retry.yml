@@ -1,6 +1,12 @@
 name: Oracle Targeted Uruguay Page 4 Retry (Research Only)
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - "research/**"
+    paths:
+      - ".github/workflows/oracle-uruguay-page4-retry.yml"
+      - "scripts/oracle_retry_single_provider_page.py"
 permissions:
   contents: read
 jobs:
