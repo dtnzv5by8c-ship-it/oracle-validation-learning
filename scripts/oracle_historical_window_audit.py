@@ -83,6 +83,12 @@ def main():
                 except Exception as e:
                     error=str(e)[:150]; failures.append({"target_code":code,"season_id":sid,"page":page,"error":error}); break
             seasons.append({"target_code":code,"country":country,"competition":competition,"provider_name":name,"provider_league_id":lid,"season_id":sid,"season_label":str(s.get("year","")),"season_start":str(s.get("start_date","")),"season_end":str(s.get("end_date","")),"status":"RETRIEVED_SHORT_PAGE_NOT_COMPLETENESS_PROOF" if short else ("FAILED" if error else "SAFETY_PAGE_LIMIT"),"rows_total":total,"rows_in_window":inwin,"pages":page,"notes":error or "Season label is a candidate selector only; exact kickoff window applied. Short page does not prove completeness; point-in-time provenance unverified."})
+            # Persist a checkpoint after each season so partial progress survives interruption.
+            write_csv(output/"oracle_44_historical_window_fixtures.csv",fixtures)
+            write_csv(output/"oracle_44_historical_window_seasons.csv",seasons)
+            write_csv(output/"oracle_44_historical_window_pages.csv",pages)
+            write_csv(output/"oracle_44_historical_window_failures.csv",failures)
+            print(f"Progress: target={code} season={sid} fixture_rows={len(fixtures)} failures={len(failures)}",flush=True)
     write_csv(output/"oracle_44_historical_window_fixtures.csv",fixtures)
     write_csv(output/"oracle_44_historical_window_seasons.csv",seasons)
     write_csv(output/"oracle_44_historical_window_pages.csv",pages)
