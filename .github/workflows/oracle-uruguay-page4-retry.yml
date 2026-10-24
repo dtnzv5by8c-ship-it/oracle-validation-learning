@@ -1,0 +1,30 @@
+name: Oracle Targeted Uruguay Page 4 Retry (Research Only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retry-one-page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Verify secret without exposing it
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          test -n "${FOOTYSTATS_API_KEY:-}"
+          echo "API secret present; value withheld."
+      - name: Retry Uruguay season 14626 page 4 only
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: python scripts/oracle_retry_single_provider_page.py
+      - name: Upload sanitized retry result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-uruguay-page4-retry
+          path: oracle-uruguay-page4-retry/
+          if-no-files-found: warn
+          retention-days: 30
