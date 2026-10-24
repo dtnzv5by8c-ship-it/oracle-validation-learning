@@ -1,0 +1,47 @@
+name: Oracle Historical Artifact Validation (Research Only)
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Historical extraction workflow run ID"
+        required: true
+        type: string
+        default: "40081385314"
+  push:
+    branches:
+      - "research/**"
+    paths:
+      - ".github/workflows/oracle-historical-artifact-validation.yml"
+      - "scripts/validate_oracle_historical_artifact.py"
+permissions:
+  contents: read
+  actions: read
+jobs:
+  validate-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Download historical extraction artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-44-historical-window-audit
+          path: input
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id || '40081385314' }}
+      - name: Validate artifact structure
+        run: |
+          python scripts/validate_oracle_historical_artifact.py \
+            input/oracle_44_historical_window_fixtures.csv \
+            input/oracle_44_historical_window_seasons.csv \
+            input/oracle_44_historical_window_pages.csv \
+            input/oracle_44_historical_window_failures.csv > oracle_historical_validation.json
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-historical-artifact-validation
+          path: oracle_historical_validation.json
+          if-no-files-found: warn
+          retention-days: 30
