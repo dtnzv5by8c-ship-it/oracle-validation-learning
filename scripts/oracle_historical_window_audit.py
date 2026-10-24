@@ -37,7 +37,12 @@ def call(key, endpoint, params):
             with urlopen(req,timeout=30) as resp:
                 p=json.loads(resp.read().decode("utf-8"))
                 if isinstance(p,dict) and p.get("success") is True: return resp.status,p
-                raise RuntimeError("Provider API returned unsuccessful or unexpected payload")
+                # Some provider failures arrive as HTTP 200 with success=false.
+                # Keep only a short sanitized message; never log raw payload or URL.
+                candidate=(p.get("message") or p.get("error") or p.get("detail") or "") if isinstance(p,dict) else ""
+                detail=str(candidate).replace(key,"[REDACTED]")[:180] if isinstance(candidate,(str,int,float)) else ""
+                suffix=("; provider_message="+detail) if detail else ""
+                raise RuntimeError("Provider API returned unsuccessful payload"+suffix)
         except HTTPError as e:
             if e.code in (429,500,502,503,504) and attempt<3:
                 time.sleep(min(2**attempt,8)); continue
