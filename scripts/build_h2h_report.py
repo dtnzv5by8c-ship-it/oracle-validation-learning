@@ -17,6 +17,10 @@ def norm(s):
     s=unicodedata.normalize("NFKD",(s or "")).encode("ascii","ignore").decode().lower()
     return re.sub(r"[^a-z0-9]","",s)
 ALIASES={
+ "waregem":"zultewaregem", "zultewaregem":"zultewaregem",
+ "rakow":"rakowczestochowa", "rakowczestochowa":"rakowczestochowa",
+ "entella":"virtusentella", "virtusentella":"virtusentella",
+ "sepsisfgheorghe":"sepsiosk", "sepsiosk":"sepsiosk",
  "rasenballsportleipzig":"rbleipzig","rbleipzig":"rbleipzig","manchesterunited":"manutd","manutd":"manutd","manchesterutd":"manutd",
  "parissaintgermain":"psg","psg":"psg","intermilan":"inter","internazionale":"inter",
  "borussiamgladbach":"borussiamonchengladbach","athleticclub":"athleticbilbao","athbilbao":"athleticbilbao","athleticbilbao":"athleticbilbao",
