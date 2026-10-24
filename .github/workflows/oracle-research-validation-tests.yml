@@ -11,6 +11,7 @@ on:
       - "tests/test_oracle_44_readiness.py"
       - "scripts/validate_oracle_season_crosswalk.py"
       - "scripts/oracle_fail_closed_quality_gate.py"
+      - "scripts/oracle_historical_window_audit.py"
       - "tests/test_oracle_season_crosswalk.py"
       - "tests/test_oracle_odds_quality_gate.py"
       - "scripts/audit_fixture_lifecycle.py"
@@ -27,6 +28,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compile research audit scripts
-        run: python -m py_compile scripts/build_oracle_44_readiness.py scripts/validate_oracle_44_audit.py scripts/validate_oracle_season_crosswalk.py scripts/audit_fixture_lifecycle.py scripts/oracle_44_catalogue_discovery.py scripts/oracle_fail_closed_quality_gate.py
+        run: python -m py_compile scripts/build_oracle_44_readiness.py scripts/validate_oracle_44_audit.py scripts/validate_oracle_season_crosswalk.py scripts/audit_fixture_lifecycle.py scripts/oracle_44_catalogue_discovery.py scripts/oracle_historical_window_audit.py scripts/oracle_fail_closed_quality_gate.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
