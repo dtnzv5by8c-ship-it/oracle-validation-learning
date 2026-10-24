@@ -7,7 +7,7 @@ Status: RESEARCH ONLY — production eligibility NOT GRANTED
 Establish readiness for the owner's intended 50-league universe and every supported market without changing Oracle production logic, model weights, probabilities, thresholds, calibration, model version, canonical registry, or canonical ledgers.
 
 ## Executive result
-The available repository evidence does not yet establish an authoritative list of 50 league names/canonical codes. Existing checkpoint documentation says the canonical registry contains 27 leagues and the previously intended 44-league universe was not reconciled to that registry. Therefore, this audit does not invent or silently add 23 league identities. A governed, owner-approved 50-league manifest is a prerequisite for a defensible 50-row readiness register.
+The owner-selected FootyStats list has now been recovered from the supplied saved page and verified as exactly 50 checked league entries. The provider IDs and names are recorded in [the recovered manifest](oracle-footystats-selected-50-league-manifest-2026-10-24.md). This resolves the list-discovery blocker, but does not approve canonical mappings or establish readiness. The protected production registry remains a separate 27-league universe; no production registry change is made.
 
 ## Evidence reviewed
 - `reports/oracle-project-checkpoint-2026-10-21-latest.md`
@@ -31,7 +31,7 @@ The available repository evidence does not yet establish an authoritative list o
 - Provider catalogue: 43 distinct provider competition names in the cited audit.
 - Crosswalk decisions: 25 candidate mappings require review, 18 provider names unmatched, 0 approved canonical mappings in the cited checkpoint.
 - Some provider competitions are cups/supercups or unresolved by name alone; they must not be silently classified as ordinary leagues.
-- The definitive intended 50-league manifest and its authoritative source are not established by the evidence reviewed. Until that source is found or supplied, do not infer missing league names/codes.
+- The owner-selected 50-league manifest is now established for research scope. It must remain separate from the protected 27-league production registry and the earlier 44-target audit until every provider ID is reconciled with evidence. Do not infer missing canonical codes or approve aliases from name similarity alone.
 
 ## Market readiness and calibration
 A universal all-market readiness claim is NOT supported. Each league-market combination needs required-input and chronology checks. In particular:
@@ -45,7 +45,7 @@ A universal all-market readiness claim is NOT supported. Each league-market comb
 ## Root causes and prioritized actions
 | Priority | Gap / root cause | Required safe action | Completion status |
 |---|---|---|---|
-| P0 | No evidence-backed authoritative 50-league manifest located; current registry is 27 and older 44 universe is unreconciled | Find the owner-approved list/registry source; reconcile exact names, canonical codes, country, tier/season and competition type; require review for additions | BLOCKED pending authoritative manifest |
+| P0 | Owner-selected 50 IDs recovered, but provider-to-canonical mapping and 50-row readiness are not established; current registry is 27 and older 44 target set differs | Reconcile exact provider IDs/names, canonical codes, country, tier/season and competition type in a research-only 50-row crosswalk; require review for every candidate mapping | OPEN |
 | P0 | 43 provider competition names are not reconciled; 25 candidate mappings need review and 18 unmatched | Build a review queue with evidence and explicit human approval; never auto-map on name alone | OPEN |
 | P0 | Historical prediction-to-result identity chain incomplete | Preserve immutable prediction timestamp, competition, kickoff, canonical home/away IDs and exact verified fixture ID; require independently trusted frozen result snapshot | BLOCKED |
 | P1 | xG/odds field presence lacks point-in-time provenance | Capture source, source timestamp, retrieval timestamp and immutable pre-kickoff snapshots; fail closed if absent | OPEN |
@@ -60,8 +60,8 @@ This report is research-only. No production source files, model logic, weights, 
 Before any future proposed change is considered, compare the governed production commit and relevant file hashes before/after. A reporting-only workflow passing does not by itself prove production is unchanged; retain commit-level evidence and regression checks.
 
 ## Next safe execution sequence
-1. Locate and verify the authoritative intended 50-league list; if unavailable, request it rather than fabricating it.
-2. Reconcile it to the protected canonical registry in a research-only proposal and produce a row for every intended league, including unmatched/unverified status.
+1. Use the recovered owner-selected 50-ID manifest as the fixed research scope; do not ask the owner to provide it again.
+2. Reconcile every provider ID to the protected canonical registry in a research-only 50-row crosswalk, preserving unmatched, excluded and unverified rows.
 3. Join provider season/field coverage by exact provider competition and season; keep candidate mappings unapproved until reviewed.
 4. Define the full supported market list from the governed production configuration, then build a league × market matrix with input requirements, freshness, provenance and blocker status.
 5. Repair only reporting/ingestion defects with tests; do not alter production model logic or probabilities under this audit.
