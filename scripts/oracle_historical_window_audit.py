@@ -13,8 +13,24 @@ START=datetime(2025,3,20,tzinfo=timezone.utc)
 END=datetime(2026,9,20,23,59,59,tzinfo=timezone.utc)
 START_TS=int(START.timestamp()); END_TS=int(END.timestamp())
 
+# Hobby plan allowance: 1,800 requests/hour. Keep a conservative local ceiling
+# of 1,200 starts/hour (one request every 3 seconds), leaving headroom for
+# retries and other account activity. Historical workflow concurrency is also
+# serialized in the workflow YAML. Every retry is paced and counts as a request.
+MIN_REQUEST_INTERVAL_SECONDS=3.0
+_last_request_started=0.0
+
+def pace_request():
+    global _last_request_started
+    now=time.monotonic()
+    wait=MIN_REQUEST_INTERVAL_SECONDS-(now-_last_request_started)
+    if _last_request_started and wait>0:
+        time.sleep(wait)
+    _last_request_started=time.monotonic()
+
 def call(key, endpoint, params):
     for attempt in range(4):
+        pace_request()
         q=dict(params); q["key"]=key
         try:
             req=Request(BASE+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-Historical-Window-Audit/1.0"})
