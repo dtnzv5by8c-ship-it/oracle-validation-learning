@@ -1,17 +1,17 @@
-# Project Oracle — 50-League Autonomous Audit Checkpoint (Run 2)
+# Project Oracle — 50-League Autonomous Audit Checkpoint (Run 2, corrected)
 
 - **Checkpoint date:** 2026-10-24 (SAST)
 - **Research branch:** `research/oracle-50-league-readiness-audit`
 - **Mode:** research-only; no production writes
 - **Outcome:** **NOT COMPLETE** — exact selected-provider-ID joins and current readiness gates remain unverified.
 
-## Work completed this run
+## Work completed
 
-1. Re-read the owner-approved 50-entry FootyStats manifest and addendum.
-2. Read the live protected registry at `config/oracle_major_league_registry_v1.json` on private `oracle-football-data@main` (blob SHA `81d6db487e498fc84a87a7457b0de7215537f15c`), plus `config/data_config.json`, the separate `league_intelligence_matrix.csv`, and `data/league_readiness_matrix.csv`.
-3. Read current-source, upcoming-fixture, historical-spine, prematch-state, current-team-state, FootyStats and Sofascore manifests, and the M-1UP event-truth manifest.
-4. Built a stricter second-pass 50-row CSV. It accepts only (a) exact country + competition-name matches or (b) explicit country-scoped aliases already declared in `scripts/build_oracle_competition_crosswalk.py`. All candidates remain review-only. Prior candidates not supported by the protected registry and explicit alias evidence were demoted to `UNRESOLVED` rather than silently retained.
-5. Validated the generated register in memory: 50 rows, 50 unique provider IDs, every row retained, and no provider-ID-to-API-fixture join represented as verified.
+1. Re-read the owner-approved 50-entry FootyStats manifest and recovery addendum.
+2. Read the protected registry at `config/oracle_major_league_registry_v1.json` on private `oracle-football-data@main` (blob SHA `81d6db487e498fc84a87a7457b0de7215537f15c`), plus `config/data_config.json`, the separate `league_intelligence_matrix.csv`, and `data/league_readiness_matrix.csv`.
+3. Inspected current-source, upcoming-fixture, historical-spine, prematch-state, current-team-state, FootyStats and Sofascore manifests, and the M-1UP event-truth manifest.
+4. Produced a stricter 50-row crosswalk snapshot. A canonical candidate is only shown when the country and competition name match exactly after case/diacritic/punctuation normalization, or when an explicit country-scoped alias already exists in `scripts/build_oracle_competition_crosswalk.py`. Candidates still require human review; no candidate is an approved provider mapping.
+5. Validated 50 rows, 50 unique provider IDs, all selected leagues retained, and zero verified selected-ID-to-API-fixture joins.
 
 ## Crosswalk result
 
@@ -20,46 +20,46 @@
 | Owner-selected entries preserved | 50/50 |
 | Exact country + competition-name candidates | 13 |
 | Explicit country-scoped alias candidates | 9 |
-| Unresolved against protected 27-entry registry | 28 |
+| Unresolved against an exact/explicit-alias rule | 28 |
 | Exact FootyStats ID → API fixture → canonical fixture/team joins verified | 0/50 |
 | Selected-league market readiness passes verified | 0/50 |
 
-The 22 codes are **candidates only**, not approved mappings. The 28 unresolved rows remain in the CSV. Prior crosswalk snapshot candidates now unresolved under the stricter protected-registry rule: Greece — Super League (prior GRC_G1); Romania — Liga I (prior ROU_R1); Serbia — SuperLiga (prior SRB_SR1); Switzerland — Super League (prior CHE_S1).
+The 22 canonical codes are candidates only. 28 rows remain unresolved. Four candidates in the previous snapshot were demoted under this stricter rule: Greece — Super League (prior GRC_G1); Romania — Liga I (prior ROU_R1); Serbia — SuperLiga (prior SRB_SR1); Switzerland — Super League (prior CHE_S1). The distinction is important: Greece (`GRC_G1`) and Serbia (`SRB_SR1`) are explicitly listed as excluded from the active universe and are not entries in the protected `leagues` array; Romania (`ROU_R1`) and Switzerland (`CHE_S1`) do have same-country registry entries, but the saved provider names `Liga I` and `Super League` have no exact-name match or explicit alias in the reviewed alias table. Those two remain unresolved until explicit mapping evidence/review exists.
 
-## Existing data evidence — correct scope and freshness
+## Existing evidence and limits
 
-| Artifact | Actual persisted evidence | Limitation for the selected 50 |
+| Artifact | Persisted evidence | Limitation for the selected 50 |
 |---|---|---|
-| Protected registry | 27 entries; active-universe count 27; blob `81d6db487e498fc84a87a7457b0de7215537f15c` | It is the protected 27-entry registry, not a 50-entry provider-ID map. Membership/readiness does not approve provider joins. |
-| Separate league intelligence matrix | 22 candidate rows have a distinct research-code row in this strict pass, totalling 10305 fixture rows; matrix dates are generally 2025-03-20/21 through 2026-09-20 | These are separate research-code counts, not counts joined to the selected FootyStats IDs. |
-| Existing canonical readiness matrix | 27 rows; last successful refresh shown as 2026-10-01T17:25:35.759116Z | Stale. 7 candidate rows conflict as registry `NOT_INGESTED` versus matrix `PRODUCTION-READY`; 4 more are registry `NOT_INGESTED` versus matrix `PARTIAL`. 11 candidate rows say `PRODUCTION-READY` while the same snapshot has zero fixture rows. Do not use these statuses as 50-league readiness. |
-| Current fixture manifest | Generated 2026-10-08T04:30:39.615849+00:00; 27-league target list; window 2026-10-08–2026-10-22 | Stale on 2026-10-24; 28 selected entries have no target in this 27-target manifest. Of the 22 candidate rows, 10 have any non-zero primary/fallback rows in the old snapshot; not a selected-ID join. |
-| Current-source manifest | Generated 2026-10-08T04:32:49.356196+00:00; dates requested 20261001–20261010 | No fresh 50-ID refresh verified. |
-| Historical match spine | Generated 2026-10-02T12:40:25.476309+00:00; 12836 admitted rows, window 2025-03-20–2026-09-20, 27 active leagues | Aggregate controlled spine; not joined to selected FootyStats IDs. |
-| Prematch/team state | Historical prematch state 12836 rows; current team-state 12883 rows generated 2026-10-07T04:33:53.351088+00:00 | Aggregate row counts only; no selected-ID identity bridge verified. |
+| Protected registry | 27 entries; active-universe count 27; blob `81d6db487e498fc84a87a7457b0de7215537f15c` | This is the protected 27-entry registry, not a 50-provider-ID map. Registry readiness is not provider-ID join approval. |
+| Separate league intelligence matrix | 22 candidate rows have separate research-code records, totalling 10305 fixture rows | These are separate research-code counts; none is joined to the selected FootyStats ID. |
+| Canonical readiness matrix | 27 rows; last refresh shown as 2026-10-01T17:25:35.759116Z | Stale. 7 rows conflict as registry `NOT_INGESTED` vs matrix `PRODUCTION-READY`; 4 more are registry `NOT_INGESTED` vs matrix `PARTIAL`. 11 candidate rows say `PRODUCTION-READY` while the same snapshot shows zero fixture rows. These labels do not establish 50-league readiness. |
+| Upcoming-fixture manifest | Generated 2026-10-08T04:30:39.615849+00:00; 27-league targets; window 2026-10-08–2026-10-22 | Stale as of 2026-10-24. 28 selected entries are not mapped to an existing target in this strict pass; 10 candidate rows have any non-zero primary/fallback rows in the old snapshot. None is an exact selected-ID join. |
+| Current-source manifest | Generated 2026-10-08T04:32:49.356196+00:00; source dates 20261001–20261010 | No fresh 50-ID refresh verified. |
+| Historical match spine | Generated 2026-10-02T12:40:25.476309+00:00; 12836 admitted rows, 2025-03-20–2026-09-20, 27 active leagues | Aggregate controlled spine, not a 50-league selected-ID join. |
+| Prematch/team state | Historical prematch state 12836 rows; current team-state 12883 rows generated 2026-10-07T04:33:53.351088+00:00 | Aggregate counts only; no selected-ID team bridge verified. |
 | Base controlled manifest | Built 2026-10-01T17:25:35.759116Z; 11364 match rows, 6012 goal-event rows, 2179 1UP truth rows | Separate artifact/window; not evidence of 50-league completeness. |
-| FootyStats dataset-page acquisition | Generated 2026-10-01T17:25:59.043705+00:00; 0 rows retrieved, 0 new controlled rows, 8 recorded errors | The existing page-acquisition path failed to add data; errors include HTTP 403. This does not prove every FootyStats API endpoint is unavailable. |
+| FootyStats dataset-page acquisition | Generated 2026-10-01T17:25:59.043705+00:00; 0 rows retrieved, 0 new controlled rows, 8 errors | Existing page-acquisition path added no rows; errors include HTTP 403. This does not prove all FootyStats API endpoints are unavailable. |
 | Sofascore acquisition | Generated 2026-10-01T17:26:15.368574+00:00; 0 rows retrieved, 14 errors | Existing source path yielded no new rows; errors include HTTP 403. |
-| M-1UP event truth | 2179 matches across 5 leagues (Bundesliga, La Liga, Ligue 1, Premier League, Serie A), window 2025-03-27–2026-05-24 | Last event-truth date is 2026-05-24; stale for current use and not joined to selected provider IDs. M-1UP remains blocked for the 50-league target. |
+| M-1UP event truth | 2179 matches across 5 leagues (Bundesliga, La Liga, Ligue 1, Premier League, Serie A), window 2025-03-27–2026-05-24 | Latest event-truth date 2026-05-24; stale and not joined to selected IDs. M-1UP remains blocked for the 50-league target. |
 
-## Workflow and execution status
+## Workflow / execution status
 
-- Latest private workflow: [Oracle Autonomous League Expansion #206](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40125710200) — **FAILURE** at 2026-10-24T19:31:48Z. Its `prepare` job failed, downstream jobs were skipped, and no artifacts were attached. A log retrieval attempt returned GitHub storage `BlobNotFound`, so the root cause is not verified. The preceding expansion runs #205 and #204 also failed.
-- Latest visible public runs are [H2H Reporting #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720) and [H2H Exact-ID Join Tests #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716), both successful; these are H2H jobs, **not** the 50-league audit.
-- No dedicated 50-league workflow run was found in the latest accessible public run listing for this checkpoint. The connected GitHub tool set has no workflow-dispatch operation, so this run could not safely trigger a new Actions workflow. No production workflow was modified.
+- Latest private workflow: [Oracle Autonomous League Expansion #206](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40125710200) failed at `prepare`; downstream jobs were skipped and no artifacts were attached. Fetching its job log returned GitHub storage `BlobNotFound`, so the root cause remains unverified. Runs #205 and #204 also failed.
+- Latest visible public runs: [H2H Reporting #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720) and [H2H Exact-ID Join Tests #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716) succeeded, but they are H2H jobs, not 50-league audit runs.
+- No dedicated 50-league run was found in the latest accessible public run listing. The connected GitHub tools expose no workflow-dispatch operation, so a new Actions run could not be triggered from this execution. No production workflow was modified.
 
 ## Market gates
 
-The protected registry declares these four market families: M-1UP, BTTS Yes, Double Chance, and DC Under 4.5. For all 50 rows, the CSV marks readiness **NOT VERIFIED FOR SELECTED PROVIDER ID**. The old readiness matrix's BTTS/DC/COMBO labels are included only as stale canonical-code snapshots. M-1UP remains blocked by stale/incomplete event truth and missing selected-ID joins. Pre-match xG and odds point-in-time provenance remain unestablished.
+The protected registry declares four supported market families: M-1UP, BTTS Yes, Double Chance, and DC Under 4.5. Every CSV row marks readiness as **not verified for the selected provider ID**. The old readiness matrix's BTTS/DC/COMBO values are included only as stale canonical-code snapshots. M-1UP is blocked by stale/incomplete event truth and missing selected-ID joins. Pre-match xG and odds provenance remain unestablished.
 
 ## Next safe actions
 
-1. Obtain a fresh provider response that includes exact selected FootyStats league ID, season ID, fixture ID, home/away team IDs, kickoff, and retrieval/source timestamps.
-2. Persist sanitized request/response status per provider ID, including explicit 403/empty/error states; do not replace failures with name-based assumptions.
-3. Join each selected provider ID to the exact fixture and canonical team IDs; review all candidate codes, and leave unresolved rows untouched until evidence is available.
-4. Refresh the current fixture and team-state snapshots for the 50 target, then rebuild per-league recent-form/standings coverage and market-specific gates.
-5. Resolve the readiness-matrix status conflicts and prove pre-kickoff xG/odds provenance before any prediction evaluation.
+1. Obtain a fresh provider response containing exact selected FootyStats league ID, season ID, fixture ID, home/away team IDs, kickoff, and source/retrieval timestamps.
+2. Persist sanitized request/response status per provider ID, including explicit 403/empty/error outcomes.
+3. Join each provider ID to exact fixture and canonical team IDs; review candidates and leave unresolved rows untouched until evidence is available.
+4. Refresh current fixtures/team state for the 50 target and rebuild per-league form, standings, and market gates.
+5. Resolve registry/readiness-matrix status conflicts and verify point-in-time xG/odds provenance before evaluation.
 
 ## Governance
 
-Research only. No production model logic, weights, probabilities, thresholds, calibration, version, protected registry, or canonical ledger was changed. No draft PR was merged, no gate bypassed, and no paid provider change made. Completion is **not declared**.
+Research only. No production logic, weights, probabilities, thresholds, calibration, model version, protected registry, or canonical ledger was changed. No draft PR was merged, no gate bypassed, and no paid provider change made. Completion is **not declared**.
