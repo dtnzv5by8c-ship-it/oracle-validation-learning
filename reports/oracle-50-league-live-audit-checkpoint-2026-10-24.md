@@ -8,7 +8,7 @@
 The owner-selected manifest was fetched from the research branch and contains exactly 50 numbered rows. Blob SHA: `f6f9069b692b79a7595d1513a3413e8660763632`.
 - Manifest: [50-league selected manifest](oracle-footystats-selected-50-league-manifest-2026-10-24.md)
 - Current protected registry fetched from the private canonical repository: `config/oracle_major_league_registry_v1.json`, blob SHA `81d6db487e498fc84a87a7457b0de7215537f15c`. It declares a 27-league active universe. This audit does not change it.
-- Existing canonical readiness matrix fetched: `data/league_readiness_matrix.csv`, blob SHA `602061ebe0ecbe45b0ed6e5c6dcbf2c9d9c0f8b7` (see source SHA verification below; use repository blob SHA as returned by GitHub). Matrix refresh timestamp is 2026-10-01T17:25:35.759116Z, so it is stale for a current-readiness decision.
+- Existing canonical readiness matrix fetched: `data/league_readiness_matrix.csv`, blob SHA `602061ebe0ecbe45b0ed6e5c6dcbf2c9d9c0f8b7`. Matrix refresh timestamp is 2026-10-01T17:25:35.759116Z, so it is stale for a current-readiness decision.
 - Existing four-model readiness snapshot: `data/oracle_four_model_readiness_v1.2.json`, effective date 2026-10-01; 11,364 controlled rows across the old 27-league universe, max result date 2026-09-20; BTTS/DC/Combo coverage reported full for 22 and partial for 5. These aggregate results cannot be assigned to the 50 selected provider IDs without a verified crosswalk.
 
 ## Evidence currently supported
