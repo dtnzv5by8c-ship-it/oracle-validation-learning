@@ -76,3 +76,11 @@ Research branch: `research/oracle-crosswalk-isolation-2026-10-22`
 - Plan 6: latest live completion run #108 remains partial at 205/215 fixtures (95.35%); 10 fixtures are excluded for missing pre-match team state and only 67/215 have verified kickoff times. Available evidence shows missing role-history rows for some teams and alias candidates for a subset, but does not establish one universal root cause. Continue read-only diagnosis; do not weaken eligibility gates or change production.
 - Current overall historical validation/readiness estimate remains **45%**. The coverage inventory is now documented, but independent season verification, point-in-time provenance, settlement reconciliation and holdout validation are still outstanding. This is a project milestone estimate, not model accuracy.
 - No production code, weights, thresholds, probabilities, calibration, canonical ledgers or governed league registry were changed. Draft PR #20 remains unmerged.
+
+## Feature provenance gate implementation — research-only
+
+- Added `scripts/validate_oracle_feature_provenance.py`. It requires fixture identity, feature name/value, timezone-aware kickoff/observation/retrieval timestamps, source ID and SHA-256 snapshot hash. It fails closed when fields are absent, timestamps are malformed/naive, a feature was observed at/after kickoff, retrieval predates observation, or the hash is invalid.
+- Added `tests/test_oracle_feature_provenance.py` with 8 regression tests covering pass, empty input, missing timestamp, invalid timestamp, kickoff-time leakage, post-kickoff leakage, retrieval chronology and malformed hash.
+- Added isolated workflow `.github/workflows/oracle-feature-provenance-tests.yml` to run these tests without downloading provider data or touching the private production repository.
+- Local test execution passed: **8/8 tests**. The GitHub Actions run triggered by the new workflow has not been independently verified through the available run-list interface; do not report CI as passed until its run page confirms success.
+- This is a gate/tooling improvement only. It does not retrofit missing timestamps into the historical dataset. Current historical xG/features still fail the point-in-time readiness gate until genuine observation timestamps and source evidence are available.
