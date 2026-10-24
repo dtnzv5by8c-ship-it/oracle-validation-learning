@@ -138,6 +138,8 @@ def main():
             "targets_with_fuzzy_candidates_for_review":sum(any(r["target_code"]==t[0] and r["catalogue_status"]=="FUZZY_CANDIDATE_REVIEW_ONLY" for r in crosswalk) for t in TARGETS),
             "targets_with_no_candidate_found":sum(not any(r["target_code"]==t[0] and r["catalogue_status"] not in ("NO_CANDIDATE_FOUND", "NO_EXACT_ALIAS_MATCH") for r in crosswalk) for t in TARGETS),
             "catalogue_sha256":hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
+            "provider_catalogue_top_level_keys_sample":sorted(set(k for row in leagues[:25] for k in row.keys())),
+            "provider_season_keys_sample":sorted(set(k for row in leagues[:25] for season in (row.get("season") if isinstance(row.get("season"),list) else []) if isinstance(season,dict) for k in season.keys())),
             "scope":"Unfiltered catalogue discovery only; candidate mappings require human/independent validation; no matches or predictions fetched; production registry untouched."}
     (out/"oracle_44_league_broader_catalogue_summary.json").write_text(json.dumps(safe,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(safe,indent=2))
