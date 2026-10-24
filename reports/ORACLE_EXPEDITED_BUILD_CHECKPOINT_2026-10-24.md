@@ -39,3 +39,11 @@ Reference: [Historical OOS prediction ledger readiness audit](https://github.com
 
 ## Governance
 No production model logic, weights, thresholds, probabilities, calibration, market definitions, or protected 27-league registry changed. No new predictions or backtests were created by this checkpoint. Do not merge draft PR #20 without explicit owner approval.
+
+
+## Existing live pipeline check — workflow run #108
+- Main-branch ad hoc completion run [#39944482084](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/39944482084) completed successfully on 2026-10-23.
+- The sanitized artifact (`12497978373`) reports the 22-market historical benchmark, live runner and reconciliation stages all completed. This is evidence the existing live pipeline can run ad hoc; it is not evidence that the new 2024–2026 research dataset has been consumed by production.
+- The output is explicitly partial: 205 of 215 scheduled fixtures reconciled (95.35%); 10 fixtures were excluded for missing pre-match team state. Only 67/215 fixtures had verified kickoff time; 148 lacked it. Probability calibration was NOT_APPLIED and promotion remains BLOCKED.
+- The workflow file on the default branch defines a Monday 06:00 South Africa schedule and supports manual dispatch with a configurable fixture horizon. I have verified the workflow definition and the successful ad hoc run, but have not verified a recent schedule-triggered run or proven that every scheduled fixture will receive a prediction.
+- This live pipeline is still governed by the existing 27-league source. The 49-target catalogue is a separate research scope and must not be merged into production without explicit approval.
