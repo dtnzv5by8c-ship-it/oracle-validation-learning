@@ -19,7 +19,7 @@ TARGETS = [
 ("SP1","Spain","La Liga",["Spain La Liga"]),("SP2","Spain","Segunda División",["Spain Segunda Division","Spain Segunda División"]),
 ("D1","Germany","Bundesliga",["Germany Bundesliga"]),("D2","Germany","2. Bundesliga",["Germany 2 Bundesliga","Germany 2. Bundesliga"]),
 ("I1","Italy","Serie A",["Italy Serie A"]),("I2","Italy","Serie B",["Italy Serie B"]),("F1","France","Ligue 1",["France Ligue 1"]),("F2","France","Ligue 2",["France Ligue 2"]),
-("N1","Netherlands","Eredivisie",["Netherlands Eredivisie"]),("P1","Portugal","Primeira Liga",["Portugal Liga NOS","Portugal Primeira Liga"]),
+("N1","Netherlands","Eredivisie",["Netherlands Eredivisie"]),
 ("B1","Belgium","Pro League",["Belgium Pro League"]),("T1","Turkey","Süper Lig",["Turkey Süper Lig","Turkey Super Lig"]),
 ("DK","Denmark","Superliga",["Denmark Superliga","Denmark Superligaen"]),("SE","Sweden","Allsvenskan",["Sweden Allsvenskan"]),
 ("NO","Norway","Eliteserien",["Norway Eliteserien"]),("FI","Finland","Veikkausliiga",["Finland Veikkausliiga"]),
