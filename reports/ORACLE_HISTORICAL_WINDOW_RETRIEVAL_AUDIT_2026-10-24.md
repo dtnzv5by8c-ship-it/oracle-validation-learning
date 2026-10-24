@@ -29,6 +29,9 @@ Branch: `research/oracle-crosswalk-isolation-2026-10-22`
 - One candidate-season request failed as detailed above.
 - The extracted fields do not establish historical point-in-time provenance for xG or other pre-match features. No odds were included in this retrieval.
 
+## Provider catalogue schema root cause
+A follow-up sanitized schema-diagnostic run (#40060695146) confirmed the provider's current `league-list` payload exposes top-level competition fields `country`, `image`, `league_name`, `name`, and `season`; the season objects expose only `id` and `year` in the sampled catalogue response. The API response does not expose the expected competition ID or season start/end date fields in this payload. The blank identifiers/date fields are therefore an upstream schema/endpoint limitation, not a failure to try additional field aliases. Season IDs remain retrieval handles only. Any independent identity/date proof must come from another documented provider endpoint or authoritative external schedule source; do not fabricate IDs or dates.
+
 ## Decision
 **Historical fixture retrieval succeeded as a research ingestion; historical dataset readiness is NOT established.** Do not run or report a model backtest from this artifact as if it were a verified, complete, point-in-time dataset. The artifact is useful for crosswalk/coverage remediation and data-quality research.
 
