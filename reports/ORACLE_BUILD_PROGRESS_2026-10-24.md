@@ -20,7 +20,7 @@ Research branch: `research/oracle-crosswalk-isolation-2026-10-22`
 - Validator workflow: [#40084903119](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40084903119), artifact ID `12556393570`, structural errors 0.
 
 ## Open blockers
-1. Uruguay (UY) season 14626 page 4 returned an unexpected fixture payload. Retry this page/season in isolation, with provider pacing and sanitized diagnostics.
+1. Uruguay (UY) season 14626 page 4 is PARKED by user instruction after the provider returned a Terms-of-Use restriction; no further requests.
 2. Provider season start/end dates are missing; do not infer dates from season labels.
 3. Pagination ending with a short page is not independent evidence of full season coverage.
 4. Historical point-in-time provenance is not established for pre-match xG, team form, standings or team state.
@@ -28,12 +28,12 @@ Research branch: `research/oracle-crosswalk-isolation-2026-10-22`
 6. Two candidate seasons had no fixture rows (Australia season 17326 and India season 17964); determine whether this is expected within the exact requested window or a coverage gap.
 
 ## Next actions
-1. Add a targeted research-only retry for UY season 14626 page 4; do not rerun all 49 targets.
-2. Build an independent season coverage cross-check using a second source or independently published season fixture counts and dates.
+1. Park Uruguay page 4; continue independent season coverage work for the remaining targets.
+2. Build an independent season coverage cross-check using a second source or independently published season fixture counts and dates; do not infer completeness from short pages.
 3. Add per-feature observation timestamps and reject any feature whose known-at time is after kickoff.
 4. Reconcile predictions to verified final outcomes, excluding canceled/suspended/incomplete records from ordinary settled-match scoring.
 5. Run chronological, leakage-safe comparisons on a held-out period; report Brier score, log loss, calibration and hit rate by market and league.
-6. Verify scheduled live workflow execution and missing-team-state recovery separately from this research branch.
+6. Verify scheduled live workflow execution and missing-team-state recovery separately from this research branch; keep all changes research-only unless explicitly approved.
 
 ## Governance and interpretation
 - Research-only work; production model logic and the governed 27-league registry remain unchanged.
@@ -63,3 +63,16 @@ Research branch: `research/oracle-crosswalk-isolation-2026-10-22`
 5. Run market-by-market chronological holdout metrics only where valid prediction/result pairs exist; otherwise report “not testable,” not an invented hit rate.
 6. Verify scheduled production workflow coverage and missing-team-state recovery separately; current completion evidence remains partial (205/215 fixtures reconciled, 10 missing pre-match team state, only 67/215 with verified kickoff times).
 
+
+## Continued build — coverage register and plan 2–6 (2026-10-24)
+
+- Created the [target-level historical coverage exception register](ORACLE_HISTORICAL_COVERAGE_EXCEPTIONS_2026-10-24.md). It records all 49 targets, candidate season counts, extracted fixture rows, missing season date metadata, zero-row seasons and unresolved coverage status.
+- Uruguay is now **PARKED** and excluded from active remediation. The existing exception is preserved in the audit trail; no more provider calls will be made for that page unless permissions are confirmed.
+- Target-level inventory confirms 178/178 candidate season records lack provider start/end dates. The two zero-row candidate seasons are AU 17326 and IN 17964; official competition sources indicate their 2026/27 seasons start after the audit window. This explains those two records only; all other season completeness remains unproven.
+- Plan 2: independently reconcile season dates/counts and fixture identities for the remaining 48 targets using approved sources.
+- Plan 3: require source observation/known-at timestamps and feature snapshot hashes; reject any feature not proven available before kickoff.
+- Plan 4: reconcile exact fixture identity and final result/status from an independently approved source. Current canonical settlement ledger remains empty; only 210 challenger predictions across 42 fixtures are documented, so full production accuracy is not calculable.
+- Plan 5: chronological holdout remains blocked until season completeness, feature provenance, and genuine prediction/result pairing pass. Report hit rate, Brier score, log loss, calibration, sample sizes and exclusions only where testable.
+- Plan 6: latest live completion run #108 remains partial at 205/215 fixtures (95.35%); 10 fixtures are excluded for missing pre-match team state and only 67/215 have verified kickoff times. Available evidence shows missing role-history rows for some teams and alias candidates for a subset, but does not establish one universal root cause. Continue read-only diagnosis; do not weaken eligibility gates or change production.
+- Current overall historical validation/readiness estimate remains **45%**. The coverage inventory is now documented, but independent season verification, point-in-time provenance, settlement reconciliation and holdout validation are still outstanding. This is a project milestone estimate, not model accuracy.
+- No production code, weights, thresholds, probabilities, calibration, canonical ledgers or governed league registry were changed. Draft PR #20 remains unmerged.
