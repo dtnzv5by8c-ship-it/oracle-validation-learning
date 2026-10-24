@@ -47,3 +47,9 @@ No production model logic, weights, thresholds, probabilities, calibration, mark
 - The output is explicitly partial: 205 of 215 scheduled fixtures reconciled (95.35%); 10 fixtures were excluded for missing pre-match team state. Only 67/215 fixtures had verified kickoff time; 148 lacked it. Probability calibration was NOT_APPLIED and promotion remains BLOCKED.
 - The workflow file on the default branch defines a Monday 06:00 South Africa schedule and supports manual dispatch with a configurable fixture horizon. I have verified the workflow definition and the successful ad hoc run, but have not verified a recent schedule-triggered run or proven that every scheduled fixture will receive a prediction.
 - This live pipeline is still governed by the existing 27-league source. The 49-target catalogue is a separate research scope and must not be merged into production without explicit approval.
+
+
+### Calibration diagnostic from existing completion artifact
+- The same run's 22-market historical benchmark reports calibration did not improve Brier score for any of the 22 markets and did not improve log loss for any of the 22 markets (0/22 on each measure).
+- Example: BTTS Yes raw Brier 0.24786 vs calibrated 0.25042; raw log loss 0.68885 vs calibrated 0.71253.
+- This is a diagnostic from the existing benchmark, not a recalibration of the newly expanded 2024–2026 fixture data. It supports investigating the calibration method using a separate chronological holdout, not changing production calibration now.
