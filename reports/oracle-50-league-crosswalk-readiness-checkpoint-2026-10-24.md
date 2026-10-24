@@ -61,6 +61,9 @@ The private repository's `data/current_source_manifest.json` was generated **202
 
 ## Workflow inspection and blockers
 
+- The separate private repository HTML dataset-page ingestion manifest (`data/major_footystats_manifest.json`, generated 2026-10-01) records **8/8 requests returning HTTP 403 and 0 retrieved rows** for its targeted expansion codes. This is a different acquisition path from the later API full-season audit; it is evidence that the dataset-page route failed for those requests, not proof that FootyStats API access is unavailable for every selected league.
+
+
 - **Research H2H tests #31:** success on 2026-10-24; this validates the H2H test workflow only, not the 50-league readiness gate.
 - **Research H2H reporting #47:** success on 2026-10-24; likewise not a 50-league readiness pass.
 - **Separate 44-target full-season audit #7:** success on 2026-10-23; useful retrieval evidence, but the exact selected-50 provider-ID join and cutoff provenance remain missing.
