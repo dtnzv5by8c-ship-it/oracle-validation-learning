@@ -40,6 +40,23 @@ class H2HUnmatchedDiagnosticsTests(unittest.TestCase):
         self.assertFalse(home["mapping_approved"])
         self.assertFalse(home["scoring_eligible_from_this_diagnostic"])
 
+    def test_report_canonical_aliases_are_shared_with_diagnostic(self):
+        rows = diagnose(
+            [{"league_code": "D2", "home_team": "1. FC Nürnberg", "away_team": "Kaiserslautern"}],
+            [{"date": "2026-10-24", "league": "D2", "home_team": "Nurnberg", "away_team": "Kaiserslautern"}],
+        )
+        home = next(row for row in rows if row["unresolved_team_side"] == "home")
+        self.assertEqual(home["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
+
+    def test_official_variant_alias_is_not_auto_approved_as_new_mapping(self):
+        rows = diagnose(
+            [{"league_code": "B1", "home_team": "SK Beveren", "away_team": "Westerlo"}],
+            [{"date": "2026-10-24", "league": "B1", "home_team": "Beveren", "away_team": "Westerlo"}],
+        )
+        home = next(row for row in rows if row["unresolved_team_side"] == "home")
+        self.assertEqual(home["diagnosis"], "FOUND_IN_EXPECTED_LEAGUE")
+        self.assertFalse(home["mapping_approved"])
+
     def test_empty_archive_fails_closed_as_not_found(self):
         rows = diagnose(
             [],
