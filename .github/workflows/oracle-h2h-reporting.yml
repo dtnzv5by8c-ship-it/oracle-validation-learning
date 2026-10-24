@@ -218,10 +218,10 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest discover -s tests -p 'test_audit_h2h_unmatched_fixtures.py' -v
-          python scripts/audit_h2h_unmatched_fixtures.py \\
-            --matches oracle/database/matches.csv \\
-            --unmatched oracle/reports/h2h/h2h_unmatched_fixtures.csv \\
-            --out-csv oracle/reports/h2h/h2h_unmatched_team_review.csv \\
+          python scripts/audit_h2h_unmatched_fixtures.py \
+            --matches oracle/database/matches.csv \
+            --unmatched oracle/reports/h2h/h2h_unmatched_fixtures.csv \
+            --out-csv oracle/reports/h2h/h2h_unmatched_team_review.csv \
             --out-json oracle/reports/h2h/h2h_unmatched_team_review_audit.json
 
       - name: Expose canonical Fixture ID and join H2H by exact ID
