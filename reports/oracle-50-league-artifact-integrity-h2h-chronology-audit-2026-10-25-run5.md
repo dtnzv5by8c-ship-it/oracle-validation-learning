@@ -61,3 +61,9 @@
 
 ## Governance
 No production model logic, weights, probabilities, thresholds, calibration, version, protected canonical registry or canonical ledgers were changed. No draft PR was merged, no gate was bypassed, and no paid provider change was made.
+
+
+## Job/artifact state for the two directly inspected private failures
+- Expansion run #206 job inventory was retrieved directly: `prepare` = failure; `controlled`, `controlled_gate`, `expansion`, and `finalize` = skipped. The run has zero attached workflow artifacts. The job-steps endpoint returned an empty step list, so it did not expose the failed step or root cause.
+- Current-data staging run #365 has one job, `current` = failure, zero attached workflow artifacts, and an empty job-steps response from the connected tool. Its failure cause is therefore unverified.
+- These checks confirm the runs did not produce a result artifact that could be inspected in this pass. Do not rerun or change the private workflow without the appropriate execution capability and verified diagnosis.
