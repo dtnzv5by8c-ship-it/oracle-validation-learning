@@ -48,3 +48,27 @@ For private runs 40183610511 and 40190338066, open the run and failed job in Git
 ## Release rule
 
 Production remains **NOT_GRANTED** until all P0/P1 gates and the P2 evidence gate pass, public regression/dry-run is green for the reviewed candidate, legacy 27/12,836 baseline is unchanged, and an authorized human approves the migration. No unsupported accuracy claim, fuzzy identity join, inferred settlement, paid-provider call, or probability/model change is permitted.
+
+
+## Billing constraint and execution hold — user clarification (2026-10-25)
+
+The project owner has clarified that the private repository's GitHub Actions runs are failing because the available Actions billing allowance is exhausted, and the allowance is expected to reset on **2026-11-01**. Treat this as the operational constraint for planning; do not spend more cycles trying to diagnose the already-known private-runner failure, and do not attempt private workflow reruns before the reset. This clarification is user-provided; the connected GitHub tools do not independently expose the billing dashboard.
+
+Public standard GitHub-hosted runner jobs have passed on the research branch. GitHub's documentation confirms standard GitHub-hosted runner use is free for public repositories, while private-repository usage is quota/billing constrained. [GitHub Actions billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+
+### Critical distinction: Actions minutes vs provider credits
+
+The 2026-11-01 Actions allowance reset does not itself refresh the FootyStats API quota/credits. The existing public live-ingestion workflow requires its explicit `confirm_provider_credit_usage=true` input and valid `FOOTYSTATS_API_KEY` and `ORACLE_PRIVATE_REPO_TOKEN` secrets. No live provider calls should be triggered until the owner explicitly confirms the provider-credit spend. The public dry-run remains zero-call and is not a substitute for a current fixture/data ingestion.
+
+### First execution sequence after the reset
+
+1. Confirm the private Actions allowance has actually reset; do not assume reset based solely on the calendar date.
+2. Obtain explicit provider-credit confirmation and run the guarded Selected-50 exact-ID ingestion only if the required secrets are present.
+3. Validate the resulting archive and current fixture schedule for all 50 selected season IDs; quarantine unmatched fixtures and missing/stale features.
+4. Run the isolated 50-league candidate runtime only after it exists and proves probability parity with the frozen model on overlapping inputs. The currently inspected private production status still records 27 active leagues and development/challenger gates; no verified 50-league production runtime or calibrated 50-league output was found.
+5. Produce predictions from the governed model only for fixtures that pass data gates. Label all other fixtures `BLOCKED/NO_BET`; do not manufacture probabilities.
+6. Join predictions to verified outcomes after settlement and report accuracy only from the resulting genuine production-labelled sample.
+
+### Current fixture availability
+
+The inspected private repository's `data/fixtures/oracle_upcoming_fixtures.csv` is an older fixture file whose latest listed fixture is 2026-10-17; its companion manifest is generated 2026-10-08 and declares an active 27-league scope. It is not a valid current 50-league slate for 2026-10-25 onward. A current exact-ID fixture refresh is therefore mandatory before a forward prediction report can be generated.
