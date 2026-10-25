@@ -174,3 +174,14 @@ This is a static pattern scan, not a code migration. Some 27/12,836 values corre
 - First test run [40192630922](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192630922) correctly failed on an overly strict wording assertion in the test, not on the inventory totals or classification itself. The assertion was corrected to match the documented action wording.
 - Corrected classification test run [40192666803](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192666803) completed **success**. The Selected-50 dry-run planner on the same corrected commit, [40192666814](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192666814), also completed **success**. The regression test verifies all 13 expected file rows, exact per-file match counts summing to 82, frozen historical-baseline protections, active runtime blockers, and no implicit production authorization.
 - This closes the **audit-inventory regression-test** task only. It does not migrate the private production runtime, resolve the runner initialisation failure, certify fixture joins/settlements/point-in-time features, or create production-labelled backtest evidence. Release status remains **NOT_GRANTED**.
+
+
+## Selected-50 data-gate matrix — 2026-10-25
+
+- Added machine-readable per-season gate tracking at `data/oracle_selected50_data_gate_matrix_2026-10-25.csv`, keyed by the exact selected season ID and checked against the canonical selected manifest.
+- The matrix records all 50 package rows as present based on the retained package QA, while leaving exact canonical fixture joins, settlement truth, and point-in-time feature provenance as `NOT_VERIFIED`; every row has production eligibility `NO`.
+- The 19 Run 56 manifest gaps are explicitly preserved as reconciliation gaps, not treated as missing archive data or proof of failed provider requests.
+- Australia A-League (17326) and India ISL (17964) explicitly flag insufficient current-season recent-form coverage and unverified prior-season team continuity.
+- Added `tests/test_selected50_data_gate_matrix.py` to assert exact IDs/labels, exact 19-ID gap set, fail-closed data statuses, and immutable historical-baseline/production-governance constraints.
+- Added `.github/workflows/oracle_selected50_data_gate_contract.yml` to run selected-50 contract, data-gate matrix, and runtime-classification tests on relevant research-branch changes and manual dispatch. Workflow execution must be verified from GitHub Actions before its test result is called green.
+- This addition is a research control only. It does not create verified fixture joins, settlement truth, point-in-time features, production predictions, or backtest metrics. Production readiness remains **NOT_GRANTED**.
