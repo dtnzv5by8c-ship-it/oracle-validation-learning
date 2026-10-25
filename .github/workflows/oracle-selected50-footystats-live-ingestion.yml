@@ -157,8 +157,8 @@ jobs:
                   if not isinstance(season, dict) or season.get("id") is None:
                       continue
                   sid = safe_id(season.get("id"))
-                  year_match = re.match(r"^\\s*(\\d{4})", str(season.get("year", "")))
-                  if not sid or not year_match or int(year_match.group(1)) < 2023:
+                  year_text = str(season.get("year", "")).strip()[:4]
+                  if not sid or not year_text.isdigit() or int(year_text) < 2023:
                       continue
                   existing = historical_targets.get(sid)
                   league_id = str(league.get("id", ""))
