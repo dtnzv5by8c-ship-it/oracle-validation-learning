@@ -314,3 +314,14 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Generated PDF: `Project_Oracle_Selected50_Research_Report_2026-10-25.pdf` (17 pages; includes the executive/validation summary and all 449 fixture candidates).
 - Both files were built from verified runtime artifact `12609615576` / run `40221071770`, and are available as downloadable attachments in the conversation. They are research-only and not committed as production artifacts.
 - The Excel workbook includes the 50-row research alias mapping; canonical production code mappings are intentionally not exposed in the public research repository. Production release remains `NOT_GRANTED`.
+
+
+## 29. Refreshed governed report workbook/PDF — 2026-10-25
+
+- Generated refreshed user-facing workbook `Project_Oracle_Selected50_Research_Report_2026-10-25_v2.xlsx` and PDF `Project_Oracle_Selected50_Research_Report_2026-10-25_v2.pdf` from verified runtime artifact `12608454296` / run `40221376537`. Both are available as downloadable conversation attachments.
+- The workbook has 11 sheets, including a 50-row league overview, 250-row UTC calendar-year coverage, 200-row provider season-start-year coverage, 250-row market readiness, 15 global market/fold rows, 750 league/market/fold rows, 50-row schedule coverage, 50-row settlement QA, and the 449-row governed fixture report.
+- The PDF contains the executive/validation summary, market-level walk-forward diagnostics, annual coverage summaries, 50-league readiness overview and all 449 governed fixture candidates. It explicitly labels the outputs research-only/not approved for betting.
+- The governed report contains 449 unique source fixture IDs; 422 rows retain raw BTTS/DC values only for research; 27 are blocked by feature/training gates. Both Combo probability columns are blank for every row. No confidence or data-risk percentage is fabricated.
+- Use these refreshed v2 files rather than the earlier workbook/PDF built from artifact `12609615576`, because v2 reflects the verified Combo-blocked governed report.
+- The artifact itself is available through run [40221376537](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221376537) and artifact [12608454296](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221376537/artifacts/12608454296). The files are local conversation attachments, not committed as production artifacts.
+- Next technical blocker is still canonical ID/settlement governance, not report generation: all 50 provider parent competition IDs are unavailable in the archive manifest; canonical fixture/team joins and official settlement truth remain unverified; Combo definition reconciliation is mandatory. Production remains `NOT_GRANTED`.
