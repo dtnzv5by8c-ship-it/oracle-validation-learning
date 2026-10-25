@@ -166,21 +166,31 @@ def season_coverage_row(sid, meta, selected_id, selected, status, match_count, t
             if value not in (None, ""):
                 return str(value)
         return ""
-    season_label = source_value(("season_name", "season_label", "season", "season_year", "year"))
+    provider_competition_id = source_value(("provider_league_id", "provider_competition_id"))
+    provider_competition_name = source_value(("provider_league_name", "provider_competition_name"))
+    provider_season_year = source_value(("provider_season_year", "season_year", "year"))
+    season_label = source_value(("season_name", "season_label", "season")) or provider_season_year
     season_start = source_value(("season_start", "start_date", "start", "starting_at", "season_start_date"))
     season_end = source_value(("season_end", "end_date", "end", "ending_at", "season_end_date"))
-    year_match = re.match(r"^(\d{4})", season_start)
-    season_start_year = year_match.group(1) if year_match else ""
+    date_year_match = re.match(r"^(\d{4})", season_start)
+    season_start_year = date_year_match.group(1) if date_year_match else ""
+    provider_year_match = re.match(r"^(\d{4})", provider_season_year)
+    provider_season_start_year = provider_year_match.group(1) if provider_year_match else ""
+    provider_id_ok = bool(provider_competition_id and provider_competition_id != "NOT_EXPOSED_BY_CATALOGUE")
     return {
         "season_id": str(sid), "selected_id": str(selected_id),
         "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-        "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+        "provider_competition_id": provider_competition_id if provider_id_ok else "",
+        "provider_competition_id_status": "FROM_PROVIDER_CATALOGUE_INGESTION_MANIFEST" if provider_id_ok else "UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+        "provider_competition_name_source": provider_competition_name,
+        "provider_season_year_source": provider_season_year,
+        "provider_season_start_year_from_source_label": provider_season_start_year,
         "country": str(selected.get("country", "")),
         "competition": str(selected.get("competition_name", "")),
         "season_label_source": season_label, "season_start_source": season_start,
         "season_end_source": season_end,
         "season_start_year_derived_from_source_date": season_start_year,
-        "season_year_mapping_status": "SOURCE_DATE_YEAR_AVAILABLE" if season_start_year else ("SOURCE_SEASON_LABEL_AVAILABLE_YEAR_UNPARSED" if season_label else "UNVERIFIED_NO_SOURCE_YEAR"),
+        "season_year_mapping_status": "PROVIDER_SEASON_YEAR_AVAILABLE" if provider_season_start_year else ("SOURCE_DATE_YEAR_AVAILABLE" if season_start_year else "UNVERIFIED_NO_SOURCE_YEAR"),
         "status": status, "match_count": int(match_count),
         "team_count": "" if team_count is None else int(team_count),
     }
@@ -210,6 +220,22 @@ def main():
             if (str(meta.get("selected_country","")).strip(),str(meta.get("selected_competition_name","")).strip()) != label:
                 raise SystemExit(f"Selected season ID {selected_sid} label crosswalk mismatch; fail closed.")
         if len(selected_by_label)!=50: raise SystemExit(f"Expected 50 exact country/competition labels; found {len(selected_by_label)}.")
+        # Parent provider IDs come from exact league-list season matches in the private ingestion manifest.
+        provider_ids_by_label = defaultdict(set)
+        for meta in season_rows.values():
+            label = (str(meta.get("selected_country", "")).strip(), str(meta.get("selected_competition_name", "")).strip())
+            if label not in selected_by_label: continue
+            pid = str(meta.get("provider_league_id", "")).strip()
+            if pid and pid != "NOT_EXPOSED_BY_CATALOGUE": provider_ids_by_label[label].add(pid)
+        provider_parent_id_by_selected = {}
+        for label, (selected_sid, _sel) in selected_by_label.items():
+            ids = provider_ids_by_label.get(label, set())
+            if len(ids) == 1:
+                provider_parent_id_by_selected[selected_sid] = (next(iter(ids)), "VERIFIED_FROM_PROVIDER_CATALOGUE_MANIFEST")
+            elif len(ids) > 1:
+                provider_parent_id_by_selected[selected_sid] = ("", "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS")
+            else:
+                provider_parent_id_by_selected[selected_sid] = ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST")
         comp_meta={selected_sid:sel for selected_sid,sel in selected_by_id.items()}
         all_matches=[]; crosswalk=[]; season_qa=[]; team_position={}; season_team_names={}
         mapped_historical_seasons=0
@@ -511,8 +537,10 @@ def main():
                 row={"fixture_id":r["fixture_id"],"date_utc":dt.datetime.fromtimestamp(r["kickoff_unix"],dt.timezone.utc).isoformat(),
                      "selected_id":str(r["competition_id"]),
                      "selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                     "provider_competition_id":"",
-                     "provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+                     "provider_competition_id":provider_parent_id_by_selected.get(str(r["competition_id"]), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                     "provider_competition_id_status":provider_parent_id_by_selected.get(str(r["competition_id"]), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],
+                     "provider_competition_name_source":str(season_rows.get(str(r["season_id"]), {}).get("provider_league_name", "")),
+                     "provider_season_year_source":str(season_rows.get(str(r["season_id"]), {}).get("provider_season_year", "")),
                      "provider_season_id":str(r["season_id"]),
                      "home_team_provider_id":str(r.get("home_id") or ""),"away_team_provider_id":str(r.get("away_id") or ""),
                      "source_fixture_id_status":"PRESENT" if r.get("fixture_id") else "MISSING",
@@ -545,10 +573,14 @@ def main():
             w=csv.DictWriter(f,fieldnames=cols);w.writeheader()
             for r in matches:
                 out_row={k:r.get(k) for k in cols if k in r}
+                provider_id, provider_id_status = provider_parent_id_by_selected.get(str(r.get("competition_id") or ""), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))
+                season_meta = season_rows.get(str(r.get("season_id") or ""), {})
                 out_row.update({"selected_id":str(r.get("competition_id") or ""),
                     "selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                    "provider_competition_id":"",
-                    "provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST"})
+                    "provider_competition_id":provider_id,
+                    "provider_competition_id_status":provider_id_status,
+                    "provider_competition_name_source":str(season_meta.get("provider_league_name", "")),
+                    "provider_season_year_source":str(season_meta.get("provider_season_year", ""))})
                 w.writerow(out_row)
         feature_path=OUT/"selected50_feature_rows.csv"
         if feature_rows:
@@ -558,8 +590,12 @@ def main():
                 w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader()
                 for row in feature_rows:
                     out_row={("selected_id" if k=="competition_id" else k):v for k,v in row.items()}
+                    provider_id, provider_id_status = provider_parent_id_by_selected.get(str(row.get("competition_id") or ""), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))
+                    season_meta = season_rows.get(str(row.get("season_id") or ""), {})
                     out_row.update({"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST"})
+                        "provider_competition_id":provider_id,"provider_competition_id_status":provider_id_status,
+                        "provider_competition_name_source":str(season_meta.get("provider_league_name", "")),
+                        "provider_season_year_source":str(season_meta.get("provider_season_year", ""))})
                     w.writerow(out_row)
         pred_path=OUT/"oracle_selected50_prediction_report.csv"
         if predictions:
@@ -832,7 +868,7 @@ def main():
             settlement_writer = csv.DictWriter(settlement_file, fieldnames=settlement_columns)
             settlement_writer.writeheader(); settlement_writer.writerows(settlement_truth_qa)
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
-            season_columns=["season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
+            season_columns=["season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","provider_competition_name_source","provider_season_year_source","provider_season_start_year_from_source_label","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(season_qa)
