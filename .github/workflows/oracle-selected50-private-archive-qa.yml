@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, zipfile, hashlib, re, datetime, collections, math
+          import csv, json, zipfile, hashlib, re, datetime, collections, math
           from pathlib import Path
 
           archive = Path("private-download/oracle-selected50-footystats-private-ingestion.zip")
@@ -56,6 +56,12 @@ jobs:
               manifest_path = candidates[0]
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           rows = manifest if isinstance(manifest, list) else manifest.get("season_results", [])
+          selected_manifest_path = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
+          with selected_manifest_path.open(newline="", encoding="utf-8-sig") as f:
+              selected_rows = list(csv.DictReader(f))
+          selected_by_id = {str(r.get("selected_id", "")).strip(): r for r in selected_rows}
+          ingestion_by_id = {str(r.get("season_id", "")).strip(): r for r in rows}
+          selected_manifest_exact_id_set_match = (len(selected_rows) == 50 and len(selected_by_id) == 50 and set(selected_by_id) == set(ingestion_by_id))
           season_rows = []
           totals = collections.Counter()
           field_counts = collections.Counter()
@@ -88,7 +94,24 @@ jobs:
               if not base.exists():
                   candidates = list(raw.rglob(sid))
                   base = next((p for p in candidates if p.is_dir()), base)
-              result = {"season_id": sid, "manifest_status": row.get("status", "UNKNOWN")}
+              selected_meta = selected_by_id.get(sid, {})
+              provider_name = str(row.get("provider_league_name", "")).strip()
+              selected_name = str(selected_meta.get("competition_name", "")).strip()
+              selected_country = str(selected_meta.get("country", "")).strip()
+              ledger_country = str(row.get("selected_country", "")).strip()
+              ledger_name = str(row.get("selected_competition_name", "")).strip()
+              result = {
+                  "season_id": sid,
+                  "manifest_status": row.get("status", "UNKNOWN"),
+                  "provider_season_year": str(row.get("provider_season_year", "")),
+                  "provider_parent_competition_id": str(row.get("provider_league_id", "")),
+                  "provider_competition_name": provider_name,
+                  "selected_country": selected_country,
+                  "selected_competition_name": selected_name,
+                  "provider_country_evidence_status": "NOT_RETAINED_IN_INGESTION_LEDGER",
+                  "provider_competition_name_match_status": "EXACT_NAME_MATCH" if provider_name == selected_name else "NAME_MISMATCH_REVIEW",
+                  "selected_manifest_metadata_match_status": "EXACT_LABEL_MATCH" if (ledger_country == selected_country and ledger_name == selected_name) else "LABEL_MISMATCH_OR_ID_NOT_IN_MANIFEST"
+              }
               match_path = base / "matches.json"
               team_path = base / "teams.json"
               table_path = base / "tables.json"
@@ -202,7 +225,14 @@ jobs:
           report = {
               "audit": "PRIVATE_RAW_ARCHIVE_SCHEMA_QA",
               "source_release_tag": "research-selected50-footystats-ingestion-20261025",
-              "selected_manifest_rows": len(rows),
+              "selected_manifest_rows": len(selected_rows),
+              "ingestion_ledger_rows": len(rows),
+              "selected_manifest_exact_id_set_match": selected_manifest_exact_id_set_match,
+              "selected_manifest_metadata_match_rows": sum(r.get("selected_manifest_metadata_match_status") == "EXACT_LABEL_MATCH" for r in season_rows),
+              "provider_competition_name_exact_match_rows": sum(r.get("provider_competition_name_match_status") == "EXACT_NAME_MATCH" for r in season_rows),
+              "provider_competition_name_mismatch_ids": [r.get("season_id") for r in season_rows if r.get("provider_competition_name_match_status") != "EXACT_NAME_MATCH"],
+              "provider_parent_competition_id_populated_rows": sum(bool(str(r.get("provider_parent_competition_id", "")).strip()) for r in season_rows),
+              "provider_country_metadata_retained_rows": 0,
               "season_folders_audited": len(season_rows),
               "season_manifest_status_counts": dict(collections.Counter(str(r.get("status","UNKNOWN")) for r in rows)),
               "season_file_status_counts": dict(collections.Counter(str(r.get("file_status","UNKNOWN")) for r in season_rows)),
