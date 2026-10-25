@@ -1,0 +1,296 @@
+name: Oracle Selected-50 FootyStats Exact-ID Ingestion
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume FootyStats API credits"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  ingest-selected50:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout governed research manifest
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Validate credentials and private destination
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+        run: |
+          set -euo pipefail
+          [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no provider calls made."; exit 1; }
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing; no provider calls made."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing; no provider calls made."; exit 1; }
+          gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
+          TAG=research-selected50-footystats-history-20261025
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Private release tag already exists; refusing to consume provider credits."; exit 1
+          fi
+          echo "Credentials and private destination verified; existing release tag absent. Credential values are not printed."
+
+      - name: Exact-ID ingest selected 50 seasons and create private package
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, hashlib, json, os, re, time, zipfile
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          KEY = os.environ["FOOTYSTATS_API_KEY"].strip()
+          BASE = "https://api.football-data-api.com/"
+          manifest_path = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
+          if not manifest_path.is_file():
+              raise SystemExit("Governed selected-50 ID manifest missing; no provider calls made.")
+          with manifest_path.open(newline="", encoding="utf-8-sig") as f:
+              selected = list(csv.DictReader(f))
+          if len(selected) != 50 or len({str(r.get("selected_id","")).strip() for r in selected}) != 50:
+              raise SystemExit("Manifest guard failed: expected 50 rows and 50 unique IDs; no provider calls made.")
+          if any(not str(r.get("selected_id","")).strip().isdigit() for r in selected):
+              raise SystemExit("Manifest contains invalid season IDs; no provider calls made.")
+          wanted = {str(r["selected_id"]).strip(): r for r in selected}
+          out = Path("private-package")
+          out.mkdir()
+          (out / "seasons").mkdir()
+          ledger = []
+          api_calls = 0
+          stopped = False
+
+          def api(endpoint, params, retries=2):
+              global api_calls
+              q = dict(params)
+              q["key"] = KEY
+              url = BASE + endpoint + "?" + urlencode(q)
+              for attempt in range(retries + 1):
+                  api_calls += 1
+                  try:
+                      req = Request(url, headers={"User-Agent": "Oracle-Selected50-Historical-Ingestion/1.0"})
+                      with urlopen(req, timeout=45) as response:
+                          payload = json.loads(response.read().decode("utf-8"))
+                      if not isinstance(payload, dict) or payload.get("success") is not True:
+                          raise RuntimeError("provider_success_false")
+                      # Hobby allows 1,800 requests/hour: stay below 30 requests/minute.
+                      time.sleep(2.1)
+                      return payload
+                  except HTTPError as exc:
+                      code = exc.code
+                      if code in (401, 403, 429):
+                          raise RuntimeError(f"provider_http_{code}") from None
+                      if code in (500, 502, 503, 504) and attempt < retries:
+                          time.sleep(2 * (attempt + 1))
+                          continue
+                      raise RuntimeError(f"provider_http_{code}") from None
+                  except URLError as exc:
+                      if attempt < retries:
+                          time.sleep(2 * (attempt + 1))
+                          continue
+                      raise RuntimeError("provider_network_error") from None
+                  except (ValueError, UnicodeDecodeError):
+                      raise RuntimeError("provider_invalid_json") from None
+              raise RuntimeError("provider_retry_exhausted")
+
+          def safe_id(value):
+              return re.sub(r"[^0-9]", "", str(value or ""))
+
+          # One catalogue call. Resolve only direct season[].id matches; never infer parent IDs.
+          try:
+              catalogue_payload = api("league-list", {"chosen_leagues_only": "true"})
+          except Exception as exc:
+              Path("sanitized-ingestion-ledger.json").write_text(json.dumps({
+                  "status": "BLOCKED_CATALOGUE_REQUEST", "api_requests": api_calls,
+                  "error_class": str(exc), "raw_provider_data_saved_publicly": False
+              }, indent=2) + "\n", encoding="utf-8")
+              raise SystemExit("Catalogue request failed; response body suppressed and no season calls attempted.")
+          catalog = catalogue_payload.get("data")
+          if not isinstance(catalog, list):
+              raise SystemExit("Catalogue data shape invalid; raw response not logged or saved publicly.")
+          exact = {}
+          for league in catalog:
+              if not isinstance(league, dict):
+                  continue
+              seasons = league.get("season")
+              if not isinstance(seasons, list):
+                  continue
+              for season in seasons:
+                  if isinstance(season, dict) and season.get("id") is not None:
+                      sid = safe_id(season.get("id"))
+                      if sid in wanted:
+                          exact.setdefault(sid, []).append((league, season))
+          duplicates = sorted(sid for sid, matches in exact.items() if len(matches) != 1)
+          if duplicates:
+              raise SystemExit("Duplicate exact season IDs in provider catalogue; refusing ambiguous ingestion.")
+          missing = sorted(set(wanted) - set(exact))
+          if missing:
+              for sid in missing:
+                  ledger.append({"season_id": sid, "status": "UNMATCHED_SELECTED_LEAGUE_ID", "api_requests": 0})
+
+          # Resolve the 50 selected season IDs to their exact parent competitions,
+          # then collect all seasons with a provider year >= 2023. This includes
+          # seasons spanning calendar 2024 (e.g. 2023/24) for form/history context.
+          selected_leagues = []
+          for selected_sid, matches in exact.items():
+              league, _selected_season = matches[0]
+              selected_leagues.append((league, wanted[selected_sid]))
+          historical_targets = {}
+          for league, selection in selected_leagues:
+              seasons = league.get("season")
+              if not isinstance(seasons, list):
+                  continue
+              for season in seasons:
+                  if not isinstance(season, dict) or season.get("id") is None:
+                      continue
+                  sid = safe_id(season.get("id"))
+                  year_text = str(season.get("year", "")).strip()[:4]
+                  if not sid or not year_text.isdigit() or int(year_text) < 2023:
+                      continue
+                  existing = historical_targets.get(sid)
+                  league_id = str(league.get("id", ""))
+                  if existing and str(existing[0].get("id", "")) != league_id:
+                      raise SystemExit("Historical season ID maps to multiple provider competitions; refusing ambiguous ingestion.")
+                  historical_targets[sid] = (league, season, selection)
+
+          for sid in sorted(historical_targets, key=lambda x: int(x)):
+              league, season, selection = historical_targets[sid]
+              row = {
+                  "season_id": sid,
+                  "provider_league_id": str(league.get("id")) if league.get("id") is not None else "NOT_EXPOSED_BY_CATALOGUE",
+                  "provider_league_name": str(league.get("name", "")),
+                  "provider_season_year": str(season.get("year", "")),
+                  "selected_country": selection.get("country", ""),
+                  "selected_competition_name": selection.get("competition_name", ""),
+              }
+              folder = out / "seasons" / sid
+              folder.mkdir()
+              result = {**row, "status": "STARTED", "match_count": 0, "team_count": 0, "matches_pages": 0, "requests_for_season": 0}
+              try:
+                  first = api("league-matches", {"season_id": sid, "max_per_page": 1000, "page": 1})
+                  result["requests_for_season"] += 1
+                  matches = first.get("data")
+                  if not isinstance(matches, list):
+                      raise RuntimeError("matches_not_list")
+                  pager = first.get("pager") if isinstance(first.get("pager"), dict) else {}
+                  max_page = int(pager.get("max_page") or 1)
+                  if max_page < 1 or max_page > 500:
+                      raise RuntimeError("pagination_bounds_rejected")
+                  all_matches = list(matches)
+                  for page in range(2, max_page + 1):
+                      batch_payload = api("league-matches", {"season_id": sid, "max_per_page": 1000, "page": page})
+                      result["requests_for_season"] += 1
+                      batch = batch_payload.get("data")
+                      if not isinstance(batch, list):
+                          raise RuntimeError("paged_matches_not_list")
+                      all_matches.extend(batch)
+                  teams_payload = api("league-teams", {"season_id": sid, "include": "stats"})
+                  result["requests_for_season"] += 1
+                  tables_payload = api("league-tables", {"season_id": sid})
+                  result["requests_for_season"] += 1
+                  season_payload = api("league-season", {"season_id": sid})
+                  result["requests_for_season"] += 1
+                  teams = teams_payload.get("data")
+                  if not isinstance(teams, list):
+                      raise RuntimeError("teams_not_list")
+                  # Raw provider payloads remain only in this job's temporary workspace until private transfer.
+                  (folder / "matches.json").write_text(json.dumps(all_matches, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                  (folder / "teams.json").write_text(json.dumps(teams, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                  (folder / "tables.json").write_text(json.dumps(tables_payload.get("data"), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                  (folder / "season_stats.json").write_text(json.dumps(season_payload.get("data"), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                  result.update({"status": "INGESTED", "match_count": len(all_matches), "team_count": len(teams), "matches_pages": max_page})
+              except Exception as exc:
+                  # Keep only sanitized class/status; never include response body or request URL.
+                  err = str(exc)
+                  result.update({"status": "FAILED", "error_class": err})
+                  stopped = err in ("provider_http_401", "provider_http_403", "provider_http_429")
+                  ledger.append(result)
+                  if stopped:
+                      break
+                  continue
+              ledger.append(result)
+          summary = {
+              "scope": "governed selected 50 leagues; provider seasons with year >= 2023 to include calendar-2024 season overlaps",
+              "selected_leagues": 50,
+              "selected_season_ids": len(historical_targets),
+              "season_year_floor": 2023,
+              "exact_selected_season_id_matches": len(exact),
+              "historical_seasons_selected": len(historical_targets),
+              "catalogue_unmatched_ids": missing,
+              "ambiguous_exact_ids": duplicates,
+              "seasons_ingested": sum(r.get("status") == "INGESTED" for r in ledger),
+              "seasons_failed": sum(r.get("status") == "FAILED" for r in ledger),
+              "api_requests": api_calls,
+              "status": "COMPLETED" if not missing and len(exact) == 50 and len(ledger) == len(historical_targets) and all(r.get("status") == "INGESTED" for r in ledger) else "COMPLETED_WITH_GAPS",
+              "raw_provider_payload_saved_publicly": False,
+              "production_model_logic_changed": False,
+              "production_probabilities_changed": False,
+              "production_readiness": "NOT_GRANTED"
+          }
+          (out / "ingestion_manifest.json").write_text(json.dumps(ledger, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          (out / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          with zipfile.ZipFile("oracle-selected50-footystats-private-ingestion.zip", "w", zipfile.ZIP_DEFLATED) as z:
+              for p in out.rglob("*"):
+                  if p.is_file():
+                      z.write(p, p.relative_to(out.parent))
+          digest = hashlib.sha256(Path("oracle-selected50-footystats-private-ingestion.zip").read_bytes()).hexdigest()
+          Path("private-package.sha256").write_text(digest + "  oracle-selected50-footystats-private-ingestion.zip\n", encoding="utf-8")
+          # Public artifact contains only this sanitized ledger and summary, never raw payloads.
+          Path("sanitized-ingestion-ledger.json").write_text(json.dumps({
+              **summary,
+              "season_results": [{k: v for k, v in r.items() if k not in ("provider_league_name",)} for r in ledger],
+              "sha256": digest
+          }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          print(json.dumps({
+              "status": summary["status"], "selected_leagues": 50,
+              "historical_seasons_selected": summary["historical_seasons_selected"],
+              "season_year_floor": 2023,
+              "exact_selected_season_id_matches": summary["exact_selected_season_id_matches"],
+              "catalogue_unmatched_count": len(missing),
+              "seasons_ingested": summary["seasons_ingested"],
+              "seasons_failed": summary["seasons_failed"],
+              "api_requests": summary["api_requests"],
+              "raw_provider_payload_saved_publicly": False,
+              "production_model_logic_changed": False,
+              "production_probabilities_changed": False,
+              "production_readiness": "NOT_GRANTED"
+          }, sort_keys=True))
+          PY
+
+      - name: Transfer raw archive to private Oracle release only
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -f oracle-selected50-footystats-private-ingestion.zip ]] || { echo "No package created; nothing transferred."; exit 0; }
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          TAG=research-selected50-footystats-history-20261025
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Private release tag already exists; refusing overwrite."
+            exit 1
+          fi
+          gh release create "$TAG" oracle-selected50-footystats-private-ingestion.zip private-package.sha256 --repo "$TARGET" --title "Research Selected-50 FootyStats Ingestion 2026-10-25" --notes "Private research-only provider package for the governed 50 exact season IDs. Contains raw provider data and sanitized ingestion manifest. Not production data promotion. Oracle production logic and probabilities unchanged."
+
+      - name: Upload sanitized ledger only to public research run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-sanitized-ingestion-ledger
+          path: sanitized-ingestion-ledger.json
+          if-no-files-found: ignore
+          retention-days: 7
