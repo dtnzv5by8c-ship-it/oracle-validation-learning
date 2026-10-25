@@ -21,9 +21,10 @@ assert len(set(ids)) == 50, "Duplicate selected_id"
 # Archive evidence is based on the prior Run 56 audit: 31 exact IDs matched, 19 absent.
 # Keep status explicit; absent does not mean provider unavailable.
 known_matched = {
-    "16571","17326","17181","17171","16544","16615","16789","16614","17087","17157",
-    "17091","16714","17146","17184","17180","16572","17102","17117","17210","17212",
-    "17356","17964","17084","17404","17115","17099","17097","16558","16533","16905","17112"
+    "16571","17181","17171","16544","17087","17157","17146","17184","17180",
+    "17102","17117","17210","17212","17356","17084","17404","17099","17097",
+    "16558","17112","17215","17247","17426","17148","17444","17199","17269",
+    "17129","17265","16504","17191"
 }
 # Only report archive status from prior exact-ID reconciliation; never fuzzy-match.
 with MATRIX.open("w", encoding="utf-8", newline="") as f:
