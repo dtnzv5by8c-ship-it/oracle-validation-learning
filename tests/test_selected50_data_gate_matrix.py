@@ -72,5 +72,20 @@ class Selected50DataGateMatrixTests(unittest.TestCase):
         self.assertNotIn("12836", MATRIX.read_text(encoding="utf-8"))
         self.assertNotIn("historical_fixture_count", self.contract)
 
+
+    def test_form_standings_h2h_xg_and_odds_gates_are_explicit_and_fail_closed(self):
+        required = {
+            "recent_form_status", "standings_status", "h2h_status",
+            "xg_provenance_status", "odds_provenance_status",
+        }
+        self.assertTrue(required.issubset(set(self.matrix[0].keys())))
+        for row in self.matrix:
+            self.assertNotIn("VERIFIED", row["recent_form_status"])
+            self.assertIn("UNVERIFIED", row["standings_status"])
+            self.assertIn("UNVERIFIED", row["h2h_status"])
+            self.assertIn("UNVERIFIED", row["xg_provenance_status"])
+            self.assertIn("UNVERIFIED", row["odds_provenance_status"])
+            self.assertEqual(row["production_eligible"], "NO")
+
 if __name__ == "__main__":
     unittest.main()
