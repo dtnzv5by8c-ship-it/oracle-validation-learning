@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "data" / "oracle-footystats-selected-50-season-id-manifest.csv"
 EVIDENCE = ROOT / "data" / "run56_selected50_archive_evidence.csv"
+COVERAGE = ROOT / "data" / "run56_selected50_archive_feature_coverage.csv"
 OUT = ROOT / "audit-output"
 OUT.mkdir(exist_ok=True)
 MATRIX = OUT / "selected50_dry_run_coverage_matrix.csv"
@@ -18,6 +19,7 @@ def read_csv(path):
 
 selected = read_csv(MANIFEST)
 evidence_rows = read_csv(EVIDENCE)
+coverage_rows = read_csv(COVERAGE)
 assert len(selected) == 50, f"Expected 50 selected rows; got {len(selected)}"
 ids = [r.get("selected_id", "").strip() for r in selected]
 assert all(ids), "Blank selected_id"
@@ -27,6 +29,11 @@ assert len(evidence_ids) == 50, f"Expected 50 evidence rows; got {len(evidence_i
 assert len(set(evidence_ids)) == 50, "Duplicate evidence selected_id"
 assert set(ids) == set(evidence_ids), "Evidence IDs do not exactly equal selected manifest IDs"
 evidence = {r["selected_id"].strip(): r for r in evidence_rows}
+coverage_ids = [r.get("selected_id", "").strip() for r in coverage_rows]
+assert len(coverage_ids) == 31, f"Expected 31 exact archive coverage rows; got {len(coverage_ids)}"
+assert len(set(coverage_ids)) == 31, "Duplicate archive coverage IDs"
+assert set(coverage_ids) == {sid for sid in ids if evidence[sid]["run56_manifest_status"] == "MANIFEST_RECORD_PRESENT"}, "Archive feature coverage IDs do not match manifest-present IDs"
+coverage = {r["selected_id"].strip(): r for r in coverage_rows}
 matched = sum(evidence[sid]["run56_manifest_status"] == "MANIFEST_RECORD_PRESENT" for sid in ids)
 absent = sum(evidence[sid]["run56_manifest_status"] == "NO_MANIFEST_RECORD_IN_RUN56" for sid in ids)
 assert matched + absent == 50, "Unexpected or missing evidence status"
@@ -36,7 +43,7 @@ with MATRIX.open("w", encoding="utf-8", newline="") as f:
     fields = [
         "selected_id","country","competition_name","run56_manifest_status",
         "run56_ingestion_status","run56_match_count","run56_team_count","run56_matches_pages",
-        "run56_tables_status","run56_season_stats_status","provider_competition_id",
+        "run56_tables_status","run56_season_stats_status","archive_season_folder","archive_records",\n        "archive_parseable_kickoff","archive_team_ids_complete","archive_settled_status_allowed",\n        "archive_score_complete","archive_explicit_score_pairs","archive_event_array_score_pairs",\n        "archive_missing_team_names","provider_competition_id",
         "provider_season_id","live_ingestion_status","estimated_minimum_calls",
         "production_eligible"
     ]
@@ -56,6 +63,15 @@ with MATRIX.open("w", encoding="utf-8", newline="") as f:
             "run56_matches_pages": ev["matches_pages"],
             "run56_tables_status": ev["tables_status"],
             "run56_season_stats_status": ev["season_stats_status"],
+            "archive_season_folder": coverage.get(sid, {}).get("season_folder", ""),
+            "archive_records": coverage.get(sid, {}).get("records", ""),
+            "archive_parseable_kickoff": coverage.get(sid, {}).get("parseable_kickoff", ""),
+            "archive_team_ids_complete": coverage.get(sid, {}).get("team_ids_complete", ""),
+            "archive_settled_status_allowed": coverage.get(sid, {}).get("settled_status_allowed", ""),
+            "archive_score_complete": coverage.get(sid, {}).get("score_complete", ""),
+            "archive_explicit_score_pairs": coverage.get(sid, {}).get("explicit_score_pairs", ""),
+            "archive_event_array_score_pairs": coverage.get(sid, {}).get("event_array_score_pairs", ""),
+            "archive_missing_team_names": coverage.get(sid, {}).get("missing_team_names", ""),
             "provider_competition_id": "",
             "provider_season_id": sid,
             "live_ingestion_status": "NOT_REQUESTED_DRY_RUN_ONLY",
@@ -69,6 +85,13 @@ summary = {
     "selected_season_ids": len(selected),
     "run56_manifest_records_present": matched,
     "no_run56_manifest_record": absent,
+    "exact_archive_coverage_rows": len(coverage_rows),
+    "archive_records_across_exact_matched_selected_seasons": sum(int(r["records"]) for r in coverage_rows),
+    "archive_score_complete_rows_across_exact_matched_selected_seasons": sum(int(r["score_complete"]) for r in coverage_rows),
+    "archive_settled_status_allowed_rows_across_exact_matched_selected_seasons": sum(int(r["settled_status_allowed"]) for r in coverage_rows),
+    "archive_rows_with_parseable_kickoff": sum(int(r["parseable_kickoff"]) for r in coverage_rows),
+    "archive_rows_with_complete_team_ids": sum(int(r["team_ids_complete"]) for r in coverage_rows),
+    "archive_rows_missing_team_names": sum(int(r["missing_team_names"]) for r in coverage_rows),
     "minimum_endpoint_calls_if_live_one_pass": len(selected) * 4,
     "minimum_call_breakdown_per_selected_season": {
         "season_metadata": 1,
