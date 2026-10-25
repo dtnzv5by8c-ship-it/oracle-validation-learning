@@ -304,6 +304,9 @@ def main():
             final_status_missing_score = 0
             nonfinal_status_with_score = 0
             noninteger_score_rows = 0
+            completed_total_goals_0_1_rows = 0
+            combo_home_predictor_vs_ledger_disagreement_rows = 0
+            combo_away_predictor_vs_ledger_disagreement_rows = 0
             for r in raw_comp:
                 m = r.get("raw_match") or {}
                 st = str(get_first(m, ("status", "game_status")) or "UNKNOWN").strip().lower() or "unknown"
@@ -320,6 +323,14 @@ def main():
                     status_score_counts[st]["missing_score_rows"] += 1
                 if st in FINISHED and not has_score:
                     final_status_missing_score += 1
+                if st in FINISHED and has_score and (gh + ga) <= 1:
+                    # Research diagnostic only: production prediction target requires 2-4 goals,
+                    # while the current settlement ledger only checks total goals < 5.
+                    completed_total_goals_0_1_rows += 1
+                    if gh >= ga:
+                        combo_home_predictor_vs_ledger_disagreement_rows += 1
+                    if ga >= gh:
+                        combo_away_predictor_vs_ledger_disagreement_rows += 1
                 if st not in FINISHED and has_score:
                     nonfinal_status_with_score += 1
                 if has_score and (not float(gh).is_integer() or not float(ga).is_integer()):
@@ -336,6 +347,9 @@ def main():
                 "finished_status_missing_numeric_score_rows": final_status_missing_score,
                 "nonfinished_status_with_numeric_score_rows": nonfinal_status_with_score,
                 "noninteger_numeric_score_rows": noninteger_score_rows,
+                "completed_total_goals_0_1_rows": completed_total_goals_0_1_rows,
+                "combo_home_predictor_vs_ledger_disagreement_rows": combo_home_predictor_vs_ledger_disagreement_rows,
+                "combo_away_predictor_vs_ledger_disagreement_rows": combo_away_predictor_vs_ledger_disagreement_rows,
                 "source_status_counts_json": json.dumps(dict(sorted(status_counts.items())), ensure_ascii=False, separators=(",", ":")),
                 "status_score_cross_tab_json": json.dumps(dict(sorted(status_score_counts.items())), ensure_ascii=False, separators=(",", ":")),
                 "settlement_truth_status": "INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED",
@@ -798,6 +812,9 @@ def main():
             "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),
             "raw_rows_missing_normalized_fixture_id":sum(int(r.get("rows_missing_normalized_fixture_id") or 0) for r in season_qa),
             "finished_status_missing_numeric_score_rows":sum(int(r.get("rows_explicit_finished_status_missing_numeric_score") or 0) for r in season_qa),
+            "completed_total_goals_0_1_rows":sum(int(r.get("completed_total_goals_0_1_rows") or 0) for r in settlement_truth_qa),
+            "combo_home_predictor_vs_ledger_disagreement_rows":sum(int(r.get("combo_home_predictor_vs_ledger_disagreement_rows") or 0) for r in settlement_truth_qa),
+            "combo_away_predictor_vs_ledger_disagreement_rows":sum(int(r.get("combo_away_predictor_vs_ledger_disagreement_rows") or 0) for r in settlement_truth_qa),
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
@@ -811,7 +828,7 @@ def main():
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
         with settlement_path.open("w", newline="", encoding="utf-8") as settlement_file:
-            settlement_columns = ["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","status_score_cross_tab_json","settlement_truth_status","production_eligible"]
+            settlement_columns = ["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","completed_total_goals_0_1_rows","combo_home_predictor_vs_ledger_disagreement_rows","combo_away_predictor_vs_ledger_disagreement_rows","source_status_counts_json","status_score_cross_tab_json","settlement_truth_status","production_eligible"]
             settlement_writer = csv.DictWriter(settlement_file, fieldnames=settlement_columns)
             settlement_writer.writeheader(); settlement_writer.writerows(settlement_truth_qa)
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
