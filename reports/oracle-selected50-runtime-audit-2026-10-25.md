@@ -9,7 +9,7 @@
 - Artifact digest: `sha256:bd384f80fdeca4e2c909f16ba1c9522709da7ff75db5e1e030eefb6953f279e9`
 - Private candidate publication completed to the private research release path. No raw provider archive was uploaded to the public artifact.
 
-## Runtime counts
+## Runtime counts (enhanced run 40209983742)
 | Measure | Observed |
 |---|---:|
 | Selected league IDs in manifest | 50 |
@@ -24,19 +24,17 @@
 | Fixture rows with all five market probabilities present | 421 |
 | Fixture rows blocked from prediction by input/training gate | 28 |
 
-The enhanced run's seven-day report contains 449 fixtures across 41 competitions. Nine of the 50 selected competitions have no fixture represented in this particular seven-day schedule window; that is not, by itself, evidence of missing historical/provider coverage.
+The enhanced run's seven-day report contains 449 fixtures across 41 competitions. Nine of the 50 selected competitions have no fixture represented in this particular seven-day schedule window; this alone does not prove missing provider coverage.
 
 ## Report quality and limitations
-- All 446 fixtures are marked `production_eligible=NO`.
-- All 446 probability rows are marked `RAW_ONLY_UNCALIBRATED`; all are research-only.
-- The report deliberately leaves `confidence_score_pct` and `data_risk_pct` blank. Do not replace these blanks with an invented score.
-- 418 fixtures have model outputs but are categorized `HIGH_UNVALIDATED`; 28 have `CRITICAL_INCOMPLETE_INPUTS` and no market probabilities.
-- 354 fixtures show current provider team-table snapshots, explicitly not historical/as-of standings; 92 have table position missing/unverified.
-- 64 fixtures have zero prior H2H meetings; H2H is descriptive only and is not a model feature.
+- Every prediction remains research-only and `production_eligible=NO`. Probabilities are raw and uncalibrated; confidence and data-risk percentage fields are intentionally blank.
+- 421 fixtures have all five market outputs; 28 fail the input/training gate and have no market probabilities.
+- 354 rows show current provider team-table snapshots, explicitly not historical/as-of standings; 92 have table position missing/unverified.
+- 64 fixtures have no prior H2H meetings; H2H is descriptive only and is not a model feature.
 - Odds/xG-named fields in source payloads are not used by the model; market, bookmaker, scale, timestamp and point-in-time provenance remain unverified.
-- The recent-form features use each team's last five completed home (home side) or away (away side) matches strictly before target kickoff. Features requiring fewer than five matches fail closed.
-- The runtime's Combo definitions are the current research implementation: favored side (home/away) plus total goals 2–4. Do not claim equivalence with legacy Oracle Combo definitions until the market crosswalk is explicitly verified.
-- The current table snapshot must not be presented as historical league position. The runtime is a separate challenger path; legacy production files, logic, probabilities and thresholds were not changed.
+- Recent-form features use the last five completed home matches for the home team and away matches for the away team strictly before kickoff. Features requiring fewer than five matches fail closed.
+- The research Combo target (favoured side plus 2–4 total goals) matches the current live engine's documented goal corridor and double-chance condition. Exact data/fixture joins and settlement truth still need verification.
+- The current table snapshot must not be presented as historical league position. Legacy production files, logic, probabilities and thresholds were not changed.
 
 ## Raw temporal holdout results
 Primary validation window: 2025-03-20 through 2026-09-20. Training cutoff is exclusive of 2025-03-20. Each market has 22,427 training rows and 20,878 test rows. These are raw, uncalibrated results from a single temporal holdout.
@@ -49,10 +47,8 @@ Primary validation window: 2025-03-20 through 2026-09-20. Training cutoff is exc
 | COMBO_HOME | 57.40% | 0.57054 | 0.24213 | 0.67718 |
 | COMBO_AWAY | 64.93% | 0.58152 | 0.22384 | 0.63913 |
 
-These metrics do not yet establish incremental skill over a prevalence or bookmaker baseline, probability calibration, positive betting return, or stable per-league performance. In particular, threshold accuracy alone is insufficient for betting decisions. DC_HOME is the strongest candidate for further validation in this run, not an approved betting signal.
-
 ## Baseline and calibration diagnostics (enhanced run 40209983742)
-The enhanced run added training-only constant-prevalence and majority-class baselines, ten-bin expected calibration error (ECE), reliability bins, and per-league sample metrics. No calibration transform was applied.
+The enhanced run added training-only constant-prevalence and majority-class baselines, ten-bin expected calibration error (ECE), reliability bins, and per-league test metrics. No calibration transform was applied.
 
 | Market | Model accuracy | Majority baseline accuracy | Model Brier | Constant-prevalence baseline Brier | Model log loss | Constant-prevalence baseline log loss | ECE (10 bins) |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -63,10 +59,10 @@ The enhanced run added training-only constant-prevalence and majority-class base
 | COMBO_AWAY | 64.93% | 64.90% | 0.22384 | 0.22787 | 0.63913 | 0.64821 | 0.02088 |
 
 Interpretation:
-- BTTS does **not** beat the majority-class accuracy baseline in this holdout (53.59% vs 54.14%), despite slightly better Brier/log loss than the constant-prevalence probability baseline.
-- DC_HOME and DC_AWAY show better aggregate discrimination/proper scores than the simple prevalence baselines in this single holdout; that is preliminary evidence, not proof of stability, market value or ROI.
+- BTTS does not beat the majority-class accuracy baseline in this holdout (53.59% vs 54.14%), despite slightly better Brier/log loss than the constant-prevalence probability baseline.
+- DC_HOME and DC_AWAY show better aggregate discrimination/proper scores than the simple prevalence baselines in this single holdout; this is preliminary evidence, not proof of stability, market value or ROI.
 - COMBO_HOME has only a small aggregate edge over the simple baseline; COMBO_AWAY's accuracy is effectively equal to its majority baseline. Neither is approved.
-- ECE is a coarse diagnostic and does not itself certify calibration. Results need multi-period walk-forward validation, per-league minimum sample thresholds, uncertainty intervals and bookmaker-odds comparison where reliable odds are available.
+- ECE is a coarse diagnostic and does not certify calibration. Results need multi-period walk-forward validation, per-league minimum sample thresholds, uncertainty intervals and bookmaker-odds comparison where reliable odds are available.
 - Per-league metrics were computed for 43 league labels with test data; selected-50 universe completeness still requires a separate per-competition schedule/feature/readiness reconciliation.
 
 ## Release gate
