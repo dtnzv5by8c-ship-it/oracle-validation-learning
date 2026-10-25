@@ -1,51 +1,64 @@
 #!/usr/bin/env python3
-"""Research-only selected-50 planner. Never makes network/API calls."""
+"""Research-only selected-50 planner; performs no network/API calls."""
 import csv
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "data" / "oracle-footystats-selected-50-season-id-manifest.csv"
+EVIDENCE = ROOT / "data" / "run56_selected50_archive_evidence.csv"
 OUT = ROOT / "audit-output"
 OUT.mkdir(exist_ok=True)
 MATRIX = OUT / "selected50_dry_run_coverage_matrix.csv"
 SUMMARY = OUT / "selected50_dry_run_summary.json"
 
-with MANIFEST.open(encoding="utf-8-sig", newline="") as f:
-    rows = list(csv.DictReader(f))
-assert len(rows) == 50, f"Expected 50 selected rows; got {len(rows)}"
-ids = [r.get("selected_id", "").strip() for r in rows]
+def read_csv(path):
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        return list(csv.DictReader(f))
+
+selected = read_csv(MANIFEST)
+evidence_rows = read_csv(EVIDENCE)
+assert len(selected) == 50, f"Expected 50 selected rows; got {len(selected)}"
+ids = [r.get("selected_id", "").strip() for r in selected]
 assert all(ids), "Blank selected_id"
 assert len(set(ids)) == 50, "Duplicate selected_id"
+evidence_ids = [r.get("selected_id", "").strip() for r in evidence_rows]
+assert len(evidence_ids) == 50, f"Expected 50 evidence rows; got {len(evidence_ids)}"
+assert len(set(evidence_ids)) == 50, "Duplicate evidence selected_id"
+assert set(ids) == set(evidence_ids), "Evidence IDs do not exactly equal selected manifest IDs"
+evidence = {r["selected_id"].strip(): r for r in evidence_rows}
+matched = sum(evidence[sid]["run56_manifest_status"] == "MANIFEST_RECORD_PRESENT" for sid in ids)
+absent = sum(evidence[sid]["run56_manifest_status"] == "NO_MANIFEST_RECORD_IN_RUN56" for sid in ids)
+assert matched + absent == 50, "Unexpected or missing evidence status"
+assert matched == 31 and absent == 19, f"Unexpected evidence counts: {matched}/{absent}"
 
-# Archive evidence is based on the prior Run 56 audit: 31 exact IDs matched, 19 absent.
-# Keep status explicit; absent does not mean provider unavailable.
-known_matched = {
-    "16571","17181","17171","16544","17087","17157","17146","17184","17180",
-    "17102","17117","17210","17212","17356","17084","17404","17099","17097",
-    "16558","17112","17215","17247","17426","17148","17444","17199","17269",
-    "17129","17265","16504","17191"
-}
-# Only report archive status from prior exact-ID reconciliation; never fuzzy-match.
 with MATRIX.open("w", encoding="utf-8", newline="") as f:
-    w = csv.DictWriter(f, fieldnames=[
-        "selected_id","country","competition_name","archive_exact_id_status",
-        "ingestion_manifest_status","provider_competition_id","provider_season_id","live_ingestion_status",
-        "match_page_count","estimated_minimum_calls","production_eligible"
-    ])
+    fields = [
+        "selected_id","country","competition_name","run56_manifest_status",
+        "run56_ingestion_status","run56_match_count","run56_team_count","run56_matches_pages",
+        "run56_tables_status","run56_season_stats_status","provider_competition_id",
+        "provider_season_id","live_ingestion_status","estimated_minimum_calls",
+        "production_eligible"
+    ]
+    w = csv.DictWriter(f, fieldnames=fields)
     w.writeheader()
-    for r in rows:
+    for r in selected:
         sid = r["selected_id"].strip()
+        ev = evidence[sid]
         w.writerow({
             "selected_id": sid,
-            "country": r.get("country",""),
-            "competition_name": r.get("competition_name",""),
-            "archive_exact_id_status": "ARCHIVE_MATCHED" if sid in known_matched else "ARCHIVE_ABSENT_UNVERIFIED",
-            "ingestion_manifest_status": "MANIFEST_RECORD_PRESENT" if sid in known_matched else "NO_MANIFEST_RECORD_IN_RUN56",
+            "country": r.get("country", ""),
+            "competition_name": r.get("competition_name", ""),
+            "run56_manifest_status": ev["run56_manifest_status"],
+            "run56_ingestion_status": ev["run56_ingestion_status"],
+            "run56_match_count": ev["match_count"],
+            "run56_team_count": ev["team_count"],
+            "run56_matches_pages": ev["matches_pages"],
+            "run56_tables_status": ev["tables_status"],
+            "run56_season_stats_status": ev["season_stats_status"],
             "provider_competition_id": "",
             "provider_season_id": sid,
             "live_ingestion_status": "NOT_REQUESTED_DRY_RUN_ONLY",
-            "match_page_count": "UNKNOWN_UNTIL_PROVIDER_RESPONSE",
             "estimated_minimum_calls": 4,
             "production_eligible": "NO"
         })
@@ -53,21 +66,25 @@ summary = {
     "mode": "DRY_RUN_ONLY",
     "network_calls_made": 0,
     "paid_provider_calls_made": 0,
-    "selected_season_ids": len(rows),
-    "archive_exact_id_matches_from_prior_audit": len(known_matched),
-    "archive_ids_absent_unverified": len(rows)-len(known_matched),
-    "minimum_endpoint_calls_if_live_one_pass": len(rows)*4,
+    "selected_season_ids": len(selected),
+    "run56_manifest_records_present": matched,
+    "no_run56_manifest_record": absent,
+    "minimum_endpoint_calls_if_live_one_pass": len(selected) * 4,
     "minimum_call_breakdown_per_selected_season": {
         "season_metadata": 1,
         "teams": 1,
         "tables": 1,
         "matches": "at least 1 request; pagination/page count unknown"
     },
-    "additional_calls": "Any match pagination, retries, multi-year history, catalogue refresh or verification adds calls; not estimated without provider response/config.",
-    "scope_rule": "The 50 manifest IDs are treated as season IDs; competition IDs remain unresolved and are not inferred.",
+    "additional_calls": "Match pagination, retries, catalogue refresh, historical season expansion and validation add calls.",
+    "scope_rule": "Selected IDs are season IDs. Parent competition IDs are not inferred.",
+    "evidence_source": "Run 56 ingestion_manifest.csv, reconciled by exact selected season ID.",
+    "limitation": "No manifest record does not prove a provider request failed or was never attempted; Run 56 ingestion_errors.json was empty.",
     "safety_gate": "Live ingestion requires explicit user approval because it may consume provider credits.",
     "production_eligible": False
 }
 SUMMARY.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-print("PASS: selected-50 dry-run plan generated; 50 IDs; 0 network calls.")
-print(f"Minimum one-pass live request estimate: {len(rows)*4} calls, excluding pagination/retries.")
+print(f"PASS: {len(selected)} selected IDs reconciled against exact Run 56 manifest evidence.")
+print(f"Run 56 records present: {matched}; no manifest record: {absent}.")
+print("DRY RUN: 0 network calls and 0 paid provider calls.")
+print(f"Minimum one-pass live request estimate: {len(selected)*4}, excluding pagination/retries.")
