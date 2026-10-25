@@ -1,0 +1,26 @@
+name: Oracle Runtime Reference Classification Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "data/oracle_runtime_27_reference_classification_2026-10-25.csv"
+      - "tests/test_runtime_reference_classification.py"
+      - ".github/workflows/oracle_runtime_reference_classification_audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  classification-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate fixed-27 inventory classification
+        run: python -m unittest tests/test_runtime_reference_classification.py -v
