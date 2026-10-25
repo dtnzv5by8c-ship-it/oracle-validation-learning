@@ -198,3 +198,14 @@ Production readiness remains NOT_GRANTED. No production code, model logic, proba
 - **P2 — all-50 market gates and backtesting:** still NOT GRANTED until exact fixture joins, verified settled outcomes, pre-kickoff xG/odds provenance, and recorded pre-kickoff prediction/settlement pairing pass.
 
 No production model logic, prediction probabilities, calibration, thresholds, or production branch files were changed. No new provider calls were made by the dry-run. Production readiness remains NOT_GRANTED.
+
+
+## Validation outcomes update — 2026-10-25 10:10 UTC
+
+- Historical-spine validation rerun passed after correcting the public workflow to use `ORACLE_PRIVATE_READ_TOKEN`: [run 40183606444](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183606444). This confirms the corrected workflow can access and validate the governed historical spine and its locked baseline checks. It does not establish 50-league current-data readiness.
+- Selected-50 manifest validation passed: [run 40183637662](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183637662).
+- Selected-50 dry-run planner passed again: [run 40183637681](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183637681).
+- The governed readiness preflight [run 40183582977](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183582977) and production ledger readiness audit [run 40183590200](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183590200) remained in progress at the last check, with their clone/read step still running and logs unavailable from GitHub's log endpoint. Their outcomes are therefore pending, not assumed to pass.
+- The prior historical-spine run [40183586474](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183586474) failed due to the old `ORACLE_READ_TOKEN` reference and should be treated as superseded by the successful corrected run, not as evidence of a current failure.
+
+P0 is improved: public-runner execution is working and the demonstrated historical validation secret-reference defect is fixed and verified. P1/P2 remain open because current event truth, settlement, selected-50 feature provenance, market gates and prediction-to-settlement backtests have not yet all passed. Production model logic and probabilities remain unchanged; production readiness remains NOT_GRANTED.
