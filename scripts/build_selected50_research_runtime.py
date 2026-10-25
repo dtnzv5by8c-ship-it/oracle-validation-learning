@@ -846,6 +846,60 @@ def main():
             raise RuntimeError(f"Calendar-year coverage row count mismatch: expected {expected_calendar_rows}, got {len(calendar_year_rows)}")
         if any(r["production_eligible"] != "NO" for r in calendar_year_rows):
             raise RuntimeError("Calendar-year coverage attempted to grant production eligibility")
+        # Provider season-year matrix: use the source catalogue's season-year label, never kickoff-year inference.
+        provider_season_years = sorted({int(r["provider_season_start_year_from_source_label"])
+            for r in season_qa if str(r.get("provider_season_start_year_from_source_label", "")).isdigit()})
+        if not provider_season_years:
+            raise RuntimeError("Provider season-year coverage cannot be built: no source season-year labels parsed.")
+        has_unmapped_seasons = any(not str(r.get("provider_season_start_year_from_source_label", "")).isdigit() for r in season_qa)
+        provider_season_year_buckets = [str(y) for y in provider_season_years] + (["UNMAPPED"] if has_unmapped_seasons else [])
+        matches_by_season = defaultdict(list)
+        features_by_season = defaultdict(list)
+        for match_row in matches: matches_by_season[str(match_row.get("season_id") or "")].append(match_row)
+        for feature_row in feature_rows: features_by_season[str(feature_row.get("season_id") or "")].append(feature_row)
+        provider_season_year_rows = []
+        for selected_id, sel in sorted(selected_by_id.items(), key=lambda kv: (kv[1].get("country", ""), kv[1].get("competition_name", ""))):
+            selected_seasons = [r for r in season_qa if str(r.get("selected_id")) == str(selected_id)]
+            for year_bucket in provider_season_year_buckets:
+                season_group = [r for r in selected_seasons if
+                    (str(r.get("provider_season_start_year_from_source_label", "")) == year_bucket if year_bucket != "UNMAPPED"
+                     else not str(r.get("provider_season_start_year_from_source_label", "")).isdigit())]
+                season_ids = [str(r.get("season_id") or "") for r in season_group]
+                group_matches = [m for sid in season_ids for m in matches_by_season.get(sid, [])]
+                group_features = [f for sid in season_ids for f in features_by_season.get(sid, [])]
+                group_completed = [m for m in group_matches if m.get("finished") and m.get("home_goals") is not None and m.get("away_goals") is not None]
+                group_primary = [m for m in group_matches if PRIMARY_START <= m["kickoff_unix"] < PRIMARY_END]
+                group_primary_completed = [m for m in group_primary if m.get("finished") and m.get("home_goals") is not None and m.get("away_goals") is not None]
+                parent_id, parent_status = provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))
+                provider_season_year_rows.append({
+                    "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                    "provider_competition_id":parent_id,"provider_competition_id_status":parent_status,
+                    "country":sel.get("country", ""),"competition_name":sel.get("competition_name", ""),
+                    "provider_season_start_year":year_bucket,
+                    "provider_season_year_source_labels":";".join(sorted({str(r.get("provider_season_year_source", "")) for r in season_group if r.get("provider_season_year_source")})),
+                    "source_season_rows":len(season_group),
+                    "archive_match_rows_seen":sum(int(r.get("match_count") or 0) for r in season_group),
+                    "normalized_match_rows_retained":sum(int(r.get("normalized_match_rows_retained") or 0) for r in season_group),
+                    "explicitly_completed_match_rows":len(group_completed),
+                    "full_20_feature_rows":sum(1 for r in group_features if all(r.get(k) is not None for k in FEATURES)),
+                    "primary_window_match_rows":len(group_primary),
+                    "primary_window_completed_match_rows":len(group_primary_completed),
+                    "research_markets":";".join(MARKETS),
+                    "provider_season_year_mapping_status":"VERIFIED_FROM_PROVIDER_SEASON_YEAR_SOURCE_LABEL" if season_group and year_bucket != "UNMAPPED" else "UNMAPPED_SOURCE_SEASON_YEAR",
+                    "outstanding_gates":"Provider parent competition ID unavailable; canonical fixture/team joins unverified; Combo prediction/settlement mismatch; historical standings-as-of and odds/xG provenance unverified",
+                    "production_eligible":"NO"
+                })
+        provider_season_year_path = OUT / "oracle_selected50_provider_season_year_coverage.csv"
+        with provider_season_year_path.open("w", newline="", encoding="utf-8") as season_year_file:
+            season_year_columns = ["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","provider_season_start_year","provider_season_year_source_labels","source_season_rows","archive_match_rows_seen","normalized_match_rows_retained","explicitly_completed_match_rows","full_20_feature_rows","primary_window_match_rows","primary_window_completed_match_rows","research_markets","provider_season_year_mapping_status","outstanding_gates","production_eligible"]
+            season_year_writer = csv.DictWriter(season_year_file, fieldnames=season_year_columns)
+            season_year_writer.writeheader()
+            season_year_writer.writerows(provider_season_year_rows)
+        expected_provider_season_year_rows = len(selected_by_id) * len(provider_season_year_buckets)
+        if len(provider_season_year_rows) != expected_provider_season_year_rows:
+            raise RuntimeError(f"Provider season-year coverage row count mismatch: expected {expected_provider_season_year_rows}, got {len(provider_season_year_rows)}")
+        if any(r["production_eligible"] != "NO" for r in provider_season_year_rows):
+            raise RuntimeError("Provider season-year coverage attempted to grant production eligibility")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"selected_groups_with_match_rows":len(present_comps),
             "report_horizon_days":7,"minimum_lead_time_minutes":15,
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
@@ -865,6 +919,10 @@ def main():
             "provider_parent_competition_ids_ambiguous":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS"),
             "provider_parent_competition_ids_unavailable":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "UNAVAILABLE_IN_ARCHIVE_MANIFEST"),
             "provider_season_year_metadata_rows":sum(1 for r in season_qa if r.get("provider_season_year_source")),
+            "provider_season_year_coverage_rows":len(provider_season_year_rows),
+            "provider_season_start_year_min":min(provider_season_years),
+            "provider_season_start_year_max":max(provider_season_years),
+            "provider_season_year_buckets":provider_season_year_buckets,
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
@@ -885,7 +943,7 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path,settlement_path):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path,provider_season_year_path,settlement_path):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
