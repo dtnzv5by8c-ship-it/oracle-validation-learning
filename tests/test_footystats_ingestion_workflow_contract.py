@@ -33,7 +33,7 @@ class FootyStatsIngestionWorkflowContractTests(unittest.TestCase):
     def test_raw_provider_payload_is_not_uploaded_to_public_artifacts(self):
         self.assertIn("raw_provider_payload_saved_publicly", self.workflow)
         self.assertIn("Upload sanitized ledger only to public research run", self.workflow)
-        self.assertIn("raw payloads remain only in this job's temporary workspace until private transfer", self.workflow)
+        self.assertIn("Raw provider payloads remain only in this job's temporary workspace until private transfer", self.workflow)
 
     def test_embedded_ingestion_python_compiles_without_running_api_calls(self):
         lines = self.workflow.splitlines()
