@@ -96,6 +96,10 @@ jobs:
           assert d["production_eligible"] is False
           print(f"PASS: {selected_count} groups accounted for ({present} exact manifest matches, {absent} absent); counts internally consistent; no network calls; production blocked.")
           PY
+      - name: Reconcile selected-50 archive evidence layers (no network calls)
+        run: python scripts/build_selected50_archive_evidence_reconciliation.py
+      - name: Test selected-50 archive evidence reconciliation
+        run: python tests/test_selected50_archive_evidence_reconciliation.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
