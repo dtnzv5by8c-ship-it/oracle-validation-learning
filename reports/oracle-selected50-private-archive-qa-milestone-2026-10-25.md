@@ -209,3 +209,20 @@ No production model logic, prediction probabilities, calibration, thresholds, or
 - The prior historical-spine run [40183586474](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183586474) failed due to the old `ORACLE_READ_TOKEN` reference and should be treated as superseded by the successful corrected run, not as evidence of a current failure.
 
 P0 is improved: public-runner execution is working and the demonstrated historical validation secret-reference defect is fixed and verified. P1/P2 remain open because current event truth, settlement, selected-50 feature provenance, market gates and prediction-to-settlement backtests have not yet all passed. Production model logic and probabilities remain unchanged; production readiness remains NOT_GRANTED.
+
+
+## P0–P2 follow-through — 2026-10-25 12:xx UTC
+
+### Completed public-runner checks
+- Governed readiness preflight passed: [run 40183582977](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183582977). It cloned the governed private source, verified both locked historical baseline hashes, confirmed required scripts exist and compile, and uploaded a sanitized report. Explicit limits: it did **not** test the live fixture feed, verify team-state freshness, generate predictions, or allow production promotion.
+- Production ledger readiness audit passed as a *read-only audit*: [run 40183590200](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183590200). It read the canonical ledger files from source commit `015df644864392501ad0173b6350dd3a15d10e1f` on branch `fix/epl-btts-team-state-aliases`.
+- Ledger evidence is a material P2 blocker: `archive/PREDICTION_LEDGER.csv` has 210 rows across 42 fixture IDs, all labelled `CHALLENGER`; `archive/SETTLEMENT_LEDGER.csv`, `archive/MODEL_SCORECARD.csv`, `archive/POSTMORTEM_LEDGER.csv`, and `archive/PROBABILITY_ERROR_LEDGER.csv` each have zero data rows. There are zero production/live-labelled prediction rows and canonical production accuracy cannot be calculated from these ledgers. Do not treat challenger records as production predictions or claim model accuracy.
+- The audit correctly leaves production readiness `NOT_ASSESSED`; a successful audit job means the inspection ran, not that the production ledger is ready.
+
+### Revised priority and exit criteria
+1. **P0 — runner path / public research execution: PASS for the three read-only checks above.** The private-source clone, locked hash check, script compilation, and ledger inspection all completed on public runners. This does not establish why the earlier private-repository jobs failed.
+2. **P1 — data truth and point-in-time features: OPEN.** Refresh current fixture/result truth through an approved source; require explicit final status or independent settlement verification; exact fixture/team joins; and pre-kickoff provenance for form, standings, H2H, xG and odds. Existing manifests are stale and the archive's non-empty fields are not sufficient.
+3. **P2 — prediction/settlement evidence and market backtests: BLOCKED.** There is no canonical settlement data and no production/live prediction rows in the audited ledger. Populate these only from genuine immutable pre-kickoff prediction captures and verified final outcomes, then calculate market/league metrics and calibration without modifying production probabilities.
+4. **P2 — selected-50 market gates: NOT GRANTED.** Keep BTTS Yes, Double Chance and DC + Under 4.5 as `NOT_VERIFIED`; keep M-1UP `BLOCKED` until its own lead chronology and market evidence pass.
+
+No provider credits were used by these public-runner audits. No production code, model logic, probabilities, calibration or thresholds were changed. Production readiness remains `NOT_GRANTED`.
