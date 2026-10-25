@@ -28,6 +28,8 @@ jobs:
         run: python tests/test_selected50_prediction_inputs.py
       - name: Validate governed Selected-50 compatibility contract
         run: python tests/test_selected50_compatibility_contract.py
+      - name: Validate FootyStats identifier separation contract (no API calls)
+        run: python tests/test_footystats_ingestion_workflow_contract.py
       - name: Validate plan output
         run: |
           python - <<'PY'

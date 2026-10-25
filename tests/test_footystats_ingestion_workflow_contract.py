@@ -35,6 +35,14 @@ class FootyStatsIngestionWorkflowContractTests(unittest.TestCase):
         self.assertIn("Upload sanitized ledger only to public research run", self.workflow)
         self.assertIn("Raw provider payloads remain only in this job's temporary workspace until private transfer", self.workflow)
 
+
+    def test_parent_competition_id_and_season_id_are_never_conflated(self):
+        # Contract-only check: does not call FootyStats or consume provider credits.
+        self.assertIn('"season_id": sid,', self.workflow)
+        self.assertIn('"provider_league_id": str(league.get("id")) if league.get("id") is not None else "NOT_EXPOSED_BY_CATALOGUE",', self.workflow)
+        self.assertIn('sid = safe_id(season.get("id"))', self.workflow)
+        self.assertNotIn('"provider_league_id": sid', self.workflow)
+
     def test_embedded_ingestion_python_compiles_without_running_api_calls(self):
         lines = self.workflow.splitlines()
         start = next(i for i, line in enumerate(lines) if "python - <<'PY'" in line)
