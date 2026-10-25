@@ -232,3 +232,13 @@ No provider credits were used by these public-runner audits. No production code,
 - Opened research issue [#23: P1–P2 blockers: 50-league truth, point-in-time features, and verified settlements](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/issues/23) with explicit acceptance criteria and guardrails.
 - Latest public dry-run on commit `91f9b715fbb35b301e7b391e534ce445991a7399` passed: [run 40184769720](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40184769720).
 - Issue #23 is tracking research/data validation only. It does not grant permission for paid provider calls or production changes.
+
+
+## Follow-up corrective QA — 2026-10-25 10:32 UTC
+
+- **Defect found and fixed in the research-only private archive QA workflow:** substring matching treated the status value `incomplete` as if it contained a completed status because `"complete" in "incomplete"` is true. That could inflate prior-form history and completion aggregates when numeric scores were present.
+- Replaced substring status checks with an explicit final-status allowlist (`complete`, `completed`, `finished`, `full time`, `full-time`, `ft`, `ended`) and embedded regression assertions that reject `incomplete`, `suspended`, and `scheduled`.
+- Tightened the aggregate completion count: a past kickoff plus numeric scores no longer counts as completed unless the explicit final-status allowlist also passes.
+- Corrected workflow validation passed: private archive QA [run 40185145631](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145631); selected-50 dry-run planner and regression suite [run 40185145496](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145496).
+- Commit: `6da471b5190367721e45789b38cc05cd5f9f7db7`.
+- Scope is strictly research QA and reporting; no production Oracle code, model logic, probabilities, calibration, or thresholds changed. This fix improves the validity of archive QA counts but does **not** establish final settlement truth, point-in-time feature provenance, market readiness, or production eligibility. Production readiness remains `NOT_GRANTED`.
