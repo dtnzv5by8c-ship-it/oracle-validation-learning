@@ -154,7 +154,7 @@ def main():
             comp_to_selected.setdefault(cid,[]).append((sid,sel))
         if len(comp_to_selected)!=50: raise SystemExit(f"Expected 50 unique provider parent competitions; found {len(comp_to_selected)}.")
         comp_meta={cid: vals[0][1] for cid,vals in comp_to_selected.items()}
-        all_matches=[]; crosswalk=[]; season_qa=[]; team_position={}
+        all_matches=[]; crosswalk=[]; season_qa=[]; team_position={}; season_team_names={}
         for sid,meta in season_rows.items():
             cid=str(meta.get("provider_league_id","")).strip()
             if cid not in comp_meta: continue
@@ -172,16 +172,19 @@ def main():
                 continue
             for t in teams:
                 if not isinstance(t,dict) or t.get("id") is None: continue
-                team_position[(cid,str(t["id"]))]={"name":t.get("name") or t.get("english_name") or t.get("cleanName") or "",
-                                                   "table_position":num(t.get("table_position")),"season_id":sid}
+                team_name = t.get("name") or t.get("english_name") or t.get("cleanName") or ""
+                season_team_names[(cid,sid,str(t["id"]))] = team_name
+                if sid in selected_by_id:
+                    team_position[(cid,str(t["id"]))]={"name":team_name,
+                                                       "table_position":num(t.get("table_position")),"season_id":sid}
             # Table payload is not assumed to be historical; only current selected season team records are displayed.
             for m in matches:
                 if not isinstance(m,dict): continue
                 h,a=team_ids(m)
                 home_name=str(get_first(m,("home_name","home_team_name")) or "")
                 away_name=str(get_first(m,("away_name","away_team_name")) or "")
-                if not home_name and h: home_name=str(team_position.get((cid,h),{}).get("name",""))
-                if not away_name and a: away_name=str(team_position.get((cid,a),{}).get("name",""))
+                if not home_name and h: home_name=str(season_team_names.get((cid,sid,h),team_position.get((cid,h),{}).get("name","")))
+                if not away_name and a: away_name=str(season_team_names.get((cid,sid,a),team_position.get((cid,a),{}).get("name","")))
                 ts=stamp(m)
                 if ts is None or not h or not a: continue
                 row={"fixture_id":str(m.get("id") or ""), "season_id":sid,"competition_id":cid,
@@ -223,7 +226,9 @@ def main():
             hh=history_before(home_history[(comp,r["home_id"])],ts)
             ah=history_before(away_history[(comp,r["away_id"])],ts)
             f=form_features(hh,ah)
-            h2h=history_before(h2h_history[(comp,*sorted((r["home_id"],r["away_id"])))],ts)
+            h2h_all=h2h_history[(comp,*sorted((r["home_id"],r["away_id"])))]
+            h2h_cut=bisect.bisect_left([x[0] for x in h2h_all],ts)
+            h2h=h2h_all[:h2h_cut]
             last_h2h=h2h[-5:]
             h2h_btts=[]; h2h_home_results=[]; h2h_goals=[]
             for (_, old) in last_h2h:
