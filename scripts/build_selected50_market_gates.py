@@ -10,7 +10,7 @@ with MATRIX.open(encoding="utf-8",newline="") as f:
 assert len(rows)==50 and len({r["selected_id"] for r in rows})==50
 fields=[
  "selected_id","country","competition_name","archive_status",
- "fixture_join_gate","freshness_gate","point_in_time_xg_gate","point_in_time_odds_gate",
+ "fixture_join_gate","freshness_gate","recent_form_gate","standings_gate","h2h_gate","point_in_time_xg_gate","point_in_time_odds_gate",
  "btts_yes_gate","double_chance_gate","dc_under_4_5_gate","m1up_gate",
  "production_eligible","gate_reason"
 ]
@@ -26,6 +26,9 @@ with (OUT/"selected50_market_readiness_gates.csv").open("w",encoding="utf-8",new
           "archive_status":archive_status,
           "fixture_join_gate":"BLOCKED_NOT_VERIFIED",
           "freshness_gate":"BLOCKED_STALE_SOURCE_EVIDENCE",
+          "recent_form_gate":"NOT_VERIFIED_FOR_CURRENT_SELECTED50_FIXTURES",
+          "standings_gate":"NOT_VERIFIED_AS_OF_KICKOFF_FOR_CURRENT_SELECTED50_FIXTURES",
+          "h2h_gate":"NOT_VERIFIED_FOR_CURRENT_SELECTED50_FIXTURES",
           "point_in_time_xg_gate":"BLOCKED_NO_VERIFIED_AS_OF_PROVENANCE",
           "point_in_time_odds_gate":"BLOCKED_NO_VERIFIED_AS_OF_PROVENANCE",
           "btts_yes_gate":"NOT_VERIFIED",
@@ -39,6 +42,9 @@ summary={
  "selected_leagues":50,
  "all_production_eligible":False,
  "all_fixture_join_gates_blocked":True,
+ "all_recent_form_gates_unverified":True,
+ "all_standings_gates_unverified":True,
+ "all_h2h_gates_unverified":True,
  "all_point_in_time_xg_gates_blocked":True,
  "all_point_in_time_odds_gates_blocked":True,
  "btts_yes":"NOT_VERIFIED",
