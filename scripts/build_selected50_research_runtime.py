@@ -144,21 +144,28 @@ def main():
         if not isinstance(raw_manifest,list): raise SystemExit("Unexpected private ingestion manifest shape.")
         season_rows={str(r.get("season_id","")).strip():r for r in raw_manifest if isinstance(r,dict)}
         if len(season_rows)<200: raise SystemExit(f"Expected historical archive with at least 200 season rows; got {len(season_rows)}.")
-        # Resolve exact selected season IDs to their provider parent competition IDs.
-        comp_to_selected={}
-        for sid, sel in selected_by_id.items():
-            meta=season_rows.get(sid)
-            if not meta: raise SystemExit(f"Selected season ID {sid} missing from private archive.")
-            cid=str(meta.get("provider_league_id","")).strip()
-            if not cid: raise SystemExit(f"Selected season ID {sid} has no provider parent competition ID; fail closed.")
-            comp_to_selected.setdefault(cid,[]).append((sid,sel))
-        if len(comp_to_selected)!=50: raise SystemExit(f"Expected 50 unique provider parent competitions; found {len(comp_to_selected)}.")
-        comp_meta={cid: vals[0][1] for cid,vals in comp_to_selected.items()}
+        # Canonical competition crosswalk uses exact country + competition labels already audited
+        # against all 200 provider season rows. The provider catalogue does not expose a usable parent ID.
+        selected_by_label={}
+        for selected_sid, sel in selected_by_id.items():
+            label=(str(sel.get("country","")).strip(),str(sel.get("competition_name","")).strip())
+            if not all(label) or label in selected_by_label:
+                raise SystemExit("Selected-50 country/competition labels are blank or non-unique; fail closed.")
+            selected_by_label[label]=(selected_sid,sel)
+            meta=season_rows.get(selected_sid)
+            if not meta: raise SystemExit(f"Selected season ID {selected_sid} missing from private archive.")
+            if (str(meta.get("selected_country","")).strip(),str(meta.get("selected_competition_name","")).strip()) != label:
+                raise SystemExit(f"Selected season ID {selected_sid} label crosswalk mismatch; fail closed.")
+        if len(selected_by_label)!=50: raise SystemExit(f"Expected 50 exact country/competition labels; found {len(selected_by_label)}.")
+        comp_meta={selected_sid:sel for selected_sid,sel in selected_by_id.items()}
         all_matches=[]; crosswalk=[]; season_qa=[]; team_position={}; season_team_names={}
+        mapped_historical_seasons=0
         for sid,meta in season_rows.items():
-            cid=str(meta.get("provider_league_id","")).strip()
-            if cid not in comp_meta: continue
-            sel=comp_meta[cid]
+            label=(str(meta.get("selected_country","")).strip(),str(meta.get("selected_competition_name","")).strip())
+            mapped=selected_by_label.get(label)
+            if not mapped: continue
+            cid,sel=mapped
+            mapped_historical_seasons+=1
             base=f"seasons/{sid}/"
             mp=next((n for n in names if n.endswith(base+"matches.json")),None)
             tp=next((n for n in names if n.endswith(base+"teams.json")),None)
@@ -334,7 +341,7 @@ def main():
                          "note":"Single temporal holdout baseline using the locked Oracle logistic-regression form feature set; raw probabilities, no calibration, not production-approved."}
         backtest_path.write_text(json.dumps(backtest_report,indent=2)+"\n",encoding="utf-8")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"provider_competitions_with_matches":len(present_comps),
-            "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
+            "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_mapped_by_exact_labels":mapped_historical_seasons,"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
             "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
