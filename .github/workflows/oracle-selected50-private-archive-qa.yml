@@ -108,8 +108,8 @@ jobs:
                   "provider_competition_name": provider_name,
                   "selected_country": selected_country,
                   "selected_competition_name": selected_name,
-                  "provider_country_evidence_status": "NOT_RETAINED_IN_INGESTION_LEDGER",
-                  "provider_competition_name_match_status": "EXACT_NAME_MATCH" if provider_name == selected_name else "NAME_MISMATCH_REVIEW",
+                  "provider_country_evidence_status": "NOT_RETAINED_AS_SEPARATE_FIELD",
+                  "provider_country_competition_composite_match_status": "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH" if provider_name == (selected_country + " " + selected_name).strip() else "COMPOSITE_LABEL_MISMATCH_REVIEW",
                   "selected_manifest_metadata_match_status": "EXACT_LABEL_MATCH" if (ledger_country == selected_country and ledger_name == selected_name) else "LABEL_MISMATCH_OR_ID_NOT_IN_MANIFEST"
               }
               match_path = base / "matches.json"
@@ -136,6 +136,71 @@ jobs:
                   result["file_status"] = "UNEXPECTED_CONTAINER_SHAPE"
                   season_rows.append(result)
                   continue
+              # Research-only form counts use only explicitly completed matches before each target kickoff.
+              # Counts are within the selected season; prior-season carryover is not included.
+              def numeric_score(value):
+                  try:
+                      number = float(value)
+                      return math.isfinite(number) and number >= 0
+                  except (TypeError, ValueError):
+                      return False
+              def match_timestamp(match):
+                  raw_date = match.get("date_unix") or match.get("kickoff") or match.get("date") or match.get("datetime")
+                  if raw_date is None:
+                      return None
+                  try:
+                      if isinstance(raw_date, (int, float)) or str(raw_date).isdigit():
+                          return float(raw_date)
+                      parsed_dt = datetime.datetime.fromisoformat(str(raw_date).replace("Z", "+00:00"))
+                      if parsed_dt.tzinfo is None:
+                          parsed_dt = parsed_dt.replace(tzinfo=datetime.timezone.utc)
+                      return parsed_dt.timestamp()
+                  except Exception:
+                      return None
+              def explicitly_completed(match):
+                  status_value = str(match.get("status", match.get("game_status", ""))).strip().lower()
+                  finished = any(token in status_value for token in ("complete", "finished", "full time", "ended"))
+                  hs_value = match.get("homeGoalCount", match.get("home_score"))
+                  as_value = match.get("awayGoalCount", match.get("away_score"))
+                  return finished and numeric_score(hs_value) and numeric_score(as_value)
+              now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+              team_history_times = collections.defaultdict(list)
+              h2h_history_times = collections.defaultdict(list)
+              for historical_match in matches:
+                  hist_ts = match_timestamp(historical_match)
+                  hist_home = historical_match.get("homeID", historical_match.get("home_id", historical_match.get("home_team_id")))
+                  hist_away = historical_match.get("awayID", historical_match.get("away_id", historical_match.get("away_team_id")))
+                  if hist_ts is None or hist_ts >= now_ts or hist_home is None or hist_away is None or not explicitly_completed(historical_match):
+                      continue
+                  hist_home, hist_away = str(hist_home), str(hist_away)
+                  team_history_times[hist_home].append(hist_ts)
+                  team_history_times[hist_away].append(hist_ts)
+                  h2h_history_times[tuple(sorted((hist_home, hist_away)))].append(hist_ts)
+              recent_home5_available = recent_away5_available = recent_both5_available = h2h_prior_available = 0
+              season_primary_window_rows = 0
+              season_past_date_rows = season_future_date_rows = 0
+              today_utc = datetime.datetime.now(datetime.timezone.utc).date()
+              for target_match in matches:
+                  target_ts = match_timestamp(target_match)
+                  target_home = target_match.get("homeID", target_match.get("home_id", target_match.get("home_team_id")))
+                  target_away = target_match.get("awayID", target_match.get("away_id", target_match.get("away_team_id")))
+                  if target_ts is None:
+                      continue
+                  target_date = datetime.datetime.fromtimestamp(target_ts, datetime.timezone.utc).date()
+                  if target_date < today_utc: season_past_date_rows += 1
+                  elif target_date > today_utc: season_future_date_rows += 1
+                  if datetime.date(2025, 3, 20) <= target_date <= datetime.date(2026, 9, 20):
+                      season_primary_window_rows += 1
+                  if target_home is None or target_away is None:
+                      continue
+                  target_home, target_away = str(target_home), str(target_away)
+                  home_prior = sum(ts < target_ts for ts in team_history_times.get(target_home, []))
+                  away_prior = sum(ts < target_ts for ts in team_history_times.get(target_away, []))
+                  if home_prior >= 5: recent_home5_available += 1
+                  if away_prior >= 5: recent_away5_available += 1
+                  if home_prior >= 5 and away_prior >= 5: recent_both5_available += 1
+                  if any(ts < target_ts for ts in h2h_history_times.get(tuple(sorted((target_home, target_away))), [])):
+                      h2h_prior_available += 1
               match_total += len(matches)
               season_fields = set()
               valid_kickoff = 0
@@ -218,7 +283,17 @@ jobs:
                   "score_pair_count": score_pair,
                   "team_id_pair_count": team_pair,
                   "team_name_pair_count": name_pair,
-                  "duplicate_fixture_id_count": 0
+                  "duplicate_fixture_id_count": 0,
+                  "table_payload_type": type(tables).__name__,
+                  "table_payload_nonempty": bool(tables),
+                  "table_payload_top_keys": sorted(str(k) for k in tables.keys()) if isinstance(tables, dict) else [],
+                  "recent_form5_home_prior_available_count": recent_home5_available,
+                  "recent_form5_away_prior_available_count": recent_away5_available,
+                  "recent_form5_both_prior_available_count": recent_both5_available,
+                  "h2h_prior_meeting_available_count": h2h_prior_available,
+                  "primary_window_rows_2025_03_20_to_2026_09_20": season_primary_window_rows,
+                  "past_date_rows": season_past_date_rows,
+                  "future_date_rows": season_future_date_rows
               })
               season_rows.append(result)
           duplicate_ids = sum(1 for k,v in fixture_ids_seen.items() if v > 1)
@@ -229,8 +304,8 @@ jobs:
               "ingestion_ledger_rows": len(rows),
               "selected_manifest_exact_id_set_match": selected_manifest_exact_id_set_match,
               "selected_manifest_metadata_match_rows": sum(r.get("selected_manifest_metadata_match_status") == "EXACT_LABEL_MATCH" for r in season_rows),
-              "provider_competition_name_exact_match_rows": sum(r.get("provider_competition_name_match_status") == "EXACT_NAME_MATCH" for r in season_rows),
-              "provider_competition_name_mismatch_ids": [r.get("season_id") for r in season_rows if r.get("provider_competition_name_match_status") != "EXACT_NAME_MATCH"],
+              "provider_country_competition_composite_exact_match_rows": sum(r.get("provider_country_competition_composite_match_status") == "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH" for r in season_rows),
+              "provider_country_competition_composite_mismatch_ids": [r.get("season_id") for r in season_rows if r.get("provider_country_competition_composite_match_status") != "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH"],
               "provider_parent_competition_id_populated_rows": sum(bool(str(r.get("provider_parent_competition_id", "")).strip()) for r in season_rows),
               "provider_country_metadata_retained_rows": 0,
               "season_folders_audited": len(season_rows),
@@ -245,6 +320,11 @@ jobs:
               "match_records_with_explicit_score_pair": score_pair_total,
               "match_records_with_team_id_pair": team_id_pair_total,
               "match_records_with_team_name_pair": team_name_pair_total,
+              "selected_season_primary_window_rows_2025_03_20_to_2026_09_20": sum(r.get("primary_window_rows_2025_03_20_to_2026_09_20", 0) for r in season_rows),
+              "table_payload_nonempty_seasons": sum(bool(r.get("table_payload_nonempty")) for r in season_rows),
+              "seasons_with_any_recent_form5_for_both_teams": sum(int(r.get("recent_form5_both_prior_available_count", 0)) > 0 for r in season_rows),
+              "fixture_rows_with_recent_form5_for_both_teams": sum(int(r.get("recent_form5_both_prior_available_count", 0)) for r in season_rows),
+              "fixture_rows_with_h2h_prior_meeting": sum(int(r.get("h2h_prior_meeting_available_count", 0)) for r in season_rows),
               "completed_status_candidate_records": completed_total,
               "upcoming_status_candidate_records": upcoming_total,
               "records_with_past_kickoff_date": past_date_total,
