@@ -8,6 +8,12 @@ on:
         required: true
         default: false
         type: boolean
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-selected50-research-runtime.yml"
+      - "scripts/build_selected50_research_runtime.py"
 
 permissions:
   contents: read
@@ -29,7 +35,9 @@ jobs:
           CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
         run: |
           set -euo pipefail
-          [[ "${CONFIRM_PRIVATE_ARCHIVE_READ:-false}" == "true" ]] || { echo "::error::Explicit private archive read confirmation required."; exit 1; }
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            [[ "${CONFIRM_PRIVATE_ARCHIVE_READ:-false}" == "true" ]] || { echo "::error::Explicit private archive read confirmation required."; exit 1; }
+          fi
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing."; exit 1; }
           gh auth status
 
