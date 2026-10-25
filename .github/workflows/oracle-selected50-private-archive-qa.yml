@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, zipfile, hashlib, re, datetime, collections
+          import json, zipfile, hashlib, re, datetime, collections, math
           from pathlib import Path
 
           archive = Path("private-download/oracle-selected50-footystats-private-ingestion.zip")
@@ -69,6 +69,13 @@ jobs:
           match_total = 0
           completed_total = 0
           upcoming_total = 0
+          past_date_total = 0
+          future_date_total = 0
+          score_numeric_total = 0
+          status_counts = collections.Counter()
+          nonempty_odds_rows = 0
+          nonempty_xg_rows = 0
+          nonempty_prematch_xg_rows = 0
           score_pair_total = 0
           team_id_pair_total = 0
           team_name_pair_total = 0
@@ -196,7 +203,7 @@ jobs:
               "production_readiness": "NOT_GRANTED",
               "limitations": [
                 "Field presence is not proof of correct semantics or as-of-kickoff provenance.",
-                "Completed/upcoming classification is a preliminary schema check, not settlement validation.",
+                "Completed/upcoming classification uses provider status plus date and numeric score checks; it is still not settlement validation.",
                 "Recent form, H2H, standings chronology, xG provenance and odds provenance require dedicated feature-level tests."
               ]
           }
