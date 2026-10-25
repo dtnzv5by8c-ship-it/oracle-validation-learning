@@ -126,17 +126,22 @@ jobs:
                   if fid is not None:
                       fixture_ids_seen[(sid, str(fid))] += 1
                   dt = m.get("date_unix") or m.get("kickoff") or m.get("date") or m.get("datetime")
+                  parsed_date = None
                   if dt is not None:
                       valid_kickoff += 1
                       try:
                           if isinstance(dt, (int, float)) or str(dt).isdigit():
-                              d = datetime.datetime.fromtimestamp(float(dt), datetime.timezone.utc).date().isoformat()
+                              parsed_date = datetime.datetime.fromtimestamp(float(dt), datetime.timezone.utc).date()
                           else:
-                              d = str(dt)[:10]
+                              parsed_date = datetime.date.fromisoformat(str(dt)[:10])
+                          d = parsed_date.isoformat()
                           date_min = d if date_min is None or d < date_min else date_min
                           date_max = d if date_max is None or d > date_max else date_max
+                          today = datetime.datetime.now(datetime.timezone.utc).date()
+                          if parsed_date < today: past_date_total += 1
+                          elif parsed_date > today: future_date_total += 1
                       except Exception:
-                          pass
+                          parsed_date = None
                   h = m.get("homeID", m.get("home_id", m.get("home_team_id")))
                   a = m.get("awayID", m.get("away_id", m.get("away_team_id")))
                   if h is not None and a is not None: team_pair += 1
@@ -146,12 +151,33 @@ jobs:
                   hs = m.get("homeGoalCount", m.get("home_score"))
                   aws = m.get("awayGoalCount", m.get("away_score"))
                   if hs is not None and aws is not None: score_pair += 1
-                  status = str(m.get("status", m.get("game_status", ""))).lower()
-                  if (hs is not None and aws is not None) or any(t in status for t in ("complete","finished","ft","ended")):
+                  def numeric(v):
+                      try:
+                          n = float(v)
+                          return math.isfinite(n) and n >= 0
+                      except (TypeError, ValueError):
+                          return False
+                  if numeric(hs) and numeric(aws): score_numeric_total += 1
+                  status_raw = m.get("status", m.get("game_status", ""))
+                  status = str(status_raw).strip().lower()
+                  status_counts[status or "<blank>"] += 1
+                  explicit_finished = any(t in status for t in ("complete", "finished", "full time", "ended"))
+                  explicit_upcoming = any(t in status for t in ("not started", "scheduled", "upcoming", "pending"))
+                  today = datetime.datetime.now(datetime.timezone.utc).date()
+                  if explicit_finished or (parsed_date and parsed_date < today and numeric(hs) and numeric(aws)):
                       completed += 1
-                  elif any(t in status for t in ("not started","scheduled","upcoming","pending")) or hs is None or aws is None:
+                  elif explicit_upcoming or (parsed_date and parsed_date > today):
                       upcoming += 1
-                  if any("odds" in str(k).lower() for k in m): odds_field_rows += 1
+                  odds_keys = [k for k in m if "odds" in str(k).lower()]
+                  xg_keys = [k for k in m if re.search(r'(^|_)xg($|_)', str(k).lower())]
+                  prematch_xg_keys = [k for k in m if "xg" in str(k).lower() and "prematch" in str(k).lower()]
+                  if odds_keys:
+                      odds_field_rows += 1
+                      if any(m.get(k) not in (None, "", 0, "0") for k in odds_keys): nonempty_odds_rows += 1
+                  if xg_keys:
+                      xg_field_rows += 1
+                      if any(m.get(k) not in (None, "") for k in xg_keys): nonempty_xg_rows += 1
+                  if prematch_xg_keys and any(m.get(k) not in (None, "") for k in prematch_xg_keys): nonempty_prematch_xg_rows += 1+= 1
                   if any("xg" in str(k).lower() for k in m): xg_field_rows += 1
               raw_field_names.update(season_fields)
               field_counts.update(season_fields)
