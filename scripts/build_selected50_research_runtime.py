@@ -31,6 +31,16 @@ MARKETS = {
  "COMBO_AWAY": lambda h,a: int(a>=h and 2 <= h+a <= 4),
 }
 
+def wilson_interval(successes, n, z=1.959963984540054):
+    """Two-sided 95% Wilson interval for a binomial proportion; descriptive only."""
+    if n <= 0:
+        return None, None
+    p = successes / n
+    denom = 1 + z*z/n
+    center = (p + z*z/(2*n)) / denom
+    half = z * math.sqrt((p*(1-p) + z*z/(4*n))/n) / denom
+    return max(0.0, center-half), min(1.0, center+half)
+
 def read_json(z, name):
     try: return json.loads(z.read(name).decode("utf-8"))
     except Exception: return None
@@ -404,7 +414,7 @@ def main():
                 if model is None or not fold_test:
                     walk_forward.append({"market":market,"fold":fold_name,"status":"INSUFFICIENT_TRAIN_OR_TEST",
                                          "train_n":fold_train_n,"test_n":len(fold_test),
-                                         "accuracy_at_0_5":None,"brier":None,"log_loss":None,"auc":None,
+                                         "accuracy_at_0_5":None,"accuracy_95ci_low":None,"accuracy_95ci_high":None,"brier":None,"log_loss":None,"auc":None,
                                          "baseline_brier":None,"brier_skill_vs_prevalence":None})
                     continue
                 fp = [predict(model, r) for r in fold_test]
@@ -413,9 +423,14 @@ def main():
                 fp = [p for p,y0 in valid]; fy = [y0 for p,y0 in valid]
                 train_prev = sum(r["target_"+market] for r in fold_train)/len(fold_train) if fold_train else None
                 base_brier = brier_score_loss(fy, [train_prev]*len(fy)) if train_prev is not None and fy else None
+                fold_labels = [int(p >= 0.5) for p in fp]
+                fold_correct = sum(int(p) == int(y0) for p,y0 in zip(fold_labels,fy))
+                acc_ci_low, acc_ci_high = wilson_interval(fold_correct, len(fy))
                 walk_forward.append({"market":market,"fold":fold_name,"status":"RAW_WALK_FORWARD_NOT_CALIBRATED",
                     "train_n":fold_train_n,"test_n":len(fy),
-                    "accuracy_at_0_5":round(accuracy_score(fy,[int(p>=0.5) for p in fp]),5),
+                    "accuracy_at_0_5":round(accuracy_score(fy,fold_labels),5),
+                    "accuracy_95ci_low":round(acc_ci_low,5) if acc_ci_low is not None else None,
+                    "accuracy_95ci_high":round(acc_ci_high,5) if acc_ci_high is not None else None,
                     "brier":round(brier_score_loss(fy,fp),5),
                     "log_loss":round(log_loss(fy,[min(max(p,1e-6),1-1e-6) for p in fp],labels=[0,1]),5),
                     "auc":round(roc_auc_score(fy,fp),5) if len(set(fy))==2 else None,
@@ -444,6 +459,15 @@ def main():
                            "Historical settlement joins and provider point-in-time provenance remain unverified.",
                            "Per-league minimum samples are necessary but not sufficient for edge approval.",
                            "No production eligibility is granted."]},indent=2)+"\n",encoding="utf-8")
+        # Fail the workflow if the diagnostic artifact is malformed or incomplete.
+        wf_check = json.loads(wf_path.read_text(encoding="utf-8"))
+        expected_fold_rows = len(MARKETS) * len(wf_edges)
+        if len(wf_check.get("folds", [])) != expected_fold_rows:
+            raise RuntimeError(f"Walk-forward fold count mismatch: expected {expected_fold_rows}, got {len(wf_check.get('folds', []))}")
+        if len(league_market_readiness) != len(set(str(r.get("league") or "UNKNOWN") for r in train_rows)) * len(MARKETS):
+            raise RuntimeError("League-market readiness row count mismatch")
+        if any(r.get("production_eligible") != "NO" or r.get("edge_claim") != "NOT_APPROVED" for r in league_market_readiness):
+            raise RuntimeError("Research readiness artifact attempted to grant production eligibility")
         readiness_path=OUT/"oracle_selected50_league_market_readiness.csv"
         with readiness_path.open("w",newline="",encoding="utf-8") as rf:
             cols=["league","market","train_n","test_n","sample_gate","production_eligible","edge_claim"]
