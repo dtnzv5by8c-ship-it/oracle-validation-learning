@@ -260,3 +260,24 @@ No provider credits were used by these public-runner audits. No production code,
 - Production workflow failures remain unresolved because GitHub exposes no step-level job records/logs for the checked runs; root cause is unconfirmed. Do not blindly rerun production jobs or infer a billing cause.
 - Production ledgers remain insufficient for canonical accuracy: 210 prediction rows are challenger-labelled across 42 fixture IDs, while settlement, scorecard, postmortem and probability-error ledgers have zero data rows and there are no production/live-labelled predictions.
 - Readiness remains `NOT_GRANTED`; BTTS Yes, Double Chance, and DC + Under 4.5 remain `NOT_VERIFIED`; M-1UP remains `BLOCKED`. No production model logic, probabilities, calibration, thresholds, or paid provider ingestion were changed by this checkpoint.
+
+
+
+## Static production workflow compatibility audit — 2026-10-25
+
+### Confirmed configuration mismatch
+- Read-only inspection of production `.github/workflows/oracle_v4_router.yml` found its historical-intelligence preflight asserts `active_leagues == 27` and `fixtures == 12836`. That is a hard-coded 27-league gate and is not evidence of 50-league readiness.
+- Multiple production workflow filenames and names still explicitly refer to the 27-league universe. The governed target is now 50 leagues, so those legacy gates must be inventoried and reconciled under a separately approved change plan before any production claim of 50-league support.
+- Per governance, the production workflow and model were not edited. This audit records the mismatch as a blocker rather than weakening or bypassing the preflight.
+
+### Production runner diagnosis
+- The latest inspected production V4 run [40183610511](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40183610511) failed within seconds. Its job endpoint returned no step list and the job-log download returned `BlobNotFound`; the current-data staging failure showed the same lack of step-level evidence in the earlier audit.
+- These observations localise the unresolved issue to before ordinary step logs are available, but do not establish a specific cause. Runner allocation, repository/account Actions policy, and service-side failure remain hypotheses only. Do not change billing, secrets, runners, or production logic based on inference alone.
+
+### Updated priority
+1. **P0:** obtain actionable diagnostics for failed production workflow initialization / runner allocation without provider ingestion.
+2. **P1:** catalogue every legacy 27-league hard-coded workflow gate and map it against the governed 50-league canonical IDs; propose changes only on the research branch until explicitly governed.
+3. **P1:** complete fixture settlement and point-in-time feature provenance checks.
+4. **P2:** historical backtest, calibration, and market-specific readiness only after P1 evidence is valid.
+
+Production readiness remains `NOT_GRANTED`; no production logic, probabilities, calibration or thresholds changed, and no paid provider requests were initiated by this audit.
