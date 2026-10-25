@@ -77,6 +77,7 @@ jobs:
             selected50_runtime_output/oracle_selected50_feature_qa.json
             selected50_runtime_output/season_coverage.csv
             selected50_runtime_output/oracle_selected50_calendar_year_coverage.csv
+            selected50_runtime_output/oracle_selected50_calendar_year_coverage.csv
           if-no-files-found: error
           retention-days: 14
 
