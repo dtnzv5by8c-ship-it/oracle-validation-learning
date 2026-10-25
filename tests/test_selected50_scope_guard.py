@@ -88,6 +88,15 @@ class Selected50ScopeGuardTests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE")
         self.assertEqual(result["provider_catalogue_id_column_check"]["status"], "AMBIGUOUS_ID_COLUMNS")
 
+    def test_catalogue_provider_id_column_present_but_blank(self):
+        self.write_csv(self.catalogue, [{"provider_league_id": "", "provider_league_name": f"League {i}"}
+                                        for i in range(43)])
+        result = self.run_audit()
+        self.assertEqual(result["status"], "BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE")
+        self.assertEqual(result["provider_catalogue_id_column_check"]["status"], "ID_COLUMN_PRESENT_BUT_BLANK")
+        self.assertIn("every provider ID value is blank", " ".join(result["blockers"]))
+
+
     def test_approval_state_is_rejected_by_scope_audit(self):
         rows = [{"footystats_provider_id": x, "crosswalk_status": "UNRESOLVED", "production_eligibility": "NOT_GRANTED"} for x in self.ids]
         rows[0]["production_eligibility"] = "PRODUCTION"

@@ -44,23 +44,32 @@ def norm_id(value):
 def id_column(rows, source_name):
     if not rows:
         return None, {"status": "EMPTY_SOURCE", "candidate_columns": []}
-    available = set(rows[0].keys())
+    available = list(rows[0].keys())
     candidates = []
     for key in ID_COLUMNS:
         for col in available:
-            if col.strip().lower() == key and any(norm_id(r.get(col)) for r in rows):
+            if col.strip().lower() == key:
                 candidates.append(col)
-    # Keep only the highest-priority column when the columns agree. If they disagree,
-    # the source is ambiguous and must not silently select one.
+    if not candidates:
+        return None, {"status": "NO_PROVIDER_ID_COLUMN", "candidate_columns": [],
+                      "available_columns": sorted(available)}
     sets = {col: {norm_id(r.get(col)) for r in rows if norm_id(r.get(col))} for col in candidates}
-    nonempty_sets = {tuple(sorted(v)) for v in sets.values()}
+    populated = [col for col in candidates if sets[col]]
+    populated_counts = {col: len(sets[col]) for col in candidates}
+    if not populated:
+        return None, {"status": "ID_COLUMN_PRESENT_BUT_BLANK", "candidate_columns": candidates,
+                      "populated_id_counts": populated_counts,
+                      "blank_row_counts": {col: len(rows) for col in candidates}}
+    # Multiple populated ID-like columns must agree exactly; never silently pick one.
+    nonempty_sets = {tuple(sorted(sets[col])) for col in populated}
     if len(nonempty_sets) > 1:
         return None, {"status": "AMBIGUOUS_ID_COLUMNS", "candidate_columns": candidates,
-                      "distinct_id_counts": {k: len(v) for k, v in sets.items()}}
-    if not candidates:
-        return None, {"status": "NO_PROVIDER_ID_COLUMN", "candidate_columns": []}
-    return candidates[0], {"status": "ID_COLUMN_FOUND", "candidate_columns": candidates,
-                           "distinct_id_count": len(sets[candidates[0]])}
+                      "populated_id_counts": populated_counts}
+    selected = populated[0]
+    return selected, {"status": "ID_COLUMN_FOUND", "candidate_columns": candidates,
+                      "populated_id_counts": populated_counts,
+                      "distinct_id_count": len(sets[selected]),
+                      "blank_row_count": sum(not norm_id(r.get(selected)) for r in rows)}
 
 
 def compare_ids(expected, observed):
@@ -102,7 +111,10 @@ def audit(manifest_path, crosswalk_path, catalogue_path, archive_manifest_path):
     cat_col, cat_col_info = id_column(catalogue, "provider catalogue")
     catalogue_check = None
     if cat_col is None:
-        issues.append("provider catalogue has no unambiguous populated competition/provider ID column")
+        if cat_col_info.get("status") == "ID_COLUMN_PRESENT_BUT_BLANK":
+            issues.append("provider catalogue ID column exists but every provider ID value is blank")
+        else:
+            issues.append("provider catalogue has no unambiguous populated competition/provider ID column")
     else:
         cat_ids = {norm_id(r.get(cat_col)) for r in catalogue if norm_id(r.get(cat_col))}
         catalogue_check = compare_ids(selected, cat_ids)
