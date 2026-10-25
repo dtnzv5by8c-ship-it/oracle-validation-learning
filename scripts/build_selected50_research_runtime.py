@@ -244,11 +244,19 @@ def main():
             rejected_missing_kickoff_rows = 0
             rejected_missing_home_team_id_rows = 0
             rejected_missing_away_team_id_rows = 0
+            rows_missing_normalized_fixture_id = 0
+            rows_explicit_finished_status_missing_numeric_score = 0
             for m in matches:
                 if not isinstance(m,dict):
                     rejected_non_object_rows += 1
                     continue
                 h,a=team_ids(m)
+                if m.get("id") in (None, ""):
+                    rows_missing_normalized_fixture_id += 1
+                source_status = str(get_first(m,("status","game_status")) or "").strip().lower()
+                score_h, score_a = match_score(m)
+                if source_status in FINISHED and (score_h is None or score_a is None):
+                    rows_explicit_finished_status_missing_numeric_score += 1
                 home_name=str(get_first(m,("home_name","home_team_name")) or "")
                 away_name=str(get_first(m,("away_name","away_team_name")) or "")
                 if not home_name and h: home_name=str(season_team_names.get((cid,sid,h),team_position.get((cid,h),{}).get("name","")))
@@ -271,7 +279,9 @@ def main():
                 "rejected_non_object_rows": rejected_non_object_rows,
                 "rejected_missing_kickoff_rows": rejected_missing_kickoff_rows,
                 "rejected_missing_home_team_id_rows": rejected_missing_home_team_id_rows,
-                "rejected_missing_away_team_id_rows": rejected_missing_away_team_id_rows})
+                "rejected_missing_away_team_id_rows": rejected_missing_away_team_id_rows,
+                "rows_missing_normalized_fixture_id": rows_missing_normalized_fixture_id,
+                "rows_explicit_finished_status_missing_numeric_score": rows_explicit_finished_status_missing_numeric_score})
             season_qa.append(season_row)
         # Fail closed on unresolved competition mapping or gross archive loss.
         present_comps={r["competition_id"] for r in all_matches}
@@ -707,6 +717,8 @@ def main():
             "future_fixture_candidates_in_report_horizon":len(future),
             "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_mapped_by_exact_labels":mapped_historical_seasons,"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
             "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),
+            "raw_rows_missing_normalized_fixture_id":sum(int(r.get("rows_missing_normalized_fixture_id") or 0) for r in season_qa),
+            "finished_status_missing_numeric_score_rows":sum(int(r.get("rows_explicit_finished_status_missing_numeric_score") or 0) for r in season_qa),
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
@@ -719,7 +731,7 @@ def main():
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
-            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows"]
+            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(season_qa)
