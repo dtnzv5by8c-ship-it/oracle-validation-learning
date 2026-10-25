@@ -74,3 +74,12 @@ The latest research planner is green, but it is a dry-run planning result—not 
 ## Runner failure interpretation — documentation cross-check
 
 GitHub's current hosted-runner documentation lists `ubuntu-slim` as supported for private repositories, so the label alone is not evidence of an unsupported runner choice. The production failure's `runner_id: 0`, blank runner name and zero steps point to a failure before recorded runner execution. The previously reported Actions budget/spending-limit restriction is a plausible explanation, but the present run payload and unavailable logs do not prove it. Verify the repository/organization Actions billing and spending-limit status in GitHub before any production rerun; do not raise the spending limit without Nolan's approval. Sources: [GitHub-hosted runners reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+
+
+## Run 56 gap interpretation refinement — 2026-10-25 11:40 UTC
+
+The 19 IDs in `data/run56_selected50_manifest_gap_triage.csv` have **no Run 56 manifest record**, but that is not equivalent to missing data across all retained archives. The separate private Selected-50 ingestion package QA run [40185145631](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145631) previously reported all 50 selected season IDs as `INGESTED`. Therefore these 19 are currently a **Run 56 provenance/manifest discrepancy**, not confirmed failed provider requests or confirmed absent archive data.
+
+The triage ledger was updated to record that distinction on all 19 rows. Provider request status remains `UNKNOWN_NOT_INFERRED` because the exact private-package per-season rows and original request logs have not yet been reconciled in this audit. Do not repeat ingestion or spend provider calls to fix a manifest discrepancy. Next: retrieve/reconcile the exact private package row-level evidence and request logs against these IDs. The package-level QA is not enough to assert every row is complete, valid, or production-eligible.
+
+No market gate changes: production readiness remains `NOT_GRANTED`; BTTS Yes, Double Chance, and DC + Under 4.5 remain `NOT_VERIFIED`; M-1UP remains `BLOCKED`. No production code, model logic, probabilities, calibration, thresholds, or production files changed.
