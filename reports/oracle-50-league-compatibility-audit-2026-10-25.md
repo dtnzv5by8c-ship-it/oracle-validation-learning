@@ -156,3 +156,13 @@ Read-only public research workflow [run 40191635164](https://github.com/dtnzv5by
 - `scripts/build_oracle_historical_intelligence.py` and `scripts/build_oracle_team_dna_v2.py` (1 each)
 
 This is a static pattern scan, not a code migration. Some 27/12,836 values correctly describe frozen historical samples. The operational 50-league migration remains blocked until each match is semantically classified as a frozen baseline versus a runtime universe assumption and the governed 50-ID manifest is wired through a reviewed, tested production change. No private source files were modified.
+
+
+## Semantic classification of 27-league references — 2026-10-25
+
+- Pinned source SHA reviewed read-only: `cb89e5bd1c24810fe821a6b2c3c2c1c19272b381`.
+- Added machine-readable file-level classification: [`data/oracle_runtime_27_reference_classification_2026-10-25.csv`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/data/oracle_runtime_27_reference_classification_2026-10-25.csv).
+- The classification separates active runtime blockers (fixture ingestion, report universe, readiness validation, final assessment and registry), legacy workflows explicitly scoped to 27 leagues, and the frozen historical-intelligence baseline (the 2025-03-21–2026-09-20 sample and its 12,836-fixture gate). It explicitly forbids rewriting the frozen historical sample to imply 50-league historical validation.
+- This is a **file-level semantic classification**, not a claim that every one of the 82 individual pattern occurrences has been annotated line-by-line. The per-file match counts reconcile to the static inventory; the source was not changed.
+- The safest migration path is now explicit: add a separate governed Selected-50 runtime manifest and compatibility checks; retain legacy 27 workflows and historical outputs; migrate each active consumer only in a separately reviewed production change; keep market eligibility fail-closed until exact fixture joins, verified settlement, point-in-time features and production-labelled validation pass.
+- Current production source and model behaviour remain unchanged. Production readiness remains **NOT_GRANTED**.
