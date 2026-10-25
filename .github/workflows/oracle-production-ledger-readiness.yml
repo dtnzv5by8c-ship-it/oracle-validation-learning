@@ -3,7 +3,7 @@ name: Oracle production ledger readiness audit — public runner
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, research/oracle-50-league-readiness-audit]
     paths:
       - ".github/workflows/oracle-production-ledger-readiness.yml"
 
