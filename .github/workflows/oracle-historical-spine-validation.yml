@@ -2,6 +2,11 @@ name: Oracle Historical Spine Validation
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-historical-spine-validation.yml"
 
 permissions:
   contents: read
