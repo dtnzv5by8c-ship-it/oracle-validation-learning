@@ -73,17 +73,28 @@ jobs:
           p = Path("audit-output/selected50_evidence_layer_reconciliation.json")
           d = json.loads(p.read_text(encoding="utf-8"))
           e = d["run56_exact_id_evidence"]
-          assert d["selected_group_count"] == 50
-          assert e["manifest_records_present"] == 31
-          assert e["no_manifest_record"] == 19
-          assert e["exact_archive_coverage_rows"] == 31
+          selected_count = d["selected_group_count"]
+          present = e["manifest_records_present"]
+          absent = e["no_manifest_record"]
+          archive_rows = e["archive_records"]
+          # Assert stable invariants rather than freezing today's 31/19 split.
+          # A refreshed evidence snapshot may legitimately change the counts.
+          assert selected_count == 50
+          assert present >= 0 and absent >= 0 and present + absent == selected_count
+          assert e["exact_archive_coverage_rows"] == present
+          for field in ("archive_score_complete_rows", "archive_settled_status_allowed_rows",
+                        "archive_parseable_kickoff_rows", "archive_complete_team_id_rows",
+                        "archive_rows_missing_team_names"):
+              assert 0 <= e[field] <= archive_rows, (field, e[field], archive_rows)
           assert d["identity_findings"]["provider_parent_competition_ids_populated_by_this_dry_run"] == 0
           assert d["identity_findings"]["parent_ids_inferred_from_season_ids"] is False
           assert d["identity_findings"]["canonical_fixture_team_join_verified"] is False
+          assert d["identity_findings"]["settlement_truth_verified"] is False
           assert d["live_ingestion"]["network_calls_made"] == 0
           assert d["live_ingestion"]["paid_provider_calls_made"] == 0
+          assert d["live_ingestion"]["minimum_endpoint_calls_if_one_pass"] >= selected_count
           assert d["production_eligible"] is False
-          print("PASS: evidence layers remain distinct; missing IDs are not inferred; no network calls; production blocked.")
+          print(f"PASS: {selected_count} groups accounted for ({present} exact manifest matches, {absent} absent); counts internally consistent; no network calls; production blocked.")
           PY
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
