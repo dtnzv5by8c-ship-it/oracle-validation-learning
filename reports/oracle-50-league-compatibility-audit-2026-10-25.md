@@ -121,3 +121,18 @@ No market gate changes: production readiness remains `NOT_GRANTED`; BTTS Yes, Do
 - Additional planner runs [40191217526](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191217526) and [40191213281](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191213281) also completed successfully against adjacent audit commits.
 - The latest triage ledger records all 19 Run 56 gaps as present in the private package QA evidence, with exact per-season match counts, primary-window counts, recent-form-5 coverage, H2H counts, QA artifact ID and archive digest. It also records the verified insufficient-history cases for Australia and India.
 - The successful research workflows establish only that the audit contracts and dry-run planner are passing. They do **not** clear the production runner, migrate production to 50 leagues, certify settlement/features, or establish production prediction accuracy. Release status remains **NOT_GRANTED**.
+
+
+## Structural fixture-integrity audit — 2026-10-25
+
+Research-only private archive QA [run 40191502265](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191502265), artifact **12598431755**, passed after replacing the per-season hardcoded duplicate count with actual counters and adding structural integrity metrics. The sanitized artifact reports:
+
+- 14,051 records across 50 seasons; 14,051 unique season/fixture-ID pairs; **0 duplicate fixture-ID pairs**.
+- **0** missing fixture IDs, missing home/away team-ID pairs, same home/away team IDs, missing/unparseable kickoff values, missing score pairs or invalid numeric score pairs.
+- 50/50 selected season IDs, 50/50 valid season folders, 50/50 exact selected metadata matches; raw payload remains private.
+
+These are structural completeness results only. They do not establish that provider fixture IDs map exactly to the canonical Oracle fixture slate or that team IDs are canonical across competitions/seasons. Parent competition IDs are not retained in the package. Cross-source joins, settlement truth and point-in-time feature provenance remain unverified; production readiness remains **NOT_GRANTED**. The dry-run planner [run 40191502235](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191502235) also passed all substantive steps.
+
+## Production runner failure pattern
+
+The latest private-repository workflow failure, [run 40190338066](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40190338066), has the same pre-step pattern as [run 40183610511](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40183610511): the first job has `runner_id=0`, blank runner name, zero steps, and no retrievable job log; dependent jobs are skipped. This confirms a repeated pre-runner/job-initialization failure pattern, but does not independently prove the billing/spending-limit cause. The user has reported that private Actions minutes are exhausted. Continue with public research workflows; do not consume private Actions retries, raise spend limits, or change production workflow/model files without a verified cause and explicit approval.
