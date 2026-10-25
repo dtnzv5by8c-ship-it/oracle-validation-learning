@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Validate private Oracle historical spine
         env:
-          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_READ_TOKEN }}
+          ORACLE_READ_TOKEN: ${{ secrets.ORACLE_PRIVATE_READ_TOKEN }}
 
         run: |
           set -euo pipefail
