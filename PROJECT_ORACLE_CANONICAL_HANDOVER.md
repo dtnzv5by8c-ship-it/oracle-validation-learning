@@ -305,3 +305,11 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Added `reports/oracle-selected50-research-league-code-crosswalk-2026-10-25.csv` (commit `a743c9e199766ac06b95cfeef1fe8be4b98d754d`): 50 rows and 50 unique `R50_<ISO3>_<COMPETITION_SLUG>` research aliases.
 - These codes are derived from the source country and competition labels. They are stable research grouping aliases only—not provider parent IDs and not production canonical league codes. The CSV keeps the selected season ID and provider-parent-ID status separate, and all rows remain production-ineligible.
 - Do not promote these aliases into the frozen production registry. For production parity, the 23 selected labels that match the current production registry by exact name/explicit alias still require a restricted mapping audit, and the other 27 require an approved production-code decision. No private production canonical codes were copied into the public crosswalk.
+
+
+## 28. User-facing research report files generated — 2026-10-25
+
+- Generated workbook: `Project_Oracle_Selected50_Research_Report_2026-10-25.xlsx` (11 sheets after adding the research-only league-code crosswalk).
+- Generated PDF: `Project_Oracle_Selected50_Research_Report_2026-10-25.pdf` (17 pages; includes the executive/validation summary and all 449 fixture candidates).
+- Both files were built from verified runtime artifact `12609615576` / run `40221071770`, and are available as downloadable attachments in the conversation. They are research-only and not committed as production artifacts.
+- The Excel workbook includes the 50-row research alias mapping; canonical production code mappings are intentionally not exposed in the public research repository. Production release remains `NOT_GRANTED`.
