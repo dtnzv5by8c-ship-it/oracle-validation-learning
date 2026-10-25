@@ -22,6 +22,16 @@ class Selected50DryRunTests(unittest.TestCase):
         self.assertEqual(31,sum(r["run56_manifest_status"]=="MANIFEST_RECORD_PRESENT" for r in self.rows))
         self.assertEqual(19,sum(r["run56_manifest_status"]=="NO_MANIFEST_RECORD_IN_RUN56" for r in self.rows))
         self.assertTrue(all(r["run56_ingestion_status"]=="INGESTED" for r in self.rows if r["run56_manifest_status"]=="MANIFEST_RECORD_PRESENT"))
+    def test_archive_feature_quality_is_exactly_scoped(self):
+        matched=[r for r in self.rows if r["run56_manifest_status"]=="MANIFEST_RECORD_PRESENT"]
+        self.assertEqual(31,len(matched))
+        self.assertTrue(all(r["archive_season_folder"].endswith("_"+r["selected_id"]) for r in matched))
+        self.assertTrue(all(r["archive_score_complete"]==r["archive_records"] for r in matched))
+        self.assertTrue(all(r["archive_parseable_kickoff"]==r["archive_records"] for r in matched))
+        self.assertTrue(all(r["archive_team_ids_complete"]==r["archive_records"] for r in matched))
+        self.assertEqual(0,sum(int(r["archive_missing_team_names"] or 0) for r in matched))
+        self.assertGreater(self.summary["archive_records_across_exact_matched_selected_seasons"], 0)
+        self.assertEqual(sum(int(r["archive_records"]) for r in matched), self.summary["archive_records_across_exact_matched_selected_seasons"])
     def test_no_guessed_parent_ids(self):
         self.assertTrue(all(not r["provider_competition_id"] for r in self.rows))
     def test_dry_run_only(self):
