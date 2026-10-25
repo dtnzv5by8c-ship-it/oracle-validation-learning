@@ -1,0 +1,61 @@
+import csv
+import json
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+MATRIX = ROOT / "data" / "oracle_selected50_data_gate_matrix_2026-10-25.csv"
+MANIFEST = ROOT / "data" / "oracle-footystats-selected-50-season-id-manifest.csv"
+CONTRACT = ROOT / "config" / "oracle_selected50_compatibility_contract_v1.json"
+EXPECTED_RUN56_GAPS = {
+    17326, 16741, 16615, 16789, 16614, 17091, 16714, 16572, 17964,
+    17115, 16533, 16905, 16537, 17178, 17119, 16627, 16576, 16708, 16617,
+}
+
+class Selected50DataGateMatrixTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        with MATRIX.open(encoding="utf-8-sig", newline="") as f:
+            cls.matrix = list(csv.DictReader(f))
+        with MANIFEST.open(encoding="utf-8-sig", newline="") as f:
+            cls.manifest = list(csv.DictReader(f))
+        cls.contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+
+    def test_exactly_50_unique_season_ids_and_labels(self):
+        ids = [int(r["season_id"]) for r in self.matrix]
+        self.assertEqual(len(self.matrix), 50)
+        self.assertEqual(len(set(ids)), 50)
+        expected = {(int(r["selected_id"]), r["country"], r["competition_name"]) for r in self.manifest}
+        actual = {(int(r["season_id"]), r["country"], r["competition_name"]) for r in self.matrix}
+        self.assertEqual(len(expected), 50)
+        self.assertEqual(actual, expected)
+
+    def test_run56_gaps_are_explicit_and_exact(self):
+        gaps = {int(r["season_id"]) for r in self.matrix if r["run56_manifest_status"] == "GAP_REQUIRES_RECONCILIATION"}
+        self.assertEqual(gaps, EXPECTED_RUN56_GAPS)
+        self.assertEqual(len(gaps), 19)
+
+    def test_archive_presence_does_not_promote_data_gates(self):
+        for row in self.matrix:
+            self.assertEqual(row["archive_package_status"], "PRESENT_VERIFIED_BY_PACKAGE_QA")
+            self.assertEqual(row["canonical_fixture_join_status"], "NOT_VERIFIED")
+            self.assertEqual(row["settlement_truth_status"], "NOT_VERIFIED")
+            self.assertEqual(row["point_in_time_features_status"], "NOT_VERIFIED")
+            self.assertEqual(row["production_eligible"], "NO")
+
+    def test_insufficient_recent_form_is_flagged_for_australia_and_india(self):
+        for season_id in (17326, 17964):
+            row = next(r for r in self.matrix if int(r["season_id"]) == season_id)
+            self.assertIn("recent-form coverage insufficient", row["notes"])
+            self.assertIn("prior-season continuity unverified", row["notes"])
+
+    def test_production_governance_and_markets_fail_closed(self):
+        self.assertEqual(self.contract["status"], "RESEARCH_ONLY_NOT_PRODUCTION_AUTHORIZATION")
+        self.assertTrue(self.contract["governance"]["historical_baselines_are_immutable"])
+        self.assertFalse(self.contract["governance"]["production_model_logic_may_change"])
+        self.assertFalse(self.contract["governance"]["production_probabilities_may_change"])
+        self.assertEqual(self.contract["market_readiness_defaults"]["BTTS Yes"], "NOT_VERIFIED")
+        self.assertEqual(self.contract["market_readiness_defaults"]["M-1UP"], "BLOCKED")
+
+if __name__ == "__main__":
+    unittest.main()
