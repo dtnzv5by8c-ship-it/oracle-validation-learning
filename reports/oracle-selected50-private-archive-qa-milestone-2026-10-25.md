@@ -242,3 +242,11 @@ No provider credits were used by these public-runner audits. No production code,
 - Corrected workflow validation passed: private archive QA [run 40185145631](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145631); selected-50 dry-run planner and regression suite [run 40185145496](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145496).
 - Commit: `6da471b5190367721e45789b38cc05cd5f9f7db7`.
 - Scope is strictly research QA and reporting; no production Oracle code, model logic, probabilities, calibration, or thresholds changed. This fix improves the validity of archive QA counts but does **not** establish final settlement truth, point-in-time feature provenance, market readiness, or production eligibility. Production readiness remains `NOT_GRANTED`.
+
+
+## Latest continuation review — 2026-10-25 10:40 UTC
+
+- Rechecked latest research-branch runs: [archive QA 40185145631](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185145631) and [dry-run planner/regressions 40185182565](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40185182565) both completed successfully after the strict-status correction.
+- Rechecked production repo failures, including [Current Data Staging 40179475855](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179475855) and [V4 Team League Contradiction Market Router 40183610511](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40183610511). The available job metadata contains empty step lists; fetching the data-staging job log returns `BlobNotFound`. Therefore, the underlying production runner/workflow failure remains **unresolved and unconfirmed**; no billing or configuration cause is asserted.
+- No production workflow was blindly rerun and no production files were changed. Public research runner health does not prove private production execution has been restored.
+- Next hard blockers remain unchanged: canonical 50-season/fixture identity, verified settlement outcomes, point-in-time feature provenance, and genuine production-labelled pre-kickoff prediction rows. Market gates remain `NOT_VERIFIED` / `BLOCKED`; readiness remains `NOT_GRANTED`.
