@@ -2,6 +2,8 @@
 Last reviewed: 2026-10-25
 Purpose: single source of truth for continuing the existing Project Oracle without making Nolan repeat decisions or context.
 
+**Latest verified checkpoint:** Section 25 and runtime run [40221071770](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221071770) supersede earlier runtime counts and earlier notes that season-year mapping was unavailable. Use the provider season-year matrix from that artifact for current year coverage; the older annual reconciliation CSV is an earlier archive snapshot. Provider parent competition IDs remain unavailable, and production is still NOT_GRANTED.
+
 ## 1. Non-negotiable objective
 Deliver a usable, evidence-backed Oracle prediction report for the governed 50-league universe, with per-fixture market probabilities and the supporting Visual Intelligence needed to judge the fixture:
 - recent form (including home/away splits where source data supports it);
