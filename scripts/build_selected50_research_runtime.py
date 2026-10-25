@@ -408,6 +408,10 @@ def main():
             with pred_path.open("w",newline="",encoding="utf-8") as f:
                 cols=list(predictions[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(predictions)
         else: pred_path.write_text("prediction_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED\n",encoding="utf-8")
+        schedule_path=OUT/"oracle_selected50_schedule_coverage.csv"
+        with schedule_path.open("w",newline="",encoding="utf-8") as sf:
+            scols=["selected_id","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
+            sw=csv.DictWriter(sf,fieldnames=scols);sw.writeheader();sw.writerows(schedule_coverage)
         # Additional rolling-origin walk-forward diagnostics. Each fold trains only on
         # completed, fully-featured matches strictly before the fold's test start.
         # These are validation folds, not calibration or model-selection inputs.
