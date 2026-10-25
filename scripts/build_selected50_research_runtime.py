@@ -142,6 +142,31 @@ def predict(model, feature):
     if model is None or any(feature.get(f) is None for f in FEATURES): return None
     return float(model.predict_proba([[float(feature[f]) for f in FEATURES]])[0,1])
 
+def season_coverage_row(sid, meta, selected_id, selected, status, match_count, team_count=None):
+    # Preserve only source-provided season metadata. Missing years remain unverified.
+    def source_value(keys):
+        for key in keys:
+            value = meta.get(key)
+            if value not in (None, ""):
+                return str(value)
+        return ""
+    season_label = source_value(("season_name", "season_label", "season", "season_year", "year"))
+    season_start = source_value(("season_start", "start_date", "start", "starting_at", "season_start_date"))
+    season_end = source_value(("season_end", "end_date", "end", "ending_at", "season_end_date"))
+    year_match = re.match(r"^(\\d{4})", season_start)
+    season_start_year = year_match.group(1) if year_match else ""
+    return {
+        "season_id": str(sid), "selected_id": str(selected_id),
+        "country": str(selected.get("country", "")),
+        "competition": str(selected.get("competition_name", "")),
+        "season_label_source": season_label, "season_start_source": season_start,
+        "season_end_source": season_end,
+        "season_start_year_derived_from_source_date": season_start_year,
+        "season_year_mapping_status": "SOURCE_DATE_YEAR_AVAILABLE" if season_start_year else ("SOURCE_SEASON_LABEL_AVAILABLE_YEAR_UNPARSED" if season_label else "UNVERIFIED_NO_SOURCE_YEAR"),
+        "status": status, "match_count": int(match_count),
+        "team_count": "" if team_count is None else int(team_count),
+    }
+
 def main():
     selected=list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig",newline="")))
     selected_by_id={str(r.get("selected_id","")).strip():r for r in selected}
@@ -181,11 +206,11 @@ def main():
             tp=next((n for n in names if n.endswith(base+"teams.json")),None)
             tabp=next((n for n in names if n.endswith(base+"tables.json")),None)
             if not mp or not tp:
-                season_qa.append({"season_id":sid,"selected_competition":sel["competition_name"],"status":"MISSING_MATCH_OR_TEAM_FILE","match_count":0})
+                season_qa.append(season_coverage_row(sid,meta,cid,sel,"MISSING_MATCH_OR_TEAM_FILE",0))
                 continue
             matches=read_json(z,mp); teams=read_json(z,tp); tables=read_json(z,tabp) if tabp else None
             if not isinstance(matches,list) or not isinstance(teams,list):
-                season_qa.append({"season_id":sid,"selected_competition":sel["competition_name"],"status":"UNEXPECTED_CONTAINER_SHAPE","match_count":0})
+                season_qa.append(season_coverage_row(sid,meta,cid,sel,"UNEXPECTED_CONTAINER_SHAPE",0))
                 continue
             for t in teams:
                 if not isinstance(t,dict) or t.get("id") is None: continue
@@ -213,7 +238,7 @@ def main():
                      "home_goals":match_score(m)[0],"away_goals":match_score(m)[1],
                      "finished":finished(m),"raw_match":m}
                 all_matches.append(row)
-            season_qa.append({"season_id":sid,"selected_competition":sel["competition_name"],"status":"INGESTED","match_count":len(matches),"team_count":len(teams)})
+            season_qa.append(season_coverage_row(sid,meta,cid,sel,"INGESTED",len(matches),len(teams)))
         # Fail closed on unresolved competition mapping or gross archive loss.
         present_comps={r["competition_id"] for r in all_matches}
         if len(present_comps)!=50: raise SystemExit(f"Only {len(present_comps)} of 50 selected competitions yielded matches.")
@@ -512,7 +537,11 @@ def main():
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
-        (OUT/"season_coverage.csv").write_text("season_id,competition,status,match_count\n"+"".join(f'{r["season_id"]},{r["selected_competition"]},{r["status"]},{r["match_count"]}\n' for r in season_qa),encoding="utf-8")
+        with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
+            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count"]
+            writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(season_qa)
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
