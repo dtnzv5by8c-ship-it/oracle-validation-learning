@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Fail-closed validation of the Selected-50 research runtime outputs.
+
+This validates report integrity and governance invariants only. It does not
+change model logic, probabilities, calibration, thresholds, or release status.
+"""
+from __future__ import annotations
+
+import csv
+import json
+import math
+from pathlib import Path
+
+OUT = Path("selected50_runtime_output")
+MARKETS = {"BTTS", "DC_HOME", "DC_AWAY", "COMBO_HOME", "COMBO_AWAY"}
+FOLDS = [
+    "WF1_2025-03-20_to_2025-09-20",
+    "WF2_2025-09-20_to_2026-03-20",
+    "WF3_2026-03-20_to_2026-09-20",
+]
+
+
+def load_json(name: str):
+    path = OUT / name
+    if not path.is_file():
+        raise AssertionError(f"Missing required runtime output: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_csv(name: str):
+    path = OUT / name
+    if not path.is_file():
+        raise AssertionError(f"Missing required runtime output: {path}")
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def number(row, key, *, low=None, high=None, allow_none=False):
+    value = row.get(key)
+    if value is None and allow_none:
+        return None
+    if value in ("", None):
+        raise AssertionError(f"{key} missing")
+    result = float(value)
+    if not math.isfinite(result):
+        raise AssertionError(f"{key} is not finite: {value}")
+    if low is not None and result < low:
+        raise AssertionError(f"{key} below {low}: {result}")
+    if high is not None and result > high:
+        raise AssertionError(f"{key} above {high}: {result}")
+    return result
+
+
+def main():
+    wf = load_json("oracle_selected50_walk_forward_metrics.json")
+    feature_qa = load_json("oracle_selected50_feature_qa.json")
+    governed_qa = load_json("oracle_selected50_governed_fixture_report_qa.json")
+    governed = load_csv("oracle_selected50_governed_fixture_report.csv")
+    readiness = load_csv("oracle_selected50_league_market_readiness.csv")
+    league_folds = load_csv("oracle_selected50_league_walk_forward_metrics.csv")
+    schedule = load_csv("oracle_selected50_schedule_coverage.csv")
+    calendar = load_csv("oracle_selected50_calendar_year_coverage.csv")
+    season_year = load_csv("oracle_selected50_provider_season_year_coverage.csv")
+    settlement = load_csv("oracle_selected50_settlement_truth_qa.csv")
+
+    folds = wf.get("folds", [])
+    assert len(folds) == 15, f"Expected 15 market/fold rows, got {len(folds)}"
+    assert {r.get("market") for r in folds} == MARKETS
+    assert wf.get("fold_design", "").startswith("Expanding-window rolling-origin")
+    assert "no calibration or tuning" in wf.get("fold_design", "").lower()
+
+    for market in sorted(MARKETS):
+        rows = [r for r in folds if r["market"] == market]
+        assert [r.get("fold") for r in rows] == FOLDS, (market, [r.get("fold") for r in rows])
+        train_sizes = []
+        for row in rows:
+            assert row.get("status") == "RAW_WALK_FORWARD_NOT_CALIBRATED"
+            train_sizes.append(int(row["train_n"]))
+            assert int(row["train_n"]) > 0 and int(row["test_n"]) > 0
+            acc = number(row, "accuracy_at_0_5", low=0, high=1)
+            ci_low = number(row, "accuracy_95ci_low", low=0, high=1)
+            ci_high = number(row, "accuracy_95ci_high", low=0, high=1)
+            assert ci_low <= acc <= ci_high, (market, row["fold"], ci_low, acc, ci_high)
+            brier = number(row, "brier", low=0, high=1)
+            base = number(row, "baseline_brier", low=0)
+            skill = number(row, "brier_skill_vs_prevalence")
+            assert abs(skill - (1 - brier / base)) <= 0.0002, (market, row["fold"], skill, brier, base)
+            number(row, "log_loss", low=0)
+            number(row, "ece_10_bins", low=0, high=1)
+            number(row, "training_prevalence", low=0, high=1)
+            number(row, "auc", low=0, high=1, allow_none=True)
+        assert train_sizes == sorted(train_sizes), (market, train_sizes)
+
+    assert len(readiness) == 250, f"Expected 250 league-market rows, got {len(readiness)}"
+    assert len({(r.get("selected_id"), r.get("market")) for r in readiness}) == 250
+    assert {r.get("market") for r in readiness} == MARKETS
+    assert len(league_folds) == 750, f"Expected 750 league/fold rows, got {len(league_folds)}"
+    assert len({(r.get("selected_id"), r.get("market"), r.get("fold")) for r in league_folds}) == 750
+    assert len({r.get("selected_id") for r in readiness}) == 50
+    assert all(r.get("production_eligible") == "NO" for r in readiness + league_folds)
+    assert all(r.get("edge_claim") == "NOT_APPROVED" for r in readiness)
+
+    assert len(schedule) == 50
+    assert len(settlement) == 50
+    assert len(calendar) == 250
+    assert len(season_year) == 200
+    assert len(governed) == int(feature_qa["governed_fixture_report_rows"])
+    assert len({r.get("source_fixture_id") for r in governed}) == len(governed)
+    assert governed_qa.get("all_rows_production_ineligible") is True
+    assert governed_qa.get("all_combo_probabilities_blocked") is True
+    assert int(governed_qa.get("combo_home_probabilities_remaining", -1)) == 0
+    assert int(governed_qa.get("combo_away_probabilities_remaining", -1)) == 0
+    assert feature_qa.get("production_model_logic_changed") is False
+    assert feature_qa.get("production_probabilities_changed") is False
+    assert feature_qa.get("production_readiness") == "NOT_GRANTED"
+    assert feature_qa.get("provider_parent_competition_ids_verified") == 0
+    assert feature_qa.get("provider_parent_competition_ids_unavailable") == 50
+
+    result = {
+        "status": "PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT",
+        "production_eligible": False,
+        "betting_eligible": False,
+        "market_fold_rows": len(folds),
+        "league_market_rows": len(readiness),
+        "league_market_fold_rows": len(league_folds),
+        "selected_groups": len({r.get("selected_id") for r in readiness}),
+        "governed_fixture_rows": len(governed),
+        "combo_home_probabilities_remaining": governed_qa["combo_home_probabilities_remaining"],
+        "combo_away_probabilities_remaining": governed_qa["combo_away_probabilities_remaining"],
+        "limitations": [
+            "Contract validation does not verify canonical provider IDs, official settlement truth, or point-in-time provenance.",
+            "Walk-forward scores are raw and uncalibrated; no odds/ROI benchmark is approved without verified odds provenance.",
+            "Combo remains blocked because predictor and settlement definitions disagree.",
+        ],
+    }
+    (OUT / "oracle_selected50_runtime_validation.json").write_text(
+        json.dumps(result, indent=2) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(result, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
