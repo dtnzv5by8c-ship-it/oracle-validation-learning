@@ -125,8 +125,16 @@ def audit(manifest_path, crosswalk_path, catalogue_path, archive_manifest_path):
         if not archive_check["exact_set_match"]:
             issues.append("archive manifest provider_league_id set does not exactly match the selected 50 IDs")
 
+    catalogue_columns = sorted(catalogue[0].keys()) if catalogue else []
+    catalogue_id_like_columns = [col for col in catalogue_columns if "id" in col.lower()]
+    catalogue_sample = [
+        {k: v for k, v in row.items()
+         if any(token in k.lower() for token in ("id", "league", "competition", "country", "name"))}
+        for row in catalogue[:3]
+    ]
+
     return {
-        "schema_version": "ORACLE_SELECTED50_SCOPE_GUARD_V1.0",
+        "schema_version": "ORACLE_SELECTED50_SCOPE_GUARD_V1.1",
         "status": "PASS_SCOPE_MATCH" if not issues else "BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE",
         "production_eligibility": "NOT_GRANTED",
         "scope": "owner-approved FootyStats selected 50; no substitution by the 27-league registry",
@@ -135,6 +143,9 @@ def audit(manifest_path, crosswalk_path, catalogue_path, archive_manifest_path):
         "crosswalk_rows": len(crosswalk),
         "crosswalk_id_check": crosswalk_check,
         "provider_catalogue_row_count": len(catalogue),
+        "provider_catalogue_columns": catalogue_columns,
+        "provider_catalogue_id_like_columns": catalogue_id_like_columns,
+        "provider_catalogue_diagnostic_sample": catalogue_sample,
         "provider_catalogue_id_column": cat_col,
         "provider_catalogue_id_column_check": cat_col_info,
         "provider_catalogue_id_check": catalogue_check,
