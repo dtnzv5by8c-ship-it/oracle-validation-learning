@@ -1,0 +1,39 @@
+name: Oracle Selected-50 Dry-Run Planner
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate dry-run plan (no network calls)
+        run: python scripts/plan_selected50_dry_run.py
+      - name: Validate plan output
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          rows = list(csv.DictReader((root / "selected50_dry_run_coverage_matrix.csv").open()))
+          summary = json.loads((root / "selected50_dry_run_summary.json").read_text())
+          assert len(rows) == 50
+          assert len({r["selected_id"] for r in rows}) == 50
+          assert summary["network_calls_made"] == 0
+          assert summary["paid_provider_calls_made"] == 0
+          assert all(r["production_eligible"] == "NO" for r in rows)
+          print("PASS: 50 unique IDs; no network/provider calls; production blocked.")
+          PY
+      - name: Upload dry-run plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-dry-run-plan
+          path: audit-output/
+          if-no-files-found: error
