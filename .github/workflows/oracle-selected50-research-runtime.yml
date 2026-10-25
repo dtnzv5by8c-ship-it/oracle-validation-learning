@@ -70,6 +70,8 @@ jobs:
           name: oracle-selected50-research-runtime-report
           path: |
             selected50_runtime_output/oracle_selected50_prediction_report.csv
+            selected50_runtime_output/oracle_selected50_governed_fixture_report.csv
+            selected50_runtime_output/oracle_selected50_governed_fixture_report_qa.json
             selected50_runtime_output/oracle_selected50_backtest_metrics.json
             selected50_runtime_output/oracle_selected50_walk_forward_metrics.json
             selected50_runtime_output/oracle_selected50_league_market_readiness.csv
