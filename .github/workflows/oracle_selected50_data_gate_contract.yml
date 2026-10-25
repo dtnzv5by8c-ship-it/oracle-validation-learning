@@ -9,6 +9,7 @@ on:
       - "config/oracle_selected50_compatibility_contract_v1.json"
       - "config/oracle_50_league_runtime_migration_contract_v1.json"
       - "reports/oracle-50-league-runtime-migration-plan-2026-10-25.md"
+      - "reports/oracle-50-league-evidence-based-release-decision-2026-10-25.md"
       - "tests/test_selected50_runtime_migration_contract.py"
       - "data/oracle-footystats-selected-50-season-id-manifest.csv"
       - "data/oracle_selected50_data_gate_matrix_2026-10-25.csv"
