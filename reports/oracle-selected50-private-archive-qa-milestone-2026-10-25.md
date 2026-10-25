@@ -47,3 +47,12 @@ A populated score pair is not sufficient evidence that a match is settled: futur
 ## Governance
 
 No model redesign, production code change, probability change, calibration change, or production promotion is authorized by this milestone. No accuracy or profitability claim is made.
+
+
+## Follow-up check — 2026-10-25 09:25 UTC
+
+- Latest research QA and dry-run planner executions continue to pass (QA run [40180314626](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180314626); dry-run [40180445784](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180445784)).
+- The follow-up exact-ID ingestion processed all 50 selected seasons successfully and made 201 provider requests, but the overall workflow ended in failure at the private-release transfer step because release tag `research-selected50-footystats-ingestion-20261025` already exists. The sanitized ledger was still uploaded; the existing private release was not overwritten. This is a packaging/transfer failure, not a provider-ingestion failure. Do not repeat the 201 requests to fix it.
+- The selected-50 catalogue schema audit completed successfully. Provider `league-list` exposes no parent competition ID field; the explicit season IDs are available and matched. Future ledgers now represent this limitation as `NOT_EXPOSED_BY_CATALOGUE`.
+- The latest production repository runs checked on 2026-10-25 include failures in current-data staging, prospective learning, historical intelligence, and external forecast archive. Their GitHub job records exposed no step-level diagnostics in the API response, so root cause cannot responsibly be inferred from those summaries alone. The production workflows must be diagnosed from the actual run logs before retrying or modifying them.
+- No production model logic, probabilities, calibration, or thresholds were changed. Production readiness remains `NOT_GRANTED`.
