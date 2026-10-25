@@ -57,5 +57,20 @@ class Selected50DataGateMatrixTests(unittest.TestCase):
         self.assertEqual(self.contract["market_readiness_defaults"]["BTTS Yes"], "NOT_VERIFIED")
         self.assertEqual(self.contract["market_readiness_defaults"]["M-1UP"], "BLOCKED")
 
+
+    def test_presence_of_odds_and_xg_fields_cannot_upgrade_feature_gate(self):
+        # Archive QA reports non-empty odds/xG-named fields, but no per-value
+        # source, market/bookmaker, scale or as-of-kickoff provenance was certified.
+        # This test intentionally keeps every row blocked until evidence is added.
+        for row in self.matrix:
+            self.assertEqual(row["point_in_time_features_status"], "NOT_VERIFIED")
+            self.assertEqual(row["production_eligible"], "NO")
+
+    def test_matrix_never_rewrites_frozen_27_league_historical_counts(self):
+        # This matrix is a separate Selected-50 runtime gate artifact. It must not
+        # claim that the historical 27-league / 12,836-fixture baseline is 50-league.
+        self.assertNotIn("12836", MATRIX.read_text(encoding="utf-8"))
+        self.assertNotIn("historical_fixture_count", self.contract)
+
 if __name__ == "__main__":
     unittest.main()
