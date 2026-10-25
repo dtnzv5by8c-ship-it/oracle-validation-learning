@@ -60,3 +60,12 @@ The audited prediction ledger has 210 rows across 42 fixture IDs, all labelled `
 - M-1UP: **BLOCKED**
 
 The latest research planner is green, but it is a dry-run planning result—not proof that all 50 leagues are prediction-ready. No production files, model logic, probabilities, calibration or thresholds were changed. No paid provider calls were made by the dry-run.
+
+
+## Expedited continuation update — 2026-10-25 11:32 UTC
+
+- Added the research-only machine-readable contract `config/oracle_selected50_compatibility_contract_v1.json`, defining the 50 exact selected season IDs, country/competition labels, fail-closed evidence gates and production guardrails. It does not infer parent competition IDs.
+- Added `tests/test_selected50_compatibility_contract.py` and wired it into the research dry-run workflow.
+- The gated workflow [run 40189247302](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40189247302) completed **success**. The new contract test passed along with the existing planner, market gate, catalogue resolver, prediction-input and output validation steps. This verifies the contract and research planner only.
+- Further production job diagnostics for [run 40183610511](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40183610511) show the failed job had `runner_id: 0`, an empty runner name, no job steps, and start/end times about two seconds apart. This is evidence the failure occurred before a runner/step sequence was recorded; it is consistent with a job initialization/runner-allocation failure, but does not establish the exact root cause. The logs endpoint still returns BlobNotFound. Do not patch model code based on this evidence.
+- Production remains untouched and not approved. The 19 Run 56 manifest gaps, outcome/feature provenance, and historical production accuracy gates remain open.
