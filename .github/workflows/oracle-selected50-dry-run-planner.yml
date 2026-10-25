@@ -22,6 +22,8 @@ jobs:
         run: python tests/test_selected50_dry_run_planner.py
       - name: Run market gate regression tests
         run: python tests/test_selected50_market_gates.py
+      - name: Run exact catalogue resolver tests
+        run: python tests/test_selected50_catalogue_resolver.py
       - name: Validate plan output
         run: |
           python - <<'PY'
