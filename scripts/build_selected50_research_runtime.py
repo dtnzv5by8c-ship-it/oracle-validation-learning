@@ -298,14 +298,24 @@ def main():
             raw_comp = [r for r in all_matches if str(r.get("competition_id")) == str(cid)]
             normalized_comp = [r for r in matches if str(r.get("competition_id")) == str(cid)]
             status_counts = Counter(str(r.get("status") or "UNKNOWN").strip() or "UNKNOWN" for r in raw_comp)
+            status_score_counts = defaultdict(lambda: {"rows":0,"numeric_score_rows":0,"zero_zero_score_rows":0,"nonzero_score_rows":0,"missing_score_rows":0})
             final_status_missing_score = 0
             nonfinal_status_with_score = 0
             noninteger_score_rows = 0
             for r in raw_comp:
                 m = r.get("raw_match") or {}
-                st = str(get_first(m, ("status", "game_status")) or "").strip().lower()
+                st = str(get_first(m, ("status", "game_status")) or "UNKNOWN").strip().lower() or "unknown"
                 gh, ga = match_score(m)
                 has_score = gh is not None and ga is not None
+                status_score_counts[st]["rows"] += 1
+                if has_score:
+                    status_score_counts[st]["numeric_score_rows"] += 1
+                    if float(gh) == 0 and float(ga) == 0:
+                        status_score_counts[st]["zero_zero_score_rows"] += 1
+                    else:
+                        status_score_counts[st]["nonzero_score_rows"] += 1
+                else:
+                    status_score_counts[st]["missing_score_rows"] += 1
                 if st in FINISHED and not has_score:
                     final_status_missing_score += 1
                 if st not in FINISHED and has_score:
@@ -323,6 +333,7 @@ def main():
                 "nonfinished_status_with_numeric_score_rows": nonfinal_status_with_score,
                 "noninteger_numeric_score_rows": noninteger_score_rows,
                 "source_status_counts_json": json.dumps(dict(sorted(status_counts.items())), ensure_ascii=False, separators=(",", ":")),
+                "status_score_cross_tab_json": json.dumps(dict(sorted(status_score_counts.items())), ensure_ascii=False, separators=(",", ":")),
                 "settlement_truth_status": "INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED",
                 "production_eligible": "NO"
             })
@@ -790,7 +801,7 @@ def main():
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
         with settlement_path.open("w", newline="", encoding="utf-8") as settlement_file:
-            settlement_columns = ["selected_id","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","settlement_truth_status","production_eligible"]
+            settlement_columns = ["selected_id","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","status_score_cross_tab_json","settlement_truth_status","production_eligible"]
             settlement_writer = csv.DictWriter(settlement_file, fieldnames=settlement_columns)
             settlement_writer.writeheader(); settlement_writer.writerows(settlement_truth_qa)
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
