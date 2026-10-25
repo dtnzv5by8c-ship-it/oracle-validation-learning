@@ -325,3 +325,12 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Use these refreshed v2 files rather than the earlier workbook/PDF built from artifact `12609615576`, because v2 reflects the verified Combo-blocked governed report.
 - The artifact itself is available through run [40221376537](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221376537) and artifact [12608454296](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221376537/artifacts/12608454296). The files are local conversation attachments, not committed as production artifacts.
 - Next technical blocker is still canonical ID/settlement governance, not report generation: all 50 provider parent competition IDs are unavailable in the archive manifest; canonical fixture/team joins and official settlement truth remain unverified; Combo definition reconciliation is mandatory. Production remains `NOT_GRANTED`.
+
+
+## 30. Provider parent-ID endpoint limitation verified — 2026-10-25
+
+- Reviewed the official FootyStats league-list documentation: https://footystats.org/api/documentations/league-list. Its documented sample exposes league `name` and `season[]` entries containing `id` and `year`; it does not document a parent competition ID in the league object.
+- The ingestion workflow already attempts to preserve `league.id` when present and labels it `NOT_EXPOSED_BY_CATALOGUE` when absent. The current archive accordingly has 200 source season-year labels mapped but zero parent competition IDs verified, with all 50 parent IDs unavailable.
+- Do not infer a parent competition ID from the season ID, label, or research alias. The 50 `R50_...` codes remain research-only grouping aliases.
+- Safe next action: identify a provider-supported response field/endpoint that exposes the parent competition ID, or obtain an authoritative, reviewed crosswalk. Any API verification must remain bounded within the existing Hobby allowance and use the workflow's explicit `confirm_provider_credit_usage=true` gate. No extra spend or automatic API retry is authorised.
+- Until the ID crosswalk is resolved, the 50-league historical report remains useful for research diagnostics but cannot claim canonical production parity. Production stays `NOT_GRANTED`.
