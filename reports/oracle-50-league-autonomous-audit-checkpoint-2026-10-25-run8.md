@@ -66,10 +66,17 @@ Schema-diagnostic follow-up run #55 completed successfully:
 
 A small accuracy correction was then made in the research-only validator so an ID column that exists but is entirely blank is reported as `ID_COLUMN_PRESENT_BUT_BLANK`, not as a missing column. A unit test was added for this exact condition. This code/test update is commit `cb461151e407f1be1e747109792a745d0f17cf93`.
 
-Run #56 is validating that correction:
+Run #56 completed successfully and verified the correction:
 - Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155799320
 - Head SHA: `cb461151e407f1be1e747109792a745d0f17cf93`
-- Status at checkpoint: in progress; artifact pending.
+- Conclusion: SUCCESS; artifact ID `12583524862`; artifact SHA-256 `a5083465d9be10f83d72aa7d3df477f1f78bafb4392647a5d6318dae2aa7ad6b`.
+- Unit tests: **98 passed**, including the new present-but-blank provider-ID case.
+- Artifact confirms the catalogue contains 43 rows with columns `provider_league_id`, `provider_league_name`, and `season_count`; all 43 provider ID values are blank. The archive manifest's 126 provider ID values are also all blank.
+- Guard result remains `BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE`.
+
+Root-cause evidence report: `reports/oracle-50-league-provider-id-provenance-root-cause-2026-10-25-run9.md`. It identifies a confirmed ID-preservation gap in a separate private ingestion workflow, while explicitly noting that the producer of this specific 43-row catalogue has not yet been identified.
+
+Latest crosswalk: `reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r9.csv` (50 rows, 50 unique IDs, 154 columns; commit `510018e02b894b0dc49f55ce71c540c76d8bd6a1`).
 Latest crosswalk with the verified Run #54 decision:
 - `reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r7.csv`
 - Commit: `8c126b9f1d861632430108440a1db1e343482e6f`
