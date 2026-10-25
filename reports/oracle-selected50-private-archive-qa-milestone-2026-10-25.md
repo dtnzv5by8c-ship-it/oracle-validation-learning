@@ -125,3 +125,29 @@ No production code has been modified as part of this review because the actual f
 2. Verify the private archive's actual ZIP SHA-256 against the sidecar text using an authorized download path; retain the existing release unchanged.
 3. Continue strict research-only settlement, feature chronology and exact-fixture-join QA offline, without paid calls.
 4. Keep all selected-50 market gates blocked until their own evidence requirements pass.
+
+
+## Execution update — 2026-10-25 10:20 UTC
+
+### Cross-workflow failure pattern (new evidence)
+- Rechecked the latest 15 production repository workflow runs. Failures are not isolated to one pipeline: the current-data staging, prospective learning, historical intelligence, external forecast archive, run-to-completion, baseline recovery, controlled challenger, feature discovery and other workflows all show failures in the same broad period; some downstream runs are skipped.
+- The four priority failures remain:
+  - [Current Data Staging — 40179475855](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179475855)
+  - [Prospective Learning — 40179353874](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179353874)
+  - [Historical Intelligence — 40179723228](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179723228)
+  - [External Forecast Archive — 40177200715](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40177200715)
+- Each of those four jobs completed within seconds of run creation. The available job summaries expose no step summaries; previous raw job inspection showed runner ID 0 and blank runner name for sampled jobs. Log retrieval remains unavailable (GitHub-hosted log blob returns `BlobNotFound`).
+- **Assessment:** the cross-workflow pattern is more consistent with a repository/account/runner-level Actions execution restriction than with four independent script defects. This is a leading hypothesis, not a confirmed root cause: the available connector cannot read billing/spending settings or retrieve usable runner logs. Do not label this as a confirmed billing-limit error.
+- The connected GitHub tools available in this session expose read-only workflow inspection and file operations, but no workflow-dispatch action. A blind rerun would not repair a pre-run infrastructure block and could obscure evidence. No production workflow or script was edited and no rerun was initiated.
+
+### Priority order / unblock criteria
+1. **P0 — Restore/confirm Actions execution availability without increasing the spending cap by assumption.** Repository owner should inspect the Actions run page and account/repository Actions billing/spending-limit state, runner availability, and any GitHub service restriction. If the spending cap is exhausted and must remain unchanged, use a separately approved no-cost execution path for diagnostics; do not copy secrets or private production data into the public research repository.
+2. **P1 — One controlled diagnostic run only after P0 is cleared.** Start with a non-ingesting, non-publishing preflight (runner startup, checkout, Python setup, repository read/write permissions as required, and masked environment presence). Capture the full log and exact failure step before touching the production pipelines.
+3. **P2 — Repair the demonstrated failure only.** If infrastructure is healthy and a script step fails, reproduce it with existing archived inputs and make the smallest governed change. Keep production prediction logic, probabilities, calibration and thresholds unchanged.
+4. **P3 — Resume data gates only after the runner is demonstrably healthy.** Keep selected-50 feature/market gates blocked until exact fixture joins, verified final settlement, as-of-kickoff recent form/standings/H2H, and xG/odds provenance pass independent tests.
+5. **P4 — Verify private archive integrity through an authorized download path.** Compare the downloaded ZIP SHA-256 against the sidecar text; neither re-ingest FootyStats nor overwrite the existing release tag to solve this packaging/checksum gap.
+
+### Current disposition
+- Research-only dry-run planner remains successful; its latest recorded run is [40183119582](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183119582).
+- Dry-run still made zero network calls and zero paid provider calls. The 50-league universe is not production-ready; BTTS Yes, Double Chance and DC + Under 4.5 remain NOT VERIFIED; M-1UP remains BLOCKED.
+- **Production readiness: NOT GRANTED.** No production model logic, prediction probabilities, calibration, thresholds or production code were changed.
