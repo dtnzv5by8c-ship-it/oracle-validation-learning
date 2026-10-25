@@ -65,6 +65,26 @@ jobs:
           assert all(r["btts_yes_gate"] == "NOT_VERIFIED" for r in gates)
           print("PASS: 50 IDs, evidence joins, conservative market gates, zero provider calls.")
           PY
+      - name: Validate evidence-layer reconciliation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("audit-output/selected50_evidence_layer_reconciliation.json")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          e = d["run56_exact_id_evidence"]
+          assert d["selected_group_count"] == 50
+          assert e["manifest_records_present"] == 31
+          assert e["no_manifest_record"] == 19
+          assert e["exact_archive_coverage_rows"] == 31
+          assert d["identity_findings"]["provider_parent_competition_ids_populated_by_this_dry_run"] == 0
+          assert d["identity_findings"]["parent_ids_inferred_from_season_ids"] is False
+          assert d["identity_findings"]["canonical_fixture_team_join_verified"] is False
+          assert d["live_ingestion"]["network_calls_made"] == 0
+          assert d["live_ingestion"]["paid_provider_calls_made"] == 0
+          assert d["production_eligible"] is False
+          print("PASS: evidence layers remain distinct; missing IDs are not inferred; no network calls; production blocked.")
+          PY
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
