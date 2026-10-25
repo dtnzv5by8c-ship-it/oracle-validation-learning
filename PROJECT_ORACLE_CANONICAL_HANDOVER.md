@@ -298,3 +298,10 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Annual data matrices in the verified artifact: 200 provider-season-year rows (50 selected grouping surrogates × 2023–2026 source season-start years), 250 calendar-year rows (2023–2027 UTC kickoff years), and 50 schedule coverage rows. Provider parent competition IDs remain unavailable for all 50 selected groups; the selected-season ID is only a grouping surrogate, not a canonical parent ID.
 - Next exact action: inspect the final result and artifact of run 40221376537 (latest full runtime attempt), verify both governed-report files and all fail-closed assertions, then update this handover with the successful run/artifact and link the annual coverage/readiness matrices. If the runtime fails, use its logs to fix the defect; do not rely on the earlier artifact as proof of the new governed output.
 - Production remains NOT_GRANTED; all 50 selected leagues remain ineligible, and M-1UP remains blocked.
+
+
+## 27. Stable research-only league codes created — 2026-10-25
+
+- Added `reports/oracle-selected50-research-league-code-crosswalk-2026-10-25.csv` (commit `a743c9e199766ac06b95cfeef1fe8be4b98d754d`): 50 rows and 50 unique `R50_<ISO3>_<COMPETITION_SLUG>` research aliases.
+- These codes are derived from the source country and competition labels. They are stable research grouping aliases only—not provider parent IDs and not production canonical league codes. The CSV keeps the selected season ID and provider-parent-ID status separate, and all rows remain production-ineligible.
+- Do not promote these aliases into the frozen production registry. For production parity, the 23 selected labels that match the current production registry by exact name/explicit alias still require a restricted mapping audit, and the other 27 require an approved production-code decision. No private production canonical codes were copied into the public crosswalk.
