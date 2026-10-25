@@ -72,6 +72,35 @@ Further production code search found these explicit 27-league operational assump
 
 These findings make the migration scope broader than the V4 preflight alone. Historical baselines and frozen research artifacts should remain historically accurate; operational 50-league readiness must be established by a new governed contract and rebuilt/validated evidence. No such production migration was applied.
 
+
+### Exact 19-season Run 56 manifest gap list
+
+The 19 selected season IDs with no corresponding Run 56 ingestion-manifest record are now mapped back to their selected-manifest labels for triage. This is a **manifest-evidence gap**, not proof that the provider request failed or that the season ID is invalid. These are season IDs, not parent competition IDs:
+
+| Selected season ID | Selected country | Selected competition |
+|---:|---|---|
+| 17326 | Australia | A-League |
+| 16741 | Canada | Canadian Premier League |
+| 16615 | Chile | Primera División |
+| 16789 | China | Chinese Super League |
+| 16614 | Colombia | Categoria Primera A |
+| 17091 | Denmark | Superliga |
+| 16714 | Ecuador | Primera Categoría Serie A |
+| 16572 | Finland | Veikkausliiga |
+| 17964 | India | Indian Super League |
+| 17115 | Japan | J1 League |
+| 16533 | Paraguay | Division Profesional |
+| 16905 | Peru | Primera División |
+| 16537 | Republic of Ireland | Premier Division |
+| 17178 | Russia | Russian Premier League |
+| 17119 | Serbia | SuperLiga |
+| 16627 | South Korea | K League 1 |
+| 16576 | Sweden | Allsvenskan |
+| 16708 | Uruguay | Primera División |
+| 16617 | Venezuela | Primera División |
+
+**Next resolution step:** reconcile these 19 against the retained provider catalogue and prior request logs using exact season IDs, then record one of: exact match, no catalogue match, duplicate match, request attempted with failure evidence, or request state unknown. Do not infer parent competition IDs or issue another paid request just to fill the manifest gap.
+
 ## Required next gates
 
 1. Publish the authoritative 50-league canonical competition-season manifest with source-backed IDs and explicit versioning.
