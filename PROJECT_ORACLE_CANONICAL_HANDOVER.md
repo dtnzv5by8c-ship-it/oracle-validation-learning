@@ -395,3 +395,11 @@ Done means a real, traceable run has ingested supported historical/current data 
 - No FootyStats API calls/credits were used. No private-repository Actions workflow was dispatched. The public research workflow reads the existing private archive and is intended to publish a research-only candidate; no production promotion occurs.
 - Production model logic, probabilities, calibration, thresholds, and the frozen 27-league baseline remain unchanged. Selected-50 remains research-only; production `NOT_GRANTED`; Combo remains blocked pending governed market-definition/settlement reconciliation; M-1UP remains blocked.
 - Immediate next action: inspect run `40238357851` to completion. If the new validator fails, fix the smallest research-only defect and rerun; if it passes, inspect the uploaded `oracle_selected50_runtime_validation.json` and refreshed metrics. Do not initiate provider calls until the documented explicit provider-credit confirmation is obtained. Continue canonical ID/team/fixture joins, settlement truth, point-in-time standings, xG/odds provenance, and schedule reconciliation using existing evidence first.
+
+
+## 36. Output-gate workflow checkpoint — 2026-10-26 00:07 SAST
+
+- Dry-run planner run `40238357880` completed SUCCESS on commit `73fa4cbd459e6220b88d2fa4dbbc815b37b548de`: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40238357880
+- Artifact `12615678687`, SHA256 `31c138e59b81f2c7a731e75cdd30e45baa74b4a3957e88c938a743c00e91219c`, expires 2027-01-23. This run includes the fixture-key correction in the runtime-output validator source; the dry-run workflow itself does not execute the full-runtime validator.
+- Full research runtime run `40238357851` remains IN_PROGRESS at the latest inspection. Archive access/checksum and dependency installation passed; the runtime build step is still running; the new fail-closed output-validation step and artifact upload have not yet been observed. Link: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40238357851
+- Do not report the new runtime-output validator as passed until run `40238357851` finishes and the uploaded `oracle_selected50_runtime_validation.json` is inspected. If it fails, diagnose from the completed job logs and make only a research-branch fix.
