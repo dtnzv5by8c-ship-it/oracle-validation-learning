@@ -1,11 +1,13 @@
 name: Oracle Selected-50 Catalogue Schema Audit
 
 on:
-  push:
-    branches:
-      - research/oracle-50-league-readiness-audit
-    paths:
-      - ".github/workflows/oracle-selected50-catalogue-schema-audit.yml"
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume one FootyStats API request"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -19,8 +21,10 @@ jobs:
         shell: bash
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
         run: |
           set -euo pipefail
+          [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no request made."; exit 1; }
           python - <<'PY'
           import json, os, time
           from urllib.request import Request, urlopen
