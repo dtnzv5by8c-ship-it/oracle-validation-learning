@@ -238,14 +238,25 @@ def main():
                                                        "table_position":table_pos if table_pos is not None and table_pos > 0 else None,
                                                        "season_id":sid}
             # Table payload is not assumed to be historical; only current selected season team records are displayed.
+            raw_rows_seen = len(matches)
+            retained_before_season = len(all_matches)
+            rejected_non_object_rows = 0
+            rejected_missing_kickoff_rows = 0
+            rejected_missing_home_team_id_rows = 0
+            rejected_missing_away_team_id_rows = 0
             for m in matches:
-                if not isinstance(m,dict): continue
+                if not isinstance(m,dict):
+                    rejected_non_object_rows += 1
+                    continue
                 h,a=team_ids(m)
                 home_name=str(get_first(m,("home_name","home_team_name")) or "")
                 away_name=str(get_first(m,("away_name","away_team_name")) or "")
                 if not home_name and h: home_name=str(season_team_names.get((cid,sid,h),team_position.get((cid,h),{}).get("name","")))
                 if not away_name and a: away_name=str(season_team_names.get((cid,sid,a),team_position.get((cid,a),{}).get("name","")))
                 ts=stamp(m)
+                if ts is None: rejected_missing_kickoff_rows += 1
+                if not h: rejected_missing_home_team_id_rows += 1
+                if not a: rejected_missing_away_team_id_rows += 1
                 if ts is None or not h or not a: continue
                 row={"fixture_id":str(m.get("id") or ""), "season_id":sid,"competition_id":cid,
                      "country":sel["country"],"league":sel["competition_name"],"home_id":h,"away_id":a,
@@ -254,7 +265,14 @@ def main():
                      "home_goals":match_score(m)[0],"away_goals":match_score(m)[1],
                      "finished":finished(m),"raw_match":m}
                 all_matches.append(row)
-            season_qa.append(season_coverage_row(sid,meta,cid,sel,"INGESTED",len(matches),len(teams)))
+            season_row = season_coverage_row(sid,meta,cid,sel,"INGESTED",len(matches),len(teams))
+            season_row.update({"raw_match_rows_seen": raw_rows_seen,
+                "normalized_match_rows_retained": len(all_matches) - retained_before_season,
+                "rejected_non_object_rows": rejected_non_object_rows,
+                "rejected_missing_kickoff_rows": rejected_missing_kickoff_rows,
+                "rejected_missing_home_team_id_rows": rejected_missing_home_team_id_rows,
+                "rejected_missing_away_team_id_rows": rejected_missing_away_team_id_rows})
+            season_qa.append(season_row)
         # Fail closed on unresolved competition mapping or gross archive loss.
         present_comps={r["competition_id"] for r in all_matches}
         if len(present_comps)!=50: raise SystemExit(f"Only {len(present_comps)} of 50 selected competitions yielded matches.")
@@ -701,7 +719,7 @@ def main():
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
-            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count"]
+            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows"]
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(season_qa)
