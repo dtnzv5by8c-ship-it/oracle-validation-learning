@@ -346,6 +346,22 @@ def main():
         report_end=NOW+7*24*60*60
         future=[r for r in matches if report_start < r["kickoff_unix"] <= report_end
                 and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED]
+        # Explicit 50-competition schedule coverage. Absence from the seven-day window
+        # is not treated as missing data; it is flagged for schedule/freshness reconciliation.
+        schedule_coverage=[]
+        for selected_id, sel in sorted(selected_by_id.items(), key=lambda kv: (kv[1].get("country",""),kv[1].get("competition_name",""))):
+            comp_rows=[r for r in matches if str(r["competition_id"])==selected_id]
+            comp_future=[r for r in future if str(r["competition_id"])==selected_id]
+            future_times=sorted(r["kickoff_unix"] for r in comp_future)
+            schedule_coverage.append({
+                "selected_id":selected_id,"country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
+                "archive_match_rows":len(comp_rows),"completed_match_rows":sum(1 for r in comp_rows if r["finished"]),
+                "upcoming_fixture_count_7d":len(comp_future),
+                "first_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[0],dt.timezone.utc).isoformat() if future_times else "",
+                "last_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[-1],dt.timezone.utc).isoformat() if future_times else "",
+                "schedule_coverage_status":"FIXTURES_FOUND" if comp_future else "NO_FIXTURE_IN_7D_HORIZON_CHECK_SCHEDULE_FRESHNESS",
+                "production_eligible":"NO"
+            })
         # One pooled model per market, trained only on completed records before each target kickoff.
         predictions=[]
         by_date=defaultdict(list)
