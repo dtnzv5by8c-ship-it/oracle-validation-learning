@@ -151,3 +151,23 @@ No production code has been modified as part of this review because the actual f
 - Research-only dry-run planner remains successful; its latest recorded run is [40183119582](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183119582).
 - Dry-run still made zero network calls and zero paid provider calls. The 50-league universe is not production-ready; BTTS Yes, Double Chance and DC + Under 4.5 remain NOT VERIFIED; M-1UP remains BLOCKED.
 - **Production readiness: NOT GRANTED.** No production model logic, prediction probabilities, calibration, thresholds or production code were changed.
+
+
+## Execution update — 2026-10-25 10:06 UTC
+
+### Additional live verification
+- Latest research dry-run planner [40183226446](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183226446) completed **success**. Its workflow steps include plan generation, market gates, planner regression tests, exact catalogue resolver tests, prediction input contract tests, output validation and artifact upload; all reported successful.
+- A fresh query of the production repository's latest 25 runs found no newer successful production run. Four core scheduled workflows still fail; the current chronological OOS workflow is skipped.
+- The production repository also had a large burst of failures on 2026-10-25 at 08:19:59 UTC: many unrelated workflows were triggered by a push to branch `research-selected50-footystats-ingestion-20261025` and failed within the same second. The run-to-completion workflow and several scheduled pipelines also failed shortly afterward. The jobs API still returns no step-level summaries for sampled failed jobs.
+- **Updated assessment:** a common Actions execution/runner restriction is a stronger hypothesis than many unrelated independent code defects, because unrelated workflows failed in a near-simultaneous burst. It remains a hypothesis, not a confirmed cause; the actual job logs and billing/runner diagnostics are still inaccessible through the connected session.
+- The connected GitHub toolset does not expose a workflow-dispatch operation. I did not rerun production workflows blindly or patch scripts without logs. This avoids repeated data pulls, unintended pushes, and misleading failure evidence.
+
+### What is now proven vs. not proven
+**Proven:** the research dry-run and its regression/contract checks pass; it makes no provider calls. The production run failures are broad and do not currently expose step-level evidence. Selected-50 market readiness remains blocked.
+
+**Not proven:** that billing is the cause; that a particular production script is faulty; that the private archive checksum matches its sidecar; or that any selected-50 market is production-ready.
+
+### Immediate unblock request for repository owner
+In the GitHub Actions UI for `oracle-football-data`, open one of the latest failed runs and inspect the raw job setup/error annotation. Also inspect Actions billing/spending-limit state and runner availability. If the run is blocked before a runner starts, resolve that infrastructure condition without changing model code. If the job reaches a step, capture the earliest failing step and fix only that evidenced defect. Do not raise the spending cap unless that is an explicitly chosen and approved action.
+
+Production readiness remains NOT_GRANTED. No production code, model logic, probabilities, calibration or thresholds were changed.
