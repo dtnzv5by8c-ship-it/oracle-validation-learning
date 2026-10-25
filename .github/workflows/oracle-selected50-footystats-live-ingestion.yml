@@ -134,7 +134,7 @@ jobs:
               league, season = exact[sid][0]
               row = {
                   "season_id": sid,
-                  "provider_league_id": str(league.get("id", "")),
+                  "provider_league_id": str(league.get("id")) if league.get("id") is not None else "NOT_EXPOSED_BY_CATALOGUE",
                   "provider_league_name": str(league.get("name", "")),
                   "provider_season_year": str(season.get("year", "")),
                   "selected_country": wanted[sid].get("country", ""),
