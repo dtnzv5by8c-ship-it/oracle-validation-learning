@@ -641,7 +641,7 @@ def main():
                 governed_writer.writeheader()
                 governed_writer.writerows(governed_predictions)
         else:
-            governed_path.write_text("governed_prediction_status\\nNO_FIXTURES\\n", encoding="utf-8")
+            governed_path.write_text("governed_prediction_status\nNO_FIXTURES\n", encoding="utf-8")
         governed_report_qa = {
             "status": "RESEARCH_ONLY_COMBO_BLOCKED",
             "fixture_rows": len(governed_predictions),
@@ -660,7 +660,7 @@ def main():
         if not governed_report_qa["all_rows_production_ineligible"] or not governed_report_qa["all_combo_probabilities_blocked"]:
             raise RuntimeError("Governed fixture report failed its fail-closed market/production gate")
         governed_qa_path = OUT / "oracle_selected50_governed_fixture_report_qa.json"
-        governed_qa_path.write_text(json.dumps(governed_report_qa, indent=2) + "\\n", encoding="utf-8")
+        governed_qa_path.write_text(json.dumps(governed_report_qa, indent=2) + "\n", encoding="utf-8")
         schedule_path=OUT/"oracle_selected50_schedule_coverage.csv"
         with schedule_path.open("w",newline="",encoding="utf-8") as sf:
             scols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
