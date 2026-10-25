@@ -77,3 +77,26 @@ Manually dispatch the new `Oracle Selected-50 Provider ID Schema Diagnostic` fro
 After the diagnostic, resolve the 19 unmatched IDs with exact provider evidence, repair the research-only catalogue mapping to preserve the correct identifier fields, rebuild the archive-to-fixture join, refresh current event/team state, establish canonical team IDs and point-in-time feature provenance, then rerun each market gate.
 
 No production model logic, weights, probabilities, thresholds, calibration, model version, protected canonical registry or canonical ledgers changed. No draft PR was merged, no gate was bypassed, no paid provider change was made, and no readiness pass is claimed.
+
+## Run 13 addendum — live selected-ID schema diagnostic (2026-10-25)
+
+Workflow run: [Oracle Selected-50 Provider ID Schema Diagnostic #1](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40171490082). The run completed successfully and produced artifact `oracle-selected50-schema-diagnostic` (artifact ID `12590181976`, expires 2026-11-01T07:05:50Z).
+
+Sanitized artifact findings:
+- Selected manifest: 50 rows / 50 unique IDs.
+- Provider catalogue objects: 50; nested season objects: 766.
+- League-object keys sampled: `country`, `image`, `name`, `season`; no direct league-level ID field was found.
+- Nested season objects expose `id`; all 50 selected IDs match a nested season-level `id`.
+- Zero selected IDs matched a league-level ID field; zero selected IDs remained unmatched in the examined ID fields.
+- This is live evidence that the selected IDs correspond to season-level IDs in this endpoint response. It does not identify a parent competition ID and does not establish fixture/team joins or production readiness.
+- The diagnostic’s per-row `competition_exact_after_diacritic_normalisation` flag compares the manifest competition name alone with the provider competition name, while provider names include the country prefix (for example, manifest `Primera División` versus provider `Argentina Primera División`). Therefore that flag is not a valid standalone exact-name comparison. Country and competition must be compared using a documented normalization rule, or the combined country+competition string.
+- Historical archive result remains unchanged: 31/50 selected IDs have exact archive `season_id` matches; 19/50 do not. The diagnostic confirms catalogue semantics, not archive coverage. The 19 unmatched archive IDs remain unresolved and must not be inferred or fuzzy-mapped.
+- The archive’s `provider_league_id` field remains blank in all 126 existing season-manifest rows. Do not populate it with season IDs under a parent-league label. Preserve distinct columns for provider season ID and parent competition ID, and populate the latter only if a source field explicitly supplies it.
+- Governance: read-only diagnostic; no full match ingestion; no production files changed; no canonical mapping approved; no production eligibility granted.
+
+### Next research-only actions
+1. Reconcile the 50 selected IDs against the catalogue using exact season ID and a normalized combined country+competition label; emit a separate catalogue identity report rather than rewriting parent-league IDs.
+2. Compare those 50 exact season IDs against the archive manifest and list the 19 absent IDs with the exact source fields needed to investigate archive omissions.
+3. Inspect the catalogue-transfer workflow and its downstream consumers before changing its schema. The current expression `league.get('id')` does not align with the observed live league-object schema; do not substitute season IDs into a parent-league field.
+4. Re-run tests and scope guards after any research-only changes. Production logic, protected registry/ledgers, probabilities, thresholds, calibration and model version remain unchanged.
+
