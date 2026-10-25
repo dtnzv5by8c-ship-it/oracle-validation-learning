@@ -1,0 +1,177 @@
+name: Oracle 44-League FootyStats Catalogue Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "research/**"
+    paths:
+      - ".github/workflows/oracle-44-league-footystats-catalogue-gate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-44-league-footystats-catalogue-gate
+  cancel-in-progress: false
+
+jobs:
+  catalogue-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify secret exists without revealing it
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${FOOTYSTATS_API_KEY:-}" ]]; then
+            echo "::error::FOOTYSTATS_API_KEY is missing or empty."
+            exit 1
+          fi
+          echo "FootyStats API secret is present; value will not be displayed."
+
+      - name: Retrieve provider-selected league-season catalogue and reconcile target universe
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, os, re, time
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+
+          KEY = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
+          if not KEY:
+              raise SystemExit("Missing FOOTYSTATS_API_KEY.")
+          TARGETS = [
+            ("ZA","South Africa","Premier Soccer League",["South Africa Premier Soccer League","South Africa PSL"]),
+            ("E0","England","Premier League",["England Premier League"]),
+            ("E1","England","Championship",["England Championship"]),
+            ("SP1","Spain","La Liga",["Spain La Liga"]),
+            ("D1","Germany","Bundesliga",["Germany Bundesliga"]),
+            ("I1","Italy","Serie A",["Italy Serie A"]),
+            ("F1","France","Ligue 1",["France Ligue 1"]),
+            ("N1","Netherlands","Eredivisie",["Netherlands Eredivisie"]),
+            ("P1","Portugal","Primeira Liga",["Portugal Liga NOS","Portugal Primeira Liga"]),
+            ("B1","Belgium","Pro League",["Belgium Pro League"]),
+            ("T1","Turkey","Süper Lig",["Turkey Süper Lig","Turkey Super Lig"]),
+            ("DK","Denmark","Superliga",["Denmark Superliga","Denmark Superligaen"]),
+            ("SE","Sweden","Allsvenskan",["Sweden Allsvenskan"]),
+            ("NO","Norway","Eliteserien",["Norway Eliteserien"]),
+            ("FI","Finland","Veikkausliiga",["Finland Veikkausliiga"]),
+            ("SWZ","Switzerland","Super League",["Switzerland Super League","Switzerland Swiss Super League"]),
+            ("AUT","Austria","Bundesliga",["Austria Bundesliga","Austria Austrian Bundesliga"]),
+            ("GR","Greece","Super League",["Greece Super League"]),
+            ("POL","Poland","Ekstraklasa",["Poland Ekstraklasa"]),
+            ("CZE","Czech Republic","First League",["Czech First League","Czech Republic First League"]),
+            ("CRO","Croatia","HNL",["Croatia HNL","Croatia Croatian HNL"]),
+            ("RS","Serbia","SuperLiga",["Serbia SuperLiga"]),
+            ("ROU","Romania","Liga I",["Romania Liga I"]),
+            ("UKR","Ukraine","Premier League",["Ukraine Premier League","Ukraine Ukrainian Premier League"]),
+            ("RU","Russia","Premier League",["Russia Premier League","Russia Russian Premier League"]),
+            ("IE","Republic of Ireland","Premier Division",["Republic of Ireland Premier Division","Ireland Premier Division"]),
+            ("SC0","Scotland","Premiership",["Scotland Premiership"]),
+            ("US","United States","MLS",["USA MLS","United States MLS"]),
+            ("CA","Canada","Canadian Premier League",["Canada Canadian Premier League"]),
+            ("MX","Mexico","Liga MX",["Mexico Liga MX"]),
+            ("BR","Brazil","Serie A",["Brazil Serie A","Brazil Serie A (Brasileiro)"]),
+            ("AR","Argentina","Primera División",["Argentina Primera Division","Argentina Primera División"]),
+            ("CO","Colombia","Primera A",["Colombia Primera A"]),
+            ("CL","Chile","Primera División",["Chile Primera Division","Chile Primera División"]),
+            ("UY","Uruguay","Primera División",["Uruguay Primera Division","Uruguay Primera División"]),
+            ("PY","Paraguay","Division Profesional",["Paraguay Division Profesional"]),
+            ("EC","Ecuador","Serie A",["Ecuador Serie A"]),
+            ("PE","Peru","Primera División",["Peru Primera Division","Peru Primera División"]),
+            ("VE","Venezuela","Primera División",["Venezuela Primera Division","Venezuela Primera División"]),
+            ("AU","Australia","A-League",["Australia A-League"]),
+            ("JP","Japan","J1 League",["Japan J1 League"]),
+            ("KR","South Korea","K League 1",["South Korea K League 1","Korea Republic K League 1"]),
+            ("CN","China","Chinese Super League",["China Chinese Super League"]),
+            ("IN","India","Indian Super League",["India Indian Super League"]),
+          ]
+          url = "https://api.football-data-api.com/league-list?" + urlencode({"key": KEY, "chosen_leagues_only":"true"})
+          try:
+              req = Request(url, headers={"User-Agent":"Oracle-44-League-Catalogue-Gate/1.0"})
+              with urlopen(req, timeout=30) as response:
+                  http_status = response.status
+                  raw = response.read()
+              payload = json.loads(raw.decode("utf-8"))
+          except HTTPError as exc:
+              # Never print URL, exception text, response body, or credential.
+              raise SystemExit(f"FootyStats catalogue request returned HTTP {exc.code}; key and response withheld.")
+          except Exception as exc:
+              raise SystemExit(f"FootyStats catalogue request failed ({type(exc).__name__}); key and response withheld.")
+          if http_status != 200 or not isinstance(payload,dict) or payload.get("success") is not True or not isinstance(payload.get("data"),list):
+              raise SystemExit("FootyStats catalogue response was unsuccessful or malformed; response withheld.")
+
+          catalogue=[]
+          for league in payload["data"]:
+              if not isinstance(league,dict): continue
+              name=str(league.get("name","")).strip()
+              seasons=league.get("season") if isinstance(league.get("season"),list) else []
+              for season in seasons:
+                  if isinstance(season,dict):
+                      catalogue.append({"provider_name":name,"season_year":str(season.get("year","")),"season_id":str(season.get("id",""))})
+          by_name={}
+          for row in catalogue:
+              if row["provider_name"]:
+                  by_name.setdefault(row["provider_name"],[]).append(row)
+          rows=[]
+          for code,country,competition,aliases in TARGETS:
+              matches=[name for name in aliases if name in by_name]
+              if len(matches)==1:
+                  chosen=matches[0]
+                  seasons=sorted(by_name[chosen],key=lambda x:(x["season_year"],x["season_id"]))
+                  rows.append({"target_code":code,"country":country,"target_competition":competition,"provider_name":chosen,
+                    "provider_season_count":len(seasons),"provider_season_ids":";".join(x["season_id"] for x in seasons),
+                    "provider_season_years":";".join(x["season_year"] for x in seasons),
+                    "status":"CANDIDATE_MATCH_REQUIRES_ID_AND_FIXTURE_REVIEW"})
+              elif len(matches)>1:
+                  rows.append({"target_code":code,"country":country,"target_competition":competition,"provider_name":";".join(matches),
+                    "provider_season_count":sum(len(by_name[n]) for n in matches),
+                    "provider_season_ids":";".join(x["season_id"] for n in matches for x in by_name[n]),
+                    "provider_season_years":";".join(x["season_year"] for n in matches for x in by_name[n]),
+                    "status":"AMBIGUOUS_REVIEW_REQUIRED"})
+              else:
+                  # A miss may mean an alias gap, missing selected league or provider coverage gap.
+                  rows.append({"target_code":code,"country":country,"target_competition":competition,"provider_name":"",
+                    "provider_season_count":0,"provider_season_ids":"","provider_season_years":"",
+                    "status":"NO_EXACT_ALIAS_MATCH_REQUIRES_REVIEW"})
+          out=Path("oracle-44-league-catalogue-gate")
+          out.mkdir()
+          fields=["target_code","country","target_competition","provider_name","provider_season_count","provider_season_ids","provider_season_years","status"]
+          with (out/"oracle_44_league_crosswalk_candidates.csv").open("w",newline="",encoding="utf-8") as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(rows)
+          summary={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "status":"CATALOGUE_RETRIEVED_CROSSWALK_REVIEW_REQUIRED",
+            "target_leagues":len(TARGETS),
+            "selected_provider_league_names":len(by_name),
+            "selected_provider_league_season_entries":len(catalogue),
+            "candidate_match_count":sum(r["status"]=="CANDIDATE_MATCH_REQUIRES_ID_AND_FIXTURE_REVIEW" for r in rows),
+            "ambiguous_count":sum(r["status"]=="AMBIGUOUS_REVIEW_REQUIRED" for r in rows),
+            "no_exact_alias_count":sum(r["status"]=="NO_EXACT_ALIAS_MATCH_REQUIRES_REVIEW" for r in rows),
+            "catalogue_sha256":hashlib.sha256(raw).hexdigest(),
+            "secret_logged":False,
+            "raw_api_payload_saved":False,
+            "production_model_changed":False,
+            "production_registry_changed":False,
+            "production_predictions_created":False,
+            "note":"Exact-name candidates are not approved mappings. A provider catalogue match alone does not prove required field coverage or safe prediction eligibility."
+          }
+          (out/"oracle_44_league_catalogue_summary.json").write_text(json.dumps(summary,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          print("Candidate crosswalk written. No API key or raw payload is logged.")
+          PY
+
+      - name: Upload sanitized catalogue and crosswalk report
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-44-league-footystats-catalogue-gate
+          path: oracle-44-league-catalogue-gate/*
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,21 @@
+fixture_id,date,league_code,role,schedule_label,candidate_history_label,history_home_role_matches,history_away_role_matches,history_total_matches,evidence_url,identity_status
+SCHED-F2-2026-10-23-paufc-grenoble,2026-10-23,F2,home,Pau FC,Pau,25,23,48,https://www.paufc.fr/calendrier,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-F2-2026-10-23-paufc-grenoble,2026-10-23,F2,away,Grenoble,Grenoble,24,25,49,https://www.paufc.fr/calendrier,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-almerecity-roda,2026-10-23,NED2,home,Almere City,Almere City FC,22,23,45,https://www.rodajckerkrade.nl/wedstrijden/programma/ ; https://www.knvb.nl/node/15415,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-almerecity-roda,2026-10-23,NED2,away,Roda,Roda JC Kerkrade,26,26,52,https://www.rodajckerkrade.nl/wedstrijden/programma/ ; https://www.knvb.nl/node/15415,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-jongaz-helmond,2026-10-23,NED2,home,Jong AZ,Jong AZ Alkmaar,28,27,55,https://az.nl/wedstrijden/wedstrijden/keuken-kampioen-divisie/jong-az-helmond-sport-23-10-2026,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-jongaz-helmond,2026-10-23,NED2,away,Helmond,Helmond Sport,26,26,52,https://az.nl/wedstrijden/wedstrijden/keuken-kampioen-divisie/jong-az-helmond-sport-23-10-2026,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-oss-jongajax,2026-10-23,NED2,home,Oss,TOP Oss,25,27,52,https://english.ajax.nl/games/?team=Jong+Ajax ; https://www.knvb.nl/node/15415,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-23-oss-jongajax,2026-10-23,NED2,away,Jong Ajax,Jong Ajax,27,27,54,https://english.ajax.nl/games/?team=Jong+Ajax,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-B1-2026-10-24-westerlo-beveren,2026-10-24,B1,home,Westerlo,Westerlo,28,29,57,https://www.proleague.be/teams/kvc-westerlo-15/fixtures-results,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-B1-2026-10-24-westerlo-beveren,2026-10-24,B1,away,Beveren,SK Beveren,3,4,7,https://www.skbeveren.be/matchcenter/wedstrijden/,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-CZE-2026-10-24-brno-bohemians,2026-10-24,CZE,home,Brno,FC Zbrojovka Brno,5,4,9,https://fczbrno.cz/zapasy/MUZ,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-CZE-2026-10-24-brno-bohemians,2026-10-24,CZE,away,Bohemians,Bohemians 1905,24,26,50,https://bohemians.cz/article/25782-Los-Chance-Ligy-2026-2027,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-24-dordrecht-venlo,2026-10-24,NED2,home,Dordrecht,FC Dordrecht,26,26,52,https://www.vvv-venlo.nl/wedstrijden/,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-NED2-2026-10-24-dordrecht-venlo,2026-10-24,NED2,away,Venlo,VVV-Venlo,27,27,54,https://www.vvv-venlo.nl/wedstrijden/,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-POL-2026-10-24-wisla-rakow,2026-10-24,POL,home,Wisla,Wisła Kraków,5,4,9,https://ekstraklasa.org/aktualnosci/terminarz-pko-bank-polski-ekstraklasy-w-sezonie-2026-27/,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-POL-2026-10-24-wisla-rakow,2026-10-24,POL,away,Rakow,Raków Częstochowa,26,26,52,https://ekstraklasa.org/aktualnosci/terminarz-pko-bank-polski-ekstraklasy-w-sezonie-2026-27/,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-D2-2026-10-25-braunschweig-hannover,2026-10-25,D2,home,Braunschweig,Eintracht Braunschweig,24,24,48,https://www.eintracht.com/news/artikel/drei-spiele-unter-flutlicht-die-ansetzungen-fuer-oktober-und-november-sind-da,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-D2-2026-10-25-braunschweig-hannover,2026-10-25,D2,away,Hannover,Hannover 96,24,24,48,https://www.eintracht.com/news/artikel/drei-spiele-unter-flutlicht-die-ansetzungen-fuer-oktober-und-november-sind-da,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-N1-2026-10-25-psv-feyenoord,2026-10-25,N1,home,PSV,PSV Eindhoven,24,25,49,https://www.knvb.nl/competities/eredivisie,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED
+SCHED-N1-2026-10-25-psv-feyenoord,2026-10-25,N1,away,Feyenoord,Feyenoord,25,25,50,https://www.knvb.nl/competities/eredivisie,RESEARCH_ONLY_NOT_PRODUCTION_APPROVED

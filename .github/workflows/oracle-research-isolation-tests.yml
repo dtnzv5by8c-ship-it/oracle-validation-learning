@@ -1,0 +1,45 @@
+name: Oracle Research Isolation Tests
+
+on:
+  push:
+    branches:
+      - "research/oracle-crosswalk-isolation-2026-10-22"
+    paths:
+      - "scripts/test_oracle_league_failure_isolation.py"
+      - "scripts/oracle_isolated_batch_runner.py"
+      - "scripts/oracle_reconcile_outputs.py"
+      - "scripts/test_oracle_reconcile_cli.py"
+      - "scripts/oracle_team_alias_audit.py"
+      - "scripts/test_oracle_team_alias_audit.py"
+      - "scripts/oracle_prematch_state_replay.py"
+      - "scripts/test_oracle_prematch_state_replay.py"
+      - ".github/workflows/oracle-research-isolation-tests.yml"
+  pull_request:
+    paths:
+      - "scripts/test_oracle_league_failure_isolation.py"
+      - "scripts/oracle_isolated_batch_runner.py"
+      - "scripts/oracle_reconcile_outputs.py"
+      - "scripts/test_oracle_reconcile_cli.py"
+      - "scripts/oracle_team_alias_audit.py"
+      - "scripts/test_oracle_team_alias_audit.py"
+      - ".github/workflows/oracle-research-isolation-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research-contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile research reconciliation and alias-audit tools
+        run: python -m py_compile scripts/oracle_reconcile_outputs.py scripts/oracle_isolated_batch_runner.py scripts/oracle_team_alias_audit.py scripts/oracle_prematch_state_replay.py
+      - name: Run date gate, failure isolation, and output reconciliation tests
+        run: python -m unittest scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli scripts.test_oracle_team_alias_audit scripts.test_oracle_prematch_state_replay -v

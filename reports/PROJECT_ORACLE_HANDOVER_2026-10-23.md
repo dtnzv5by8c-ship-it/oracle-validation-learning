@@ -1,0 +1,39 @@
+# Project Oracle — saved handover state
+Date: 2026-10-23 (South Africa)
+
+## Governance and location
+- Research repository: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning
+- Research branch: `research/oracle-crosswalk-isolation-2026-10-22`
+- Draft PR #20 remains unmerged: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/20
+- Private source repository: `dtnzv5by8c-ship-it/oracle-football-data`
+- Private research branch: `research/run108-team-id-join-kickoff-2026-10-23`
+- Do not modify production/main, production model logic, probability generation, weights, calibration, thresholds, or selection rules. Keep all remediation research-only.
+
+## Latest verified replay
+- Successful workflow Run #27: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40015176531
+- Report artifact ID: `12528478670` (`oracle-sanitized-completion-report`)
+- Fixture/prediction artifact ID: `12529221194` (`oracle-fixture-level-predictions`)
+- Workflow stages all PASS, including fixture ingestion, official schedule reconciliation, mandatory cutoff traceability, fixture-state audit, 22-market historical backtest, 22-market live runner, live reconciliation, research identity/state/kickoff/cutoff validation, and comparison against Run #108.
+- Research snapshot: 184 upcoming fixtures, 26 leagues with fixtures, 27 configured league codes, 4,048 prediction rows (184 × 22 markets), zero missing verified kickoffs, zero cutoff timestamp violations, zero excluded fixtures in the current replay. Comparing to the user's exact 44-league target universe, only 18 target leagues are represented; 26 target leagues have no live predictions in this run. Eight additional competitions outside the target 44 appear in the current output.
+- Historical baseline unchanged; calibration NOT_APPLIED; production promotion BLOCKED. Probabilities are raw and uncalibrated.
+- Run #27 comparison reports 215 baseline fixtures, 184 currently upcoming fixtures, and 31 baseline fixtures elapsed by replay time with source-backed kickoff evidence. Schedule-set comparison passed after separating elapsed fixtures from the current upcoming list.
+- One configured league reported NO_FIXTURES_IN_WINDOW. This run does NOT cover the full requested 44-league universe: 18/44 target leagues have predictions, 26/44 do not. Eight generated competitions are outside the target list. Do not claim 44-league completion.
+
+## Source coverage remediation
+- Added research-only ESPN public scoreboard fallback and pinned open-matchday CSV fallback in private research branch `research/run108-team-id-join-kickoff-2026-10-23`.
+- Pinned open-matchday source commit: `10c67c338ad1ba4b3828a94082eb46db57554d3f`.
+- Source joins require fixture date, ordered home/away identity and one unique timezone-qualified timestamp. Missing/ambiguous times remain unverified.
+- Provider/team aliases are documented in the research ingestion code. Keep all source evidence in manifests and per-fixture audit fields.
+- Latest successful run confirms 184/184 fixtures have verified kickoffs and cutoff audit passes. The older Run #16 failed its comparison due to elapsed baseline fixtures; Run #27 is the later successful run and supersedes it.
+
+## Current requested deliverable
+Produce a research-only Visual Intelligence workbook for the available 23–26 October 2026 fixture window from Run #27, including all 22 market probabilities, last-5/last-3 recent form where derivable, home/away split form, H2H from available match history, kickoff and cutoff provenance, and explicit data-quality flags. Do not invent league positions, confidence scores, or missing data. Mark raw probabilities as uncalibrated and distinguish data-completeness risk from betting risk.
+Clearly state that only 18 of the user's 44 target leagues are represented in the current run; 26 are missing, while eight extra non-target competitions are included. Do not manufacture Oracle probabilities for leagues without live model output.
+
+## Next actions
+1. Export the 23–26 October fixture window from Run #27 artifacts; exclude fixtures already kicked off before the prediction run from prospective selections.
+2. Join prediction rows to fixture IDs and construct a one-row-per-fixture Visual Intelligence view plus a long-form all-markets sheet.
+3. Derive form/H2H only from verified historical result rows dated before each fixture; preserve missing/unmatched values as unavailable.
+4. Validate workbook counts against 22 markets per fixture and report league coverage.
+5. Extend governed league configuration and verified fixture/state joins to the 44-league universe only as separate research work, then rerun and audit before claiming 44-league coverage.
+6. Keep PR #20 draft/unmerged; promotion remains blocked.

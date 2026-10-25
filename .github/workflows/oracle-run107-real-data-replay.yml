@@ -1,0 +1,180 @@
+name: Oracle Run 107 Real-Data Replay (Research Only)
+
+on:
+  push:
+    branches:
+      - "research/oracle-crosswalk-isolation-2026-10-22"
+    paths:
+      - ".github/workflows/oracle-run107-real-data-replay.yml"
+      - "reports/oracle-ten-fixture-evidence-register-2026-10-23.csv"
+      - "reports/oracle-recovery-completion-gate-2026-10-23.md"
+      - "reports/oracle-run107-kickoff-coverage-audit-2026-10-23.csv"
+      - "reports/oracle-run107-ten-fixture-role-state-diagnostic-2026-10-23.csv"
+      - "reports/oracle-run107-research-only-crosswalk-candidates-2026-10-23.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  run107-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download archived Run 107 fixture artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence/run107
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/dtnzv5by8c-ship-it/oracle-validation-learning/actions/artifacts/12425136901/zip" \
+            -o evidence/run107/oracle-fixture-level-predictions.zip
+          echo "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299  evidence/run107/oracle-fixture-level-predictions.zip" | sha256sum --check
+          unzip -q evidence/run107/oracle-fixture-level-predictions.zip -d evidence/run107/unpacked
+          test -n "$(find evidence/run107/unpacked -name oracle_upcoming_fixtures.csv -print -quit)"
+          test -n "$(find evidence/run107/unpacked -name current_prematch_team_state.csv -print -quit)"
+          test -n "$(find evidence/run107/unpacked -name matches.csv -print -quit)"
+      - name: Verify archived artifact digest and prepare isolated inputs
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib, zipfile, json
+          p = pathlib.Path("evidence/run107/oracle-fixture-level-predictions.zip")
+          digest = hashlib.sha256(p.read_bytes()).hexdigest()
+          print(json.dumps({"downloaded_zip_sha256": digest, "expected_sha256": "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299"}))
+          if digest != "5de8e3773934e2d53aa6464df31c03ee8d7a47bda98ad19ed39e590d28cb3299":
+              raise SystemExit("ARCHIVED_ARTIFACT_HASH_MISMATCH")
+          PY
+          python - <<'PY'
+          import csv, pathlib, json
+          root = pathlib.Path("evidence/run107/unpacked")
+          def find_exact_basename(name):
+              hits = [p for p in root.rglob("*") if p.is_file() and p.name == name]
+              if len(hits) != 1:
+                  raise SystemExit(f"EXPECTED_ONE_FILE_NAMED_{name}_FOUND_{len(hits)}")
+              return hits[0]
+          schedule = find_exact_basename("oracle_upcoming_fixtures.csv")
+          state = find_exact_basename("current_prematch_team_state.csv")
+          # Do not use rglob("matches.csv") or endswith("matches.csv"):
+          # that can silently select current_matches.csv, which has no league_code.
+          matches = find_exact_basename("matches.csv")
+          out = pathlib.Path("evidence/run107/replay-inputs")
+          out.mkdir(parents=True, exist_ok=True)
+          (out/"fixtures.csv").write_bytes(schedule.read_bytes())
+          (out/"history.csv").write_bytes(state.read_bytes())
+          with matches.open(encoding="utf-8-sig", newline="") as f:
+              rows = list(csv.DictReader(f))
+          with schedule.open(encoding="utf-8-sig", newline="") as f:
+              fixture_rows = list(csv.DictReader(f))
+          with state.open(encoding="utf-8-sig", newline="") as f:
+              state_rows = list(csv.DictReader(f))
+          required = {"match_id", "date", "league_code", "league", "home_team", "away_team"}
+          if not rows or not required.issubset(rows[0].keys()):
+              raise SystemExit(f"HISTORICAL_MATCHES_SCHEMA_MISMATCH: required={sorted(required)}; actual={sorted(rows[0].keys()) if rows else []}")
+          if len(rows) != 12836:
+              raise SystemExit(f"EXPECTED_12836_HISTORICAL_MATCH_ROWS_GOT_{len(rows)}")
+          if len(fixture_rows) != 244:
+              raise SystemExit(f"EXPECTED_244_SCHEDULE_ROWS_GOT_{len(fixture_rows)}")
+          if len(state_rows) != 13099:
+              raise SystemExit(f"EXPECTED_13099_PREMATCH_STATE_ROWS_GOT_{len(state_rows)}")
+          mapping = {}
+          for r in rows:
+              code, name = r.get("league_code","").strip(), r.get("league","").strip()
+              if code and name:
+                  if code in mapping and mapping[code] != name:
+                      raise SystemExit(f"LEAGUE_CROSSWALK_CONFLICT:{code}")
+                  mapping[code] = name
+          if len(mapping) != 27:
+              raise SystemExit(f"EXPECTED_27_EXPLICIT_LEAGUE_MAPPINGS_GOT_{len(mapping)}")
+          state_leagues = {r.get("league","").strip() for r in state_rows if r.get("league","").strip()}
+          unmapped_state_leagues = sorted(state_leagues - set(mapping.values()))
+          if unmapped_state_leagues:
+              raise SystemExit(f"UNMAPPED_PREMATCH_STATE_LEAGUES:{unmapped_state_leagues}")
+          schedule_leagues = {r.get("league_code","").strip() for r in fixture_rows if r.get("league_code","").strip()}
+          missing_schedule_mappings = sorted(schedule_leagues - set(mapping.keys()))
+          if missing_schedule_mappings:
+              raise SystemExit(f"SCHEDULE_LEAGUE_CODES_WITHOUT_HISTORY_MAPPING:{missing_schedule_mappings}")
+          missing_kickoff = sum(not r.get("kickoff_time","").strip() for r in fixture_rows)
+          present_kickoff = len(fixture_rows) - missing_kickoff
+          if (missing_kickoff, present_kickoff) != (165, 79):
+              raise SystemExit(f"UNEXPECTED_KICKOFF_COVERAGE:missing={missing_kickoff};present={present_kickoff}")
+          print(json.dumps({"historical_match_rows":len(rows),"prematch_state_rows":len(state_rows),
+              "schedule_rows":len(fixture_rows),"historical_league_mappings":len(mapping),
+              "prematch_state_leagues_unmapped":unmapped_state_leagues,
+              "schedule_league_codes_missing_mapping":missing_schedule_mappings,
+              "schedule_league_codes":len(schedule_leagues),
+              "kickoff_missing":missing_kickoff,"kickoff_present":present_kickoff},indent=2))
+          with (out/"league-map.csv").open("w", encoding="utf-8", newline="") as f:
+              w = csv.writer(f); w.writerow(["league_code","league"])
+              w.writerows(sorted(mapping.items()))
+          alias_source = pathlib.Path("reports/oracle-run107-research-only-crosswalk-candidates-2026-10-23.csv")
+          with alias_source.open(encoding="utf-8-sig", newline="") as f:
+              alias_rows = list(csv.DictReader(f))
+          alias_required = {"league_code","fixture_label","role","canonical_label","identity_evidence"}
+          if not alias_rows or not alias_required.issubset(alias_rows[0].keys()):
+              raise SystemExit("RESEARCH_ALIAS_CANDIDATE_SCHEMA_MISMATCH")
+          if len(alias_rows) != 16:
+              raise SystemExit(f"EXPECTED_16_RESEARCH_ONLY_ALIAS_CANDIDATES_GOT_{len(alias_rows)}")
+          if any(not r.get("identity_evidence","").startswith("RESEARCH_ONLY;") or "not production-approved" not in r.get("identity_evidence","") for r in alias_rows):
+              raise SystemExit("RESEARCH_ALIAS_CANDIDATE_MISSING_RESEARCH_ONLY_GUARD")
+          (out/"aliases.csv").write_bytes(alias_source.read_bytes())
+          print(f"Prepared actual archived inputs: {len(mapping)} league mappings; {len(alias_rows)} research-only crosswalk candidates; 0 production aliases approved.")
+          PY
+      - name: Compile replay and run research contract tests
+        run: |
+          python -m py_compile scripts/oracle_prematch_state_replay.py scripts/oracle_team_alias_audit.py
+          python -m unittest scripts.test_oracle_prematch_state_replay scripts.test_oracle_team_alias_audit scripts.test_oracle_league_failure_isolation scripts.test_oracle_reconcile_cli -v
+      - name: Replay archived fixtures with research-only crosswalk candidates
+        run: |
+          python scripts/oracle_prematch_state_replay.py \
+            --fixtures evidence/run107/replay-inputs/fixtures.csv \
+            --history evidence/run107/replay-inputs/history.csv \
+            --aliases evidence/run107/replay-inputs/aliases.csv \
+            --league-map evidence/run107/replay-inputs/league-map.csv \
+            --output evidence/run107/replay-inputs/actual-replay.json
+          python - <<'PY'
+          import csv, json, pathlib, collections
+          p=pathlib.Path("evidence/run107/replay-inputs/actual-replay.json")
+          rows=json.loads(p.read_text(encoding="utf-8"))
+          counts=collections.Counter(r["counterfactual_status"] for r in rows)
+          targets={
+            ("F2","2026-10-23","Pau FC","Grenoble"),
+            ("NED2","2026-10-23","Almere City","Roda"),
+            ("NED2","2026-10-23","Jong AZ","Helmond"),
+            ("NED2","2026-10-23","Oss","Jong Ajax"),
+            ("B1","2026-10-24","Westerlo","Beveren"),
+            ("CZE","2026-10-24","Brno","Bohemians"),
+            ("NED2","2026-10-24","Dordrecht","Venlo"),
+            ("POL","2026-10-24","Wisla","Rakow"),
+            ("D2","2026-10-25","Braunschweig","Hannover"),
+            ("N1","2026-10-25","PSV","Feyenoord"),
+          }
+          selected=[r for r in rows if (r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) in targets]
+          found={(r.get("league_code",""),r.get("date",""),r.get("home_team",""),r.get("away_team","")) for r in selected}
+          missing_targets=[list(t) for t in sorted(targets-found)]
+          target_counts=collections.Counter(r["counterfactual_status"] for r in selected)
+          if target_counts != {"ELIGIBLE_FOR_REVIEW_ONLY":10}:
+              raise SystemExit(f"UNEXPECTED_TEN_FIXTURE_RESEARCH_DISPOSITION:{dict(target_counts)}")
+          alias_rows=list(csv.DictReader((pathlib.Path("evidence/run107/replay-inputs/aliases.csv")).open(encoding="utf-8-sig",newline="")))
+          report={"scope":"RESEARCH_ONLY_ACTUAL_ARCHIVED_RUN107","fixture_count":len(rows),"status_counts":dict(counts),"production_aliases_approved":0,"research_only_crosswalk_candidates_applied":len(alias_rows),"ten_fixture_rows_found":len(selected),"expected_ten_fixture_rows":10,"ten_fixture_status_counts":dict(target_counts),"missing_target_fixtures":missing_targets,"ten_fixture_dispositions":[{"league_code":r["league_code"],"date":r["date"],"home_team":r["home_team"],"away_team":r["away_team"],"status":r["counterfactual_status"],"blockers":r["blockers"],"role_state_audit":r["role_state_audit"]} for r in selected],"production_predictions_generated":False}
+          pathlib.Path("evidence/run107/replay-inputs/replay-summary.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          print(json.dumps(report,indent=2,ensure_ascii=False))
+          if len(rows)!=244: raise SystemExit(f"EXPECTED_244_FIXTURES_GOT_{len(rows)}")
+          if len(selected)!=10: raise SystemExit(f"EXPECTED_10_TARGET_FIXTURES_FOUND_{len(selected)}; missing={missing_targets}")
+          PY
+      - name: Upload actual-data replay and blockers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-run107-actual-replay-diagnostics
+          path: evidence/run107/
+          if-no-files-found: error
+          retention-days: 14

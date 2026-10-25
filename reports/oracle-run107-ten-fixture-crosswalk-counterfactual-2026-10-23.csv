@@ -1,0 +1,11 @@
+league_code,date,home_team,away_team,research_replay_status,home_candidate_label,home_candidate_role_rows,home_crosswalk_applied,away_candidate_label,away_candidate_role_rows,away_crosswalk_applied,blockers,production_approved
+F2,2026-10-23,Pau FC,Grenoble,ELIGIBLE_FOR_REVIEW_ONLY,Pau,24,YES,Grenoble,25,NO,,NO
+NED2,2026-10-23,Almere City,Roda,ELIGIBLE_FOR_REVIEW_ONLY,Almere City FC,22,YES,Roda JC Kerkrade,26,YES,,NO
+NED2,2026-10-23,Jong AZ,Helmond,ELIGIBLE_FOR_REVIEW_ONLY,Jong AZ Alkmaar,27,YES,Helmond Sport,25,YES,,NO
+NED2,2026-10-23,Oss,Jong Ajax,ELIGIBLE_FOR_REVIEW_ONLY,TOP Oss,25,YES,Jong Ajax,27,NO,,NO
+B1,2026-10-24,Westerlo,Beveren,ELIGIBLE_FOR_REVIEW_ONLY,Westerlo,28,NO,SK Beveren,3,YES,THIN_HISTORY_3_AWAY_ROLE_ROWS; minimum-history policy unresolved,NO
+CZE,2026-10-24,Brno,Bohemians,ELIGIBLE_FOR_REVIEW_ONLY,FC Zbrojovka Brno,4,YES,Bohemians 1905,26,YES,LOW_HOME_HISTORY_4_ROWS; Artis Brno remains a distinct competing club; official date/competition/opponent corroborated,NO
+NED2,2026-10-24,Dordrecht,Venlo,ELIGIBLE_FOR_REVIEW_ONLY,FC Dordrecht,26,YES,VVV-Venlo,27,YES,,NO
+POL,2026-10-24,Wisla,Rakow,ELIGIBLE_FOR_REVIEW_ONLY,Wisła Kraków,4,YES,Raków Częstochowa,26,YES,LOW_HOME_HISTORY_4_ROWS; official schedule distinguishes Wisła Kraków from Wisła Płock,NO
+D2,2026-10-25,Braunschweig,Hannover,ELIGIBLE_FOR_REVIEW_ONLY,Eintracht Braunschweig,24,YES,Hannover 96,24,YES,,NO
+N1,2026-10-25,PSV,Feyenoord,ELIGIBLE_FOR_REVIEW_ONLY,PSV Eindhoven,23,YES,Feyenoord,26,NO,,NO
