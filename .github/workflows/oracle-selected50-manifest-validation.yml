@@ -1,0 +1,26 @@
+name: Oracle Selected-50 Manifest Validation
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - 'data/oracle-footystats-selected-50-season-id-manifest.csv'
+      - 'scripts/validate_selected50_manifest.py'
+      - '.github/workflows/oracle-selected50-manifest-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate exact selected-50 manifest
+        run: python scripts/validate_selected50_manifest.py
