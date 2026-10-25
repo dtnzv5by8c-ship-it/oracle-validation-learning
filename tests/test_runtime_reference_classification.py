@@ -39,7 +39,7 @@ class RuntimeReferenceClassificationTests(unittest.TestCase):
         router = rows[".github/workflows/oracle_v4_router.yml"]
         self.assertEqual(hist["classification"], "FROZEN_HISTORICAL_BASELINE")
         self.assertEqual(router["classification"], "FROZEN_HISTORICAL_BASELINE_GATE")
-        self.assertIn("preserve", hist["required_action"].lower())
+        self.assertIn("keep", hist["required_action"].lower())
         self.assertIn("historical", router["required_action"].lower())
 
     def test_runtime_consumers_are_explicitly_blocked_until_reviewed_migration(self):
