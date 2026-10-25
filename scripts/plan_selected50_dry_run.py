@@ -109,6 +109,43 @@ summary = {
     "production_eligible": False
 }
 SUMMARY.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+# Reconcile evidence layers without conflating selected season IDs, parent competition IDs,
+# exact Run 56 archive evidence, and the separate multi-season research runtime.
+RECONCILIATION = OUT / "selected50_evidence_layer_reconciliation.json"
+reconciliation = {
+    "status": "RESEARCH_ONLY_EVIDENCE_SCOPE_RECONCILIATION",
+    "selected_group_count": len(selected),
+    "selected_id_semantics": "Each selected_id is a provider season ID; it is not a parent competition ID.",
+    "run56_exact_id_evidence": {
+        "manifest_records_present": matched,
+        "no_manifest_record": absent,
+        "exact_archive_coverage_rows": len(coverage_rows),
+        "archive_records": sum(int(r["records"]) for r in coverage_rows),
+        "archive_score_complete_rows": sum(int(r["score_complete"]) for r in coverage_rows),
+        "archive_settled_status_allowed_rows": sum(int(r["settled_status_allowed"]) for r in coverage_rows),
+        "archive_parseable_kickoff_rows": sum(int(r["parseable_kickoff"]) for r in coverage_rows),
+        "archive_complete_team_id_rows": sum(int(r["team_ids_complete"]) for r in coverage_rows),
+        "archive_rows_missing_team_names": sum(int(r["missing_team_names"]) for r in coverage_rows)
+    },
+    "identity_findings": {
+        "provider_parent_competition_ids_populated_by_this_dry_run": 0,
+        "parent_ids_inferred_from_season_ids": False,
+        "canonical_fixture_team_join_verified": False,
+        "settlement_truth_verified": False
+    },
+    "scope_warning": "Run 56 counts are exact selected-season-ID matches. The separate multi-season runtime groups historical seasons by exact country/competition labels. Do not add or equate those counts as if they represented the same ID-level population until a canonical parent competition/team/fixture crosswalk is verified.",
+    "missing_manifest_warning": "NO_MANIFEST_RECORD_IN_RUN56 means no exact matching manifest row was present in that evidence snapshot; it does not prove the provider request failed or was never attempted.",
+    "live_ingestion": {
+        "network_calls_made": 0,
+        "paid_provider_calls_made": 0,
+        "minimum_endpoint_calls_if_one_pass": len(selected) * 4,
+        "pagination_and_retries_included": False,
+        "requires_separate_explicit_confirmation": True
+    },
+    "production_eligible": False,
+    "decision": "Keep all selected-50 outputs research-only and production-ineligible until canonical IDs, joins, settlement truth, freshness and point-in-time inputs are verified."
+}
+(RECONCILIATION).write_text(json.dumps(reconciliation, indent=2) + "\\n", encoding="utf-8")
 print(f"PASS: {len(selected)} selected IDs reconciled against exact Run 56 manifest evidence.")
 print(f"Run 56 records present: {matched}; no manifest record: {absent}.")
 print("DRY RUN: 0 network calls and 0 paid provider calls.")
