@@ -29,7 +29,7 @@ A populated score pair is not sufficient evidence that a match is settled: futur
 
 ## Existing gaps
 
-1. The ingestion ledger has blank `provider_league_id` for all selected seasons despite exact season-ID matches. The current resolver reads `league.get("id")` only; this likely reflects a catalogue schema mismatch, but the actual parent-ID field has not yet been established from a sanitized catalogue schema audit.
+1. **Root cause confirmed:** a one-request sanitized catalogue schema audit found the provider `league-list` objects expose `country`, `image`, `name`, and `season`, but no parent `id` field. Each season object exposes `country`, `id`, and `year`. Therefore the blank `provider_league_id` is not a failed exact season match; the provider catalogue does not expose a parent competition ID in this response shape. The ingestion workflow was updated so future ledgers explicitly record `NOT_EXPOSED_BY_CATALOGUE` rather than a blank. Do not invent or infer a parent ID.
 2. The current archive covers the selected 50 season IDs, but it is not a validated prediction feature store.
 3. Recent form, H2H, standings chronology, fixture identity joins, xG provenance, odds provenance, and market-specific feature readiness have not passed dedicated tests.
 4. Historical prediction accuracy and calibration improvement have not been demonstrated.
