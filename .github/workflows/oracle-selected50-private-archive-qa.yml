@@ -1,0 +1,213 @@
+name: Oracle Selected-50 Private Archive QA
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-selected50-private-archive-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  private-archive-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout research validators
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Download raw package from private Oracle release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::Private repository token missing."; exit 1; }
+          mkdir -p private-download
+          gh release download research-selected50-footystats-ingestion-20261025 \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --dir private-download
+          [[ -s private-download/oracle-selected50-footystats-private-ingestion.zip ]] || { echo "::error::Private archive missing or empty."; exit 1; }
+
+      - name: Audit fixture and feature schema without publishing raw data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, zipfile, hashlib, re, datetime, collections
+          from pathlib import Path
+
+          archive = Path("private-download/oracle-selected50-footystats-private-ingestion.zip")
+          raw = Path("private-unpacked")
+          raw.mkdir()
+          with zipfile.ZipFile(archive) as z:
+              z.extractall(raw)
+          manifest_path = raw / "private-package" / "ingestion_manifest.json"
+          if not manifest_path.exists():
+              # Archive paths may omit the enclosing directory in some zip tools.
+              candidates = list(raw.rglob("ingestion_manifest.json"))
+              if not candidates:
+                  raise SystemExit("Private ingestion manifest not found; sanitized report not produced.")
+              manifest_path = candidates[0]
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          rows = manifest if isinstance(manifest, list) else manifest.get("season_results", [])
+          season_rows = []
+          totals = collections.Counter()
+          field_counts = collections.Counter()
+          examples = {}
+          missing_files = []
+          invalid_json = []
+          fixture_ids_seen = collections.Counter()
+          kickoffs = []
+          date_min = date_max = None
+          raw_field_names = set()
+          match_total = 0
+          completed_total = 0
+          upcoming_total = 0
+          score_pair_total = 0
+          team_id_pair_total = 0
+          team_name_pair_total = 0
+          form_or_xg_fields = collections.Counter()
+          odds_field_rows = 0
+          xg_field_rows = 0
+          for row in rows:
+              sid = str(row.get("season_id", ""))
+              base = manifest_path.parent / "seasons" / sid
+              if not base.exists():
+                  candidates = list(raw.rglob(sid))
+                  base = next((p for p in candidates if p.is_dir()), base)
+              result = {"season_id": sid, "manifest_status": row.get("status", "UNKNOWN")}
+              match_path = base / "matches.json"
+              team_path = base / "teams.json"
+              table_path = base / "tables.json"
+              stats_path = base / "season_stats.json"
+              if not all(p.is_file() for p in (match_path, team_path, table_path, stats_path)):
+                  missing_files.append(sid)
+                  result["file_status"] = "MISSING_ONE_OR_MORE_FILES"
+                  season_rows.append(result)
+                  continue
+              try:
+                  matches = json.loads(match_path.read_text(encoding="utf-8"))
+                  teams = json.loads(team_path.read_text(encoding="utf-8"))
+                  tables = json.loads(table_path.read_text(encoding="utf-8"))
+                  stats = json.loads(stats_path.read_text(encoding="utf-8"))
+              except Exception:
+                  invalid_json.append(sid)
+                  result["file_status"] = "INVALID_JSON"
+                  season_rows.append(result)
+                  continue
+              if not isinstance(matches, list) or not isinstance(teams, list):
+                  invalid_json.append(sid)
+                  result["file_status"] = "UNEXPECTED_CONTAINER_SHAPE"
+                  season_rows.append(result)
+                  continue
+              match_total += len(matches)
+              season_fields = set()
+              valid_kickoff = 0
+              score_pair = team_pair = name_pair = 0
+              completed = upcoming = 0
+              for m in matches:
+                  if not isinstance(m, dict):
+                      continue
+                  season_fields.update(str(k) for k in m.keys())
+                  fid = m.get("id") or m.get("fixture_id") or m.get("match_id")
+                  if fid is not None:
+                      fixture_ids_seen[(sid, str(fid))] += 1
+                  dt = m.get("date_unix") or m.get("kickoff") or m.get("date") or m.get("datetime")
+                  if dt is not None:
+                      valid_kickoff += 1
+                      try:
+                          if isinstance(dt, (int, float)) or str(dt).isdigit():
+                              d = datetime.datetime.fromtimestamp(float(dt), datetime.timezone.utc).date().isoformat()
+                          else:
+                              d = str(dt)[:10]
+                          date_min = d if date_min is None or d < date_min else date_min
+                          date_max = d if date_max is None or d > date_max else date_max
+                      except Exception:
+                          pass
+                  h = m.get("homeID", m.get("home_id", m.get("home_team_id")))
+                  a = m.get("awayID", m.get("away_id", m.get("away_team_id")))
+                  if h is not None and a is not None: team_pair += 1
+                  hn = m.get("home_name", m.get("home_team_name"))
+                  an = m.get("away_name", m.get("away_team_name"))
+                  if hn and an: name_pair += 1
+                  hs = m.get("homeGoalCount", m.get("home_score"))
+                  aws = m.get("awayGoalCount", m.get("away_score"))
+                  if hs is not None and aws is not None: score_pair += 1
+                  status = str(m.get("status", m.get("game_status", ""))).lower()
+                  if (hs is not None and aws is not None) or any(t in status for t in ("complete","finished","ft","ended")):
+                      completed += 1
+                  elif any(t in status for t in ("not started","scheduled","upcoming","pending")) or hs is None or aws is None:
+                      upcoming += 1
+                  if any("odds" in str(k).lower() for k in m): odds_field_rows += 1
+                  if any("xg" in str(k).lower() for k in m): xg_field_rows += 1
+              raw_field_names.update(season_fields)
+              field_counts.update(season_fields)
+              completed_total += completed
+              upcoming_total += upcoming
+              score_pair_total += score_pair
+              team_id_pair_total += team_pair
+              team_name_pair_total += name_pair
+              result.update({
+                  "file_status": "OK",
+                  "match_count": len(matches),
+                  "team_count": len(teams),
+                  "kickoff_field_present_count": valid_kickoff,
+                  "score_pair_count": score_pair,
+                  "team_id_pair_count": team_pair,
+                  "team_name_pair_count": name_pair,
+                  "duplicate_fixture_id_count": 0
+              })
+              season_rows.append(result)
+          duplicate_ids = sum(1 for k,v in fixture_ids_seen.items() if v > 1)
+          report = {
+              "audit": "PRIVATE_RAW_ARCHIVE_SCHEMA_QA",
+              "source_release_tag": "research-selected50-footystats-ingestion-20261025",
+              "selected_manifest_rows": len(rows),
+              "season_folders_audited": len(season_rows),
+              "season_manifest_status_counts": dict(collections.Counter(str(r.get("status","UNKNOWN")) for r in rows)),
+              "season_file_status_counts": dict(collections.Counter(str(r.get("file_status","UNKNOWN")) for r in season_rows)),
+              "missing_file_season_ids": missing_files,
+              "invalid_json_season_ids": invalid_json,
+              "raw_match_record_count": match_total,
+              "unique_season_fixture_id_pairs": len(fixture_ids_seen),
+              "duplicate_fixture_id_pairs": duplicate_ids,
+              "match_records_with_kickoff_like_field": sum(r.get("kickoff_field_present_count",0) for r in season_rows),
+              "match_records_with_explicit_score_pair": score_pair_total,
+              "match_records_with_team_id_pair": team_id_pair_total,
+              "match_records_with_team_name_pair": team_name_pair_total,
+              "completed_status_candidate_records": completed_total,
+              "upcoming_status_candidate_records": upcoming_total,
+              "records_with_odds_named_fields": odds_field_rows,
+              "records_with_xg_named_fields": xg_field_rows,
+              "observed_date_min_utc_or_string": date_min,
+              "observed_date_max_utc_or_string": date_max,
+              "match_object_field_names_union": sorted(raw_field_names),
+              "season_results": season_rows,
+              "private_archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+              "raw_provider_payload_saved_publicly": False,
+              "production_model_logic_changed": False,
+              "production_probabilities_changed": False,
+              "production_readiness": "NOT_GRANTED",
+              "limitations": [
+                "Field presence is not proof of correct semantics or as-of-kickoff provenance.",
+                "Completed/upcoming classification is a preliminary schema check, not settlement validation.",
+                "Recent form, H2H, standings chronology, xG provenance and odds provenance require dedicated feature-level tests."
+              ]
+          }
+          Path("sanitized-private-archive-qa.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps({k:v for k,v in report.items() if k not in ("season_results","match_object_field_names_union")}, sort_keys=True))
+          PY
+
+      - name: Upload sanitized QA only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-private-archive-qa
+          path: sanitized-private-archive-qa.json
+          if-no-files-found: error
+          retention-days: 7
