@@ -41,6 +41,22 @@ def wilson_interval(successes, n, z=1.959963984540054):
     half = z * math.sqrt((p*(1-p) + z*z/(4*n))/n) / denom
     return max(0.0, center-half), min(1.0, center+half)
 
+def expected_calibration_error(y, probs, bins=10):
+    """Ten-bin ECE diagnostic; never used to transform model probabilities."""
+    if not y or len(y) != len(probs):
+        return None
+    ece = 0.0
+    for bi in range(bins):
+        lo = bi / bins
+        hi = (bi + 1) / bins
+        idx = [i for i, p in enumerate(probs) if p >= lo and (p < hi or (bi == bins - 1 and p <= hi))]
+        if not idx:
+            continue
+        mean_p = sum(probs[i] for i in idx) / len(idx)
+        observed = sum(y[i] for i in idx) / len(idx)
+        ece += len(idx) / len(y) * abs(mean_p - observed)
+    return round(ece, 5)
+
 def read_json(z, name):
     try: return json.loads(z.read(name).decode("utf-8"))
     except Exception: return None
@@ -447,6 +463,7 @@ def main():
         ]
         walk_forward = []
         league_market_readiness = []
+        league_walk_forward_metrics = []
         for market in MARKETS:
             for fold_name, fold_start, fold_end in wf_edges:
                 fold_train = [r for r in train_rows if r["kickoff_unix"] < fold_start
@@ -459,14 +476,30 @@ def main():
                 if model is None or not fold_test:
                     walk_forward.append({"market":market,"fold":fold_name,"status":"INSUFFICIENT_TRAIN_OR_TEST",
                                          "train_n":fold_train_n,"test_n":len(fold_test),
-                                         "accuracy_at_0_5":None,"accuracy_95ci_low":None,"accuracy_95ci_high":None,"brier":None,"log_loss":None,"auc":None,
+                                         "accuracy_at_0_5":None,"accuracy_95ci_low":None,"accuracy_95ci_high":None,
+                                         "brier":None,"log_loss":None,"auc":None,"ece_10_bins":None,
                                          "baseline_brier":None,"brier_skill_vs_prevalence":None})
+                    for selected_id, sel in selected_by_id.items():
+                        lg_train = [r for r in fold_train if str(r["competition_id"]) == str(selected_id)]
+                        lg_test = [r for r in fold_test if str(r["competition_id"]) == str(selected_id)]
+                        league_walk_forward_metrics.append({
+                            "selected_id":str(selected_id),"country":sel.get("country",""),
+                            "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
+                            "train_n":len(lg_train),"test_n":len(lg_test),
+                            "sample_gate":"INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if len(lg_train)<100 or len(lg_test)<100 else "SAMPLE_GATE_MET",
+                            "status":"INSUFFICIENT_TRAIN_OR_TEST","accuracy_at_0_5":None,
+                            "accuracy_95ci_low":None,"accuracy_95ci_high":None,"brier":None,
+                            "log_loss":None,"auc":None,"ece_10_bins":None,
+                            "training_prevalence_league":None,"baseline_majority_accuracy_league":None,
+                            "baseline_brier_league_prevalence":None,"brier_skill_vs_league_prevalence":None,
+                            "production_eligible":"NO","edge_claim":"NOT_APPROVED"})
                     continue
-                fp = [predict(model, r) for r in fold_test]
-                fy = [r["target_"+market] for r in fold_test]
-                valid = [(p,y0) for p,y0 in zip(fp,fy) if p is not None]
-                fp = [p for p,y0 in valid]; fy = [y0 for p,y0 in valid]
-                train_prev = sum(r["target_"+market] for r in fold_train)/len(fold_train) if fold_train else None
+                fp_all = [predict(model, r) for r in fold_test]
+                valid = [(r, p) for r, p in zip(fold_test, fp_all) if p is not None]
+                fold_test_eval = [r for r, p in valid]
+                fp = [p for r, p in valid]
+                fy = [int(r["target_"+market]) for r in fold_test_eval]
+                train_prev = sum(int(r["target_"+market]) for r in fold_train)/len(fold_train) if fold_train else None
                 base_brier = brier_score_loss(fy, [train_prev]*len(fy)) if train_prev is not None and fy else None
                 fold_labels = [int(p >= 0.5) for p in fp]
                 fold_correct = sum(int(p) == int(y0) for p,y0 in zip(fold_labels,fy))
@@ -479,27 +512,82 @@ def main():
                     "brier":round(brier_score_loss(fy,fp),5),
                     "log_loss":round(log_loss(fy,[min(max(p,1e-6),1-1e-6) for p in fp],labels=[0,1]),5),
                     "auc":round(roc_auc_score(fy,fp),5) if len(set(fy))==2 else None,
+                    "ece_10_bins":expected_calibration_error(fy,fp),
                     "training_prevalence":round(train_prev,5) if train_prev is not None else None,
                     "baseline_brier":round(base_brier,5) if base_brier is not None else None,
                     "brier_skill_vs_prevalence":round(1-brier_score_loss(fy,fp)/base_brier,5) if base_brier else None})
-            # Per-league market evidence with minimum sample gate; no unsupported league-level edge claims.
-            for league_name in sorted(set(str(r.get("league") or "UNKNOWN") for r in train_rows)):
-                lg_train = [r for r in train_rows if str(r.get("league") or "UNKNOWN")==league_name
+                # Per-competition metrics use the pooled fold model, evaluated only on that
+                # competition's test rows; baselines use that competition's training labels only.
+                for selected_id, sel in selected_by_id.items():
+                    lg_train = [r for r in fold_train if str(r["competition_id"]) == str(selected_id)]
+                    lg_indices = [idx for idx, r in enumerate(fold_test_eval) if str(r["competition_id"]) == str(selected_id)]
+                    ly = [fy[idx] for idx in lg_indices]
+                    lp = [fp[idx] for idx in lg_indices]
+                    lg_train_n = len(lg_train)
+                    lg_test_n = len(ly)
+                    lg_prev = (sum(int(r["target_"+market]) for r in lg_train)/lg_train_n) if lg_train_n else None
+                    lg_baseline_probs = [lg_prev]*lg_test_n if lg_prev is not None and lg_test_n else []
+                    lg_baseline_brier = brier_score_loss(ly, lg_baseline_probs) if lg_baseline_probs else None
+                    lg_brier = brier_score_loss(ly, lp) if lp else None
+                    lg_majority = int(lg_prev >= 0.5) if lg_prev is not None else None
+                    lg_baseline_accuracy = accuracy_score(ly, [lg_majority]*lg_test_n) if lg_test_n and lg_majority is not None else None
+                    lg_labels = [int(p >= 0.5) for p in lp]
+                    lg_correct = sum(int(p) == int(y0) for p,y0 in zip(lg_labels,ly))
+                    lg_ci_low, lg_ci_high = wilson_interval(lg_correct, lg_test_n)
+                    lg_gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if lg_train_n < 100 or lg_test_n < 100 else "SAMPLE_GATE_MET_DIAGNOSTIC_ONLY"
+                    league_walk_forward_metrics.append({
+                        "selected_id":str(selected_id),"country":sel.get("country",""),
+                        "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
+                        "train_n":lg_train_n,"test_n":lg_test_n,"sample_gate":lg_gate,
+                        "status":"NO_TEST_ROWS" if not lg_test_n else "RAW_POOLED_MODEL_LEAGUE_SUBSET_NOT_CALIBRATED",
+                        "accuracy_at_0_5":round(accuracy_score(ly,lg_labels),5) if ly else None,
+                        "accuracy_95ci_low":round(lg_ci_low,5) if lg_ci_low is not None else None,
+                        "accuracy_95ci_high":round(lg_ci_high,5) if lg_ci_high is not None else None,
+                        "brier":round(lg_brier,5) if lg_brier is not None else None,
+                        "log_loss":round(log_loss(ly,[min(max(p,1e-6),1-1e-6) for p in lp],labels=[0,1]),5) if lp else None,
+                        "auc":round(roc_auc_score(ly,lp),5) if len(set(ly))==2 else None,
+                        "ece_10_bins":expected_calibration_error(ly,lp),
+                        "training_prevalence_league":round(lg_prev,5) if lg_prev is not None else None,
+                        "baseline_majority_accuracy_league":round(lg_baseline_accuracy,5) if lg_baseline_accuracy is not None else None,
+                        "baseline_brier_league_prevalence":round(lg_baseline_brier,5) if lg_baseline_brier is not None else None,
+                        "brier_skill_vs_league_prevalence":round(1-lg_brier/lg_baseline_brier,5) if lg_brier is not None and lg_baseline_brier is not None and lg_baseline_brier > 0 else None,
+                        "production_eligible":"NO","edge_claim":"NOT_APPROVED"})
+        # Readiness is keyed by canonical selected provider ID, not league label; names can collide.
+        for selected_id, sel in selected_by_id.items():
+            for market in MARKETS:
+                lg_train = [r for r in train_rows if str(r["competition_id"]) == str(selected_id)
                             and r["kickoff_unix"] < PRIMARY_START and r.get("target_"+market) is not None
                             and all(r.get(k) is not None for k in FEATURES)]
-                lg_test = [r for r in train_rows if str(r.get("league") or "UNKNOWN")==league_name
+                lg_test = [r for r in train_rows if str(r["competition_id"]) == str(selected_id)
                            and PRIMARY_START <= r["kickoff_unix"] < PRIMARY_END
                            and r.get("target_"+market) is not None and all(r.get(k) is not None for k in FEATURES)]
-                if len(lg_train) < 100 or len(lg_test) < 100:
-                    gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST"
+                gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if len(lg_train) < 100 or len(lg_test) < 100 else "SAMPLE_GATE_MET_REQUIRES_STABILITY_AND_ODDS_VALIDATION"
+                folds = [x for x in league_walk_forward_metrics if x["selected_id"] == str(selected_id) and x["market"] == market]
+                adequate = [x for x in folds if x["train_n"] >= 100 and x["test_n"] >= 100 and x.get("brier_skill_vs_league_prevalence") is not None]
+                skills = [x["brier_skill_vs_league_prevalence"] for x in adequate]
+                if len(adequate) < len(wf_edges):
+                    stability = "INSUFFICIENT_FOLD_SAMPLE_OR_METRIC"
+                elif all(v > 0 for v in skills):
+                    stability = "POSITIVE_BRIER_SKILL_ALL_FOLDS_DIAGNOSTIC_ONLY"
+                elif all(v <= 0 for v in skills):
+                    stability = "NO_POSITIVE_BRIER_SKILL_ALL_FOLDS"
                 else:
-                    gate = "SAMPLE_GATE_MET_REQUIRES_STABILITY_AND_ODDS_VALIDATION"
-                league_market_readiness.append({"league":league_name,"market":market,
+                    stability = "MIXED_BRIER_SKILL_ACROSS_FOLDS"
+                league_market_readiness.append({
+                    "selected_id":str(selected_id),"country":sel.get("country",""),
+                    "league":sel.get("competition_name",""),"market":market,
                     "train_n":len(lg_train),"test_n":len(lg_test),"sample_gate":gate,
+                    "walk_forward_folds_with_test_data":sum(1 for x in folds if x["test_n"] > 0),
+                    "folds_meeting_min_100_train_and_test":len(adequate),
+                    "folds_positive_brier_skill_vs_league_prevalence":sum(1 for v in skills if v > 0),
+                    "fold_brier_skill_min":round(min(skills),5) if skills else None,
+                    "fold_brier_skill_max":round(max(skills),5) if skills else None,
+                    "fold_stability_status":stability,
                     "production_eligible":"NO","edge_claim":"NOT_APPROVED"})
         wf_path=OUT/"oracle_selected50_walk_forward_metrics.json"
         wf_path.write_text(json.dumps({"folds":walk_forward,
             "fold_design":"Expanding-window rolling-origin; each fold trains strictly before test interval; fixed features and model; no calibration or tuning.",
+            "league_walk_forward_metrics_file":"oracle_selected50_league_walk_forward_metrics.csv",
             "limitations":["This evaluates model probability quality, not betting ROI.",
                            "Historical settlement joins and provider point-in-time provenance remain unverified.",
                            "Per-league minimum samples are necessary but not sufficient for edge approval.",
@@ -509,14 +597,27 @@ def main():
         expected_fold_rows = len(MARKETS) * len(wf_edges)
         if len(wf_check.get("folds", [])) != expected_fold_rows:
             raise RuntimeError(f"Walk-forward fold count mismatch: expected {expected_fold_rows}, got {len(wf_check.get('folds', []))}")
-        if len(league_market_readiness) != len(set(str(r.get("league") or "UNKNOWN") for r in train_rows)) * len(MARKETS):
-            raise RuntimeError("League-market readiness row count mismatch")
+        if len(league_market_readiness) != len(selected_by_id) * len(MARKETS):
+            raise RuntimeError(f"League-market readiness row count mismatch: expected {len(selected_by_id) * len(MARKETS)}, got {len(league_market_readiness)}")
+        if len(league_walk_forward_metrics) != len(selected_by_id) * len(MARKETS) * len(wf_edges):
+            raise RuntimeError(f"League walk-forward row count mismatch: expected {len(selected_by_id) * len(MARKETS) * len(wf_edges)}, got {len(league_walk_forward_metrics)}")
         if any(r.get("production_eligible") != "NO" or r.get("edge_claim") != "NOT_APPROVED" for r in league_market_readiness):
             raise RuntimeError("Research readiness artifact attempted to grant production eligibility")
         readiness_path=OUT/"oracle_selected50_league_market_readiness.csv"
         with readiness_path.open("w",newline="",encoding="utf-8") as rf:
-            cols=["league","market","train_n","test_n","sample_gate","production_eligible","edge_claim"]
+            cols=["selected_id","country","league","market","train_n","test_n","sample_gate",
+                  "walk_forward_folds_with_test_data","folds_meeting_min_100_train_and_test",
+                  "folds_positive_brier_skill_vs_league_prevalence","fold_brier_skill_min","fold_brier_skill_max",
+                  "fold_stability_status","production_eligible","edge_claim"]
             rw=csv.DictWriter(rf,fieldnames=cols);rw.writeheader();rw.writerows(league_market_readiness)
+        league_walk_forward_path=OUT/"oracle_selected50_league_walk_forward_metrics.csv"
+        with league_walk_forward_path.open("w",newline="",encoding="utf-8") as lwf:
+            fold_cols=["selected_id","country","league","market","fold","train_n","test_n","sample_gate","status",
+                       "accuracy_at_0_5","accuracy_95ci_low","accuracy_95ci_high","brier","log_loss","auc","ece_10_bins",
+                       "training_prevalence_league","baseline_majority_accuracy_league",
+                       "baseline_brier_league_prevalence","brier_skill_vs_league_prevalence",
+                       "production_eligible","edge_claim"]
+            lw=csv.DictWriter(lwf,fieldnames=fold_cols);lw.writeheader();lw.writerows(league_walk_forward_metrics)
         backtest_path=OUT/"oracle_selected50_backtest_metrics.json"
         backtest_report={"primary_window":"2025-03-20 through 2026-09-20","training_cutoff_exclusive":"2025-03-20","markets":backtest, "walk_forward_metrics_file":"oracle_selected50_walk_forward_metrics.json","league_market_readiness_file":"oracle_selected50_league_market_readiness.csv",
                          "note":"Single temporal holdout baseline using the locked Oracle logistic-regression form feature set; raw probabilities, no calibration, not production-approved."}
@@ -591,7 +692,7 @@ def main():
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
-            "calendar_year_coverage_rows":len(calendar_year_rows),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
+            "calendar_year_coverage_rows":len(calendar_year_rows),"league_market_readiness_rows":len(league_market_readiness),"league_walk_forward_metrics_rows":len(league_walk_forward_metrics),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
@@ -607,7 +708,7 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
