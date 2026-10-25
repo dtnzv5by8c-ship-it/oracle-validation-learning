@@ -46,6 +46,10 @@ class Selected50DryRunTests(unittest.TestCase):
     def test_unknown_archive_is_not_called_unavailable(self):
         statuses = {r["archive_exact_id_status"] for r in self.rows}
         self.assertEqual({"ARCHIVE_MATCHED", "ARCHIVE_ABSENT_UNVERIFIED"}, statuses)
+        manifest_statuses = {r["ingestion_manifest_status"] for r in self.rows}
+        self.assertEqual({"MANIFEST_RECORD_PRESENT", "NO_MANIFEST_RECORD_IN_RUN56"}, manifest_statuses)
+        self.assertEqual(31, sum(r["ingestion_manifest_status"] == "MANIFEST_RECORD_PRESENT" for r in self.rows))
+        self.assertEqual(19, sum(r["ingestion_manifest_status"] == "NO_MANIFEST_RECORD_IN_RUN56" for r in self.rows))
         self.assertTrue(all(r["production_eligible"] == "NO" for r in self.rows))
 
     def test_minimum_request_estimate_is_explicit(self):
