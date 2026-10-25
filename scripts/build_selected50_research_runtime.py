@@ -295,9 +295,42 @@ def main():
                 backtest.append({"market":market,"status":"NO_VALID_PREDICTIONS","train_n":ntrain,"test_n":0,"brier":None,"log_loss":None,"accuracy_at_0_5":None,"auc":None}); continue
             try: auc=roc_auc_score(y,probs) if len(set(y))==2 else None
             except Exception: auc=None
+            # Leakage-safe reference baselines use training labels only, never test prevalence.
+            baseline_train=[r for r in train_pre if r.get("target_"+market) is not None and all(r.get(f) is not None for f in FEATURES)]
+            train_prev=(sum(int(r["target_"+market]) for r in baseline_train)/len(baseline_train)) if baseline_train else None
+            majority_class=int(train_prev>=0.5) if train_prev is not None else None
+            baseline_probs=[train_prev]*len(y) if train_prev is not None else []
+            baseline_brier=round(brier_score_loss(y,baseline_probs),5) if baseline_probs else None
+            baseline_logloss=round(log_loss(y,[min(max(p,1e-6),1-1e-6) for p in baseline_probs],labels=[0,1]),5) if baseline_probs else None
+            baseline_accuracy=round(accuracy_score(y,[majority_class]*len(y)),5) if majority_class is not None else None
+            # Reliability bins and ECE are diagnostics only; no calibration is applied to outputs.
+            bins=[]; ece=0.0
+            for bi in range(10):
+                lo=bi/10; hi=(bi+1)/10
+                idx=[i for i,p in enumerate(probs) if (p>=lo and (p<hi or (bi==9 and p<=hi)))]
+                if not idx: continue
+                mean_p=sum(probs[i] for i in idx)/len(idx)
+                observed=sum(y[i] for i in idx)/len(idx)
+                ece += len(idx)/len(y)*abs(mean_p-observed)
+                bins.append({"bin_lower":lo,"bin_upper":hi,"n":len(idx),"mean_predicted_probability":round(mean_p,5),"observed_rate":round(observed,5)})
+            per_league=[]
+            league_names=sorted(set(str(r.get("league") or "UNKNOWN") for r in eligible))
+            for league_name in league_names:
+                inds=[i for i,r in enumerate(eligible) if str(r.get("league") or "UNKNOWN")==league_name]
+                ly=[y[i] for i in inds]; lp=[probs[i] for i in inds]
+                per_league.append({"league":league_name,"test_n":len(inds),
+                    "positive_rate":round(sum(ly)/len(ly),5) if ly else None,
+                    "accuracy_at_0_5":round(accuracy_score(ly,[int(p>=0.5) for p in lp]),5) if ly else None,
+                    "brier":round(brier_score_loss(ly,lp),5) if ly else None,
+                    "auc":round(roc_auc_score(ly,lp),5) if len(set(ly))==2 else None})
             backtest.append({"market":market,"status":"RAW_WALK_FORWARD_HOLDOUT_NOT_CALIBRATED","train_n":ntrain,"test_n":len(y),
                              "brier":round(brier_score_loss(y,probs),5),"log_loss":round(log_loss(y,[min(max(p,1e-6),1-1e-6) for p in probs],labels=[0,1]),5),
-                             "accuracy_at_0_5":round(accuracy_score(y,[int(p>=0.5) for p in probs]),5),"auc":round(auc,5) if auc is not None else None})
+                             "accuracy_at_0_5":round(accuracy_score(y,[int(p>=0.5) for p in probs]),5),"auc":round(auc,5) if auc is not None else None,
+                             "training_prevalence":round(train_prev,5) if train_prev is not None else None,
+                             "baseline_majority_class":majority_class,"baseline_accuracy":baseline_accuracy,
+                             "baseline_constant_probability_brier":baseline_brier,"baseline_constant_probability_log_loss":baseline_logloss,
+                             "expected_calibration_error_10_bins":round(ece,5),"reliability_bins":bins,
+                             "per_league_test_metrics":per_league})
         # Decision report horizon: next seven days only. Exclude fixtures with less than 15 minutes of lead time.
         report_start=NOW+15*60
         report_end=NOW+7*24*60*60
