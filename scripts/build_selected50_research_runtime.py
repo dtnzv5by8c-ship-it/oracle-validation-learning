@@ -173,6 +173,8 @@ def season_coverage_row(sid, meta, selected_id, selected, status, match_count, t
     season_start_year = year_match.group(1) if year_match else ""
     return {
         "season_id": str(sid), "selected_id": str(selected_id),
+        "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+        "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST",
         "country": str(selected.get("country", "")),
         "competition": str(selected.get("competition_name", "")),
         "season_label_source": season_label, "season_start_source": season_start,
@@ -323,7 +325,9 @@ def main():
                 if has_score and (not float(gh).is_integer() or not float(ga).is_integer()):
                     noninteger_score_rows += 1
             settlement_truth_qa.append({
-                "selected_id": str(cid), "country": sel.get("country", ""), "competition_name": sel.get("competition_name", ""),
+                "selected_id": str(cid), "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+                "country": sel.get("country", ""), "competition_name": sel.get("competition_name", ""),
                 "source_rows_retained_for_id_time_validation": len(raw_comp), "normalized_rows_after_dedup": len(normalized_comp),
                 "duplicate_rows_removed_by_dedup": len(raw_comp) - len(normalized_comp),
                 "rows_missing_fixture_id": sum(1 for r in raw_comp if not r.get("fixture_id")),
@@ -468,7 +472,9 @@ def main():
             comp_future=[r for r in future if str(r["competition_id"])==selected_id]
             future_times=sorted(r["kickoff_unix"] for r in comp_future)
             schedule_coverage.append({
-                "selected_id":selected_id,"country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
+                "selected_id":selected_id,"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+                "country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
                 "archive_match_rows":len(comp_rows),"completed_match_rows":sum(1 for r in comp_rows if r["finished"]),
                 "upcoming_fixture_count_7d":len(comp_future),
                 "first_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[0],dt.timezone.utc).isoformat() if future_times else "",
@@ -548,7 +554,7 @@ def main():
         else: pred_path.write_text("prediction_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED\n",encoding="utf-8")
         schedule_path=OUT/"oracle_selected50_schedule_coverage.csv"
         with schedule_path.open("w",newline="",encoding="utf-8") as sf:
-            scols=["selected_id","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
+            scols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
             sw=csv.DictWriter(sf,fieldnames=scols);sw.writeheader();sw.writerows(schedule_coverage)
         # Additional rolling-origin walk-forward diagnostics. Each fold trains only on
         # completed, fully-featured matches strictly before the fold's test start.
@@ -580,7 +586,8 @@ def main():
                         lg_train = [r for r in fold_train if str(r["competition_id"]) == str(selected_id)]
                         lg_test = [r for r in fold_test if str(r["competition_id"]) == str(selected_id)]
                         league_walk_forward_metrics.append({
-                            "selected_id":str(selected_id),"country":sel.get("country",""),
+                            "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                            "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
                             "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
                             "train_n":len(lg_train),"test_n":len(lg_test),
                             "sample_gate":"INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if len(lg_train)<100 or len(lg_test)<100 else "SAMPLE_GATE_MET",
@@ -702,14 +709,14 @@ def main():
             raise RuntimeError("Research readiness artifact attempted to grant production eligibility")
         readiness_path=OUT/"oracle_selected50_league_market_readiness.csv"
         with readiness_path.open("w",newline="",encoding="utf-8") as rf:
-            cols=["selected_id","country","league","market","train_n","test_n","sample_gate",
+            cols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","league","market","train_n","test_n","sample_gate",
                   "walk_forward_folds_with_test_data","folds_meeting_min_100_train_and_test",
                   "folds_positive_brier_skill_vs_league_prevalence","fold_brier_skill_min","fold_brier_skill_max",
                   "fold_stability_status","production_eligible","edge_claim"]
             rw=csv.DictWriter(rf,fieldnames=cols);rw.writeheader();rw.writerows(league_market_readiness)
         league_walk_forward_path=OUT/"oracle_selected50_league_walk_forward_metrics.csv"
         with league_walk_forward_path.open("w",newline="",encoding="utf-8") as lwf:
-            fold_cols=["selected_id","country","league","market","fold","train_n","test_n","sample_gate","status",
+            fold_cols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","league","market","fold","train_n","test_n","sample_gate","status",
                        "accuracy_at_0_5","accuracy_95ci_low","accuracy_95ci_high","brier","log_loss","auc","ece_10_bins",
                        "training_prevalence_league","baseline_majority_accuracy_league",
                        "baseline_brier_league_prevalence","brier_skill_vs_league_prevalence",
@@ -748,7 +755,8 @@ def main():
                 primary_completed = [r for r in primary_rows if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None]
                 status_counts = Counter(str(r.get("status") or "UNKNOWN") for r in year_rows)
                 calendar_year_rows.append({
-                    "selected_id": str(selected_id), "country": sel.get("country", ""),
+                    "selected_id": str(selected_id), "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                    "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST", "country": sel.get("country", ""),
                     "competition_name": sel.get("competition_name", ""), "calendar_year_utc": year,
                     "archive_fixture_rows": len(year_rows),
                     "completed_with_numeric_score_rows": len(completed_rows),
@@ -765,7 +773,7 @@ def main():
                 })
         calendar_year_path = OUT / "oracle_selected50_calendar_year_coverage.csv"
         with calendar_year_path.open("w", newline="", encoding="utf-8") as year_file:
-            year_columns = ["selected_id", "country", "competition_name", "calendar_year_utc",
+            year_columns = ["selected_id", "selected_id_type", "provider_competition_id", "provider_competition_id_status", "country", "competition_name", "calendar_year_utc",
                             "archive_fixture_rows", "completed_with_numeric_score_rows",
                             "completed_rows_with_fixture_id", "completed_rows_with_both_team_ids",
                             "full_20_feature_rows", "primary_window_fixture_rows",
@@ -801,11 +809,11 @@ def main():
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
         with settlement_path.open("w", newline="", encoding="utf-8") as settlement_file:
-            settlement_columns = ["selected_id","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","status_score_cross_tab_json","settlement_truth_status","production_eligible"]
+            settlement_columns = ["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","status_score_cross_tab_json","settlement_truth_status","production_eligible"]
             settlement_writer = csv.DictWriter(settlement_file, fieldnames=settlement_columns)
             settlement_writer.writeheader(); settlement_writer.writerows(settlement_truth_qa)
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
-            season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
+            season_columns=["season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(season_qa)
