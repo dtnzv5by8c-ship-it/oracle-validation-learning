@@ -640,7 +640,8 @@ def main():
                     lg_ci_low, lg_ci_high = wilson_interval(lg_correct, lg_test_n)
                     lg_gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if lg_train_n < 100 or lg_test_n < 100 else "SAMPLE_GATE_MET_DIAGNOSTIC_ONLY"
                     league_walk_forward_metrics.append({
-                        "selected_id":str(selected_id),"country":sel.get("country",""),
+                        "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
                         "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
                         "train_n":lg_train_n,"test_n":lg_test_n,"sample_gate":lg_gate,
                         "status":"NO_TEST_ROWS" if not lg_test_n else "RAW_POOLED_MODEL_LEAGUE_SUBSET_NOT_CALIBRATED",
@@ -656,7 +657,7 @@ def main():
                         "baseline_brier_league_prevalence":round(lg_baseline_brier,5) if lg_baseline_brier is not None else None,
                         "brier_skill_vs_league_prevalence":round(1-lg_brier/lg_baseline_brier,5) if lg_brier is not None and lg_baseline_brier is not None and lg_baseline_brier > 0 else None,
                         "production_eligible":"NO","edge_claim":"NOT_APPROVED"})
-        # Readiness is keyed by canonical selected provider ID, not league label; names can collide.
+        # Readiness is keyed by selected-season surrogate, not provider competition ID or league label; names can collide.
         for selected_id, sel in selected_by_id.items():
             for market in MARKETS:
                 lg_train = [r for r in train_rows if str(r["competition_id"]) == str(selected_id)
@@ -678,7 +679,8 @@ def main():
                 else:
                     stability = "MIXED_BRIER_SKILL_ACROSS_FOLDS"
                 league_market_readiness.append({
-                    "selected_id":str(selected_id),"country":sel.get("country",""),
+                    "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
                     "league":sel.get("competition_name",""),"market":market,
                     "train_n":len(lg_train),"test_n":len(lg_test),"sample_gate":gate,
                     "walk_forward_folds_with_test_data":sum(1 for x in folds if x["test_n"] > 0),
