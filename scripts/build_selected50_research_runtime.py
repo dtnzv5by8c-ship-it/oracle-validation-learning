@@ -846,7 +846,7 @@ def main():
             raise RuntimeError(f"Calendar-year coverage row count mismatch: expected {expected_calendar_rows}, got {len(calendar_year_rows)}")
         if any(r["production_eligible"] != "NO" for r in calendar_year_rows):
             raise RuntimeError("Calendar-year coverage attempted to grant production eligibility")
-        qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"selected_groups_with_match_rows":len(present_comps),"provider_competition_ids_verified":0,"provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+        qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"selected_groups_with_match_rows":len(present_comps),
             "report_horizon_days":7,"minimum_lead_time_minutes":15,
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
             "future_fixture_candidates_in_report_horizon":len(future),
