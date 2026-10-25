@@ -16,6 +16,8 @@ on:
       - "tests/test_selected50_compatibility_contract.py"
       - "tests/test_selected50_data_gate_matrix.py"
       - ".github/workflows/oracle_selected50_data_gate_contract.yml"
+      - ".github/workflows/oracle-selected50-footystats-live-ingestion.yml"
+      - "tests/test_footystats_ingestion_workflow_contract.py"
 
 permissions:
   contents: read
@@ -45,3 +47,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_selected50_data_gate_matrix.py' -v
       - name: Run runtime 27-reference classification regression tests
         run: python -m unittest discover -s tests -p 'test_runtime_reference_classification.py' -v
+      - name: Run FootyStats ingestion workflow safety and syntax contract tests
+        run: python -m unittest discover -s tests -p 'test_footystats_ingestion_workflow_contract.py' -v
