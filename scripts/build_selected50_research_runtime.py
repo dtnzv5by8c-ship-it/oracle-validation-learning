@@ -443,7 +443,7 @@ def main():
             "limitations":["This evaluates model probability quality, not betting ROI.",
                            "Historical settlement joins and provider point-in-time provenance remain unverified.",
                            "Per-league minimum samples are necessary but not sufficient for edge approval.",
-                           "No production eligibility is granted."]},indent=2)+"\\n",encoding="utf-8")
+                           "No production eligibility is granted."]},indent=2)+"\n",encoding="utf-8")
         readiness_path=OUT/"oracle_selected50_league_market_readiness.csv"
         with readiness_path.open("w",newline="",encoding="utf-8") as rf:
             cols=["league","market","train_n","test_n","sample_gate","production_eligible","edge_claim"]
