@@ -292,6 +292,40 @@ def main():
             key=(r["competition_id"],r["fixture_id"]) if r["fixture_id"] else (r["competition_id"],r["season_id"],r["kickoff_unix"],r["home_id"],r["away_id"])
             dedup.setdefault(key,r)
         matches=sorted(dedup.values(),key=lambda r:(r["competition_id"],r["kickoff_unix"],r["fixture_id"]))
+        # Internal status/score/ID consistency audit; this is not official settlement verification.
+        settlement_truth_qa = []
+        for cid, sel in sorted(selected_by_id.items(), key=lambda kv: (kv[1].get("country", ""), kv[1].get("competition_name", ""))):
+            raw_comp = [r for r in all_matches if str(r.get("competition_id")) == str(cid)]
+            normalized_comp = [r for r in matches if str(r.get("competition_id")) == str(cid)]
+            status_counts = Counter(str(r.get("status") or "UNKNOWN").strip() or "UNKNOWN" for r in raw_comp)
+            final_status_missing_score = 0
+            nonfinal_status_with_score = 0
+            noninteger_score_rows = 0
+            for r in raw_comp:
+                m = r.get("raw_match") or {}
+                st = str(get_first(m, ("status", "game_status")) or "").strip().lower()
+                gh, ga = match_score(m)
+                has_score = gh is not None and ga is not None
+                if st in FINISHED and not has_score:
+                    final_status_missing_score += 1
+                if st not in FINISHED and has_score:
+                    nonfinal_status_with_score += 1
+                if has_score and (not float(gh).is_integer() or not float(ga).is_integer()):
+                    noninteger_score_rows += 1
+            settlement_truth_qa.append({
+                "selected_id": str(cid), "country": sel.get("country", ""), "competition_name": sel.get("competition_name", ""),
+                "source_rows_retained_for_id_time_validation": len(raw_comp), "normalized_rows_after_dedup": len(normalized_comp),
+                "duplicate_rows_removed_by_dedup": len(raw_comp) - len(normalized_comp),
+                "rows_missing_fixture_id": sum(1 for r in raw_comp if not r.get("fixture_id")),
+                "rows_with_same_home_away_team_id": sum(1 for r in raw_comp if r.get("home_id") and r.get("home_id") == r.get("away_id")),
+                "finished_status_with_numeric_score_rows": sum(1 for r in raw_comp if r.get("finished")),
+                "finished_status_missing_numeric_score_rows": final_status_missing_score,
+                "nonfinished_status_with_numeric_score_rows": nonfinal_status_with_score,
+                "noninteger_numeric_score_rows": noninteger_score_rows,
+                "source_status_counts_json": json.dumps(dict(sorted(status_counts.items())), ensure_ascii=False, separators=(",", ":")),
+                "settlement_truth_status": "INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED",
+                "production_eligible": "NO"
+            })
         # Histories contain only explicit completed matches with valid scores.
         home_history=defaultdict(list); away_history=defaultdict(list); h2h_history=defaultdict(list)
         for r in matches:
@@ -730,6 +764,11 @@ def main():
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
+        settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
+        with settlement_path.open("w", newline="", encoding="utf-8") as settlement_file:
+            settlement_columns = ["selected_id","country","competition_name","source_rows_retained_for_id_time_validation","normalized_rows_after_dedup","duplicate_rows_removed_by_dedup","rows_missing_fixture_id","rows_with_same_home_away_team_id","finished_status_with_numeric_score_rows","finished_status_missing_numeric_score_rows","nonfinished_status_with_numeric_score_rows","noninteger_numeric_score_rows","source_status_counts_json","settlement_truth_status","production_eligible"]
+            settlement_writer = csv.DictWriter(settlement_file, fieldnames=settlement_columns)
+            settlement_writer.writeheader(); settlement_writer.writerows(settlement_truth_qa)
         with (OUT/"season_coverage.csv").open("w",encoding="utf-8",newline="") as season_file:
             season_columns=["season_id","selected_id","country","competition","season_label_source","season_start_source","season_end_source","season_start_year_derived_from_source_date","season_year_mapping_status","status","match_count","team_count","raw_match_rows_seen","normalized_match_rows_retained","rejected_non_object_rows","rejected_missing_kickoff_rows","rejected_missing_home_team_id_rows","rejected_missing_away_team_id_rows","rows_missing_normalized_fixture_id","rows_explicit_finished_status_missing_numeric_score"]
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
@@ -738,7 +777,7 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path,settlement_path):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
