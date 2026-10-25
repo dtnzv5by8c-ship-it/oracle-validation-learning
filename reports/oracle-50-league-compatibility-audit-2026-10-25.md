@@ -185,3 +185,19 @@ This is a static pattern scan, not a code migration. Some 27/12,836 values corre
 - Added `tests/test_selected50_data_gate_matrix.py` to assert exact IDs/labels, exact 19-ID gap set, fail-closed data statuses, and immutable historical-baseline/production-governance constraints.
 - Added `.github/workflows/oracle_selected50_data_gate_contract.yml` to run selected-50 contract, data-gate matrix, and runtime-classification tests on relevant research-branch changes and manual dispatch. Workflow execution must be verified from GitHub Actions before its test result is called green.
 - This addition is a research control only. It does not create verified fixture joins, settlement truth, point-in-time features, production predictions, or backtest metrics. Production readiness remains **NOT_GRANTED**.
+
+
+## Expanded per-season data gates — 2026-10-25
+
+The Selected-50 matrix now separates feature categories rather than hiding them under a single point-in-time flag:
+
+- `recent_form_status`: archive fields may be present, but coverage and as-of-kickoff validity remain unverified; Australia (17326) and India (17964) are explicitly blocked for insufficient current-season history until prior-season team continuity is verified.
+- `standings_status`: table payload presence does not establish correct league table chronology or pre-kickoff availability.
+- `h2h_status`: archive-wide prior-meeting records are partial and their per-fixture identity/as-of validity is not established.
+- `xg_provenance_status`: non-empty xG fields do not establish scale, source, exact fixture join, or pre-kickoff availability.
+- `odds_provenance_status`: non-empty odds values are partial and lack verified bookmaker, market, timestamp, and pre-kickoff provenance.
+- `canonical_fixture_join_status` and `settlement_truth_status` remain `NOT_VERIFIED` for every selected league; production eligibility remains `NO`.
+
+The matrix now has 50 rows and 15 columns. The regression test was expanded to assert the explicit form/standings/H2H/xG/odds gates fail closed. The public data-gate workflow is configured to run on matching pushes and manual dispatch. A completed GitHub Actions run has not been independently retrieved through the connected interface, so test execution is not reported as passed.
+
+This is the final useful classification of currently available archive evidence. Repeating static inventories will not close the remaining blockers: exact canonical fixture slate/ID mappings, verified final outcomes, point-in-time provenance, production-labelled predictions, and owner-visible Actions diagnostics must be supplied or recovered from their authoritative sources.
