@@ -164,9 +164,11 @@ jobs:
                   explicit_finished = any(t in status for t in ("complete", "finished", "full time", "ended"))
                   explicit_upcoming = any(t in status for t in ("not started", "scheduled", "upcoming", "pending"))
                   today = datetime.datetime.now(datetime.timezone.utc).date()
-                  if explicit_finished or (parsed_date and parsed_date < today and numeric(hs) and numeric(aws)):
+                  if parsed_date and parsed_date > today:
+                      upcoming += 1
+                  elif parsed_date and parsed_date < today and (explicit_finished or (numeric(hs) and numeric(aws))):
                       completed += 1
-                  elif explicit_upcoming or (parsed_date and parsed_date > today):
+                  elif explicit_upcoming:
                       upcoming += 1
                   odds_keys = [k for k in m if "odds" in str(k).lower()]
                   xg_keys = [k for k in m if re.search(r'(^|_)xg($|_)', str(k).lower())]
@@ -215,8 +217,15 @@ jobs:
               "match_records_with_team_name_pair": team_name_pair_total,
               "completed_status_candidate_records": completed_total,
               "upcoming_status_candidate_records": upcoming_total,
+              "records_with_past_kickoff_date": past_date_total,
+              "records_with_future_kickoff_date": future_date_total,
+              "records_with_numeric_nonnegative_score_pair": score_numeric_total,
+              "provider_status_value_counts": dict(status_counts),
               "records_with_odds_named_fields": odds_field_rows,
+              "records_with_nonempty_odds_values": nonempty_odds_rows,
               "records_with_xg_named_fields": xg_field_rows,
+              "records_with_nonempty_xg_values": nonempty_xg_rows,
+              "records_with_nonempty_prematch_xg_values": nonempty_prematch_xg_rows,
               "observed_date_min_utc_or_string": date_min,
               "observed_date_max_utc_or_string": date_max,
               "match_object_field_names_union": sorted(raw_field_names),
