@@ -456,3 +456,13 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Next exact action: use the new 50-row evidence matrix alongside existing private crosswalk/fixture evidence to reconcile canonical IDs and settlement truth. Do not infer parent competition IDs from season IDs. The live `league-teams` probe remains blocked until explicit provider-credit confirmation. Keep Combo blocked until target/settlement governance is resolved; M-1UP remains blocked.
 - Production status remains `NOT_GRANTED`; Selected-50 outputs remain research-only. No production model/probability/calibration/threshold or frozen-baseline changes were made.
 
+
+
+## 41. Post-report and post-handover verification — 2026-10-26 02:00 SAST
+
+- Report-commit dry-run `40247142950` completed SUCCESS on commit `e5180a5bcef555c07949134193b6d40ad7b32a5a`: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40247142950. Artifact `12618983476`, SHA-256 `9c5b9e9e598dd5eb2a6bfb67a556ce93e87c8777ed79cb1ddc1c4ce656e8a64b`.
+- Handover-commit dry-run `40247151809` completed SUCCESS on commit `d711d0fdbe1fbef79941ea13ce7f6fbede9cd72c`: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40247151809. Artifact `12618639613`, SHA-256 `45d280cfcbe50531f1b4493e4116f7d6bd483905c2c9c6ab00351dcca1fc4f9e`.
+- Downloaded and inspected the handover-commit artifact. The reconciliation summary is `PASS_ARCHIVE_EVIDENCE_LAYERS_RECONCILED_RESEARCH_ONLY`; its matrix has 50 rows / 50 unique IDs; evidence classes are 31 direct Run 56 manifest matches and 19 gap rows reconciled to retained private-package QA; all 50 have `production_eligible=NO`. The summary explicitly records zero network/provider calls and no verified parent competition IDs, canonical fixture/team joins, settlement truth, or point-in-time standings/xG/odds provenance.
+- These two runs validate the no-network dry-run planner and its sanitized archive evidence reconciliation. They do not re-run the full historical prediction runtime and do not grant production/betting eligibility.
+- Exact next action remains canonical competition/team/fixture identity and official settlement reconciliation using existing private evidence. Keep the live provider probe gated on explicit provider-credit confirmation; keep Combo and M-1UP blocked until their independent gates pass.
+
