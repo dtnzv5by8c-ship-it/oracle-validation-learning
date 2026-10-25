@@ -100,3 +100,12 @@ Sanitized artifact findings:
 3. Inspect the catalogue-transfer workflow and its downstream consumers before changing its schema. The current expression `league.get('id')` does not align with the observed live league-object schema; do not substitute season IDs into a parent-league field.
 4. Re-run tests and scope guards after any research-only changes. Production logic, protected registry/ledgers, probabilities, thresholds, calibration and model version remain unchanged.
 
+## Run 14 addendum — explicit 50-ID archive reconciliation
+
+- New report: [Selected-50 archive reconciliation](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-50-league-selected-id-archive-reconciliation-2026-10-25.md).
+- Independently rechecked Run 56 artifact mapping (`126` season rows) against all `50` selected IDs: `31` exact `season_id` matches and `19` absent IDs. The report lists both groups and archived season-row/status counts for the 31 exact matches.
+- Confirmed live schema diagnostic #1: 50/50 selected IDs match nested `season[].id`; 0/50 match a league-level ID field. The provider season-level identity is now confirmed for the examined response. Parent competition IDs remain unverified.
+- Root-cause evidence: the inspected catalogue-transfer workflow assigns `league.get('id')` to `provider_league_id`, but the observed league objects expose `country`, `image`, `name`, `season` and no direct `id`. The saved archive mapping has blank `provider_league_id` values in all 126 rows. This is a confirmed schema mismatch in the current producer expression; downstream consumer impact still requires inspection before any workflow change.
+- No production or ingestion workflow was executed or modified. No provider API credits were spent. No canonical mapping was approved. Production eligibility remains `NOT_GRANTED`.
+- Next: inspect private-target consumers/schema, inspect the archived ingestion manifest/errors for the 19 absent IDs, design a research-only separate-ID schema and regression tests, then rerun tests and the exact-scope guard before considering a change to the transfer workflow.
+
