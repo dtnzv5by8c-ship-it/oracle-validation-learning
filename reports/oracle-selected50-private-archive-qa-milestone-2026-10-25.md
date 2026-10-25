@@ -211,7 +211,7 @@ No production model logic, prediction probabilities, calibration, thresholds, or
 P0 is improved: public-runner execution is working and the demonstrated historical validation secret-reference defect is fixed and verified. P1/P2 remain open because current event truth, settlement, selected-50 feature provenance, market gates and prediction-to-settlement backtests have not yet all passed. Production model logic and probabilities remain unchanged; production readiness remains NOT_GRANTED.
 
 
-## P0–P2 follow-through — 2026-10-25 12:xx UTC
+## P0–P2 follow-through — 2026-10-25 10:26 UTC
 
 ### Completed public-runner checks
 - Governed readiness preflight passed: [run 40183582977](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183582977). It cloned the governed private source, verified both locked historical baseline hashes, confirmed required scripts exist and compile, and uploaded a sanitized report. Explicit limits: it did **not** test the live fixture feed, verify team-state freshness, generate predictions, or allow production promotion.
@@ -226,3 +226,9 @@ P0 is improved: public-runner execution is working and the demonstrated historic
 4. **P2 — selected-50 market gates: NOT GRANTED.** Keep BTTS Yes, Double Chance and DC + Under 4.5 as `NOT_VERIFIED`; keep M-1UP `BLOCKED` until its own lead chronology and market evidence pass.
 
 No provider credits were used by these public-runner audits. No production code, model logic, probabilities, calibration or thresholds were changed. Production readiness remains `NOT_GRANTED`.
+
+
+### Follow-up tracking — 2026-10-25 10:28 UTC
+- Opened research issue [#23: P1–P2 blockers: 50-league truth, point-in-time features, and verified settlements](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/issues/23) with explicit acceptance criteria and guardrails.
+- Latest public dry-run on commit `91f9b715fbb35b301e7b391e534ce445991a7399` passed: [run 40184769720](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40184769720).
+- Issue #23 is tracking research/data validation only. It does not grant permission for paid provider calls or production changes.
