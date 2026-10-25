@@ -1,0 +1,82 @@
+name: Oracle Selected-50 Catalogue Schema Audit
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-selected50-catalogue-schema-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit-catalogue-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fetch catalogue once and publish sanitized schema only
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, time
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlencode
+          from urllib.error import HTTPError, URLError
+          from pathlib import Path
+
+          key = os.environ.get("FOOTYSTATS_API_KEY", "")
+          if not key:
+              raise SystemExit("FOOTYSTATS_API_KEY missing; no request made.")
+          wanted = {"17146", "17199", "17444", "17097", "17084"}
+          url = "https://api.footystats.org/league-list?" + urlencode({"key": key, "chosen_leagues_only": "true"})
+          req = Request(url, headers={"User-Agent":"Oracle-Catalogue-Schema-Audit/1.0"})
+          try:
+              with urlopen(req, timeout=45) as response:
+                  payload = json.loads(response.read().decode("utf-8"))
+          except HTTPError as e:
+              raise SystemExit(f"Provider HTTP {e.code}; response body suppressed.")
+          except (URLError, ValueError, UnicodeDecodeError):
+              raise SystemExit("Provider request or JSON decoding failed; response body suppressed.")
+          if not isinstance(payload, dict) or payload.get("success") is not True or not isinstance(payload.get("data"), list):
+              raise SystemExit("Unexpected catalogue response shape; response body suppressed.")
+          out=[]
+          for league in payload["data"]:
+              if not isinstance(league, dict): continue
+              seasons=league.get("season")
+              if not isinstance(seasons, list): continue
+              matched=[s for s in seasons if isinstance(s,dict) and str(s.get("id","")) in wanted]
+              if matched:
+                  out.append({
+                    "matched_season_ids":[str(s.get("id","")) for s in matched],
+                    "league_object_keys":sorted(str(k) for k in league.keys()),
+                    "league_id_field_present":"id" in league,
+                    "league_id_value_type":type(league.get("id")).__name__ if "id" in league else "absent",
+                    "league_name_present":bool(league.get("name")),
+                    "season_object_keys_union":sorted({str(k) for s in matched for k in s.keys()}),
+                    "season_year_types":sorted({type(s.get("year")).__name__ for s in matched if "year" in s}),
+                    "season_year_examples":sorted({str(s.get("year")) for s in matched if "year" in s})[:5]
+                  })
+          report={
+            "audit":"SANITIZED_PROVIDER_CATALOGUE_SCHEMA",
+            "selected_season_ids_checked":sorted(wanted),
+            "matched_catalogue_objects":out,
+            "parent_id_resolution":"No IDs inferred; only explicit fields reported.",
+            "api_requests":1,
+            "raw_provider_response_published":False,
+            "production_model_logic_changed":False,
+            "production_probabilities_changed":False,
+            "production_readiness":"NOT_GRANTED"
+          }
+          Path("sanitized-catalogue-schema-audit.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(report,sort_keys=True))
+          PY
+      - name: Upload sanitized schema report
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-catalogue-schema-audit
+          path: sanitized-catalogue-schema-audit.json
+          retention-days: 7
