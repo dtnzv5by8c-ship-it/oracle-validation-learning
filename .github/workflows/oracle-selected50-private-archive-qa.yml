@@ -1,11 +1,19 @@
 name: Oracle Selected-50 Private Archive QA
 
 on:
+  workflow_dispatch:
+    inputs:
+      confirm_private_archive_read:
+        description: "Confirm this workflow may read the existing private archive; no provider API calls"
+        required: true
+        default: false
+        type: boolean
   push:
     branches:
       - research/oracle-50-league-readiness-audit
     paths:
       - ".github/workflows/oracle-selected50-private-archive-qa.yml"
+      - "scripts/qa_selected50_private_archive.py"
 
 permissions:
   contents: read
@@ -15,419 +23,54 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout research validators
+      - name: Checkout governed research branch
         uses: actions/checkout@v4
         with:
           ref: research/oracle-50-league-readiness-audit
 
-      - name: Download raw package from private Oracle release
+      - name: Guard private archive access
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PRIVATE_ARCHIVE_READ: \${{ inputs.confirm_private_archive_read }}
         run: |
           set -euo pipefail
-          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::Private repository token missing."; exit 1; }
+          if [[ "\${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            [[ "\${CONFIRM_PRIVATE_ARCHIVE_READ:-false}" == "true" ]] || { echo "::error::Explicit private archive read confirmation required."; exit 1; }
+          fi
+          [[ -n "\${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing."; exit 1; }
+          gh auth status
+
+      - name: Download existing private historical archive and checksum
+        shell: bash
+        env:
+          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
           mkdir -p private-download
-          gh release download research-selected50-footystats-ingestion-20261025 \
+          gh release download research-selected50-footystats-history-20261025 \
             --repo dtnzv5by8c-ship-it/oracle-football-data \
             --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --pattern 'private-package.sha256' \
             --dir private-download
-          [[ -s private-download/oracle-selected50-footystats-private-ingestion.zip ]] || { echo "::error::Private archive missing or empty."; exit 1; }
+          cd private-download
+          sha256sum -c private-package.sha256
+          test -s oracle-selected50-footystats-private-ingestion.zip
 
-      - name: Audit fixture and feature schema without publishing raw data
+      - name: Audit private archive without exporting raw provider records
         shell: bash
+        env:
+          ORACLE_ARCHIVE: private-download/oracle-selected50-footystats-private-ingestion.zip
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import csv, json, zipfile, hashlib, re, datetime, collections, math
-          from pathlib import Path
-
-          archive = Path("private-download/oracle-selected50-footystats-private-ingestion.zip")
-          raw = Path("private-unpacked")
-          raw.mkdir()
-          with zipfile.ZipFile(archive) as z:
-              z.extractall(raw)
-          manifest_path = raw / "private-package" / "ingestion_manifest.json"
-          if not manifest_path.exists():
-              # Archive paths may omit the enclosing directory in some zip tools.
-              candidates = list(raw.rglob("ingestion_manifest.json"))
-              if not candidates:
-                  raise SystemExit("Private ingestion manifest not found; sanitized report not produced.")
-              manifest_path = candidates[0]
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          rows = manifest if isinstance(manifest, list) else manifest.get("season_results", [])
-          selected_manifest_path = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
-          with selected_manifest_path.open(newline="", encoding="utf-8-sig") as f:
-              selected_rows = list(csv.DictReader(f))
-          selected_by_id = {str(r.get("selected_id", "")).strip(): r for r in selected_rows}
-          ingestion_by_id = {str(r.get("season_id", "")).strip(): r for r in rows}
-          selected_manifest_exact_id_set_match = (len(selected_rows) == 50 and len(selected_by_id) == 50 and set(selected_by_id) == set(ingestion_by_id))
-          season_rows = []
-          totals = collections.Counter()
-          field_counts = collections.Counter()
-          examples = {}
-          missing_files = []
-          invalid_json = []
-          fixture_ids_seen = collections.Counter()
-          missing_fixture_id_total = 0
-          missing_team_id_pair_total = 0
-          same_home_away_team_id_total = 0
-          unparseable_kickoff_total = 0
-          missing_score_pair_total = 0
-          invalid_score_pair_total = 0
-          kickoffs = []
-          date_min = date_max = None
-          raw_field_names = set()
-          match_total = 0
-          completed_total = 0
-          upcoming_total = 0
-          past_date_total = 0
-          future_date_total = 0
-          score_numeric_total = 0
-          status_counts = collections.Counter()
-          nonempty_odds_rows = 0
-          nonempty_xg_rows = 0
-          nonempty_prematch_xg_rows = 0
-          score_pair_total = 0
-          team_id_pair_total = 0
-          team_name_pair_total = 0
-          form_or_xg_fields = collections.Counter()
-          odds_field_rows = 0
-          xg_field_rows = 0
-          for row in rows:
-              sid = str(row.get("season_id", ""))
-              base = manifest_path.parent / "seasons" / sid
-              if not base.exists():
-                  candidates = list(raw.rglob(sid))
-                  base = next((p for p in candidates if p.is_dir()), base)
-              selected_meta = selected_by_id.get(sid, {})
-              provider_name = str(row.get("provider_league_name", "")).strip()
-              selected_name = str(selected_meta.get("competition_name", "")).strip()
-              selected_country = str(selected_meta.get("country", "")).strip()
-              ledger_country = str(row.get("selected_country", "")).strip()
-              ledger_name = str(row.get("selected_competition_name", "")).strip()
-              result = {
-                  "season_id": sid,
-                  "manifest_status": row.get("status", "UNKNOWN"),
-                  "provider_season_year": str(row.get("provider_season_year", "")),
-                  "provider_parent_competition_id": str(row.get("provider_league_id", "")),
-                  "provider_competition_name": provider_name,
-                  "selected_country": selected_country,
-                  "selected_competition_name": selected_name,
-                  "provider_country_evidence_status": "NOT_RETAINED_AS_SEPARATE_FIELD",
-                  "provider_country_competition_composite_match_status": "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH" if provider_name == (selected_country + " " + selected_name).strip() else "COMPOSITE_LABEL_MISMATCH_REVIEW",
-                  "selected_manifest_metadata_match_status": "EXACT_LABEL_MATCH" if (ledger_country == selected_country and ledger_name == selected_name) else "LABEL_MISMATCH_OR_ID_NOT_IN_MANIFEST"
-              }
-              match_path = base / "matches.json"
-              team_path = base / "teams.json"
-              table_path = base / "tables.json"
-              stats_path = base / "season_stats.json"
-              if not all(p.is_file() for p in (match_path, team_path, table_path, stats_path)):
-                  missing_files.append(sid)
-                  result["file_status"] = "MISSING_ONE_OR_MORE_FILES"
-                  season_rows.append(result)
-                  continue
-              try:
-                  matches = json.loads(match_path.read_text(encoding="utf-8"))
-                  teams = json.loads(team_path.read_text(encoding="utf-8"))
-                  tables = json.loads(table_path.read_text(encoding="utf-8"))
-                  stats = json.loads(stats_path.read_text(encoding="utf-8"))
-              except Exception:
-                  invalid_json.append(sid)
-                  result["file_status"] = "INVALID_JSON"
-                  season_rows.append(result)
-                  continue
-              if not isinstance(matches, list) or not isinstance(teams, list):
-                  invalid_json.append(sid)
-                  result["file_status"] = "UNEXPECTED_CONTAINER_SHAPE"
-                  season_rows.append(result)
-                  continue
-              # Research-only form counts use only explicitly completed matches before each target kickoff.
-              # Counts are within the selected season; prior-season carryover is not included.
-              def numeric_score(value):
-                  try:
-                      number = float(value)
-                      return math.isfinite(number) and number >= 0
-                  except (TypeError, ValueError):
-                      return False
-              def match_timestamp(match):
-                  raw_date = match.get("date_unix") or match.get("kickoff") or match.get("date") or match.get("datetime")
-                  if raw_date is None:
-                      return None
-                  try:
-                      if isinstance(raw_date, (int, float)) or str(raw_date).isdigit():
-                          return float(raw_date)
-                      parsed_dt = datetime.datetime.fromisoformat(str(raw_date).replace("Z", "+00:00"))
-                      if parsed_dt.tzinfo is None:
-                          parsed_dt = parsed_dt.replace(tzinfo=datetime.timezone.utc)
-                      return parsed_dt.timestamp()
-                  except Exception:
-                      return None
-              FINISHED_STATUS_VALUES = {"complete", "completed", "finished", "full time", "full-time", "ft", "ended"}
-              def is_explicitly_finished(status):
-                  # Exact whitelist is deliberate: substring checks classify "incomplete" as "complete".
-                  return str(status or "").strip().lower() in FINISHED_STATUS_VALUES
-              def explicitly_completed(match):
-                  status_value = match.get("status", match.get("game_status", ""))
-                  hs_value = match.get("homeGoalCount", match.get("home_score"))
-                  as_value = match.get("awayGoalCount", match.get("away_score"))
-                  return is_explicitly_finished(status_value) and numeric_score(hs_value) and numeric_score(as_value)
-              # Guard the status classifier against the known substring regression.
-              assert is_explicitly_finished("complete")
-              assert is_explicitly_finished("finished")
-              assert not is_explicitly_finished("incomplete")
-              assert not is_explicitly_finished("suspended")
-              assert not is_explicitly_finished("scheduled")
-              now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
-              team_history_times = collections.defaultdict(list)
-              h2h_history_times = collections.defaultdict(list)
-              for historical_match in matches:
-                  hist_ts = match_timestamp(historical_match)
-                  hist_home = historical_match.get("homeID", historical_match.get("home_id", historical_match.get("home_team_id")))
-                  hist_away = historical_match.get("awayID", historical_match.get("away_id", historical_match.get("away_team_id")))
-                  if hist_ts is None or hist_ts >= now_ts or hist_home is None or hist_away is None or not explicitly_completed(historical_match):
-                      continue
-                  hist_home, hist_away = str(hist_home), str(hist_away)
-                  team_history_times[hist_home].append(hist_ts)
-                  team_history_times[hist_away].append(hist_ts)
-                  h2h_history_times[tuple(sorted((hist_home, hist_away)))].append(hist_ts)
-              recent_home5_available = recent_away5_available = recent_both5_available = h2h_prior_available = 0
-              season_primary_window_rows = 0
-              season_past_date_rows = season_future_date_rows = 0
-              today_utc = datetime.datetime.now(datetime.timezone.utc).date()
-              for target_match in matches:
-                  target_ts = match_timestamp(target_match)
-                  target_home = target_match.get("homeID", target_match.get("home_id", target_match.get("home_team_id")))
-                  target_away = target_match.get("awayID", target_match.get("away_id", target_match.get("away_team_id")))
-                  if target_ts is None:
-                      continue
-                  target_date = datetime.datetime.fromtimestamp(target_ts, datetime.timezone.utc).date()
-                  if target_date < today_utc: season_past_date_rows += 1
-                  elif target_date > today_utc: season_future_date_rows += 1
-                  if datetime.date(2025, 3, 20) <= target_date <= datetime.date(2026, 9, 20):
-                      season_primary_window_rows += 1
-                  if target_home is None or target_away is None:
-                      continue
-                  target_home, target_away = str(target_home), str(target_away)
-                  home_prior = sum(ts < target_ts for ts in team_history_times.get(target_home, []))
-                  away_prior = sum(ts < target_ts for ts in team_history_times.get(target_away, []))
-                  if home_prior >= 5: recent_home5_available += 1
-                  if away_prior >= 5: recent_away5_available += 1
-                  if home_prior >= 5 and away_prior >= 5: recent_both5_available += 1
-                  if any(ts < target_ts for ts in h2h_history_times.get(tuple(sorted((target_home, target_away))), [])):
-                      h2h_prior_available += 1
-              match_total += len(matches)
-              season_fields = set()
-              valid_kickoff = 0
-              score_pair = team_pair = name_pair = 0
-              completed = upcoming = 0
-              season_fixture_id_counts = collections.Counter()
-              season_missing_fixture_id_count = 0
-              season_missing_team_id_pair_count = 0
-              season_same_home_away_team_id_count = 0
-              season_unparseable_kickoff_count = 0
-              season_missing_score_pair_count = 0
-              season_invalid_score_pair_count = 0
-              season_status_counts = collections.Counter()
-              season_past_date_rows_with_score_pair = 0
-              season_past_date_rows_explicitly_finished = 0
-              season_past_date_rows_explicitly_finished_with_scores = 0
-              for m in matches:
-                  if not isinstance(m, dict):
-                      continue
-                  season_fields.update(str(k) for k in m.keys())
-                  fid = m.get("id") or m.get("fixture_id") or m.get("match_id")
-                  if fid is not None:
-                      fixture_ids_seen[(sid, str(fid))] += 1
-                      season_fixture_id_counts[str(fid)] += 1
-                  else:
-                      season_missing_fixture_id_count += 1
-                  dt = m.get("date_unix") or m.get("kickoff") or m.get("date") or m.get("datetime")
-                  parsed_date = None
-                  if dt is not None:
-                      valid_kickoff += 1
-                      try:
-                          if isinstance(dt, (int, float)) or str(dt).isdigit():
-                              parsed_date = datetime.datetime.fromtimestamp(float(dt), datetime.timezone.utc).date()
-                          else:
-                              parsed_date = datetime.date.fromisoformat(str(dt)[:10])
-                          d = parsed_date.isoformat()
-                          date_min = d if date_min is None or d < date_min else date_min
-                          date_max = d if date_max is None or d > date_max else date_max
-                          today = datetime.datetime.now(datetime.timezone.utc).date()
-                          if parsed_date < today: past_date_total += 1
-                          elif parsed_date > today: future_date_total += 1
-                      except Exception:
-                          parsed_date = None
-                          season_unparseable_kickoff_count += 1
-                  else:
-                      season_unparseable_kickoff_count += 1
-                  h = m.get("homeID", m.get("home_id", m.get("home_team_id")))
-                  a = m.get("awayID", m.get("away_id", m.get("away_team_id")))
-                  if h is not None and a is not None:
-                      team_pair += 1
-                      if str(h) == str(a): season_same_home_away_team_id_count += 1
-                  else:
-                      season_missing_team_id_pair_count += 1
-                  hn = m.get("home_name", m.get("home_team_name"))
-                  an = m.get("away_name", m.get("away_team_name"))
-                  if hn and an: name_pair += 1
-                  hs = m.get("homeGoalCount", m.get("home_score"))
-                  aws = m.get("awayGoalCount", m.get("away_score"))
-                  if hs is not None and aws is not None: score_pair += 1
-                  else: season_missing_score_pair_count += 1
-                  def numeric(v):
-                      try:
-                          n = float(v)
-                          return math.isfinite(n) and n >= 0
-                      except (TypeError, ValueError):
-                          return False
-                  if numeric(hs) and numeric(aws): score_numeric_total += 1
-                  elif hs is not None and aws is not None: season_invalid_score_pair_count += 1
-                  status_raw = m.get("status", m.get("game_status", ""))
-                  status = str(status_raw).strip().lower()
-                  status_counts[status or "<blank>"] += 1
-                  season_status_counts[status or "<blank>"] += 1
-                  explicit_finished = is_explicitly_finished(status)
-                  explicit_upcoming = any(t in status for t in ("not started", "scheduled", "upcoming", "pending"))
-                  today = datetime.datetime.now(datetime.timezone.utc).date()
-                  if parsed_date and parsed_date < today:
-                      score_pair_is_numeric = numeric(hs) and numeric(aws)
-                      season_past_date_rows_with_score_pair += int(score_pair_is_numeric)
-                      season_past_date_rows_explicitly_finished += int(explicit_finished)
-                      season_past_date_rows_explicitly_finished_with_scores += int(explicit_finished and score_pair_is_numeric)
-                  if parsed_date and parsed_date > today:
-                      upcoming += 1
-                  elif parsed_date and parsed_date < today and explicit_finished and numeric(hs) and numeric(aws):
-                      # A past date plus numeric score is not settlement evidence without an explicit final status.
-                      completed += 1
-                  elif explicit_upcoming:
-                      upcoming += 1
-                  odds_keys = [k for k in m if "odds" in str(k).lower()]
-                  xg_keys = [k for k in m if re.search(r'(^|_)xg($|_)', str(k).lower())]
-                  prematch_xg_keys = [k for k in m if "xg" in str(k).lower() and "prematch" in str(k).lower()]
-                  if odds_keys:
-                      odds_field_rows += 1
-                      if any(m.get(k) not in (None, "", 0, "0") for k in odds_keys): nonempty_odds_rows += 1
-                  if xg_keys:
-                      xg_field_rows += 1
-                      if any(m.get(k) not in (None, "") for k in xg_keys): nonempty_xg_rows += 1
-                  if prematch_xg_keys and any(m.get(k) not in (None, "") for k in prematch_xg_keys): nonempty_prematch_xg_rows += 1
-              missing_fixture_id_total += season_missing_fixture_id_count
-              missing_team_id_pair_total += season_missing_team_id_pair_count
-              same_home_away_team_id_total += season_same_home_away_team_id_count
-              unparseable_kickoff_total += season_unparseable_kickoff_count
-              missing_score_pair_total += season_missing_score_pair_count
-              invalid_score_pair_total += season_invalid_score_pair_count
-              raw_field_names.update(season_fields)
-              field_counts.update(season_fields)
-              completed_total += completed
-              upcoming_total += upcoming
-              score_pair_total += score_pair
-              team_id_pair_total += team_pair
-              team_name_pair_total += name_pair
-              result.update({
-                  "file_status": "OK",
-                  "match_count": len(matches),
-                  "team_count": len(teams),
-                  "kickoff_field_present_count": valid_kickoff,
-                  "score_pair_count": score_pair,
-                  "team_id_pair_count": team_pair,
-                  "team_name_pair_count": name_pair,
-                  "duplicate_fixture_id_count": sum(1 for count in season_fixture_id_counts.values() if count > 1),
-                  "missing_fixture_id_count": season_missing_fixture_id_count,
-                  "missing_team_id_pair_count": season_missing_team_id_pair_count,
-                  "same_home_away_team_id_count": season_same_home_away_team_id_count,
-                  "unparseable_kickoff_count": season_unparseable_kickoff_count,
-                  "missing_score_pair_count": season_missing_score_pair_count,
-                  "invalid_score_pair_count": season_invalid_score_pair_count,
-                  "table_payload_type": type(tables).__name__,
-                  "table_payload_nonempty": bool(tables),
-                  "table_payload_top_keys": sorted(str(k) for k in tables.keys()) if isinstance(tables, dict) else [],
-                  "recent_form5_home_prior_available_count": recent_home5_available,
-                  "recent_form5_away_prior_available_count": recent_away5_available,
-                  "recent_form5_both_prior_available_count": recent_both5_available,
-                  "h2h_prior_meeting_available_count": h2h_prior_available,
-                  "primary_window_rows_2025_03_20_to_2026_09_20": season_primary_window_rows,
-                  "past_date_rows": season_past_date_rows,
-                  "future_date_rows": season_future_date_rows,
-                  "provider_status_value_counts": dict(season_status_counts),
-                  "past_date_rows_with_numeric_score_pair": season_past_date_rows_with_score_pair,
-                  "past_date_rows_with_explicit_finished_status": season_past_date_rows_explicitly_finished,
-                  "past_date_rows_with_explicit_finished_status_and_numeric_score_pair": season_past_date_rows_explicitly_finished_with_scores
-              })
-              season_rows.append(result)
-          duplicate_ids = sum(1 for k,v in fixture_ids_seen.items() if v > 1)
-          report = {
-              "audit": "PRIVATE_RAW_ARCHIVE_SCHEMA_QA",
-              "source_release_tag": "research-selected50-footystats-ingestion-20261025",
-              "selected_manifest_rows": len(selected_rows),
-              "ingestion_ledger_rows": len(rows),
-              "selected_manifest_exact_id_set_match": selected_manifest_exact_id_set_match,
-              "selected_manifest_metadata_match_rows": sum(r.get("selected_manifest_metadata_match_status") == "EXACT_LABEL_MATCH" for r in season_rows),
-              "provider_country_competition_composite_exact_match_rows": sum(r.get("provider_country_competition_composite_match_status") == "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH" for r in season_rows),
-              "provider_country_competition_composite_mismatch_ids": [r.get("season_id") for r in season_rows if r.get("provider_country_competition_composite_match_status") != "EXACT_COUNTRY_PLUS_COMPETITION_LABEL_MATCH"],
-              "provider_parent_competition_id_populated_rows": sum(bool(str(r.get("provider_parent_competition_id", "")).strip()) for r in season_rows),
-              "provider_country_metadata_retained_rows": 0,
-              "season_folders_audited": len(season_rows),
-              "season_manifest_status_counts": dict(collections.Counter(str(r.get("status","UNKNOWN")) for r in rows)),
-              "season_file_status_counts": dict(collections.Counter(str(r.get("file_status","UNKNOWN")) for r in season_rows)),
-              "missing_file_season_ids": missing_files,
-              "invalid_json_season_ids": invalid_json,
-              "raw_match_record_count": match_total,
-              "unique_season_fixture_id_pairs": len(fixture_ids_seen),
-              "duplicate_fixture_id_pairs": duplicate_ids,
-              "match_records_missing_fixture_id": missing_fixture_id_total,
-              "match_records_missing_team_id_pair": missing_team_id_pair_total,
-              "match_records_with_same_home_away_team_id": same_home_away_team_id_total,
-              "match_records_with_unparseable_or_missing_kickoff": unparseable_kickoff_total,
-              "match_records_missing_score_pair": missing_score_pair_total,
-              "match_records_with_invalid_numeric_score_pair": invalid_score_pair_total,
-              "match_records_with_kickoff_like_field": sum(r.get("kickoff_field_present_count",0) for r in season_rows),
-              "match_records_with_explicit_score_pair": score_pair_total,
-              "match_records_with_team_id_pair": team_id_pair_total,
-              "match_records_with_team_name_pair": team_name_pair_total,
-              "selected_season_primary_window_rows_2025_03_20_to_2026_09_20": sum(r.get("primary_window_rows_2025_03_20_to_2026_09_20", 0) for r in season_rows),
-              "table_payload_nonempty_seasons": sum(bool(r.get("table_payload_nonempty")) for r in season_rows),
-              "seasons_with_any_recent_form5_for_both_teams": sum(int(r.get("recent_form5_both_prior_available_count", 0)) > 0 for r in season_rows),
-              "fixture_rows_with_recent_form5_for_both_teams": sum(int(r.get("recent_form5_both_prior_available_count", 0)) for r in season_rows),
-              "fixture_rows_with_h2h_prior_meeting": sum(int(r.get("h2h_prior_meeting_available_count", 0)) for r in season_rows),
-              "completed_status_candidate_records": completed_total,
-              "upcoming_status_candidate_records": upcoming_total,
-              "records_with_past_kickoff_date": past_date_total,
-              "records_with_future_kickoff_date": future_date_total,
-              "records_with_numeric_nonnegative_score_pair": score_numeric_total,
-              "provider_status_value_counts": dict(status_counts),
-              "records_with_odds_named_fields": odds_field_rows,
-              "records_with_nonempty_odds_values": nonempty_odds_rows,
-              "records_with_xg_named_fields": xg_field_rows,
-              "records_with_nonempty_xg_values": nonempty_xg_rows,
-              "records_with_nonempty_prematch_xg_values": nonempty_prematch_xg_rows,
-              "observed_date_min_utc_or_string": date_min,
-              "observed_date_max_utc_or_string": date_max,
-              "match_object_field_names_union": sorted(raw_field_names),
-              "season_results": season_rows,
-              "private_archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
-              "raw_provider_payload_saved_publicly": False,
-              "production_model_logic_changed": False,
-              "production_probabilities_changed": False,
-              "production_readiness": "NOT_GRANTED",
-              "limitations": [
-                "Field presence is not proof of correct semantics or as-of-kickoff provenance.",
-                "Completed/upcoming classification uses provider status plus date and numeric score checks; it is still not settlement validation.",
-                "Recent form, H2H, standings chronology, xG provenance and odds provenance require dedicated feature-level tests."
-              ]
-          }
-          Path("sanitized-private-archive-qa.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-          print(json.dumps({k:v for k,v in report.items() if k not in ("season_results","match_object_field_names_union")}, sort_keys=True))
-          PY
+          python scripts/qa_selected50_private_archive.py
 
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-private-archive-qa
-          path: sanitized-private-archive-qa.json
+          path: |
+            selected50_archive_qa/selected50_archive_qa.json
+            selected50_archive_qa/selected50_season_qa.csv
           if-no-files-found: error
-          retention-days: 7
-
-# Public-repository QA rerun requested 2026-10-25; reuses the existing private release and does not re-ingest provider data.
+          retention-days: 14
