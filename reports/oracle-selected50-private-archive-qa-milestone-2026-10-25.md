@@ -179,3 +179,22 @@ Production readiness remains NOT_GRANTED. No production code, model logic, proba
 - Triggered the public-repository **Oracle Selected-50 Private Archive QA** workflow by a comment-only workflow-file update. It reuses the existing private release and does not repeat FootyStats/provider ingestion. Run status must be checked separately before treating this as a pass.
 - This report update will trigger the **Oracle Selected-50 Dry-Run Planner**, which is configured for push events on this research branch and explicitly makes zero network and paid-provider calls.
 - Scope remains research-only. Do not interpret successful workflow execution as 50-league production readiness. Preserve production logic, probabilities, calibration, thresholds and governance. The production repository's earlier cross-workflow execution failure still requires fresh runner diagnostics; no speculative production patch or blind production rerun is authorized.
+
+
+## P0–P2 expedited review — 2026-10-25 10:10 UTC
+
+### Public-runner workflow routing
+- Enabled research-branch push triggers for three read-only public-runner workflows: governed readiness preflight, historical spine validation, and production ledger readiness audit. This avoids relying on the private repository's exhausted Actions minutes; private-source access still depends on the relevant read token being valid.
+- Public Selected-50 dry-run planner passed again at [run 40183589990](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183589990). It remains zero-network/zero-paid-provider and research-only.
+- Public private-archive QA passed at [run 40183451811](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183451811), using the existing private release; no provider re-ingestion was repeated.
+
+### Demonstrated P0 defect and fix attempt
+- The public historical-spine validation failed at [run 40183586474](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183586474) because its clone step received GitHub's explicit `Invalid username or token` response.
+- Its workflow referenced `secrets.ORACLE_READ_TOKEN`, while the established governed-readiness workflow uses `secrets.ORACLE_PRIVATE_READ_TOKEN`. Updated the historical-spine workflow to use the established secret name in commit `478cb9187e8d3172d297a7723585baa5ba4f0d05`; a new validation run [40183606444](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183606444) was queued at the time of this report. This is a correction to public research workflow wiring, not production model logic. The rerun must pass before the fix is considered verified.
+
+### P0–P2 state at this checkpoint
+- **P0 — public workflow execution and access diagnostics:** partly progressed. Public dry-run and archive QA pass. Historical-spine auth fix is pending rerun. Governed readiness preflight and production ledger audit were started, but their latest job logs were not yet retrievable; do not infer their outcomes.
+- **P1 — current fixture/result truth, settlement and feature provenance:** still blocked/unverified. These audits do not refresh production manifests or establish 50-league current-data truth.
+- **P2 — all-50 market gates and backtesting:** still NOT GRANTED until exact fixture joins, verified settled outcomes, pre-kickoff xG/odds provenance, and recorded pre-kickoff prediction/settlement pairing pass.
+
+No production model logic, prediction probabilities, calibration, thresholds, or production branch files were changed. No new provider calls were made by the dry-run. Production readiness remains NOT_GRANTED.
