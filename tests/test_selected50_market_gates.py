@@ -18,6 +18,9 @@ class MarketGateTests(unittest.TestCase):
   self.assertTrue(all(r["production_eligible"]=="NO" for r in self.rows))
  def test_all_required_gates_blocked_or_unverified(self):
   self.assertTrue(all(r["fixture_join_gate"]=="BLOCKED_NOT_VERIFIED" for r in self.rows))
+  self.assertTrue(all(r["recent_form_gate"]=="NOT_VERIFIED_FOR_CURRENT_SELECTED50_FIXTURES" for r in self.rows))
+  self.assertTrue(all(r["standings_gate"]=="NOT_VERIFIED_AS_OF_KICKOFF_FOR_CURRENT_SELECTED50_FIXTURES" for r in self.rows))
+  self.assertTrue(all(r["h2h_gate"]=="NOT_VERIFIED_FOR_CURRENT_SELECTED50_FIXTURES" for r in self.rows))
   self.assertTrue(all(r["point_in_time_xg_gate"]=="BLOCKED_NO_VERIFIED_AS_OF_PROVENANCE" for r in self.rows))
   self.assertTrue(all(r["point_in_time_odds_gate"]=="BLOCKED_NO_VERIFIED_AS_OF_PROVENANCE" for r in self.rows))
   self.assertTrue(all(r["btts_yes_gate"]=="NOT_VERIFIED" for r in self.rows))
