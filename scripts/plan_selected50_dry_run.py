@@ -43,9 +43,11 @@ with MATRIX.open("w", encoding="utf-8", newline="") as f:
     fields = [
         "selected_id","country","competition_name","run56_manifest_status",
         "run56_ingestion_status","run56_match_count","run56_team_count","run56_matches_pages",
-        "run56_tables_status","run56_season_stats_status","archive_season_folder","archive_records",\n        "archive_parseable_kickoff","archive_team_ids_complete","archive_settled_status_allowed",\n        "archive_score_complete","archive_explicit_score_pairs","archive_event_array_score_pairs",\n        "archive_missing_team_names","provider_competition_id",
-        "provider_season_id","live_ingestion_status","estimated_minimum_calls",
-        "production_eligible"
+        "run56_tables_status","run56_season_stats_status","archive_season_folder","archive_records",
+        "archive_parseable_kickoff","archive_team_ids_complete","archive_settled_status_allowed",
+        "archive_score_complete","archive_explicit_score_pairs","archive_event_array_score_pairs",
+        "archive_missing_team_names","provider_competition_id","provider_season_id",
+        "live_ingestion_status","estimated_minimum_calls","production_eligible"
     ]
     w = csv.DictWriter(f, fieldnames=fields)
     w.writeheader()
