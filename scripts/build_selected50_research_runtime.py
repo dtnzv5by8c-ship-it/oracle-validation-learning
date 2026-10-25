@@ -571,7 +571,7 @@ def main():
         # Write private normalized research package.
         normalized_path=OUT/"normalized_selected50_matches.csv"
         with normalized_path.open("w",newline="",encoding="utf-8") as f:
-            cols=["fixture_id","season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","league","home_id","away_id","home_team","away_team","kickoff_unix","status","finished","home_goals","away_goals"]
+            cols=["fixture_id","season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","provider_competition_name_source","provider_season_year_source","country","league","home_id","away_id","home_team","away_team","kickoff_unix","status","finished","home_goals","away_goals"]
             w=csv.DictWriter(f,fieldnames=cols);w.writeheader()
             for r in matches:
                 out_row={k:r.get(k) for k in cols if k in r}
@@ -588,7 +588,7 @@ def main():
         if feature_rows:
             with feature_path.open("w",newline="",encoding="utf-8") as f:
                 cols=[("selected_id" if k=="competition_id" else k) for k in feature_rows[0].keys()]
-                cols += ["selected_id_type","provider_competition_id","provider_competition_id_status"]
+                cols += ["selected_id_type","provider_competition_id","provider_competition_id_status","provider_competition_name_source","provider_season_year_source"]
                 w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader()
                 for row in feature_rows:
                     out_row={("selected_id" if k=="competition_id" else k):v for k,v in row.items()}
