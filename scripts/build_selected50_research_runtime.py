@@ -478,7 +478,10 @@ def main():
                 f=next((x for x in feature_rows if x.get("fixture_id")==r["fixture_id"] and x.get("competition_id")==r["competition_id"] and x.get("kickoff_unix")==r["kickoff_unix"]),None)
                 if not f: continue
                 row={"fixture_id":r["fixture_id"],"date_utc":dt.datetime.fromtimestamp(r["kickoff_unix"],dt.timezone.utc).isoformat(),
-                     "selected_id":str(r["competition_id"]),"provider_competition_id":str(r["competition_id"]),
+                     "selected_id":str(r["competition_id"]),
+                     "selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                     "provider_competition_id":"",
+                     "provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST",
                      "provider_season_id":str(r["season_id"]),
                      "home_team_provider_id":str(r.get("home_id") or ""),"away_team_provider_id":str(r.get("away_id") or ""),
                      "source_fixture_id_status":"PRESENT" if r.get("fixture_id") else "MISSING",
@@ -507,13 +510,26 @@ def main():
         # Write private normalized research package.
         normalized_path=OUT/"normalized_selected50_matches.csv"
         with normalized_path.open("w",newline="",encoding="utf-8") as f:
-            cols=["fixture_id","season_id","competition_id","country","league","home_id","away_id","home_team","away_team","kickoff_unix","status","finished","home_goals","away_goals"]
+            cols=["fixture_id","season_id","selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","league","home_id","away_id","home_team","away_team","kickoff_unix","status","finished","home_goals","away_goals"]
             w=csv.DictWriter(f,fieldnames=cols);w.writeheader()
-            for r in matches:w.writerow({k:r.get(k) for k in cols})
+            for r in matches:
+                out_row={k:r.get(k) for k in cols if k in r}
+                out_row.update({"selected_id":str(r.get("competition_id") or ""),
+                    "selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                    "provider_competition_id":"",
+                    "provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST"})
+                w.writerow(out_row)
         feature_path=OUT/"selected50_feature_rows.csv"
         if feature_rows:
             with feature_path.open("w",newline="",encoding="utf-8") as f:
-                cols=list(feature_rows[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(feature_rows)
+                cols=[("selected_id" if k=="competition_id" else k) for k in feature_rows[0].keys()]
+                cols += ["selected_id_type","provider_competition_id","provider_competition_id_status"]
+                w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader()
+                for row in feature_rows:
+                    out_row={("selected_id" if k=="competition_id" else k):v for k,v in row.items()}
+                    out_row.update({"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
+                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST"})
+                    w.writerow(out_row)
         pred_path=OUT/"oracle_selected50_prediction_report.csv"
         if predictions:
             with pred_path.open("w",newline="",encoding="utf-8") as f:
