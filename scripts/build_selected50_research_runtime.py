@@ -207,8 +207,8 @@ def main():
         if not isinstance(raw_manifest,list): raise SystemExit("Unexpected private ingestion manifest shape.")
         season_rows={str(r.get("season_id","")).strip():r for r in raw_manifest if isinstance(r,dict)}
         if len(season_rows)<200: raise SystemExit(f"Expected historical archive with at least 200 season rows; got {len(season_rows)}.")
-        # Canonical competition crosswalk uses exact country + competition labels already audited
-        # against all 200 provider season rows. The provider catalogue does not expose a usable parent ID.
+        # Country + competition labels group historical seasons; exact parent provider IDs and provider season years
+        # are preserved separately from the selected-season surrogate used for research grouping.
         selected_by_label={}
         for selected_sid, sel in selected_by_id.items():
             label=(str(sel.get("country","")).strip(),str(sel.get("competition_name","")).strip())
@@ -363,7 +363,8 @@ def main():
                     noninteger_score_rows += 1
             settlement_truth_qa.append({
                 "selected_id": str(cid), "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+                "provider_competition_id": provider_parent_id_by_selected.get(str(cid), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                 "provider_competition_id_status": provider_parent_id_by_selected.get(str(cid), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],
                 "country": sel.get("country", ""), "competition_name": sel.get("competition_name", ""),
                 "source_rows_retained_for_id_time_validation": len(raw_comp), "normalized_rows_after_dedup": len(normalized_comp),
                 "duplicate_rows_removed_by_dedup": len(raw_comp) - len(normalized_comp),
@@ -637,7 +638,8 @@ def main():
                         lg_test = [r for r in fold_test if str(r["competition_id"]) == str(selected_id)]
                         league_walk_forward_metrics.append({
                             "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                            "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
+                            "provider_competition_id":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                         "provider_competition_id_status":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],"country":sel.get("country",""),
                             "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
                             "train_n":len(lg_train),"test_n":len(lg_test),
                             "sample_gate":"INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if len(lg_train)<100 or len(lg_test)<100 else "SAMPLE_GATE_MET",
@@ -691,7 +693,8 @@ def main():
                     lg_gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST" if lg_train_n < 100 or lg_test_n < 100 else "SAMPLE_GATE_MET_DIAGNOSTIC_ONLY"
                     league_walk_forward_metrics.append({
                         "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
+                        "provider_competition_id":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                         "provider_competition_id_status":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],"country":sel.get("country",""),
                         "league":sel.get("competition_name",""),"market":market,"fold":fold_name,
                         "train_n":lg_train_n,"test_n":lg_test_n,"sample_gate":lg_gate,
                         "status":"NO_TEST_ROWS" if not lg_test_n else "RAW_POOLED_MODEL_LEAGUE_SUBSET_NOT_CALIBRATED",
@@ -730,7 +733,8 @@ def main():
                     stability = "MIXED_BRIER_SKILL_ACROSS_FOLDS"
                 league_market_readiness.append({
                     "selected_id":str(selected_id),"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                        "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST","country":sel.get("country",""),
+                        "provider_competition_id":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                         "provider_competition_id_status":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],"country":sel.get("country",""),
                     "league":sel.get("competition_name",""),"market":market,
                     "train_n":len(lg_train),"test_n":len(lg_test),"sample_gate":gate,
                     "walk_forward_folds_with_test_data":sum(1 for x in folds if x["test_n"] > 0),
@@ -808,7 +812,8 @@ def main():
                 status_counts = Counter(str(r.get("status") or "UNKNOWN") for r in year_rows)
                 calendar_year_rows.append({
                     "selected_id": str(selected_id), "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                    "provider_competition_id": "", "provider_competition_id_status": "UNAVAILABLE_IN_ARCHIVE_MANIFEST", "country": sel.get("country", ""),
+                    "provider_competition_id": provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                     "provider_competition_id_status": provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1], "country": sel.get("country", ""),
                     "competition_name": sel.get("competition_name", ""), "calendar_year_utc": year,
                     "archive_fixture_rows": len(year_rows),
                     "completed_with_numeric_score_rows": len(completed_rows),
@@ -855,6 +860,10 @@ def main():
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
             "calendar_year_coverage_rows":len(calendar_year_rows),"league_market_readiness_rows":len(league_market_readiness),"league_walk_forward_metrics_rows":len(league_walk_forward_metrics),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
+            "provider_parent_competition_ids_verified":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "VERIFIED_FROM_PROVIDER_CATALOGUE_MANIFEST"),
+            "provider_parent_competition_ids_ambiguous":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS"),
+            "provider_parent_competition_ids_unavailable":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "UNAVAILABLE_IN_ARCHIVE_MANIFEST"),
+            "provider_season_year_metadata_rows":sum(1 for r in season_qa if r.get("provider_season_year_source")),
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
