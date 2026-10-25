@@ -182,8 +182,10 @@ def main():
                 team_name = t.get("name") or t.get("english_name") or t.get("cleanName") or ""
                 season_team_names[(cid,sid,str(t["id"]))] = team_name
                 if sid in selected_by_id:
+                    table_pos=num(t.get("table_position"))
                     team_position[(cid,str(t["id"]))]={"name":team_name,
-                                                       "table_position":num(t.get("table_position")),"season_id":sid}
+                                                       "table_position":table_pos if table_pos is not None and table_pos > 0 else None,
+                                                       "season_id":sid}
             # Table payload is not assumed to be historical; only current selected season team records are displayed.
             for m in matches:
                 if not isinstance(m,dict): continue
@@ -263,8 +265,13 @@ def main():
             f["odds_named_field_count"]=sum("odds" in k.lower() and raw.get(k) not in (None,"") for k in raw)
             f["xg_named_field_count"]=sum("xg" in k.lower() and raw.get(k) not in (None,"") for k in raw)
             f["odds_xg_provenance_status"]="UNVERIFIED_NOT_USED_IN_MODEL"
-            f["data_completeness_score_pct"]=round(100*sum(f.get(k) is not None for k in FEATURES)/len(FEATURES),1)
-            f["data_risk_pct"]=round(100-f["data_completeness_score_pct"],1)
+            f["model_input_coverage_pct"]=round(100*sum(f.get(k) is not None for k in FEATURES)/len(FEATURES),1)
+            f["model_input_missingness_pct"]=round(100-f["model_input_coverage_pct"],1)
+            # Overall confidence/risk cannot be reduced to feature completeness: probabilities are uncalibrated
+            # and odds/xG provenance is unverified. Do not fabricate a confidence percentage or risk percentage.
+            f["confidence_score_pct"]=None
+            f["data_risk_pct"]=None
+            f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
             if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None:
                 for market,fn in MARKETS.items(): f["target_"+market]=fn(r["home_goals"],r["away_goals"])
             else:
@@ -291,8 +298,11 @@ def main():
             backtest.append({"market":market,"status":"RAW_WALK_FORWARD_HOLDOUT_NOT_CALIBRATED","train_n":ntrain,"test_n":len(y),
                              "brier":round(brier_score_loss(y,probs),5),"log_loss":round(log_loss(y,[min(max(p,1e-6),1-1e-6) for p in probs],labels=[0,1]),5),
                              "accuracy_at_0_5":round(accuracy_score(y,[int(p>=0.5) for p in probs]),5),"auc":round(auc,5) if auc is not None else None})
-        # Future fixtures: only genuinely future, not explicitly finished or cancelled records.
-        future=[r for r in matches if r["kickoff_unix"]>NOW and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED]
+        # Decision report horizon: next seven days only. Exclude fixtures with less than 15 minutes of lead time.
+        report_start=NOW+15*60
+        report_end=NOW+7*24*60*60
+        future=[r for r in matches if report_start < r["kickoff_unix"] <= report_end
+                and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED]
         # One pooled model per market, trained only on completed records before each target kickoff.
         predictions=[]
         by_date=defaultdict(list)
@@ -314,7 +324,10 @@ def main():
                      "h2h_last_date_utc":f["h2h_last_date_utc"],
                      "home_table_position_current":f["home_table_position_current"],"away_table_position_current":f["away_table_position_current"],
                      "table_position_asof_status":f["table_position_asof_status"],
-                     "data_completeness_score_pct":f["data_completeness_score_pct"],"data_risk_pct":f["data_risk_pct"],
+                     "model_input_coverage_pct":f["model_input_coverage_pct"],
+                     "model_input_missingness_pct":f["model_input_missingness_pct"],
+                     "confidence_score_pct":f["confidence_score_pct"],"data_risk_pct":f["data_risk_pct"],
+                     "risk_profile":f["risk_profile"],
                      "odds_named_field_count":f["odds_named_field_count"],"xg_named_field_count":f["xg_named_field_count"],
                      "odds_xg_provenance_status":"UNVERIFIED_NOT_USED_IN_MODEL","calibration_status":"RAW_ONLY_UNCALIBRATED",
                      "production_eligible":"NO"}
@@ -341,6 +354,9 @@ def main():
                          "note":"Single temporal holdout baseline using the locked Oracle logistic-regression form feature set; raw probabilities, no calibration, not production-approved."}
         backtest_path.write_text(json.dumps(backtest_report,indent=2)+"\n",encoding="utf-8")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"provider_competitions_with_matches":len(present_comps),
+            "report_horizon_days":7,"minimum_lead_time_minutes":15,
+            "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
+            "future_fixture_candidates_in_report_horizon":len(future),
             "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_mapped_by_exact_labels":mapped_historical_seasons,"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
             "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
