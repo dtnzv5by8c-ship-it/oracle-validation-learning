@@ -43,7 +43,7 @@ class Selected50RuntimeMigrationContractTests(unittest.TestCase):
         c = self.contract
         self.assertEqual(c["status"], "RESEARCH_ONLY_NOT_PRODUCTION_AUTHORIZATION")
         self.assertEqual(c["governance"]["production_eligibility_until_all_gates_pass"], "NO")
-        self.assertFalse(c["governance"]["paid_provider_requests_authorized"])
+        self.assertFalse(c["data_admission"]["paid_provider_requests_authorized"])
         self.assertEqual(c["market_readiness_defaults"]["BTTS Yes"], "NOT_VERIFIED")
         self.assertEqual(c["market_readiness_defaults"]["M-1UP"], "BLOCKED")
         self.assertFalse(c["data_admission"]["fuzzy_identity_join_allowed_for_approval"] if "fuzzy_identity_join_allowed_for_approval" in c["data_admission"] else c["governed_universe"]["fuzzy_identity_join_allowed_for_approval"])
