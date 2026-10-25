@@ -1,0 +1,285 @@
+{
+  "contract_id": "ORACLE_SELECTED50_COMPATIBILITY_CONTRACT",
+  "version": "1.0.0",
+  "status": "RESEARCH_ONLY_NOT_PRODUCTION_AUTHORIZATION",
+  "created_date": "2026-10-25",
+  "purpose": "Govern the selected 50 season IDs for compatibility and evidence validation without changing production model logic or inferring parent competition IDs.",
+  "source_manifest": "data/oracle-footystats-selected-50-season-id-manifest.csv",
+  "source_identity_semantics": "season_id is the exact provider season identifier in the selected manifest; parent competition IDs are not supplied or inferred by this contract.",
+  "expected_season_count": 50,
+  "league_seasons": [
+    {
+      "season_id": 16571,
+      "country": "Argentina",
+      "competition_name": "Primera División"
+    },
+    {
+      "season_id": 17326,
+      "country": "Australia",
+      "competition_name": "A-League"
+    },
+    {
+      "season_id": 17181,
+      "country": "Austria",
+      "competition_name": "Bundesliga"
+    },
+    {
+      "season_id": 17171,
+      "country": "Belgium",
+      "competition_name": "Pro League"
+    },
+    {
+      "season_id": 16544,
+      "country": "Brazil",
+      "competition_name": "Serie A"
+    },
+    {
+      "season_id": 16741,
+      "country": "Canada",
+      "competition_name": "Canadian Premier League"
+    },
+    {
+      "season_id": 16615,
+      "country": "Chile",
+      "competition_name": "Primera División"
+    },
+    {
+      "season_id": 16789,
+      "country": "China",
+      "competition_name": "Chinese Super League"
+    },
+    {
+      "season_id": 16614,
+      "country": "Colombia",
+      "competition_name": "Categoria Primera A"
+    },
+    {
+      "season_id": 17087,
+      "country": "Croatia",
+      "competition_name": "Prva HNL"
+    },
+    {
+      "season_id": 17157,
+      "country": "Czech Republic",
+      "competition_name": "First League"
+    },
+    {
+      "season_id": 17091,
+      "country": "Denmark",
+      "competition_name": "Superliga"
+    },
+    {
+      "season_id": 16714,
+      "country": "Ecuador",
+      "competition_name": "Primera Categoría Serie A"
+    },
+    {
+      "season_id": 17146,
+      "country": "England",
+      "competition_name": "Premier League"
+    },
+    {
+      "season_id": 17184,
+      "country": "England",
+      "competition_name": "Championship"
+    },
+    {
+      "season_id": 17180,
+      "country": "England",
+      "competition_name": "EFL League One"
+    },
+    {
+      "season_id": 16572,
+      "country": "Finland",
+      "competition_name": "Veikkausliiga"
+    },
+    {
+      "season_id": 17102,
+      "country": "France",
+      "competition_name": "Ligue 1"
+    },
+    {
+      "season_id": 17117,
+      "country": "France",
+      "competition_name": "Ligue 2"
+    },
+    {
+      "season_id": 17210,
+      "country": "Germany",
+      "competition_name": "Bundesliga"
+    },
+    {
+      "season_id": 17212,
+      "country": "Germany",
+      "competition_name": "2. Bundesliga"
+    },
+    {
+      "season_id": 17356,
+      "country": "Greece",
+      "competition_name": "Super League"
+    },
+    {
+      "season_id": 17964,
+      "country": "India",
+      "competition_name": "Indian Super League"
+    },
+    {
+      "season_id": 17084,
+      "country": "Italy",
+      "competition_name": "Serie A"
+    },
+    {
+      "season_id": 17404,
+      "country": "Italy",
+      "competition_name": "Serie B"
+    },
+    {
+      "season_id": 17115,
+      "country": "Japan",
+      "competition_name": "J1 League"
+    },
+    {
+      "season_id": 17099,
+      "country": "Mexico",
+      "competition_name": "Liga MX"
+    },
+    {
+      "season_id": 17097,
+      "country": "Netherlands",
+      "competition_name": "Eredivisie"
+    },
+    {
+      "season_id": 16558,
+      "country": "Norway",
+      "competition_name": "Eliteserien"
+    },
+    {
+      "season_id": 16533,
+      "country": "Paraguay",
+      "competition_name": "Division Profesional"
+    },
+    {
+      "season_id": 16905,
+      "country": "Peru",
+      "competition_name": "Primera División"
+    },
+    {
+      "season_id": 17112,
+      "country": "Poland",
+      "competition_name": "Ekstraklasa"
+    },
+    {
+      "season_id": 17215,
+      "country": "Portugal",
+      "competition_name": "LigaPro"
+    },
+    {
+      "season_id": 16537,
+      "country": "Republic of Ireland",
+      "competition_name": "Premier Division"
+    },
+    {
+      "season_id": 17247,
+      "country": "Romania",
+      "competition_name": "Liga I"
+    },
+    {
+      "season_id": 17178,
+      "country": "Russia",
+      "competition_name": "Russian Premier League"
+    },
+    {
+      "season_id": 17426,
+      "country": "Saudi Arabia",
+      "competition_name": "Professional League"
+    },
+    {
+      "season_id": 17148,
+      "country": "Scotland",
+      "competition_name": "Premiership"
+    },
+    {
+      "season_id": 17119,
+      "country": "Serbia",
+      "competition_name": "SuperLiga"
+    },
+    {
+      "season_id": 17444,
+      "country": "South Africa",
+      "competition_name": "Premier Soccer League"
+    },
+    {
+      "season_id": 16627,
+      "country": "South Korea",
+      "competition_name": "K League 1"
+    },
+    {
+      "season_id": 17199,
+      "country": "Spain",
+      "competition_name": "La Liga"
+    },
+    {
+      "season_id": 17269,
+      "country": "Spain",
+      "competition_name": "Segunda División"
+    },
+    {
+      "season_id": 16576,
+      "country": "Sweden",
+      "competition_name": "Allsvenskan"
+    },
+    {
+      "season_id": 17129,
+      "country": "Switzerland",
+      "competition_name": "Super League"
+    },
+    {
+      "season_id": 17265,
+      "country": "Turkey",
+      "competition_name": "Süper Lig"
+    },
+    {
+      "season_id": 16504,
+      "country": "USA",
+      "competition_name": "MLS"
+    },
+    {
+      "season_id": 17191,
+      "country": "Ukraine",
+      "competition_name": "Ukrainian Premier League"
+    },
+    {
+      "season_id": 16708,
+      "country": "Uruguay",
+      "competition_name": "Primera División"
+    },
+    {
+      "season_id": 16617,
+      "country": "Venezuela",
+      "competition_name": "Primera División"
+    }
+  ],
+  "hard_gates": {
+    "exact_unique_season_ids": true,
+    "exact_fixture_and_team_identity_required": true,
+    "final_outcome_requires_explicit_final_status_or_independent_verification": true,
+    "xg_requires_fixture_specific_point_in_time_provenance": true,
+    "odds_require_bookmaker_market_and_pre_kickoff_timestamp": true,
+    "predictions_must_be_recorded_before_kickoff": true,
+    "historical_accuracy_requires_verified_settlements": true,
+    "production_eligibility_until_governed_approval": "NO"
+  },
+  "market_readiness_defaults": {
+    "BTTS Yes": "NOT_VERIFIED",
+    "Double Chance": "NOT_VERIFIED",
+    "Double Chance + Under 4.5": "NOT_VERIFIED",
+    "M-1UP": "BLOCKED"
+  },
+  "governance": {
+    "production_model_logic_may_change": false,
+    "production_probabilities_may_change": false,
+    "calibration_or_thresholds_may_change": false,
+    "paid_provider_requests_authorized": false,
+    "historical_baselines_are_immutable": true
+  }
+}
