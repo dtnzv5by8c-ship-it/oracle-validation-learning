@@ -521,6 +521,67 @@ def main():
         backtest_report={"primary_window":"2025-03-20 through 2026-09-20","training_cutoff_exclusive":"2025-03-20","markets":backtest, "walk_forward_metrics_file":"oracle_selected50_walk_forward_metrics.json","league_market_readiness_file":"oracle_selected50_league_market_readiness.csv",
                          "note":"Single temporal holdout baseline using the locked Oracle logistic-regression form feature set; raw probabilities, no calibration, not production-approved."}
         backtest_path.write_text(json.dumps(backtest_report,indent=2)+"\n",encoding="utf-8")
+        # Calendar-year coverage is derived from each match's source kickoff timestamp.
+        # It is deliberately not used to infer provider season-year labels.
+        feature_by_match_key = {
+            (str(x.get("competition_id") or ""), str(x.get("fixture_id") or ""),
+             float(x.get("kickoff_unix") or 0), str(x.get("home_id") or ""), str(x.get("away_id") or "")): x
+            for x in feature_rows
+        }
+        matches_by_comp_year = defaultdict(list)
+        observed_years = sorted({dt.datetime.fromtimestamp(r["kickoff_unix"], dt.timezone.utc).year for r in matches})
+        if not observed_years:
+            raise RuntimeError("Cannot build calendar-year coverage: no source kickoff timestamps were observed.")
+        for r in matches:
+            year = dt.datetime.fromtimestamp(r["kickoff_unix"], dt.timezone.utc).year
+            matches_by_comp_year[(str(r["competition_id"]), year)].append(r)
+        calendar_year_rows = []
+        for selected_id, sel in sorted(selected_by_id.items(), key=lambda kv: (kv[1].get("country", ""), kv[1].get("competition_name", ""))):
+            for year in range(min(observed_years), max(observed_years) + 1):
+                year_rows = matches_by_comp_year.get((str(selected_id), year), [])
+                completed_rows = [r for r in year_rows if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None]
+                feature_matches = []
+                for r in year_rows:
+                    key = (str(r["competition_id"]), str(r.get("fixture_id") or ""), float(r["kickoff_unix"]),
+                           str(r.get("home_id") or ""), str(r.get("away_id") or ""))
+                    feature_matches.append(feature_by_match_key.get(key))
+                full_feature_rows = sum(1 for x in feature_matches if x and all(x.get(k) is not None for k in FEATURES))
+                primary_rows = [r for r in year_rows if PRIMARY_START <= r["kickoff_unix"] < PRIMARY_END]
+                primary_completed = [r for r in primary_rows if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None]
+                status_counts = Counter(str(r.get("status") or "UNKNOWN") for r in year_rows)
+                calendar_year_rows.append({
+                    "selected_id": str(selected_id), "country": sel.get("country", ""),
+                    "competition_name": sel.get("competition_name", ""), "calendar_year_utc": year,
+                    "archive_fixture_rows": len(year_rows),
+                    "completed_with_numeric_score_rows": len(completed_rows),
+                    "completed_rows_with_fixture_id": sum(1 for r in completed_rows if r.get("fixture_id")),
+                    "completed_rows_with_both_team_ids": sum(1 for r in completed_rows if r.get("home_id") and r.get("away_id")),
+                    "full_20_feature_rows": full_feature_rows,
+                    "primary_window_fixture_rows": len(primary_rows),
+                    "primary_window_completed_score_rows": len(primary_completed),
+                    "primary_window_full_20_feature_rows": sum(1 for r in primary_rows for x in [feature_by_match_key.get((str(r["competition_id"]), str(r.get("fixture_id") or ""), float(r["kickoff_unix"]), str(r.get("home_id") or ""), str(r.get("away_id") or "")))] if x and all(x.get(k) is not None for k in FEATURES)),
+                    "source_status_counts_json": json.dumps(dict(sorted(status_counts.items())), ensure_ascii=False, separators=(",", ":")),
+                    "coverage_interpretation": "OBSERVED_ARCHIVE_ROWS_ONLY_NOT_PROVIDER_COMPLETENESS_PROOF" if year_rows else "NO_ROWS_OBSERVED_NOT_PROOF_OF_PROVIDER_ABSENCE",
+                    "season_year_mapping_status": "NOT_INFERRED_FROM_MATCH_CALENDAR_YEAR",
+                    "production_eligible": "NO"
+                })
+        calendar_year_path = OUT / "oracle_selected50_calendar_year_coverage.csv"
+        with calendar_year_path.open("w", newline="", encoding="utf-8") as year_file:
+            year_columns = ["selected_id", "country", "competition_name", "calendar_year_utc",
+                            "archive_fixture_rows", "completed_with_numeric_score_rows",
+                            "completed_rows_with_fixture_id", "completed_rows_with_both_team_ids",
+                            "full_20_feature_rows", "primary_window_fixture_rows",
+                            "primary_window_completed_score_rows", "primary_window_full_20_feature_rows",
+                            "source_status_counts_json", "coverage_interpretation",
+                            "season_year_mapping_status", "production_eligible"]
+            year_writer = csv.DictWriter(year_file, fieldnames=year_columns)
+            year_writer.writeheader()
+            year_writer.writerows(calendar_year_rows)
+        expected_calendar_rows = len(selected_by_id) * (max(observed_years) - min(observed_years) + 1)
+        if len(calendar_year_rows) != expected_calendar_rows:
+            raise RuntimeError(f"Calendar-year coverage row count mismatch: expected {expected_calendar_rows}, got {len(calendar_year_rows)}")
+        if any(r["production_eligible"] != "NO" for r in calendar_year_rows):
+            raise RuntimeError("Calendar-year coverage attempted to grant production eligibility")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"provider_competitions_with_matches":len(present_comps),
             "report_horizon_days":7,"minimum_lead_time_minutes":15,
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
@@ -530,6 +591,7 @@ def main():
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
+            "calendar_year_coverage_rows":len(calendar_year_rows),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
