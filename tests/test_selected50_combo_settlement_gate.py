@@ -52,7 +52,7 @@ class Selected50ComboSettlementGateTests(unittest.TestCase):
             row = self.crosswalk[market]
             self.assertEqual("NO", row["production_eligible"])
             self.assertIn("PREDICTION_VS_SETTLEMENT_LEDGER_COMBO_MISMATCH", row["source_settlement_crosswalk_status"])
-            self.assertIn("2–4 total goals", row["implemented_research_target"])
+            self.assertIn("between 2 and 4 inclusive", row["implemented_research_target"])
             self.assertIn("Confirm authoritative target", row["required_verification"])
 
 
