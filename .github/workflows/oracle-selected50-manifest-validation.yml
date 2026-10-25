@@ -24,3 +24,5 @@ jobs:
           python-version: '3.12'
       - name: Validate exact selected-50 manifest
         run: python scripts/validate_selected50_manifest.py
+
+# Research branch validation run enabled 2026-10-25; exact IDs only, no provider calls.
