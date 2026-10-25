@@ -56,3 +56,26 @@ No model redesign, production code change, probability change, calibration chang
 - The selected-50 catalogue schema audit completed successfully. Provider `league-list` exposes no parent competition ID field; the explicit season IDs are available and matched. Future ledgers now represent this limitation as `NOT_EXPOSED_BY_CATALOGUE`.
 - The latest production repository runs checked on 2026-10-25 include failures in current-data staging, prospective learning, historical intelligence, and external forecast archive. Their GitHub job records exposed no step-level diagnostics in the API response, so root cause cannot responsibly be inferred from those summaries alone. The production workflows must be diagnosed from the actual run logs before retrying or modifying them.
 - No production model logic, probabilities, calibration, or thresholds were changed. Production readiness remains `NOT_GRANTED`.
+
+
+## Prioritised continuation review — 2026-10-25 09:27 UTC
+
+### Verified archive state
+- The latest private-archive QA run passed after the follow-up ingestion workflow failed at release transfer: [QA run 40180314626](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180314626). This verifies the pre-existing private release can be downloaded and audited; do not spend more API credits re-ingesting merely to address the duplicate release tag.
+- The follow-up ingest's provider work succeeded (50/50 seasons, 201 requests) but its newly generated package did not replace or upload to the existing private release because the workflow deliberately refuses to overwrite a tag. The sanitized artifact is available on [run 40180281634](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180281634). Existing release remains the QA input; the new archive from the failed runner was ephemeral and should be treated as not persisted.
+- Latest dry-run planner passed: [run 40180625415](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180625415).
+
+### Production failure triage
+- Recent main-branch runs checked: current-data staging [40179475855], prospective learning [40179353874], historical intelligence [40179723228], external forecast archive [40177200715]. GitHub's jobs API returns zero step summaries for these failed jobs, and the log endpoint did not return usable decoded logs. Therefore the first failing step/root cause cannot be established from the available evidence. Do not patch production scripts or retry paid/data-ingest steps based on speculation.
+- Historical-intelligence workflow has explicit preconditions for the canonical historical spine and point-in-time leakage audit; the currently checked-in manifests report 12,836 matches and 12,836 pre-match states, reconciliation PASS, strict pre-match PASS, and zero leakage violations. These manifest values are dated 2026-10-02, so they are not evidence that the selected 50-league current workflow is ready.
+- Next production action is a diagnostics-only rerun/inspection once usable GitHub runner logs are available, followed by fixing only a demonstrated infrastructure or script failure. Preserve production prediction logic and probabilities.
+
+### Highest-priority remaining readiness gates
+1. Keep the existing private archive as the current audited source; no additional FootyStats calls unless a specific missing field is shown to be necessary.
+2. Diagnose the no-step production workflow failures with runner/job diagnostics before changing code.
+3. Tighten settlement QA: date plus numeric score is not proof a fixture is finally settled. Require explicit provider final status or independently verified result.
+4. Reconcile exact team/fixture identity and verify recent form, standings and H2H coverage per selected fixture.
+5. Treat xG and odds as unavailable for production gating until point-in-time provenance is evidenced; non-empty values alone do not prove pre-kickoff availability.
+6. Only then produce historical market metrics from prediction records demonstrably captured before kick-off and verified settlements.
+
+Production readiness remains NOT_GRANTED; production model logic, probabilities, calibration and thresholds remain unchanged.
