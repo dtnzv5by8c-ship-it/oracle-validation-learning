@@ -16,6 +16,8 @@ jobs:
           python-version: '3.12'
       - name: Generate dry-run plan (no network calls)
         run: python scripts/plan_selected50_dry_run.py
+      - name: Run planner regression tests
+        run: python tests/test_selected50_dry_run_planner.py
       - name: Validate plan output
         run: |
           python - <<'PY'
@@ -28,8 +30,9 @@ jobs:
           assert len({r["selected_id"] for r in rows}) == 50
           assert summary["network_calls_made"] == 0
           assert summary["paid_provider_calls_made"] == 0
+          assert summary["minimum_endpoint_calls_if_live_one_pass"] == 200
           assert all(r["production_eligible"] == "NO" for r in rows)
-          print("PASS: 50 unique IDs; no network/provider calls; production blocked.")
+          print("PASS: 50 unique IDs; 0 provider calls; minimum estimate documented; production blocked.")
           PY
       - name: Upload dry-run plan
         uses: actions/upload-artifact@v4
