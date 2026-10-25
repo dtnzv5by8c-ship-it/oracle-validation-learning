@@ -157,12 +157,21 @@ jobs:
                       return parsed_dt.timestamp()
                   except Exception:
                       return None
+              FINISHED_STATUS_VALUES = {"complete", "completed", "finished", "full time", "full-time", "ft", "ended"}
+              def is_explicitly_finished(status):
+                  # Exact whitelist is deliberate: substring checks classify "incomplete" as "complete".
+                  return str(status or "").strip().lower() in FINISHED_STATUS_VALUES
               def explicitly_completed(match):
-                  status_value = str(match.get("status", match.get("game_status", ""))).strip().lower()
-                  finished = any(token in status_value for token in ("complete", "finished", "full time", "ended"))
+                  status_value = match.get("status", match.get("game_status", ""))
                   hs_value = match.get("homeGoalCount", match.get("home_score"))
                   as_value = match.get("awayGoalCount", match.get("away_score"))
-                  return finished and numeric_score(hs_value) and numeric_score(as_value)
+                  return is_explicitly_finished(status_value) and numeric_score(hs_value) and numeric_score(as_value)
+              # Guard the status classifier against the known substring regression.
+              assert is_explicitly_finished("complete")
+              assert is_explicitly_finished("finished")
+              assert not is_explicitly_finished("incomplete")
+              assert not is_explicitly_finished("suspended")
+              assert not is_explicitly_finished("scheduled")
               now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
               team_history_times = collections.defaultdict(list)
               h2h_history_times = collections.defaultdict(list)
@@ -249,7 +258,7 @@ jobs:
                   status_raw = m.get("status", m.get("game_status", ""))
                   status = str(status_raw).strip().lower()
                   status_counts[status or "<blank>"] += 1
-                  explicit_finished = any(t in status for t in ("complete", "finished", "full time", "ended"))
+                  explicit_finished = is_explicitly_finished(status)
                   explicit_upcoming = any(t in status for t in ("not started", "scheduled", "upcoming", "pending"))
                   today = datetime.datetime.now(datetime.timezone.utc).date()
                   if parsed_date and parsed_date > today:
