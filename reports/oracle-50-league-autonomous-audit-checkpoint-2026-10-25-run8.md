@@ -56,11 +56,20 @@ Workflow run #54 completed successfully:
 - The guard's result is **BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE** despite the workflow succeeding. The crosswalk ID set exactly matches all 50 selected IDs. The acquired provider catalogue has 43 rows but no unambiguous populated competition/provider ID column. The archive manifest has 126 rows and all 126 have blank `provider_league_id`. These are actual blockers, not workflow errors.
 - Artifact inspection confirmed these values from `audit-output/selected50_scope_guard.json` and `audit-output/archive_integrity_summary.json`.
 
-Schema-diagnostic follow-up run #55:
+Schema-diagnostic follow-up run #55 completed successfully:
 - Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155717694
 - Head SHA: `f2a88b5c633bf67b56df3949546bfb96c51314bf`
-- Status at the next checkpoint: queued; no artifact yet. It adds catalogue header/ID-like-column diagnostics so the 43-row catalogue schema can be identified rather than guessed.
+- Conclusion: SUCCESS; artifact ID `12584253631`, SHA-256 `31c273984db554fe302fceaccfe2550635475adf0eb96c05fe6f7919b0ed744c`.
+- Unit tests: 97 passed.
+- New schema diagnostics established the catalogue's exact columns: `provider_league_id`, `provider_league_name`, `season_count`. The catalogue contains 43 rows, but **zero populated provider IDs**; the ID column exists but is blank. The archive manifest has 126 rows and 126 blank provider IDs.
+- Scope guard remains `BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE`; the crosswalk ID set still matches the selected manifest exactly.
 
+A small accuracy correction was then made in the research-only validator so an ID column that exists but is entirely blank is reported as `ID_COLUMN_PRESENT_BUT_BLANK`, not as a missing column. A unit test was added for this exact condition. This code/test update is commit `cb461151e407f1be1e747109792a745d0f17cf93`.
+
+Run #56 is validating that correction:
+- Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155799320
+- Head SHA: `cb461151e407f1be1e747109792a745d0f17cf93`
+- Status at checkpoint: in progress; artifact pending.
 Latest crosswalk with the verified Run #54 decision:
 - `reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r7.csv`
 - Commit: `8c126b9f1d861632430108440a1db1e343482e6f`
