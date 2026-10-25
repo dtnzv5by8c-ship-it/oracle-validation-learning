@@ -153,7 +153,7 @@ def season_coverage_row(sid, meta, selected_id, selected, status, match_count, t
     season_label = source_value(("season_name", "season_label", "season", "season_year", "year"))
     season_start = source_value(("season_start", "start_date", "start", "starting_at", "season_start_date"))
     season_end = source_value(("season_end", "end_date", "end", "ending_at", "season_end_date"))
-    year_match = re.match(r"^(\\d{4})", season_start)
+    year_match = re.match(r"^(\d{4})", season_start)
     season_start_year = year_match.group(1) if year_match else ""
     return {
         "season_id": str(sid), "selected_id": str(selected_id),
