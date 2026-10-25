@@ -1,12 +1,14 @@
 
 name: Oracle Governed Readiness Preflight
 # Uses the verified read-only ORACLE_PRIVATE_READ_TOKEN secret.
+# Research-branch push support allows the same read-only checks to run on the public runner.
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - research/oracle-50-league-readiness-audit
     paths:
       - ".github/workflows/oracle-governed-readiness-preflight.yml"
 
