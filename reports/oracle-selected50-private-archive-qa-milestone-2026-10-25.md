@@ -79,3 +79,23 @@ No model redesign, production code change, probability change, calibration chang
 6. Only then produce historical market metrics from prediction records demonstrably captured before kick-off and verified settlements.
 
 Production readiness remains NOT_GRANTED; production model logic, probabilities, calibration and thresholds remain unchanged.
+
+
+## Evidence-led root-cause review — 2026-10-25 09:30 UTC
+
+### Additional production evidence inspected
+The checked-in production manifests provide concrete reasons the current production state is not ready, independent of the expired runner logs:
+- `data/current_reconciliation_status.json` generated 2026-10-07 reports `EVENT_TRUTH_STALE`: 108 current match rows, 128 goal-event rows, and four completed matches without retrieved goal-event chronology.
+- `data/source_reconciliation_manifest.json` generated 2026-10-07 reports 0 SofaScore rows, 0 matches across sources, 108 unverified fixtures, and eight SofaScore HTTP 403 errors.
+- `data/model_readiness.json` generated 2026-10-07 reports `REVIEW_REQUIRED`, incomplete event truth, and 108 fixtures without SofaScore confirmation. Its market booleans do not override the overall REVIEW_REQUIRED status.
+- `data/current_source_manifest.json` was last generated 2026-10-08. These manifests are stale relative to 2026-10-25 and cannot establish current readiness.
+- The external forecast archive workflow's exact failing step cannot be proven because GitHub's runner log blob is unavailable. Do not assert that its failure was caused by site access, rebase, or push without a fresh diagnostic.
+
+### Corrective priority
+1. **Current truth freshness:** restore a supported, permitted source for current fixture/result truth; explicitly handle 403s as unavailable rather than as an empty comparison. Require chronology completeness for M-1UP.
+2. **Independent source reconciliation:** fix source access or replace the unavailable secondary source with an approved reliable source; exact ID joins only, no fuzzy confirmation.
+3. **Production workflow diagnosis:** retrieve fresh logs or run a diagnostics-only preflight with secrets redacted before deciding whether to retry or patch.
+4. **Selected-50 gates:** do not equate the legacy 27-league production manifests with 50-league readiness. Selected50 dry-run remains research-only.
+5. **Settlement and market validation:** use final statuses and independent verified results; enforce point-in-time feature provenance.
+
+No production code has been modified as part of this review because the actual failure steps could not be retrieved and current truth is stale. Guessing a patch would risk corrupting the governed production build. Production readiness remains NOT_GRANTED.
