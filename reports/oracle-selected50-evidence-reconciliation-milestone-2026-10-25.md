@@ -46,3 +46,14 @@ That is a confirmed scope/design limitation for the existing private workflow. I
 ## Next technical milestone
 
 Build the research-only request planner and source adapter around the selected-50 manifest. It should support an explicit dry-run default, exact season IDs, a clear request-count estimate, request/result attempt logging without secrets or raw payloads, separate season and competition identifiers, and a hard opt-in gate for any live API calls. Then run live ingestion only after explicit approval. After ingestion, validate fixture freshness, team identity, chronological feature joins, point-in-time xG/odds provenance and market-specific completeness.
+
+
+## Market readiness gate milestone
+
+Added `scripts/build_selected50_market_gates.py` and `tests/test_selected50_market_gates.py`. The workflow now emits `selected50_market_readiness_gates.csv` and `selected50_market_readiness_summary.json` as part of the same research artifact.
+
+The gates deliberately keep all 50 selected leagues blocked from production: fixture joins and freshness are unverified, point-in-time xG/odds provenance is not verified, BTTS Yes / Double Chance / Double Chance + Under 4.5 remain NOT VERIFIED, and M-1UP remains blocked by stale event-truth and missing selected-50 joins. These are conservative readiness states, not negative predictions.
+
+- End-to-end dry-run + both regression suites + artifact upload passed: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40175251996
+- Uploaded artifact: `oracle-selected50-dry-run-plan`, artifact ID `12591378905`.
+- API calls and provider credits used: 0.
