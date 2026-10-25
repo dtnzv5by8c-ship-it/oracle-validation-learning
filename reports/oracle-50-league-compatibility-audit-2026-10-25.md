@@ -27,6 +27,8 @@ This is a **research-only, static compatibility audit** for the governed 50-leag
   - `research/team_dna_v2/ORACLE_TEAM_DNA_V2_MANIFEST.json`
   - `research/team_fixture_intelligence/oracle_team_fixture_intelligence_manifest.json`
 
+Further static inspection confirms `scripts/ingest_upcoming_fixtures.py` explicitly describes and configures the active 27-league universe, while `oracle_final_assessment.yml` builds a fixture file named `oracle_weekend_fixtures_27.csv` using a 27-league fallback. These are operational paths that cannot be assumed to cover the governed 50-league target.
+
 These are not all necessarily defects: immutable historical baselines may correctly describe the original 27-league sample. The defect is using those 27-league artifacts as proof of 50-league readiness, or making a 50-league run depend on the old count without a separately versioned and validated manifest.
 
 ## Priority findings
