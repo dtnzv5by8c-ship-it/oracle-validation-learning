@@ -16,8 +16,12 @@ jobs:
           python-version: '3.12'
       - name: Generate dry-run plan (no network calls)
         run: python scripts/plan_selected50_dry_run.py
+      - name: Build conservative market gates
+        run: python scripts/build_selected50_market_gates.py
       - name: Run planner regression tests
         run: python tests/test_selected50_dry_run_planner.py
+      - name: Run market gate regression tests
+        run: python tests/test_selected50_market_gates.py
       - name: Validate plan output
         run: |
           python - <<'PY'
@@ -25,16 +29,16 @@ jobs:
           from pathlib import Path
           root = Path("audit-output")
           rows = list(csv.DictReader((root / "selected50_dry_run_coverage_matrix.csv").open()))
+          gates = list(csv.DictReader((root / "selected50_market_readiness_gates.csv").open()))
           summary = json.loads((root / "selected50_dry_run_summary.json").read_text())
-          assert len(rows) == 50
+          assert len(rows) == len(gates) == 50
           assert len({r["selected_id"] for r in rows}) == 50
-          assert summary["network_calls_made"] == 0
-          assert summary["paid_provider_calls_made"] == 0
-          assert summary["minimum_endpoint_calls_if_live_one_pass"] == 200
-          assert all(r["production_eligible"] == "NO" for r in rows)
-          print("PASS: 50 unique IDs; 0 provider calls; minimum estimate documented; production blocked.")
+          assert summary["network_calls_made"] == summary["paid_provider_calls_made"] == 0
+          assert all(r["production_eligible"] == "NO" for r in rows + gates)
+          assert all(r["btts_yes_gate"] == "NOT_VERIFIED" for r in gates)
+          print("PASS: 50 IDs, evidence joins, conservative market gates, zero provider calls.")
           PY
-      - name: Upload dry-run plan
+      - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-dry-run-plan
