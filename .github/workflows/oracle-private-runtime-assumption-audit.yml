@@ -1,0 +1,102 @@
+name: Oracle Private Runtime Assumption Audit
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-private-runtime-assumption-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research validators
+        uses: actions/checkout@v4
+      - name: Checkout pinned private production source
+        uses: actions/checkout@v4
+        with:
+          repository: dtnzv5by8c-ship-it/oracle-football-data
+          ref: cb89e5bd1c24810fe821a6b2c3c2c1c19272b381
+          token: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          path: private-source
+          persist-credentials: false
+      - name: Scan operational 27-league assumptions (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, re
+          from pathlib import Path
+          root = Path("private-source")
+          paths = [
+              "scripts/build_oracle_historical_intelligence.py",
+              "scripts/build_four_model_report.py",
+              "scripts/validate_four_model_production.py",
+              "scripts/build_oracle_team_dna_v2.py",
+              "scripts/ingest_upcoming_fixtures.py",
+              "scripts/oracle_final_assessment.py",
+              "config/oracle_major_league_registry_v1.json",
+              ".github/workflows/oracle_v4_router.yml",
+              ".github/workflows/oracle_final_assessment.yml",
+              ".github/workflows/openfoot-27-league-coverage.yml",
+              ".github/workflows/oracle_27_league_dna_lab.yml",
+              ".github/workflows/oracle_27_league_market_vetting.yml",
+              ".github/workflows/oracle_27_league_prediction_readiness.yml",
+          ]
+          patterns = [
+              ("FIXED_27_COUNT", re.compile(r"(?<!\\d)27(?!\\d)")),
+              ("FIXED_HISTORICAL_FIXTURE_COUNT", re.compile(r"(?<!\\d)12836(?!\\d)")),
+              ("ACTIVE_27_ASSIGNMENT", re.compile(r"ACTIVE\\s*=\\s*27")),
+              ("LEAGUE_COUNT_27", re.compile(r"league_count\\s*['\"]?\\s*:\\s*27")),
+          ]
+          out = Path("runtime-assumption-inventory.csv")
+          rows = []
+          missing = []
+          for rel in paths:
+              p = root / rel
+              if not p.is_file():
+                  missing.append(rel)
+                  rows.append({"source_sha":"cb89e5bd1c24810fe821a6b2c3c2c1c19272b381","path":rel,"line":0,"category":"FILE_MISSING","evidence":"Expected operational consumer file not found at pinned source"})
+                  continue
+              for number, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+                  for category, pattern in patterns:
+                      if pattern.search(line):
+                          rows.append({"source_sha":"cb89e5bd1c24810fe821a6b2c3c2c1c19272b381","path":rel,"line":number,"category":category,"evidence":" ".join(line.strip().split())[:180]})
+          with out.open("w", newline="", encoding="utf-8") as f:
+              w = csv.DictWriter(f, fieldnames=["source_sha","path","line","category","evidence"])
+              w.writeheader()
+              w.writerows(rows)
+          summary = {
+              "audit":"READ_ONLY_PRIVATE_RUNTIME_ASSUMPTION_SCAN",
+              "source_repository":"dtnzv5by8c-ship-it/oracle-football-data",
+              "source_sha":"cb89e5bd1c24810fe821a6b2c3c2c1c19272b381",
+              "files_requested":len(paths),
+              "files_missing":missing,
+              "files_with_assumptions":len({r["path"] for r in rows if r["category"] != "FILE_MISSING"}),
+              "assumption_matches":sum(r["category"] != "FILE_MISSING" for r in rows),
+              "categories":{cat:sum(r["category"]==cat for r in rows) for cat,_ in patterns},
+              "production_files_modified":False,
+              "production_model_logic_changed":False,
+              "production_readiness":"NOT_GRANTED",
+              "limitations":["Static pattern scan only; matches require semantic review.","Historical 27-league baseline references may be valid and must not be rewritten as 50-league evidence.","No private source contents are uploaded; only bounded matching lines and counts are included."]
+          }
+          Path("runtime-assumption-summary.json").write_text(json.dumps(summary, indent=2)+"\\n", encoding="utf-8")
+          print(json.dumps(summary, sort_keys=True))
+          if missing:
+              raise SystemExit("One or more expected operational consumer files are missing at the pinned source SHA.")
+          PY
+      - name: Upload sanitized inventory only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-private-runtime-assumption-audit
+          path: |
+            runtime-assumption-inventory.csv
+            runtime-assumption-summary.json
+          if-no-files-found: error
+          retention-days: 7
