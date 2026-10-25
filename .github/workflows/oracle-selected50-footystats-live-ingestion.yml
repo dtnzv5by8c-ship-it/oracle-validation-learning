@@ -1,11 +1,13 @@
 name: Oracle Selected-50 FootyStats Exact-ID Ingestion
 
 on:
-  push:
-    branches:
-      - research/oracle-50-league-readiness-audit
-    paths:
-      - ".github/workflows/oracle-selected50-footystats-live-ingestion.yml"
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume FootyStats API credits"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -25,12 +27,19 @@ jobs:
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
         run: |
           set -euo pipefail
+          [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no provider calls made."; exit 1; }
           [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing; no provider calls made."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing; no provider calls made."; exit 1; }
           gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
-          echo "Credentials present; private destination verified. Credential values are not printed."
+          TAG=research-selected50-footystats-ingestion-20261025
+          TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
+            echo "::error::Private release tag already exists; refusing to consume provider credits."; exit 1
+          fi
+          echo "Credentials and private destination verified; existing release tag absent. Credential values are not printed."
 
       - name: Exact-ID ingest selected 50 seasons and create private package
         shell: bash
