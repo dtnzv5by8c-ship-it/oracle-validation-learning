@@ -83,3 +83,13 @@ The 19 IDs in `data/run56_selected50_manifest_gap_triage.csv` have **no Run 56 m
 The triage ledger was updated to record that distinction on all 19 rows. Provider request status remains `UNKNOWN_NOT_INFERRED` because the exact private-package per-season rows and original request logs have not yet been reconciled in this audit. Do not repeat ingestion or spend provider calls to fix a manifest discrepancy. Next: retrieve/reconcile the exact private package row-level evidence and request logs against these IDs. The package-level QA is not enough to assert every row is complete, valid, or production-eligible.
 
 No market gate changes: production readiness remains `NOT_GRANTED`; BTTS Yes, Double Chance, and DC + Under 4.5 remain `NOT_VERIFIED`; M-1UP remains `BLOCKED`. No production code, model logic, probabilities, calibration, thresholds, or production files changed.
+
+
+## Artifact-level recheck — 2026-10-25 11:45 UTC
+
+- Research planner run [40189946356 / Run #88](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40189946356) completed successfully; all 12 substantive workflow steps passed.
+- Downloaded and inspected the run's actual artifact `oracle-selected50-dry-run-plan.zip` (artifact ID `12597875008`), not just the job status. It contains the 50-row coverage matrix, 50-row market gate table, and JSON summaries.
+- Artifact summary confirms `DRY_RUN_ONLY`, 50 selected season IDs, 31 Run 56 manifest records, 19 without Run 56 records, 31 exact archive coverage rows, 9,708 records across those exact-matched seasons, 9,708 parseable kickoffs/team-ID-complete/score-complete rows, and 3,488 rows meeting the preliminary allowed-status filter. These are archive-level counts, not approved settled labels.
+- The market summary explicitly reports all 50 as not production eligible; fixture-join gates blocked, freshness blocked/stale, recent form/standings/H2H unverified, xG/odds point-in-time provenance blocked; BTTS Yes, Double Chance, and DC + Under 4.5 are `NOT_VERIFIED`; M-1UP is `BLOCKED`. Live API calls made: 0.
+- Root cause of the 19 gaps is narrowed to a scope mismatch in the current planner's evidence source: the plan reconciles Run 56's manifest/archive only, while separate package QA reported all 50 ingested. The artifact itself cannot reconcile that separate package. This is a confirmed limitation of current audit evidence, not proof the private package records are invalid or missing.
+- No production files or model logic were changed. No provider calls were made. The next data-side action remains exact reconciliation of the retained private package rows/request logs by season ID; production remains not approved.
