@@ -263,7 +263,8 @@ jobs:
                   today = datetime.datetime.now(datetime.timezone.utc).date()
                   if parsed_date and parsed_date > today:
                       upcoming += 1
-                  elif parsed_date and parsed_date < today and (explicit_finished or (numeric(hs) and numeric(aws))):
+                  elif parsed_date and parsed_date < today and explicit_finished and numeric(hs) and numeric(aws):
+                      # A past date plus numeric score is not settlement evidence without an explicit final status.
                       completed += 1
                   elif explicit_upcoming:
                       upcoming += 1
