@@ -1,0 +1,85 @@
+name: Oracle Selected-50 Research Runtime and Backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_private_archive_read:
+        description: "Confirm use of the existing private archive; this run makes no provider API calls"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  selected50-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Guard private archive access
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
+        run: |
+          set -euo pipefail
+          [[ "${CONFIRM_PRIVATE_ARCHIVE_READ:-false}" == "true" ]] || { echo "::error::Explicit private archive read confirmation required."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing."; exit 1; }
+          gh auth status
+
+      - name: Download and verify existing private archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p private-download
+          gh release download research-selected50-footystats-history-20261025 \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --pattern 'private-package.sha256' \
+            --dir private-download
+          cd private-download
+          sha256sum -c private-package.sha256
+
+      - name: Install research runtime dependencies
+        run: python -m pip install --disable-pip-version-check numpy scikit-learn
+
+      - name: Build isolated Selected-50 research runtime, features, backtest and report
+        env:
+          ORACLE_ARCHIVE: private-download/oracle-selected50-footystats-private-ingestion.zip
+        run: python scripts/build_selected50_research_runtime.py
+
+      - name: Upload derived report and sanitized QA only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-research-runtime-report
+          path: |
+            selected50_runtime_output/oracle_selected50_prediction_report.csv
+            selected50_runtime_output/oracle_selected50_backtest_metrics.json
+            selected50_runtime_output/oracle_selected50_feature_qa.json
+            selected50_runtime_output/season_coverage.csv
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish normalized candidate to private research release only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=research-selected50-runtime-20261025
+          if gh release view "$TAG" --repo dtnzv5by8c-ship-it/oracle-football-data >/dev/null 2>&1; then
+            echo "::error::Private candidate release already exists; refusing overwrite."
+            exit 1
+          fi
+          gh release create "$TAG" oracle-selected50-normalized-research-candidate.zip private-runtime-candidate.sha256 \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --title "Research Selected-50 Normalized Runtime Candidate 2026-10-25" \
+            --notes "Isolated research-only normalized match/features and prediction candidate. No production promotion; existing model logic and production probabilities unchanged."
