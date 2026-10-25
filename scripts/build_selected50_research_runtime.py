@@ -514,7 +514,8 @@ def main():
             future_times=sorted(r["kickoff_unix"] for r in comp_future)
             schedule_coverage.append({
                 "selected_id":selected_id,"selected_id_type":"SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
-                "provider_competition_id":"","provider_competition_id_status":"UNAVAILABLE_IN_ARCHIVE_MANIFEST",
+                "provider_competition_id":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
+                 "provider_competition_id_status":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],
                 "country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
                 "archive_match_rows":len(comp_rows),"completed_match_rows":sum(1 for r in comp_rows if r["finished"]),
                 "upcoming_fixture_count_7d":len(comp_future),
