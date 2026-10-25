@@ -604,6 +604,63 @@ def main():
             with pred_path.open("w",newline="",encoding="utf-8") as f:
                 cols=list(predictions[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(predictions)
         else: pred_path.write_text("prediction_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED\n",encoding="utf-8")
+        # Produce a separate governed view: retain supported non-Combo research values for analysis,
+        # but never present any market as betting-approved. Mask Combo probabilities until predictor
+        # target and settlement-ledger definitions are reconciled.
+        combo_block_reason = ("BLOCKED: predictor target is Double Chance plus a 2-4 total-goal corridor, "
+                              "while the current settlement script accepts any total below five; "
+                              "canonical market/settlement reconciliation is required.")
+        noncombo_block_reason = ("Research-only: canonical fixture/team joins and production settlement truth "
+                                 "remain unverified; raw probabilities are uncalibrated and not approved for betting.")
+        governed_predictions = []
+        for source_row in predictions:
+            governed_row = dict(source_row)
+            governed_row["governed_prediction_status"] = "RESEARCH_ONLY_NOT_FOR_BETTING"
+            governed_row["governed_block_reason"] = noncombo_block_reason
+            governed_row["production_eligible"] = "NO"
+            for market in MARKETS:
+                probability_key = market + "_probability_pct"
+                if market in ("COMBO_HOME", "COMBO_AWAY"):
+                    governed_row[probability_key] = None
+                    governed_row[market + "_governed_status"] = "BLOCKED_SETTLEMENT_SPEC_MISMATCH"
+                    governed_row[market + "_block_reason"] = combo_block_reason
+                elif source_row.get(probability_key) is None:
+                    governed_row[market + "_governed_status"] = "BLOCKED_INPUT_OR_TRAINING_GATE"
+                    governed_row[market + "_block_reason"] = "No raw research probability was produced by the feature/training gate."
+                else:
+                    governed_row[market + "_governed_status"] = "RESEARCH_ONLY_NOT_FOR_BETTING"
+                    governed_row[market + "_block_reason"] = noncombo_block_reason
+            if not any(source_row.get(market + "_probability_pct") is not None for market in MARKETS):
+                governed_row["governed_prediction_status"] = "BLOCKED_NO_SUPPORTED_PREDICTION"
+            governed_predictions.append(governed_row)
+        governed_path = OUT / "oracle_selected50_governed_fixture_report.csv"
+        if governed_predictions:
+            with governed_path.open("w", newline="", encoding="utf-8") as governed_file:
+                governed_columns = list(governed_predictions[0].keys())
+                governed_writer = csv.DictWriter(governed_file, fieldnames=governed_columns, extrasaction="ignore")
+                governed_writer.writeheader()
+                governed_writer.writerows(governed_predictions)
+        else:
+            governed_path.write_text("governed_prediction_status\\nNO_FIXTURES\\n", encoding="utf-8")
+        governed_report_qa = {
+            "status": "RESEARCH_ONLY_COMBO_BLOCKED",
+            "fixture_rows": len(governed_predictions),
+            "unique_source_fixture_ids": len({str(r.get("fixture_id") or "") for r in governed_predictions if r.get("fixture_id")}),
+            "raw_combo_home_probabilities_masked": sum(1 for r in predictions if r.get("COMBO_HOME_probability_pct") is not None),
+            "raw_combo_away_probabilities_masked": sum(1 for r in predictions if r.get("COMBO_AWAY_probability_pct") is not None),
+            "combo_home_probabilities_remaining": sum(1 for r in governed_predictions if r.get("COMBO_HOME_probability_pct") is not None),
+            "combo_away_probabilities_remaining": sum(1 for r in governed_predictions if r.get("COMBO_AWAY_probability_pct") is not None),
+            "all_rows_production_ineligible": all(r.get("production_eligible") == "NO" for r in governed_predictions),
+            "all_combo_probabilities_blocked": all(r.get("COMBO_HOME_probability_pct") is None and r.get("COMBO_AWAY_probability_pct") is None for r in governed_predictions),
+            "combo_block_reason": combo_block_reason,
+            "other_market_probabilities": "Retained only as raw research outputs; each is explicitly NOT_FOR_BETTING while canonical joins, settlement truth and calibration remain unverified."
+        }
+        if len(governed_predictions) != len(predictions):
+            raise RuntimeError("Governed fixture report changed the source prediction row count")
+        if not governed_report_qa["all_rows_production_ineligible"] or not governed_report_qa["all_combo_probabilities_blocked"]:
+            raise RuntimeError("Governed fixture report failed its fail-closed market/production gate")
+        governed_qa_path = OUT / "oracle_selected50_governed_fixture_report_qa.json"
+        governed_qa_path.write_text(json.dumps(governed_report_qa, indent=2) + "\\n", encoding="utf-8")
         schedule_path=OUT/"oracle_selected50_schedule_coverage.csv"
         with schedule_path.open("w",newline="",encoding="utf-8") as sf:
             scols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
@@ -914,6 +971,7 @@ def main():
             "future_fixture_candidates":len(future),"feature_rows_with_full_20_features":sum(all(r.get(f) is not None for f in FEATURES) for r in feature_rows),
             "prediction_fixture_count":len(predictions),"prediction_rows":len(predictions)*len(MARKETS),
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
+            "governed_fixture_report_status":governed_report_qa["status"],"governed_fixture_report_rows":governed_report_qa["fixture_rows"],"governed_combo_home_probabilities_masked":governed_report_qa["raw_combo_home_probabilities_masked"],"governed_combo_away_probabilities_masked":governed_report_qa["raw_combo_away_probabilities_masked"],
             "calendar_year_coverage_rows":len(calendar_year_rows),"league_market_readiness_rows":len(league_market_readiness),"league_walk_forward_metrics_rows":len(league_walk_forward_metrics),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
             "provider_parent_competition_ids_verified":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "VERIFIED_FROM_PROVIDER_CATALOGUE_MANIFEST"),
             "provider_parent_competition_ids_ambiguous":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS"),
@@ -943,10 +1001,10 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path,provider_season_year_path,settlement_path):
+            for p in (normalized_path,feature_path,pred_path,governed_path,governed_qa_path,backtest_path,wf_path,readiness_path,league_walk_forward_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path,provider_season_year_path,settlement_path):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
         # Only derived report, backtest and QA summaries go into public Actions artifacts.
-        print(json.dumps({**qa,"backtest":backtest,"archive_sha256":hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(),"private_candidate_sha256":digest},sort_keys=True))
+        print(json.dumps({**qa,"governed_fixture_report_qa":governed_report_qa,"backtest":backtest,"archive_sha256":hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(),"private_candidate_sha256":digest},sort_keys=True))
 if __name__=="__main__": main()
