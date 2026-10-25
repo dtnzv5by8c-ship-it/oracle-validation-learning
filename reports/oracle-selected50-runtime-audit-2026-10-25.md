@@ -18,13 +18,13 @@
 | Deduplicated raw match records retained in private archive | 59,049 |
 | Explicitly completed match records | 51,870 |
 | Feature rows with all 20 inputs | 51,056 |
-| Upcoming fixtures in seven-day report horizon | 446 |
+| Upcoming fixtures in seven-day report horizon | 449 |
 | Competitions represented by report fixtures | 41 |
-| Market rows (5 markets per fixture) | 2,230 |
-| Fixture rows with all five market probabilities present | 418 |
+| Market rows (5 markets per fixture) | 2,245 |
+| Fixture rows with all five market probabilities present | 421 |
 | Fixture rows blocked from prediction by input/training gate | 28 |
 
-The seven-day report spans 2026-10-25 16:15 UTC through 2026-11-01 15:45 UTC. Nine of the 50 selected competitions have no fixture represented in this particular seven-day schedule window; that is not, by itself, evidence of missing historical/provider coverage.
+The enhanced run's seven-day report contains 449 fixtures across 41 competitions. Nine of the 50 selected competitions have no fixture represented in this particular seven-day schedule window; that is not, by itself, evidence of missing historical/provider coverage.
 
 ## Report quality and limitations
 - All 446 fixtures are marked `production_eligible=NO`.
@@ -50,6 +50,24 @@ Primary validation window: 2025-03-20 through 2026-09-20. Training cutoff is exc
 | COMBO_AWAY | 64.93% | 0.58152 | 0.22384 | 0.63913 |
 
 These metrics do not yet establish incremental skill over a prevalence or bookmaker baseline, probability calibration, positive betting return, or stable per-league performance. In particular, threshold accuracy alone is insufficient for betting decisions. DC_HOME is the strongest candidate for further validation in this run, not an approved betting signal.
+
+## Baseline and calibration diagnostics (enhanced run 40209983742)
+The enhanced run added training-only constant-prevalence and majority-class baselines, ten-bin expected calibration error (ECE), reliability bins, and per-league sample metrics. No calibration transform was applied.
+
+| Market | Model accuracy | Majority baseline accuracy | Model Brier | Constant-prevalence baseline Brier | Model log loss | Constant-prevalence baseline log loss | ECE (10 bins) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| BTTS | 53.59% | 54.14% | 0.24746 | 0.24870 | 0.68804 | 0.69055 | 0.01633 |
+| DC_HOME | 70.13% | 69.79% | 0.20081 | 0.21094 | 0.58862 | 0.61289 | 0.02006 |
+| DC_AWAY | 60.42% | 56.28% | 0.23298 | 0.24607 | 0.65789 | 0.68526 | 0.01571 |
+| COMBO_HOME | 57.40% | 56.95% | 0.24213 | 0.24520 | 0.67718 | 0.68352 | 0.02322 |
+| COMBO_AWAY | 64.93% | 64.90% | 0.22384 | 0.22787 | 0.63913 | 0.64821 | 0.02088 |
+
+Interpretation:
+- BTTS does **not** beat the majority-class accuracy baseline in this holdout (53.59% vs 54.14%), despite slightly better Brier/log loss than the constant-prevalence probability baseline.
+- DC_HOME and DC_AWAY show better aggregate discrimination/proper scores than the simple prevalence baselines in this single holdout; that is preliminary evidence, not proof of stability, market value or ROI.
+- COMBO_HOME has only a small aggregate edge over the simple baseline; COMBO_AWAY's accuracy is effectively equal to its majority baseline. Neither is approved.
+- ECE is a coarse diagnostic and does not itself certify calibration. Results need multi-period walk-forward validation, per-league minimum sample thresholds, uncertainty intervals and bookmaker-odds comparison where reliable odds are available.
+- Per-league metrics were computed for 43 league labels with test data; selected-50 universe completeness still requires a separate per-competition schedule/feature/readiness reconciliation.
 
 ## Release gate
 **Production status remains `NOT_GRANTED`.** The 50-league matrix still marks all 50 leagues ineligible. The successful research build is not a production release and does not establish that all 50 leagues have reliable probabilities.
