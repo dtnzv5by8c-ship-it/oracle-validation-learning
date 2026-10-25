@@ -145,7 +145,7 @@ reconciliation = {
     "production_eligible": False,
     "decision": "Keep all selected-50 outputs research-only and production-ineligible until canonical IDs, joins, settlement truth, freshness and point-in-time inputs are verified."
 }
-(RECONCILIATION).write_text(json.dumps(reconciliation, indent=2) + "\\n", encoding="utf-8")
+(RECONCILIATION).write_text(json.dumps(reconciliation, indent=2) + "\n", encoding="utf-8")
 print(f"PASS: {len(selected)} selected IDs reconciled against exact Run 56 manifest evidence.")
 print(f"Run 56 records present: {matched}; no manifest record: {absent}.")
 print("DRY RUN: 0 network calls and 0 paid provider calls.")
