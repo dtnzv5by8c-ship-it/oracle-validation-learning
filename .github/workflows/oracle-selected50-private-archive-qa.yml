@@ -215,6 +215,10 @@ jobs:
               valid_kickoff = 0
               score_pair = team_pair = name_pair = 0
               completed = upcoming = 0
+              season_status_counts = collections.Counter()
+              season_past_date_rows_with_score_pair = 0
+              season_past_date_rows_explicitly_finished = 0
+              season_past_date_rows_explicitly_finished_with_scores = 0
               for m in matches:
                   if not isinstance(m, dict):
                       continue
@@ -258,9 +262,15 @@ jobs:
                   status_raw = m.get("status", m.get("game_status", ""))
                   status = str(status_raw).strip().lower()
                   status_counts[status or "<blank>"] += 1
+                  season_status_counts[status or "<blank>"] += 1
                   explicit_finished = is_explicitly_finished(status)
                   explicit_upcoming = any(t in status for t in ("not started", "scheduled", "upcoming", "pending"))
                   today = datetime.datetime.now(datetime.timezone.utc).date()
+                  if parsed_date and parsed_date < today:
+                      score_pair_is_numeric = numeric(hs) and numeric(aws)
+                      season_past_date_rows_with_score_pair += int(score_pair_is_numeric)
+                      season_past_date_rows_explicitly_finished += int(explicit_finished)
+                      season_past_date_rows_explicitly_finished_with_scores += int(explicit_finished and score_pair_is_numeric)
                   if parsed_date and parsed_date > today:
                       upcoming += 1
                   elif parsed_date and parsed_date < today and explicit_finished and numeric(hs) and numeric(aws):
@@ -303,7 +313,11 @@ jobs:
                   "h2h_prior_meeting_available_count": h2h_prior_available,
                   "primary_window_rows_2025_03_20_to_2026_09_20": season_primary_window_rows,
                   "past_date_rows": season_past_date_rows,
-                  "future_date_rows": season_future_date_rows
+                  "future_date_rows": season_future_date_rows,
+                  "provider_status_value_counts": dict(season_status_counts),
+                  "past_date_rows_with_numeric_score_pair": season_past_date_rows_with_score_pair,
+                  "past_date_rows_with_explicit_finished_status": season_past_date_rows_explicitly_finished,
+                  "past_date_rows_with_explicit_finished_status_and_numeric_score_pair": season_past_date_rows_explicitly_finished_with_scores
               })
               season_rows.append(result)
           duplicate_ids = sum(1 for k,v in fixture_ids_seen.items() if v > 1)
