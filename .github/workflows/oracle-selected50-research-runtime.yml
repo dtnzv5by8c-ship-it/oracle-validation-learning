@@ -26,7 +26,7 @@ jobs:
       - name: Checkout governed research branch
         uses: actions/checkout@v4
         with:
-          ref: research/oracle-50-league-readiness-audit
+          ref: ${{ github.sha }}
 
       - name: Guard private archive access
         shell: bash
