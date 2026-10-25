@@ -80,7 +80,7 @@ class Selected50DataGateMatrixTests(unittest.TestCase):
         }
         self.assertTrue(required.issubset(set(self.matrix[0].keys())))
         for row in self.matrix:
-            self.assertNotIn("VERIFIED", row["recent_form_status"])
+            self.assertNotEqual(row["recent_form_status"], "VERIFIED")
             self.assertIn("UNVERIFIED", row["standings_status"])
             self.assertIn("UNVERIFIED", row["h2h_status"])
             self.assertIn("UNVERIFIED", row["xg_provenance_status"])
