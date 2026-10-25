@@ -50,10 +50,10 @@ jobs:
               ".github/workflows/oracle_27_league_prediction_readiness.yml",
           ]
           patterns = [
-              ("FIXED_27_COUNT", re.compile(r"(?<!\\d)27(?!\\d)")),
-              ("FIXED_HISTORICAL_FIXTURE_COUNT", re.compile(r"(?<!\\d)12836(?!\\d)")),
-              ("ACTIVE_27_ASSIGNMENT", re.compile(r"ACTIVE\\s*=\\s*27")),
-              ("LEAGUE_COUNT_27", re.compile(r"league_count\\s*['\"]?\\s*:\\s*27")),
+              ("FIXED_27_COUNT", re.compile(r"(?<!\d)27(?!\d)")),
+              ("FIXED_HISTORICAL_FIXTURE_COUNT", re.compile(r"(?<!\d)12836(?!\d)")),
+              ("ACTIVE_27_ASSIGNMENT", re.compile(r"ACTIVE\s*=\s*27")),
+              ("LEAGUE_COUNT_27", re.compile(r"league_count\s*['\"]?\s*:\s*27")),
           ]
           out = Path("runtime-assumption-inventory.csv")
           rows = []
@@ -86,7 +86,7 @@ jobs:
               "production_readiness":"NOT_GRANTED",
               "limitations":["Static pattern scan only; matches require semantic review.","Historical 27-league baseline references may be valid and must not be rewritten as 50-league evidence.","No private source contents are uploaded; only bounded matching lines and counts are included."]
           }
-          Path("runtime-assumption-summary.json").write_text(json.dumps(summary, indent=2)+"\\n", encoding="utf-8")
+          Path("runtime-assumption-summary.json").write_text(json.dumps(summary, indent=2)+"\n", encoding="utf-8")
           print(json.dumps(summary, sort_keys=True))
           if missing:
               raise SystemExit("One or more expected operational consumer files are missing at the pinned source SHA.")
