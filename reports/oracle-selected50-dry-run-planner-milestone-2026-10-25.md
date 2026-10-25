@@ -16,9 +16,9 @@ The selected-50 dry-run planner and automated GitHub Actions validation are impl
 
 ## Exact archive coverage
 
-The coverage matrix now uses the exact 31 IDs explicitly listed as present in the archive reconciliation report, not a positional assumption about which rows match. The remaining 19 IDs are marked `ARCHIVE_ABSENT_UNVERIFIED`. This means only that the exact ID was not found in the inspected archive mapping; it does not establish that the provider has no data.
+The coverage matrix uses the exact 31 IDs explicitly listed as present in the archive reconciliation report, not a positional assumption about which rows match. The other 19 are marked `ARCHIVE_ABSENT_UNVERIFIED`. Cross-checking Run 56's 126-row `ingestion_manifest.csv` shows the same 31 IDs have manifest records and the other 19 have no manifest record in that artifact. The separate `ingestion_errors.json` is empty. Therefore the evidence supports “no Run 56 manifest record” for those 19, but it does not establish whether they were never requested, filtered out before manifest creation, or failed before a record was written.
 
-The selected manifest's IDs are treated as season IDs. Parent competition IDs remain blank unless an authoritative provider field is observed. No fuzzy matching is used.
+The selected manifest's IDs are treated as season IDs. Parent competition IDs remain blank unless an authoritative provider field is observed. No fuzzy matching is used. The matrix now has a separate `ingestion_manifest_status` field to avoid conflating archive presence with request success or failure.
 
 ## Request estimate
 
