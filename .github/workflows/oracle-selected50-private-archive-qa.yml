@@ -362,3 +362,5 @@ jobs:
           path: sanitized-private-archive-qa.json
           if-no-files-found: error
           retention-days: 7
+
+# Public-repository QA rerun requested 2026-10-25; reuses the existing private release and does not re-ingest provider data.
