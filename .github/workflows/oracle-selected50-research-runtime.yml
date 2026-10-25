@@ -71,6 +71,8 @@ jobs:
           path: |
             selected50_runtime_output/oracle_selected50_prediction_report.csv
             selected50_runtime_output/oracle_selected50_backtest_metrics.json
+            selected50_runtime_output/oracle_selected50_walk_forward_metrics.json
+            selected50_runtime_output/oracle_selected50_league_market_readiness.csv
             selected50_runtime_output/oracle_selected50_feature_qa.json
             selected50_runtime_output/season_coverage.csv
           if-no-files-found: error
