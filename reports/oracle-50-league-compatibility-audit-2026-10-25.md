@@ -57,6 +57,21 @@ These are not all necessarily defects: immutable historical baselines may correc
 
 **Status: UNRESOLVED.** Production workflow failures have not yielded usable job-step logs through the available read path. This is not enough evidence to attribute the cause to billing, runners, secrets, or policy. Do not repeatedly rerun production jobs or change settings without a diagnostic signal.
 
+
+### Additional operational hard-coded universe checks
+
+Further production code search found these explicit 27-league operational assumptions:
+
+- `scripts/build_oracle_historical_intelligence.py`: aborts unless the admitted historical match set contains exactly 27 unique leagues.
+- `scripts/build_four_model_report.py`: sets `ACTIVE = 27` and tracks a fixed partial-coverage list.
+- `scripts/validate_four_model_production.py`: expects the readiness manifest's active universe count to equal 27.
+- `scripts/build_oracle_team_dna_v2.py`: records a passing league-count check only when the current set has 27 leagues.
+- `scripts/ingest_upcoming_fixtures.py`: documents and configures the active 27-league fixture universe.
+- `scripts/oracle_final_assessment.py` and `.github/workflows/oracle_final_assessment.yml`: consume/write a 27-league fixture file and a 27-league fallback path.
+- `config/oracle_major_league_registry_v1.json`: active-universe registry states `league_count: 27`.
+
+These findings make the migration scope broader than the V4 preflight alone. Historical baselines and frozen research artifacts should remain historically accurate; operational 50-league readiness must be established by a new governed contract and rebuilt/validated evidence. No such production migration was applied.
+
 ## Required next gates
 
 1. Publish the authoritative 50-league canonical competition-season manifest with source-backed IDs and explicit versioning.
