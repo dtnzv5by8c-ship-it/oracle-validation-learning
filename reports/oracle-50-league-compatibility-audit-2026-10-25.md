@@ -166,3 +166,11 @@ This is a static pattern scan, not a code migration. Some 27/12,836 values corre
 - This is a **file-level semantic classification**, not a claim that every one of the 82 individual pattern occurrences has been annotated line-by-line. The per-file match counts reconcile to the static inventory; the source was not changed.
 - The safest migration path is now explicit: add a separate governed Selected-50 runtime manifest and compatibility checks; retain legacy 27 workflows and historical outputs; migrate each active consumer only in a separately reviewed production change; keep market eligibility fail-closed until exact fixture joins, verified settlement, point-in-time features and production-labelled validation pass.
 - Current production source and model behaviour remain unchanged. Production readiness remains **NOT_GRANTED**.
+
+
+## Public CI regression check — 2026-10-25 12:21 UTC
+
+- Added `tests/test_runtime_reference_classification.py` and a small public GitHub Actions workflow `.github/workflows/oracle_runtime_reference_classification_audit.yml`. It performs no network/provider calls and does not access private production data.
+- First test run [40192630922](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192630922) correctly failed on an overly strict wording assertion in the test, not on the inventory totals or classification itself. The assertion was corrected to match the documented action wording.
+- Corrected classification test run [40192666803](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192666803) completed **success**. The Selected-50 dry-run planner on the same corrected commit, [40192666814](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40192666814), also completed **success**. The regression test verifies all 13 expected file rows, exact per-file match counts summing to 82, frozen historical-baseline protections, active runtime blockers, and no implicit production authorization.
+- This closes the **audit-inventory regression-test** task only. It does not migrate the private production runtime, resolve the runner initialisation failure, certify fixture joins/settlements/point-in-time features, or create production-labelled backtest evidence. Release status remains **NOT_GRANTED**.
