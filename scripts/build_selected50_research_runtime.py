@@ -478,6 +478,14 @@ def main():
                 f=next((x for x in feature_rows if x.get("fixture_id")==r["fixture_id"] and x.get("competition_id")==r["competition_id"] and x.get("kickoff_unix")==r["kickoff_unix"]),None)
                 if not f: continue
                 row={"fixture_id":r["fixture_id"],"date_utc":dt.datetime.fromtimestamp(r["kickoff_unix"],dt.timezone.utc).isoformat(),
+                     "selected_id":str(r["competition_id"]),"provider_competition_id":str(r["competition_id"]),
+                     "provider_season_id":str(r["season_id"]),
+                     "home_team_provider_id":str(r.get("home_id") or ""),"away_team_provider_id":str(r.get("away_id") or ""),
+                     "source_fixture_id_status":"PRESENT" if r.get("fixture_id") else "MISSING",
+                     "source_team_ids_status":"PRESENT" if r.get("home_id") and r.get("away_id") else "MISSING",
+                     "canonical_fixture_join_status":"NOT_VERIFIED",
+                     "canonical_team_join_status":"NOT_VERIFIED",
+                     "settlement_truth_status":"NOT_VERIFIED_AGAINST_PRODUCTION_MARKET_SPEC",
                      "country":r["country"],"league":r["league"],"home_team":r["home_team"],"away_team":r["away_team"],
                      "home_recent5_results":f["home_recent5_results"],"away_recent5_results":f["away_recent5_results"],
                      "home_recent5_n":f["home_recent5_n"],"away_recent5_n":f["away_recent5_n"],
