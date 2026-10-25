@@ -7,6 +7,10 @@ on:
       - ".github/workflows/oracle-footystats-archive-feature-audit.yml"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_footystats_archive_features.py"
+      - "scripts/validate_selected50_scope.py"
+      - "tests/test_selected50_scope_guard.py"
+      - "reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md"
+      - "reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r5.csv"
       - "tests/test_chronology_leakage.py"
       - "scripts/build_oracle_competition_crosswalk.py"
       - "scripts/audit_oracle_archive_integrity.py"
@@ -81,6 +85,16 @@ jobs:
 
       - name: Build archive-wide chronological research features
         run: python scripts/build_footystats_archive_features.py --archive audit-input/oracle-footystats-all-selected-leagues-2024-2026.zip --out audit-output
+
+      - name: Validate exact owner-selected 50-league scope and ID provenance (research only)
+        run: |
+          set -euo pipefail
+          python scripts/validate_selected50_scope.py \
+            --manifest reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md \
+            --crosswalk reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r5.csv \
+            --catalogue audit-input/catalogue/extracted/private-catalogue-package/selected_leagues.csv \
+            --archive-manifest audit-output/manifest_reconciliation.csv \
+            --out audit-output/selected50_scope_guard.json
 
       - name: Independently audit archive identity and season coverage
         run: python scripts/audit_oracle_archive_integrity.py --audit-dir audit-output
