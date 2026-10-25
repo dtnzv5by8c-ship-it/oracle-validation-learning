@@ -136,3 +136,23 @@ These are structural completeness results only. They do not establish that provi
 ## Production runner failure pattern
 
 The latest private-repository workflow failure, [run 40190338066](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40190338066), has the same pre-step pattern as [run 40183610511](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40183610511): the first job has `runner_id=0`, blank runner name, zero steps, and no retrievable job log; dependent jobs are skipped. This confirms a repeated pre-runner/job-initialization failure pattern, but does not independently prove the billing/spending-limit cause. The user has reported that private Actions minutes are exhausted. Continue with public research workflows; do not consume private Actions retries, raise spend limits, or change production workflow/model files without a verified cause and explicit approval.
+
+
+## Runtime assumption inventory — pinned production source scan
+
+Read-only public research workflow [run 40191635164](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191635164) completed **success** against private production source SHA `cb89e5bd1c24810fe821a6b2c3c2c1c19272b381`. All 13 specified runtime-consumer files were found. The sanitized artifact [12597788395](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40191635164/artifacts/12597788395) records **82 pattern matches**: 79 fixed-27 references, one fixed 12,836 historical-fixture count, one `ACTIVE = 27` assignment, and one `league_count: 27` registry value. Matches are concentrated in:
+
+- `scripts/ingest_upcoming_fixtures.py` (16)
+- `.github/workflows/oracle_27_league_market_vetting.yml` (12)
+- `.github/workflows/oracle_27_league_prediction_readiness.yml` (12)
+- `.github/workflows/oracle_27_league_dna_lab.yml` (10)
+- `.github/workflows/oracle_final_assessment.yml` (7)
+- `scripts/validate_four_model_production.py` (6)
+- `.github/workflows/openfoot-27-league-coverage.yml` (5)
+- `scripts/oracle_final_assessment.py` (5)
+- `config/oracle_major_league_registry_v1.json` (3)
+- `scripts/build_four_model_report.py` (2)
+- `.github/workflows/oracle_v4_router.yml` (2)
+- `scripts/build_oracle_historical_intelligence.py` and `scripts/build_oracle_team_dna_v2.py` (1 each)
+
+This is a static pattern scan, not a code migration. Some 27/12,836 values correctly describe frozen historical samples. The operational 50-league migration remains blocked until each match is semantically classified as a frozen baseline versus a runtime universe assumption and the governed 50-ID manifest is wired through a reviewed, tested production change. No private source files were modified.
