@@ -434,3 +434,11 @@ Done means a real, traceable run has ingested supported historical/current data 
 - The current dry-run results confirm research contract integrity only; they do not close canonical identity, settlement truth, point-in-time standings, odds/xG provenance or schedule freshness gates.
 - No provider API calls/credits were used, no private-repository Actions workflow was dispatched, and no additional spend occurred. Production logic/probabilities/calibration/thresholds and the frozen 27-league baseline remain unchanged. Production `NOT_GRANTED`; selected-50 research-only; M-1UP blocked.
 - Next exact action: inspect the dry-run triggered by this handover commit and confirm its final status/artifact; then continue no-network canonical identity and settlement reconciliation from existing private evidence. Do not run a live provider probe without explicit provider-credit confirmation.
+
+
+## 39. Final verification of handover-triggered dry-run — 2026-10-26 01:09 SAST
+
+- The dry-run triggered by the preceding handover commit `3fbe9a1d94ff22e7a5094899b821a1715e03a31a` completed SUCCESS: run `40243222291`, https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40243222291
+- Artifact `12618027451` is the planner output for that run; the planner/regression/evidence-layer contract passed with no network/provider calls. This validates the dry-run planner only, not the historical runtime or canonical data/settlement readiness.
+- The last full research runtime remains run `40238357851` / artifact `12615034595`; its runtime code, output validator and workflow file are byte-identical at the current research branch and at runtime commit `73fa4cbd459e6220b88d2fa4dbbc815b37b548de`.
+- Next concrete task is no-network reconciliation of canonical competition/team/fixture IDs and settlement truth using existing private evidence. The bounded live provider probe remains blocked until explicit provider-credit confirmation. No model/calibration/threshold/probability or frozen 27-league changes are authorized; production remains `NOT_GRANTED`, selected-50 research-only, and M-1UP blocked.
