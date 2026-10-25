@@ -30,7 +30,7 @@ known_matched = {
 with MATRIX.open("w", encoding="utf-8", newline="") as f:
     w = csv.DictWriter(f, fieldnames=[
         "selected_id","country","competition_name","archive_exact_id_status",
-        "provider_competition_id","provider_season_id","live_ingestion_status",
+        "ingestion_manifest_status","provider_competition_id","provider_season_id","live_ingestion_status",
         "match_page_count","estimated_minimum_calls","production_eligible"
     ])
     w.writeheader()
@@ -41,6 +41,7 @@ with MATRIX.open("w", encoding="utf-8", newline="") as f:
             "country": r.get("country",""),
             "competition_name": r.get("competition_name",""),
             "archive_exact_id_status": "ARCHIVE_MATCHED" if sid in known_matched else "ARCHIVE_ABSENT_UNVERIFIED",
+            "ingestion_manifest_status": "MANIFEST_RECORD_PRESENT" if sid in known_matched else "NO_MANIFEST_RECORD_IN_RUN56",
             "provider_competition_id": "",
             "provider_season_id": sid,
             "live_ingestion_status": "NOT_REQUESTED_DRY_RUN_ONLY",
