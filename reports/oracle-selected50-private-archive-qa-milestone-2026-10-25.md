@@ -171,3 +171,11 @@ No production code has been modified as part of this review because the actual f
 In the GitHub Actions UI for `oracle-football-data`, open one of the latest failed runs and inspect the raw job setup/error annotation. Also inspect Actions billing/spending-limit state and runner availability. If the run is blocked before a runner starts, resolve that infrastructure condition without changing model code. If the job reaches a step, capture the earliest failing step and fix only that evidenced defect. Do not raise the spending cap unless that is an explicitly chosen and approved action.
 
 Production readiness remains NOT_GRANTED. No production code, model logic, probabilities, calibration or thresholds were changed.
+
+
+## Expedited public-repository execution — 2026-10-25 12:xx UTC
+
+- User requested all feasible workflow execution on the public research repository because the private repository has exhausted Actions minutes.
+- Triggered the public-repository **Oracle Selected-50 Private Archive QA** workflow by a comment-only workflow-file update. It reuses the existing private release and does not repeat FootyStats/provider ingestion. Run status must be checked separately before treating this as a pass.
+- This report update will trigger the **Oracle Selected-50 Dry-Run Planner**, which is configured for push events on this research branch and explicitly makes zero network and paid-provider calls.
+- Scope remains research-only. Do not interpret successful workflow execution as 50-league production readiness. Preserve production logic, probabilities, calibration, thresholds and governance. The production repository's earlier cross-workflow execution failure still requires fresh runner diagnostics; no speculative production patch or blind production rerun is authorized.
