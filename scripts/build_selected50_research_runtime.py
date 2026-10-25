@@ -382,8 +382,74 @@ def main():
             with pred_path.open("w",newline="",encoding="utf-8") as f:
                 cols=list(predictions[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(predictions)
         else: pred_path.write_text("prediction_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED\n",encoding="utf-8")
+        # Additional rolling-origin walk-forward diagnostics. Each fold trains only on
+        # completed, fully-featured matches strictly before the fold's test start.
+        # These are validation folds, not calibration or model-selection inputs.
+        wf_edges = [
+            ("WF1_2025-03-20_to_2025-09-20", PRIMARY_START, dt.datetime(2025, 9, 20, tzinfo=dt.timezone.utc).timestamp()),
+            ("WF2_2025-09-20_to_2026-03-20", dt.datetime(2025, 9, 20, tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2026, 3, 20, tzinfo=dt.timezone.utc).timestamp()),
+            ("WF3_2026-03-20_to_2026-09-20", dt.datetime(2026, 3, 20, tzinfo=dt.timezone.utc).timestamp(), PRIMARY_END),
+        ]
+        walk_forward = []
+        league_market_readiness = []
+        for market in MARKETS:
+            for fold_name, fold_start, fold_end in wf_edges:
+                fold_train = [r for r in train_rows if r["kickoff_unix"] < fold_start
+                              and r.get("target_"+market) is not None
+                              and all(r.get(k) is not None for k in FEATURES)]
+                fold_test = [r for r in train_rows if fold_start <= r["kickoff_unix"] < fold_end
+                             and r.get("target_"+market) is not None
+                             and all(r.get(k) is not None for k in FEATURES)]
+                model, fold_train_n = make_model(fold_train, market)
+                if model is None or not fold_test:
+                    walk_forward.append({"market":market,"fold":fold_name,"status":"INSUFFICIENT_TRAIN_OR_TEST",
+                                         "train_n":fold_train_n,"test_n":len(fold_test),
+                                         "accuracy_at_0_5":None,"brier":None,"log_loss":None,"auc":None,
+                                         "baseline_brier":None,"brier_skill_vs_prevalence":None})
+                    continue
+                fp = [predict(model, r) for r in fold_test]
+                fy = [r["target_"+market] for r in fold_test]
+                valid = [(p,y0) for p,y0 in zip(fp,fy) if p is not None]
+                fp = [p for p,y0 in valid]; fy = [y0 for p,y0 in valid]
+                train_prev = sum(r["target_"+market] for r in fold_train)/len(fold_train) if fold_train else None
+                base_brier = brier_score_loss(fy, [train_prev]*len(fy)) if train_prev is not None and fy else None
+                walk_forward.append({"market":market,"fold":fold_name,"status":"RAW_WALK_FORWARD_NOT_CALIBRATED",
+                    "train_n":fold_train_n,"test_n":len(fy),
+                    "accuracy_at_0_5":round(accuracy_score(fy,[int(p>=0.5) for p in fp]),5),
+                    "brier":round(brier_score_loss(fy,fp),5),
+                    "log_loss":round(log_loss(fy,[min(max(p,1e-6),1-1e-6) for p in fp],labels=[0,1]),5),
+                    "auc":round(roc_auc_score(fy,fp),5) if len(set(fy))==2 else None,
+                    "training_prevalence":round(train_prev,5) if train_prev is not None else None,
+                    "baseline_brier":round(base_brier,5) if base_brier is not None else None,
+                    "brier_skill_vs_prevalence":round(1-brier_score_loss(fy,fp)/base_brier,5) if base_brier else None})
+            # Per-league market evidence with minimum sample gate; no unsupported league-level edge claims.
+            for league_name in sorted(set(str(r.get("league") or "UNKNOWN") for r in train_rows)):
+                lg_train = [r for r in train_rows if str(r.get("league") or "UNKNOWN")==league_name
+                            and r["kickoff_unix"] < PRIMARY_START and r.get("target_"+market) is not None
+                            and all(r.get(k) is not None for k in FEATURES)]
+                lg_test = [r for r in train_rows if str(r.get("league") or "UNKNOWN")==league_name
+                           and PRIMARY_START <= r["kickoff_unix"] < PRIMARY_END
+                           and r.get("target_"+market) is not None and all(r.get(k) is not None for k in FEATURES)]
+                if len(lg_train) < 100 or len(lg_test) < 100:
+                    gate = "INSUFFICIENT_SAMPLE_MIN_100_TRAIN_AND_TEST"
+                else:
+                    gate = "SAMPLE_GATE_MET_REQUIRES_STABILITY_AND_ODDS_VALIDATION"
+                league_market_readiness.append({"league":league_name,"market":market,
+                    "train_n":len(lg_train),"test_n":len(lg_test),"sample_gate":gate,
+                    "production_eligible":"NO","edge_claim":"NOT_APPROVED"})
+        wf_path=OUT/"oracle_selected50_walk_forward_metrics.json"
+        wf_path.write_text(json.dumps({"folds":walk_forward,
+            "fold_design":"Expanding-window rolling-origin; each fold trains strictly before test interval; fixed features and model; no calibration or tuning.",
+            "limitations":["This evaluates model probability quality, not betting ROI.",
+                           "Historical settlement joins and provider point-in-time provenance remain unverified.",
+                           "Per-league minimum samples are necessary but not sufficient for edge approval.",
+                           "No production eligibility is granted."]},indent=2)+"\\n",encoding="utf-8")
+        readiness_path=OUT/"oracle_selected50_league_market_readiness.csv"
+        with readiness_path.open("w",newline="",encoding="utf-8") as rf:
+            cols=["league","market","train_n","test_n","sample_gate","production_eligible","edge_claim"]
+            rw=csv.DictWriter(rf,fieldnames=cols);rw.writeheader();rw.writerows(league_market_readiness)
         backtest_path=OUT/"oracle_selected50_backtest_metrics.json"
-        backtest_report={"primary_window":"2025-03-20 through 2026-09-20","training_cutoff_exclusive":"2025-03-20","markets":backtest,
+        backtest_report={"primary_window":"2025-03-20 through 2026-09-20","training_cutoff_exclusive":"2025-03-20","markets":backtest, "walk_forward_metrics_file":"oracle_selected50_walk_forward_metrics.json","league_market_readiness_file":"oracle_selected50_league_market_readiness.csv",
                          "note":"Single temporal holdout baseline using the locked Oracle logistic-regression form feature set; raw probabilities, no calibration, not production-approved."}
         backtest_path.write_text(json.dumps(backtest_report,indent=2)+"\n",encoding="utf-8")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"provider_competitions_with_matches":len(present_comps),
@@ -397,7 +463,7 @@ def main():
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
-             "Historical validation uses a fixed temporal holdout; no hyperparameter selection or calibration is applied.",
+             "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
              "H2H is descriptive only and not a model feature. Current team table positions are display-only snapshots, not historical standings.",
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
@@ -406,7 +472,7 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv"):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv"):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
