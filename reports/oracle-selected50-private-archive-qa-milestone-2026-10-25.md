@@ -99,3 +99,29 @@ The checked-in production manifests provide concrete reasons the current product
 5. **Settlement and market validation:** use final statuses and independent verified results; enforce point-in-time feature provenance.
 
 No production code has been modified as part of this review because the actual failure steps could not be retrieved and current truth is stale. Guessing a patch would risk corrupting the governed production build. Production readiness remains NOT_GRANTED.
+
+
+## Execution update — 2026-10-25 10:02 UTC
+
+### Live state rechecked
+- Research branch head at inspection: `b9ec99a276fe6ed8ec319006bf234de2272d28e0`; latest dry-run planner run [40180913971](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40180913971) completed **success**.
+- The latest dry-run artifact was downloaded and inspected. It confirms `DRY_RUN_ONLY`, zero network calls, zero paid provider calls, 50 selected season IDs, 31 exact selected-season matches to the Run 56 manifest, and 19 with no Run 56 manifest record. The latter is explicitly not proof of failed ingestion.
+- Across the 31 exact-matched seasons, the artifact reports 9,708 archive records with parseable kickoffs and complete team IDs; 3,488 rows have a provider status allowed by the dry-run's preliminary settled-status filter. This is not final settlement approval.
+- Market readiness remains blocked for all 50 selected leagues: fixture joins are unverified; recent form, standings and H2H are unverified for selected current fixtures; xG and odds lack verified as-of-kickoff provenance. BTTS Yes, Double Chance and DC + Under 4.5 remain NOT VERIFIED; M-1UP remains BLOCKED. No production eligibility is granted.
+- No live or paid API calls were made by this dry-run. Its estimate of at least 200 endpoint calls for a one-pass live acquisition is a planning estimate only, with pagination and retries potentially increasing it.
+
+### Private release integrity — partial verification only
+- The existing release is present in the production repository: [release](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/releases/tag/research-selected50-footystats-ingestion-20261025).
+- GitHub release metadata lists `oracle-selected50-footystats-private-ingestion.zip` at 14,019,525 bytes with GitHub asset digest `sha256:9b5eecf376dac804231bfcb75d9381a4307b38f082cadd9a775d48ec3e5310dd`, and a `private-package.sha256` sidecar asset.
+- The connector could not retrieve the release sidecar's content (download endpoint returned 404), so the sidecar's text has **not** been independently cross-checked against the ZIP in this session. Release metadata and prior QA are evidence that the package exists; they are not a substitute for verifying the sidecar contents. Do not overwrite the existing tag or repeat provider ingestion for this packaging issue.
+
+### Production workflow diagnosis
+- The latest inspected production runs remain failures: current data staging [40179475855](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179475855), prospective learning [40179353874](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179353874), historical intelligence [40179723228](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40179723228), and external forecast archive [40177200715](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40177200715).
+- Current-data and historical-intelligence job records expose no step summaries and report runner ID 0 / blank runner name. The connected log retrieval returned a GitHub-hosted `BlobNotFound` error for both jobs. Therefore the first failing step and root cause remain **unconfirmed**; do not rerun blindly or claim a fix.
+- The latest production branch SHA observed is `cb89e5bd1c24810fe821a6b2c3c2c1c19272b381`. The research-only work performed in this session did not modify production code, probabilities, calibration or thresholds.
+
+### Next actions
+1. Obtain valid runner logs through GitHub Actions UI or a functioning logs endpoint and diagnose the earliest failing step for each production workflow.
+2. Verify the private archive's actual ZIP SHA-256 against the sidecar text using an authorized download path; retain the existing release unchanged.
+3. Continue strict research-only settlement, feature chronology and exact-fixture-join QA offline, without paid calls.
+4. Keep all selected-50 market gates blocked until their own evidence requirements pass.
