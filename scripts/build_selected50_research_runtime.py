@@ -516,7 +516,7 @@ def main():
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv"):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv"):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
