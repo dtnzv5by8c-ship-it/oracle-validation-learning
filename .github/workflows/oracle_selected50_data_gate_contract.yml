@@ -1,0 +1,41 @@
+name: Oracle Selected-50 Data Gate Contract
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "config/oracle_selected50_compatibility_contract_v1.json"
+      - "data/oracle-footystats-selected-50-season-id-manifest.csv"
+      - "data/oracle_selected50_data_gate_matrix_2026-10-25.csv"
+      - "tests/test_selected50_compatibility_contract.py"
+      - "tests/test_selected50_data_gate_matrix.py"
+      - ".github/workflows/oracle_selected50_data_gate_contract.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-selected50-data-gate-contract
+  cancel-in-progress: false
+
+jobs:
+  data-gate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Selected-50 compatibility contract tests
+        run: python -m unittest discover -s tests -p 'test_selected50_compatibility_contract.py' -v
+      - name: Run Selected-50 data gate matrix regression tests
+        run: python -m unittest discover -s tests -p 'test_selected50_data_gate_matrix.py' -v
+      - name: Run runtime 27-reference classification regression tests
+        run: python -m unittest discover -s tests -p 'test_runtime_reference_classification.py' -v
