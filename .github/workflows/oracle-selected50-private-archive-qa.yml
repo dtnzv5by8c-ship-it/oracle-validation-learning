@@ -177,8 +177,7 @@ jobs:
                   if xg_keys:
                       xg_field_rows += 1
                       if any(m.get(k) not in (None, "") for k in xg_keys): nonempty_xg_rows += 1
-                  if prematch_xg_keys and any(m.get(k) not in (None, "") for k in prematch_xg_keys): nonempty_prematch_xg_rows += 1+= 1
-                  if any("xg" in str(k).lower() for k in m): xg_field_rows += 1
+                  if prematch_xg_keys and any(m.get(k) not in (None, "") for k in prematch_xg_keys): nonempty_prematch_xg_rows += 1
               raw_field_names.update(season_fields)
               field_counts.update(season_fields)
               completed_total += completed
