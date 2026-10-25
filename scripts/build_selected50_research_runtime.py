@@ -604,27 +604,10 @@ def main():
             writer=csv.DictWriter(season_file,fieldnames=season_columns,extrasaction="ignore")
             writer.writeheader()
             writer.writerows(season_qa)
-        # Count records by observed UTC kickoff calendar year; this is not provider season-year mapping.
-        year_counts = {}
-        for m in matches:
-            y = dt.datetime.fromtimestamp(m["kickoff_unix"], dt.timezone.utc).year
-            bucket = str(y) if 2024 <= y <= 2026 else ("PRE_2024" if y < 2024 else "POST_2026")
-            k = (str(m["competition_id"]), bucket)
-            counts = year_counts.setdefault(k, [0, 0])
-            counts[0] += 1
-            if m.get("finished") and m.get("home_goals") is not None and m.get("away_goals") is not None: counts[1] += 1
-        year_path = OUT / "oracle_selected50_calendar_year_coverage.csv"
-        with year_path.open("w", encoding="utf-8", newline="") as yf:
-            cols = ["selected_id","country","competition","calendar_year_bucket","all_match_rows_by_observed_kickoff_year","explicitly_completed_rows","coverage_basis","season_year_mapping_status","production_eligible"]
-            yw = csv.DictWriter(yf, fieldnames=cols); yw.writeheader()
-            for cid, sel in sorted(selected_by_id.items(), key=lambda x: (x[1]["country"], x[1]["competition_name"])):
-                for bucket in ("PRE_2024","2024","2025","2026"):
-                    all_n, done_n = year_counts.get((str(cid),bucket),[0,0])
-                    yw.writerow({"selected_id":str(cid),"country":sel["country"],"competition":sel["competition_name"],"calendar_year_bucket":bucket,"all_match_rows_by_observed_kickoff_year":all_n,"explicitly_completed_rows":done_n,"coverage_basis":"Observed provider match kickoff timestamp in UTC; not provider season year","season_year_mapping_status":"NOT_INFERRED_FROM_CALENDAR_YEAR","production_eligible":"NO"})
         # Package the derived/private candidate. Never upload the normalized dataset as a public artifact.
         private_zip=Path("oracle-selected50-normalized-research-candidate.zip")
         with zipfile.ZipFile(private_zip,"w",zipfile.ZIP_DEFLATED) as z:
-            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",year_path):
+            for p in (normalized_path,feature_path,pred_path,backtest_path,wf_path,readiness_path,schedule_path,OUT/"oracle_selected50_feature_qa.json",OUT/"season_coverage.csv",calendar_year_path):
                 if p.exists(): z.write(p,p.name)
         digest=hashlib.sha256(private_zip.read_bytes()).hexdigest()
         Path("private-runtime-candidate.sha256").write_text(digest+"  oracle-selected50-normalized-research-candidate.zip\n",encoding="utf-8")
