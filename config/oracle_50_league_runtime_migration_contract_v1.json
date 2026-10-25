@@ -1,0 +1,89 @@
+{
+  "contract_name": "Oracle Selected-50 Runtime Migration Contract",
+  "contract_version": "1.0.0",
+  "status": "RESEARCH_ONLY_NOT_PRODUCTION_AUTHORIZATION",
+  "scope": "Define a separately versioned 50-league runtime path without changing production model logic or output probabilities.",
+  "governed_universe": {
+    "source_manifest": "data/oracle-footystats-selected-50-season-id-manifest.csv",
+    "required_season_count": 50,
+    "identity_key": [
+      "season_id"
+    ],
+    "exact_set_and_labels_must_match": true,
+    "infer_parent_or_competition_ids": false,
+    "fuzzy_identity_join_allowed_for_approval": false
+  },
+  "runtime_isolation": {
+    "target_namespace": "selected50_runtime_v1",
+    "legacy_namespace": "legacy_27_league_runtime",
+    "legacy_runtime_must_remain_callable_and_unchanged": true,
+    "historical_baseline": {
+      "league_count": 27,
+      "fixture_count": 12836,
+      "immutable": true
+    },
+    "separate_50_league_artifacts_required": true,
+    "overwrite_legacy_manifests_or_historical_ledgers": false
+  },
+  "model_invariants": {
+    "production_model_logic_may_change": false,
+    "production_probabilities_may_change": false,
+    "calibration_may_change": false,
+    "thresholds_may_change": false,
+    "model_version_must_be_recorded": true,
+    "pre_migration_vs_candidate_probability_parity_required": true,
+    "parity_tolerance_absolute": 0,
+    "any_unexplained_probability_difference_blocks_release": true
+  },
+  "data_admission": {
+    "canonical_fixture_identity": "EXACT_STABLE_FIXTURE_AND_TEAM_IDS_REQUIRED",
+    "kickoff_identity": "UTC_KICKOFF_AND_SOURCE_TIMEZONE_NORMALIZATION_REQUIRED",
+    "settlement": "EXPLICIT_FINAL_STATUS_AND_VALID_SCORE_OR_INDEPENDENTLY_VERIFIED_OUTCOME",
+    "point_in_time_features": "SOURCE_FIELD_SEMANTICS_SCALE_FIXTURE_JOIN_AND_AS_OF_KICKOFF_TIMESTAMP_REQUIRED",
+    "unresolved_or_ambiguous_rows": "QUARANTINE_NOT_PRODUCTION_ELIGIBLE",
+    "paid_provider_requests_authorized": false
+  },
+  "market_readiness_defaults": {
+    "BTTS Yes": "NOT_VERIFIED",
+    "Double Chance": "NOT_VERIFIED",
+    "Double Chance + Under 4.5": "NOT_VERIFIED",
+    "M-1UP": "BLOCKED"
+  },
+  "release_gates": [
+    {
+      "id": "P0-RUNNER",
+      "required": "Owner-visible evidence explains private Actions initialization failure; no private rerun or spending-limit increase without approval."
+    },
+    {
+      "id": "P0-UNIVERSE",
+      "required": "All intended consumers read the isolated 50-season manifest; legacy 27/12,836 baseline remains unchanged; regression passes."
+    },
+    {
+      "id": "P1-IDENTITY",
+      "required": "Canonical fixture slate reconciles by exact season, fixture and team IDs; zero ambiguous joins admitted."
+    },
+    {
+      "id": "P1-SETTLEMENT",
+      "required": "Every labelled outcome has source evidence, final status, valid score and exact fixture identity."
+    },
+    {
+      "id": "P1-PIT",
+      "required": "Every admitted feature has documented semantics, scale, source, exact join and timestamp preceding kickoff."
+    },
+    {
+      "id": "P2-VALIDATION",
+      "required": "Immutable production-labelled predictions join to verified outcomes by fixture, market, model/version and pre-kickoff timestamp; report sample size and proper scoring metrics."
+    },
+    {
+      "id": "PUBLIC-CI",
+      "required": "Public regression and dry-run workflows have actual completed-success GitHub run records for the candidate SHA."
+    }
+  ],
+  "governance": {
+    "production_eligibility_until_all_gates_pass": "NO",
+    "production_release_requires_human_review": true,
+    "research_branch_only": true,
+    "no_live_predictions_in_dry_run": true,
+    "no_fabricated_fixtures_outcomes_or_accuracy": true
+  }
+}
