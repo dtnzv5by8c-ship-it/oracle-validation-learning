@@ -45,20 +45,26 @@ Commits:
 
 Revision 6 adds audit/run metadata to all 50 rows without changing any candidate to approved. It was re-opened and verified as 50 rows, 50 unique IDs, 122 columns.
 
-## CI state at checkpoint
-The workflow triggered by the workflow update is:
-- Run #54: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155615819
+## CI validation and scope-guard result (post-checkpoint update 2026-10-25 02:46 UTC)
+Workflow run #54 completed successfully:
+- Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155615819
 - Head SHA: `45518b0407a1681141855f3c57b6512d19344657`
-- Last checked: `in_progress`, job `archive-feature-audit` in progress, no artifact yet.
-- The run is not yet evidence of passing tests or a completed scope guard. Its artifact must be inspected when available.
+- Conclusion: SUCCESS; artifact ID `12584008833`, size 51,604,493 bytes.
+- Unit tests: **97 passed**, including all seven selected-50 scope-guard tests.
+- Archive freshness gate: PASS; release age 3.92 days under the 14-day limit.
+- Archive feature audit: 35,819 match rows, 35,819 chronological feature rows, 126 season folders, zero parse errors, 28,491 rows with allowed settled status and complete score, no duplicate fixture IDs, production readiness `NOT_ASSESSED`.
+- The guard's result is **BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE** despite the workflow succeeding. The crosswalk ID set exactly matches all 50 selected IDs. The acquired provider catalogue has 43 rows but no unambiguous populated competition/provider ID column. The archive manifest has 126 rows and all 126 have blank `provider_league_id`. These are actual blockers, not workflow errors.
+- Artifact inspection confirmed these values from `audit-output/selected50_scope_guard.json` and `audit-output/archive_integrity_summary.json`.
 
-Latest private runs still visible:
-- Expansion #208 (40149882862): failure in prepare; controlled/downstream jobs skipped; no artifacts.
-- Live Prediction #78 (40145302396): failure.
-- Live Settlement #38 (40146540242): failure.
-- Run To Completion #26 (40135975383): failure.
-The #208 job log download still returns `BlobNotFound`; job-step API returns no steps, so the root cause is not verified. The workflow source's gate intends `COMPLETE_RESEARCH_ONLY` to exit successfully, yet #208 failed at prepare; do not infer the cause.
+Schema-diagnostic follow-up run #55:
+- Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40155717694
+- Head SHA: `f2a88b5c633bf67b56df3949546bfb96c51314bf`
+- Status at the next checkpoint: queued; no artifact yet. It adds catalogue header/ID-like-column diagnostics so the 43-row catalogue schema can be identified rather than guessed.
 
+Latest crosswalk with the verified Run #54 decision:
+- `reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r7.csv`
+- Commit: `8c126b9f1d861632430108440a1db1e343482e6f`
+- 50 rows, 50 unique IDs, 133 columns. Candidate and unresolved statuses remain unchanged; production eligibility remains NOT_GRANTED.
 ## Scope-guard interpretation
 The existing archive feature builder derives `provider_league_id` from competition ID fields in archived payloads, but the previously audited archive manifest had that field blank for all 126 season rows. The new guard is designed to report that as a blocker. A successful workflow run or a good non-null field-coverage percentage must not override an ID-set/provenance failure.
 
