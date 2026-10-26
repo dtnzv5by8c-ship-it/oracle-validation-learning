@@ -3,11 +3,11 @@
 from __future__ import annotations
 import csv,json
 from collections import Counter
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]; OUT=ROOT/"audit-output"; OUT.mkdir(parents=True,exist_ok=True)
 CROSSWALK=ROOT/"reports"/"oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv"
-AUDIT_DATE=date(2026,10,26)
+AUDIT_DATE=datetime.now(timezone.utc).date()
 def read_csv(path):
     if not path.is_file(): raise AssertionError(f"Missing evidence table: {path}")
     with path.open(encoding="utf-8-sig",newline="") as f: return list(csv.DictReader(f))
@@ -38,7 +38,7 @@ def build_matrix(coverage,quarantine,crosswalk,audit_date=AUDIT_DATE):
         assert parent=="NOT_EXPOSED_BY_CATALOGUE"
         assert fixture==team==truth=="NOT_VERIFIED"
         result.append({
-          "selected_season_id":sid,"country":c.get("country",""),"competition":c.get("competition",""),
+          "selected_season_id":sid,"audit_date":audit_date.isoformat(),"country":c.get("country",""),"competition":c.get("competition",""),
           "canonical_code_candidate":c.get("crosswalk_candidate_code",""),"crosswalk_status":c.get("crosswalk_status",""),
           "crosswalk_candidate_basis":x.get("candidate_basis",""),"latest_selected_id_semantics":c.get("selected_id_semantics_status",""),
           "historical_crosswalk_semantics_snapshot":x.get("selected_id_semantics_status",""),
@@ -76,7 +76,7 @@ def build_matrix(coverage,quarantine,crosswalk,audit_date=AUDIT_DATE):
     return result
 def build_fixture_gate(summary):
     return {
-      "status":"BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE","audit_date":"2026-10-26","selected_groups":50,
+      "status":"BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE","audit_date":summary.get("audit_date", AUDIT_DATE.isoformat()),"selected_groups":50,
       "schedule_rows_snapshot":summary["schedule_rows_global"],"schedule_last_fixture_date":summary["schedule_last_fixture_date"],
       "schedule_manifest_window_end":summary["schedule_manifest_window_end"],"days_since_last_fixture_date":summary["days_since_last_fixture_date"],
       "days_since_schedule_window_end":summary["days_since_schedule_window_end"],"current_fixture_rows_emitted":0,
@@ -97,7 +97,7 @@ def main():
     single=sum(int(r["current_feed_label_rows"] or 0)>0 and int(r["current_feed_distinct_league_ids"] or 0)==1 for r in rows)
     none=sum(int(r["current_feed_label_rows"] or 0)==0 for r in rows)
     verified=lambda v:"VERIFIED" in str(v) and "NOT_VERIFIED" not in str(v) and "UNVERIFIED" not in str(v)
-    s={"status":"PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY","selected_groups":50,
+    s={"status":"PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY","audit_date":AUDIT_DATE.isoformat(),"selected_groups":50,
       "crosswalk_status_counts":dict(statuses),"historical_archive_season_id_match_counts":dict(archive),
       "current_feed_groups_with_label_rows":hits,"current_feed_groups_with_multiple_league_id_collisions":ambiguous,
       "current_feed_groups_with_single_label_id":single,"current_feed_groups_with_no_label_rows":none,
@@ -127,7 +127,7 @@ def main():
       "production_eligible_rows":0,"raw_feed_examples_exported":False,"network_calls_made":0,"paid_provider_calls_made":0,
       "limitations":["The 31/19 historical archive season-ID split is from crosswalk snapshot r17 and is separate from latest private archive QA, which reports all 50 selected season folders.",
       "The catalogue does not expose a parent competition ID; selected/season IDs are not promoted to parent IDs.",
-      "Current schedule evidence is stale: last fixture date 2026-10-17 and manifest window end 2026-10-22, both before the 2026-10-26 audit date.",
+      f"Current schedule evidence is stale: last fixture date {rows[0]['schedule_last_fixture_date']} and manifest window end {rows[0]['schedule_manifest_window_end']}, both before the {s['audit_date']} audit date.",
       "Canonical fixture/team joins and official settlement truth remain unverified; xG/odds point-in-time provenance is unverified and no ROI benchmark is approved.",
       "Combo remains blocked by target/settlement mismatch; M-1UP remains blocked by its independent event-truth gate."]}
     fixture_gate=build_fixture_gate(s); s["governed_fixture_report_gate_status"]=fixture_gate["status"]; s["governed_fixture_rows_emitted"]=0
@@ -135,7 +135,7 @@ def main():
         w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     (OUT/"selected50_governed_readiness_summary.json").write_text(json.dumps(s,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     (OUT/"selected50_governed_fixture_report_gate.json").write_text(json.dumps(fixture_gate,indent=2,sort_keys=True)+"\n",encoding="utf-8")
-    gate_lines=["# Governed Fixture Report Gate — 2026-10-26","","Status: BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE.",
+    gate_lines=[f"# Governed Fixture Report Gate — {s['audit_date']}","","Status: BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE.",
       "No fixture or prediction rows were emitted because the schedule snapshot is stale and identity, settlement and point-in-time feature gates remain unresolved.","",
       f"- Schedule rows in snapshot: {fixture_gate['schedule_rows_snapshot']}",
       f"- Last fixture date in snapshot: {fixture_gate['schedule_last_fixture_date']}",
@@ -145,7 +145,7 @@ def main():
       "- BTTS and Double Chance blocked pending identity/settlement/point-in-time evidence; Combo blocked by target/settlement mismatch; M-1UP blocked by stale event truth.",
       "- Production eligibility: NO. Research-only gate report, not a betting recommendation."]
     (OUT/"selected50_governed_fixture_report_gate.md").write_text("\n".join(gate_lines)+"\n",encoding="utf-8")
-    lines=["# Selected-50 Governed Readiness Matrix — 2026-10-26","","Status: PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY.",
+    lines=[f"# Selected-50 Governed Readiness Matrix — {s['audit_date']}","","Status: PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY.",
       "No-network reconciliation of existing sanitized evidence. Raw feed examples are excluded and no production eligibility is granted.","","## Identity and archive scope","",
       f"- Selected IDs: {len(rows)}; crosswalk review candidates: {statuses.get('CANDIDATE_REQUIRES_HUMAN_REVIEW_NOT_APPROVED',0)}; unresolved: {statuses.get('UNRESOLVED_NO_EXACT_OR_EXPLICIT_ALIAS',0)}; approved: {sum(r['crosswalk_status']=='APPROVED' for r in rows)}.",
       f"- Historical r17 archive-ID snapshot: {archive.get('YES',0)} exact season-ID matches and {archive.get('NO',0)} no exact match. Latest private archive QA separately reports {s['latest_private_archive_seasons_global']} seasons and {s['latest_private_archive_fixture_rows_global']} fixture rows.",
