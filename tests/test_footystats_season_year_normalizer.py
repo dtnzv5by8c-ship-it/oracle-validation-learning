@@ -1,6 +1,10 @@
+import sys
 import unittest
+from pathlib import Path
 
-from scripts.normalize_footystats_season_year import normalize_season_year
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from normalize_footystats_season_year import normalize_season_year
 
 
 class FootyStatsSeasonYearTests(unittest.TestCase):
