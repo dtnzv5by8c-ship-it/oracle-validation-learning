@@ -117,3 +117,18 @@ Latest runtime walk-forward diagnostics:
 4. Use the updated season archive to reassess historical status/score/date exceptions and point-in-time features. A score on a non-final status is not settlement truth.
 5. Re-run market backtests only after verified outcome labels and target semantics are available; do not calibrate or alter production probabilities.
 6. Update the 50-league readiness workbook, gate ledger, and executive decision with the new artifact/run evidence. Production eligibility remains `NOT_GRANTED` until all evidence gates pass and explicit human release approval exists.
+
+
+## Update — verified runtime after archive switch (2026-10-26)
+
+- Updated workflow default private archive tag to `research-selected50-footystats-history-40375285207` in commit `b98e162f874672e62b827d0135fbb17245de0b97`.
+- The first contract run after this change correctly caught a stale test assertion expecting the prior archive tag. Fixed that assertion in commit `b86699f803ec8a2638a59e1ceab2e69d8f85e44e`.
+- Final verification on `b86699f803ec8a2638a59e1ceab2e69d8f85e44e`:
+  - Safety contract tests [40376972102](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40376972102): SUCCESS.
+  - Dry-run planner [40376972098](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40376972098): SUCCESS.
+  - Research runtime/backtest [40376972017](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40376972017): SUCCESS.
+- Latest runtime artifact ID `12674589642`, name `oracle-selected50-research-runtime-report`, SHA-256 `1686c03dcb84f678f288d2848dffd17ff8c6830d3e34c8700e3251c3191aed4a`; run created 2026-10-26T18:22:53Z.
+- Latest governed report QA: 460 fixture rows, 460 unique source fixture IDs; all rows production-ineligible; 433 raw Combo home and 433 raw Combo away probabilities masked; zero Combo probabilities remain. Other market probabilities remain research-only and NOT_FOR_BETTING until canonical joins, settlement truth and calibration are verified.
+- Primary holdout still shows BTTS accuracy 53.588% vs majority baseline 54.143%, below baseline. DC Home and DC Away diagnostics are stronger but remain uncalibrated and not production/betting eligible.
+- The runtime workflow's archive tag change is now verified through successful runtime execution, not just code inspection.
+- Production status remains `NOT_GRANTED`. Provider selected-season ID matches do not establish parent competition IDs, canonical Oracle mappings, verified settlement truth or current live-fixture freshness.
