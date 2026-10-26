@@ -56,6 +56,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn('"reports/**"', trigger)
         self.assertIn('"tests/**"', trigger)
         self.assertIn('"**/*.md"', trigger)
+        self.assertIn('".github/workflows/**"', trigger)
         self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
         self.assertIn("Invalid private archive release tag format.", runtime)
         self.assertIn("Explicit private archive read confirmation required.", runtime)
