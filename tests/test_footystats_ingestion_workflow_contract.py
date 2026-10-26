@@ -17,6 +17,14 @@ class FootyStatsIngestionWorkflowContractTests(unittest.TestCase):
         self.assertIn('FOOTYSTATS_API_KEY missing; no provider calls made.', self.workflow)
         self.assertIn('ORACLE_PRIVATE_REPO_TOKEN missing; no provider calls made.', self.workflow)
 
+    def test_private_destination_write_permission_is_preflighted_before_provider_calls(self):
+        # A missing destination write grant must fail before any paid-provider request.
+        permission_check = self.workflow.index("ORACLE_PRIVATE_REPO_TOKEN lacks private destination write permission; no provider calls made.")
+        first_provider_call = self.workflow.index('api("league-list"')
+        self.assertLess(permission_check, first_provider_call)
+        self.assertIn("gh api \"repos/$TARGET\" --jq '.permissions.push // false' | grep -qx true", self.workflow)
+        self.assertIn("Validate credentials and private destination", self.workflow)
+
     def test_exact_50_selected_leagues_expand_to_historical_seasons(self):
         self.assertIn("len(selected) != 50", self.workflow)
         self.assertIn("len({str(r.get(\"selected_id\",\"\")).strip() for r in selected}) != 50", self.workflow)
