@@ -90,16 +90,28 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         required = {
             "selected_season_id", "country", "provider_competition_name",
             "candidate_canonical_code", "identity_gap_status",
-            "provider_parent_competition_id_status", "provider_to_canonical_bridge",
+            "provider_competition_id_observation_status", "provider_competition_id_observed_value",
+            "provider_competition_id_evidence_run", "provider_to_canonical_bridge",
             "fixture_identity", "team_identity", "official_settlement_truth",
+            "provider_match_coverage_rows_first_page", "provider_match_coverage_unique_fixture_ids_first_page",
+            "provider_match_coverage_duplicate_fixture_rows_first_page", "provider_match_coverage_status_counts_json",
+            "provider_match_coverage_rows_with_both_team_ids", "provider_match_coverage_rows_with_both_score_fields",
+            "provider_match_coverage_nonempty_season_id_field_rows",
             "BTTS_readiness", "DC_HOME_readiness", "DC_AWAY_readiness",
             "COMBO_HOME_readiness", "COMBO_AWAY_readiness", "production_eligible",
         }
         self.assertTrue(required.issubset(set(rows[0].keys())))
         self.assertTrue(all(row["production_eligible"] == "NO" for row in rows))
-        self.assertTrue(all(row["provider_parent_competition_id_status"] == "VERIFIED_IN_MATCH_RECORDS" for row in rows))
-        self.assertTrue(all(row["provider_parent_competition_id_value"] == row["selected_season_id"] for row in rows))
-        self.assertTrue(all(row["provider_parent_id_evidence_run"] == "40382835076" for row in rows))
+        self.assertTrue(all(row["provider_competition_id_observation_status"] == "OBSERVED_IN_MATCH_RECORDS_PARENT_SEMANTICS_UNVERIFIED" for row in rows))
+        self.assertTrue(all(row["provider_competition_id_observed_value"] == row["selected_season_id"] for row in rows))
+        self.assertTrue(all(row["provider_competition_id_evidence_run"] == "40382835076;40391540391" for row in rows))
+        self.assertTrue(all(int(row["provider_match_coverage_rows_first_page"]) > 0 for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_rows_first_page"] == row["provider_match_coverage_unique_fixture_ids_first_page"] for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_duplicate_fixture_rows_first_page"] == "0" for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_pager_max_page"] == "1" for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_rows_with_both_team_ids"] == row["provider_match_coverage_rows_first_page"] for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_rows_with_both_score_fields"] == row["provider_match_coverage_rows_first_page"] for row in rows))
+        self.assertTrue(all(row["provider_match_coverage_nonempty_season_id_field_rows"] == "0" for row in rows))
         self.assertTrue(all(row["provider_to_canonical_bridge"] == "UNVERIFIED" for row in rows))
         self.assertTrue(all(row["fixture_identity"] == "PROVIDER_FIXTURE_ID_OBSERVED_CANONICAL_JOIN_UNVERIFIED" for row in rows))
         self.assertTrue(all(row["team_identity"] == "PROVIDER_TEAM_IDS_OBSERVED_CANONICAL_JOIN_UNVERIFIED" for row in rows))
