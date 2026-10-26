@@ -46,5 +46,16 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("Upload sanitized ledger only to public research run", ingestion)
 
 
+    def test_research_runtime_is_manual_only_and_uses_explicit_archive_tag(self):
+        runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
+        trigger = runtime.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("private_archive_release_tag:", trigger)
+        self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
+        self.assertIn("Invalid private archive release tag format.", runtime)
+        self.assertIn("Explicit private archive read confirmation required.", runtime)
+
+
 if __name__ == "__main__":
     unittest.main()
