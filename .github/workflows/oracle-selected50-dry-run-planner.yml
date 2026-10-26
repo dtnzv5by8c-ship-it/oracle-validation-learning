@@ -108,6 +108,10 @@ jobs:
         run: python scripts/build_selected50_identity_snapshot_reconciliation.py
       - name: Test Selected-50 identity snapshot reconciliation
         run: python tests/test_selected50_identity_snapshot_reconciliation.py
+      - name: Build Selected-50 current-feed identity quarantine (no network calls)
+        run: python scripts/build_selected50_current_feed_identity_quarantine.py
+      - name: Test Selected-50 current-feed identity quarantine
+        run: python tests/test_selected50_current_feed_identity_quarantine.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
