@@ -150,8 +150,14 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
 
     def test_parent_id_audit_is_bounded_and_summarizes_first_page_coverage(self):
         audit = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
-        self.assertIn('MAX_API_REQUESTS = 50', audit) if 'MAX_API_REQUESTS = 50' in audit else self.assertIn('if calls >= 50:', audit)
+        audit_trigger = audit.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", audit_trigger)
+        self.assertNotIn("\\n  push:", audit_trigger)
+        self.assertIn('if calls >= 50:', audit)
         self.assertIn('"max_per_page": 1000', audit)
+        self.assertIn('r.get("season")', audit)
+        self.assertIn('"selected_id_matches_competition_id"', audit)
+        self.assertNotIn("season_id_consistent_with_selected_id", audit)
         self.assertIn('"pager_max_page"', audit)
         self.assertIn('"unique_fixture_ids_on_page"', audit)
         self.assertIn('"duplicate_fixture_id_rows_on_page"', audit)
