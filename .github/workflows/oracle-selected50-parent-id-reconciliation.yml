@@ -1,0 +1,120 @@
+name: Oracle Selected-50 Parent Competition ID Reconciliation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-selected50-parent-id-reconciliation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile-parent-ids:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout governed research manifest
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe one match record per selected ID (hard cap 50 requests)
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, re, time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          manifest = Path("reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md")
+          if not manifest.is_file():
+              raise SystemExit("STOP: governed 50-league manifest missing; no API requests made.")
+          selected = []
+          for line in manifest.read_text(encoding="utf-8").splitlines():
+              m = re.match(r"^\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$", line)
+              if m:
+                  selected.append({"row": int(m.group(1)), "selected_id": m.group(2).strip(),
+                                   "country": m.group(3).strip(), "competition": m.group(4).strip()})
+          if len(selected) != 50 or len({r["selected_id"] for r in selected}) != 50:
+              raise SystemExit("STOP: manifest guard failed; expected exactly 50 unique selected IDs; no API requests made.")
+          key = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
+          if not key:
+              raise SystemExit("STOP: FOOTYSTATS_API_KEY secret missing; no API requests made.")
+          base = "https://api.football-data-api.com/"
+          results = []
+          calls = 0
+          for item in selected:
+              if calls >= 50:
+                  raise SystemExit("STOP: hard cap of 50 API requests reached.")
+              query = urlencode({"key": key, "season_id": item["selected_id"], "max_per_page": 1, "page": 1})
+              request = Request(base + "league-matches?" + query,
+                                headers={"User-Agent": "Oracle-Selected50-Parent-ID-Reconciliation/1.0"})
+              calls += 1
+              try:
+                  with urlopen(request, timeout=25) as response:
+                      payload = json.loads(response.read().decode("utf-8"))
+                      http_status = response.status
+              except HTTPError as exc:
+                  results.append({**item, "http_status": exc.code, "api_success": False,
+                                  "match_rows_returned": 0, "competition_id_values": "",
+                                  "season_id_values": "", "identity_status": "HTTP_ERROR"})
+                  # Fail closed and do not retry.
+                  break
+              except Exception as exc:
+                  results.append({**item, "http_status": "", "api_success": False,
+                                  "match_rows_returned": 0, "competition_id_values": "",
+                                  "season_id_values": "", "identity_status": "REQUEST_ERROR_" + type(exc).__name__})
+                  break
+              ok = isinstance(payload, dict) and payload.get("success") is True
+              data = payload.get("data") if isinstance(payload, dict) else None
+              rows = data if isinstance(data, list) else ([data] if isinstance(data, dict) else [])
+              competition_ids = sorted({str(r.get("competition_id")) for r in rows
+                                        if isinstance(r, dict) and r.get("competition_id") not in (None, "")})
+              season_ids = sorted({str(r.get("season_id")) for r in rows
+                                   if isinstance(r, dict) and r.get("season_id") not in (None, "")})
+              results.append({**item, "http_status": http_status, "api_success": bool(ok),
+                              "match_rows_returned": len(rows),
+                              "competition_id_values": ";".join(competition_ids),
+                              "season_id_values": ";".join(season_ids),
+                              "identity_status": ("COMPETITION_ID_EXPOSED" if ok and competition_ids else
+                                                  "NO_MATCH_ROW" if ok and not rows else
+                                                  "COMPETITION_ID_NOT_EXPOSED" if ok else "API_SUCCESS_FALSE")})
+              # Deliberate low rate; no retries and no extra endpoints.
+              time.sleep(0.2)
+          out = Path("parent-id-reconciliation")
+          out.mkdir(exist_ok=True)
+          fields = ["row","selected_id","country","competition","http_status","api_success",
+                    "match_rows_returned","competition_id_values","season_id_values","identity_status"]
+          with (out / "parent-id-reconciliation.csv").open("w", newline="", encoding="utf-8") as f:
+              writer = csv.DictWriter(f, fieldnames=fields); writer.writeheader(); writer.writerows(results)
+          exposed = sum(bool(r["competition_id_values"]) for r in results)
+          unique_comp_ids = sorted({v for r in results for v in str(r["competition_id_values"]).split(";") if v})
+          summary = {
+            "status": "PARENT_ID_PROBE_COMPLETED" if len(results) == 50 else "PARENT_ID_PROBE_INCOMPLETE",
+            "selected_leagues": 50, "requests_started": calls, "hard_request_cap": 50,
+            "rows_with_competition_id": exposed, "unique_competition_id_values": len(unique_comp_ids),
+            "successful_api_rows": sum(r["api_success"] is True for r in results),
+            "raw_provider_payloads_saved": False, "api_key_logged_or_saved": False,
+            "production_logic_or_probabilities_changed": False,
+            "production_readiness": "NOT_GRANTED",
+            "interpretation": "One-row schema probe per selected ID only; not proof of full historical coverage or canonical identity until independently reconciled."
+          }
+          (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(summary, indent=2))
+          PY
+      - name: Upload sanitized reconciliation only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-parent-id-reconciliation
+          path: parent-id-reconciliation/
+          if-no-files-found: warn
+          retention-days: 14
