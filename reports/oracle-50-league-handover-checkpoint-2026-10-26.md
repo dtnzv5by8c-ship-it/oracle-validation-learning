@@ -192,3 +192,35 @@ Latest runtime walk-forward diagnostics:
 - Identity resolution outcome is unchanged: 21 candidate mappings require human/authoritative approval; 29 have no unique match in the protected 27-league registry; zero verified provider-to-canonical bridges, fixture identities or team identities. No mappings have been silently promoted.
 - Settlement/market decision is unchanged: official settlement truth remains unverified; BTTS and DC remain research-only pending exact fixture/final-score verification; Combo Home/Away remain blocked by the predictor/ledger target mismatch. No production logic or probabilities changed.
 - Executive decision: production readiness remains `NOT_GRANTED`. Remaining blockers require authoritative identity bridges, exact fixture/team joins, trusted official settlement labels and governed Combo market-definition reconciliation. These cannot be truthfully completed from current repository evidence alone; no additional paid provider calls were made.
+
+
+## Update — provider parent-ID reconciliation and runtime cost guard (2026-10-26)
+
+### Verified provider evidence
+
+- Read-only FootyStats parent-ID probe completed successfully in [run 40382835076](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40382835076), workflow commit `19248b3fefffe7fd82bf99eaaeb3dcf15dafc802`.
+- The probe made exactly 50 read-only requests, one match row per selected ID, with a 50-request hard cap, no retries, and a 2.1-second delay between requests to remain below 30 requests/minute. All 50 returned HTTP 200 and `success=true`.
+- Direct match-record evidence returned `competition_id` equal to the selected ID for 50/50 leagues; all 50 competition IDs were unique. The one-row probe also exposed 50 unique source match IDs and home/away team IDs for all 50 leagues.
+- Sample record statuses: 24 `complete`, 26 `incomplete`. These are schema/identity samples only; they are not a full-history reconciliation. Scores on incomplete records (commonly 0-0) are not outcome truth, and even complete samples still require canonical fixture/team joins and authoritative settlement verification.
+- Last observed provider request-window remaining: 1,750. This is only a request-window signal; monthly credit balance was not exposed or verified. No raw provider payload or API key was saved or published.
+- Workflow artifact ID `12679900833`; ZIP SHA-256 `68eebc2ae98a701284aa128a6b969e7637f86f737a12602cd2de2d53d656249b`; original sanitized CSV SHA-256 `2fc3bb76b9051d32c3645de58ba5a1385a01e5601cc383e0da7390a3b8aa835b`; summary SHA-256 `859780c779ba6b357d66474eaed9809ecbc1221959407dc4b542c815230637e4`.
+- Persisted the sanitized 50-row evidence in `reports/oracle-selected50-parent-id-probe-2026-10-26.csv` (blob SHA `6bfc5e77f2046191b79a54053ea3a7b4ddf75dc7`) so it does not depend on the 14-day workflow-artifact retention period.
+
+### Updated identity crosswalk and matrix
+
+- Updated `reports/oracle-selected50-identity-and-market-gate-matrix-2026-10-26.csv` (blob SHA `8c2ff966aad565f4471b6fbd2fa56255a6b07c33`) with the observed provider parent competition ID, evidence run, and one-sample source fixture/team/status/kickoff/score fields for every league.
+- Updated `reports/oracle-selected50-protected-registry-candidate-crosswalk-2026-10-26.csv` (blob SHA `b8bfb42766a13feaa9f99408bcea99f1f40f8e13`) to reflect that the provider match endpoint confirms the selected ID as `competition_id`. Provider-to-canonical verification remains `NO`; exact source IDs do not automatically establish Oracle canonical IDs.
+- Re-inspected the private canonical registry read-only: `config/oracle_major_league_registry_v1.json` blob SHA `81d6db487e498fc84a87a7457b0de7215537f15c` contains 27 canonical league entries with code/country/competition/readiness fields, but no FootyStats provider-ID field in the registry entries. No private file was changed and no production workflow was run.
+- Current mapping counts remain 21 candidate canonical rows requiring authoritative/human approval and 29 leagues with no unique row in the protected 27-league registry. Verified provider-ID-to-canonical bridges: 0; canonical fixture identities: 0; canonical team identities: 0. The 21 candidates are not auto-approved based on names.
+- Matrix now explicitly distinguishes source provider IDs observed from canonical joins still unverified. BTTS and Double Chance remain research-only; official settlement truth remains unverified; Combo Home/Away remain blocked for the predictor-versus-ledger target mismatch; every row remains `production_eligible=NO`.
+
+### Workflow efficiency and verification
+
+- The parent-ID workflow was made rate-limited and expanded to emit only allowlisted fixture/team/status/score fields; raw payloads remain suppressed. Contract coverage asserts the hard cap, 2.1-second delay, request-window guard, sanitized output, and absence of credential/raw-payload logging.
+- Added validation of the persisted 50-row probe and the updated matrix. Safety contracts passed on commit `e1ddbaa1018738a41bfdd21415eef1c17c411063` in [run 40383685732](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40383685732). The earlier stale assertion failure on intermediate commit `87246da8d7702a8cd7b305f22b11303b6d07209a` was corrected; the subsequent safety run passed.
+- Root-cause efficiency fix: the research runtime workflow now ignores report-, test-, and Markdown-only pushes, preventing costly full backtests from being started for checkpoint and report commits. Workflow change commit `c5e9a0bb865fd9352a418e8d7a64b7574684a60c`; guard test commit `f41323e0031887f991fd695dc65895c5878155aa`. Safety/dry-run runs were still in progress for the newest trigger-filter commit at the time of this checkpoint; verify their final statuses before claiming completion.
+- Latest known runtime [40383685862](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40383685862) was still in progress when this checkpoint was updated. Older redundant runtime jobs were triggered by earlier report/test commits before the new path filter took effect; do not start more runtime runs merely to refresh documents.
+
+### Executive decision
+
+Provider parent competition IDs are now verified from direct match records for all 50 selected IDs. This closes one identity-evidence gap but **does not** establish the provider-to-Oracle canonical crosswalk, exact canonical fixture/team identity, historical outcome truth, point-in-time feature provenance, or market settlement semantics. No production registry/model/probability/calibration/threshold/ledger was changed. Production release remains `NOT_GRANTED`; do not spend further provider credits without a new explicit authorization.
