@@ -611,3 +611,10 @@ Done means a real, traceable run has ingested supported historical/current data 
 - No provider requests were made for these code changes. The new tests have not yet been run in GitHub Actions because no workflow-dispatch action is available from this session; they require CI verification before live ingestion.
 - User action needed for the next live stage: manually dispatch the public ingestion workflow with `confirm_provider_credit_usage=true`, after checking the existing Hobby credit allowance and the configured `FOOTYSTATS_API_KEY` and `ORACLE_PRIVATE_REPO_TOKEN` secrets. If successful, capture the generated private release tag from the sanitized run summary; then manually dispatch the Selected-50 research runtime with `confirm_private_archive_read=true` and that exact tag. Do not run the runtime against an older tag and assume it contains the new ingestion.
 - Do not start either live stage if the current Hobby credit allowance is not independently clear. No package upgrade, additional spend, private-repository Actions run, raw public export, or production logic/probability/calibration/threshold change is authorized. Production remains `NOT_GRANTED`; canonical parent competition IDs, fixture/team joins, current schedule, point-in-time features and official settlement truth still gate the final 50-league report.
+
+
+## 53. Offline safety-test workflow — 2026-10-26
+
+- Added manual-only workflow `.github/workflows/oracle-selected50-contract-tests.yml` (commit `e5036370264f2e02272c0924f4733a8bb0986938`) to run `test_footystats_selected50_bounded_probe_contract.py` on a public runner using Python's standard library.
+- The test workflow has no provider API calls, no private archive read, no secrets, no data transfer and no production side effects. Run it before dispatching either live ingestion or the research runtime. Workflow URL: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml
+- The current session cannot dispatch GitHub Actions, so this workflow has been created but not yet run. Do not report its tests as passing until the Actions run completes successfully.
