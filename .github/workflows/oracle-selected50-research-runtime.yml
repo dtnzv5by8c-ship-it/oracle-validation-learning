@@ -9,6 +9,7 @@ on:
       - "tests/**"
       - "*.md"
       - "**/*.md"
+      - ".github/workflows/**"
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
