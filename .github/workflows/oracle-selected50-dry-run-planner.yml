@@ -100,6 +100,10 @@ jobs:
         run: python scripts/build_selected50_archive_evidence_reconciliation.py
       - name: Test selected-50 archive evidence reconciliation
         run: python tests/test_selected50_archive_evidence_reconciliation.py
+      - name: Build latest sanitized private-archive coverage matrix (no network calls)
+        run: python scripts/build_selected50_latest_private_archive_coverage.py
+      - name: Test latest sanitized private-archive coverage matrix
+        run: python tests/test_selected50_latest_private_archive_coverage.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
