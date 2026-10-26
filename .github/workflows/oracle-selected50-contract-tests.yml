@@ -1,0 +1,25 @@
+name: Oracle Selected-50 Safety Contract Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run offline safety contract tests
+        run: python -m unittest discover -s tests -p "test_footystats_selected50_bounded_probe_contract.py" -v
