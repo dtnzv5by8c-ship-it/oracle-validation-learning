@@ -11,6 +11,7 @@ from sklearn.metrics import brier_score_loss, log_loss, accuracy_score, roc_auc_
 
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
+PARENT_ID_PROBE = Path("reports/oracle-selected50-parent-id-probe-2026-10-26.csv")
 OUT = Path("selected50_runtime_output")
 OUT.mkdir(exist_ok=True)
 PRIMARY_START = dt.datetime(2025, 3, 20, tzinfo=dt.timezone.utc).timestamp()
@@ -199,6 +200,27 @@ def main():
     selected=list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig",newline="")))
     selected_by_id={str(r.get("selected_id","")).strip():r for r in selected}
     if len(selected)!=50 or len(selected_by_id)!=50 or "" in selected_by_id: raise SystemExit("Selected-50 manifest is not exactly 50 unique IDs.")
+
+    # Separate provider match-record probe evidence from the older archive-catalogue metadata.
+    # This confirms provider competition IDs, not Oracle canonical IDs or settlement truth.
+    parent_probe_rows=[]
+    parent_probe_by_id={}
+    parent_probe_status="PROBE_EVIDENCE_NOT_AVAILABLE"
+    if PARENT_ID_PROBE.is_file():
+        with PARENT_ID_PROBE.open(encoding="utf-8-sig",newline="") as probe_file:
+            parent_probe_rows=list(csv.DictReader(probe_file))
+        parent_probe_by_id={str(r.get("selected_id","")).strip():r for r in parent_probe_rows}
+        if len(parent_probe_rows)!=50 or len(parent_probe_by_id)!=50 or "" in parent_probe_by_id:
+            raise SystemExit("Parent-ID probe evidence must contain exactly 50 unique selected IDs; fail closed.")
+        if set(parent_probe_by_id)!=set(selected_by_id):
+            raise SystemExit("Parent-ID probe evidence IDs do not match the selected-50 manifest; fail closed.")
+        if any(str(r.get("provider_competition_id","")).strip()!=sid for sid,r in parent_probe_by_id.items()):
+            raise SystemExit("Parent-ID probe provider competition ID mismatch; fail closed.")
+        if len({str(r.get("provider_match_id","")).strip() for r in parent_probe_rows})!=50:
+            raise SystemExit("Parent-ID probe source match IDs are not unique; fail closed.")
+        if any(not str(r.get("home_team_id","")).strip() or not str(r.get("away_team_id","")).strip() for r in parent_probe_rows):
+            raise SystemExit("Parent-ID probe lacks one or more source team IDs; fail closed.")
+        parent_probe_status="MATCH_RECORD_PROBE_VERIFIED_50_OF_50"
     with zipfile.ZipFile(ARCHIVE) as z:
         names=set(z.namelist())
         mn=next((n for n in names if n.endswith("ingestion_manifest.json")),None)
@@ -975,9 +997,20 @@ def main():
             "production_model_logic_changed":False,"production_probabilities_changed":False,"production_readiness":"NOT_GRANTED",
             "governed_fixture_report_status":governed_report_qa["status"],"governed_fixture_report_rows":governed_report_qa["fixture_rows"],"governed_combo_home_probabilities_masked":governed_report_qa["raw_combo_home_probabilities_masked"],"governed_combo_away_probabilities_masked":governed_report_qa["raw_combo_away_probabilities_masked"],
             "calendar_year_coverage_rows":len(calendar_year_rows),"league_market_readiness_rows":len(league_market_readiness),"league_walk_forward_metrics_rows":len(league_walk_forward_metrics),"observed_calendar_year_min":min(observed_years),"observed_calendar_year_max":max(observed_years),
+            # These three legacy counters are specifically about the private archive catalogue manifest.
             "provider_parent_competition_ids_verified":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "VERIFIED_FROM_PROVIDER_CATALOGUE_MANIFEST"),
             "provider_parent_competition_ids_ambiguous":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS"),
             "provider_parent_competition_ids_unavailable":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "UNAVAILABLE_IN_ARCHIVE_MANIFEST"),
+            "provider_parent_competition_ids_verified_from_match_probe":sum(1 for r in parent_probe_rows if str(r.get("provider_competition_id","")).strip()==str(r.get("selected_id","")).strip()),
+            "provider_parent_competition_id_probe_status":parent_probe_status,
+            "provider_parent_competition_id_probe_rows":len(parent_probe_rows),
+            "provider_parent_competition_id_probe_evidence_run":"40382835076" if parent_probe_status=="MATCH_RECORD_PROBE_VERIFIED_50_OF_50" else "",
+            "provider_sample_fixture_ids_observed":sum(1 for r in parent_probe_rows if str(r.get("provider_match_id","")).strip()),
+            "provider_sample_home_away_team_id_pairs_observed":sum(1 for r in parent_probe_rows if str(r.get("home_team_id","")).strip() and str(r.get("away_team_id","")).strip()),
+            "provider_sample_complete_status_count":sum(1 for r in parent_probe_rows if str(r.get("provider_match_status","")).strip()=="complete"),
+            "provider_sample_incomplete_status_count":sum(1 for r in parent_probe_rows if str(r.get("provider_match_status","")).strip()=="incomplete"),
+            "provider_to_canonical_bridges_verified":0,
+            "provider_sample_scores_are_settlement_truth":False,
             "provider_season_year_metadata_rows":sum(1 for r in season_qa if r.get("provider_season_year_source")),
             "provider_season_year_coverage_rows":len(provider_season_year_rows),
             "provider_season_start_year_min":min(provider_season_years),
@@ -988,6 +1021,8 @@ def main():
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
              "H2H is descriptive only and not a model feature. Current team table positions are display-only snapshots, not historical standings.",
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
+             "The separate match-record probe verifies provider competition IDs for all 50 selected IDs; Oracle canonical league/fixture/team joins remain unverified.",
+             "Sample scores from the one-row provider probe are identity/schema evidence only and are not settlement truth.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
