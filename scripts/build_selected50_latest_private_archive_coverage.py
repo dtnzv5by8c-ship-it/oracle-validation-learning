@@ -82,7 +82,7 @@ def main() -> None:
 
     out_fields = [
         "selected_id", "country", "competition", "provider_season_year_raw",
-        "season_label_format_status", "manifest_status", "file_status",
+        "season_label_format_status", "manifest_status", "selected_id_semantics_status",
         "crosswalk_candidate_code", "crosswalk_status", "provider_season_fixture_records",
         "provider_season_team_records", "provider_primary_window_fixture_rows",
         "provider_past_date_fixture_rows", "provider_future_date_fixture_rows",
@@ -117,7 +117,7 @@ def main() -> None:
             "provider_season_year_raw": raw_year,
             "season_label_format_status": year_status,
             "manifest_status": row.get("provider_ingestion_run_status", ""),
-            "file_status": "OK" if number(row, "provider_season_fixture_records") > 0 else "MISSING_OR_EMPTY",
+            "selected_id_semantics_status": row.get("provider_selected_id_semantics", ""),
             "crosswalk_candidate_code": row.get("canonical_code_candidate", ""),
             "crosswalk_status": row.get("crosswalk_status", ""),
             "provider_season_fixture_records": row.get("provider_season_fixture_records", ""),
