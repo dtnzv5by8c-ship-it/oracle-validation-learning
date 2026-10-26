@@ -28,3 +28,14 @@ Read-only review of existing canonical-registry and source-manifest evidence to 
 ## Safe next action
 
 Use a provider-owned ID catalogue or a separately authoritative crosswalk that explicitly links FootyStats competition/season IDs to Oracle canonical IDs, then independently verify fixture and team identities. If no such source exists in the approved data, the unresolved rows must remain quarantined. Do not modify the protected production registry or infer mappings from names.
+
+
+## Additional provider-documentation evidence — 2026-10-26
+
+The official FootyStats API documentation was reviewed to resolve the semantics of the match-record `competition_id` field:
+
+- [League List API documentation](https://footystats.org/api/documentations/league-list) states that each season of a competition has a unique ID and identifies `season > id` as the season ID.
+- [League Matches API documentation](https://footystats.org/api/documentations/match-schedule-and-stats) defines the `season_id` request parameter as the ID of the league season (lines 93–97) and describes the response field `competition_id` as “Season ID of the league” (lines 365–367).
+- The prior bounded live probe and match-coverage audit observed the same selected ID in `competition_id` across 50/50 groups. This observation is now interpreted consistently with the provider's published field definition: it is evidence of the **season ID**, not a parent competition ID.
+- The 50-row identity matrix and runtime QA terminology were updated accordingly. No parent competition ID was inferred, no canonical mapping was approved, and no fixture/team identity or settlement-truth gate was relaxed.
+- The official docs resolve a naming/semantics ambiguity only. They do not supply a parent competition ID, Oracle canonical ID bridge, canonical fixture/team crosswalk, or independently verified final settlement outcomes.
