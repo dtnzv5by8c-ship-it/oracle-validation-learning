@@ -203,7 +203,8 @@ def main():
     if len(selected)!=50 or len(selected_by_id)!=50 or "" in selected_by_id: raise SystemExit("Selected-50 manifest is not exactly 50 unique IDs.")
 
     # Separate provider match-record probe evidence from the older archive-catalogue metadata.
-    # This confirms provider competition IDs, not Oracle canonical IDs or settlement truth.
+    # Official docs define match-record competition_id as the league season ID, not the parent competition ID.
+    # This does not establish Oracle canonical IDs or settlement truth.
     parent_probe_rows=[]
     parent_probe_by_id={}
     parent_probe_status="PROBE_EVIDENCE_NOT_AVAILABLE"
@@ -221,7 +222,7 @@ def main():
             raise SystemExit("Parent-ID probe source match IDs are not unique; fail closed.")
         if any(not str(r.get("home_team_id","")).strip() or not str(r.get("away_team_id","")).strip() for r in parent_probe_rows):
             raise SystemExit("Parent-ID probe lacks one or more source team IDs; fail closed.")
-        parent_probe_status="MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED"
+        parent_probe_status="MATCH_RECORD_COMPETITION_ID_DOCUMENTED_AS_SEASON_ID_50_OF_50_PARENT_ID_NOT_PROVIDED"
 
     # Validate the persisted first-page coverage audit while keeping identity and settlement gates closed.
     if not IDENTITY_GATE_MATRIX.is_file():
@@ -240,8 +241,10 @@ def main():
             raise SystemExit("Identity/market matrix contains a production-eligible row; fail closed.")
         if row.get("provider_to_canonical_bridge") != "UNVERIFIED" or row.get("official_settlement_truth") != "UNVERIFIED":
             raise SystemExit("Identity/market matrix promotes an unverified bridge or settlement truth; fail closed.")
-        if row.get("provider_competition_id_observation_status") != "OBSERVED_IN_MATCH_RECORDS_PARENT_SEMANTICS_UNVERIFIED":
-            raise SystemExit("Provider competition-ID semantics were incorrectly promoted; fail closed.")
+        if row.get("provider_competition_id_observation_status") != "PROVIDER_DOCS_DEFINE_COMPETITION_ID_AS_SEASON_ID_NOT_PARENT_ID":
+            raise SystemExit("Provider match competition_id must remain explicitly typed as season ID, not parent ID; fail closed.")
+        if "Official FootyStats docs define league-matches competition_id as the league season ID" not in row.get("provider_competition_id_evidence_scope", ""):
+            raise SystemExit("Official provider field-semantics evidence missing from identity matrix; fail closed.")
         if row.get("provider_competition_id_observed_value") != sid or row.get("provider_match_coverage_competition_id_matches_selected_id") != "YES":
             raise SystemExit("Observed provider competition-ID relationship mismatch; fail closed.")
         if row.get("provider_match_coverage_audit_run") != "40391540391":
@@ -1045,7 +1048,10 @@ def main():
             "provider_competition_id_field_matches_selected_id_in_match_probe":sum(1 for r in parent_probe_rows if str(r.get("provider_competition_id","")).strip()==str(r.get("selected_id","")).strip()),
             "provider_competition_id_match_probe_status":parent_probe_status,
             "provider_competition_id_match_probe_rows":len(parent_probe_rows),
-            "provider_competition_id_match_probe_evidence_run":"40382835076" if parent_probe_status=="MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED" else "",
+            "provider_competition_id_match_probe_evidence_run":"40382835076" if parent_probe_status=="MATCH_RECORD_COMPETITION_ID_DOCUMENTED_AS_SEASON_ID_50_OF_50_PARENT_ID_NOT_PROVIDED" else "",
+            "provider_competition_id_field_semantics_documented_as_season_id":True,
+            "provider_competition_id_field_semantics_source":"Official FootyStats API docs define league-matches competition_id as the league season ID; league-list says each season of a competition has a unique ID.",
+            "provider_competition_id_field_semantics_source_urls":"https://footystats.org/api/documentations/match-schedule-and-stats;https://footystats.org/api/documentations/league-list",
             "provider_competition_id_parent_semantics_verified":False,
             "provider_match_coverage_matrix_status":provider_match_coverage_status,
             "provider_match_coverage_audit_run":"40391540391",
@@ -1077,7 +1083,7 @@ def main():
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
              "H2H is descriptive only and not a model feature. Current team table positions are display-only snapshots, not historical standings.",
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
-             "The provider match-record audit observed competition_id equal to the selected ID across 50 groups, but returned rows exposed no non-empty season_id values; parent-competition semantics and Oracle canonical league/fixture/team joins remain unverified.",
+             "Official FootyStats API docs define the match-record competition_id field as the league season ID and the league-list endpoint documents a unique ID per season. The 50/50 live match-record equality therefore confirms a season-ID relationship, not a parent competition ID or Oracle canonical league/fixture/team join.",
              "The 14,051-row first-page audit measures provider fixture-ID uniqueness and status/field presence only; score fields on incomplete/suspended rows are not settlement truth.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
