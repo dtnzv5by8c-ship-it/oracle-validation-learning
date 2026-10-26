@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - research/oracle-50-league-readiness-audit
+    paths-ignore:
+      - "reports/**"
+      - "*.md"
+      - "**/*.md"
   workflow_dispatch:
 permissions:
   contents: read
