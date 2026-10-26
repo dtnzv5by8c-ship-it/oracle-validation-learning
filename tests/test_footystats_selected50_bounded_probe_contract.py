@@ -147,5 +147,22 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn('provider_to_canonical_bridges_verified") == 0', validator)
 
 
+    def test_parent_id_audit_is_bounded_and_summarizes_first_page_coverage(self):
+        audit = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
+        self.assertIn('MAX_API_REQUESTS = 50', audit) if 'MAX_API_REQUESTS = 50' in audit else self.assertIn('if calls >= 50:', audit)
+        self.assertIn('"max_per_page": 1000', audit)
+        self.assertIn('"pager_max_page"', audit)
+        self.assertIn('"unique_fixture_ids_on_page"', audit)
+        self.assertIn('"duplicate_fixture_id_rows_on_page"', audit)
+        self.assertIn('"status_counts_json"', audit)
+        self.assertIn('"rows_with_both_team_ids"', audit)
+        self.assertIn('"rows_with_both_score_fields"', audit)
+        self.assertIn('"first_page_only": True', audit)
+        self.assertIn('"raw_provider_payloads_saved": False', audit)
+        self.assertIn('"monthly_credit_budget_verified": False', audit)
+        self.assertIn("if not ok:", audit)
+        self.assertIn("no retries", audit.lower())
+
+
 if __name__ == "__main__":
     unittest.main()
