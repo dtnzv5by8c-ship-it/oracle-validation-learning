@@ -51,7 +51,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         trigger = runtime.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertIn("\n  push:", trigger)
-        self.assertIn("research-selected50-footystats-history-40349639485", trigger)
+        self.assertIn("research-selected50-footystats-history-40355232706", trigger)
         self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
         self.assertIn("Invalid private archive release tag format.", runtime)
         self.assertIn("Explicit private archive read confirmation required.", runtime)
