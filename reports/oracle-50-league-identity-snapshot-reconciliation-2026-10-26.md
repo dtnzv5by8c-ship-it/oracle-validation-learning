@@ -2,6 +2,12 @@
 
 **Status:** Research-only evidence reconciliation; production eligibility is NOT GRANTED.
 
+## Build verification
+
+- Dry-run [40252186906 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40252186906) on commit ee6aeaf3779dbb39e6fb34652e54be6792e46141.
+- Artifact [12620986710](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40252186906/artifacts/12620986710), SHA-256 df3b28a2ae1e759317982d678d137a53b2b0b30787038084c87298b18c13b458.
+- Snapshot-scope builder and regression test both passed. This is a no-network evidence/reporting check, not a new prediction run.
+
 ## Verified source layers
 
 - Provider ingestion run 40176065362: SUCCESS_50_OF_50_SEASONS_INGESTED.
