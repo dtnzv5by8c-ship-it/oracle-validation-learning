@@ -1,6 +1,9 @@
 name: Oracle Selected-50 Research Runtime and Backtest
 
 on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
@@ -11,7 +14,7 @@ on:
       private_archive_release_tag:
         description: "Exact private research archive release tag to read"
         required: true
-        default: "research-selected50-footystats-history-20261025"
+        default: "research-selected50-footystats-history-40320274133"
         type: string
 
 permissions:
@@ -44,7 +47,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag || 'research-selected50-footystats-history-40320274133' }}
         run: |
           set -euo pipefail
           [[ "${PRIVATE_ARCHIVE_RELEASE_TAG}" =~ ^research-selected50-footystats-history-[0-9]+$ ]] || { echo "::error::Invalid private archive release tag format."; exit 1; }
@@ -99,5 +102,5 @@ jobs:
           TAG="research-selected50-runtime-${GITHUB_RUN_ID}"
           gh release create "$TAG" oracle-selected50-normalized-research-candidate.zip private-runtime-candidate.sha256 \
             --repo dtnzv5by8c-ship-it/oracle-football-data \
-            --title "Research Selected-50 Normalized Runtime Candidate 2026-10-25" \
+            --title "Research Selected-50 Normalized Runtime Candidate 2026-10-26" \
             --notes "Isolated research-only normalized match/features and prediction candidate. No production promotion; existing model logic and production probabilities unchanged."
