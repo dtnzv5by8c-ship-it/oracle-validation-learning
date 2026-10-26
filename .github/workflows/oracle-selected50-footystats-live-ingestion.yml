@@ -34,7 +34,7 @@ jobs:
           [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing; no provider calls made."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing; no provider calls made."; exit 1; }
           gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
-          TAG=research-selected50-footystats-history-20261025
+          TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"
           TARGET=dtnzv5by8c-ship-it/oracle-football-data
           # Fail before any FootyStats request if the token cannot publish the private archive.
           gh api "repos/$TARGET" --jq '.permissions.push // false' | grep -qx true || {
@@ -77,13 +77,20 @@ jobs:
           ledger = []
           api_calls = 0
           stopped = False
+          MAX_API_REQUESTS = 250
+          MIN_REQUEST_WINDOW_REMAINING = 25
+          request_remaining = None
 
           def api(endpoint, params, retries=2):
-              global api_calls
+              global api_calls, request_remaining
               q = dict(params)
               q["key"] = KEY
               url = BASE + endpoint + "?" + urlencode(q)
               for attempt in range(retries + 1):
+                  if api_calls >= MAX_API_REQUESTS:
+                      raise RuntimeError("request_hard_cap_reached")
+                  if request_remaining is not None and request_remaining < MIN_REQUEST_WINDOW_REMAINING:
+                      raise RuntimeError("provider_request_window_low")
                   api_calls += 1
                   try:
                       req = Request(url, headers={"User-Agent": "Oracle-Selected50-Historical-Ingestion/1.0"})
@@ -91,6 +98,15 @@ jobs:
                           payload = json.loads(response.read().decode("utf-8"))
                       if not isinstance(payload, dict) or payload.get("success") is not True:
                           raise RuntimeError("provider_success_false")
+                      metadata = payload.get("metadata")
+                      if not isinstance(metadata, dict):
+                          data_obj = payload.get("data")
+                          metadata = data_obj.get("metadata") if isinstance(data_obj, dict) else None
+                      raw_remaining = metadata.get("request_remaining") if isinstance(metadata, dict) else None
+                      try:
+                          request_remaining = int(raw_remaining) if raw_remaining is not None else None
+                      except (TypeError, ValueError):
+                          request_remaining = None
                       # Hobby allows 1,800 requests/hour: stay below 30 requests/minute.
                       time.sleep(2.1)
                       return payload
@@ -123,6 +139,12 @@ jobs:
                   "error_class": str(exc), "raw_provider_data_saved_publicly": False
               }, indent=2) + "\n", encoding="utf-8")
               raise SystemExit("Catalogue request failed; response body suppressed and no season calls attempted.")
+          # Provider request_remaining is only a request-window signal, not proof of monthly credits.
+          # Require it to cover the configured cap before proceeding beyond the catalogue call.
+          if request_remaining is None:
+              raise SystemExit("STOP: provider request-window metadata unavailable; no season calls attempted.")
+          if request_remaining < MAX_API_REQUESTS:
+              raise SystemExit("STOP: provider request-window remaining is below the 250-request hard cap; no season calls attempted.")
           catalog = catalogue_payload.get("data")
           if not isinstance(catalog, list):
               raise SystemExit("Catalogue data shape invalid; raw response not logged or saved publicly.")
@@ -221,7 +243,8 @@ jobs:
                   # Keep only sanitized class/status; never include response body or request URL.
                   err = str(exc)
                   result.update({"status": "FAILED", "error_class": err})
-                  stopped = err in ("provider_http_401", "provider_http_403", "provider_http_429")
+                  stopped = err in ("provider_http_401", "provider_http_403", "provider_http_429",
+                                    "request_hard_cap_reached", "provider_request_window_low")
                   ledger.append(result)
                   if stopped:
                       break
@@ -239,6 +262,9 @@ jobs:
               "seasons_ingested": sum(r.get("status") == "INGESTED" for r in ledger),
               "seasons_failed": sum(r.get("status") == "FAILED" for r in ledger),
               "api_requests": api_calls,
+              "api_request_hard_cap": MAX_API_REQUESTS,
+              "provider_request_window_remaining_last_observed": request_remaining,
+              "provider_request_window_is_not_monthly_credit_proof": True,
               "status": "COMPLETED" if not missing and len(exact) == 50 and len(ledger) == len(historical_targets) and all(r.get("status") == "INGESTED" for r in ledger) else "COMPLETED_WITH_GAPS",
               "raw_provider_payload_saved_publicly": False,
               "production_model_logic_changed": False,
