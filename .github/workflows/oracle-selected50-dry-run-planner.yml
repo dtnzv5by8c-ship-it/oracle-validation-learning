@@ -185,6 +185,8 @@ jobs:
           PY
       - name: Test conservative FootyStats season-year normalization (no network calls)
         run: python tests/test_footystats_season_year_normalizer.py
+      - name: Test bounded Selected-50 probe governance contract (no network calls)
+        run: python tests/test_footystats_selected50_bounded_probe_contract.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
