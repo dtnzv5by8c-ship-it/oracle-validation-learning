@@ -223,7 +223,7 @@ Latest runtime walk-forward diagnostics:
 
 ### Executive decision
 
-Provider parent competition IDs are now verified from direct match records for all 50 selected IDs. This closes one identity-evidence gap but **does not** establish the provider-to-Oracle canonical crosswalk, exact canonical fixture/team identity, historical outcome truth, point-in-time feature provenance, or market settlement semantics. No production registry/model/probability/calibration/threshold/ledger was changed. Production release remains `NOT_GRANTED`; do not spend further provider credits without a new explicit authorization.
+The provider match-record probe observed `competition_id` equal to the selected ID for all 50 selected groups, but the response rows exposed no non-empty `season_id` values. This is **not proof of parent-competition semantics** and does not establish a provider-to-Oracle canonical crosswalk, exact canonical fixture/team identity, historical outcome truth, point-in-time feature provenance, or market settlement semantics. No production registry/model/probability/calibration/threshold/ledger was changed. Production release remains `NOT_GRANTED`.
 
 
 ## Update — runtime QA now consumes parent-ID probe evidence (2026-10-26)
@@ -235,3 +235,41 @@ Provider parent competition IDs are now verified from direct match records for a
 - A prior runtime after the identity matrix update passed output-contract validation in [40383594810](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40383594810), artifact ID `12678584584`, ZIP SHA-256 `6eeff0cbcfa6de7a3ff523360a1fd2bdc7b6d15cd6eb177c4da17a53c0e2d4e1`. That artifact predates the new probe-QA fields, so it is not evidence that the latest script integration has passed.
 - The runtime workflow now ignores report/test/Markdown-only pushes; subsequent checkpoint/report edits should not start another expensive backtest. The current in-progress runtime jobs were started by earlier code commits before the trigger guard had fully taken effect.
 - Production model logic, production probabilities, calibration, thresholds, registries and ledgers remain unchanged. Production readiness remains `NOT_GRANTED`.
+
+
+## Update — bounded 50-league match coverage audit and corrected identity semantics (2026-10-26)
+
+### Verified provider audit
+
+- Workflow run [40391540391](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40391540391) completed **SUCCESS** on workflow commit `af143fcd42f3f320027e67dbd0f7d5184b85f938`.
+- Sanitized artifact ID `12684045977`; artifact ZIP SHA-256 `47392a7986e43d35bc9ada442e157d52fa945b51175d7f1e632bd03c34e67f6`; artifact link: [match-coverage audit artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40391540391#artifacts).
+- The workflow used 50 read-only requests, hard cap 50, no retries. All 50 returned HTTP 200 and provider `success=true`. Last observed provider request-window remaining was 1,750; **monthly credit/billing balance remains unverified** and must not be inferred from that value.
+- First-page results: 14,051 match rows; 14,051 unique fixture IDs within their respective selected groups; zero duplicate fixture-ID rows; `pager.max_page=1` for all 50 groups. All 14,051 rows had a status field, both provider team IDs, both score fields and a Unix kickoff field.
+- Provider status counts: `complete=7,040`, `incomplete=6,958`, `suspended=53`. Kickoff range observed: 2026-01-16 23:20:00 UTC through 2027-06-06 00:00:00 UTC.
+- No non-empty `season_id` field values were returned. The rows expose `competition_id` and `season`; `competition_id` equals the selected ID in all 50 groups. This is an observed provider-field relationship only, **not** proof of parent-competition semantics or canonical Oracle identity. Score-field presence does not establish final-score/settlement truth, especially for incomplete or suspended rows.
+- No raw provider payloads or API keys were saved. No production logic or probabilities were changed.
+
+### Saved research artifacts and code
+
+- Expanded the identity/market matrix to 43 columns, adding per-league first-page row counts, status counts, fixture-ID uniqueness, team/score/kickoff field presence, pagination and evidence-run identifiers. Current matrix blob SHA: `ae08700e2d16c2a83ed7157b7c021a65714bbd52`.
+- Permanent summary and league-by-league table: [Selected-50 match-coverage audit report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-match-coverage-audit-2026-10-26.md), created in commit `346111724ac61aad37d939842d5b181eea871590`.
+- Identity reconciliation ledger updated to distinguish provider `competition_id` observation from canonical mapping. Current ledger blob SHA: `d73c8505d6d08b15a4d0428bfc1083a9d76353c2`.
+- Audit workflow code was corrected to use the provider `season` field instead of a misleading `season_id` comparison and changed to manual-dispatch-only to prevent accidental API calls from workflow-file edits. This corrected workflow version has **not** been rerun; the evidence above belongs to run `40391540391`. No further provider requests were made.
+- Research runtime and validator now load and enforce the persisted 50-row coverage matrix, retain parent-ID semantics as unverified, and report the exact coverage totals. Commit: `5e80a67fe5c8530f417b38cb8aa61d2a90638835`.
+
+### Runtime verification after coverage integration
+
+- Safety contract tests [40392688038](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40392688038): **SUCCESS**.
+- Dry-run planner [40392687717](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40392687717): **SUCCESS**.
+- Research runtime/backtest [40392687925](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40392687925): **SUCCESS**; output contract passed.
+- Runtime artifact ID `12686010824`, SHA-256 `7ac103f46c737a4ec81e70d88d2b6ec31a5818dd84689db1a4da87603898362d`, expires 2026-11-09 20:08:03 UTC.
+- Runtime QA: coverage contract `PASS_PROVIDER_MATCH_COVERAGE_CONTRACT_50_OF_50`; 14,051 first-page rows; 14,051 unique fixture IDs; zero duplicates; zero pagination-truncated groups; 50/50 groups with `competition_id` matching the selected ID; zero non-empty `season_id` values; zero verified provider-to-canonical bridges; parent-competition semantics explicitly `false`.
+- Governed runtime report: 462 fixture rows; 435 Combo Home and 435 Combo Away probabilities masked; all rows remain production-ineligible.
+- Primary-window BTTS holdout remains 53.588% accuracy versus 54.143% majority baseline. Double Chance Home and Away diagnostics remain raw/uncalibrated and are not approved for betting.
+
+### Executive decision and remaining blockers
+
+- The match-coverage and output-contract evidence layer is materially stronger, but canonical identity and settlement gates are **not closed**.
+- Still blocked: authoritative provider-to-Oracle league bridge; exact canonical fixture/team joins; independently verified final-score/settlement labels; historical point-in-time feature/odds/xG provenance; governed Combo predictor-versus-ledger definition reconciliation.
+- No monthly provider credit balance is evidenced. The 50-request batch is complete; do not make further provider calls until an approved safe budget preflight can establish that the planned request count fits the existing limits.
+- Production eligibility remains `NOT_GRANTED`; Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain untouched. All changes are research-only.
