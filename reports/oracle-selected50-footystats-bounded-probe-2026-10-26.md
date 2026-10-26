@@ -55,3 +55,12 @@ The workflow run and endpoint step completed successfully, and the downloaded CS
 3. Refresh the current fixture schedule and immutable point-in-time feature snapshot.
 4. Reconcile official result/settlement truth, especially Combo, before model evaluation.
 5. Only after identity, point-in-time and settlement gates pass, ingest the required historical rows into a safe private destination and validate completeness. Do not publish raw licensed provider data in the public repository.
+
+
+## Follow-up hardening after the probe
+
+- The live workflow is now **manual-dispatch-only**; commits no longer trigger provider calls automatically.
+- The summary checkpoint writer was corrected to preserve a final status instead of overwriting it with an intermediate status. The original artifact above remains immutable and retains its old status field; its independently verified endpoint CSVs remain the evidence for the completed run.
+- Added and CI-tested conservative season-year parsing: `20262027` becomes start 2026/end 2027; `2026` becomes start 2026/end unknown; malformed or unsupported tokens are quarantined. The helper preserves the raw token and does not alter production data/model logic.
+- Added a no-network governance contract test for the live probe. Both new tests passed in [dry-run planner run 40268199040](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40268199040). No additional provider calls were made.
+- Remaining gates are unchanged: authoritative parent competition IDs, canonical fixture/team joins, current schedule refresh, immutable point-in-time feature snapshots, official settlement truth, and Combo/M-1UP readiness.
