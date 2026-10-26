@@ -120,9 +120,24 @@ def main():
     assert feature_qa.get("production_readiness") == "NOT_GRANTED"
     assert feature_qa.get("provider_parent_competition_ids_verified") == 0
     assert feature_qa.get("provider_parent_competition_ids_unavailable") == 50
-    assert feature_qa.get("provider_parent_competition_ids_verified_from_match_probe") == 50
-    assert feature_qa.get("provider_parent_competition_id_probe_status") == "MATCH_RECORD_PROBE_VERIFIED_50_OF_50"
-    assert feature_qa.get("provider_parent_competition_id_probe_rows") == 50
+    assert feature_qa.get("provider_competition_id_field_matches_selected_id_in_match_probe") == 50
+    assert feature_qa.get("provider_competition_id_match_probe_status") == "MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED"
+    assert feature_qa.get("provider_competition_id_match_probe_rows") == 50
+    assert feature_qa.get("provider_competition_id_parent_semantics_verified") is False
+    assert feature_qa.get("provider_match_coverage_matrix_status") == "PASS_PROVIDER_MATCH_COVERAGE_CONTRACT_50_OF_50"
+    assert feature_qa.get("provider_match_coverage_audit_run") == "40391540391"
+    assert feature_qa.get("provider_match_coverage_leagues") == 50
+    assert feature_qa.get("provider_match_coverage_first_page_total_rows") == 14051
+    assert feature_qa.get("provider_match_coverage_unique_fixture_ids_total") == 14051
+    assert feature_qa.get("provider_match_coverage_duplicate_fixture_id_rows_total") == 0
+    assert feature_qa.get("provider_match_coverage_truncated_leagues") == 0
+    assert feature_qa.get("provider_match_coverage_rows_with_status_total") == 14051
+    assert feature_qa.get("provider_match_coverage_rows_with_both_team_ids_total") == 14051
+    assert feature_qa.get("provider_match_coverage_rows_with_both_score_fields_total") == 14051
+    assert feature_qa.get("provider_match_coverage_rows_with_unix_kickoff_total") == 14051
+    assert feature_qa.get("provider_match_coverage_status_counts_json") == '{"complete": 7040, "incomplete": 6958, "suspended": 53}'
+    assert feature_qa.get("provider_match_coverage_groups_matching_selected_id") == 50
+    assert feature_qa.get("provider_explicit_season_id_field_nonempty_rows") == 0
     assert feature_qa.get("provider_to_canonical_bridges_verified") == 0
     assert feature_qa.get("provider_sample_fixture_ids_observed") == 50
     assert feature_qa.get("provider_sample_home_away_team_id_pairs_observed") == 50

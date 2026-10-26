@@ -12,6 +12,7 @@ from sklearn.metrics import brier_score_loss, log_loss, accuracy_score, roc_auc_
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
 PARENT_ID_PROBE = Path("reports/oracle-selected50-parent-id-probe-2026-10-26.csv")
+IDENTITY_GATE_MATRIX = Path("reports/oracle-selected50-identity-and-market-gate-matrix-2026-10-26.csv")
 OUT = Path("selected50_runtime_output")
 OUT.mkdir(exist_ok=True)
 PRIMARY_START = dt.datetime(2025, 3, 20, tzinfo=dt.timezone.utc).timestamp()
@@ -220,7 +221,47 @@ def main():
             raise SystemExit("Parent-ID probe source match IDs are not unique; fail closed.")
         if any(not str(r.get("home_team_id","")).strip() or not str(r.get("away_team_id","")).strip() for r in parent_probe_rows):
             raise SystemExit("Parent-ID probe lacks one or more source team IDs; fail closed.")
-        parent_probe_status="MATCH_RECORD_PROBE_VERIFIED_50_OF_50"
+        parent_probe_status="MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED"
+
+    # Validate the persisted first-page coverage audit while keeping identity and settlement gates closed.
+    if not IDENTITY_GATE_MATRIX.is_file():
+        raise SystemExit("Selected-50 identity/market gate matrix missing; fail closed.")
+    with IDENTITY_GATE_MATRIX.open(encoding="utf-8-sig", newline="") as matrix_file:
+        identity_gate_rows = list(csv.DictReader(matrix_file))
+    identity_gate_by_id = {str(r.get("selected_season_id", "")).strip(): r for r in identity_gate_rows}
+    if len(identity_gate_rows) != 50 or len(identity_gate_by_id) != 50 or "" in identity_gate_by_id:
+        raise SystemExit("Selected-50 identity/market gate matrix must contain exactly 50 unique IDs; fail closed.")
+    if set(identity_gate_by_id) != set(selected_by_id):
+        raise SystemExit("Identity/market gate matrix IDs do not match the selected-50 manifest; fail closed.")
+    coverage_status_counts = Counter()
+    for sid, row in identity_gate_by_id.items():
+        row_count = int(row.get("provider_match_coverage_rows_first_page") or 0)
+        if row.get("production_eligible") != "NO":
+            raise SystemExit("Identity/market matrix contains a production-eligible row; fail closed.")
+        if row.get("provider_to_canonical_bridge") != "UNVERIFIED" or row.get("official_settlement_truth") != "UNVERIFIED":
+            raise SystemExit("Identity/market matrix promotes an unverified bridge or settlement truth; fail closed.")
+        if row.get("provider_competition_id_observation_status") != "OBSERVED_IN_MATCH_RECORDS_PARENT_SEMANTICS_UNVERIFIED":
+            raise SystemExit("Provider competition-ID semantics were incorrectly promoted; fail closed.")
+        if row.get("provider_competition_id_observed_value") != sid or row.get("provider_match_coverage_competition_id_matches_selected_id") != "YES":
+            raise SystemExit("Observed provider competition-ID relationship mismatch; fail closed.")
+        if row.get("provider_match_coverage_audit_run") != "40391540391":
+            raise SystemExit("Unexpected or missing match-coverage evidence run; fail closed.")
+        if row.get("provider_match_coverage_rows_first_page") != row.get("provider_match_coverage_unique_fixture_ids_first_page"):
+            raise SystemExit("First-page fixture ID uniqueness contract failed; fail closed.")
+        if row.get("provider_match_coverage_duplicate_fixture_rows_first_page") != "0" or row.get("provider_match_coverage_pager_max_page") != "1":
+            raise SystemExit("First-page duplicate or pagination gate failed; fail closed.")
+        for field in ("provider_match_coverage_rows_with_status", "provider_match_coverage_rows_with_both_team_ids",
+                      "provider_match_coverage_rows_with_both_score_fields", "provider_match_coverage_rows_with_unix_kickoff"):
+            if row.get(field) != str(row_count):
+                raise SystemExit(f"First-page coverage field {field} is inconsistent; fail closed.")
+        if row.get("provider_match_coverage_nonempty_season_id_field_rows") != "0":
+            raise SystemExit("Unexpected explicit season_id values; review provider identity semantics; fail closed.")
+        counts = json.loads(row.get("provider_match_coverage_status_counts_json") or "{}")
+        if sum(int(v) for v in counts.values()) != row_count:
+            raise SystemExit("Provider status counts do not reconcile to page row count; fail closed.")
+        coverage_status_counts.update({str(k): int(v) for k, v in counts.items()})
+    provider_match_coverage_status = "PASS_PROVIDER_MATCH_COVERAGE_CONTRACT_50_OF_50"
+
     with zipfile.ZipFile(ARCHIVE) as z:
         names=set(z.namelist())
         mn=next((n for n in names if n.endswith("ingestion_manifest.json")),None)
@@ -1001,10 +1042,25 @@ def main():
             "provider_parent_competition_ids_verified":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "VERIFIED_FROM_PROVIDER_CATALOGUE_MANIFEST"),
             "provider_parent_competition_ids_ambiguous":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "AMBIGUOUS_PROVIDER_PARENT_ID_ACROSS_SEASONS"),
             "provider_parent_competition_ids_unavailable":sum(1 for _, status in provider_parent_id_by_selected.values() if status == "UNAVAILABLE_IN_ARCHIVE_MANIFEST"),
-            "provider_parent_competition_ids_verified_from_match_probe":sum(1 for r in parent_probe_rows if str(r.get("provider_competition_id","")).strip()==str(r.get("selected_id","")).strip()),
-            "provider_parent_competition_id_probe_status":parent_probe_status,
-            "provider_parent_competition_id_probe_rows":len(parent_probe_rows),
-            "provider_parent_competition_id_probe_evidence_run":"40382835076" if parent_probe_status=="MATCH_RECORD_PROBE_VERIFIED_50_OF_50" else "",
+            "provider_competition_id_field_matches_selected_id_in_match_probe":sum(1 for r in parent_probe_rows if str(r.get("provider_competition_id","")).strip()==str(r.get("selected_id","")).strip()),
+            "provider_competition_id_match_probe_status":parent_probe_status,
+            "provider_competition_id_match_probe_rows":len(parent_probe_rows),
+            "provider_competition_id_match_probe_evidence_run":"40382835076" if parent_probe_status=="MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED" else "",
+            "provider_competition_id_parent_semantics_verified":False,
+            "provider_match_coverage_matrix_status":provider_match_coverage_status,
+            "provider_match_coverage_audit_run":"40391540391",
+            "provider_match_coverage_leagues":len(identity_gate_rows),
+            "provider_match_coverage_first_page_total_rows":sum(int(r.get("provider_match_coverage_rows_first_page") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_unique_fixture_ids_total":sum(int(r.get("provider_match_coverage_unique_fixture_ids_first_page") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_duplicate_fixture_id_rows_total":sum(int(r.get("provider_match_coverage_duplicate_fixture_rows_first_page") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_truncated_leagues":sum(int(r.get("provider_match_coverage_pager_max_page") or 0)>1 for r in identity_gate_rows),
+            "provider_match_coverage_rows_with_status_total":sum(int(r.get("provider_match_coverage_rows_with_status") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_rows_with_both_team_ids_total":sum(int(r.get("provider_match_coverage_rows_with_both_team_ids") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_rows_with_both_score_fields_total":sum(int(r.get("provider_match_coverage_rows_with_both_score_fields") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_rows_with_unix_kickoff_total":sum(int(r.get("provider_match_coverage_rows_with_unix_kickoff") or 0) for r in identity_gate_rows),
+            "provider_match_coverage_status_counts_json":json.dumps(dict(sorted(coverage_status_counts.items())), sort_keys=True),
+            "provider_match_coverage_groups_matching_selected_id":sum(r.get("provider_match_coverage_competition_id_matches_selected_id")=="YES" for r in identity_gate_rows),
+            "provider_explicit_season_id_field_nonempty_rows":sum(int(r.get("provider_match_coverage_nonempty_season_id_field_rows") or 0) for r in identity_gate_rows),
             "provider_sample_fixture_ids_observed":sum(1 for r in parent_probe_rows if str(r.get("provider_match_id","")).strip()),
             "provider_sample_home_away_team_id_pairs_observed":sum(1 for r in parent_probe_rows if str(r.get("home_team_id","")).strip() and str(r.get("away_team_id","")).strip()),
             "provider_sample_complete_status_count":sum(1 for r in parent_probe_rows if str(r.get("provider_match_status","")).strip()=="complete"),
@@ -1021,8 +1077,8 @@ def main():
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
              "H2H is descriptive only and not a model feature. Current team table positions are display-only snapshots, not historical standings.",
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
-             "The separate match-record probe verifies provider competition IDs for all 50 selected IDs; Oracle canonical league/fixture/team joins remain unverified.",
-             "Sample scores from the one-row provider probe are identity/schema evidence only and are not settlement truth.",
+             "The provider match-record audit observed competition_id equal to the selected ID across 50 groups, but returned rows exposed no non-empty season_id values; parent-competition semantics and Oracle canonical league/fixture/team joins remain unverified.",
+             "The 14,051-row first-page audit measures provider fixture-ID uniqueness and status/field presence only; score fields on incomplete/suspended rows are not settlement truth.",
              "Only explicitly finished matches with numeric scores are used as training truth; unknown status values fail closed."]}
         (OUT/"oracle_selected50_feature_qa.json").write_text(json.dumps(qa,indent=2)+"\n",encoding="utf-8")
         settlement_path = OUT / "oracle_selected50_settlement_truth_qa.csv"
