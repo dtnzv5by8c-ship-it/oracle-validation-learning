@@ -2,6 +2,9 @@ name: Oracle Selected-50 Safety Contract Tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
 
 permissions:
   contents: read
