@@ -120,6 +120,13 @@ def main():
     assert feature_qa.get("production_readiness") == "NOT_GRANTED"
     assert feature_qa.get("provider_parent_competition_ids_verified") == 0
     assert feature_qa.get("provider_parent_competition_ids_unavailable") == 50
+    assert feature_qa.get("provider_parent_competition_ids_verified_from_match_probe") == 50
+    assert feature_qa.get("provider_parent_competition_id_probe_status") == "MATCH_RECORD_PROBE_VERIFIED_50_OF_50"
+    assert feature_qa.get("provider_parent_competition_id_probe_rows") == 50
+    assert feature_qa.get("provider_to_canonical_bridges_verified") == 0
+    assert feature_qa.get("provider_sample_fixture_ids_observed") == 50
+    assert feature_qa.get("provider_sample_home_away_team_id_pairs_observed") == 50
+    assert feature_qa.get("provider_sample_scores_are_settlement_truth") is False
 
     result = {
         "status": "PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT",
