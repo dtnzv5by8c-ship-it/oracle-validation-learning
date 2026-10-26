@@ -121,8 +121,11 @@ def main():
     assert feature_qa.get("provider_parent_competition_ids_verified") == 0
     assert feature_qa.get("provider_parent_competition_ids_unavailable") == 50
     assert feature_qa.get("provider_competition_id_field_matches_selected_id_in_match_probe") == 50
-    assert feature_qa.get("provider_competition_id_match_probe_status") == "MATCH_RECORD_COMPETITION_ID_OBSERVED_50_OF_50_PARENT_SEMANTICS_UNVERIFIED"
+    assert feature_qa.get("provider_competition_id_match_probe_status") == "MATCH_RECORD_COMPETITION_ID_DOCUMENTED_AS_SEASON_ID_50_OF_50_PARENT_ID_NOT_PROVIDED"
     assert feature_qa.get("provider_competition_id_match_probe_rows") == 50
+    assert feature_qa.get("provider_competition_id_field_semantics_documented_as_season_id") is True
+    assert "league-matches competition_id as the league season ID" in feature_qa.get("provider_competition_id_field_semantics_source", "")
+    assert "match-schedule-and-stats" in feature_qa.get("provider_competition_id_field_semantics_source_urls", "")
     assert feature_qa.get("provider_competition_id_parent_semantics_verified") is False
     assert feature_qa.get("provider_match_coverage_matrix_status") == "PASS_PROVIDER_MATCH_COVERAGE_CONTRACT_50_OF_50"
     assert feature_qa.get("provider_match_coverage_audit_run") == "40391540391"
