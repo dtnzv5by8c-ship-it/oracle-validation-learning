@@ -106,6 +106,11 @@ def main():
     assert len(season_year) == 200
     assert len(governed) == int(feature_qa["governed_fixture_report_rows"])
     assert len({r.get("fixture_id") for r in governed}) == len(governed)
+    # Blank confidence/risk percentages must carry explicit non-calculation reasons.
+    assert all(r.get("confidence_score_pct", "") == "" for r in governed)
+    assert all(r.get("data_risk_pct", "") == "" for r in governed)
+    assert all(r.get("confidence_score_status") == "NOT_CALCULATED_UNCALIBRATED_MODEL" for r in governed)
+    assert all(r.get("data_risk_status") == "NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING" for r in governed)
     assert governed_qa.get("all_rows_production_ineligible") is True
     assert governed_qa.get("all_combo_probabilities_blocked") is True
     assert int(governed_qa.get("combo_home_probabilities_remaining", -1)) == 0

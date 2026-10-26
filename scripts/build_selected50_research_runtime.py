@@ -439,7 +439,9 @@ def main():
             # Overall confidence/risk cannot be reduced to feature completeness: probabilities are uncalibrated
             # and odds/xG provenance is unverified. Do not fabricate a confidence percentage or risk percentage.
             f["confidence_score_pct"]=None
+            f["confidence_score_status"]="NOT_CALCULATED_UNCALIBRATED_MODEL"
             f["data_risk_pct"]=None
+            f["data_risk_status"]="NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING"
             f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
             if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None:
                 for market,fn in MARKETS.items(): f["target_"+market]=fn(r["home_goals"],r["away_goals"])
