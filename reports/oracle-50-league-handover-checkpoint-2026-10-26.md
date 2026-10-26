@@ -132,3 +132,18 @@ Latest runtime walk-forward diagnostics:
 - Primary holdout still shows BTTS accuracy 53.588% vs majority baseline 54.143%, below baseline. DC Home and DC Away diagnostics are stronger but remain uncalibrated and not production/betting eligible.
 - The runtime workflow's archive tag change is now verified through successful runtime execution, not just code inspection.
 - Production status remains `NOT_GRANTED`. Provider selected-season ID matches do not establish parent competition IDs, canonical Oracle mappings, verified settlement truth or current live-fixture freshness.
+
+
+## Update — latest runtime reverified after checkpoint commit (2026-10-26)
+
+- Latest runtime [40377435717](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40377435717) completed successfully on commit `b1ea894288f4189acfb68ca351131919f63869e1`.
+- Safety contracts [40377435742](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40377435742) and dry-run planner [40377435780](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40377435780) also succeeded on the same commit.
+- Latest artifact ID `12674229022`; SHA-256 `889095cd570bc0b4f333f193ed104734dd22e51bba26d3d8d89117873e9e2ad8`.
+- Runtime output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; 50 selected groups; 460 governed fixture rows; 460 unique source fixture IDs; 2,300 prediction rows; 40 of 50 selected groups currently have prediction-bearing upcoming fixtures; 27 fixture candidates lack a supported prediction (source feature QA states 27 unsupported candidates). All outputs remain research-only and production/betting ineligible.
+- The archive swap and stale test fix are verified. Combo Home/Away probabilities remain fully masked; raw predictor/settlement disagreement persists (9,335 Home, 8,017 Away), so Combo is blocked.
+- Provider parent competition IDs remain unavailable for all 50 groups; the season ID is still used only as a grouping surrogate in research outputs. No authoritative canonical crosswalk has been established.
+- Schedule file contains upcoming fixture candidates across all 50 selected groups, but its rows are marked `FIXTURES_FOUND` not freshness/identity approved. Do not treat schedule presence as verified live-feed freshness.
+- Settlement QA shows status/score structural consistency checks, but official settlement truth remains unverified. Non-finished records with scores are quarantined from training truth.
+- Backtest/market diagnostics remain raw and uncalibrated. BTTS primary holdout is below majority baseline; no betting edge or ROI claim approved.
+- Production status remains `NOT_GRANTED`. No production repository changes, production logic changes, calibration changes, or probability changes made.
+- Next action: prioritize authoritative identity bridge recovery from existing repository evidence and source records; where absent, document external identity dependency rather than infer IDs. Then validate exact historical fixture settlement, and only after those gates pass evaluate market-specific research eligibility.
