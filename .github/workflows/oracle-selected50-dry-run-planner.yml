@@ -104,6 +104,10 @@ jobs:
         run: python scripts/build_selected50_latest_private_archive_coverage.py
       - name: Test latest sanitized private-archive coverage matrix
         run: python tests/test_selected50_latest_private_archive_coverage.py
+      - name: Reconcile Selected-50 identity snapshot scopes (no network calls)
+        run: python scripts/build_selected50_identity_snapshot_reconciliation.py
+      - name: Test Selected-50 identity snapshot reconciliation
+        run: python tests/test_selected50_identity_snapshot_reconciliation.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
