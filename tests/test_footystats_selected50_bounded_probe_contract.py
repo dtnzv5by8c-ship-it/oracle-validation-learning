@@ -63,5 +63,14 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("TAG=research-selected50-footystats-history-20261025", ingestion)
 
 
+    def test_ingestion_supports_explicit_resume_and_skips_completed_seasons(self):
+        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
+        self.assertIn("resume_from_archive_tag:", ingestion)
+        self.assertIn('gh release download "${RESUME_FROM_ARCHIVE_TAG}"', ingestion)
+        self.assertIn('existing.get("status") == "INGESTED"', ingestion)
+        self.assertIn('prior_manifest = out / "ingestion_manifest.json"', ingestion)
+        self.assertIn("if not isinstance(prior_ledger, list)", ingestion)
+
+
 if __name__ == "__main__":
     unittest.main()
