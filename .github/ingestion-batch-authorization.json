@@ -1,9 +1,9 @@
 {
   "purpose": "One bounded resumable Selected-50 FootyStats ingestion batch",
-  "authorized_by": "User explicitly requested next bounded ingestion batch and confirmed FootyStats Hobby 1500 requests/hour plan; enforce existing 250-attempt workflow cap.",
-  "resume_archive_tag": "research-selected50-footystats-history-40332365271",
+  "authorized_by": "User explicitly requested continuation and bounded ingestion; FootyStats Hobby plan screenshot states 1,800 requests/hour. Keep existing 250-attempt cap for this batch.",
+  "resume_archive_tag": "research-selected50-footystats-history-40349639485",
   "request_cap": 250,
   "raw_data_destination": "private repository release only",
   "production_changes": false,
-  "batch_number": 3
+  "batch_number": 4
 }
