@@ -2,9 +2,6 @@ name: Oracle Selected-50 Parent-ID and Match-Coverage Audit
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/oracle-selected50-parent-id-reconciliation.yml"
 
 permissions:
   contents: read
@@ -134,8 +131,10 @@ jobs:
               away_score_names = ["awayGoalCount", "away_goals", "away_score", "awayGoals"]
               competition_ids = sorted({str(r.get("competition_id")) for r in rows
                                         if isinstance(r, dict) and r.get("competition_id") not in (None, "")})
-              season_ids = sorted({str(r.get("season_id")) for r in rows
-                                   if isinstance(r, dict) and r.get("season_id") not in (None, "")})
+              provider_season_values = sorted({str(r.get("season")) for r in rows
+                                                if isinstance(r, dict) and r.get("season") not in (None, "")})
+              rows_with_explicit_season_id_field = sum(isinstance(r, dict) and "season_id" in r for r in rows)
+              rows_with_nonempty_explicit_season_id = sum(isinstance(r, dict) and r.get("season_id") not in (None, "") for r in rows)
               fixture_ids = [str(v).strip() for r in rows
                              if (v := first_value(r, fixture_names)) is not None and str(v).strip()]
               unique_fixture_ids = len(set(fixture_ids))
@@ -194,10 +193,13 @@ jobs:
                               "rows_with_unix_kickoff": len(kickoff_values),
                               "kickoff_unix_min": min(kickoff_values) if kickoff_values else "",
                               "kickoff_unix_max": max(kickoff_values) if kickoff_values else "",
-                              "competition_id_consistent_with_selected_id": bool(rows) and competition_ids == [item["selected_id"]],
-                              "season_id_consistent_with_selected_id": bool(rows) and season_ids == [item["selected_id"]],
+                              "selected_id_matches_competition_id": bool(rows) and competition_ids == [item["selected_id"]],
+                              "provider_season_values_json": json.dumps(provider_season_values),
+                              "rows_with_provider_season_value": sum(first_value(r, ["season"]) is not None for r in rows),
+                              "rows_with_explicit_season_id_field": rows_with_explicit_season_id_field,
+                              "rows_with_nonempty_explicit_season_id": rows_with_nonempty_explicit_season_id,
                               "competition_id_values": ";".join(competition_ids),
-                              "season_id_values": ";".join(season_ids),
+                              "provider_season_values": ";".join(provider_season_values),
                               **sample_evidence,
                               "identity_status": ("COMPETITION_ID_EXPOSED" if ok and competition_ids else
                                                   "NO_MATCH_ROW" if ok and not rows else
@@ -220,7 +222,9 @@ jobs:
                     "status_counts_json","rows_with_both_team_ids","rows_with_both_score_fields",
                     "rows_with_home_score_field","rows_with_away_score_field","rows_with_unix_kickoff",
                     "kickoff_unix_min","kickoff_unix_max","competition_id_consistent_with_selected_id",
-                    "season_id_consistent_with_selected_id","competition_id_values","season_id_values",
+                    "selected_id_matches_competition_id","provider_season_values_json",
+                    "rows_with_provider_season_value","rows_with_explicit_season_id_field",
+                    "rows_with_nonempty_explicit_season_id","competition_id_values","provider_season_values",
                     "sample_match_id_fields","sample_home_team_id_fields","sample_away_team_id_fields",
                     "sample_home_team_name_fields","sample_away_team_name_fields","sample_kickoff_fields",
                     "sample_status_fields","sample_home_score_fields","sample_away_score_fields",
@@ -238,6 +242,8 @@ jobs:
             "fixture_ids_observed_on_first_pages": sum(int(r.get("unique_fixture_ids_on_page") or 0) for r in results),
             "duplicate_fixture_id_rows_on_first_pages": sum(int(r.get("duplicate_fixture_id_rows_on_page") or 0) for r in results),
             "all_rows_are_first_page_only": True,
+            "rows_with_explicit_season_id_field": sum(int(r.get("rows_with_explicit_season_id_field") or 0) for r in results),
+            "rows_with_nonempty_explicit_season_id": sum(int(r.get("rows_with_nonempty_explicit_season_id") or 0) for r in results),
             "provider_status_and_score_fields_are_descriptive_not_settlement_truth": True,
             "request_window_budget_guard": budget_guard_status,
             "last_observed_request_window_remaining": last_request_remaining,
@@ -246,7 +252,7 @@ jobs:
             "raw_provider_payloads_saved": False, "api_key_logged_or_saved": False,
             "production_logic_or_probabilities_changed": False,
             "production_readiness": "NOT_GRANTED",
-            "interpretation": "One request per selected ID retrieves page 1 with max_per_page=1000. The artifact records per-page fixture ID uniqueness, status counts, score-field presence, team-ID presence, kickoff range and provider pager max_page. If pager_max_page > 1, later pages are not fetched. This is a bounded coverage diagnostic, not full historical coverage, canonical Oracle identity, official settlement truth, or production approval. Monthly credit balance is not exposed by this report and must not be inferred from request-window metadata."
+            "interpretation": "One request per selected ID retrieves page 1 with max_per_page=1000. In the observed response schema, match rows expose competition_id and season, but no nonempty season_id field; therefore do not treat selected ID/competition_id equality as proof of parent-competition semantics or a canonical bridge. The artifact records per-page fixture ID uniqueness, status counts, score-field presence, team-ID presence, kickoff range and provider pager max_page. If pager_max_page > 1, later pages are not fetched. This is a bounded coverage diagnostic, not full historical coverage, canonical Oracle identity, official settlement truth, or production approval. Monthly credit balance is not exposed by this report and must not be inferred from request-window metadata."
           }
           (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
           print(json.dumps(summary, indent=2))
