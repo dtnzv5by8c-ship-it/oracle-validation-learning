@@ -36,6 +36,11 @@ jobs:
           gh api repos/dtnzv5by8c-ship-it/oracle-football-data --jq '.private' | grep -qx true
           TAG=research-selected50-footystats-history-20261025
           TARGET=dtnzv5by8c-ship-it/oracle-football-data
+          # Fail before any FootyStats request if the token cannot publish the private archive.
+          gh api "repos/$TARGET" --jq '.permissions.push // false' | grep -qx true || {
+            echo "::error::ORACLE_PRIVATE_REPO_TOKEN lacks private destination write permission; no provider calls made."
+            exit 1
+          }
           if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
             echo "::error::Private release tag already exists; refusing to consume provider credits."; exit 1
           fi
