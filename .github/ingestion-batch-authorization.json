@@ -1,0 +1,8 @@
+{
+  "purpose": "One bounded resumable Selected-50 FootyStats ingestion batch",
+  "authorized_by": "user request to continue Project Oracle to completion and use existing Hobby allowance",
+  "resume_archive_tag": "research-selected50-footystats-history-40320274133",
+  "request_cap": 250,
+  "raw_data_destination": "private repository release only",
+  "production_changes": false
+}
