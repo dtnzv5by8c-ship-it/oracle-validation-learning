@@ -142,10 +142,16 @@ jobs:
           assert s["provider_season_to_feed_bridge_verified_groups"] == 0
           assert s["xg_point_in_time_provenance_verified"] == 0
           assert s["odds_point_in_time_provenance_verified"] == 0
+          from datetime import date, datetime, timezone
+          audit_date = date.fromisoformat(s["audit_date"])
+          utc_today = datetime.now(timezone.utc).date()
+          assert abs((utc_today - audit_date).days) <= 1, (utc_today, audit_date)
+          last_fixture_date = date.fromisoformat(s["schedule_last_fixture_date"])
+          schedule_window_end = date.fromisoformat(s["schedule_manifest_window_end"])
+          assert int(s["days_since_last_fixture_date"]) == (audit_date - last_fixture_date).days
+          assert int(s["days_since_schedule_window_end"]) == (audit_date - schedule_window_end).days
           assert s["schedule_last_fixture_date"] == "2026-10-17"
-          assert int(s["days_since_last_fixture_date"]) == 9
           assert s["schedule_manifest_window_end"] == "2026-10-22"
-          assert int(s["days_since_schedule_window_end"]) == 4
           gate = json.loads((root / "selected50_governed_fixture_report_gate.json").read_text(encoding="utf-8"))
           assert s["production_eligible_rows"] == 0
           assert s["raw_feed_examples_exported"] is False
