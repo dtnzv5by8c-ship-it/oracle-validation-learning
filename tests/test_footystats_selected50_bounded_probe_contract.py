@@ -189,5 +189,20 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("no retries", audit.lower())
 
 
+    def test_provider_schema_diagnostic_requires_explicit_single_call_confirmation(self):
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-provider-schema-diagnostic.yml").read_text(encoding="utf-8")
+        trigger = workflow.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertIn("confirm_provider_credit_usage:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("Explicit provider-credit confirmation is required; no request made.", workflow)
+        self.assertIn('"planned_api_requests": 1', workflow)
+        self.assertIn('"hard_request_cap": 1', workflow)
+        self.assertIn('"monthly_credit_budget_verified": False', workflow)
+        self.assertIn('"raw_provider_payload_saved": False', workflow)
+        self.assertIn('"api_key_saved_or_printed": False', workflow)
+        self.assertNotIn("print(payload", workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
