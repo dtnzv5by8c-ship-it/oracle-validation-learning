@@ -25,6 +25,11 @@ def main():
         summary = json.loads((out / "selected50_latest_private_archive_coverage_summary.json").read_text(encoding="utf-8"))
         assert len(matrix) == 50 and len({r["selected_id"] for r in matrix}) == 50
         assert summary["status"] == "PASS_SANITIZED_SELECTED50_ARCHIVE_COVERAGE_CONTRACT_RESEARCH_ONLY"
+        assert summary["snapshot_freshness_status"] == "PRE_BATCH5_QA_SNAPSHOT_SUPERSEDED_FOR_CURRENT_ARCHIVE_COVERAGE"
+        assert summary["source_snapshot_qa_created_at_utc"] == "2026-10-25T10:07:11Z"
+        assert summary["superseding_historical_ingestion_run_id"] == "40375285207"
+        assert summary["superseding_historical_ingestion_created_at_utc"] == "2026-10-26T18:09:53Z"
+        assert summary["current_historical_archive_coverage_verified_by_snapshot"] is False
         assert summary["selected_groups"] == summary["unique_selected_ids"] == 50
         assert summary["all_50_manifest_rows_ingested"] is True
         assert summary["all_50_private_season_folders_ok"] is True
@@ -48,6 +53,9 @@ def main():
         assert sum(r["season_label_format_status"] == "NONSTANDARD_8_DIGIT_TOKEN_UNVERIFIED" for r in matrix) == 33
         assert {r["selected_id"] for r in matrix if r["provider_primary_window_fixture_rows"] == "0"} == {"17326", "17964"}
         assert all(r["production_eligible"] == "NO" for r in matrix)
+        assert all(r["archive_coverage_snapshot_freshness_status"] == summary["snapshot_freshness_status"] for r in matrix)
+        assert all(r["archive_coverage_source_qa_run_id"] == "40183451811" for r in matrix)
+        assert all(r["archive_coverage_superseding_ingestion_run_id"] == "40375285207" for r in matrix)
         print("PASS: 50-season sanitized coverage reconciles to the verified QA artifact; identity, settlement, standings, xG/odds provenance and production remain blocked.")
 
 
