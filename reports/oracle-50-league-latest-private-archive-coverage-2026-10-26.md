@@ -1,6 +1,10 @@
-# Selected-50 Latest Private-Archive Coverage & Provenance Audit — 2026-10-26
+# Selected-50 Pre-Batch-5 Private-Archive Coverage & Provenance Snapshot — 2026-10-26
 
-**Status:** PASS for sanitized archive-coverage contract only. All results remain research-only; production eligibility is **NOT GRANTED**.
+**Snapshot status:** `PRE_BATCH5_QA_SNAPSHOT_SUPERSEDED_FOR_CURRENT_ARCHIVE_COVERAGE`. The QA evidence below is retained for provenance, but it is **not the current historical-archive coverage view**.
+
+The source QA run [40183451811](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40183451811) was created at 2026-10-25 10:07:11 UTC. The later 200-season historical ingestion [40375285207](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40375285207) completed at 2026-10-26 18:12:52 UTC. This report's source predates that ingestion; its 14,051-row selected-season snapshot and status counts must not be treated as QA of the later 200-season archive.
+
+The historical snapshot remains useful for its documented checks, but current archive coverage must be taken from a QA artifact generated against the exact batch-5 archive tag. All results remain research-only; production eligibility is **NOT GRANTED**.
 
 ## Verification
 
@@ -15,7 +19,7 @@
 
 The artifact contains sanitized aggregate/season-level QA only. Raw provider match payloads were not published.
 
-## Coverage established by the latest private archive QA
+## Coverage established by this pre-batch-5 selected-season snapshot
 
 | Check | Verified result |
 |---|---:|
@@ -34,7 +38,7 @@ The artifact contains sanitized aggregate/season-level QA only. Raw provider mat
 | Prior H2H meeting rows | 5,294 |
 | Nonempty table payloads | 50/50 |
 
-The current private archive therefore has evidence for all 50 selected season IDs. The earlier Run 56 split of 31 direct manifest matches and 19 manifest gaps is an older manifest snapshot; it must not be used to claim that 19 seasons are absent from the latest private archive. The latest QA reconciles private season-folder presence for all 50 IDs. **This still does not establish parent competition IDs or canonical Oracle fixture/team joins.**
+The pre-batch-5 selected-season snapshot therefore had evidence for all 50 selected season IDs. It does not certify the later 200-season historical archive ingested by run 40375285207. The earlier Run 56 split of 31 direct manifest matches and 19 manifest gaps is an older manifest snapshot; it must not be used to claim that 19 seasons are absent from the latest private archive. The latest QA reconciles private season-folder presence for all 50 IDs. **This still does not establish parent competition IDs or canonical Oracle fixture/team joins.**
 
 ## Important data-quality limitations
 
@@ -64,4 +68,4 @@ The current private archive therefore has evidence for all 50 selected season ID
 
 ## Next action
 
-Use the 50-row matrix as the latest **provider-season coverage** view, while keeping the historical runtime's multi-year archive separate. Next reconcile canonical Oracle fixture/team IDs and completed-result settlement truth from approved evidence. Resolve the season-year encoding and status/date discrepancies. Do not use xG/odds as point-in-time features or ROI benchmarks without timestamps and provenance. Do not dispatch private Actions or make provider calls until the existing spending/credit gates permit them.
+Do not use this pre-batch-5 report as the latest archive-coverage view. The live provider first-page audit is run 40391540391; the multi-year historical runtime used the batch-5 private archive and completed successfully in run 40400232375. A fresh private-archive QA run against the exact batch-5 archive is still needed to reconcile row-level status/date exceptions with that archive. Next reconcile canonical Oracle fixture/team IDs and completed-result settlement truth from approved evidence. Resolve the season-year encoding and status/date discrepancies. Do not use xG/odds as point-in-time features or ROI benchmarks without timestamps and provenance. Do not dispatch private Actions or make provider calls until the existing spending/credit gates permit them.
