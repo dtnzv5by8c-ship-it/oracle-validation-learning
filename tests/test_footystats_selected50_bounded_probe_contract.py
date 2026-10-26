@@ -57,5 +57,11 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("Explicit private archive read confirmation required.", runtime)
 
 
+    def test_private_transfer_uses_the_same_unique_run_tag(self):
+        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
+        self.assertIn('TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"', ingestion)
+        self.assertNotIn("TAG=research-selected50-footystats-history-20261025", ingestion)
+
+
 if __name__ == "__main__":
     unittest.main()
