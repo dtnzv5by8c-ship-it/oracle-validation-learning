@@ -127,7 +127,7 @@ def main():
       "production_eligible_rows":0,"raw_feed_examples_exported":False,"network_calls_made":0,"paid_provider_calls_made":0,
       "limitations":["The 31/19 historical archive season-ID split is from crosswalk snapshot r17 and is separate from latest private archive QA, which reports all 50 selected season folders.",
       "The catalogue does not expose a parent competition ID; selected/season IDs are not promoted to parent IDs.",
-      f"Current schedule evidence is stale: last fixture date {rows[0]['schedule_last_fixture_date']} and manifest window end {rows[0]['schedule_manifest_window_end']}, both before the {s['audit_date']} audit date.",
+      f"Current schedule evidence is stale: last fixture date {rows[0]['schedule_last_fixture_date']} and manifest window end {rows[0]['schedule_manifest_window_end']}, both before the {AUDIT_DATE.isoformat()} audit date.",
       "Canonical fixture/team joins and official settlement truth remain unverified; xG/odds point-in-time provenance is unverified and no ROI benchmark is approved.",
       "Combo remains blocked by target/settlement mismatch; M-1UP remains blocked by its independent event-truth gate."]}
     fixture_gate=build_fixture_gate(s); s["governed_fixture_report_gate_status"]=fixture_gate["status"]; s["governed_fixture_rows_emitted"]=0
