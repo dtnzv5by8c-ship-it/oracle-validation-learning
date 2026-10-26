@@ -183,6 +183,8 @@ jobs:
           assert all(row["production_eligible"] == "NO" for row in markets)
           print("PASS: walk-forward arithmetic, chronological fold contract, and research-only gates.")
           PY
+      - name: Test conservative FootyStats season-year normalization (no network calls)
+        run: python tests/test_footystats_season_year_normalizer.py
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
