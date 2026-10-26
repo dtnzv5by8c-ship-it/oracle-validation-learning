@@ -94,3 +94,26 @@ Latest runtime walk-forward diagnostics:
 6. Re-run research-only tests/runtime only when a meaningful change is made; capture exact run IDs and artifact checksums.
 7. Document scheduled-operation/recovery gap and safe evidence required, without invoking private production workflows or paid calls.
 8. Produce updated Gate 1–7 ledger and final executive decision. Unless all evidence gates pass, decision remains NOT GRANTED for production; state exactly what is fixed, what is evidence-only, what remains blocked and why.
+
+
+## Update — bounded FootyStats ingestion batch 5 (2026-10-26)
+
+- User explicitly authorized additional bounded FootyStats API calls on 2026-10-26 to expedite completion.
+- Authorization commit: `774db3ff0952b93bdbd8e6dd8e4351ce7abb0d52`.
+- Ingestion workflow run: [40375285207](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40375285207) — `success`.
+- Sanitized artifact ID: `12674706565`; artifact SHA-256: `1de868a6319a558d103b9c11d07ee903ce1d06944b17db06eb0a584e8a45595f`; expires 2026-11-02.
+- Provider calls: 57; hard cap: 250; last observed provider request-window remaining: 1,743. This is not monthly credit evidence.
+- Exact selected season ID matches: 50/50; selected seasons: 200; historical seasons ingested: 200; failed seasons: 0; unmatched selected IDs: 0; ambiguous exact IDs: 0.
+- Ingestion status: `COMPLETED`. Raw provider payloads were transferred to the private Oracle repository release only; no raw provider payloads were uploaded to the public research artifact. Production model logic and probabilities unchanged.
+- Important limit: provider catalogue returns no provider parent league ID for some selected season rows (`provider_league_id=NOT_EXPOSED_BY_CATALOGUE`). Therefore 50/50 selected season ID matches do **not** prove canonical parent competition IDs, Oracle team/fixture crosswalks, official settlement truth, or production readiness.
+- This batch supersedes the earlier checkpoint statement that no further API calls were authorized; the user's explicit new authorization permitted this bounded batch. Do not start another paid/provider batch without further explicit authorization.
+- Research runtime, dry-run planner, and safety contract tests also succeeded on commit `774db3ff0952b93bdbd8e6dd8e4351ce7abb0d52`: runs [40375285255](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40375285255), [40375285092](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40375285092), and [40375285014](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40375285014).
+
+## Updated next execution order
+
+1. Reuse the new private archive from batch 5 as the current historical source; verify its release tag/checksum before any downstream ingestion.
+2. Compare the new sanitized ledger against the existing selected-50 readiness and identity ledgers. Resolve only fields explicitly present and semantically authoritative; keep parent competition IDs and canonical Oracle mappings blocked when absent.
+3. Rebuild the research runtime from the new private archive and validate all output-contract checks; publish only derived/sanitized research artifacts.
+4. Use the updated season archive to reassess historical status/score/date exceptions and point-in-time features. A score on a non-final status is not settlement truth.
+5. Re-run market backtests only after verified outcome labels and target semantics are available; do not calibrate or alter production probabilities.
+6. Update the 50-league readiness workbook, gate ledger, and executive decision with the new artifact/run evidence. Production eligibility remains `NOT_GRANTED` until all evidence gates pass and explicit human release approval exists.
