@@ -73,5 +73,34 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("if not isinstance(prior_ledger, list)", ingestion)
 
 
+    def test_identity_market_gate_matrix_is_exactly_50_rows_and_fail_closed(self):
+        import csv
+
+        matrix_path = ROOT / "reports" / "oracle-selected50-identity-and-market-gate-matrix-2026-10-26.csv"
+        with matrix_path.open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+
+        self.assertEqual(len(rows), 50)
+        self.assertEqual(len({row["selected_season_id"] for row in rows}), 50)
+        required = {
+            "selected_season_id", "country", "provider_competition_name",
+            "candidate_canonical_code", "identity_gap_status",
+            "provider_parent_competition_id_status", "provider_to_canonical_bridge",
+            "fixture_identity", "team_identity", "official_settlement_truth",
+            "BTTS_readiness", "DC_HOME_readiness", "DC_AWAY_readiness",
+            "COMBO_HOME_readiness", "COMBO_AWAY_readiness", "production_eligible",
+        }
+        self.assertTrue(required.issubset(set(rows[0].keys())))
+        self.assertTrue(all(row["production_eligible"] == "NO" for row in rows))
+        self.assertTrue(all(row["provider_parent_competition_id_status"] == "UNAVAILABLE_IN_ARCHIVE_MANIFEST" for row in rows))
+        self.assertTrue(all(row["provider_to_canonical_bridge"] == "UNVERIFIED" for row in rows))
+        self.assertTrue(all(row["fixture_identity"] == "UNVERIFIED" for row in rows))
+        self.assertTrue(all(row["team_identity"] == "UNVERIFIED" for row in rows))
+        self.assertTrue(all(row["official_settlement_truth"] == "UNVERIFIED" for row in rows))
+        self.assertTrue(all(row["COMBO_HOME_readiness"] == "BLOCKED_TARGET_VS_LEDGER_MISMATCH" for row in rows))
+        self.assertTrue(all(row["COMBO_AWAY_readiness"] == "BLOCKED_TARGET_VS_LEDGER_MISMATCH" for row in rows))
+        self.assertTrue(all(row["registry_readiness"] != "APPROVED" for row in rows))
+
+
 if __name__ == "__main__":
     unittest.main()
