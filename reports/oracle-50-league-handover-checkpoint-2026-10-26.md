@@ -23,6 +23,14 @@ CONTINUE — do not roll back or restart. Preserve the existing Oracle V1.6 prod
 - Prior runtime report: run [40359783454](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40359783454), SUCCESS; showed unresolved identity, settlement, point-in-time provenance and Combo definition gaps.
 - Prior schema diagnostic: run [40362039075](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40362039075), SUCCESS; catalogue exposes season IDs but did not provide verified parent competition IDs.
 
+## Latest runtime verification — 2026-10-26
+- Latest research runtime run [40372357659](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40372357659) completed SUCCESS on the research branch. Artifact [12672479177](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40372357659/artifacts/12672479177), `oracle-selected50-research-runtime-report`, 150,811 bytes, SHA-256 `023ec4a0a09385b9447ef6d6f77d535122003deabc6ffd6a3d5a4484db54c7e3`.
+- Runtime contract status: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; 50 selected groups, 250 league-market rows, 750 league-market-fold rows, 15 market-fold rows, and 456 governed fixture rows. Production and betting eligibility remain false.
+- The latest governed output carries explicit reason codes for all 456 rows: confidence `NOT_CALCULATED_UNCALIBRATED_MODEL`; risk `NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING`. Confidence/risk percentages remain blank intentionally; Combo probabilities are fully blocked/masked.
+- Latest primary holdout backtest: BTTS accuracy 53.588% vs majority baseline 54.143% (below baseline); DC Home 70.126% vs 69.786% baseline; DC Away 60.422% vs 56.275%; Combo Home 57.40% vs 56.945%; Combo Away 64.934% vs 64.896%. These are raw, uncalibrated diagnostics; Combo remains blocked by target/settlement definition mismatch, and no odds-based ROI is approved.
+- Code/workflow hardening at commit `97e546de90691d39ccfeab7046ec66dfc4b31515`: confidence/risk reason codes now propagate to the governed report, and the workflow no longer contains a private release-write step. This preserves research-only output boundaries.
+- This runtime success verifies report contract and artifact generation only. It does not resolve canonical identities, official settlement truth, point-in-time feature/odds provenance, live-feed freshness, calibration, or production autonomy.
+
 ## Archive and identity findings
 - Latest private archive QA evidence, documented in `reports/oracle-50-league-latest-private-archive-coverage-2026-10-26.md`: 50/50 selected season IDs/folders, 14,051 fixture records, 14,051 unique season-fixture pairs, zero duplicate pairs, 5,637 rows in the primary validation window in that snapshot.
 - This does NOT prove complete coverage of the full 18-month window for all leagues.
