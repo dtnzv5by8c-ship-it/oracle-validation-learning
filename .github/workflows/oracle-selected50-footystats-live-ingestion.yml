@@ -38,7 +38,7 @@ jobs:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
           CONFIRM_PROVIDER_CREDIT_USAGE: ${{ github.event_name == 'push' && 'true' || inputs.confirm_provider_credit_usage }}
-          RESUME_FROM_ARCHIVE_TAG: ${{ github.event_name == 'push' && 'research-selected50-footystats-history-40320274133' || inputs.resume_from_archive_tag }}
+          RESUME_FROM_ARCHIVE_TAG: ${{ github.event_name == 'push' && 'research-selected50-footystats-history-40332365271' || inputs.resume_from_archive_tag }}
         run: |
           set -euo pipefail
           [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no provider calls made."; exit 1; }
