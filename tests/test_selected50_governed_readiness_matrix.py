@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression tests for the sanitized Selected-50 governed readiness matrix."""
 import sys, unittest
+from datetime import date
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts"))
@@ -40,12 +41,13 @@ class GovernedReadinessMatrixTests(unittest.TestCase):
                 "latest_private_archive_xg_pit_provenance":"UNVERIFIED","latest_private_archive_odds_pit_provenance":"UNVERIFIED"})
         return coverage,quarantine,crosswalk
     def test_exact_50_row_join_and_fail_closed_gates(self):
-        c,q,x=self.synthetic(); rows=matrix.build_matrix(c,q,x)
+        c,q,x=self.synthetic(); rows=matrix.build_matrix(c,q,x,audit_date=date(2026,10,26))
         self.assertEqual(len(rows),50)
         self.assertEqual(len({r['selected_season_id'] for r in rows}),50)
         self.assertTrue(all(r['production_eligible']=='NO' for r in rows))
         self.assertTrue(all(r['parent_competition_id_status']=='NOT_EXPOSED_BY_CATALOGUE' for r in rows))
         self.assertTrue(all(r['raw_feed_examples_exported']=='NO' for r in rows))
+        self.assertEqual(rows[0]['audit_date'],'2026-10-26')
         self.assertEqual(rows[0]['days_since_last_fixture_date'],9)
         self.assertEqual(rows[0]['days_since_schedule_window_end'],4)
     def test_duplicate_or_missing_selected_ids_fail(self):
@@ -58,7 +60,7 @@ class GovernedReadinessMatrixTests(unittest.TestCase):
         c,q,x=self.synthetic(); x[0]['provider_parent_competition_id_status']='VERIFIED'
         with self.assertRaises(AssertionError): matrix.build_matrix(c,q,x)
     def test_fixture_gate_emits_no_unsupported_rows(self):
-        gate=matrix.build_fixture_gate({'schedule_rows_global':'80','schedule_last_fixture_date':'2026-10-17','schedule_manifest_window_end':'2026-10-22','days_since_last_fixture_date':9,'days_since_schedule_window_end':4})
+        gate=matrix.build_fixture_gate({'audit_date':'2026-10-26','schedule_rows_global':'80','schedule_last_fixture_date':'2026-10-17','schedule_manifest_window_end':'2026-10-22','days_since_last_fixture_date':9,'days_since_schedule_window_end':4})
         self.assertEqual(gate['status'],'BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE')
         self.assertEqual(gate['current_fixture_rows_emitted'],0)
         self.assertEqual(gate['prediction_rows_emitted'],0)
