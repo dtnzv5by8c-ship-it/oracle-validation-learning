@@ -137,6 +137,15 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("sample_away_score_fields", workflow)
         self.assertNotIn("print(payload", workflow)
 
+        runtime = (ROOT / "scripts" / "build_selected50_research_runtime.py").read_text(encoding="utf-8")
+        validator = (ROOT / "scripts" / "validate_selected50_runtime_outputs.py").read_text(encoding="utf-8")
+        self.assertIn('PARENT_ID_PROBE = Path("reports/oracle-selected50-parent-id-probe-2026-10-26.csv")', runtime)
+        self.assertIn("MATCH_RECORD_PROBE_VERIFIED_50_OF_50", runtime)
+        self.assertIn('"provider_parent_competition_ids_verified_from_match_probe"', runtime)
+        self.assertIn('"provider_sample_scores_are_settlement_truth":False', runtime)
+        self.assertIn('provider_parent_competition_ids_verified_from_match_probe") == 50', validator)
+        self.assertIn('provider_to_canonical_bridges_verified") == 0', validator)
+
 
 if __name__ == "__main__":
     unittest.main()
