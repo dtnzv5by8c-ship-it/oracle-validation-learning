@@ -106,6 +106,16 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertTrue(all(row["COMBO_AWAY_readiness"] == "BLOCKED_TARGET_VS_LEDGER_MISMATCH" for row in rows))
         self.assertTrue(all(row["registry_readiness"] != "APPROVED" for row in rows))
 
+        probe_path = ROOT / "reports" / "oracle-selected50-parent-id-probe-2026-10-26.csv"
+        with probe_path.open(encoding="utf-8", newline="") as handle:
+            probe_rows = list(csv.DictReader(handle))
+        self.assertEqual(len(probe_rows), 50)
+        self.assertEqual(len({row["selected_id"] for row in probe_rows}), 50)
+        self.assertEqual(len({row["provider_match_id"] for row in probe_rows}), 50)
+        self.assertTrue(all(row["provider_competition_id"] == row["selected_id"] for row in probe_rows))
+        self.assertTrue(all(row["home_team_id"] and row["away_team_id"] for row in probe_rows))
+        self.assertTrue(all(row["evidence_scope"] == "ONE_SAMPLE_MATCH_PER_SELECTED_ID; NOT_SETTLEMENT_TRUTH" for row in probe_rows))
+
 
     def test_parent_id_probe_is_bounded_rate_limited_and_sanitized(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
