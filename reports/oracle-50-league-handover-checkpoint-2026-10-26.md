@@ -285,3 +285,31 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - Conclusion is unchanged and now backed by explicit source inspection: **0/50 provider-to-canonical bridges verified; 21 candidates still require authoritative evidence/human approval; 29 have no unique match in the protected registry; 0/50 canonical fixture joins and 0/50 canonical team joins verified.** No mapping was approved from name similarity.
 - No provider calls were made during this source review. The 50-request match audit remains the latest provider batch; monthly credits remain unverified. The parent-ID/match-coverage workflow is now manual-dispatch-only to avoid accidental calls on code edits.
 - Latest confirmed research runtime [40392687925](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40392687925), safety contracts [40393109251](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40393109251), and dry-run planner [40393109357](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40393109357) all succeeded. Production readiness remains `NOT_GRANTED`.
+
+
+## Update — official FootyStats ID semantics and one-call diagnostic hardening (2026-10-26)
+
+### New authoritative provider documentation evidence
+
+- Reviewed official FootyStats [League List documentation](https://footystats.org/api/documentations/league-list), which states each competition season has a unique ID and identifies `season > id` as the season ID.
+- Reviewed official FootyStats [League Matches documentation](https://footystats.org/api/documentations/match-schedule-and-stats): the request parameter `season_id` is defined as the ID of the league season (lines 93–97), and the response field `competition_id` is explicitly defined as “Season ID of the league” (lines 365–367).
+- This resolves a field-semantics ambiguity: the 50/50 match-record equality is a **season-ID relationship**, not evidence of a parent competition ID. The existing finding of zero parent competition IDs in the provider archive/catalogue remains valid.
+- Updated all 50 rows in `reports/oracle-selected50-identity-and-market-gate-matrix-2026-10-26.csv` to `PROVIDER_DOCS_DEFINE_COMPETITION_ID_AS_SEASON_ID_NOT_PARENT_ID`; updated the evidence scope and next actions. Current matrix blob SHA: `a0a7f70c2a4688aa38df251f03086bbab5505e03`. No canonical mappings were approved.
+- Updated runtime builder and output validator to enforce the documented field semantics, emit the official documentation source URLs in sanitized QA, and keep parent ID verification false. Commits: `a061ef4f8b8ce06472fe52ae47b10575202ac3de` (runtime builder) and `2a02f3b2fbdd263663d833810d95ce5df5d0269e` (validator).
+- Updated the offline contract test and canonical-registry evidence review: test commit `a349c574aef72ccb350f4fb0c710c405786052f2`; evidence review commit `73ffc6fbf67e025e14c15eef4b3554a8df01d02b`.
+
+### Provider budget and dispatch constraints
+
+- Inspected the existing research workflows. `FOOTYSTATS_API_KEY` is referenced by the approved research workflows; prior successful provider runs demonstrate that the secret was available when those runs executed. Secret values were not read or exposed. The private archive token is referenced only by the existing private-archive ingestion workflow.
+- The current tool connection exposes GitHub read/contents operations and workflow-run inspection, but **does not expose a workflow-dispatch action**. The selected-50 parent/match audit is intentionally `workflow_dispatch`-only; I did not weaken its trigger or create a push-triggered paid request.
+- The latest provider request-window observation remains 1,750 from the prior audit. This is request-window metadata, **not** a verified monthly credit balance. No FootyStats API calls were made in this run.
+- Hardened `.github/workflows/oracle-selected50-provider-schema-diagnostic.yml` to require `confirm_provider_credit_usage=true`, cap the diagnostic at one `league-list` request, report provider request-window metadata when returned, and explicitly mark `monthly_credit_budget_verified=false`. Workflow commit: `4160df9df672aa77dbef8bec58342cae5967e1ed`; matching offline contract test commit: `0f612c2b509105a8e1118478132f4051c80010ac`.
+- Safe next action if another provider call is approved: in GitHub Actions, manually run **Oracle Selected-50 Provider ID Schema Diagnostic** with `confirm_provider_credit_usage=true`, after confirming the current FootyStats account credit/billing budget. It consumes exactly one read-only catalogue request and publishes sanitized schema/ID-field evidence only. Do not paste the key into chat.
+
+### Verification status
+
+- Safety contract tests [40400391891](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400391891) passed on workflow-hardening commit `4160df9df672aa77dbef8bec58342cae5967e1ed`.
+- Safety contract tests [40400246466](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400246466) and dry-run planner [40400246429](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400246429) passed on commit `a349c574aef72ccb350f4fb0c710c405786052f2`.
+- The new safety-test run for commit `0f612c2b509105a8e1118478132f4051c80010ac` was queued as [40400416482](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400416482) at the last status check; the dry-run planner [40400416383](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400416383) was also queued. Earlier intermediate commits had failures while matrix, runtime validator and tests were being synchronized; later safety/dry-run runs passed on corrected commits.
+- Runtime [40400232375](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40400232375) was still in progress on commit `2a02f3b2fbdd263663d833810d95ce5df5d0269e`; do not treat the updated runtime QA as verified until this run or a later runtime completes successfully.
+- Canonical league/fixture/team joins, official settlement truth, historical point-in-time feature provenance and Combo definition reconciliation remain blocked. Production readiness remains `NOT_GRANTED`; no production repository or production model files were changed.
