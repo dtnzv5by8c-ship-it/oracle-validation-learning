@@ -19,6 +19,10 @@ OUT = ROOT / "audit-output"
 EXPECTED_QA_RUN = "40183451811"
 EXPECTED_QA_ARTIFACT = "12594568810"
 EXPECTED_QA_SHA256 = "713ed63ed5dd6e6902a2e152367500386d5037dd6dc8bbc82fa87c831d10c375"
+SOURCE_QA_CREATED_AT_UTC = "2026-10-25T10:07:11Z"
+SUPERSEDING_INGESTION_RUN = "40375285207"
+SUPERSEDING_INGESTION_CREATED_AT_UTC = "2026-10-26T18:09:53Z"
+SNAPSHOT_FRESHNESS_STATUS = "PRE_BATCH5_QA_SNAPSHOT_SUPERSEDED_FOR_CURRENT_ARCHIVE_COVERAGE"
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -81,7 +85,8 @@ def main() -> None:
                 raise ValueError(f"{sid}: source provenance invariant failed for {field}: {row.get(field)!r}")
 
     out_fields = [
-        "selected_id", "country", "competition", "provider_season_year_raw",
+        "selected_id", "archive_coverage_snapshot_freshness_status", "archive_coverage_source_qa_run_id",
+        "archive_coverage_superseding_ingestion_run_id", "country", "competition", "provider_season_year_raw",
         "season_label_format_status", "manifest_status", "selected_id_semantics_status",
         "crosswalk_candidate_code", "crosswalk_status", "provider_season_fixture_records",
         "provider_season_team_records", "provider_primary_window_fixture_rows",
@@ -112,6 +117,9 @@ def main() -> None:
         )
         out_rows.append({
             "selected_id": sid,
+            "archive_coverage_snapshot_freshness_status": SNAPSHOT_FRESHNESS_STATUS,
+            "archive_coverage_source_qa_run_id": EXPECTED_QA_RUN,
+            "archive_coverage_superseding_ingestion_run_id": SUPERSEDING_INGESTION_RUN,
             "country": m.get("country", ""),
             "competition": m.get("competition_name", ""),
             "provider_season_year_raw": raw_year,
@@ -181,10 +189,20 @@ def main() -> None:
 
     summary = {
         "status": "PASS_SANITIZED_SELECTED50_ARCHIVE_COVERAGE_CONTRACT_RESEARCH_ONLY",
+        "snapshot_freshness_status": SNAPSHOT_FRESHNESS_STATUS,
+        "snapshot_freshness_warning": "This pre-batch-5 selected-season QA snapshot predates the later 200-season historical ingestion; it must not be represented as current historical-archive coverage.",
+        "source_snapshot_qa_created_at_utc": SOURCE_QA_CREATED_AT_UTC,
+        "superseding_historical_ingestion_run_id": SUPERSEDING_INGESTION_RUN,
+        "superseding_historical_ingestion_created_at_utc": SUPERSEDING_INGESTION_CREATED_AT_UTC,
+        "current_historical_archive_coverage_verified_by_snapshot": False,
         "source": {
             "private_archive_qa_run_id": EXPECTED_QA_RUN,
             "private_archive_qa_artifact_id": EXPECTED_QA_ARTIFACT,
             "private_archive_qa_artifact_sha256": EXPECTED_QA_SHA256,
+            "private_archive_qa_created_at_utc": SOURCE_QA_CREATED_AT_UTC,
+            "snapshot_freshness_status": SNAPSHOT_FRESHNESS_STATUS,
+            "superseding_historical_ingestion_run_id": SUPERSEDING_INGESTION_RUN,
+            "superseding_historical_ingestion_created_at_utc": SUPERSEDING_INGESTION_CREATED_AT_UTC,
             "source_crosswalk_path": str(args.source.relative_to(ROOT)),
             "source_crosswalk_blob_sha": "2c23ac9d42f0b8cf85111ea5e431b234cc164ab4",
         },
@@ -229,6 +247,7 @@ def main() -> None:
         "production_eligible": False,
         "betting_eligible": False,
         "limitations": [
+            "This is a pre-batch-5 selected-season QA snapshot from 2026-10-25; the later 200-season ingestion run 40375285207 completed on 2026-10-26. Do not present these 14,051 rows or their status counts as current historical-archive coverage.",
             "The selected IDs are season IDs; parent competition IDs are not exposed and are never inferred.",
             "Field-presence percentages are not proof of correct IDs, completed-result truth, or settlement eligibility.",
             "The provider's status 'complete' count differs from past-date candidate rows; 135 rows have neither past nor future date classification in this snapshot.",
