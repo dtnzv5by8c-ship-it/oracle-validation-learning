@@ -102,5 +102,22 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertTrue(all(row["registry_readiness"] != "APPROVED" for row in rows))
 
 
+    def test_parent_id_probe_is_bounded_rate_limited_and_sanitized(self):
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
+        self.assertIn("if calls >= 50", workflow)
+        self.assertIn('"max_per_page": 1', workflow)
+        self.assertIn("time.sleep(2.1)", workflow)
+        self.assertIn("planned_calls_after_this + 25", workflow)
+        self.assertIn('"monthly_credit_budget_verified": False', workflow)
+        self.assertIn('"raw_provider_payloads_saved": False', workflow)
+        self.assertIn('"api_key_logged_or_saved": False', workflow)
+        self.assertIn("sample_home_team_id_fields", workflow)
+        self.assertIn("sample_away_team_id_fields", workflow)
+        self.assertIn("sample_status_fields", workflow)
+        self.assertIn("sample_home_score_fields", workflow)
+        self.assertIn("sample_away_score_fields", workflow)
+        self.assertNotIn("print(payload", workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
