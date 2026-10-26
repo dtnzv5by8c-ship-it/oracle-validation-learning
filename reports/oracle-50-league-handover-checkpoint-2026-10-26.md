@@ -160,3 +160,12 @@ Latest runtime walk-forward diagnostics:
 - Feature QA says xG/odds are excluded from features because semantics and point-in-time provenance are unverified; current team-table positions are display-only snapshots rather than historical standings.
 - Parent competition IDs unavailable: 50/50. Canonical team/fixture joins and official settlement truth remain unverified. No production logic/probabilities changed; production/betting eligibility remains false.
 - Next step: use exact provider/source identity evidence where present; produce a league-level identity gap matrix that distinguishes existing canonical candidates from unresolved leagues. Do not use label similarity to auto-approve. For market evaluation, keep DC/BTTS research-only until exact settlement and point-in-time evidence gates pass; Combo remains blocked pending governed market-rule reconciliation.
+
+
+## Update — crosswalk source-of-truth reconciliation (2026-10-26)
+
+- Re-read the live artifact `reports/oracle-selected50-protected-registry-candidate-crosswalk-2026-10-26.csv` at blob `70273bb08f931fa61e0db55f29caae71c8e9a436`.
+- Exact current CSV counts: 50 selected rows; 21 candidate exact-country/competition matches requiring human approval; 29 with no unique match in the protected 27-league registry; zero verified provider-ID-to-canonical-ID bridges; zero verified fixture identities; zero verified team identities; zero production-eligible rows.
+- This current CSV is the source of truth for the current split and supersedes stale 22/28 counts in older checkpoint snapshots. Do not overwrite it with older counts.
+- Current runtime on the checkpoint commit: [40379059499](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40379059499) was still in progress at last check. Safety contracts [40379059412](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40379059412) and dry-run planner [40379059390](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40379059390) passed.
+- Next safe action: inspect final runtime result, then use existing exact evidence to classify the 21 candidates and 29 unmatched groups. Do not auto-approve candidate names or add mappings to the protected registry. Any new mapping must be backed by an authoritative provider parent ID and exact source evidence; otherwise keep research-only alias/quarantine.
