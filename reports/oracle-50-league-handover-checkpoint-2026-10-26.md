@@ -147,3 +147,16 @@ Latest runtime walk-forward diagnostics:
 - Backtest/market diagnostics remain raw and uncalibrated. BTTS primary holdout is below majority baseline; no betting edge or ROI claim approved.
 - Production status remains `NOT_GRANTED`. No production repository changes, production logic changes, calibration changes, or probability changes made.
 - Next action: prioritize authoritative identity bridge recovery from existing repository evidence and source records; where absent, document external identity dependency rather than infer IDs. Then validate exact historical fixture settlement, and only after those gates pass evaluate market-specific research eligibility.
+
+
+## Update — completed runtime artifact review (2026-10-26, follow-on)
+
+- Reviewed completed runtime [40377879159](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40377879159), artifact `12676936403`, SHA-256 `9b000f480d4affda9a8a23c6164cee608e638a20baf190d6c362ba47969ff802`.
+- Runtime output contract passed. Feature QA confirms 50 selected groups, 200 historical season folders loaded, 59,049 deduplicated raw records, 51,983 explicitly completed records, 460 upcoming fixture candidates and 2,300 raw research prediction rows.
+- 40/50 selected groups have prediction-bearing upcoming fixtures. This is report-generation coverage, not canonical identity/freshness certification.
+- League-market walk-forward status counts across 250 league-market rows: 100 insufficient fold sample/metric; 75 mixed Brier skill across folds; 71 positive Brier skill in all folds (diagnostic only); 4 no positive Brier skill in all folds. All edge claims remain NOT_APPROVED and production_eligible=NO.
+- 150 of 250 league-market pairs met the minimum 100-train/100-test sample criterion in all three folds; this sample criterion alone does not confer eligibility.
+- 460 governed fixtures have unique source fixture IDs; Combo home/away probabilities are masked on all 433 rows where raw Combo probabilities were present. Combo remains blocked because the predictor definition (Double Chance plus 2–4 total goals inclusive) differs from the documented settlement comparator (Double Chance plus fewer than five goals). Do not choose a market definition silently; requires governed definition alignment.
+- Feature QA says xG/odds are excluded from features because semantics and point-in-time provenance are unverified; current team-table positions are display-only snapshots rather than historical standings.
+- Parent competition IDs unavailable: 50/50. Canonical team/fixture joins and official settlement truth remain unverified. No production logic/probabilities changed; production/betting eligibility remains false.
+- Next step: use exact provider/source identity evidence where present; produce a league-level identity gap matrix that distinguishes existing canonical candidates from unresolved leagues. Do not use label similarity to auto-approve. For market evaluation, keep DC/BTTS research-only until exact settlement and point-in-time evidence gates pass; Combo remains blocked pending governed market-rule reconciliation.
