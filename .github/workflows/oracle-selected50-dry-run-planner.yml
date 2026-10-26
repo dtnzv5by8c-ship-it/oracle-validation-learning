@@ -112,6 +112,46 @@ jobs:
         run: python scripts/build_selected50_current_feed_identity_quarantine.py
       - name: Test Selected-50 current-feed identity quarantine
         run: python tests/test_selected50_current_feed_identity_quarantine.py
+      - name: Build sanitized Selected-50 governed readiness matrix (no network calls)
+        run: python scripts/build_selected50_governed_readiness_matrix.py
+      - name: Test Selected-50 governed readiness matrix
+        run: python tests/test_selected50_governed_readiness_matrix.py
+      - name: Validate Selected-50 governed readiness matrix outputs
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          s = json.loads((root / "selected50_governed_readiness_summary.json").read_text(encoding="utf-8"))
+          rows = list(csv.DictReader((root / "selected50_governed_readiness_matrix.csv").open(encoding="utf-8", newline="")))
+          assert s["status"] == "PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY"
+          assert len(rows) == 50 and len({r["selected_season_id"] for r in rows}) == 50
+          assert s["crosswalk_status_counts"]["CANDIDATE_REQUIRES_HUMAN_REVIEW_NOT_APPROVED"] == 22
+          assert s["crosswalk_status_counts"]["UNRESOLVED_NO_EXACT_OR_EXPLICIT_ALIAS"] == 28
+          assert int(s["latest_private_archive_seasons_global"]) == 50
+          assert int(s["latest_private_archive_fixture_rows_global"]) == 14051
+          assert s["parent_competition_ids_verified"] == 0
+          assert s["canonical_fixture_joins_verified"] == 0
+          assert s["canonical_team_joins_verified"] == 0
+          assert s["official_settlement_truth_verified"] == 0
+          assert s["current_feed_groups_with_label_rows"] == 12
+          assert s["current_feed_groups_with_multiple_league_id_collisions"] == 5
+          assert s["current_feed_groups_with_no_label_rows"] == 38
+          assert s["current_feed_country_field_present_groups"] == 0
+          assert s["current_feed_exact_league_id_allowlist_groups"] == 0
+          assert s["provider_season_to_feed_bridge_verified_groups"] == 0
+          assert s["xg_point_in_time_provenance_verified"] == 0
+          assert s["odds_point_in_time_provenance_verified"] == 0
+          assert s["schedule_last_fixture_date"] == "2026-10-17"
+          assert int(s["days_since_last_fixture_date"]) == 9
+          assert s["schedule_manifest_window_end"] == "2026-10-22"
+          assert int(s["days_since_schedule_window_end"]) == 4
+          assert s["production_eligible_rows"] == 0
+          assert s["raw_feed_examples_exported"] is False
+          assert s["network_calls_made"] == 0 and s["paid_provider_calls_made"] == 0
+          assert all(r["production_eligible"] == "NO" and r["raw_feed_examples_exported"] == "NO" for r in rows)
+          print("PASS: 50-row join, crosswalk scope, stale schedule and fail-closed identity/provenance gates.")
+          PY
       - name: Audit pinned aggregate walk-forward metrics (no network calls)
         run: python scripts/audit_selected50_walk_forward_snapshot.py
       - name: Test aggregate walk-forward integrity audit
