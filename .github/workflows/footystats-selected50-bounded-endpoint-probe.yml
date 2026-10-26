@@ -2,9 +2,6 @@ name: FootyStats Selected-50 Bounded Endpoint Coverage Probe
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/footystats-selected50-bounded-endpoint-probe.yml"
 
 permissions:
   contents: read
@@ -92,8 +89,8 @@ jobs:
           summary = {}
 
           def save_checkpoint():
+              summary.setdefault("status", "IN_PROGRESS_OR_STOPPED_FAIL_CLOSED")
               summary.update({
-                "status": "IN_PROGRESS_OR_STOPPED_FAIL_CLOSED",
                 "hard_request_cap": MAX_CALLS,
                 "actual_http_requests_started": calls,
                 "request_budget_remaining_last_observed": remaining,
