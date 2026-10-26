@@ -112,6 +112,29 @@ jobs:
         run: python scripts/build_selected50_current_feed_identity_quarantine.py
       - name: Test Selected-50 current-feed identity quarantine
         run: python tests/test_selected50_current_feed_identity_quarantine.py
+      - name: Audit pinned aggregate walk-forward metrics (no network calls)
+        run: python scripts/audit_selected50_walk_forward_snapshot.py
+      - name: Test aggregate walk-forward integrity audit
+        run: python tests/test_selected50_walk_forward_snapshot.py
+      - name: Validate walk-forward audit artifact outputs
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          summary = json.loads((root / "selected50_walk_forward_integrity_audit.json").read_text(encoding="utf-8"))
+          markets = list(csv.DictReader((root / "selected50_walk_forward_market_summary.csv").open(encoding="utf-8", newline="")))
+          assert summary["status"] == "PASS_AGGREGATE_WALK_FORWARD_INTEGRITY_AUDIT_RESEARCH_ONLY"
+          assert summary["aggregate_market_fold_rows"] == 15
+          assert summary["wilson_intervals_recomputed"] == 15
+          assert summary["brier_skill_formula_checks"] == 15
+          assert len(markets) == 5
+          assert summary["production_eligible"] is False
+          assert summary["betting_eligible"] is False
+          assert summary["combo_probabilities_remaining"] == 0
+          assert all(row["production_eligible"] == "NO" for row in markets)
+          print("PASS: walk-forward arithmetic, chronological fold contract, and research-only gates.")
+          PY
       - name: Upload dry-run and readiness artifacts
         uses: actions/upload-artifact@v4
         with:
