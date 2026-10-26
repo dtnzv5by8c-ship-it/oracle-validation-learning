@@ -310,7 +310,7 @@ jobs:
           set -euo pipefail
           [[ -f oracle-selected50-footystats-private-ingestion.zip ]] || { echo "No package created; nothing transferred."; exit 0; }
           TARGET=dtnzv5by8c-ship-it/oracle-football-data
-          TAG=research-selected50-footystats-history-20261025
+          TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"
           if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
             echo "::error::Private release tag already exists; refusing overwrite."
             exit 1
