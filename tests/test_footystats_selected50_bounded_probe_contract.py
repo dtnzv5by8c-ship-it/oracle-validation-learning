@@ -63,6 +63,17 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("if [[ \"${GITHUB_EVENT_NAME}\" == \"workflow_dispatch\" ]]; then", runtime)
 
 
+    def test_private_archive_qa_uses_the_same_current_archive_as_runtime(self):
+        qa = (ROOT / ".github" / "workflows" / "oracle-selected50-private-archive-qa.yml").read_text(encoding="utf-8")
+        runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
+        current_tag = "research-selected50-footystats-history-40375285207"
+        self.assertIn(f"gh release download {current_tag}", qa)
+        self.assertIn(current_tag, runtime)
+        self.assertNotIn("research-selected50-footystats-history-20261025", qa)
+        self.assertIn("sha256sum -c private-package.sha256", qa)
+        self.assertIn("Upload sanitized QA only", qa)
+        self.assertNotIn("FOOTYSTATS_API_KEY", qa)
+
     def test_private_transfer_uses_the_same_unique_run_tag(self):
         ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
         self.assertIn('TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"', ingestion)
