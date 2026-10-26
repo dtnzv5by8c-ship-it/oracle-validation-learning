@@ -92,15 +92,3 @@ jobs:
             selected50_runtime_output/oracle_selected50_runtime_validation.json
           if-no-files-found: error
           retention-days: 14
-
-      - name: Publish normalized candidate to private research release only
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-        run: |
-          set -euo pipefail
-          TAG="research-selected50-runtime-${GITHUB_RUN_ID}"
-          gh release create "$TAG" oracle-selected50-normalized-research-candidate.zip private-runtime-candidate.sha256 \
-            --repo dtnzv5by8c-ship-it/oracle-football-data \
-            --title "Research Selected-50 Normalized Runtime Candidate 2026-10-26" \
-            --notes "Isolated research-only normalized match/features and prediction candidate. No production promotion; existing model logic and production probabilities unchanged."

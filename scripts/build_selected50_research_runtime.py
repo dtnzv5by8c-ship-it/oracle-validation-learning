@@ -562,7 +562,7 @@ def main():
                      "table_position_asof_status":f["table_position_asof_status"],
                      "model_input_coverage_pct":f["model_input_coverage_pct"],
                      "model_input_missingness_pct":f["model_input_missingness_pct"],
-                     "confidence_score_pct":f["confidence_score_pct"],"data_risk_pct":f["data_risk_pct"],
+                     "confidence_score_pct":f["confidence_score_pct"],"confidence_score_status":f["confidence_score_status"],"data_risk_pct":f["data_risk_pct"],"data_risk_status":f["data_risk_status"],
                      "risk_profile":f["risk_profile"],
                      "odds_named_field_count":f["odds_named_field_count"],"xg_named_field_count":f["xg_named_field_count"],
                      "odds_xg_provenance_status":"UNVERIFIED_NOT_USED_IN_MODEL","calibration_status":"RAW_ONLY_UNCALIBRATED",
