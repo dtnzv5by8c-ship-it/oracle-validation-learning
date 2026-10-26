@@ -51,6 +51,41 @@ jobs:
           base = "https://api.football-data-api.com/"
           results = []
           calls = 0
+          last_request_remaining = None
+          budget_guard_status = "REQUEST_WINDOW_METADATA_NOT_EXPOSED_BY_ENDPOINT"
+          empty_sample = {
+              "sample_match_id_fields": "", "sample_home_team_id_fields": "",
+              "sample_away_team_id_fields": "", "sample_home_team_name_fields": "",
+              "sample_away_team_name_fields": "", "sample_kickoff_fields": "",
+              "sample_status_fields": "", "sample_home_score_fields": "",
+              "sample_away_score_fields": "", "sample_record_field_names": "",
+              "request_window_remaining": ""
+          }
+
+          def safe_fields(row, allowed):
+              parts = []
+              if not isinstance(row, dict):
+                  return ""
+              for name in allowed:
+                  value = row.get(name)
+                  if value is None or isinstance(value, (dict, list)):
+                      continue
+                  rendered = str(value).replace("\\n", " ")[:120]
+                  if rendered.strip():
+                      parts.append(f"{name}={rendered}")
+              return ";".join(parts)
+
+          def response_remaining(payload):
+              meta = payload.get("metadata") if isinstance(payload, dict) else None
+              if not isinstance(meta, dict):
+                  data_obj = payload.get("data") if isinstance(payload, dict) else None
+                  meta = data_obj.get("metadata") if isinstance(data_obj, dict) else None
+              raw = meta.get("request_remaining") if isinstance(meta, dict) else None
+              try:
+                  return int(raw) if raw is not None else None
+              except (TypeError, ValueError):
+                  return None
+
           for item in selected:
               if calls >= 50:
                   raise SystemExit("STOP: hard cap of 50 API requests reached.")
@@ -65,13 +100,13 @@ jobs:
               except HTTPError as exc:
                   results.append({**item, "http_status": exc.code, "api_success": False,
                                   "match_rows_returned": 0, "competition_id_values": "",
-                                  "season_id_values": "", "identity_status": "HTTP_ERROR"})
+                                  "season_id_values": "", **empty_sample, "identity_status": "HTTP_ERROR"})
                   # Fail closed and do not retry.
                   break
               except Exception as exc:
                   results.append({**item, "http_status": "", "api_success": False,
                                   "match_rows_returned": 0, "competition_id_values": "",
-                                  "season_id_values": "", "identity_status": "REQUEST_ERROR_" + type(exc).__name__})
+                                  "season_id_values": "", **empty_sample, "identity_status": "REQUEST_ERROR_" + type(exc).__name__})
                   break
               ok = isinstance(payload, dict) and payload.get("success") is True
               data = payload.get("data") if isinstance(payload, dict) else None
@@ -80,19 +115,46 @@ jobs:
                                         if isinstance(r, dict) and r.get("competition_id") not in (None, "")})
               season_ids = sorted({str(r.get("season_id")) for r in rows
                                    if isinstance(r, dict) and r.get("season_id") not in (None, "")})
+              sample = rows[0] if rows and isinstance(rows[0], dict) else {}
+              last_request_remaining = response_remaining(payload)
+              if last_request_remaining is not None:
+                  budget_guard_status = "REQUEST_WINDOW_METADATA_OBSERVED"
+              sample_evidence = {
+                  "sample_match_id_fields": safe_fields(sample, ["id", "match_id", "matchID", "fixture_id", "fixtureID"]),
+                  "sample_home_team_id_fields": safe_fields(sample, ["homeID", "home_id", "home_team_id", "homeTeamID"]),
+                  "sample_away_team_id_fields": safe_fields(sample, ["awayID", "away_id", "away_team_id", "awayTeamID"]),
+                  "sample_home_team_name_fields": safe_fields(sample, ["home_name", "home_team_name", "homeName"]),
+                  "sample_away_team_name_fields": safe_fields(sample, ["away_name", "away_team_name", "awayName"]),
+                  "sample_kickoff_fields": safe_fields(sample, ["date_unix", "kickoff", "kickoff_time", "date", "datetime"]),
+                  "sample_status_fields": safe_fields(sample, ["status", "match_status", "fixture_status"]),
+                  "sample_home_score_fields": safe_fields(sample, ["homeGoalCount", "home_goals", "home_score", "homeGoals"]),
+                  "sample_away_score_fields": safe_fields(sample, ["awayGoalCount", "away_goals", "away_score", "awayGoals"]),
+                  "sample_record_field_names": ";".join(sorted(str(k) for k in sample.keys())),
+                  "request_window_remaining": "" if last_request_remaining is None else last_request_remaining
+              }
               results.append({**item, "http_status": http_status, "api_success": bool(ok),
                               "match_rows_returned": len(rows),
                               "competition_id_values": ";".join(competition_ids),
                               "season_id_values": ";".join(season_ids),
+                              **sample_evidence,
                               "identity_status": ("COMPETITION_ID_EXPOSED" if ok and competition_ids else
                                                   "NO_MATCH_ROW" if ok and not rows else
                                                   "COMPETITION_ID_NOT_EXPOSED" if ok else "API_SUCCESS_FALSE")})
-              # Deliberate low rate; no retries and no extra endpoints.
-              time.sleep(0.2)
+              # Stay below the documented 30 requests/minute envelope; no retries or extra endpoints.
+              if calls < 50 and last_request_remaining is not None:
+                  planned_calls_after_this = 50 - calls
+                  if last_request_remaining < planned_calls_after_this + 25:
+                      budget_guard_status = "STOPPED_REQUEST_WINDOW_GUARD"
+                      break
+              time.sleep(2.1)
           out = Path("parent-id-reconciliation")
           out.mkdir(exist_ok=True)
           fields = ["row","selected_id","country","competition","http_status","api_success",
-                    "match_rows_returned","competition_id_values","season_id_values","identity_status"]
+                    "match_rows_returned","competition_id_values","season_id_values",
+                    "sample_match_id_fields","sample_home_team_id_fields","sample_away_team_id_fields",
+                    "sample_home_team_name_fields","sample_away_team_name_fields","sample_kickoff_fields",
+                    "sample_status_fields","sample_home_score_fields","sample_away_score_fields",
+                    "sample_record_field_names","request_window_remaining","identity_status"]
           with (out / "parent-id-reconciliation.csv").open("w", newline="", encoding="utf-8") as f:
               writer = csv.DictWriter(f, fieldnames=fields); writer.writeheader(); writer.writerows(results)
           exposed = sum(bool(r["competition_id_values"]) for r in results)
@@ -102,10 +164,14 @@ jobs:
             "selected_leagues": 50, "requests_started": calls, "hard_request_cap": 50,
             "rows_with_competition_id": exposed, "unique_competition_id_values": len(unique_comp_ids),
             "successful_api_rows": sum(r["api_success"] is True for r in results),
+            "request_window_budget_guard": budget_guard_status,
+            "last_observed_request_window_remaining": last_request_remaining,
+            "monthly_credit_budget_verified": False,
+            "rate_limit_delay_seconds": 2.1,
             "raw_provider_payloads_saved": False, "api_key_logged_or_saved": False,
             "production_logic_or_probabilities_changed": False,
             "production_readiness": "NOT_GRANTED",
-            "interpretation": "One-row schema probe per selected ID only; not proof of full historical coverage or canonical identity until independently reconciled."
+            "interpretation": "One-row schema probe per selected ID only. Sample team/fixture/status/score fields are schema and identity evidence, not authoritative settlement truth or proof of full historical coverage. Monthly credit balance is not exposed by this report and must not be inferred from request-window metadata."
           }
           (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
           print(json.dumps(summary, indent=2))
