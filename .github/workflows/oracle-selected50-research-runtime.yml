@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - research/oracle-50-league-readiness-audit
+    paths-ignore:
+      - "reports/**"
+      - "tests/**"
+      - "*.md"
+      - "**/*.md"
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
