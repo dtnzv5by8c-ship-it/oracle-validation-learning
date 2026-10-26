@@ -146,11 +146,19 @@ jobs:
           assert int(s["days_since_last_fixture_date"]) == 9
           assert s["schedule_manifest_window_end"] == "2026-10-22"
           assert int(s["days_since_schedule_window_end"]) == 4
+          gate = json.loads((root / "selected50_governed_fixture_report_gate.json").read_text(encoding="utf-8"))
           assert s["production_eligible_rows"] == 0
           assert s["raw_feed_examples_exported"] is False
           assert s["network_calls_made"] == 0 and s["paid_provider_calls_made"] == 0
+          assert s["governed_fixture_report_gate_status"] == "BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE"
+          assert s["governed_fixture_rows_emitted"] == 0
+          assert gate["status"] == "BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE"
+          assert gate["current_fixture_rows_emitted"] == 0 and gate["prediction_rows_emitted"] == 0
+          assert gate["unsupported_predictions_emitted"] == 0 and gate["missing_fields_filled"] == 0
+          assert gate["production_eligible"] is False and gate["research_only"] is True
+          assert set(gate["market_gates"]) == {"BTTS", "DOUBLE_CHANCE", "COMBO", "M1UP"}
           assert all(r["production_eligible"] == "NO" and r["raw_feed_examples_exported"] == "NO" for r in rows)
-          print("PASS: 50-row join, crosswalk scope, stale schedule and fail-closed identity/provenance gates.")
+          print("PASS: 50-row readiness matrix and fail-closed fixture-report gate; no unsupported slate emitted.")
           PY
       - name: Audit pinned aggregate walk-forward metrics (no network calls)
         run: python scripts/audit_selected50_walk_forward_snapshot.py

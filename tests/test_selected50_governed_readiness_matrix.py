@@ -57,5 +57,13 @@ class GovernedReadinessMatrixTests(unittest.TestCase):
     def test_parent_competition_id_is_never_inferred(self):
         c,q,x=self.synthetic(); x[0]['provider_parent_competition_id_status']='VERIFIED'
         with self.assertRaises(AssertionError): matrix.build_matrix(c,q,x)
+    def test_fixture_gate_emits_no_unsupported_rows(self):
+        gate=matrix.build_fixture_gate({'schedule_rows_global':'80','schedule_last_fixture_date':'2026-10-17','schedule_manifest_window_end':'2026-10-22','days_since_last_fixture_date':9,'days_since_schedule_window_end':4})
+        self.assertEqual(gate['status'],'BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE')
+        self.assertEqual(gate['current_fixture_rows_emitted'],0)
+        self.assertEqual(gate['prediction_rows_emitted'],0)
+        self.assertEqual(gate['unsupported_predictions_emitted'],0)
+        self.assertFalse(gate['production_eligible'])
+        self.assertTrue(gate['research_only'])
 
 if __name__=='__main__': unittest.main(verbosity=2)

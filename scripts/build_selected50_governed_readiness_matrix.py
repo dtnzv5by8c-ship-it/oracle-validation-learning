@@ -74,6 +74,18 @@ def build_matrix(coverage,quarantine,crosswalk,audit_date=AUDIT_DATE):
           "governed_fixture_report_status":"STALE_SCHEDULE_AND_IDENTITY_GATES; DO NOT ISSUE NEW SLATE",
           "production_eligible":"NO","research_only":"YES","raw_feed_examples_exported":"NO"})
     return result
+def build_fixture_gate(summary):
+    return {
+      "status":"BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE","audit_date":"2026-10-26","selected_groups":50,
+      "schedule_rows_snapshot":summary["schedule_rows_global"],"schedule_last_fixture_date":summary["schedule_last_fixture_date"],
+      "schedule_manifest_window_end":summary["schedule_manifest_window_end"],"days_since_last_fixture_date":summary["days_since_last_fixture_date"],
+      "days_since_schedule_window_end":summary["days_since_schedule_window_end"],"current_fixture_rows_emitted":0,
+      "prediction_rows_emitted":0,"unsupported_predictions_emitted":0,"missing_fields_filled":0,
+      "production_eligible":False,"research_only":True,
+      "reason_codes":["STALE_SCHEDULE","CURRENT_FEED_IDENTITY_UNVERIFIED","CANONICAL_FIXTURE_TEAM_JOINS_UNVERIFIED","OFFICIAL_SETTLEMENT_TRUTH_UNVERIFIED","POINT_IN_TIME_STANDINGS_XG_ODDS_UNVERIFIED"],
+      "market_gates":{"BTTS":"BLOCKED_IDENTITY_SETTLEMENT_AND_FEATURE_PROVENANCE","DOUBLE_CHANCE":"BLOCKED_IDENTITY_SETTLEMENT_AND_FEATURE_PROVENANCE",
+        "COMBO":"BLOCKED_TARGET_SETTLEMENT_DEFINITION_MISMATCH","M1UP":"BLOCKED_EVENT_TRUTH_STALE"},
+      "no_staking_or_betting_recommendation":True}
 def main():
     coverage=read_csv(OUT/"selected50_latest_private_archive_coverage_matrix.csv")
     quarantine=read_csv(OUT/"selected50_current_feed_identity_quarantine.csv")
@@ -118,9 +130,21 @@ def main():
       "Current schedule evidence is stale: last fixture date 2026-10-17 and manifest window end 2026-10-22, both before the 2026-10-26 audit date.",
       "Canonical fixture/team joins and official settlement truth remain unverified; xG/odds point-in-time provenance is unverified and no ROI benchmark is approved.",
       "Combo remains blocked by target/settlement mismatch; M-1UP remains blocked by its independent event-truth gate."]}
+    fixture_gate=build_fixture_gate(s); s["governed_fixture_report_gate_status"]=fixture_gate["status"]; s["governed_fixture_rows_emitted"]=0
     with (OUT/"selected50_governed_readiness_matrix.csv").open("w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     (OUT/"selected50_governed_readiness_summary.json").write_text(json.dumps(s,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    (OUT/"selected50_governed_fixture_report_gate.json").write_text(json.dumps(fixture_gate,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    gate_lines=["# Governed Fixture Report Gate — 2026-10-26","","Status: BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE.",
+      "No fixture or prediction rows were emitted because the schedule snapshot is stale and identity, settlement and point-in-time feature gates remain unresolved.","",
+      f"- Schedule rows in snapshot: {fixture_gate['schedule_rows_snapshot']}",
+      f"- Last fixture date in snapshot: {fixture_gate['schedule_last_fixture_date']}",
+      f"- Schedule manifest window end: {fixture_gate['schedule_manifest_window_end']}",
+      f"- Days since last fixture date: {fixture_gate['days_since_last_fixture_date']}; days since manifest window end: {fixture_gate['days_since_schedule_window_end']}.",
+      "- Fixture rows emitted: 0; prediction rows emitted: 0; unsupported predictions emitted: 0; missing fields filled: 0.",
+      "- BTTS and Double Chance blocked pending identity/settlement/point-in-time evidence; Combo blocked by target/settlement mismatch; M-1UP blocked by stale event truth.",
+      "- Production eligibility: NO. Research-only gate report, not a betting recommendation."]
+    (OUT/"selected50_governed_fixture_report_gate.md").write_text("\n".join(gate_lines)+"\n",encoding="utf-8")
     lines=["# Selected-50 Governed Readiness Matrix — 2026-10-26","","Status: PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY.",
       "No-network reconciliation of existing sanitized evidence. Raw feed examples are excluded and no production eligibility is granted.","","## Identity and archive scope","",
       f"- Selected IDs: {len(rows)}; crosswalk review candidates: {statuses.get('CANDIDATE_REQUIRES_HUMAN_REVIEW_NOT_APPROVED',0)}; unresolved: {statuses.get('UNRESOLVED_NO_EXACT_OR_EXPLICIT_ALIAS',0)}; approved: {sum(r['crosswalk_status']=='APPROVED' for r in rows)}.",
@@ -136,5 +160,5 @@ def main():
       "- No network/API calls or provider credits were used; no raw feed examples were exported.","","## Next action","",
       "Review the 22 candidate canonical mappings against approved authoritative evidence; keep 28 unresolved mappings unresolved. Repair/refresh current feed and immutable feature snapshot evidence, then reconcile official settlement truth and point-in-time inputs before producing a new governed slate.","","Production remains NOT_GRANTED. Research-only; not approved for betting."]
     (OUT/"selected50_governed_readiness_report.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
-    print(json.dumps({k:s[k] for k in ["status","selected_groups","crosswalk_status_counts","historical_archive_season_id_match_counts","current_feed_groups_with_label_rows","current_feed_groups_with_multiple_league_id_collisions","current_feed_groups_with_no_label_rows","parent_competition_ids_verified","canonical_fixture_joins_verified","canonical_team_joins_verified","official_settlement_truth_verified","schedule_last_fixture_date","days_since_last_fixture_date","xg_point_in_time_provenance_verified","odds_point_in_time_provenance_verified","production_eligible_rows","network_calls_made","paid_provider_calls_made"]},sort_keys=True))
+    print(json.dumps({k:s[k] for k in ["status","selected_groups","crosswalk_status_counts","historical_archive_season_id_match_counts","current_feed_groups_with_label_rows","current_feed_groups_with_multiple_league_id_collisions","current_feed_groups_with_no_label_rows","parent_competition_ids_verified","canonical_fixture_joins_verified","canonical_team_joins_verified","official_settlement_truth_verified","schedule_last_fixture_date","days_since_last_fixture_date","xg_point_in_time_provenance_verified","odds_point_in_time_provenance_verified","governed_fixture_report_gate_status","governed_fixture_rows_emitted","production_eligible_rows","network_calls_made","paid_provider_calls_made"]},sort_keys=True))
 if __name__=="__main__": main()
