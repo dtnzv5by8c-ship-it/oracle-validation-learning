@@ -30,5 +30,21 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.text)
 
 
+    def test_historical_ingestion_has_a_hard_request_cap_and_budget_preflight(self):
+        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
+        self.assertIn("MAX_API_REQUESTS = 250", ingestion)
+        self.assertIn("if api_calls >= MAX_API_REQUESTS", ingestion)
+        self.assertIn("request_hard_cap_reached", ingestion)
+        self.assertIn("request_remaining < MAX_API_REQUESTS", ingestion)
+        self.assertIn("provider_request_window_is_not_monthly_credit_proof", ingestion)
+
+    def test_historical_ingestion_uses_unique_private_archive_tag_and_keeps_production_blocked(self):
+        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
+        self.assertIn('TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"', ingestion)
+        self.assertIn('"production_readiness": "NOT_GRANTED"', ingestion)
+        self.assertIn("Transfer raw archive to private Oracle release only", ingestion)
+        self.assertIn("Upload sanitized ledger only to public research run", ingestion)
+
+
 if __name__ == "__main__":
     unittest.main()
