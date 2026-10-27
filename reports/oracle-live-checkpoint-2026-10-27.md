@@ -372,7 +372,7 @@ This update supersedes the older branch-head reference above for current status.
 ### Current branch work and exact commit links
 
 - Identity evidence register (all 50 selected IDs, source/country/name/code candidate fields, archive evidence layers, and explicit unverified dispositions): [CSV](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-independent-identity-evidence-register-2026-10-27.csv), commit [21139591e7a7ccaedcebcebaa92411c15e201089](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/21139591e7a7ccaedcebcebaa92411c15e201089).
-- Independent identity audit report: [report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-independent-identity-evidence-audit-2026-10-27.md), commit [53b243b1c922637411e533f7cf05a1544848f946](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/53b243b1c922637411e533f7cf05a1544848f946).
+- Independent identity audit report: [report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-independent-identity-evidence-audit-2026-10-27.md), commit [12cd448724499f8eba24a2c31bc0229fd38f90bb](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/12cd448724499f8eba24a2c31bc0229fd38f90bb).
 - Settlement truth and source-provenance review: [report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-settlement-truth-provenance-review-2026-10-27.md), commit [a33ef5c4a291e7fdb058f4b8978c8dd3311aec03](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/a33ef5c4a291e7fdb058f4b8978c8dd3311aec03).
 - Improved FootyStats support clarification draft: [draft — not sent](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-footystats-identity-clarification-request-2026-10-27.md), commit [53fa4fbe02846ebf53feaf83a28c98a913d481dd](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/53fa4fbe02846ebf53feaf83a28c98a913d481dd).
 
@@ -413,3 +413,8 @@ This update supersedes the older branch-head reference above for current status.
 3. Keep the 7,066 non-complete 0–0 rows excluded.
 4. Preserve the protected 27-league registry and all production logic/probabilities/thresholds/calibration/ledgers/governance unchanged.
 5. No new workflow was dispatched for these documentation-only evidence changes; the referenced run/artifact IDs above are the exact existing execution evidence, not a claim that the new documentation commits ran through the research runtime.
+
+
+### Direct sanitized artifact verification
+
+Artifact `12760832880` was downloaded and inspected without repeating the provider call. The ZIP contains only `identity-probe-summary.json` (766 bytes), no raw provider payload or API key. Recomputed ZIP SHA-256 `54b25732953cae74b59963613e4c2948c643612dc86dafa11b038a58ffdb7015` matches GitHub artifact metadata. The summary confirms one request, HTTP 200, provider success, and one season record for ID `16571`; it explicitly leaves identifier semantics unverified.
