@@ -8,6 +8,7 @@ on:
       - "reports/**"
       - "tests/**"
       - "scripts/qa_selected50_private_archive.py"
+      - "scripts/settle_market_from_final_score.py"
       - "*.md"
       - "**/*.md"
       - ".github/workflows/**"
