@@ -2,9 +2,11 @@
 
 ## Evidence provenance
 
-- Research-only QA run: [40423793007 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423793007)
-- Sanitized artifact: [12698323452](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423793007#artifacts)
-- Artifact ZIP SHA-256: `0159f36791f668b8b1554912b4881f7e5008a10ba46b191af913f4c0dcf6f7eb`
+- Commit-pinned research-only QA run: [40423922693 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693)
+- Sanitized QA artifact: [12698682583](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693#artifacts)
+- QA artifact ZIP SHA-256: `2fd2242e46d58267f7dbbffc35fb43675c7d74dd5168446e802b45a5a7667e2b`
+- Runtime validation run: [40423792877 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423792877)
+- Runtime artifact: [12698452196](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423792877#artifacts), ZIP SHA-256 `ef5359a46102f87c222b80b5e1a38793d25d64f3c9f50de55e56817c24ea0f2e`
 - Private archive release tag read by the QA workflow: `research-selected50-footystats-history-40375285207`
 - Private archive SHA-256 verified from the sanitized QA summary: `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`
 - Audit date (UTC): `2026-10-27`
@@ -63,6 +65,12 @@ Additional checks:
 | Incomplete/suspended rows with parseable 0-0 pairs | 7,011 |
 | Incomplete rows with past kickoff dates | 23 |
 | Suspended rows with parseable score pairs | 53 |
+
+## Cross-check against the research runtime
+
+The runtime's independent 50-row `oracle_selected50_settlement_truth_qa.csv` reports the same 59,049 source rows, 51,983 provider-`complete` rows with numeric scores, and 7,066 non-finished rows with numeric scores. Its per-status cross-tab shows all 7,066 non-finished score pairs are 0-0; no non-finished row has a non-zero score pair. Every row is explicitly `INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED`, and every row has `production_eligible=NO`.
+
+Runtime output contract passed: 50 selected groups, 463 governed fixture rows, 2,315 prediction rows, 250 league-market rows and 750 league-market-fold rows. It masked all 437 raw Combo Home and 437 raw Combo Away probabilities present in the governed fixture report; zero Combo probabilities remain. The runtime is research-only and does not authorize betting or production release.
 
 ## Interpretation and controls
 
