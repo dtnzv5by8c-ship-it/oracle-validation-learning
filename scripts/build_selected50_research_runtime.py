@@ -29,8 +29,8 @@ MARKETS = {
  "BTTS": lambda h,a: int(h>0 and a>0),
  "DC_HOME": lambda h,a: int(h>=a),
  "DC_AWAY": lambda h,a: int(a>=h),
- "COMBO_HOME": lambda h,a: int(h>=a and 2 <= h+a <= 4),
- "COMBO_AWAY": lambda h,a: int(a>=h and 2 <= h+a <= 4),
+ "COMBO_HOME": lambda h,a: int(h>=a and h+a <= 4),
+ "COMBO_AWAY": lambda h,a: int(a>=h and h+a <= 4),
 }
 
 def wilson_interval(successes, n, z=1.959963984540054):
@@ -416,13 +416,9 @@ def main():
                 if st in FINISHED and not has_score:
                     final_status_missing_score += 1
                 if st in FINISHED and has_score and (gh + ga) <= 1:
-                    # Research diagnostic only: production prediction target requires 2-4 goals,
-                    # while the current settlement ledger only checks total goals < 5.
+                    # Low-total goals are valid under the established Oracle composite rule:
+                    # double chance AND total goals <= 4. Count them for QA, not as disagreements.
                     completed_total_goals_0_1_rows += 1
-                    if gh >= ga:
-                        combo_home_predictor_vs_ledger_disagreement_rows += 1
-                    if ga >= gh:
-                        combo_away_predictor_vs_ledger_disagreement_rows += 1
                 if st not in FINISHED and has_score:
                     nonfinal_status_with_score += 1
                 if has_score and (not float(gh).is_integer() or not float(ga).is_integer()):
@@ -675,9 +671,9 @@ def main():
         # Produce a separate governed view: retain supported non-Combo research values for analysis,
         # but never present any market as betting-approved. Mask Combo probabilities until predictor
         # target and settlement-ledger definitions are reconciled.
-        combo_block_reason = ("BLOCKED: predictor target is Double Chance plus a 2-4 total-goal corridor, "
-                              "while the current settlement script accepts any total below five; "
-                              "canonical market/settlement reconciliation is required.")
+        combo_block_reason = ("Research-only block: the research target now matches the documented composite rule "
+                              "(Double Chance AND total goals <= 4). Probabilities remain masked until canonical "
+                              "fixture/team joins and official settlement truth are verified.")
         noncombo_block_reason = ("Research-only: canonical fixture/team joins and production settlement truth "
                                  "remain unverified; raw probabilities are uncalibrated and not approved for betting.")
         governed_predictions = []
