@@ -359,6 +359,8 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             index_rows([{"season_id": "1"}, {"season_id": "1"}])
         with self.assertRaisesRegex(ValueError, "missing season ID"):
             index_rows([{"season_id": "1"}, {"season_id": ""}])
+        with self.assertRaisesRegex(ValueError, "missing season ID"):
+            index_rows([{"season_id": "1"}, {"season_id": None}])
 
         in_range = namespace["within_date_range"]
         start = dt.date(2025, 3, 20)
