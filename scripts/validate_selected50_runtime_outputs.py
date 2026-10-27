@@ -160,7 +160,7 @@ def main():
         "limitations": [
             "Contract validation does not verify canonical provider IDs, official settlement truth, or point-in-time provenance.",
             "Walk-forward scores are raw and uncalibrated; no odds/ROI benchmark is approved without verified odds provenance.",
-            "Combo remains blocked because predictor and settlement definitions disagree.",
+            "Combo remains blocked pending canonical fixture/team joins and official settlement truth; research target now matches the documented <=4-goal composite rule.",
         ],
     }
     (OUT / "oracle_selected50_runtime_validation.json").write_text(
