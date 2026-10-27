@@ -48,7 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p private-download
-          gh release download research-selected50-footystats-history-40375285207 \
+          gh release download research-selected50-footystats-history-40447419806 \
             --repo dtnzv5by8c-ship-it/oracle-football-data \
             --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
             --pattern 'private-package.sha256' \
