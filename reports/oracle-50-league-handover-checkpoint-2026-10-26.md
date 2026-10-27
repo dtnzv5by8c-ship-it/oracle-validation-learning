@@ -392,3 +392,24 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - Provider parent competition IDs verified: 0/50. Provider match-record `competition_id` is documented as a league season ID; it is not a parent competition ID. Provider-to-Oracle canonical bridges remain 0/50.
 - No FootyStats API calls were made in this run. Current monthly credits cannot be verified via the available tools, and there is no workflow-dispatch operation. The one-call schema diagnostic remains manual-only; confirm the current FootyStats account credit balance before manually dispatching it with `confirm_provider_credit_usage=true`. No credentials were exposed, no raw payloads were published, and no paid plan was changed.
 - Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain untouched. Production readiness remains `NOT_GRANTED`.
+
+
+## Automation continuation — runtime score quarantine regression and live provider gate (2026-10-27 01:00 UTC)
+
+### Live state inspected
+- Research branch head before this change: `b6766482a1d26d970f4de30892396f78d27ffeb7`; latest prior safety contract run [40424163022](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40424163022) succeeded on that exact commit.
+- The current private archive QA is pinned to batch-5 release `research-selected50-footystats-history-40375285207` and reads the archive from the private production repository only; no production workflow or file was changed.
+- Provider schema diagnostic exists at `.github/workflows/oracle-selected50-provider-schema-diagnostic.yml`. It references the configured `FOOTYSTATS_API_KEY` secret inside the runner, requires explicit `confirm_provider_credit_usage=true`, makes at most one read-only catalogue request, suppresses the raw response, and declares monthly credits unverified. Secret values cannot be read through the available GitHub connector.
+- The available GitHub tool connection has no workflow-dispatch operation and cannot inspect FootyStats account monthly credits. No provider API call was made in this automation run. The last historical request-window remaining figure is not current monthly-credit evidence.
+
+### New regression protection
+- Commit `6174e54835f0c2f5e68c54ac52571196edeb9590` adds a test to `tests/test_footystats_selected50_bounded_probe_contract.py` that AST-loads the actual runtime score/status functions without importing the full modelling dependency stack.
+- The test asserts that numeric 0-0 scores with `incomplete`, `suspended`, `canceled`, or `abandoned` statuses cannot be considered completed; a provider-`complete` 0-0 remains structurally complete (0-0 can be a legitimate final score); missing/negative scores fail closed. It also locks the runtime target assignment and training-row gates to the `finished` flag and confirms future candidate selection excludes finished and canceled/postponed/suspended/void/abandoned rows.
+- This is research-only test coverage. No model code, probabilities, calibration, thresholds, production registry or ledger was changed.
+- The safety contract workflow checks out the triggering SHA and runs this test file on every push to the research branch. The new run has not yet been observed in the Actions run list at checkpoint time; do not claim this new test has passed until its run is complete.
+
+### Release decision and next action
+- Fresh batch-5 archive QA remains the latest successful source QA: [run 40423922693](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693), artifact [12698682583](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693#artifacts), archive SHA-256 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`.
+- All 7,066 non-complete archive rows have 0-0 score pairs; these remain excluded from training/evaluation by the runtime's status-based `finished` gate. Official settlement truth is still unverified.
+- The only safe next provider action remains manual dispatch of the one-call schema diagnostic after confirming the current FootyStats account credit balance. The connector cannot dispatch it, so no API calls are claimed.
+- Canonical parent competition IDs, provider-to-Oracle bridges, canonical fixture/team joins, official settlement labels, historical standings as-of-kickoff, point-in-time xG/odds provenance, and Combo target/settlement reconciliation remain hard blockers. Production readiness remains `NOT_GRANTED`.
