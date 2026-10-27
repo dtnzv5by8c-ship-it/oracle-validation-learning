@@ -65,6 +65,7 @@ The research deliverable is available and its workflow/test contract passes. The
 
 - [50-league readiness matrix](oracle-selected50-league-readiness-matrix-2026-10-27.md) — all 50 selected groups, observed years, archive/completed rows, primary-window counts, feature rows and seven-day schedule coverage.
 - [Market walk-forward summary](oracle-selected50-market-walk-forward-summary-2026-10-27.md) — aggregate temporal folds, per-market metrics, and per-league stability counts.
+- [Runtime gap triage and regression evidence](oracle-selected50-runtime-gap-triage-2026-10-27.md) — exact 26 feature-blocked fixtures, three schedule-freshness gaps, 250 market-row audit and post-fix workflow evidence.
 - [Data-quality and settlement audit](oracle-selected50-data-quality-settlement-audit-2026-10-27.md) — status/score hazards, fixture joins, and data QA.
 - [Provider identity reconciliation](oracle-selected50-provider-identity-reconciliation-2026-10-27.md) — season-ID semantics and missing parent IDs.
 - [Canonical candidate crosswalk](oracle-selected50-canonical-candidate-crosswalk-2026-10-27.md) — provisional candidates, none approved.
@@ -90,3 +91,12 @@ These are raw diagnostics only. They do not establish calibration, betting ROI, 
 **Research runtime and regression-test contract: PASS. Production release: BLOCKED. Betting release: BLOCKED.**
 
 The matrix and summary reports are committed to the research branch. Parent competition IDs and canonical joins remain unverified; official settlement truth and point-in-time provenance remain outstanding. No production registry, model logic, probabilities, thresholds, calibration, or governance was changed.
+
+
+## Follow-up evidence — 2026-10-27 18:03 UTC
+
+- Fixed a research-only contract-test defect: assertions now inspect the provider diagnostic script for JSON metadata and the workflow YAML for dispatch/credit guards.
+- Safety contract workflow [run #148](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40556270993) passed on commit `3f09de48d356dd31c077d8a28ddacdc5d6d8005d`: 22 bounded-probe contract tests and 17 score/settlement tests passed.
+- Dry-run planner [run #455](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40556271022) passed on the same commit; planner, identity, market, Combo-settlement, walk-forward and readiness checks passed.
+- Detailed fixture-level diagnosis and schedule evidence are in the [runtime gap triage report](oracle-selected50-runtime-gap-triage-2026-10-27.md).
+- The runtime artifact remains run #112 / artifact #12757295232. No FootyStats API request was made. All 50 groups and all 250 market rows remain production-ineligible; release decision remains blocked.
