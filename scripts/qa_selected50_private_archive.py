@@ -46,6 +46,43 @@ def date_value(row):
             continue
     return ""
 
+PRIMARY_WINDOW_START = dt.date(2025, 3, 20)
+PRIMARY_WINDOW_END = dt.date(2026, 9, 20)
+PRIMARY_2025_START = dt.date(2025, 3, 20)
+PRIMARY_2025_END = dt.date(2025, 12, 31)
+PRIMARY_2026_START = dt.date(2026, 1, 1)
+PRIMARY_2026_END = dt.date(2026, 9, 20)
+
+
+def within_date_range(row, start, end):
+    """Return true only when a parseable kickoff date falls in the inclusive range."""
+    value = date_value(row)
+    if not value:
+        return False
+    try:
+        day = dt.date.fromisoformat(value)
+    except ValueError:
+        return False
+    return start <= day <= end
+
+
+def index_season_rows(raw_manifest):
+    """Index the archive manifest without silently collapsing missing/duplicate season IDs."""
+    if not isinstance(raw_manifest, list):
+        raise ValueError("manifest is not a list")
+    ids = []
+    for row in raw_manifest:
+        if not isinstance(row, dict):
+            raise ValueError("manifest contains a non-object row")
+        sid = str(row.get("season_id", "")).strip()
+        if not sid:
+            raise ValueError("manifest contains a missing season ID")
+        ids.append(sid)
+    if len(ids) != len(set(ids)):
+        raise ValueError("manifest contains duplicate season IDs")
+    return {str(row["season_id"]).strip(): row for row in raw_manifest}
+
+
 def parse_score(value):
     """Return a non-negative integer score, otherwise None."""
     if value in (None, ""):
@@ -151,8 +188,10 @@ def main():
         manifest_name = next((n for n in names if n.endswith("ingestion_manifest.json")), None)
         if not manifest_name: raise SystemExit("Ingestion manifest missing from private archive.")
         raw_manifest = read_json(z, manifest_name)
-        if not isinstance(raw_manifest, list): raise SystemExit("Ingestion manifest has unexpected shape.")
-        season_rows = {str(r.get("season_id", "")).strip(): r for r in raw_manifest if isinstance(r, dict)}
+        try:
+            season_rows = index_season_rows(raw_manifest)
+        except ValueError as exc:
+            raise SystemExit("Ingestion manifest integrity check failed: " + str(exc)) from None
         selected_present = sorted(selected_ids & set(season_rows))
         selected_missing = sorted(selected_ids - set(season_rows))
         season_summaries = []
@@ -165,6 +204,17 @@ def main():
         aggregate_status_counts = Counter()
         aggregate_status_score_patterns = Counter()
         aggregate_audit_metrics = Counter()
+        primary_window_record_count = 0
+        primary_window_current_season_record_count = 0
+        primary_window_current_season_complete_count = 0
+        primary_window_status_counts = Counter()
+        primary_window_audit_metrics = Counter()
+        primary_window_ids = Counter()
+        primary_window_calendar_counts = {"2025": 0, "2026": 0}
+        primary_window_calendar_ids = {"2025": Counter(), "2026": Counter()}
+        primary_window_calendar_status_counts = {"2025": Counter(), "2026": Counter()}
+        primary_window_calendar_2025_ids = Counter()
+        primary_window_calendar_2026_ids = Counter()
         all_kickoff_dates = []
         for sid, meta in sorted(season_rows.items(), key=lambda x: (int(x[0]) if x[0].isdigit() else 0)):
             base = f"seasons/{sid}/"
@@ -192,9 +242,35 @@ def main():
             match_audit = audit_matches(matches, audit_date)
             season_status_counts = match_audit["status_counts"]
             season_metrics = match_audit["metrics"]
+            primary_window_matches = [
+                m for m in matches if within_date_range(m, PRIMARY_WINDOW_START, PRIMARY_WINDOW_END)
+            ]
+            primary_window_audit = audit_matches(primary_window_matches, audit_date)
+            primary_window_ids_for_season = [row_id(m) for m in primary_window_matches if row_id(m)]
+            calendar_2025_matches = [
+                m for m in matches if within_date_range(m, PRIMARY_2025_START, PRIMARY_2025_END)
+            ]
+            calendar_2026_matches = [
+                m for m in matches if within_date_range(m, PRIMARY_2026_START, PRIMARY_2026_END)
+            ]
+            calendar_2025_audit = audit_matches(calendar_2025_matches, audit_date)
+            calendar_2026_audit = audit_matches(calendar_2026_matches, audit_date)
             aggregate_status_counts.update(season_status_counts)
             aggregate_status_score_patterns.update(match_audit["status_score_pattern_counts"])
             aggregate_audit_metrics.update(season_metrics)
+            primary_window_record_count += len(primary_window_matches)
+            primary_window_status_counts.update(primary_window_audit["status_counts"])
+            primary_window_audit_metrics.update(primary_window_audit["metrics"])
+            primary_window_ids.update(primary_window_ids_for_season)
+            primary_window_calendar_counts["2025"] += len(calendar_2025_matches)
+            primary_window_calendar_counts["2026"] += len(calendar_2026_matches)
+            primary_window_calendar_status_counts["2025"].update(calendar_2025_audit["status_counts"])
+            primary_window_calendar_status_counts["2026"].update(calendar_2026_audit["status_counts"])
+            primary_window_calendar_ids["2025"].update(row_id(m) for m in calendar_2025_matches if row_id(m))
+            primary_window_calendar_ids["2026"].update(row_id(m) for m in calendar_2026_matches if row_id(m))
+            if sid in selected_ids:
+                primary_window_current_season_record_count += len(primary_window_matches)
+                primary_window_current_season_complete_count += primary_window_audit["status_counts"].get("complete", 0)
             all_kickoff_dates.extend(v for v in date_values if v)
             complete_scores += season_metrics.get("records_with_both_parseable_scores", 0)
             score_home_present += season_metrics.get("records_with_home_score_field", 0)
@@ -217,6 +293,19 @@ def main():
                 "complete_status_records_with_nonzero_score_pair": season_metrics.get("complete_status_records_with_nonzero_score_pair", 0),
                 "complete_status_records_missing_or_invalid_score_pair": season_metrics.get("complete_status_records_missing_or_invalid_score_pair", 0),
                 "records_with_invalid_score_pair": season_metrics.get("records_with_invalid_score_pair", 0),
+                "primary_window_match_records": len(primary_window_matches),
+                "primary_window_unique_provider_match_ids": len(set(primary_window_ids_for_season)),
+                "primary_window_complete_status_records": primary_window_audit["status_counts"].get("complete", 0),
+                "primary_window_noncomplete_status_records": len(primary_window_matches) - primary_window_audit["status_counts"].get("complete", 0),
+                "primary_window_noncomplete_status_records_with_parseable_score_pair": primary_window_audit["metrics"].get("noncomplete_status_records_with_parseable_score_pair", 0),
+                "primary_window_noncomplete_status_records_with_zero_zero_score_pair": primary_window_audit["metrics"].get("noncomplete_status_records_with_zero_zero_score_pair", 0),
+                "primary_window_complete_status_records_missing_or_invalid_score_pair": primary_window_audit["metrics"].get("complete_status_records_missing_or_invalid_score_pair", 0),
+                "primary_window_kickoff_date_min": primary_window_audit["kickoff_date_min"],
+                "primary_window_kickoff_date_max": primary_window_audit["kickoff_date_max"],
+                "primary_window_calendar_2025_match_records": len(calendar_2025_matches),
+                "primary_window_calendar_2026_match_records": len(calendar_2026_matches),
+                "primary_window_calendar_2025_status_counts_json": json.dumps(calendar_2025_audit["status_counts"], sort_keys=True),
+                "primary_window_calendar_2026_status_counts_json": json.dumps(calendar_2026_audit["status_counts"], sort_keys=True),
                 "incomplete_status_records_with_past_kickoff": season_metrics.get("incomplete_status_records_with_past_kickoff", 0),
                 "complete_status_records_with_future_kickoff": season_metrics.get("complete_status_records_with_future_kickoff", 0),
                 "suspended_status_records_with_parseable_score_pair": season_metrics.get("suspended_status_records_with_parseable_score_pair", 0),
@@ -249,6 +338,33 @@ def main():
         "match_records_with_away_score_field": score_away_present,
         "provider_status_counts": dict(sorted(aggregate_status_counts.items())),
         "provider_status_score_pattern_counts": dict(sorted(aggregate_status_score_patterns.items())),
+        "primary_window_start": PRIMARY_WINDOW_START.isoformat(),
+        "primary_window_end": PRIMARY_WINDOW_END.isoformat(),
+        "primary_window_archive_match_records": primary_window_record_count,
+        "primary_window_archive_unique_provider_match_ids": len(primary_window_ids),
+        "primary_window_archive_duplicate_provider_match_id_rows_across_seasons": sum(n - 1 for n in primary_window_ids.values() if n > 1),
+        "primary_window_provider_status_counts": dict(sorted(primary_window_status_counts.items())),
+        "primary_window_noncomplete_status_records_with_parseable_score_pair": primary_window_audit_metrics.get("noncomplete_status_records_with_parseable_score_pair", 0),
+        "primary_window_noncomplete_status_records_with_zero_zero_score_pair": primary_window_audit_metrics.get("noncomplete_status_records_with_zero_zero_score_pair", 0),
+        "primary_window_current_selected_season_folder_match_records": primary_window_current_season_record_count,
+        "primary_window_current_selected_season_folder_complete_status_records": primary_window_current_season_complete_count,
+        "primary_window_calendar_year_coverage": {
+            "2025": {
+                "start": PRIMARY_2025_START.isoformat(), "end": PRIMARY_2025_END.isoformat(),
+                "archive_match_records": primary_window_calendar_counts["2025"],
+                "unique_provider_match_ids": len(primary_window_calendar_ids["2025"]),
+                "provider_status_counts": dict(sorted(primary_window_calendar_status_counts["2025"].items()))
+            },
+            "2026": {
+                "start": PRIMARY_2026_START.isoformat(), "end": PRIMARY_2026_END.isoformat(),
+                "archive_match_records": primary_window_calendar_counts["2026"],
+                "unique_provider_match_ids": len(primary_window_calendar_ids["2026"]),
+                "provider_status_counts": dict(sorted(primary_window_calendar_status_counts["2026"].items()))
+            }
+        },
+        "primary_window_coverage_is_canonical_fixture_count": False,
+        "official_settlement_truth_verified": False,
+        "production_eligible": False,
         "records_with_missing_status": aggregate_audit_metrics.get("records_with_missing_status", 0),
         "noncomplete_status_records_with_parseable_score_pair": aggregate_audit_metrics.get("noncomplete_status_records_with_parseable_score_pair", 0),
         "noncomplete_status_records_with_zero_zero_score_pair": aggregate_audit_metrics.get("noncomplete_status_records_with_zero_zero_score_pair", 0),
