@@ -76,6 +76,9 @@ jobs:
       - name: Test composite-market target against settlement contract
         run: python -m unittest discover -s tests -p 'test_selected50_combo_target_contract.py' -v
 
+      - name: Test per-fixture feature and training support diagnostics
+        run: python -m unittest discover -s tests -p 'test_selected50_prediction_support_diagnostics.py' -v
+
       - name: Build isolated Selected-50 research runtime, features, backtest and report
         env:
           ORACLE_ARCHIVE: private-download/oracle-selected50-footystats-private-ingestion.zip
