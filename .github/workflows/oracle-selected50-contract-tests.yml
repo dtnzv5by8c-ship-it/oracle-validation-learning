@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - research/oracle-50-league-readiness-audit
+    paths-ignore:
+      - "**/*.md"
 
 permissions:
   contents: read
