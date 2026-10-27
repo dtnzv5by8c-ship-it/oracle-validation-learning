@@ -31,12 +31,20 @@ jobs:
         shell: bash
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
-          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ github.event.inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ github.event.inputs.confirm_monthly_credit_budget_checked }}
         run: |
           set -euo pipefail
-          [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no request made."; exit 1; }
-          [[ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" == "true" ]] || { echo "::error::Current monthly FootyStats credit balance has not been explicitly confirmed; no request made."; exit 1; }
+          echo "Provider-credit confirmation received: ${CONFIRM_PROVIDER_CREDIT_USAGE:-unset}"
+          echo "Monthly-credit confirmation received: ${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-unset}"
+          if [ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" != "true" ]; then
+            echo "::error::Explicit provider-credit confirmation is required; no request made."
+            exit 1
+          fi
+          if [ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" != "true" ]; then
+            echo "::error::Current monthly FootyStats credit balance has not been explicitly confirmed; no request made."
+            exit 1
+          fi
           python scripts/oracle_selected50_provider_schema_diagnostic.py
 
       - name: Upload sanitized schema summary only
