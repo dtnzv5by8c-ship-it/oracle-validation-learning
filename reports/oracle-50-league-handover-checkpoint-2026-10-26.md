@@ -413,3 +413,14 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - All 7,066 non-complete archive rows have 0-0 score pairs; these remain excluded from training/evaluation by the runtime's status-based `finished` gate. Official settlement truth is still unverified.
 - The only safe next provider action remains manual dispatch of the one-call schema diagnostic after confirming the current FootyStats account credit balance. The connector cannot dispatch it, so no API calls are claimed.
 - Canonical parent competition IDs, provider-to-Oracle bridges, canonical fixture/team joins, official settlement labels, historical standings as-of-kickoff, point-in-time xG/odds provenance, and Combo target/settlement reconciliation remain hard blockers. Production readiness remains `NOT_GRANTED`.
+
+
+### Follow-up verification — status quarantine test and workflow efficiency (2026-10-27 01:00 UTC)
+
+- Safety contract test run [40429801588](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40429801588) — SUCCESS on commit `6174e54835f0c2f5e68c54ac52571196edeb9590`, including the new AST-based test of runtime status/score quarantine.
+- Dry-run planner [40429801626](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40429801626) — SUCCESS on the same test commit; no network/provider calls.
+- Added markdown-only path filtering to the safety contract workflow in commit `a25bd78ffd3a891fe90f76744e0bc99ad94c5c85`, then added a regression assertion in commit `86678934620888999c99ec9723413c600e7ab3e4`. This avoids running the safety suite for checkpoint/report Markdown-only changes while still running it for test/code/workflow changes. Both checks succeeded on the final code/test commit: safety [40429893100](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40429893100) — SUCCESS; dry-run planner [40429893103](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40429893103) — SUCCESS.
+- The new status/score regression test confirms non-complete 0-0 or non-zero score rows do not pass the runtime's completed-match gate, while a provider-`complete` 0-0 remains structurally completed because a real 0-0 final score is possible. Training targets and candidate selection remain gated on the runtime's `finished` flag.
+- This checkpoint update is Markdown-only and is intentionally excluded from the contract-test push trigger; no additional run is expected from this documentation-only commit.
+- No provider requests were made. The one-call schema diagnostic is manual-dispatch-only, the available GitHub connector cannot dispatch workflows or read secret values, and current monthly FootyStats credits remain unverified. No credentials or raw provider payloads were exposed.
+- Production readiness remains `NOT_GRANTED`; no production repository, model logic, probabilities, calibration, thresholds, registries or ledgers were modified.
