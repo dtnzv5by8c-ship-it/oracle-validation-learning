@@ -161,6 +161,47 @@ def predict(model, feature):
     return float(model.predict_proba([[float(feature[f]) for f in FEATURES]])[0,1])
 
 
+def prediction_support_diagnostics(feature, model_fits, any_probability_available=False):
+    """Expose why a fixture did or did not pass feature/training support gates.
+
+    This is reporting-only. It never fills missing features or changes a model fit.
+    model_fits maps each market to the (model, eligible_training_row_count) returned
+    by make_model().
+    """
+    missing = [name for name in FEATURES if feature.get(name) is None]
+    unavailable = [market for market, fit in model_fits.items() if fit[0] is None]
+    if not missing:
+        feature_status = "PASS_ALL_20_REQUIRED_FEATURES"
+    else:
+        feature_status = "BLOCKED_MISSING_REQUIRED_FEATURES"
+    if not unavailable:
+        training_status = "PASS_ALL_MARKET_MODELS"
+    elif len(unavailable) == len(model_fits):
+        training_status = "BLOCKED_ALL_MARKET_MODELS_UNAVAILABLE"
+    else:
+        training_status = "PARTIAL_MARKET_MODEL_TRAINING_GATE"
+    if any_probability_available:
+        block_reason = "RESEARCH_PREDICTION_AVAILABLE"
+    elif missing and unavailable:
+        block_reason = "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE"
+    elif missing:
+        block_reason = "BLOCKED_MISSING_REQUIRED_FEATURES"
+    elif unavailable:
+        block_reason = "BLOCKED_MODEL_TRAINING_GATE"
+    else:
+        block_reason = "BLOCKED_UNCLASSIFIED_NO_PREDICTION"
+    return {
+        "feature_support_status": feature_status,
+        "missing_required_features": ";".join(missing),
+        "training_support_status": training_status,
+        "unavailable_training_markets": ";".join(unavailable),
+        "training_eligible_rows_by_market": ";".join(
+            f"{market}:{int(fit[1])}" for market, fit in model_fits.items()
+        ),
+        "prediction_block_reason": block_reason,
+    }
+
+
 def mask_combo_probabilities_for_export(rows):
     """Return export-safe copies with Combo probabilities masked until governed release gates pass."""
     masked = []
@@ -608,7 +649,8 @@ def main():
             targets=by_date[date]
             cutoff=min(r["kickoff_unix"] for r in targets)
             eligible_train=[r for r in train_rows if r["kickoff_unix"]<cutoff]
-            models={m:make_model(eligible_train,m)[0] for m in MARKETS}
+            model_fits={m:make_model(eligible_train,m) for m in MARKETS}
+            models={m:fit[0] for m,fit in model_fits.items()}
             for r in targets:
                 f=next((x for x in feature_rows if x.get("fixture_id")==r["fixture_id"] and x.get("competition_id")==r["competition_id"] and x.get("kickoff_unix")==r["kickoff_unix"]),None)
                 if not f: continue
@@ -642,7 +684,9 @@ def main():
                      "odds_xg_provenance_status":"UNVERIFIED_NOT_USED_IN_MODEL","calibration_status":"RAW_ONLY_UNCALIBRATED",
                      "production_eligible":"NO"}
                 for market in MARKETS: row[market+"_probability_pct"]=round(100*predict(models[market],f),2) if predict(models[market],f) is not None else None
-                row["prediction_status"]="RAW_RESEARCH_ONLY" if any(row[m+"_probability_pct"] is not None for m in MARKETS) else "NO_PREDICTION_FEATURE_OR_TRAINING_GATE"
+                has_probability=any(row[m+"_probability_pct"] is not None for m in MARKETS)
+                row.update(prediction_support_diagnostics(f, model_fits, has_probability))
+                row["prediction_status"]="RAW_RESEARCH_ONLY" if has_probability else "NO_PREDICTION_FEATURE_OR_TRAINING_GATE"
                 predictions.append(row)
         # Write private normalized research package.
         normalized_path=OUT/"normalized_selected50_matches.csv"

@@ -177,3 +177,16 @@ The current run has **25 fixture rows blocked by unsupported features**. The pri
 - The earlier note above that the identity endpoint request remained a draft has since been superseded: the separately approved one-call probe completed successfully in [run 40562430790](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790). It confirmed only the selected Argentina season record; it did not verify any parent competition ID. No further provider requests are authorized by that result.
 
 **Final runtime decision:** research runtime and output-contract QA pass. Combo, production, and betting release gates remain blocked. Oracle V1.6/V1.6.3 production logic and probabilities remain unchanged.
+
+
+## Runtime support-gate diagnostics improvement — 2026-10-27
+
+The latest verified runtime artifact is Run #116 ([workflow run 40564605057](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564605057)), based on code commit `61ffc6dbfe83b43c4cf4a2da153550dd2f84203f`; artifact `12761018892` (SHA-256 `0ee27fffd3f03289dde95eddf811910e2aba35f8dfb9872f9c498e9d75043131`). It contains 456 fixture rows: 431 with at least one raw research-market probability and 25 with none. The earlier Run #112 had 26 blocked rows; the difference is the rolling seven-day horizon/minimum-lead-time selection, not a feature repair.
+
+Code review found that the report used the generic `NO_PREDICTION_FEATURE_OR_TRAINING_GATE` status without recording which gate failed per fixture. This research-only patch adds:
+- exact missing required feature names and a 20-feature support status;
+- per-market model-training availability and eligible training row counts;
+- an explicit block reason distinguishing missing features, model-training failure, combined failure, and supported research prediction;
+- fail-closed output-contract checks and unit tests for these classifications.
+
+This is reporting/diagnostic metadata only. It does not impute features, alter model fit criteria, change probabilities, or loosen release gates. Combo remains masked in every exported prediction report; production and betting eligibility remain `NOT_GRANTED`.

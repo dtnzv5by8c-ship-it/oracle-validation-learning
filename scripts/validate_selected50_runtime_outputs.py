@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import json
 import math
+from collections import Counter
 from pathlib import Path
 
 OUT = Path("selected50_runtime_output")
@@ -109,6 +110,51 @@ def main():
     assert len(prediction_report) == len(governed)
     assert len({r.get("fixture_id") for r in governed}) == len(governed)
     assert len({r.get("fixture_id") for r in prediction_report}) == len(prediction_report)
+
+    # Every fixture row must expose evidence-backed feature and model-training gate
+    # diagnostics; a generic "feature/training gate" status alone is insufficient.
+    required_support_fields = {
+        "feature_support_status", "missing_required_features",
+        "training_support_status", "unavailable_training_markets",
+        "training_eligible_rows_by_market", "prediction_block_reason",
+    }
+    assert required_support_fields.issubset(set(prediction_report[0])), (
+        "Prediction report is missing support-diagnostic columns",
+        required_support_fields - set(prediction_report[0]),
+    )
+    assert required_support_fields.issubset(set(governed[0]))
+    allowed_block_reasons = {
+        "RESEARCH_PREDICTION_AVAILABLE",
+        "BLOCKED_MISSING_REQUIRED_FEATURES",
+        "BLOCKED_MODEL_TRAINING_GATE",
+        "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE",
+    }
+    for pred, gov in zip(prediction_report, governed):
+        missing = [x for x in pred.get("missing_required_features", "").split(";") if x]
+        unavailable = [x for x in pred.get("unavailable_training_markets", "").split(";") if x]
+        coverage = number(pred, "model_input_coverage_pct", low=0, high=100)
+        expected_missing = 20 - round(coverage * 20 / 100)
+        assert len(missing) == expected_missing, (
+            pred.get("fixture_id"), coverage, len(missing), expected_missing
+        )
+        assert pred["feature_support_status"] == (
+            "PASS_ALL_20_REQUIRED_FEATURES" if not missing else "BLOCKED_MISSING_REQUIRED_FEATURES"
+        )
+        if not unavailable:
+            assert pred["training_support_status"] == "PASS_ALL_MARKET_MODELS"
+        elif len(unavailable) == len(MARKETS):
+            assert pred["training_support_status"] == "BLOCKED_ALL_MARKET_MODELS_UNAVAILABLE"
+        else:
+            assert pred["training_support_status"] == "PARTIAL_MARKET_MODEL_TRAINING_GATE"
+        assert pred["prediction_block_reason"] in allowed_block_reasons, (
+            pred.get("fixture_id"), pred["prediction_block_reason"]
+        )
+        assert pred["prediction_block_reason"] == gov["prediction_block_reason"]
+        if pred["prediction_status"] == "NO_PREDICTION_FEATURE_OR_TRAINING_GATE":
+            assert pred["prediction_block_reason"] != "RESEARCH_PREDICTION_AVAILABLE"
+            assert all(pred.get(m + "_probability_pct", "") == "" for m in MARKETS)
+        else:
+            assert pred["prediction_block_reason"] == "RESEARCH_PREDICTION_AVAILABLE"
     # Combo probabilities must be masked in every uploaded prediction CSV, not just
     # the separately governed report, until market semantics and identity gates pass.
     assert all(r.get("COMBO_HOME_probability_pct", "") == "" and r.get("COMBO_AWAY_probability_pct", "") == "" for r in prediction_report)
@@ -167,6 +213,10 @@ def main():
         "league_market_fold_rows": len(league_folds),
         "selected_groups": len({r.get("selected_id") for r in readiness}),
         "governed_fixture_rows": len(governed),
+        "feature_support_blocked_rows": sum(1 for r in prediction_report if r["feature_support_status"] != "PASS_ALL_20_REQUIRED_FEATURES"),
+        "rows_with_any_unavailable_market_model": sum(1 for r in prediction_report if r["training_support_status"] != "PASS_ALL_MARKET_MODELS"),
+        "rows_without_any_supported_prediction": sum(1 for r in prediction_report if r["prediction_status"] == "NO_PREDICTION_FEATURE_OR_TRAINING_GATE"),
+        "prediction_block_reason_counts": dict(sorted(Counter(r["prediction_block_reason"] for r in prediction_report).items())),
         "combo_home_probabilities_remaining": governed_qa["combo_home_probabilities_remaining"],
         "combo_away_probabilities_remaining": governed_qa["combo_away_probabilities_remaining"],
         "limitations": [
