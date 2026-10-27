@@ -312,5 +312,13 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         )
 
 
+    def test_safety_contract_workflow_skips_markdown_only_checkpoint_edits(self):
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-contract-tests.yml").read_text(encoding="utf-8")
+        trigger = workflow.split("permissions:", 1)[0]
+        self.assertIn("paths-ignore:", trigger)
+        self.assertIn('"**/*.md"', trigger)
+        self.assertIn("ref: ${{ github.sha }}", workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
