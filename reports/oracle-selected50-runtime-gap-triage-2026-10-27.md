@@ -231,3 +231,51 @@ The runtime was rerun after research-only PR #29 merged as commit `9438a9f743cb8
 - These are internal status/score diagnostics, not official settlement truth. Combo probabilities remain blank in both exports.
 - Current rolling-horizon output: 459 fixture rows, 459 unique IDs, 2,295 prediction rows, 25 feature-blocked fixtures, 434 with at least one research-market prediction, zero unavailable market models. The change from the previous run's 456 rows reflects the rolling horizon, not model improvement.
 - Parent competition IDs remain 0/50 verified; canonical bridges remain 0. Production/betting eligibility remains `NOT_GRANTED`. Production model logic and probabilities remain unchanged.
+
+
+## Current-state verification addendum — Run #119 (2026-10-27 20:24 UTC)
+
+This addendum supersedes the historical Run #112 counts above for the current rolling fixture slate. It was generated after checking the live branch ref, latest Actions runs, job steps/logs, and downloading and inspecting the Run #119 ZIP locally.
+
+- Current research branch head: `46486d7f6a57feae3f7ace37851dd0cc2b476e70` (documentation-only; latest runtime source code remains `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`).
+- Latest runtime run: [#119 / 40577750724](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724), success.
+- Artifact: [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), 14 files, 157,447 bytes, SHA-256 `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`. The locally calculated digest exactly matches GitHub's artifact digest.
+- Run #119 completed the archive checksum guard, dependency installation, Combo contract tests, feature/training support tests, runtime build, output validator, and artifact upload successfully.
+- Dedicated Combo settlement-gate tests: [Dry-Run Planner #463 / 40577750563](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563), **3/3 passed**. Run #119 Combo target contract: **5/5 passed**. Feature/training diagnostics: **4/4 passed**. Safety Contract Tests #157: **22 + 17 tests passed**. Output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+- The 250 readiness rows, 750 league/fold rows, 15 aggregate market/fold rows, 459 fixture rows, and 2,295 fixture-market prediction rows were regenerated and validated. No provider API calls were made.
+
+### Reconciled 26-to-25 blocked-fixture count
+
+The earlier Run #112 snapshot listed 26 feature-blocked fixtures. In the latest Run #119 seven-day slate, **25 remain blocked**. The only row removed from the earlier blocked list is fixture `8614496`, Vicenza–Modena (Italy / Serie B), scheduled for 2026-10-27 19:00 UTC; that kickoff has passed, so the fixture is no longer an upcoming prediction candidate. This is a rolling-horizon change, **not a feature repair or model improvement**. The other 25 fixture IDs remain blocked.
+
+Current blocked fixture IDs:
+`8548576, 8550587, 8557813, 8558098, 8562283, 8562297, 8568598, 8572270, 8572538, 8572559, 8572597, 8572687, 8572852, 8573871, 8573896, 8583531, 8584398, 8604050, 8614227, 8614468, 8614510, 8614546, 8620732, 8623411, 8623413`.
+
+| Current diagnostic | Run #119 evidence |
+|---|---:|
+| Upcoming fixture rows | 459 |
+| Rows with at least one raw research-market prediction | 434 |
+| Rows blocked by missing required features | 25 |
+| Rows blocked by unavailable model training | 0 |
+| Rows with all five market models available | 25/25 blocked rows |
+| Rows with 35% feature coverage (7/20) | 24 |
+| Rows with 0% feature coverage | 1 |
+| Home-side prior home-match count below 5 | 16 |
+| Away-side prior away-match count below 5 | 10 |
+| Rows with both sides below 5 | 1 |
+
+The home/away counts overlap on the one fixture with both histories below five. In the 24 partial-coverage rows, the seven side-specific recent-form features for the under-supported side are missing, together with six dependent pair/environment features; in the one 0%-coverage row, both sides' seven features and all six dependent features are missing. The exported row-level `missing_required_features` field names the missing inputs. The `training_support_status` field is `PASS_ALL_MARKET_MODELS` for the blocked rows, and the validator reports zero unavailable market models. Thus the evidenced block is insufficient pre-kickoff home/away history, not training unavailability.
+
+No imputation, zero-filling, minimum-history relaxation, cross-season identity substitution, or unsupported prediction was introduced. Keep all 25 blocked rows blocked.
+
+### Combo output and market-definition contract
+
+The inspected Run #119 artifact has 459 rows in each fixture report. Both Combo probability columns are blank in both exported CSVs; the governed QA reports 434 raw research Combo values masked per side and zero visible Combo values after export. The predictor target remains Double Chance AND 2–4 total goals inclusive, while the settlement helper remains Double Chance AND fewer than five goals. The 3 dedicated settlement-gate tests and 5 runtime target tests pass by asserting this disagreement stays explicit and blocked. No market definition was silently changed.
+
+### Other workflow result
+
+H2H Exact-ID Join Tests [Run #34 / 40577728345](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577728345) failed before the test suite ran because the shared test discovery imports the Selected-50 runtime but that H2H workflow does not install `scikit-learn` (`ModuleNotFoundError: sklearn`). This is an isolated CI dependency defect in the H2H workflow, not a failure of Run #119; no H2H code or workflow was changed in this runtime pass.
+
+### Current release decision
+
+**Runtime/regression QA: PASS. Production/betting eligibility: NOT GRANTED.** Parent competition IDs remain 0/50 verified; provider-to-canonical bridges remain 0; canonical fixture/team joins, official settlement truth, point-in-time provenance, and approved calibration/odds evidence remain outstanding. Production Oracle V1.6/V1.6.3, probabilities, thresholds, calibration, registry, ledgers, and governance remain unchanged. The source code has not changed since Run #119, so a new runtime dispatch was not necessary for this documentation-only checkpoint.
