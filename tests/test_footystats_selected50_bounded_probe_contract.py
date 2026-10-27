@@ -88,6 +88,15 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertEqual(audit["status_counts"], {"complete": 2, "incomplete": 2, "missing": 1, "suspended": 1})
         self.assertEqual(metrics["records_with_both_parseable_scores"], 3)
         self.assertEqual(metrics["noncomplete_status_records_with_parseable_score_pair"], 2)
+        self.assertEqual(metrics["noncomplete_status_records_with_zero_zero_score_pair"], 1)
+        self.assertEqual(metrics["noncomplete_status_records_with_nonzero_score_pair"], 1)
+        self.assertEqual(metrics["complete_status_records_with_zero_zero_score_pair"], 0)
+        self.assertEqual(metrics["complete_status_records_with_nonzero_score_pair"], 1)
+        self.assertEqual(audit["status_score_pattern_counts"], {
+            "complete:nonzero": 1,
+            "incomplete:nonzero": 1,
+            "suspended:zero_zero": 1,
+        })
         self.assertEqual(metrics["complete_status_records_missing_or_invalid_score_pair"], 1)
         self.assertEqual(metrics["incomplete_status_records_with_past_kickoff"], 1)
         self.assertEqual(metrics["complete_status_records_with_future_kickoff"], 1)
