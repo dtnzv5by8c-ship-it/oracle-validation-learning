@@ -298,3 +298,52 @@ A separate H2H Exact-ID Join Tests [Run #34](https://github.com/dtnzv5by8c-ship-
 ### Decision
 
 Research output-contract checks pass, but production and betting release remain `NOT APPROVED`. Identity, canonical joins, official settlement truth, current-feed freshness, point-in-time provenance, calibration/ROI, Combo market-definition governance and H2H alias provenance remain open. No provider API calls were made. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers or governance were changed.
+
+
+## Live-state addendum — 2026-10-27 23:52 SAST
+
+This reporting-only addendum follows a fresh inspection of the live public repository, the current research-branch ref, PR #21, the current Run #119 and Planner #463 artifacts, the Run #47 H2H artifact, and the proposed PR #21 alias diff. No provider API calls were made.
+
+### Live refs and workflow evidence
+
+- Research branch head before this report update: [`8b8b3d2b8f4d65fe0adbfb4cb8017ae9ab65110e`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/8b8b3d2b8f4d65fe0adbfb4cb8017ae9ab65110e), a documentation-only commit reconciling the current Run #119 feature-blocked fixture count. The runtime source revision remains [`9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/9438a9f743cb84b9b130586ea2f7dbbdbaa1be58).
+- PR #21 remains open, draft, and unmerged at head `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`.
+- Latest selected-50 artifacts found through the available workflow/artifact endpoints remain Research Runtime [Run #119](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724), artifact [#12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), and Dry-Run Planner [Run #463](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563), artifact [#12768336597](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563/artifacts/12768336597). Their downloaded ZIP SHA-256 digests were independently recomputed and match GitHub's digests. Safety Contract Tests #157 also completed successfully; no artifact was published. No newer selected-50 artifact was exposed by the available connector endpoints.
+- Run #119 confirms 50 unique selected groups, 250 unique selected-ID/market rows, 750 unique selected-ID/market/fold rows, 459 unique governed/prediction fixture IDs, and 2,295 fixture-market prediction records. There are 434 fixtures with at least one raw research-market prediction and 25 blocked by missing required features; model training is available for those 25. Combo probability columns remain blank in both exports. Parent competition IDs verified: 0/50; canonical fixture/team joins verified: 0. Production and betting eligibility remain NOT GRANTED.
+- Raw BTTS holdout accuracy remains 53.588%, below the 54.143% majority-class baseline; Brier 0.24746 and AUC 0.5379 are uncalibrated research metrics, not evidence of betting edge or ROI.
+
+### H2H watch and alias-provenance blocker
+
+No new Oracle H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. Latest remain Reporting [Run #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720), artifact [#12573751940](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720/artifacts/12573751940), and Exact-ID Tests [Run #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716), with no artifact for Run #31.
+
+The Run #47 artifact was downloaded and checksum-verified. The Oracle export, H2H report, and exact-ID join each contain 95 rows and 95 unique fixture IDs; the ID sets are identical. Duplicate IDs: 0; unmatched exact IDs: 0; joined league-code mismatches: 0. The audit explicitly records `oracle_probability_values_modified=false`, `production_model_logic_changed=false`, and `fuzzy_matching_used=false`. This is the workflow's audit attestation; the joined CSV omits the original Oracle probability columns, so a separate value-by-value comparison cannot be performed from this artifact. The report remains `PASS_WITH_REVIEW_ITEMS`; the measured unmatched rate is 8.42%, archive age is 0 days, and the unchanged quality gates are 20% maximum unmatched rate, 7-day maximum archive age, and 5 meetings minimum H2H sample.
+
+The nine target team-side findings remain evidence-limited:
+- Waregem, Rakow, Sepsi Sf. Gheorghe, and Entella have prior expected-league archive evidence documented in the existing read-only archive review; Sepsi and Entella no longer appear in the current unresolved queue, which alone is not proof of full resolution.
+- Jagiellonia has an existing canonical alias, but the current Run #47 diagnostic still marks the Jagiellonia fixture side `NOT_FOUND_IN_ARCHIVE` in POL.
+- Ceuta is still `NOT_FOUND_IN_ARCHIVE` for SP2 in the current diagnostic; the previously described AD Ceuta FC candidate does not resolve that expected-league coverage gap in this artifact.
+- Wisla remains unresolved and ambiguous; do not collapse Wisła Płock and Wisła Kraków.
+- Manchester Utd and Lusitania FC remain documented coverage gaps absent new authoritative source evidence.
+
+A new code-review finding blocks alias sign-off: the current PR #21 diff adds many alias entries to `scripts/build_h2h_report.py` beyond the nine target findings (including variants for Cambridge, ADO, Pardubice, Braunschweig, Beveren, Club Brugge, Cercle Brugge, Nürnberg, Dordrecht, Heerenveen, Farense, Casa Pia, Farul, Oțelul, Standard Liège, Union SG, Amarante, Felgueiras, Amedspor, Cádiz, and Leiria). Several tests exercise synthetic in-memory rows; that validates normalization behavior, not authoritative source-row provenance for every alias. The PR description says no automatic aliases or mappings are applied, while its diff does modify the alias table. No new source evidence or new run resolves this discrepancy. Do not sign off the PR until each added alias has traceable source evidence and league scope, or unsupported entries are removed in a separately reviewed change. No aliases were changed or approved during this checkpoint.
+
+St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain `POSSIBLE_LEAGUE_CODE_MISMATCH`, review-only, with no cross-league join. Keep them review-only until policy is explicit. The separate H2H Exact-ID Tests Run #34 failure on PR #29 due to missing `scikit-learn` remains an independent CI dependency issue; it is not a new PR #21 run.
+
+### Schedule freshness and archive boundary
+
+Run #119's archive-derived seven-day snapshot still reports no upcoming fixtures for:
+- Canada — Canadian Premier League, selected season ID 16741: 463 archive rows, 463 explicitly completed, 0 upcoming, 0 observed 2027 rows.
+- China — Chinese Super League, selected season ID 16789: 960 archive rows, 952 explicitly completed, 0 upcoming, 0 observed 2027 rows.
+- South Korea — K League 1, selected season ID 16627: 882 archive rows, 882 explicitly completed, 0 upcoming, 0 observed 2027 rows.
+
+These figures establish archive presence, not completeness or current schedule freshness; they do not prove that any league is unsupported or out of season. The separate current-feed snapshot remains stale/inconsistent: source manifest 2026-10-08, reconciliation 2026-10-07, last fixture date 2026-10-17, and schedule-window end 2026-10-22. The runtime archive contains 59,049 deduplicated rows and 51,983 explicitly completed rows; 7,066 non-complete rows with numeric placeholder scores remain excluded from settled truth. Archive coverage is not official settlement truth or a completeness certificate.
+
+### Manual workflow dispatch — current state
+
+The live default-branch Research Runtime workflow file now contains `workflow_dispatch` and explicitly documents that it reads the existing private archive and makes no provider API calls. Manual dispatch is available through the GitHub Actions UI, but the connected GitHub tool surface does not expose a dispatch action, so no run was launched here.
+
+- Research Runtime: [workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-research-runtime.yml); select branch `research/oracle-50-league-readiness-audit`; inputs `confirm_private_archive_read=true` and `private_archive_release_tag=research-selected50-footystats-history-40447419806`.
+- Dry-Run Planner: [workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-dry-run-planner.yml); branch `research/oracle-50-league-readiness-audit`; no inputs. Its workflow file is present on the research branch but was not found on the default branch, so manual dispatch availability from the UI is not established until that workflow file is available on the default branch.
+- Safety Contract Tests: [workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml); manual dispatch is defined on the default branch; no inputs. The workflow checks out the research branch.
+
+**Decision remains unchanged:** research-output contract PASS; production and betting release NOT APPROVED. No provider API calls, repository model-code changes, alias changes, production logic/probability/threshold/calibration changes, canonical registry/ledger changes, or governance changes were made.
