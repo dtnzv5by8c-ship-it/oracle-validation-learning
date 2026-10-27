@@ -494,3 +494,13 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - No FootyStats API requests were made. The provider schema diagnostic workflow is manual-only, references the existing `FOOTYSTATS_API_KEY` secret without exposing it, and requires `confirm_provider_credit_usage=true`; this GitHub tool connection exposes no workflow-dispatch action and cannot inspect secret values or the current monthly credit balance. Do not infer monthly credits from historical request-window metadata.
 - Existing primary-window archive findings remain unchanged: 22,291 records across the 50-group research catalogue for 2025-03-20 through 2026-09-20, but these are not canonical Oracle fixture counts. Parent competition IDs verified 0/50, provider-to-canonical bridges 0/50, canonical fixture/team joins and official settlement truth unverified; Combo remains blocked. All outputs remain research-only and `production_eligible=false`.
 - No production repository/workflow was touched; Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged.
+
+
+### Final workflow status reconciliation for this follow-up (2026-10-27 03:04 UTC)
+
+- Current branch head before this status note: `e1c6e99478cd52bc7cb0de05607a13bd8d0f1b52`.
+- Current-head safety contract run [40441908324](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441908324): **SUCCESS**, including both bounded-probe safety contracts and the score-settlement contract tests.
+- Current-head dry-run planner [40441908348](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441908348): **SUCCESS**; its network-free planning, identity/market gates and regression steps passed.
+- Runtime [40441885076](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885076) remains **IN_PROGRESS** at the build/backtest step. It was triggered by the earlier settlement-script push before the new path-ignore rule took effect; it must be checked later before any claim of completion.
+- Archive feature audits [40441885077](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885077) and [40441892742](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441892742) remain **IN_PROGRESS** at artifact upload and feature-matrix build respectively. They use the existing archive and make no FootyStats API requests.
+- No new provider call or production change occurred. These status updates do not change the release decision.
