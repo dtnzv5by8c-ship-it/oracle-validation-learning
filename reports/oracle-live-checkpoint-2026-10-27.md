@@ -186,3 +186,53 @@ Parent competition IDs and provider-to-canonical league bridges remain verified 
 
 Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers were not changed. No production workflow was run and no write was made to `dtnzv5by8c-ship-it/oracle-football-data`.
 
+## Update — unbudgeted provider paths and protected-write validator disabled (2026-10-27 09:07 SAST)
+
+### Live state inspected
+- Research branch head before this checkpoint update: `b139c1164f643939db79d1bf5e76425b1e40deed`.
+- Parent code-safety commit: `ddb4da0e546c0aa1dae7fb453ab6da10fb4f6673`.
+- The audit found several legacy FootyStats workflows that either ran automatically on a push or could call the provider without the required monthly-credit confirmation. A separate manual workflow could create and delete a temporary branch in the protected Oracle repository. None of these workflows was dispatched during this run.
+
+### Fail-closed changes committed
+- `ddb4da0e546c0aa1dae7fb453ab6da10fb4f6673` replaced these unbudgeted provider paths with manual-only fail-closed stubs:
+  - `.github/workflows/footystats-api-catalogue-audit.yml`
+  - `.github/workflows/footystats-api-endpoint-coverage-audit.yml`
+  - `.github/workflows/footystats-bounded-selected50-smoke-probe.yml`
+  - `.github/workflows/footystats-historical-season-coverage-audit.yml`
+  - `.github/workflows/oracle-selected50-parent-id-reconciliation.yml`
+  - `.github/workflows/oracle-selected50-catalogue-schema-audit.yml`
+- The same commit disabled `.github/workflows/validate-private-oracle-transfer-write.yml`, which previously created and deleted a temporary branch in the protected repository. No private-repository writes were performed by this run.
+- The existing approved provider paths remain:
+  - `oracle-selected50-provider-schema-diagnostic.yml`: manual-only, one read-only catalogue request, requires both `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true`.
+  - `footystats-selected50-bounded-endpoint-probe.yml`: manual-only, hard cap 201 requests, no retries, requires the same two confirmations before the key is read or any request starts.
+- The bounded probe records operator attestation separately from provider-verifiable monthly-credit information; `monthly_credit_budget_verified_by_provider=false`. The monthly balance cannot be established from `request_remaining`.
+
+### Regression-test correction and verification
+- Initial runs on `ddb4da0e546c0aa1dae7fb453ab6da10fb4f6673` failed because older tests still expected the disabled 50-request parent-ID workflow to contain its former live API implementation, and a test rejected a protected-repository name in a comment. These were test-contract mismatches, not provider or model-runtime failures:
+  - [Safety tests run 40464974206](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40464974206) — FAILURE.
+  - [Dry-run planner run 40464974180](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40464974180) — FAILURE.
+- Commit `b139c1164f643939db79d1bf5e76425b1e40deed` updated the tests to assert that these paths remain disabled while retaining checks that historical provider-ID evidence stays quarantined.
+- Latest same-commit verification on `b139c1164f643939db79d1bf5e76425b1e40deed`:
+  - [Safety contract tests run 40465083691](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40465083691) — SUCCESS.
+  - [Dry-run planner run 40465083680](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40465083680) — SUCCESS; planner completed without provider/network calls.
+- No research model runtime was rerun because the changes were limited to workflow safeguards and tests, not modelling code or archive contents.
+
+### FootyStats provider budget and dispatch status
+- No FootyStats API requests were made in this run.
+- The connected GitHub tools can inspect files and workflow runs and update the research branch, but expose neither a workflow-dispatch operation nor secret values. Therefore the current presence of `FOOTYSTATS_API_KEY` and the live monthly FootyStats credit balance cannot be independently verified here.
+- The previously observed request-window remaining value of 1,743 belongs to an earlier run and is not monthly-credit evidence.
+- Safe next action: check the current monthly credit balance in the FootyStats account, then manually dispatch **Oracle Selected-50 Provider ID Schema Diagnostic** with both confirmation inputs true. That workflow is capped at one read-only catalogue request. Do not use the 201-request probe unless the current balance has been checked and is sufficient for its full cap.
+- Do not paste a key into chat, bypass the manual-only triggers, publish raw paid payloads, or purchase/upgrade a plan.
+
+### Current release decision
+The latest previously verified batch-6 private-archive QA remains [run 40449090053](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449090053), artifact [12709820391](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449090053/artifacts/12709820391). The matching research runtime remains [run 40449082433](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449082433), artifact [12709715992](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449082433/artifacts/12709715992). Those runs passed against the batch-6 archive but predate the workflow-only safety changes.
+
+- Provider parent competition IDs: 0/50 verified.
+- Provider-to-Oracle canonical league bridges: 0/50 verified.
+- Canonical fixture/team joins and official settlement truth: unverified.
+- Historical standings and point-in-time xG/odds provenance: unverified.
+- Combo target/settlement reconciliation: blocked.
+- Production readiness: `NOT_GRANTED`.
+
+Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. All unresolved rows remain quarantined and production-ineligible. No production workflow was run, and no write was made to `dtnzv5by8c-ship-it/oracle-football-data`.
+
