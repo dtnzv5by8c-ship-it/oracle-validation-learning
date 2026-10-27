@@ -65,6 +65,49 @@ jobs:
           set -euo pipefail
           python scripts/qa_selected50_private_archive.py
 
+      - name: Validate primary-window coverage reconciliation and fail-closed gates
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("selected50_archive_qa/selected50_archive_qa.json").read_text(encoding="utf-8"))
+          assert report["status"] == "QA_COMPLETE_REVIEW_REQUIRED"
+          assert report["primary_window_start"] == "2025-03-20"
+          assert report["primary_window_end"] == "2026-09-20"
+          total = report["primary_window_archive_match_records"]
+          unique_ids = report["primary_window_archive_unique_provider_match_ids"]
+          duplicates = report["primary_window_archive_duplicate_provider_match_id_rows_across_seasons"]
+          statuses = report["primary_window_provider_status_counts"]
+          assert total >= 0 and 0 <= unique_ids <= total
+          assert 0 <= duplicates <= total
+          assert sum(statuses.values()) == total
+          assert sum(report["primary_window_calendar_year_coverage"][year]["archive_match_records"] for year in ("2025", "2026")) == total
+          for year in ("2025", "2026"):
+              bucket = report["primary_window_calendar_year_coverage"][year]
+              assert sum(bucket["provider_status_counts"].values()) == bucket["archive_match_records"]
+              assert bucket["unique_provider_match_ids"] <= bucket["archive_match_records"]
+          assert report["primary_window_current_selected_season_folder_match_records"] <= total
+          assert report["primary_window_current_selected_season_folder_complete_status_records"] <= report["primary_window_current_selected_season_folder_match_records"]
+          assert report["primary_window_noncomplete_status_records_with_zero_zero_score_pair"] <= report["primary_window_noncomplete_status_records_with_parseable_score_pair"]
+          assert report["primary_window_coverage_is_canonical_fixture_count"] is False
+          assert report["official_settlement_truth_verified"] is False
+          assert report["production_eligible"] is False
+          print(json.dumps({
+              "contract": "PASS_PRIMARY_WINDOW_COVERAGE_RECONCILIATION_RESEARCH_ONLY",
+              "primary_window_start": report["primary_window_start"],
+              "primary_window_end": report["primary_window_end"],
+              "archive_match_records": total,
+              "unique_provider_match_ids": unique_ids,
+              "duplicate_provider_match_id_rows": duplicates,
+              "calendar_2025_records": report["primary_window_calendar_year_coverage"]["2025"]["archive_match_records"],
+              "calendar_2026_records": report["primary_window_calendar_year_coverage"]["2026"]["archive_match_records"],
+              "production_eligible": False,
+              "official_settlement_truth_verified": False
+          }, sort_keys=True))
+          PY
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
