@@ -17,7 +17,11 @@ def norm(s):
     s=unicodedata.normalize("NFKD",(s or "")).encode("ascii","ignore").decode().lower()
     return re.sub(r"[^a-z0-9]","",s)
 ALIASES={
- "rasenballsportleipzig":"rbleipzig","rbleipzig":"rbleipzig","manchesterunited":"manutd","manutd":"manutd","manchesterutd":"manutd",
+ "waregem":"zultewaregem", "zultewaregem":"zultewaregem",
+ "rakow":"rakowczestochowa", "rakowczestochowa":"rakowczestochowa",
+ "entella":"virtusentella", "virtusentella":"virtusentella",
+ "sepsisfgheorghe":"sepsiosk", "sepsiosk":"sepsiosk",
+ "rasenballsportleipzig":"rbleipzig","rbleipzig":"rbleipzig","manchesterunited":"manutd","manchesterunitedfc":"manutd","manutd":"manutd","manchesterutd":"manutd",
  "parissaintgermain":"psg","psg":"psg","intermilan":"inter","internazionale":"inter",
  "borussiamgladbach":"borussiamonchengladbach","athleticclub":"athleticbilbao","athbilbao":"athleticbilbao","athleticbilbao":"athleticbilbao",
  "manchestercity":"mancity","mancity":"mancity","tottenhamhotspur":"tottenham","tottenham":"tottenham",
@@ -25,21 +29,21 @@ ALIASES={
  "sheffieldwed":"sheffwed","sheffieldwednesday":"sheffwed","bayerleverkusen":"leverkusen","leverkusen":"leverkusen",
  "acmilan":"milan","milan":"milan","asroma":"roma","roma":"roma","realbetis":"betis","betis":"betis","fcbarcelona":"barcelona","barcelona":"barcelona",
  "gladbach":"borussiamonchengladbach","mgladbach":"borussiamonchengladbach","westhamunited":"westham","westham":"westham",
- "wolverhamptonwanderers":"wolves","wolves":"wolves","cambridgeunited":"cambridgeutd","cambridgeutd":"cambridgeutd",
+ "wolverhamptonwanderers":"wolves","wolves":"wolves","cambridgeunited":"cambridgeutd","cambridgeutd":"cambridgeutd","cambridge":"cambridgeutd",
  "dundeeunited":"dundeeutd","dundeeutd":"dundeeutd","fcemmen":"emmen","emmen":"emmen",
- "denhaag":"adodenhaag","adodenhaag":"adodenhaag","nijmegen":"necnijmegen","nec":"necnijmegen",
+ "denhaag":"adodenhaag","adodenhaag":"adodenhaag","ado":"adodenhaag","nijmegen":"necnijmegen","nec":"necnijmegen",
  "sittard":"fortunasittard","fortunasittard":"fortunasittard","goaheadeagles":"goaheadeagles","gajewagles":"goaheadeagles",
  "wolfsbergerac":"wolfsberger","wolfsberger":"wolfsberger","wsgtirol":"wsgtirol","tirol":"wsgtirol",
- "fcrapidbucuresti":"rapidbucuresti","rapidbucuresti":"rapidbucuresti",
+ "fcrapidbucuresti":"rapidbucuresti","rapidbucuresti":"rapidbucuresti","univcraiova":"universitateacraiova","universitateacraiova":"universitateacraiova","univcraiova":"universitateacraiova",
  "univcraiova":"universitateacraiova","universitateacraiova":"universitateacraiova",
- "redstar":"redstarfc","redstarfc":"redstarfc","stetienne":"saintetienne","saintetienne":"saintetienne",
+ "redstar":"redstarfc","redstarfc":"redstarfc","stetienne":"saintetienne","saintetienne":"saintetienne","asaintetienne":"saintetienne",
  "sheffieldwednesday":"sheffwed","stockportcounty":"stockport","stockport":"stockport",
  "austriavienna":"austriawien","austriawien":"austriawien",
  "liberec":"slovanliberec","slovanliberec":"slovanliberec",
- "plzen":"viktoriaplzen","viktoriaplzen":"viktoriaplzen",
+ "plzen":"viktoriaplzen","viktoriaplzen":"viktoriaplzen","fkpardubice":"pardubice","pardubice":"pardubice",
  "ostrava":"banikostrava","banikostrava":"banikostrava",
  "brno":"zbrojovkabrno","zbrojovkabrno":"zbrojovkabrno",
- "hannover":"hannover96","hannover96":"hannover96",
+ "hannover":"hannover96","hannover96":"hannover96","braunschweig":"eintrachtbraunschweig","eintrachtbraunschweig":"eintrachtbraunschweig",
  "sgdynamodresden":"dynamodresden","dynamodresden":"dynamodresden",
  "psveindhoven":"psv","psv":"psv",
  "fcgroningen":"groningen","groningen":"groningen",
@@ -48,7 +52,7 @@ ALIASES={
  "peczwolle":"zwolle","zwolle":"zwolle",
  "gaeagles":"goaheadeagles","gajewagles":"goaheadeagles",
  "almerecity":"almerecity","fcvolendam":"volendam","volendam":"volendam",
- "legiawarsaw":"legiawarszawa","legiawarszawa":"legiawarszawa","legia":"legiawarszawa",
+ "legiawarsaw":"legiawarszawa","legiawarszawa":"legiawarszawa","legia":"legiawarszawa","wislaplock":"wislaplock",
  "zaglebie":"zaglebie lubin".replace(" ",""),"zaglebie lubin".replace(" ",""):"zaglebie lubin".replace(" ",""),
  "jagielloniabialystok":"jagiellonia","jagiellonia":"jagiellonia",
  "corvinulhunedoara":"corvinul","corvinul":"corvinul",
@@ -57,10 +61,20 @@ ALIASES={
  "adceuta":"ceuta","ceuta":"ceuta","realoviedo":"oviedo","oviedo":"oviedo",
  "fcandorra":"andorra","andorra":"andorra","realvalladolid":"valladolid","valladolid":"valladolid",
  "gaziantepfk":"gaziantep","gaziantep":"gaziantep",
- "kasımpaşa":"kasimpasa","kasimpasa":"kasimpasa","samsunspor":"samsunspor"
+ "kasımpaşa":"kasimpasa","kasimpasa":"kasimpasa","samsunspor":"samsunspor","beveren":"skbeveren","skbeveren":"skbeveren","clubbruggekv":"clubbrugge","clubbrugge":"clubbrugge","cerclebruggeksv":"cerclebrugge","cerclebrugge":"cerclebrugge","nurnberg":"1fcnuernberg","fcnurnberg":"1fcnuernberg","1fcnurnberg":"1fcnuernberg","1fcnuernberg":"1fcnuernberg","fcnuernberg":"1fcnuernberg","fcdordrecht":"fcdordrecht","dordrecht":"fcdordrecht","heerenveen":"scheerenveen","scheerenveen":"scheerenveen","wisapock":"wislaplock","wislaplock":"wislaplock","scfarense":"farense","farense":"farense","casapiaac":"casapia","casapia":"casapia","fcvfarulconstanta":"farulconstanta","farulconstanta":"farulconstanta","otelulgalati":"otelul","otelul":"otelul","stliege":"standardliege","standardliege":"standardliege","royaleunionsg":"unionstgilloise","unionstgilloise":"unionstgilloise","amarantefc":"amarante","amarante":"amarante","felgueiras1932":"felgueiras","felgueiras":"felgueiras","amedspor":"amedsportif","amedsportif":"amedsportif","cadizcf":"cadiz","cadiz":"cadiz","leiria":"uniao de leiria".replace(" ","")
 }
-def team(s):
-    k=norm(s); return ALIASES.get(k,k)
+def team(s, league_code=None):
+    """Canonicalize a team name; ambiguous short names require league context.
+
+    Similarity is diagnostic-only elsewhere. Only explicit, evidence-backed
+    aliases are canonicalized here; no fuzzy match can silently join records.
+    """
+    k = norm(s)
+    # In the Portuguese second tier, "Lusitania" refers to Lusitânia de Lourosa
+    # in the inspected source. Never apply this short-name mapping outside POR2.
+    if k == "lusitania" and str(league_code or "").upper() == "POR2":
+        return "lusitanialourosa"
+    return ALIASES.get(k, k)
 def rows(p):
     with p.open(newline="",encoding="utf-8-sig") as f:return list(csv.DictReader(f))
 def rate(n,d):return round(100*n/d,1) if d else ""
@@ -91,22 +105,22 @@ def main():
         except (ValueError,TypeError):continue
         if r.get("home_team") and r.get("away_team"):
             league_key=r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),"")
-            pair_key=tuple(sorted((team(r["home_team"]),team(r["away_team"]))))
-            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
-            team_presence[league_key].update((team(r["home_team"]),team(r["away_team"])))
-            team_leagues[team(r["home_team"])].add(league_key)
-            team_leagues[team(r["away_team"])].add(league_key)
+            pair_key=tuple(sorted((team(r["home_team"], league_key),team(r["away_team"], league_key))))
+            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"], league_key),team(r["away_team"], league_key),hg,ag))
+            team_presence[league_key].update((team(r["home_team"], league_key),team(r["away_team"], league_key)))
+            team_leagues[team(r["home_team"], league_key)].add(league_key)
+            team_leagues[team(r["away_team"], league_key)].add(league_key)
             pair_leagues[pair_key].add(league_key)
     for r in us:
         if r.get("home_team") and r.get("away_team"):
             truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
     out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
-        h,a=f.get("home_team",""),f.get("away_team",""); pair=tuple(sorted((team(h),team(a)))); league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),""); date=f.get("date","")[:10]
+        h,a=f.get("home_team",""),f.get("away_team",""); league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),""); pair=tuple(sorted((team(h, league),team(a, league)))); date=f.get("date","")[:10]
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
         for d,mh,ma,gh,ga in games:
-            x,y=(gh,ga) if mh==team(h) else (ga,gh)
+            x,y=(gh,ga) if mh==team(h, league) else (ga,gh)
             hw+=x>y; dr+=x==y; aw+=x<y; bt+=gh>0 and ga>0
             total=gh+ga; o15+=total>=2; o25+=total>=3; u35+=total<=3
         ts=[r for r in truth[(league,pair)] if not date or r.get("match_date","")[:10]<date]
@@ -114,7 +128,7 @@ def main():
         if ts:
             hv=av=0
             for r in ts:
-                if team(r["home_team"])==team(h): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
+                if team(r["home_team"], league)==team(h, league): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
                 else: hv+=int(float(r.get("away_1up") or 0)); av+=int(float(r.get("home_1up") or 0))
             h1=rate(hv,len(ts)); a1=rate(av,len(ts))
         rates={"BTTS Yes":rate(bt,n),"Over 1.5":rate(o15,n),"Over 2.5":rate(o25,n),"Under 3.5":rate(u35,n)}
@@ -125,8 +139,8 @@ def main():
         elif n:
             status="MATCHED - SMALL SAMPLE"
         else:
-            home_known=team(h) in team_presence.get(league,set())
-            away_known=team(a) in team_presence.get(league,set())
+            home_known=team(h, league) in team_presence.get(league,set())
+            away_known=team(a, league) in team_presence.get(league,set())
             other_leagues=sorted(x for x in pair_leagues.get(pair,set()) if x and x!=league)
             if other_leagues:
                 diagnosis="POSSIBLE_LEAGUE_CODE_MISMATCH"
@@ -139,7 +153,7 @@ def main():
                 diagnosis="NO_HISTORICAL_H2H"
                 detail="Both teams appear in this league archive, but no prior meeting was found within the archive coverage window."
             status=diagnosis
-            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h),set()) if x and x!=league)),"away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a),set()) if x and x!=league)),"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
+            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h, league),set()) if x and x!=league)),"away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a, league),set()) if x and x!=league)),"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
             diagnostics.append(record)
             if diagnosis=="NO_HISTORICAL_H2H": no_history.append(record)
             else: unmatched.append(record)

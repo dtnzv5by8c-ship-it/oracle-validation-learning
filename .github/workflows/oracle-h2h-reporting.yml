@@ -21,6 +21,15 @@ on:
       - "scripts/run_rolling_goal_result_validation.py"
       - "scripts/build_shadow_league_team_alignment.py"
       - "scripts/build_august_research_league_team_audit.py"
+      - "scripts/audit_h2h_unmatched_fixtures.py"
+      - "tests/test_audit_h2h_unmatched_fixtures.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-h2h-reporting.yml"
+      - "scripts/build_h2h_report.py"
+      - "scripts/audit_h2h_unmatched_fixtures.py"
+      - "tests/test_audit_h2h_unmatched_fixtures.py"
 
 permissions:
   contents: read
@@ -32,7 +41,7 @@ concurrency:
 jobs:
   h2h-report:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       PYTHONUNBUFFERED: "1"
     steps:
@@ -212,6 +221,16 @@ jobs:
         working-directory: oracle
         run: python scripts/build_h2h_report.py
 
+      - name: Audit unresolved H2H team and league mappings (research-only)
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_audit_h2h_unmatched_fixtures.py' -v
+          python scripts/audit_h2h_unmatched_fixtures.py \
+            --matches oracle/database/matches.csv \
+            --unmatched oracle/reports/h2h/h2h_unmatched_fixtures.csv \
+            --out-csv oracle/reports/h2h/h2h_unmatched_team_review.csv \
+            --out-json oracle/reports/h2h/h2h_unmatched_team_review_audit.json
+
       - name: Expose canonical Fixture ID and join H2H by exact ID
         working-directory: oracle
         run: |
@@ -236,6 +255,8 @@ jobs:
             oracle/reports/h2h/h2h_unmatched_fixtures.csv
             oracle/reports/h2h/h2h_no_historical_meetings.csv
             oracle/reports/h2h/h2h_match_diagnostics.csv
+            oracle/reports/h2h/h2h_unmatched_team_review.csv
+            oracle/reports/h2h/h2h_unmatched_team_review_audit.json
             oracle/reports/h2h/h2h_audit.json
             oracle/reports/h2h/oracle_fixture_id_export.csv
             oracle/reports/h2h/oracle_fixture_id_export_audit.json
