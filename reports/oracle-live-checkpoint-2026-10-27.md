@@ -124,3 +124,37 @@ No FootyStats API requests were made in this checkpoint run.
 - Primary holdout BTTS accuracy remains 53.588% versus the 54.143% majority baseline, below baseline. Diagnostics are raw and uncalibrated. Canonical fixture/team joins, official settlement truth, historical standings-as-of-kickoff, point-in-time xG/odds provenance and Combo target/settlement reconciliation remain unresolved.
 - QA and runtime ran on different commits but read the same batch-6 archive tag and checksum. Safety tests and dry-run planner passed on the latest functional test commit `990424532c2f09fb4327c60fa2000ad469c5d3fc`. This checkpoint-only update does not alter runtime code or workflow behavior.
 - Final inspected research branch head before this checkpoint append: `990424532c2f09fb4327c60fa2000ad469c5d3fc`. This checkpoint append is documentation-only.
+
+
+## Update — explicit provider-budget gates for the 50-league probe (2026-10-27)
+
+### Live state and verification
+- Research branch: `research/oracle-50-league-readiness-audit`.
+- Code change commit: `4e0636888804e899009ef47f0f306ad2778af1ec`.
+- Safety Contract Tests: [run 40452648397 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40452648397), on the code change commit.
+- Dry-Run Planner: [run 40452648392 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40452648392), on the same code change commit.
+- Latest completed batch-6 research runtime still verified: [run 40449082433 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449082433), source commit `2fc9b9ce758dc8a93a3154b0510936461ec17f19`.
+- Batch-6 private archive QA: [run 40449090053 — SUCCESS](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449090053), source commit `ef0b9019fbfbe15c13ecc2d14be58becf4629133`. Runtime and QA ran on different commits; do not treat them as a single same-commit release gate.
+
+### Provider budget guard fixed
+The manual-only `.github/workflows/footystats-selected50-bounded-endpoint-probe.yml` could previously start a 201-request pass without an explicit dispatch-input confirmation that the current monthly account balance had been checked. Its `request_remaining` gate is a request-window signal, not monthly-credit evidence.
+
+Commit `4e0636888804e899009ef47f0f306ad2778af1ec` now requires two boolean inputs, both defaulting to false:
+- `confirm_provider_credit_usage`;
+- `confirm_monthly_credit_budget_checked`.
+
+The workflow exits before reading the configured API key or making any HTTP request unless both are true. Sanitized summaries distinguish operator attestations from provider-verified budget data and explicitly keep `monthly_credit_budget_verified_by_provider=false`. The request cap remains 201, with no retries; the workflow still performs no private-repository transfer and makes no production changes.
+
+Regression coverage was added in `tests/test_footystats_selected50_bounded_probe_contract.py`. Both safety and dry-run checks passed on the exact code commit.
+
+### Credential and dispatch limits
+- The one-call `oracle-selected50-provider-schema-diagnostic.yml` is manual-only, references `secrets.FOOTYSTATS_API_KEY` inside the runner, requires `confirm_provider_credit_usage=true`, and has a hard cap of one request.
+- The available GitHub connection cannot read Actions secret values or dispatch workflows. Secret presence and the current monthly FootyStats credit balance therefore remain unverified in this run.
+- No FootyStats API requests were made in this run. No secret was printed, no raw provider payload was saved, no plan was purchased/upgraded, and no write or workflow execution occurred against `dtnzv5by8c-ship-it/oracle-football-data`.
+- The separate legacy workflows `footystats-full-selected-league-historical-ingestion.yml` and `footystats-full-universe-catalogue-transfer.yml` remain manual-dispatch workflows whose code targets a private release in `oracle-football-data`. They were not dispatched or modified and must not be used for this task.
+
+### Exact next safe action
+Confirm the current monthly FootyStats credit balance in the provider account. Then manually dispatch the one-call schema diagnostic with `confirm_provider_credit_usage=true` to inspect authoritative catalogue ID fields. Use the 201-request probe only if the current account balance has independently been checked and is sufficient for the full request cap; both confirmation inputs must be true. Do not interpret `request_remaining` as monthly credits.
+
+### Release gates unchanged
+Provider parent competition IDs remain 0/50 verified; provider-to-Oracle canonical bridges remain 0/50; canonical fixture/team joins and official settlement truth remain unverified; point-in-time standings/xG/odds provenance and Combo target/settlement reconciliation remain blocked. All ambiguous rows remain quarantined and production-ineligible. Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged.
