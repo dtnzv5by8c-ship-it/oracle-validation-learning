@@ -190,3 +190,30 @@ Code review found that the report used the generic `NO_PREDICTION_FEATURE_OR_TRA
 - fail-closed output-contract checks and unit tests for these classifications.
 
 This is reporting/diagnostic metadata only. It does not impute features, alter model fit criteria, change probabilities, or loosen release gates. Combo remains masked in every exported prediction report; production and betting eligibility remain `NOT_GRANTED`.
+
+
+## Support-gate diagnostic validation — Run #118 (2026-10-27)
+
+- Runtime run [#118 / 40568181225](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181225): **SUCCESS**.
+- Runtime code commit: `3c2fa91b681b92941ab1d058992564abc52263b5`.
+- Artifact: [`oracle-selected50-research-runtime-report` / 12763094895](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181225/artifacts/12763094895).
+- Artifact ZIP SHA-256: `b303635b788b2dc538d98aee237bab4ba9ebecaf589acbdeaba36f008276c5d7` (matches the GitHub artifact digest).
+- The new per-fixture support-diagnostics unit test passed; the runtime output contract passed.
+- Combo target/settlement tests passed in Run #118, and the three Combo settlement-governance regression tests plus diagnostic-output validation passed in [dry-run planner Run #462 / 40568181013](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181013). The safety contract workflow also passed in [Run #156 / 40568181168](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181168).
+
+### Evidence-backed diagnosis of blocked fixture rows
+
+The refreshed artifact contains 456 fixture rows: **431** have at least one raw research-market probability and **25** have none. The previous Run #112 had 26 blocked rows; the one-row difference is the rolling horizon/minimum-lead-time effect. Vicenza–Modena (fixture `8614496`, kickoff 2026-10-27 19:00 UTC) had left the upcoming-fixture horizon, not been repaired.
+
+The new output-contract summary records:
+- `feature_support_blocked_rows = 25`
+- `rows_with_any_unavailable_market_model = 0`
+- `rows_without_any_supported_prediction = 25`
+- `prediction_block_reason_counts = {BLOCKED_MISSING_REQUIRED_FEATURES: 25, RESEARCH_PREDICTION_AVAILABLE: 431}`
+
+All 25 blocked fixtures have `training_support_status=PASS_ALL_MARKET_MODELS`; all five market models have 44,568 eligible training rows at the relevant target cutoff. Therefore, the artifact supports a **feature-support failure, not a model-training failure**, for these rows:
+- 24 rows have 35% feature coverage (7/20 features), because one side has fewer than five completed prior matches in its required home/away orientation; the seven side-specific fields and six dependent pair/environment fields are missing.
+- One row, Troyes–Le Mans (`8548576`), has 0% coverage because both required histories are below five; all 20 features are missing.
+- Across the 25 rows, 16 have fewer than five prior home matches and 10 have fewer than five prior away matches; one fixture is counted in both groups.
+
+No imputation or model-logic change was introduced. The output now names missing features and records training support per market, making this distinction machine-checkable. Combo probabilities remain masked in both exported CSVs, and production/betting eligibility remains `NOT_GRANTED`.
