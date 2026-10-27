@@ -78,7 +78,7 @@ def audit_matches(rows, audit_date):
         raw_status = row.get("status")
         status = str(raw_status).strip().lower() if raw_status not in (None, "") else "MISSING"
         status_counts[status] += 1
-        if status == "missing":
+        if status == "MISSING":
             metrics["records_with_missing_status"] += 1
 
         match_date = date_value(row)
