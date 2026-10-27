@@ -85,7 +85,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         ]
         audit = module.audit_matches(matches, dt.date(2026, 10, 27))
         metrics = audit["metrics"]
-        self.assertEqual(audit["status_counts"], {"complete": 2, "incomplete": 2, "missing": 1, "suspended": 1})
+        self.assertEqual(audit["status_counts"], {"MISSING": 1, "complete": 2, "incomplete": 2, "suspended": 1})
         self.assertEqual(metrics["records_with_both_parseable_scores"], 3)
         self.assertEqual(metrics["noncomplete_status_records_with_parseable_score_pair"], 2)
         self.assertEqual(metrics["noncomplete_status_records_with_zero_zero_score_pair"], 1)
