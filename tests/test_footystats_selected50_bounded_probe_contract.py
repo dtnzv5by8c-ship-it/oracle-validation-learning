@@ -62,7 +62,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
         trigger = ingestion.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertNotIn("\\n  push:", trigger)
+        self.assertNotIn("\n  push:", trigger)
         self.assertIn("DISABLED", ingestion)
         self.assertIn("exit 1", ingestion)
         self.assertNotIn("secrets.FOOTYSTATS_API_KEY", ingestion)
@@ -81,7 +81,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             trigger = workflow.split("permissions:", 1)[0]
             with self.subTest(workflow=relative):
                 self.assertIn("workflow_dispatch:", trigger)
-                self.assertNotIn("\\n  push:", trigger)
+                self.assertNotIn("\n  push:", trigger)
                 self.assertIn("Disabled", workflow)
                 self.assertIn("exit 1", workflow)
                 self.assertIn("contents: read", workflow)
@@ -242,7 +242,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
         trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertNotIn("\\n  push:", trigger)
+        self.assertNotIn("\n  push:", trigger)
         self.assertIn("DISABLED", workflow.upper())
         self.assertIn("exit 1", workflow)
         self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
@@ -263,7 +263,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         audit = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
         audit_trigger = audit.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", audit_trigger)
-        self.assertNotIn("\\n  push:", audit_trigger)
+        self.assertNotIn("\n  push:", audit_trigger)
         self.assertIn("DISABLED", audit.upper())
         self.assertIn("exit 1", audit)
         self.assertNotIn("secrets.FOOTYSTATS_API_KEY", audit)
@@ -277,7 +277,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("workflow_dispatch:", trigger)
         self.assertIn("confirm_provider_credit_usage:", trigger)
         self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
-        self.assertNotIn("\\n  push:", trigger)
+        self.assertNotIn("\n  push:", trigger)
         self.assertIn("Explicit provider-credit confirmation is required; no request made.", workflow)
         self.assertIn("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", workflow)
         self.assertIn("Current monthly FootyStats credit balance has not been explicitly confirmed; no request made.", workflow)
@@ -439,7 +439,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             trigger = workflow.split("permissions:", 1)[0]
             with self.subTest(workflow=relative):
                 self.assertIn("workflow_dispatch:", trigger)
-                self.assertNotIn("\\n  push:", trigger)
+                self.assertNotIn("\n  push:", trigger)
                 self.assertIn("DISABLED", workflow.upper())
                 self.assertIn("exit 1", workflow)
                 self.assertIn("contents: read", workflow)
@@ -453,7 +453,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "validate-private-oracle-transfer-write.yml").read_text(encoding="utf-8")
         trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertNotIn("\\n  push:", trigger)
+        self.assertNotIn("\n  push:", trigger)
         self.assertIn("DISABLED", workflow.upper())
         self.assertIn("exit 1", workflow)
         self.assertIn("contents: read", workflow)
