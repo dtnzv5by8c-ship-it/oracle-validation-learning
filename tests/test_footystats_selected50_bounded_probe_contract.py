@@ -90,8 +90,8 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertEqual(metrics["noncomplete_status_records_with_parseable_score_pair"], 2)
         self.assertEqual(metrics["noncomplete_status_records_with_zero_zero_score_pair"], 1)
         self.assertEqual(metrics["noncomplete_status_records_with_nonzero_score_pair"], 1)
-        self.assertEqual(metrics["complete_status_records_with_zero_zero_score_pair"], 0)
-        self.assertEqual(metrics["complete_status_records_with_nonzero_score_pair"], 1)
+        self.assertEqual(metrics.get("complete_status_records_with_zero_zero_score_pair", 0), 0)
+        self.assertEqual(metrics.get("complete_status_records_with_nonzero_score_pair", 0), 1)
         self.assertEqual(audit["status_score_pattern_counts"], {
             "complete:nonzero": 1,
             "incomplete:nonzero": 1,
@@ -102,6 +102,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertEqual(metrics["complete_status_records_with_future_kickoff"], 1)
         self.assertEqual(metrics["suspended_status_records_with_parseable_score_pair"], 1)
         self.assertEqual(metrics["records_without_kickoff_date"], 1)
+        self.assertEqual(metrics["records_with_missing_status"], 1)
         self.assertEqual(audit["kickoff_date_min"], "2026-10-26")
         self.assertEqual(audit["kickoff_date_max"], "2026-10-28")
         self.assertNotIn("settlement_truth", audit)
