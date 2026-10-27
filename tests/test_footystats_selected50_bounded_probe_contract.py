@@ -264,5 +264,53 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("print(payload", workflow)
 
 
+    def test_runtime_quarantines_noncomplete_scores_from_targets_and_training(self):
+        import ast
+        import math
+
+        runtime_path = ROOT / "scripts" / "build_selected50_research_runtime.py"
+        source = runtime_path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(runtime_path))
+        selected = []
+        wanted = {"num", "get_first", "match_score", "finished"}
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and any(
+                isinstance(target, ast.Name) and target.id == "FINISHED"
+                for target in node.targets
+            ):
+                selected.append(node)
+            elif isinstance(node, ast.FunctionDef) and node.name in wanted:
+                selected.append(node)
+        self.assertEqual(
+            {node.name for node in selected if isinstance(node, ast.FunctionDef)},
+            wanted,
+        )
+        namespace = {"math": math}
+        exec(compile(ast.Module(body=selected, type_ignores=[]), str(runtime_path), "exec"), namespace)
+        is_finished = namespace["finished"]
+
+        self.assertTrue(is_finished({"status": "complete", "homeGoalCount": 0, "awayGoalCount": 0}))
+        self.assertTrue(is_finished({"status": "COMPLETE", "homeGoalCount": 2, "awayGoalCount": 1}))
+        self.assertFalse(is_finished({"status": "incomplete", "homeGoalCount": 0, "awayGoalCount": 0}))
+        self.assertFalse(is_finished({"status": "suspended", "homeGoalCount": 0, "awayGoalCount": 0}))
+        self.assertFalse(is_finished({"status": "canceled", "homeGoalCount": 0, "awayGoalCount": 0}))
+        self.assertFalse(is_finished({"status": "abandoned", "homeGoalCount": 2, "awayGoalCount": 1}))
+        self.assertFalse(is_finished({"status": "complete", "homeGoalCount": None, "awayGoalCount": 0}))
+        self.assertFalse(is_finished({"status": "complete", "homeGoalCount": -1, "awayGoalCount": 0}))
+
+        self.assertIn(
+            'if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None:',
+            source,
+        )
+        self.assertIn(
+            'train_rows=[r for r in feature_rows if r.get("finished") and r.get("kickoff_unix",NOW)>=0]',
+            source,
+        )
+        self.assertIn(
+            'and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED',
+            source,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
