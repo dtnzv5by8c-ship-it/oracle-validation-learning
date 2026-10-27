@@ -1,166 +1,20 @@
-name: FootyStats Bounded Selected-50 Smoke Probe
+name: DISABLED — Legacy FootyStats Selected-50 Smoke Probe
 
+# Superseded by footystats-selected50-bounded-endpoint-probe.yml, which requires
+# explicit provider-credit and monthly-credit confirmations before any request.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/footystats-bounded-selected50-smoke-probe.yml"
 
 permissions:
   contents: read
 
 jobs:
-  bounded-smoke-probe:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run bounded read-only probe (hard cap 6 requests; no raw data output)
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      - name: Refuse unbudgeted smoke probe
+        shell: bash
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          import csv, json, os, re, time
-          from pathlib import Path
-          from urllib.parse import urlencode
-          from urllib.request import Request, urlopen
-          from urllib.error import HTTPError
-
-          key = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
-          if not key:
-              raise SystemExit("STOP: FOOTYSTATS_API_KEY secret is missing; zero API requests made.")
-          base = "https://api.football-data-api.com/"
-          max_calls = 6
-          calls = 0
-          results = []
-          remaining = None
-
-          def call(endpoint, params):
-              global calls, remaining
-              if calls >= max_calls:
-                  raise SystemExit("STOP: hard request cap reached.")
-              q = dict(params)
-              q["key"] = key
-              req = Request(base + endpoint + "?" + urlencode(q),
-                            headers={"User-Agent": "Oracle-Selected50-Bounded-Smoke-Probe/1.0"})
-              calls += 1
-              try:
-                  with urlopen(req, timeout=25) as response:
-                      payload = json.loads(response.read().decode("utf-8"))
-                      http_status = response.status
-              except HTTPError as exc:
-                  # Do not print URL, response body, or exception text; URL includes the key.
-                  results.append({"endpoint": endpoint, "http_status": exc.code,
-                                  "success": False, "data_shape": "withheld",
-                                  "data_count": None, "remaining_after_response": None})
-                  raise SystemExit(f"STOP: {endpoint} returned HTTP {exc.code}; no retries.")
-              except Exception as exc:
-                  results.append({"endpoint": endpoint, "http_status": None,
-                                  "success": False, "data_shape": "withheld",
-                                  "data_count": None, "remaining_after_response": None})
-                  raise SystemExit(f"STOP: {endpoint} failed ({type(exc).__name__}); no retries.")
-              ok = isinstance(payload, dict) and payload.get("success") is True
-              metadata = payload.get("metadata") if isinstance(payload, dict) else None
-              if not isinstance(metadata, dict) and isinstance(payload, dict):
-                  metadata = payload.get("data", {}).get("metadata") if isinstance(payload.get("data"), dict) else None
-              raw_remaining = metadata.get("request_remaining") if isinstance(metadata, dict) else None
-              try:
-                  remaining = int(raw_remaining) if raw_remaining is not None else None
-              except (TypeError, ValueError):
-                  remaining = None
-              data = payload.get("data") if isinstance(payload, dict) else None
-              count = len(data) if isinstance(data, list) else None
-              shape = "list" if isinstance(data, list) else "dict" if isinstance(data, dict) else type(data).__name__
-              results.append({"endpoint": endpoint, "http_status": http_status,
-                              "success": bool(ok), "data_shape": shape,
-                              "data_count": count, "remaining_after_response": remaining})
-              if not ok:
-                  raise SystemExit(f"STOP: {endpoint} did not return success=true; no retries.")
-              return payload
-
-          # First request is the chosen-league catalogue; require provider request-budget metadata
-          # before spending any further calls. Fail closed if the provider does not expose it.
-          catalogue_payload = call("league-list", {"chosen_leagues_only": "true"})
-          if remaining is None:
-              raise SystemExit("STOP: provider did not expose a readable request_remaining value after first call; no further calls.")
-          if remaining < 5:
-              raise SystemExit(f"STOP: only {remaining} provider requests remain; 5 additional calls required, so probe halted.")
-          catalogue = catalogue_payload.get("data")
-          if not isinstance(catalogue, list):
-              raise SystemExit("STOP: catalogue data is not a list; no further calls.")
-          aliases = {"England Premier League", "Spain La Liga", "Germany Bundesliga",
-                     "Italy Serie A", "France Ligue 1", "South Africa Premier Soccer League"}
-          chosen = next((x for x in catalogue if isinstance(x, dict)
-                         and str(x.get("name", "")).strip() in aliases
-                         and isinstance(x.get("season"), list)), None)
-          if chosen is None:
-              raise SystemExit("STOP: no exact smoke-test league alias found; no further calls.")
-          seasons = [s for s in chosen["season"] if isinstance(s, dict) and s.get("id") not in (None, "")]
-          def year_start(s):
-              m = re.search(r"(19|20)\d{2}", str(s.get("year", "")))
-              return int(m.group(0)) if m else 0
-          candidates = [s for s in seasons if year_start(s) in (2025, 2026)]
-          if not candidates:
-              raise SystemExit("STOP: no 2025/2026 season candidate found; no further calls.")
-          season = sorted(candidates, key=lambda s: (year_start(s), str(s.get("year", ""))))[-1]
-          season_id = str(season["id"])
-          # No retries. Check budget after each response and stop before any next call if insufficient.
-          probes = [
-              ("league-matches", {"season_id": season_id, "max_per_page": 1, "page": 1}),
-              ("league-teams", {"season_id": season_id, "include": "stats"}),
-              ("league-tables", {"season_id": season_id}),
-              ("league-season", {"season_id": season_id}),
-          ]
-          for index, (endpoint, params) in enumerate(probes):
-              needed_after_this = len(probes) - index - 1
-              if remaining is None or remaining < needed_after_this + 1:
-                  raise SystemExit(f"STOP: remaining request budget {remaining!r} is insufficient for the remaining bounded probes.")
-              payload = call(endpoint, params)
-              if index < len(probes) - 1:
-                  if remaining is None or remaining < len(probes) - index - 1:
-                      raise SystemExit(f"STOP: provider request budget fell below remaining probe requirement ({remaining!r}).")
-              time.sleep(0.25)
-
-          out = Path("bounded-probe")
-          out.mkdir(exist_ok=True)
-          summary = {
-              "status": "BOUNDED_SMOKE_PROBE_COMPLETED_RESEARCH_ONLY",
-              "hard_request_cap": max_calls,
-              "actual_http_requests_started": calls,
-              "endpoint_results": results,
-              "selected_league_label": str(chosen.get("name", "")),
-              "season_start_year": year_start(season),
-              "season_label": str(season.get("year", "")),
-              "provider_season_id_recorded": False,
-              "request_budget_remaining_after_last_response": remaining,
-              "raw_provider_payloads_saved": False,
-              "api_key_logged_or_saved": False,
-              "private_repo_transfer_attempted": False,
-              "production_logic_or_probabilities_changed": False,
-              "production_eligibility": "NOT_GRANTED",
-              "interpretation": "One exact league/season schema probe only. This does not establish 50-league coverage, historical completeness, point-in-time validity, canonical joins, settlement truth, or production readiness."
-          }
-          (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-          fields = ["endpoint", "http_status", "success", "data_shape", "data_count", "remaining_after_response"]
-          with (out / "endpoint_results.csv").open("w", newline="", encoding="utf-8") as f:
-              writer = csv.DictWriter(f, fieldnames=fields)
-              writer.writeheader()
-              writer.writerows(results)
-          print(json.dumps({"status": summary["status"], "actual_http_requests_started": calls,
-                            "endpoint_results": results,
-                            "request_budget_remaining_after_last_response": remaining,
-                            "raw_provider_payloads_saved": False,
-                            "production_eligibility": "NOT_GRANTED"}))
-          PY
-      - name: Upload sanitized probe results only
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: footystats-bounded-selected50-smoke-probe
-          path: bounded-probe/
-          if-no-files-found: warn
-          retention-days: 7
+          echo "::error::This legacy smoke probe is disabled. Use the reviewed bounded endpoint probe only after confirming monthly credits."
+          exit 1

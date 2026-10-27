@@ -1,5 +1,7 @@
-name: FootyStats API Catalogue Audit
+name: DISABLED — Legacy FootyStats Catalogue Audit
 
+# Replaced by the reviewed one-call schema diagnostic, which requires both provider-credit
+# and current monthly-credit confirmations. Keep this stub to prevent unbudgeted API spend.
 on:
   workflow_dispatch:
 
@@ -7,89 +9,12 @@ permissions:
   contents: read
 
 jobs:
-  catalogue-audit:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 1
     steps:
-      - name: Check API secret is configured
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      - name: Refuse unbudgeted legacy provider path
+        shell: bash
         run: |
-          if [ -z "$FOOTYSTATS_API_KEY" ]; then
-            echo "::error::Repository secret FOOTYSTATS_API_KEY is missing or empty."
-            exit 1
-          fi
-          echo "API secret is configured (value is not displayed)."
-
-      - name: Fetch selected league catalogue
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-        run: |
-          python - <<'PY'
-          import csv, json, os, urllib.parse, urllib.request
-          from pathlib import Path
-
-          key = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
-          if not key:
-              raise SystemExit("Missing FOOTYSTATS_API_KEY secret")
-
-          params = urllib.parse.urlencode({"key": key, "chosen_leagues_only": "true"})
-          url = "https://api.football-data-api.com/league-list?" + params
-          request = urllib.request.Request(url, headers={"User-Agent": "Oracle-FootyStats-Catalogue-Audit/1.0"})
-          try:
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  payload = json.loads(response.read().decode("utf-8"))
-          except Exception as exc:
-              # Do not print the URL or exception: it contains the API key.
-              raise SystemExit(f"FootyStats API request failed ({type(exc).__name__}). Check subscription, key and connectivity.")
-
-          if not isinstance(payload, dict) or payload.get("success") is not True:
-              raise SystemExit("FootyStats API did not return success=true. Response details withheld for safety.")
-          leagues = payload.get("data")
-          if not isinstance(leagues, list):
-              raise SystemExit("Unexpected API response: data is not a list.")
-
-          rows = []
-          for league in leagues:
-              if not isinstance(league, dict):
-                  continue
-              name = str(league.get("name", "")).strip()
-              seasons = league.get("season") or []
-              if not isinstance(seasons, list):
-                  seasons = []
-              for season in seasons:
-                  if isinstance(season, dict):
-                      rows.append({"league_name": name, "season_year": season.get("year", ""), "season_id": season.get("id", "")})
-
-          if not rows:
-              raise SystemExit("API succeeded but returned no selected league-season entries.")
-
-          with Path("footystats-selected-leagues.csv").open("w", newline="", encoding="utf-8") as handle:
-              writer = csv.DictWriter(handle, fieldnames=["league_name", "season_year", "season_id"])
-              writer.writeheader()
-              writer.writerows(sorted(rows, key=lambda r: (r["league_name"], str(r["season_year"]), str(r["season_id"]))))
-
-          names = sorted({r["league_name"] for r in rows if r["league_name"]})
-          summary = {
-              "status": "API_CATALOGUE_RETRIEVED",
-              "unique_league_names": len(names),
-              "league_season_entries": len(rows),
-              "unique_leagues": names,
-              "secret_value_logged": False,
-              "catalogue_source": "chosen_leagues_only=true",
-              "note": "Compare these provider names against Oracle's governed league list before declaring coverage."
-          }
-          Path("footystats-catalogue-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-          print(f"Catalogue retrieved. Unique league names: {len(names)}; league-season entries: {len(rows)}.")
-          print("API key is not included in logs or artifacts.")
-          PY
-
-      - name: Upload catalogue audit
-        uses: actions/upload-artifact@v4
-        with:
-          name: footystats-selected-league-catalogue
-          path: |
-            footystats-selected-leagues.csv
-            footystats-catalogue-summary.json
-          if-no-files-found: error
-          retention-days: 14
+          echo "::error::This legacy catalogue audit is disabled. Use Oracle Selected-50 Provider ID Schema Diagnostic after checking the current monthly credit balance."
+          exit 1

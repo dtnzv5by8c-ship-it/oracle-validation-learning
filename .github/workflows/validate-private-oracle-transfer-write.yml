@@ -1,5 +1,7 @@
-name: Validate private Oracle transfer write access
+name: DISABLED — Private Oracle Transfer Write Validation
 
+# This workflow previously created and deleted a temporary branch in the protected
+# oracle-football-data repository. Even temporary writes are prohibited for this task.
 on:
   workflow_dispatch:
 
@@ -7,39 +9,12 @@ permissions:
   contents: read
 
 jobs:
-  validate-write:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 1
     steps:
-      - name: Create and remove a temporary private-repository test branch
+      - name: Refuse protected-repository write validation
         shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
         run: |
-          set -euo pipefail
-          if [[ -z "${GH_TOKEN:-}" ]]; then
-            echo "::error::ORACLE_PRIVATE_REPO_TOKEN secret is missing or empty."
-            exit 1
-          fi
-          # Unique test branch. No files or commits are created; cleanup runs even after a failed check.
-          TEST_BRANCH="oracle-transfer-permission-test-${GITHUB_RUN_ID}"
-          cleanup() {
-            gh api --method DELETE "repos/$TARGET_REPO/git/refs/heads/$TEST_BRANCH" >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
-          if ! BASE_SHA="$(gh api "repos/$TARGET_REPO/git/ref/heads/main" --jq '.object.sha' 2>/dev/null)"; then
-            echo "::error::Could not read the private repository main ref."
-            exit 1
-          fi
-          if ! gh api --method POST "repos/$TARGET_REPO/git/refs" -f "ref=refs/heads/$TEST_BRANCH" -f "sha=$BASE_SHA" >/dev/null 2>&1; then
-            echo "::error::Read access passed, but GitHub rejected the temporary ref creation. Check token Contents: Read and write permission and repository selection."
-            exit 1
-          fi
-          if ! gh api --method DELETE "repos/$TARGET_REPO/git/refs/heads/$TEST_BRANCH" >/dev/null 2>&1; then
-            echo "::error::Write check succeeded, but temporary branch cleanup failed. Delete the branch named $TEST_BRANCH from the private repository after checking."
-            exit 1
-          fi
-          trap - EXIT
-          echo "PASS: token can create and delete a temporary ref in the private repository."
-          echo "No files, commits, model changes, provider data, or credentials were written."
+          echo "::error::This write-validation workflow is disabled. Do not create or delete refs in the protected Oracle repository."
+          exit 1

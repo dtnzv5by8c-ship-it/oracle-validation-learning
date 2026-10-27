@@ -1,148 +1,20 @@
-name: FootyStats Historical Season Coverage Audit
+name: DISABLED — Legacy FootyStats Historical Season Coverage Audit
 
+# This workflow previously ran on push and could call multiple endpoints for historical
+# seasons without explicit provider-credit or monthly-credit confirmation.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/footystats-historical-season-coverage-audit.yml"
 
 permissions:
   contents: read
 
 jobs:
-  historical-season-audit:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 1
     steps:
-      - name: Check API secret is configured
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      - name: Refuse automatic historical provider calls
+        shell: bash
         run: |
-          if [ -z "$FOOTYSTATS_API_KEY" ]; then
-            echo "::error::Repository secret FOOTYSTATS_API_KEY is missing or empty."
-            exit 1
-          fi
-          echo "API secret is configured; value will not be displayed."
-
-      - name: Probe selected 2024-25 to 2026-27 seasons
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-        run: |
-          python - <<'PY'
-          import csv, json, os, re, time
-          from pathlib import Path
-          from urllib.parse import urlencode
-          from urllib.request import Request, urlopen
-          from urllib.error import HTTPError
-
-          KEY=os.environ.get("FOOTYSTATS_API_KEY","").strip()
-          BASE="https://api.football-data-api.com/"
-          ALIASES={
-            "ENG_E0":["England Premier League"],"ENG_E1":["England Championship"],
-            "ENG_E2":["England League One","England EFL League One"],"ENG_E3":["England League Two","England EFL League Two"],
-            "ESP_SP1":["Spain La Liga"],"ESP_SP2":["Spain Segunda División","Spain Segunda Division"],
-            "DEU_D1":["Germany Bundesliga"],"DEU_D2":["Germany 2. Bundesliga"],
-            "ITA_I1":["Italy Serie A"],"ITA_I2":["Italy Serie B"],
-            "FRA_F1":["France Ligue 1"],"FRA_F2":["France Ligue 2"],
-            "NLD_N1":["Netherlands Eredivisie"],"NLD_N2":["Netherlands Eerste Divisie"],
-            "PRT_P1":["Portugal Liga NOS","Portugal Primeira Liga"],"PRT_P2":["Portugal LigaPro","Portugal Liga Portugal 2"],
-            "TUR_T1":["Turkey Süper Lig","Turkey Super Lig"],"BEL_B1":["Belgium Pro League"],
-            "SCO_SC0":["Scotland Premiership"],"AUT_A1":["Austria Bundesliga","Austria Austrian Bundesliga"],
-            "CHE_S1":["Switzerland Super League","Switzerland Swiss Super League"],"POL_P1":["Poland Ekstraklasa"],
-            "ROU_R1":["Romania Liga I"],"CZE_CZ1":["Czech First League","Czech Republic First League"],
-            "HRV_HR1":["Croatia HNL","Croatia Croatian HNL"],"UKR_UA1":["Ukraine Premier League","Ukraine Ukrainian Premier League"],
-            "ZAF_PSL":["South Africa Premier Soccer League"]}
-          META={
-            "ENG_E0":("England","Premier League"),"ENG_E1":("England","Championship"),"ENG_E2":("England","League One"),"ENG_E3":("England","League Two"),
-            "ESP_SP1":("Spain","La Liga"),"ESP_SP2":("Spain","Segunda División"),"DEU_D1":("Germany","Bundesliga"),"DEU_D2":("Germany","2. Bundesliga"),
-            "ITA_I1":("Italy","Serie A"),"ITA_I2":("Italy","Serie B"),"FRA_F1":("France","Ligue 1"),"FRA_F2":("France","Ligue 2"),
-            "NLD_N1":("Netherlands","Eredivisie"),"NLD_N2":("Netherlands","Eerste Divisie"),"PRT_P1":("Portugal","Primeira Liga"),"PRT_P2":("Portugal","Liga Portugal 2"),
-            "TUR_T1":("Turkey","Süper Lig"),"BEL_B1":("Belgium","Pro League"),"SCO_SC0":("Scotland","Premiership"),"AUT_A1":("Austria","Bundesliga"),
-            "CHE_S1":("Switzerland","Super League"),"POL_P1":("Poland","Ekstraklasa"),"ROU_R1":("Romania","Liga I"),"CZE_CZ1":("Czech Republic","First League"),
-            "HRV_HR1":("Croatia","HNL"),"UKR_UA1":("Ukraine","Premier League"),"ZAF_PSL":("South Africa","Premier Soccer League")}
-          def call(endpoint, params):
-            q=dict(params); q["key"]=KEY
-            try:
-              req=Request(BASE+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-FootyStats-Historical-Audit/1.0"})
-              with urlopen(req,timeout=25) as r:
-                payload=json.loads(r.read().decode("utf-8"))
-                return r.status,payload,""
-            except HTTPError as e:
-              return e.code,None,"HTTP_ERROR"
-            except Exception as e:
-              return None,None,type(e).__name__
-          def season_start(s):
-            m=re.search(r"(19|20)\d{2}",str(s.get("year","")))
-            return int(m.group(0)) if m else 0
-          cat_status,cat,_=call("league-list",{"chosen_leagues_only":"true"})
-          if cat_status!=200 or not isinstance(cat,dict) or cat.get("success") is not True or not isinstance(cat.get("data"),list):
-            raise SystemExit("Catalogue request failed; credentials and response details withheld.")
-          catalogue={}
-          for l in cat["data"]:
-            if isinstance(l,dict) and l.get("name") and isinstance(l.get("season"),list):
-              catalogue[str(l["name"]).strip()]=[s for s in l["season"] if isinstance(s,dict) and s.get("id") not in (None,"")]
-          rows=[]
-          for code,aliases in ALIASES.items():
-            meta=META[code]
-            name=next((n for n in aliases if n in catalogue),None)
-            if not name:
-              for y in (2024,2025,2026):
-                rows.append({"oracle_code":code,"country":meta[0],"competition":meta[1],"provider_name":"","season_start_year":y,"season_year":"","season_id":"","catalogue_status":"NO_CATALOGUE_NAME_MATCH","matches_status":"NOT_TESTED","teams_status":"NOT_TESTED","tables_status":"NOT_TESTED","season_stats_status":"NOT_TESTED","match_probe_rows":"","team_rows":"","table_shape":"","season_stats_rows":"","match_sample_fields":"","prematch_xg_fields":"","odds_fields":"","pager_metadata":"","interpretation":"No selected catalogue alias; selection or naming gap remains."})
-              continue
-            seasons=catalogue[name]
-            for y in (2024,2025,2026):
-              candidates=[s for s in seasons if season_start(s)==y]
-              if not candidates:
-                rows.append({"oracle_code":code,"country":meta[0],"competition":meta[1],"provider_name":name,"season_start_year":y,"season_year":"","season_id":"","catalogue_status":"LEAGUE_MATCHED_SEASON_MISSING","matches_status":"NOT_TESTED","teams_status":"NOT_TESTED","tables_status":"NOT_TESTED","season_stats_status":"NOT_TESTED","match_probe_rows":"","team_rows":"","table_shape":"","season_stats_rows":"","match_sample_fields":"","prematch_xg_fields":"","odds_fields":"","pager_metadata":"","interpretation":"Competition matched but requested season start year is absent from selected catalogue."})
-                continue
-              s=sorted(candidates,key=lambda z:(str(z.get("year","")),str(z.get("id",""))))[-1]
-              sid=str(s["id"]); sy=str(s.get("year",""))
-              tests={}
-              for ep,label,params in [
-                ("league-matches","matches",{"season_id":sid,"max_per_page":1,"page":1}),
-                ("league-teams","teams",{"season_id":sid,"include":"stats"}),
-                ("league-tables","tables",{"season_id":sid}),
-                ("league-season","season_stats",{"season_id":sid})]:
-                status,payload,err=call(ep,params)
-                ok=status==200 and isinstance(payload,dict) and payload.get("success") is True
-                data=payload.get("data") if isinstance(payload,dict) else None
-                if label=="tables": shape=type(data).__name__; count=""
-                else: shape=""; count=len(data) if isinstance(data,list) else ""
-                tests[label]={"status":"SUCCESS" if ok else ("HTTP_"+str(status) if status else err),
-                  "count":count,"data":data,"shape":shape,"pager":payload.get("pager") if isinstance(payload,dict) else None}
-                time.sleep(0.12)
-              md=tests["matches"]["data"]
-              sample=md[0] if isinstance(md,list) and md and isinstance(md[0],dict) else {}
-              keys=sorted(sample.keys())
-              rows.append({"oracle_code":code,"country":meta[0],"competition":meta[1],"provider_name":name,"season_start_year":y,"season_year":sy,"season_id":sid,"catalogue_status":"MATCHED",
-                "matches_status":tests["matches"]["status"],"teams_status":tests["teams"]["status"],"tables_status":tests["tables"]["status"],"season_stats_status":tests["season_stats"]["status"],
-                "match_probe_rows":tests["matches"]["count"],"team_rows":tests["teams"]["count"],"table_shape":tests["tables"]["shape"],"season_stats_rows":tests["season_stats"]["count"],
-                "match_sample_fields":";".join(keys),"prematch_xg_fields":";".join(k for k in keys if "prematch" in k.lower() and "xg" in k.lower()),
-                "odds_fields":";".join(k for k in keys if "odds" in k.lower()),
-                "pager_metadata":json.dumps(tests["matches"]["pager"],ensure_ascii=False,sort_keys=True) if tests["matches"]["pager"] is not None else "",
-                "interpretation":"Season-specific endpoint probe; match endpoint limited to one row; not a completeness or production-readiness claim."})
-          out=Path("footystats-historical-season-endpoint-audit.csv")
-          with out.open("w",newline="",encoding="utf-8") as f:
-            w=csv.DictWriter(f,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
-          summary={"status":"HISTORICAL_SEASON_ENDPOINT_AUDIT_COMPLETED","rows":len(rows),"governed_leagues":27,"season_start_years":[2024,2025,2026],
-            "catalogue_match_rows":sum(r["catalogue_status"]=="MATCHED" for r in rows),
-            "missing_catalogue_or_season_rows":sum(r["catalogue_status"]!="MATCHED" for r in rows),
-            "matches_success":sum(r["matches_status"]=="SUCCESS" for r in rows),"teams_success":sum(r["teams_status"]=="SUCCESS" for r in rows),
-            "tables_success":sum(r["tables_status"]=="SUCCESS" for r in rows),"season_stats_success":sum(r["season_stats_status"]=="SUCCESS" for r in rows),
-            "raw_provider_payloads_saved":False,"api_key_logged":False,
-            "limitations":["One record requested from league-matches for schema/availability only.","Endpoint success does not establish full-season record counts or feature completeness.",
-            "No catalogue/season match is not proof provider does not support a league.","As-of standings, chronological form/H2H and actual field completeness still require separate validation."]}
-          Path("footystats-historical-season-endpoint-audit-summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
-          print("Historical season probe finished; no raw API payloads or credentials saved.")
-          print("Endpoint successes:",summary["matches_success"],"matches,",summary["teams_success"],"teams,",summary["tables_success"],"tables,",summary["season_stats_success"],"season stats.")
-          PY
-
-      - name: Upload sanitized historical coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: footystats-historical-season-endpoint-audit
-          path: |
-            footystats-historical-season-endpoint-audit.csv
-            footystats-historical-season-endpoint-audit-summary.json
-          if-no-files-found: error
-          retention-days: 14
+          echo "::error::This historical season audit is disabled. Automatic or unbudgeted FootyStats calls are prohibited."
+          exit 1

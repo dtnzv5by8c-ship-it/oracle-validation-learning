@@ -429,5 +429,53 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn('assert all(row["production_eligible"] == "NO" for row in groups)', qa_workflow)
 
 
+    def test_unbudgeted_legacy_provider_workflows_are_disabled(self):
+        paths = (
+            ".github/workflows/footystats-api-catalogue-audit.yml",
+            ".github/workflows/footystats-api-endpoint-coverage-audit.yml",
+            ".github/workflows/footystats-bounded-selected50-smoke-probe.yml",
+            ".github/workflows/footystats-historical-season-coverage-audit.yml",
+            ".github/workflows/oracle-selected50-parent-id-reconciliation.yml",
+            ".github/workflows/oracle-selected50-catalogue-schema-audit.yml",
+        )
+        for relative in paths:
+            workflow = (ROOT / relative).read_text(encoding="utf-8")
+            trigger = workflow.split("permissions:", 1)[0]
+            with self.subTest(workflow=relative):
+                self.assertIn("workflow_dispatch:", trigger)
+                self.assertNotIn("\\n  push:", trigger)
+                self.assertIn("DISABLED", workflow.upper())
+                self.assertIn("exit 1", workflow)
+                self.assertIn("contents: read", workflow)
+                self.assertNotIn("secrets.FOOTYSTATS_API_KEY", workflow)
+                self.assertNotIn("api.football-data-api.com", workflow)
+                self.assertNotIn("secrets.ORACLE_PRIVATE_REPO_TOKEN", workflow)
+                self.assertNotIn("gh release create", workflow)
+                self.assertNotIn("gh release upload", workflow)
+
+    def test_private_transfer_write_validator_is_disabled(self):
+        workflow = (ROOT / ".github" / "workflows" / "validate-private-oracle-transfer-write.yml").read_text(encoding="utf-8")
+        trigger = workflow.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertIn("exit 1", workflow)
+        self.assertIn("contents: read", workflow)
+        self.assertNotIn("secrets.ORACLE_PRIVATE_REPO_TOKEN", workflow)
+        self.assertNotIn("gh api", workflow)
+        self.assertNotIn("git/refs", workflow)
+        self.assertNotIn("oracle-football-data", workflow)
+
+    def test_canonical_provider_schema_diagnostic_requires_monthly_budget_confirmation(self):
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-provider-schema-diagnostic.yml").read_text(encoding="utf-8")
+        trigger = workflow.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertIn("confirm_provider_credit_usage:", trigger)
+        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
+        self.assertIn("default: false", trigger)
+        self.assertIn("planned_api_requests", workflow)
+        self.assertIn('"monthly_credit_budget_verified": False', workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
