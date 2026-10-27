@@ -1,4 +1,4 @@
-name: Build per-league FootyStats acquisition tracker
+name: Disabled - Oracle League Acquisition Tracker Private Transfer
 
 on:
   workflow_dispatch:
@@ -7,109 +7,13 @@ permissions:
   contents: read
 
 jobs:
-  build-tracker:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 1
     steps:
-      - name: Download private history package
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-        run: |
-          set -euo pipefail
-          TARGET=dtnzv5by8c-ship-it/oracle-football-data
-          TAG=footystats-all-selected-leagues-2024-2026-20261021
-          gh release download "$TAG" --repo "$TARGET" --pattern 'oracle-footystats-all-selected-leagues-2024-2026.zip' --dir .
-          test -s oracle-footystats-all-selected-leagues-2024-2026.zip
-          unzip -q oracle-footystats-all-selected-leagues-2024-2026.zip -d input
-
-      - name: Build league-by-league checklist from actual archive
+      - name: Refuse protected-repository tracker transfer
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import csv,json,zipfile,collections,re
-          from pathlib import Path
-          roots=list(Path("input").rglob("ingestion_manifest.csv"))
-          if not roots: raise SystemExit("Manifest missing from downloaded private archive.")
-          manifest=[]
-          with roots[0].open(encoding="utf-8-sig",newline="") as f: manifest=list(csv.DictReader(f))
-          archive_root=roots[0].parent
-          leagues=collections.defaultdict(list)
-          for row in manifest:
-            leagues[row.get("provider_league_name","UNKNOWN")].append(row)
-          rows=[]
-          for league,items in sorted(leagues.items()):
-            ingested=[x for x in items if x.get("status")=="INGESTED"]
-            failed=[x for x in items if x.get("status")=="FAILED"]
-            years=sorted({x.get("season_start_year","") for x in ingested})
-            dirs=[p for p in archive_root.rglob("matches.json") if p.parent.parent.name==re.sub(r"[^A-Za-z0-9._-]+","_",league).strip("_")[:80]]
-            # Use manifest status as the authoritative acquisition check; files are audited separately.
-            match_count=sum(int(x.get("match_count") or 0) for x in ingested)
-            rows.append({
-              "provider_league_name":league,
-              "season_entries":len(items),
-              "seasons_ingested":len(ingested),
-              "seasons_failed":len(failed),
-              "season_years_obtained":";".join(years),
-              "matches_obtained":match_count,
-              "matches_json_files_found":len(dirs),
-              "matches_obtained_check":"YES" if ingested and match_count>0 else "NO",
-              "teams_tables_season_stats_check":"ENDPOINTS_REPORTED_SUCCESS" if ingested else "NOT_CONFIRMED",
-              "H2H_5plus_check":"PRELIMINARY_GLOBAL_AUDIT_2799_PAIRS; PER-LEAGUE CHRONOLOGY NOT YET VALIDATED",
-              "league_data_status":"OBTAINED_WITH_SEASON_GAPS" if failed else ("OBTAINED" if ingested else "NOT_OBTAINED"),
-              "production_readiness":"NOT_ASSESSED"
-            })
-          out=Path("tracker-output"); out.mkdir()
-          fields=list(rows[0].keys()) if rows else ["provider_league_name"]
-          with (out/"oracle_league_acquisition_tracker.csv").open("w",newline="",encoding="utf-8") as f:
-            w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(rows)
-          summary={
-            "status":"TRACKER_BUILT",
-            "provider_leagues_in_manifest":len(rows),
-            "leagues_with_match_data":sum(r["matches_obtained_check"]=="YES" for r in rows),
-            "leagues_with_all_manifest_seasons_ingested":sum(r["league_data_status"]=="OBTAINED" for r in rows),
-            "leagues_with_season_gaps":sum(r["league_data_status"]=="OBTAINED_WITH_SEASON_GAPS" for r in rows),
-            "total_manifest_seasons":len(manifest),
-            "total_match_records":sum(r["matches_obtained"] for r in rows),
-            "season_year_scope":[2024,2025,2026],
-            "production_readiness":"NOT_ASSESSED"
-          }
-          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
-          md=["# Oracle league acquisition tracker","",
-              f"Generated from private archive manifest. Provider league names: {len(rows)}; season entries: {len(manifest)}; match records: {summary['total_match_records']}.",
-              "",
-              "Legend: [x] acquired from source archive; [ ] not obtained or not yet validated. These checks track data acquisition only, not production readiness.",
-              "",
-              "| League | Matches | Seasons obtained | Match data | Teams/tables/stats | H2H ≥5 | Production readiness |",
-              "|---|---:|---|---|---|---|---|"]
-          for r in rows:
-            md.append(f"| {r['provider_league_name']} | {r['matches_obtained']} | {r['season_years_obtained'] or '—'} | {'[x]' if r['matches_obtained_check']=='YES' else '[ ]'} | {'[x]' if r['teams_tables_season_stats_check']=='ENDPOINTS_REPORTED_SUCCESS' else '[ ]'} | [ ] | Not assessed |")
-          md += ["","## Summary","",
-                 f"- Leagues with match data: {summary['leagues_with_match_data']}/{summary['provider_leagues_in_manifest']}",
-                 f"- Leagues with all manifest seasons ingested: {summary['leagues_with_all_manifest_seasons_ingested']}",
-                 f"- Leagues with season gaps: {summary['leagues_with_season_gaps']}",
-                 "- H2H: 2,799 team-pair combinations had five or more records in the exploratory count across the archive. League-specific chronological verification remains pending.",
-                 "- This tracker is a source-acquisition checklist, not approval to change Oracle's governed league universe."]
-          (out/"oracle_league_acquisition_tracker.md").write_text("\n".join(md)+"\n",encoding="utf-8")
-          print(json.dumps(summary))
-          print("\n".join(md))
-          PY
-
-      - name: Upload tracker privately
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-        run: |
-          set -euo pipefail
-          TARGET=dtnzv5by8c-ship-it/oracle-football-data
-          TAG=oracle-league-acquisition-tracker-20261021
-          if gh release view "$TAG" --repo "$TARGET" >/dev/null 2>&1; then
-            echo "::error::Tracker release already exists; refusing overwrite."; exit 1
-          fi
-          cd tracker-output
-          sha256sum oracle_league_acquisition_tracker.csv oracle_league_acquisition_tracker.md summary.json > SHA256SUMS
-          cd ..
-          zip -qr oracle-league-acquisition-tracker.zip tracker-output
-          gh release create "$TAG" oracle-league-acquisition-tracker.zip --repo "$TARGET" --title "Oracle league acquisition tracker 2026-10-21" --notes "Per-provider-league checklist built from the existing private archive manifest. Tracks acquired match data and season coverage. H2H chronology and production readiness remain unverified."
-          echo "Private per-league tracker uploaded."
+          echo "::error::This tracker workflow is disabled for the research-only build because its previous implementation uploaded a release to a protected repository. No credentials, private archive, provider API, or remote write may be used here."
+          exit 1
