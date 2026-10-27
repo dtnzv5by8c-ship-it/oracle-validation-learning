@@ -63,6 +63,40 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("if [[ \"${GITHUB_EVENT_NAME}\" == \"workflow_dispatch\" ]]; then", runtime)
 
 
+    def test_private_archive_qa_reports_status_score_and_date_exceptions_without_settlement_claims(self):
+        import datetime as dt
+        import importlib.util
+
+        script_path = ROOT / "scripts" / "qa_selected50_private_archive.py"
+        spec = importlib.util.spec_from_file_location("selected50_private_archive_qa", script_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        def unix_day(year, month, day):
+            return int(dt.datetime(year, month, day, tzinfo=dt.timezone.utc).timestamp())
+
+        matches = [
+            {"id": "a", "status": "complete", "date_unix": unix_day(2026, 10, 26), "homeGoalCount": 1, "awayGoalCount": 0},
+            {"id": "b", "status": "incomplete", "date_unix": unix_day(2026, 10, 26), "homeGoalCount": 2, "awayGoalCount": 1},
+            {"id": "c", "status": "complete", "date_unix": unix_day(2026, 10, 28)},
+            {"id": "d", "status": "suspended", "date_unix": unix_day(2026, 10, 26), "homeGoalCount": 0, "awayGoalCount": 0},
+            {"id": "e", "status": "incomplete", "date_unix": unix_day(2026, 10, 28)},
+            {"id": "f"},
+        ]
+        audit = module.audit_matches(matches, dt.date(2026, 10, 27))
+        metrics = audit["metrics"]
+        self.assertEqual(audit["status_counts"], {"complete": 2, "incomplete": 2, "missing": 1, "suspended": 1})
+        self.assertEqual(metrics["records_with_both_parseable_scores"], 3)
+        self.assertEqual(metrics["noncomplete_status_records_with_parseable_score_pair"], 2)
+        self.assertEqual(metrics["complete_status_records_missing_or_invalid_score_pair"], 1)
+        self.assertEqual(metrics["incomplete_status_records_with_past_kickoff"], 1)
+        self.assertEqual(metrics["complete_status_records_with_future_kickoff"], 1)
+        self.assertEqual(metrics["suspended_status_records_with_parseable_score_pair"], 1)
+        self.assertEqual(metrics["records_without_kickoff_date"], 1)
+        self.assertEqual(audit["kickoff_date_min"], "2026-10-26")
+        self.assertEqual(audit["kickoff_date_max"], "2026-10-28")
+        self.assertNotIn("settlement_truth", audit)
+
     def test_private_archive_qa_uses_the_same_current_archive_as_runtime(self):
         qa = (ROOT / ".github" / "workflows" / "oracle-selected50-private-archive-qa.yml").read_text(encoding="utf-8")
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
