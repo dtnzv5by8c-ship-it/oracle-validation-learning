@@ -361,3 +361,55 @@ Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds,
 - Canonical fixture/team joins, official settlement truth, historical standings, and point-in-time xG/odds provenance remain unverified; Combo target/settlement reconciliation remains blocked.
 - All unresolved rows remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
 - No model, probability, calibration, threshold, production registry, or ledger change was made. No production workflow was run, and no write was made to `dtnzv5by8c-ship-it/oracle-football-data`.
+
+
+---
+
+## Latest independent evidence pass — 2026-10-27
+
+This update supersedes the older branch-head reference above for current status. It is research-only and does not change the production repository, protected registry, Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, ledgers or governance.
+
+### Current branch work and exact commit links
+
+- Identity evidence register (all 50 selected IDs, source/country/name/code candidate fields, archive evidence layers, and explicit unverified dispositions): [CSV](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-independent-identity-evidence-register-2026-10-27.csv), commit [21139591e7a7ccaedcebcebaa92411c15e201089](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/21139591e7a7ccaedcebcebaa92411c15e201089).
+- Independent identity audit report: [report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-independent-identity-evidence-audit-2026-10-27.md), commit [53b243b1c922637411e533f7cf05a1544848f946](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/53b243b1c922637411e533f7cf05a1544848f946).
+- Settlement truth and source-provenance review: [report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-selected50-settlement-truth-provenance-review-2026-10-27.md), commit [a33ef5c4a291e7fdb058f4b8978c8dd3311aec03](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/a33ef5c4a291e7fdb058f4b8978c8dd3311aec03).
+- Improved FootyStats support clarification draft: [draft — not sent](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/reports/oracle-footystats-identity-clarification-request-2026-10-27.md), commit [53fa4fbe02846ebf53feaf83a28c98a913d481dd](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/53fa4fbe02846ebf53feaf83a28c98a913d481dd).
+
+### One-call provider evidence reviewed — no repeat request
+
+- Workflow run [40562430790](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790): `completed/success`, job `one-call-identity-probe`, all job steps successful.
+- Sanitized artifact [12760832880](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12760832880), SHA-256 `54b25732953cae74b59963613e4c2948c643612dc86dafa11b038a58ffdb7015`.
+- The selected season ID `16571` returned `data.id=16571`, Argentina, Primera División, 2026. This establishes one season record only. The artifact does not establish a parent competition ID or any mapping for the other 49 IDs.
+- No additional provider API call was made. The existing official docs were reviewed read-only; the support route is `admin@footystats.org` per the official API Overview. The improved clarification remains a draft and has not been sent.
+
+### Identity gate — unchanged and evidence-expanded
+
+- Selected season IDs represented in the manifest: 50/50.
+- Existing private-archive audit: 50/50 selected groups and 14,051 current-season fixture rows; structural coverage is not canonical identity.
+- Historical Run 56 snapshot: 31 manifest rows present, with the other 19 reconciled to retained private-package row-level QA. These are distinct evidence layers and must not be summed or mistaken for current missing-provider coverage.
+- Canonical candidate correspondences requiring human review: 22.
+- Unmatched to the current 27-league canonical registry: 28.
+- Research-only R50 codes are label-derived grouping aliases, not provider or production identifiers.
+- Parent competition IDs verified: **0/50**.
+- Provider-to-canonical bridges verified: **0/50**.
+- Human-approved mappings: **0**.
+
+### Settlement truth and provenance gate
+
+- Existing archive evidence: 59,049 records across 200 seasons; 51,983 provider-`complete` rows and 7,066 non-complete rows.
+- All 6,962 `incomplete`, 57 `suspended`, and 47 `canceled` rows carry numeric 0–0 pairs. All 7,066 non-complete rows remain excluded from settled truth and scored metrics.
+- The score/status pattern is consistent with placeholder values, but the provider's internal cause is not proven. Numeric score fields and a successful QA run are not settlement truth.
+- Two official Bundesliga match-report pages corroborate scores/date in the existing shadow reconciliation CSV; the CSV still lacks full exact fixture identity, acquisition timestamp, raw-snapshot hash, independently pinned source allowlist and other provenance fields required by the trust policy. These are spot checks only, not production ledger entries.
+- The settlement helper requires explicit final status, complete identity fields and matching fixture/team/kickoff keys, and fails closed on unsupported statuses. Source authenticity, acquisition provenance, point-in-time availability and official settlement semantics remain separate unresolved gates.
+- Raw walk-forward metrics remain uncalibrated; BTTS primary holdout accuracy (53.588%) remains below the 54.143% majority-class baseline. This is not betting-edge evidence.
+
+### Release decision and next independent actions
+
+**Research-only completion work continues. Production and betting release remain BLOCKED / NOT_GRANTED.**
+
+1. Await written provider schema clarification through the draft route; do not send automatically and do not call the API again without fresh explicit approval plus verified credits.
+2. Continue exact-identity shadow reconciliation from existing official public match reports and archives, adding stable fixture/team IDs, kickoff UTC, final status, acquisition timestamp, source URI, snapshot hash, independent allowlist/version hash, validator version and exclusion reasons.
+3. Keep the 7,066 non-complete 0–0 rows excluded.
+4. Preserve the protected 27-league registry and all production logic/probabilities/thresholds/calibration/ledgers/governance unchanged.
+5. No new workflow was dispatched for these documentation-only evidence changes; the referenced run/artifact IDs above are the exact existing execution evidence, not a claim that the new documentation commits ran through the research runtime.
