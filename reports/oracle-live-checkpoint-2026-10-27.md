@@ -75,3 +75,27 @@ No FootyStats API requests were made in this checkpoint run.
 - Do not fabricate or fuzzy-approve IDs, mappings, fixtures, scores, settlement truth, odds, xG, standings, freshness, accuracy or ROI.
 - Do not modify `dtnzv5by8c-ship-it/oracle-football-data` or run its workflows.
 - Do not alter Oracle V1.6 or V1.6.3 production logic, probabilities, calibration, thresholds, registries or ledgers.
+
+## Update — live branch inspection and ingestion guard (2026-10-27 06:15 SAST)
+
+### Live state observed before this update
+- Research branch: `research/oracle-50-league-readiness-audit`.
+- Pre-guard branch head: `d49fc1b2becd1544f345df73b2ed10309892a2d8`, commit message `ingestion: authorize bounded FootyStats API refresh from latest archive`.
+- The branch already contained a push-triggered `.github/workflows/oracle-selected50-footystats-live-ingestion.yml` tied to `.github/ingestion-batch-authorization.json`. I did not dispatch that run; it had already completed when inspected.
+- Existing run [40447419806](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40447419806) completed SUCCESS at 2026-10-27 04:04:23 UTC. Its logs confirm 57 FootyStats requests, exact selected season IDs 50/50, 200 historical seasons ingested, 0 failed, 0 catalogue-unmatched, and sanitized public ledger artifact [12709475175](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40447419806/artifacts/12709475175) (3,644 bytes; ZIP SHA-256 `cc711680507a3d6137ffbc02be8e502bef788e62d65c97b78edc4f84ca3ad5e8`). Provider request-window remaining is a window signal only; monthly credit balance is not established by it.
+- **Important governance incident:** the already-configured workflow's successful job includes a step named `Transfer raw archive to private Oracle release only`, and logs confirm it created a release in `dtnzv5by8c-ship-it/oracle-football-data`. This conflicts with the current instruction not to modify that repository. I did not create, delete, or otherwise touch that private release; I will not repeat this path. This note preserves the audit trail rather than concealing the event.
+
+### Safety correction made in the research repository
+- Commit `bb7db0c53e38b66e2febd1ca3aa31798725d4dc9` replaces the legacy ingestion workflow with a manual-only fail-closed stub. It has no push trigger, no provider secret access, no FootyStats call, and no private-repository write step. It exits with a clear error if manually run.
+- The separate sanitized research-only diagnostics remain manual-dispatch workflows. The connected GitHub tools expose read-only inspection and file updates but no workflow-dispatch action, so I cannot invoke those workflows from this session.
+- The configured secrets' values are not readable through the available GitHub API connection. The successful pre-existing run proves the workflow had usable credentials at that time; it does not prove current secret state or monthly credits.
+
+### Latest runtime on the pre-guard head
+- Research runtime [40447419703](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40447419703) completed SUCCESS on `d49fc1b2becd1544f345df73b2ed10309892a2d8`.
+- Artifact [12709375287](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40447419703/artifacts/12709375287), 153,093 bytes, artifact ZIP SHA-256 `fbc0a7ef2bf30846c166ab0b7fce3b508559c24e3cf1afe2246851f3df968c6c`.
+- Validator: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; 50 groups, 200 seasons, 59,049 match records, 51,983 provider-complete records, 51,095 rows with all 20 expected features, 465 governed fixture rows, 2,325 prediction rows, 250 league-market readiness rows and 750 league-market-fold rows. 40/50 groups had predictions in the archived seven-day horizon. All 439 Combo Home and 439 Combo Away probabilities are masked; zero governed Combo probabilities remain. Production and betting eligibility are false.
+- Primary holdout BTTS accuracy remains 53.588% versus a 54.143% majority baseline. Diagnostics are raw/uncalibrated, not betting approval. Canonical fixture/team joins, official settlement truth and point-in-time feature provenance remain unresolved.
+
+### Checks triggered by the safety correction
+- After commit `bb7db0c53e38b66e2febd1ca3aa31798725d4dc9`, safety contract tests, dry-run planner and data-gate contract were queued on the new head (run IDs 40448818490, 40448818497, 40448818577 respectively). Their final conclusions must be verified before claiming the workflow guard passed.
+- No additional FootyStats calls were made by this checkpoint run. No production workflow was dispatched. Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged.
