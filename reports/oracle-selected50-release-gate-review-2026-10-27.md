@@ -184,3 +184,57 @@ The artifact confirms:
 The QA-counter inconsistency remains: the same artifact still reports zero predictor-versus-ledger disagreement rows while recording 13,346 completed 0–1-goal rows. The separate planner #460 score-grid diagnostic still finds two disagreement scorelines per side. The successful output-contract run does not close this blocker. Combo remains masked and ineligible; no market-policy inference is approved.
 
 No provider API call was made, no production logic or probabilities were changed, and the production/betting release gates remain blocked.
+
+
+## Follow-up after Research Runtime #118 and Dry-Run Planner #462 — 2026-10-27 19:22 UTC
+
+This section supersedes the earlier #115/#116 runtime snapshot where those values differ. The current research branch head before this report-only update was `878dd97ed2356b7e76b8e7d109df813370bc5f77`; the runtime code commit was `3c2fa91b681b92941ab1d058992564abc52263b5`.
+
+### Latest workflow evidence
+
+- Research Runtime and Backtest [run #118](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181225) completed successfully. Artifact [#12763094895](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181225/artifacts/12763094895), SHA-256 `b303635b788b2dc538d98aee237bab4ba9ebecaf589acbdeaba36f008276c5d7`.
+- Dry-Run Planner [run #462](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181013) completed successfully. Artifact [#12763214338](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181013/artifacts/12763214338), SHA-256 `81d7cf009c530e2d09bcbf29c5237a765a76ae5711e87118619ffc7ff6f7fa69`.
+- Safety Contract Tests [run #156](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40568181168) completed successfully; no artifact was published.
+- All three runs were triggered by pushes to the research branch. No provider API calls were made.
+
+### Revalidated selected-50 integrity
+
+- Readiness matrix: **50 rows / 50 unique selected season IDs**; 22 candidate mappings require human review and 28 remain unresolved. Parent competition IDs verified: **0/50**; canonical fixture joins: **0**; canonical team joins: **0**.
+- Runtime market readiness: **250 unique selected-ID/market rows** (50 × five markets), zero duplicate keys. **245** pass the minimum sample gate but still require stability and odds validation; **5** fail the minimum train/test sample gate. All 250 remain `production_eligible=NO` and `edge_claim=NOT_APPROVED`.
+- Walk-forward output: **750 unique selected-ID/market/fold rows** (50 × five markets × three folds), zero duplicate keys. All 750 remain production-ineligible. These are raw, uncalibrated metrics; no odds/ROI benchmark was run.
+- Research slate: **456 unique fixture IDs**, 456 governed rows, and **2,280 fixture-market prediction records**. Of 456 fixtures, 431 have at least one raw research-market prediction and 25 have none.
+- The 25 blocked fixtures all report training support passing for every market model; the artifact attributes their block to missing required features, not model-training failure. Twenty-four have 7/20 required features because one side lacks five prior home/away-oriented matches; Troyes–Le Mans (`8548576`) has 0/20 because both histories are below five.
+- Combo probabilities remain masked in both exported prediction CSVs: zero non-null Combo probability values across all 456 rows. The predictor/settlement mismatch is still unresolved (two scoreline disagreements per side). The runtime QA counters still report zero predictor/ledger disagreements while 13,346 completed rows have 0–1 total goals; this counter inconsistency is not evidence of agreement. Combo remains blocked.
+- Archive evidence: 59,049 deduplicated records, 51,983 explicitly completed records, and 7,066 non-complete rows with numeric scores; those non-complete scores are excluded from settled truth. The separate 14,051-row first-page provider audit measures field/ID coverage only and is not proof of complete history or official settlement truth.
+- Raw BTTS holdout remains uncalibrated: test n=20,878, accuracy at 0.5 **53.588%**, majority-class baseline **54.143%**, Brier **0.24746**, AUC **0.5379**. This does not establish betting edge or ROI.
+
+### Schedule freshness — Canada, China and South Korea
+
+The existing governed current-feed snapshot remains stale/inconsistent for all 50 groups: source manifest **2026-10-08**, reconciliation **2026-10-07**, last fixture date **2026-10-17**, and schedule-window end **2026-10-22**. As of the 2026-10-27 audit, the last fixture date is 10 days old and the schedule window ended five days earlier. The snapshot has 80 rows, no selected-50 fixture joins, and zero current governed fixture/prediction rows.
+
+The newer research-runtime archive-derived seven-day snapshot also shows zero upcoming fixtures for:
+- Canada — Canadian Premier League, selected ID `16741`: 463 archive rows, 463 explicitly completed; no 2027 rows observed.
+- China — Chinese Super League, selected ID `16789`: 960 archive rows, 952 explicitly completed; no 2027 rows observed.
+- South Korea — K League 1, selected ID `16627`: 882 archive rows, 882 explicitly completed; no 2027 rows observed.
+
+These counts establish that records exist in the local archive, not that the archive is complete or the schedule current. Zero upcoming fixtures and zero observed 2027 rows do not prove the leagues are unsupported or out of season. No fixtures were synthesized; freshness remains unresolved.
+
+### H2H public-runner watch — no material change
+
+No new Oracle H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. The latest remain Reporting [run #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720), artifact [#12573751940](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720/artifacts/12573751940), and Exact-ID Tests [run #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716). PR #21 remains open, draft and unmerged at `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`.
+
+The Run #47 artifact independently rechecked here contains 95 Oracle IDs, 95 H2H IDs and 95 joined rows; all 95 IDs are unique, the three ID sets are identical, and there are no duplicate IDs or joined league-code mismatches. The audit attests that Oracle probability values were not modified; the published join export does not expose the original probability columns for an independent value-by-value diff. Thresholds remain 20% maximum unmatched rate, seven-day maximum archive age and five meetings for minimum H2H sample eligibility. Status remains `PASS_WITH_REVIEW_ITEMS`.
+
+The diagnostic still covers 16 team-side records across eight unresolved fixtures: 11 found in the expected league after canonicalization and five not found. Wisla remains unresolved; Manchester Utd, Jagiellonia, Lusitania FC and Ceuta remain coverage gaps. No diagnostic mapping is approved. Alias provenance is not independently established for every added alias, so sign-off remains blocked. St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain `POSSIBLE_LEAGUE_CODE_MISMATCH`, with zero H2H meetings and no cross-league join; keep them review-only until policy is explicit.
+
+### Release decision and manual dispatch route
+
+**Research output contract: PASS. Production release: NOT APPROVED. Betting release: NOT APPROVED.** Canonical identity, canonical joins, official settlement truth, current-feed freshness, point-in-time feature/odds provenance, calibration/ROI and Combo settlement governance remain blockers.
+
+The available GitHub connector has no workflow-dispatch action, so no manual dispatch was triggered. If a no-provider-call refresh is required, use:
+- [Research Runtime and Backtest workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-research-runtime.yml), branch `research/oracle-50-league-readiness-audit`, inputs `confirm_private_archive_read=true` and `private_archive_release_tag=research-selected50-footystats-history-40447419806`.
+- [Dry-Run Planner workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-dry-run-planner.yml), same branch, no inputs.
+- [Safety Contract Tests workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml), same branch, no inputs.
+- Do not invoke the one-season identity probe for this task; provider API calls are prohibited.
+
+No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers or governance were changed.
