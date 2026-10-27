@@ -69,4 +69,16 @@ class ScoreSettlementTests(unittest.TestCase):
         self.r["match_status"]="POSTPONED"
         self.assertEqual(settle(self.p,self.r)["outcome"],"UNSETTLED")
 
+    def test_fractional_final_score_is_rejected_not_truncated(self):
+        self.r["home_score"] = 1.5
+        with self.assertRaisesRegex(ValueError, "INVALID_FINAL_SCORE"):
+            settle(self.p, self.r)
+
+    def test_nonfinite_negative_and_boolean_final_scores_are_rejected(self):
+        for invalid in (float("nan"), float("inf"), -1, True, "not-a-score"):
+            with self.subTest(invalid=repr(invalid)):
+                self.r["home_score"] = invalid
+                with self.assertRaisesRegex(ValueError, "INVALID_FINAL_SCORE"):
+                    settle(self.p, self.r)
+
 if __name__=="__main__": unittest.main()
