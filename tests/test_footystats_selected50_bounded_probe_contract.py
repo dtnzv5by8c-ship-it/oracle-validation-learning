@@ -320,5 +320,75 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("ref: ${{ github.sha }}", workflow)
 
 
+    def test_private_archive_qa_primary_window_and_manifest_integrity(self):
+        import ast
+        import datetime as dt
+        import math
+        from collections import Counter
+
+        qa_path = ROOT / "scripts" / "qa_selected50_private_archive.py"
+        source = qa_path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(qa_path))
+        wanted_functions = {"date_value", "within_date_range", "index_season_rows", "parse_score", "audit_matches"}
+        wanted_constants = {
+            "PRIMARY_WINDOW_START", "PRIMARY_WINDOW_END",
+            "PRIMARY_2025_START", "PRIMARY_2025_END",
+            "PRIMARY_2026_START", "PRIMARY_2026_END",
+        }
+        selected_nodes = []
+        found_functions = set()
+        found_constants = set()
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name in wanted_functions:
+                selected_nodes.append(node)
+                found_functions.add(node.name)
+            elif isinstance(node, ast.Assign):
+                names = {t.id for t in node.targets if isinstance(t, ast.Name)}
+                if names & wanted_constants:
+                    selected_nodes.append(node)
+                    found_constants.update(names & wanted_constants)
+
+        self.assertEqual(found_functions, wanted_functions)
+        self.assertEqual(found_constants, wanted_constants)
+        namespace = {"dt": dt, "math": math, "Counter": Counter}
+        exec(compile(ast.Module(body=selected_nodes, type_ignores=[]), str(qa_path), "exec"), namespace)
+
+        index_rows = namespace["index_season_rows"]
+        self.assertEqual(set(index_rows([{"season_id": "1"}, {"season_id": "2"}])), {"1", "2"})
+        with self.assertRaisesRegex(ValueError, "duplicate season IDs"):
+            index_rows([{"season_id": "1"}, {"season_id": "1"}])
+        with self.assertRaisesRegex(ValueError, "missing season ID"):
+            index_rows([{"season_id": "1"}, {"season_id": ""}])
+
+        in_range = namespace["within_date_range"]
+        start = dt.date(2025, 3, 20)
+        end = dt.date(2026, 9, 20)
+        self.assertTrue(in_range({"date": "2025-03-20"}, start, end))
+        self.assertTrue(in_range({"date": "2026-09-20"}, start, end))
+        self.assertFalse(in_range({"date": "2025-03-19"}, start, end))
+        self.assertFalse(in_range({"date": "2026-09-21"}, start, end))
+        self.assertFalse(in_range({"status": "complete"}, start, end))
+
+        rows = [
+            {"date": "2025-03-20", "status": "complete", "homeGoalCount": 1, "awayGoalCount": 0},
+            {"date": "2026-09-20", "status": "incomplete", "homeGoalCount": 0, "awayGoalCount": 0},
+            {"date": "2025-03-19", "status": "complete", "homeGoalCount": 3, "awayGoalCount": 1},
+            {"date": "2026-09-21", "status": "complete", "homeGoalCount": 1, "awayGoalCount": 1},
+            {"status": "incomplete", "homeGoalCount": 0, "awayGoalCount": 0},
+        ]
+        window_rows = [row for row in rows if in_range(row, start, end)]
+        self.assertEqual(len(window_rows), 2)
+        audit = namespace["audit_matches"](window_rows, dt.date(2026, 10, 27))
+        self.assertEqual(audit["status_counts"], {"complete": 1, "incomplete": 1})
+        self.assertEqual(audit["metrics"]["noncomplete_status_records_with_zero_zero_score_pair"], 1)
+        self.assertEqual(audit["kickoff_date_min"], "2025-03-20")
+        self.assertEqual(audit["kickoff_date_max"], "2026-09-20")
+
+        self.assertIn('"primary_window_start": PRIMARY_WINDOW_START.isoformat()', source)
+        self.assertIn('"primary_window_calendar_year_coverage"', source)
+        self.assertIn('"primary_window_coverage_is_canonical_fixture_count": False', source)
+        self.assertIn('"official_settlement_truth_verified": False', source)
+
+
 if __name__ == "__main__":
     unittest.main()
