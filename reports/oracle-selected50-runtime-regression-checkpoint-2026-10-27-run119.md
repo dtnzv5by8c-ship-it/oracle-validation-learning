@@ -97,7 +97,7 @@ Run #119 artifact [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-val
 - Settlement QA: all 50 selected groups label the results `INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED`; non-final status/score combinations remain separated from completed-score rows. The settlement helper rejects unsupported non-final statuses rather than treating placeholder 0-0 scores as settled outcomes.
 - Combo predictor target remains Double Chance AND 2–4 total goals, while the settlement helper uses Double Chance AND fewer than five total goals. The disagreement remains explicit and Combo remains masked.
 
-The latest full runtime is still Run #119 because the subsequent research-branch changes were documentation and a test-workflow dependency correction only. A new full runtime dispatch was not necessary.
+The latest full runtime is still Run #119 because subsequent changes were documentation and a test-workflow dependency correction only. A new full runtime dispatch was not necessary. After PR #30 merged, the research-branch Dry-Run Planner [Run #464](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593643152) and Safety Contract Tests [Run #158](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593642786) both passed on merge commit `99017b1ff38b1d32079fe633bc6cc1bc8a402968`; their steps confirm the Combo governance tests and offline safety/settlement contracts remained green.
 
 ## Next safe actions
 
