@@ -217,3 +217,17 @@ All 25 blocked fixtures have `training_support_status=PASS_ALL_MARKET_MODELS`; a
 - Across the 25 rows, 16 have fewer than five prior home matches and 10 have fewer than five prior away matches; one fixture is counted in both groups.
 
 No imputation or model-logic change was introduced. The output now names missing features and records training support per market, making this distinction machine-checkable. Combo probabilities remain masked in both exported CSVs, and production/betting eligibility remains `NOT_GRANTED`.
+
+
+## Run #119 update — computed Combo disagreement audit (2026-10-27)
+
+The runtime was rerun after research-only PR #29 merged as commit `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`. See the full [Run #119 runtime/regression checkpoint](oracle-selected50-runtime-regression-checkpoint-2026-10-27-run119.md).
+
+- Workflow Run #119: [40577750724](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724), success.
+- Artifact: [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), 14 files, SHA-256 `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca` (local digest matches GitHub).
+- The runtime target-contract tests passed 5/5, including the original home/away/five-goal cases, export masking, and the new disagreement-counter test. Feature/training diagnostics passed 4/4. Output validator returned `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+- The per-league Combo disagreement counters were previously hard-coded to zero by omission (initialized but never incremented). PR #29 now calculates disagreements on deduplicated, explicitly finished records with valid integer scores only; nonfinal numeric placeholders are excluded.
+- Computed internal QA counts: **9,335 home-side** and **8,017 away-side** predictor-versus-settlement disagreement rows. All 50 groups have nonzero counts for both sides. Aggregate counters reconcile to the 50 per-league QA rows.
+- These are internal status/score diagnostics, not official settlement truth. Combo probabilities remain blank in both exports.
+- Current rolling-horizon output: 459 fixture rows, 459 unique IDs, 2,295 prediction rows, 25 feature-blocked fixtures, 434 with at least one research-market prediction, zero unavailable market models. The change from the previous run's 456 rows reflects the rolling horizon, not model improvement.
+- Parent competition IDs remain 0/50 verified; canonical bridges remain 0. Production/betting eligibility remains `NOT_GRANTED`. Production model logic and probabilities remain unchanged.
