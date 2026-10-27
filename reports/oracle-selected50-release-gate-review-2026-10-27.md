@@ -59,3 +59,34 @@ The research deliverable is available and its workflow/test contract passes. The
 - Artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40554064150/artifacts/12757295232
 - Branch: `research/oracle-50-league-readiness-audit`
 - This report summarizes the sanitized artifact and GitHub Actions job log; it does not expose API keys or raw provider payloads.
+
+
+## Final completion-pack index (updated 2026-10-27)
+
+- [50-league readiness matrix](oracle-selected50-league-readiness-matrix-2026-10-27.md) — all 50 selected groups, observed years, archive/completed rows, primary-window counts, feature rows and seven-day schedule coverage.
+- [Market walk-forward summary](oracle-selected50-market-walk-forward-summary-2026-10-27.md) — aggregate temporal folds, per-market metrics, and per-league stability counts.
+- [Data-quality and settlement audit](oracle-selected50-data-quality-settlement-audit-2026-10-27.md) — status/score hazards, fixture joins, and data QA.
+- [Provider identity reconciliation](oracle-selected50-provider-identity-reconciliation-2026-10-27.md) — season-ID semantics and missing parent IDs.
+- [Canonical candidate crosswalk](oracle-selected50-canonical-candidate-crosswalk-2026-10-27.md) — provisional candidates, none approved.
+- [Identity review queue](oracle-selected50-identity-review-queue-2026-10-27.md) — 22 human-review candidates and 28 no-match expansion candidates.
+- [Identity endpoint follow-up](oracle-selected50-identity-endpoint-follow-up-2026-10-27.md) — candidate documented endpoint; no provider call made.
+- [FootyStats clarification request draft](oracle-footystats-identity-clarification-request-2026-10-27.md) — draft only; not sent.
+- [Release-gate tracker issue #24](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/issues/24).
+
+## Per-market fold-stability counts (Run #112 artifact)
+
+| Market | Positive Brier skill all available folds | Mixed across folds | No positive skill | Insufficient fold sample/metric |
+|---|---:|---:|---:|---:|
+| BTTS | 3 | 23 | 4 | 20 |
+| DC_HOME | 17 | 13 | 0 | 20 |
+| DC_AWAY | 19 | 11 | 0 | 20 |
+| COMBO_HOME | 12 | 16 | 2 | 20 |
+| COMBO_AWAY | 18 | 12 | 0 | 20 |
+
+These are raw diagnostics only. They do not establish calibration, betting ROI, or production eligibility.
+
+## Current executive decision
+
+**Research runtime and regression-test contract: PASS. Production release: BLOCKED. Betting release: BLOCKED.**
+
+The matrix and summary reports are committed to the research branch. Parent competition IDs and canonical joins remain unverified; official settlement truth and point-in-time provenance remain outstanding. No production registry, model logic, probabilities, thresholds, calibration, or governance was changed.
