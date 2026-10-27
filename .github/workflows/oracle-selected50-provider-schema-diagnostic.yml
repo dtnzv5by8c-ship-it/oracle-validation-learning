@@ -2,6 +2,17 @@ name: Oracle Selected-50 Provider ID Schema Diagnostic
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume exactly one FootyStats API request"
+        required: true
+        default: false
+        type: boolean
+      confirm_monthly_credit_budget_checked:
+        description: "Confirm the current monthly FootyStats credit balance was checked and is sufficient for one request; request_remaining is not monthly-credit evidence"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -20,9 +31,13 @@ jobs:
         shell: bash
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
         run: |
           set -euo pipefail
-          python - <<'PY'
+          [[ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation is required; no request made."; exit 1; }
+          [[ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" == "true" ]] || { echo "::error::Current monthly FootyStats credit balance has not been explicitly confirmed; no request made."; exit 1; }
+          python - <<'PY
           import csv
           import json
           import os
@@ -150,8 +165,25 @@ jobs:
           matched_any = sum(1 for r in detail_rows if r["schema_match_status"] != "UNMATCHED_IN_CATALOGUE_ID_FIELDS")
           matched_league = sum(1 for sid in ids if league_id_matches[sid])
           matched_season = sum(1 for sid in ids if season_id_matches[sid])
+          metadata = payload.get("metadata")
+          if not isinstance(metadata, dict):
+              data_obj = payload.get("data")
+              metadata = data_obj.get("metadata") if isinstance(data_obj, dict) else {}
+          if not isinstance(metadata, dict):
+              metadata = {}
+          request_limit = metadata.get("request_limit")
+          request_remaining = metadata.get("request_remaining")
+          request_reset_message = metadata.get("request_reset_message") or metadata.get("request_reset")
+
           root = {
               "diagnostic": "READ_ONLY_PROVIDER_SCHEMA_ONLY",
+              "planned_api_requests": 1,
+              "hard_request_cap": 1,
+              "provider_request_limit_metadata": request_limit,
+              "provider_request_window_remaining": request_remaining,
+              "provider_request_reset_message": request_reset_message,
+              "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+              "monthly_credit_budget_verified": False,
               "selected_manifest_path": str(manifest),
               "selected_rows": len(selected),
               "selected_unique_ids": len(set(ids)),
@@ -191,6 +223,12 @@ jobs:
               "raw_provider_payload_saved": False,
               "api_key_saved_or_printed": False,
               "full_match_ingestion_performed": False,
+              "planned_api_requests": 1,
+              "hard_request_cap": 1,
+              "provider_request_limit_metadata": request_limit,
+              "provider_request_window_remaining": request_remaining,
+              "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+              "monthly_credit_budget_verified": False,
           }, ensure_ascii=False, sort_keys=True))
           PY
 
