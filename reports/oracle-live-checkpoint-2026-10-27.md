@@ -280,3 +280,26 @@ Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds,
 - This is a test-integrity correction: it does not alter provider requests, data, predictions, or production logic. It complements commit `e68abaca76903874291acd46c907f6a9624a694b`, which ensures per-league endpoint failures retain their selected-season context.
 - The current research branch head before this checkpoint-only update is `b72fccceb4ae6707c0ee2da6932b484ae181f4d0`.
 - CI verification is **not yet independently observable from the available connector**: the combined commit-status endpoint returned an empty status list, and the available workflow-run lookup only returns pull-request-triggered runs. Do not treat the code as test-passed until the push-triggered safety workflow result is confirmed in GitHub Actions. No provider requests were made.
+
+
+## Update — live state and provider-dispatch blocker (2026-10-27 10:56 SAST)
+
+### Live branch and code state
+- Compared the research branch ref against the latest inspected commit and confirmed the branch head is `3cd94b1e5c8b64c7495cb4be6d7a732a8300d751` (checkpoint-only commit). Its parent code commit is `b72fccceb4ae6707c0ee2da6932b484ae181f4d0`, which corrected seven YAML-trigger regression assertions.
+- The live bounded probe workflow is `.github/workflows/footystats-selected50-bounded-endpoint-probe.yml`. It is manual-dispatch-only; both `confirm_provider_credit_usage` and `confirm_monthly_credit_budget_checked` default to false; it has a 201-request hard cap, no retries, and writes only sanitized schema/status summaries.
+- The one-call workflow is `.github/workflows/oracle-selected50-provider-schema-diagnostic.yml`. It is manual-dispatch-only, requires the same two confirmations, and is capped at one read-only catalogue request. It explicitly reports `monthly_credit_budget_verified=false`.
+- The legacy ingestion workflow remains a fail-closed stub and does not read the FootyStats secret or write to the protected repository.
+
+### Verification and provider access
+- The connected combined-commit-status endpoint returned an empty status list for both `b72fccceb4ae6707c0ee2da6932b484ae181f4d0` and `3cd94b1e5c8b64c7495cb4be6d7a732a8300d751`. The available workflow-run lookup is limited to pull-request-triggered runs, so no completed push-triggered CI run can be independently verified here. Do not label these latest code changes CI-passed without checking GitHub Actions directly.
+- No FootyStats API calls were made in this run. The available GitHub connection exposes neither workflow dispatch nor secret values. Presence of `FOOTYSTATS_API_KEY` and current monthly provider credits cannot be verified from this session.
+- The previously observed request-window remaining figure (1,743) is historical and is not evidence of current monthly credits. No raw paid payloads were accessed or published, and no plan purchase/upgrade was made.
+
+### Exact next safe action
+- Confirm the current monthly credit balance in the FootyStats account, then manually dispatch **Oracle Selected-50 Provider ID Schema Diagnostic** with both confirmation inputs true. This is the smallest bounded diagnostic and consumes at most one read-only catalogue request. Review its sanitized artifact before considering the 201-request probe; do not run the larger probe unless the available balance has been checked and is sufficient for its full cap.
+
+### Release gates unchanged
+- Parent competition IDs and provider-to-Oracle canonical league bridges remain verified for 0/50 leagues.
+- Canonical fixture/team joins, official settlement truth, historical standings, and point-in-time xG/odds provenance remain unverified; Combo target/settlement reconciliation remains blocked.
+- All unresolved rows remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
+- Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries, and ledgers remain unchanged. No production workflow was run, and no writes were made to `dtnzv5by8c-ship-it/oracle-football-data`.
