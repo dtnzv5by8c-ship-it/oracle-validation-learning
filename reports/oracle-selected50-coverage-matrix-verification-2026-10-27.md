@@ -6,9 +6,9 @@
 **Research branch:** `research/oracle-50-league-readiness-audit`  
 **Status:** `RESEARCH_ONLY — PRODUCTION ELIGIBILITY NOT GRANTED`
 
-## Published matrix
+## Coverage matrix
 
-The 250-row matrix represents 50 selected groups × five calendar years (2023–2027). It preserves observed archive counts and splits statuses. Archive counts are **observed records**, not a provider completeness guarantee.
+The 250-row matrix represents 50 selected groups × five calendar years (2023–2027). The enhanced verification CSV is attached to this conversation for download; the original runtime CSV is included in run #107's artifact. This verification note is committed to the research branch. Archive counts are **observed records**, not a provider completeness guarantee.
 
 ## Calendar-year roll-up (UTC)
 
@@ -41,7 +41,7 @@ The 250-row matrix represents 50 selected groups × five calendar years (2023–
 
 ## Completion decision
 
-**Completed in this pass:** documented the 50×5 archive coverage baseline; added explicit complete/incomplete/suspended/cancelled counts in the accompanying verification CSV; recorded the exact evidence boundary and fail-closed production status.
+**Completed in this pass:** generated an enhanced 50×5 verification CSV with explicit complete/incomplete/suspended/cancelled counts; committed this evidence note to the research branch; recorded the evidence boundary and fail-closed production status. The enhanced CSV itself is attached to this chat, not committed as a repository file.
 
 **Still blocked pending authoritative evidence:** complete provider-history reconciliation; parent-competition-to-canonical league mapping for all 50; official settlement-source reconciliation; market-definition alignment; point-in-time provenance and approved calibration/odds validation. These cannot be truthfully marked complete from the current artifact alone.
 
