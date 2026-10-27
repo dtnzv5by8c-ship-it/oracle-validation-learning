@@ -55,6 +55,7 @@ def main():
     wf = load_json("oracle_selected50_walk_forward_metrics.json")
     feature_qa = load_json("oracle_selected50_feature_qa.json")
     governed_qa = load_json("oracle_selected50_governed_fixture_report_qa.json")
+    prediction_report = load_csv("oracle_selected50_prediction_report.csv")
     governed = load_csv("oracle_selected50_governed_fixture_report.csv")
     readiness = load_csv("oracle_selected50_league_market_readiness.csv")
     league_folds = load_csv("oracle_selected50_league_walk_forward_metrics.csv")
@@ -105,7 +106,13 @@ def main():
     assert len(calendar) == 250
     assert len(season_year) == 200
     assert len(governed) == int(feature_qa["governed_fixture_report_rows"])
+    assert len(prediction_report) == len(governed)
     assert len({r.get("fixture_id") for r in governed}) == len(governed)
+    assert len({r.get("fixture_id") for r in prediction_report}) == len(prediction_report)
+    # Combo probabilities must be masked in every uploaded prediction CSV, not just
+    # the separately governed report, until market semantics and identity gates pass.
+    assert all(r.get("COMBO_HOME_probability_pct", "") == "" and r.get("COMBO_AWAY_probability_pct", "") == "" for r in prediction_report)
+    assert all(r.get("combo_probability_status") == "BLOCKED_SETTLEMENT_SPEC_MISMATCH" for r in prediction_report)
     # Blank confidence/risk percentages must carry explicit non-calculation reasons.
     assert all(r.get("confidence_score_pct", "") == "" for r in governed)
     assert all(r.get("data_risk_pct", "") == "" for r in governed)
@@ -113,6 +120,7 @@ def main():
     assert all(r.get("data_risk_status") == "NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING" for r in governed)
     assert governed_qa.get("all_rows_production_ineligible") is True
     assert governed_qa.get("all_combo_probabilities_blocked") is True
+    assert governed_qa.get("all_combo_probabilities_masked_in_prediction_report") is True
     assert int(governed_qa.get("combo_home_probabilities_remaining", -1)) == 0
     assert int(governed_qa.get("combo_away_probabilities_remaining", -1)) == 0
     assert feature_qa.get("production_model_logic_changed") is False
