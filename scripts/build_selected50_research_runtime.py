@@ -29,8 +29,8 @@ MARKETS = {
  "BTTS": lambda h,a: int(h>0 and a>0),
  "DC_HOME": lambda h,a: int(h>=a),
  "DC_AWAY": lambda h,a: int(a>=h),
- "COMBO_HOME": lambda h,a: int(h>=a and h+a <= 4),
- "COMBO_AWAY": lambda h,a: int(a>=h and h+a <= 4),
+ "COMBO_HOME": lambda h,a: int(h>=a and 2 <= h+a <= 4),
+ "COMBO_AWAY": lambda h,a: int(a>=h and 2 <= h+a <= 4),
 }
 
 def wilson_interval(successes, n, z=1.959963984540054):
@@ -671,9 +671,12 @@ def main():
         # Produce a separate governed view: retain supported non-Combo research values for analysis,
         # but never present any market as betting-approved. Mask Combo probabilities until predictor
         # target and settlement-ledger definitions are reconciled.
-        combo_block_reason = ("Research-only block: the research target now matches the documented composite rule "
-                              "(Double Chance AND total goals <= 4). Probabilities remain masked until canonical "
-                              "fixture/team joins and official settlement truth are verified.")
+        combo_block_reason = ("Research-only block: the existing predictor target is Double Chance AND total goals "
+                              "between 2 and 4 inclusive, while the current settlement helper uses Double Chance AND "
+                              "total goals < 5, including 0-1 goals. The authoritative market definition is unresolved; "
+                              "do not reconcile these rules by silently changing either definition. Probabilities remain "
+                              "masked pending an approved market definition, canonical fixture/team joins, and official "
+                              "settlement truth.")
         noncombo_block_reason = ("Research-only: canonical fixture/team joins and production settlement truth "
                                  "remain unverified; raw probabilities are uncalibrated and not approved for betting.")
         governed_predictions = []
