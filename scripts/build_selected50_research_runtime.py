@@ -160,6 +160,18 @@ def predict(model, feature):
     if model is None or any(feature.get(f) is None for f in FEATURES): return None
     return float(model.predict_proba([[float(feature[f]) for f in FEATURES]])[0,1])
 
+
+def mask_combo_probabilities_for_export(rows):
+    """Return export-safe copies with Combo probabilities masked until governed release gates pass."""
+    masked = []
+    for source in rows:
+        row = dict(source)
+        row["COMBO_HOME_probability_pct"] = None
+        row["COMBO_AWAY_probability_pct"] = None
+        row["combo_probability_status"] = "BLOCKED_SETTLEMENT_SPEC_MISMATCH"
+        masked.append(row)
+    return masked
+
 def season_coverage_row(sid, meta, selected_id, selected, status, match_count, team_count=None):
     # Preserve only source-provided season metadata. Missing years remain unverified.
     def source_value(keys):
@@ -664,10 +676,11 @@ def main():
                         "provider_season_year_source":str(season_meta.get("provider_season_year", ""))})
                     w.writerow(out_row)
         pred_path=OUT/"oracle_selected50_prediction_report.csv"
-        if predictions:
+        export_predictions = mask_combo_probabilities_for_export(predictions)
+        if export_predictions:
             with pred_path.open("w",newline="",encoding="utf-8") as f:
-                cols=list(predictions[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(predictions)
-        else: pred_path.write_text("prediction_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED\n",encoding="utf-8")
+                cols=list(export_predictions[0].keys());w=csv.DictWriter(f,fieldnames=cols,extrasaction="ignore");w.writeheader();w.writerows(export_predictions)
+        else: pred_path.write_text("prediction_status,combo_probability_status\nNO_ELIGIBLE_FUTURE_FIXTURES_OR_FEATURE_GATES_FAILED,BLOCKED_SETTLEMENT_SPEC_MISMATCH\n",encoding="utf-8")
         # Produce a separate governed view: retain supported non-Combo research values for analysis,
         # but never present any market as betting-approved. Mask Combo probabilities until predictor
         # target and settlement-ledger definitions are reconciled.
@@ -719,6 +732,7 @@ def main():
             "combo_away_probabilities_remaining": sum(1 for r in governed_predictions if r.get("COMBO_AWAY_probability_pct") is not None),
             "all_rows_production_ineligible": all(r.get("production_eligible") == "NO" for r in governed_predictions),
             "all_combo_probabilities_blocked": all(r.get("COMBO_HOME_probability_pct") is None and r.get("COMBO_AWAY_probability_pct") is None for r in governed_predictions),
+            "all_combo_probabilities_masked_in_prediction_report": all(r.get("COMBO_HOME_probability_pct") is None and r.get("COMBO_AWAY_probability_pct") is None and r.get("combo_probability_status") == "BLOCKED_SETTLEMENT_SPEC_MISMATCH" for r in export_predictions),
             "combo_block_reason": combo_block_reason,
             "other_market_probabilities": "Retained only as raw research outputs; each is explicitly NOT_FOR_BETTING while canonical joins, settlement truth and calibration remain unverified."
         }
