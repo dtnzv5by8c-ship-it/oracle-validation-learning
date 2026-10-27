@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install shared runtime test dependencies
+        run: python -m pip install --disable-pip-version-check numpy scikit-learn
       - name: Compile reporting scripts
         run: python -m py_compile scripts/join_h2h_by_fixture_id.py scripts/build_h2h_report.py scripts/prepare_oracle_fixture_id_export.py
       - name: Run exact-ID join tests
