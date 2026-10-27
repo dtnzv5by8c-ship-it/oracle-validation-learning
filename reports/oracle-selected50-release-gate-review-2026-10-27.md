@@ -378,3 +378,17 @@ I downloaded the three existing artifacts and recomputed their SHA-256 digests a
 The H2H watch is unchanged from the prior addendum: no new PR #21 run, Run #47 exact-ID integrity remains 95/95 with no duplicates/unmatched IDs/league-code mismatches, and alias provenance remains blocked. Wisla remains ambiguous; Manchester Utd and Lusitania remain coverage gaps without authoritative new source evidence. St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain review-only.
 
 **Decision unchanged:** research-output contract PASS; production and betting release NOT APPROVED. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed.
+
+
+## H2H test-workflow dependency fix — 2026-10-28 00:16 SAST
+
+A previously recorded ancillary CI blocker has now been resolved on the research branch only.
+
+- The earlier H2H Exact-ID Join Tests [Run #34](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577728345) failed before completing test discovery because the workflow omitted `scikit-learn` while shared test discovery imports Selected-50 tests.
+- Research-only PR [#30](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/30) added installation of `numpy scikit-learn` to `.github/workflows/h2h-exact-id-tests.yml` and was merged into `research/oracle-50-league-readiness-audit` at commit [`99017b1ff38b1d32079fe633bc6cc1bc8a402968`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/99017b1ff38b1d32079fe633bc6cc1bc8a402968). The PR changed one workflow file only; it did not modify H2H matching logic or production Oracle.
+- Follow-up H2H Exact-ID Join Tests [Run #35](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593513957) completed successfully. The dependency-install step and compile step passed; the test log ends with `Ran 196 tests in 0.550s` and `OK`. No artifact was published.
+- This resolves the separate missing-`scikit-learn` CI environment blocker on the research branch. It does **not** create a new validation run for PR #21, resolve its alias-provenance blocker, or change its latest associated runs: Reporting #47 and Exact-ID Tests #31 remain the latest PR #21 runs.
+
+The live research branch was inspected at commit `779cd9de6104602dd435c880f382a5bb14231900` before this reporting-only update. The latest full Selected-50 runtime remains Run #119 / artifact #12768701010 and the latest planner remains Run #463 / artifact #12768336597; subsequent changes are documentation and a test-workflow dependency correction. No provider API calls were made.
+
+**Decision unchanged:** research-output contract PASS; production and betting release NOT APPROVED. H2H alias provenance, canonical identity/joins, official settlement truth, current-feed freshness, point-in-time provenance, calibration/ROI and Combo market-definition governance remain unresolved. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed.
