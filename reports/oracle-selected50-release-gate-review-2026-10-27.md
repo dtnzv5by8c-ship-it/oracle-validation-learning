@@ -100,3 +100,8 @@ The matrix and summary reports are committed to the research branch. Parent comp
 - Dry-run planner [run #455](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40556271022) passed on the same commit; planner, identity, market, Combo-settlement, walk-forward and readiness checks passed.
 - Detailed fixture-level diagnosis and schedule evidence are in the [runtime gap triage report](oracle-selected50-runtime-gap-triage-2026-10-27.md).
 - The runtime artifact remains run #112 / artifact #12757295232. No FootyStats API request was made. All 50 groups and all 250 market rows remain production-ineligible; release decision remains blocked.
+
+
+## Identity probe addendum (2026-10-27)
+
+The bounded one-call FootyStats identity probe subsequently completed successfully: [workflow run 40562430790](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790), sanitized artifact [12760832880](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12760832880). One request returned HTTP 200 for selected season ID `16571`; the response returned `data.id=16571`, Argentina, Primera División, season 2026. This supports the requested season record identity for that single sample only. It does **not** verify a parent competition ID or the remaining 49 mappings. Parent competition IDs verified remains 0/50 and canonical bridges approved remains 0. No further API request is authorized by this result. The identity gate and production/betting release gates remain blocked.
