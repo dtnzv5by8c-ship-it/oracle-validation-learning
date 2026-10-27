@@ -63,6 +63,21 @@ class ComboMarketContractTests(unittest.TestCase):
         self.assertEqual(self.settle("COMPOSITE", "HOME_1X_U45", 3, 2), "LOSS")
         self.assertEqual(self.settle("COMPOSITE", "AWAY_X2_U45", 2, 3), "LOSS")
 
+    def test_combo_probabilities_are_masked_in_export_copy(self):
+        source = [{
+            "fixture_id": "f1",
+            "COMBO_HOME_probability_pct": 72.5,
+            "COMBO_AWAY_probability_pct": 41.2,
+            "BTTS_probability_pct": 54.0,
+        }]
+        exported = runtime.mask_combo_probabilities_for_export(source)
+        self.assertEqual(source[0]["COMBO_HOME_probability_pct"], 72.5)
+        self.assertEqual(source[0]["COMBO_AWAY_probability_pct"], 41.2)
+        self.assertIsNone(exported[0]["COMBO_HOME_probability_pct"])
+        self.assertIsNone(exported[0]["COMBO_AWAY_probability_pct"])
+        self.assertEqual(exported[0]["combo_probability_status"], "BLOCKED_SETTLEMENT_SPEC_MISMATCH")
+        self.assertEqual(exported[0]["BTTS_probability_pct"], 54.0)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
