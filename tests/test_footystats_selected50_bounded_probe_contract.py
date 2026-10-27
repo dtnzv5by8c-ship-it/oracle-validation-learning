@@ -257,8 +257,13 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertIn("confirm_provider_credit_usage:", trigger)
+        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
         self.assertNotIn("\\n  push:", trigger)
         self.assertIn("Explicit provider-credit confirmation is required; no request made.", workflow)
+        self.assertIn("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", workflow)
+        self.assertIn("Current monthly FootyStats credit balance has not been explicitly confirmed; no request made.", workflow)
+        self.assertIn('"operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true"', workflow)
+        self.assertLess(workflow.index("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false"), workflow.index('url = "https://api.football-data-api.com/league-list?'))
         self.assertIn('"planned_api_requests": 1', workflow)
         self.assertIn('"hard_request_cap": 1', workflow)
         self.assertIn('"monthly_credit_budget_verified": False', workflow)
