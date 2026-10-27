@@ -1,7 +1,7 @@
 name: DISABLED — Private Oracle Transfer Write Validation
 
-# This workflow previously created and deleted a temporary branch in the protected
-# oracle-football-data repository. Even temporary writes are prohibited for this task.
+# This workflow previously created and deleted a temporary branch in the protected repository.
+# Even temporary writes are prohibited for this task.
 on:
   workflow_dispatch:
 

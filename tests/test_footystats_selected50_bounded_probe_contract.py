@@ -221,58 +221,37 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertTrue(all(row["evidence_scope"] == "ONE_SAMPLE_MATCH_PER_SELECTED_ID; NOT_SETTLEMENT_TRUTH" for row in probe_rows))
 
 
-    def test_parent_id_probe_is_bounded_rate_limited_and_sanitized(self):
+    def test_parent_id_probe_is_disabled_and_historical_evidence_stays_quarantined(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
-        self.assertIn("if calls >= 50", workflow)
-        self.assertIn('"max_per_page": 1', workflow)
-        self.assertIn("time.sleep(2.1)", workflow)
-        self.assertIn("planned_calls_after_this + 25", workflow)
-        self.assertIn('"monthly_credit_budget_verified": False', workflow)
-        self.assertIn('"raw_provider_payloads_saved": False', workflow)
-        self.assertIn('"api_key_logged_or_saved": False', workflow)
-        self.assertIn("sample_home_team_id_fields", workflow)
-        self.assertIn("sample_away_team_id_fields", workflow)
-        self.assertIn("sample_status_fields", workflow)
-        self.assertIn("sample_home_score_fields", workflow)
-        self.assertIn("sample_away_score_fields", workflow)
-        self.assertNotIn("print(payload", workflow)
+        trigger = workflow.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertIn("exit 1", workflow)
+        self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
+        self.assertNotIn("api.football-data-api.com", workflow)
 
         runtime = (ROOT / "scripts" / "build_selected50_research_runtime.py").read_text(encoding="utf-8")
         validator = (ROOT / "scripts" / "validate_selected50_runtime_outputs.py").read_text(encoding="utf-8")
         self.assertIn('PARENT_ID_PROBE = Path("reports/oracle-selected50-parent-id-probe-2026-10-26.csv")', runtime)
         self.assertIn("MATCH_RECORD_COMPETITION_ID_DOCUMENTED_AS_SEASON_ID_50_OF_50_PARENT_ID_NOT_PROVIDED", runtime)
         self.assertIn('"provider_competition_id_field_semantics_documented_as_season_id":True', runtime)
-        self.assertIn("match-schedule-and-stats", runtime)
-        self.assertIn('"provider_competition_id_field_matches_selected_id_in_match_probe"', runtime)
-        self.assertIn('"provider_match_coverage_matrix_status"', runtime)
-        self.assertNotIn("provider_parent_competition_ids_verified_from_match_probe", runtime)
         self.assertIn('"provider_sample_scores_are_settlement_truth":False', runtime)
         self.assertIn('provider_competition_id_field_matches_selected_id_in_match_probe") == 50', validator)
         self.assertIn('provider_match_coverage_first_page_total_rows") == 14051', validator)
         self.assertIn('provider_to_canonical_bridges_verified") == 0', validator)
 
 
-    def test_parent_id_audit_is_bounded_and_summarizes_first_page_coverage(self):
+    def test_parent_id_audit_workflow_is_disabled(self):
         audit = (ROOT / ".github" / "workflows" / "oracle-selected50-parent-id-reconciliation.yml").read_text(encoding="utf-8")
         audit_trigger = audit.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", audit_trigger)
         self.assertNotIn("\\n  push:", audit_trigger)
-        self.assertIn('if calls >= 50:', audit)
-        self.assertIn('"max_per_page": 1000', audit)
-        self.assertIn('r.get("season")', audit)
-        self.assertIn('"selected_id_matches_competition_id"', audit)
-        self.assertNotIn("season_id_consistent_with_selected_id", audit)
-        self.assertIn('"pager_max_page"', audit)
-        self.assertIn('"unique_fixture_ids_on_page"', audit)
-        self.assertIn('"duplicate_fixture_id_rows_on_page"', audit)
-        self.assertIn('"status_counts_json"', audit)
-        self.assertIn('"rows_with_both_team_ids"', audit)
-        self.assertIn('"rows_with_both_score_fields"', audit)
-        self.assertIn('"first_page_only": True', audit)
-        self.assertIn('"raw_provider_payloads_saved": False', audit)
-        self.assertIn('"monthly_credit_budget_verified": False', audit)
-        self.assertIn("if not ok:", audit)
-        self.assertIn("no retries", audit.lower())
+        self.assertIn("DISABLED", audit.upper())
+        self.assertIn("exit 1", audit)
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", audit)
+        self.assertNotIn("api.football-data-api.com", audit)
+        self.assertNotIn("urlopen(", audit)
 
 
     def test_provider_schema_diagnostic_requires_explicit_single_call_confirmation(self):
