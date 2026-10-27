@@ -74,7 +74,8 @@ def index_season_rows(raw_manifest):
     for row in raw_manifest:
         if not isinstance(row, dict):
             raise ValueError("manifest contains a non-object row")
-        sid = str(row.get("season_id", "")).strip()
+        raw_sid = row.get("season_id")
+        sid = "" if raw_sid in (None, "") else str(raw_sid).strip()
         if not sid:
             raise ValueError("manifest contains a missing season ID")
         ids.append(sid)
