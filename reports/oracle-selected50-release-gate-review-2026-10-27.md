@@ -169,3 +169,18 @@ The available GitHub connector has no workflow-dispatch action, so no manual run
 - [Selected-50 Dry-Run Planner](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-dry-run-planner.yml) — same branch; no inputs; no network calls.
 - [Selected-50 Safety Contract Tests](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml) — same branch; no inputs; offline tests.
 - The [one-season identity probe workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/footystats-selected50-one-season-identity-probe.yml) was not invoked because this task prohibits provider API calls.
+
+
+## Follow-up after Research Runtime run #116 — 2026-10-27
+
+The previously in-progress [Research Runtime run #116](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564605057) has now completed successfully on commit `61ffc6dbfe83b43c4cf4a2da153550dd2f84203f`. Its artifact [#12761018892](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564605057/artifacts/12761018892) has SHA-256 `0ee27fffd3f03289dde95eddf811910e2aba35f8dfb9872f9c498e9d75043131`.
+
+The artifact confirms:
+- 50 selected groups, 250 unique league-market rows and 750 unique league-market-fold rows; all remain production-ineligible.
+- 456 unique research fixture IDs and 2,280 fixture-market prediction rows.
+- Both Combo probability columns are null for all 456 rows in the uploaded prediction report; all are explicitly labelled `BLOCKED_SETTLEMENT_SPEC_MISMATCH`. The export-mask remediation is verified.
+- The runtime-validation limitation text now explicitly says the 2–4-goal predictor and the `<5` settlement helper differ and that the authoritative market definition remains unresolved.
+
+The QA-counter inconsistency remains: the same artifact still reports zero predictor-versus-ledger disagreement rows while recording 13,346 completed 0–1-goal rows. The separate planner #460 score-grid diagnostic still finds two disagreement scorelines per side. The successful output-contract run does not close this blocker. Combo remains masked and ineligible; no market-policy inference is approved.
+
+No provider API call was made, no production logic or probabilities were changed, and the production/betting release gates remain blocked.
