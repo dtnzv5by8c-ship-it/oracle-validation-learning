@@ -176,23 +176,29 @@ jobs:
                 "live_catalogue_name": found["provider_league_name"] if found else "",
                 "season_year": str(found["season"].get("year", "")) if found else "",
                 "endpoint_calls_attempted": 0,
+                "last_endpoint_attempted": "",
                 "matches_status": "NOT_TESTED",
                 "teams_status": "NOT_TESTED",
                 "tables_status": "NOT_TESTED",
                 "season_stats_status": "NOT_TESTED",
                 "matches_sample_rows": "",
+                "matches_sample_field_names": "",
                 "team_count": "",
                 "tables_data_shape": "",
                 "season_stats_data_shape": "",
-                "request_budget_remaining_after_last_call": ""
+                "request_budget_remaining_after_last_call": "",
+                "identity_note": ""
               }
+              # Persist the league row before any endpoint request so a failed
+              # request still leaves a traceable selected-season exception.
+              per_league.append(base_row)
               if not found:
                   base_row["identity_note"] = "No exact selected season ID match in live catalogue; no substitute ID attempted."
-                  per_league.append(base_row); save_checkpoint()
+                  save_checkpoint()
                   continue
               if remaining is None or remaining < 4:
                   base_row["identity_note"] = "Stopped before endpoint calls because request budget metadata was insufficient or unavailable."
-                  per_league.append(base_row); save_checkpoint()
+                  save_checkpoint()
                   raise SystemExit("STOP: insufficient observed request budget before next league.")
               checks = [
                 ("league-matches", "matches_status", {"season_id": sid, "max_per_page": 1, "page": 1}),
@@ -204,13 +210,24 @@ jobs:
                   needed_after = len(checks) - j - 1
                   if remaining is None or remaining < needed_after + 1:
                       base_row["identity_note"] = "Stopped before next endpoint: provider request budget below remaining planned calls."
-                      per_league.append(base_row); save_checkpoint()
+                      save_checkpoint()
                       raise SystemExit("STOP: observed request budget insufficient for remaining endpoints.")
-                  payload = api(endpoint, params)
+                  base_row["last_endpoint_attempted"] = endpoint
+                  base_row[field] = "REQUEST_STARTED"
+                  base_row["endpoint_calls_attempted"] += 1
+                  save_checkpoint()
+                  try:
+                      payload = api(endpoint, params)
+                  except SystemExit:
+                      # api() has checkpointed the sanitized endpoint outcome.
+                      # Keep the matching selected-season row in the artifact.
+                      base_row[field] = "FAILED_OR_STOPPED"
+                      base_row["identity_note"] = f"Stopped at {endpoint}; inspect sanitized endpoint_results.csv for the request outcome."
+                      save_checkpoint()
+                      raise
                   data = payload.get("data")
                   ok = payload.get("success") is True
                   base_row[field] = "SUCCESS" if ok else "FAILED"
-                  base_row["endpoint_calls_attempted"] += 1
                   base_row["request_budget_remaining_after_last_call"] = remaining if remaining is not None else ""
                   if endpoint == "league-matches":
                       base_row["matches_sample_rows"] = len(data) if isinstance(data, list) else ""
@@ -225,15 +242,10 @@ jobs:
                   save_checkpoint()
                   if not ok:
                       base_row["identity_note"] = "Provider returned success=false; halted with no retries."
-                      per_league[-1:] = [base_row]
                       save_checkpoint()
                       raise SystemExit(f"STOP: provider success=false for {endpoint}; no retries.")
                   time.sleep(0.35)
               base_row["identity_note"] = "Endpoint/schema probe only; no canonical identity approval or data completeness claim."
-              if per_league and per_league[-1].get("selected_season_id") == sid:
-                  per_league[-1] = base_row
-              else:
-                  per_league.append(base_row)
               save_checkpoint()
 
           summary.update({
