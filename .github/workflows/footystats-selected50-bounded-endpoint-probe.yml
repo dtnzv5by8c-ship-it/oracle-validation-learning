@@ -2,6 +2,17 @@ name: FootyStats Selected-50 Bounded Endpoint Coverage Probe
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume up to 201 FootyStats API requests"
+        required: true
+        default: false
+        type: boolean
+      confirm_monthly_credit_budget_checked:
+        description: "Confirm the current monthly FootyStats credit balance was checked and is sufficient for up to 201 calls; request_remaining is not monthly-credit evidence"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -18,6 +29,8 @@ jobs:
       - name: Probe exact selected season IDs (max 201 requests; no retries)
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -27,6 +40,10 @@ jobs:
           from urllib.request import Request, urlopen
           from urllib.error import HTTPError
 
+          if os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() != "true":
+              raise SystemExit("STOP: Explicit provider-credit confirmation is required; zero requests made.")
+          if os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() != "true":
+              raise SystemExit("STOP: Current monthly FootyStats credit balance has not been explicitly confirmed; zero requests made.")
           KEY = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
           if not KEY:
               raise SystemExit("STOP: FOOTYSTATS_API_KEY secret is missing; zero requests made.")
@@ -92,6 +109,9 @@ jobs:
               summary.setdefault("status", "IN_PROGRESS_OR_STOPPED_FAIL_CLOSED")
               summary.update({
                 "hard_request_cap": MAX_CALLS,
+                "operator_confirmed_provider_credit_usage": os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() == "true",
+                "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+                "monthly_credit_budget_verified_by_provider": False,
                 "actual_http_requests_started": calls,
                 "request_budget_remaining_last_observed": remaining,
                 "raw_provider_payloads_saved": False,
@@ -223,6 +243,9 @@ jobs:
             "unique_live_catalogue_league_names": len({r["live_catalogue_name"] for r in per_league if r.get("live_catalogue_name")}),
             "leagues_with_all_four_endpoint_successes": sum(all(r.get(k) == "SUCCESS" for k in ("matches_status","teams_status","tables_status","season_stats_status")) for r in per_league),
             "leagues_with_endpoint_failures_or_not_tested": sum(not all(r.get(k) == "SUCCESS" for k in ("matches_status","teams_status","tables_status","season_stats_status")) for r in per_league),
+            "operator_confirmed_provider_credit_usage": os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() == "true",
+            "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+            "monthly_credit_budget_verified_by_provider": False,
             "actual_http_requests_started": calls,
             "request_budget_remaining_last_observed": remaining,
             "raw_provider_payloads_saved": False,
@@ -234,7 +257,8 @@ jobs:
               "Only one match row is requested per season for schema inspection; not full-season ingestion.",
               "Provider season IDs are matched exactly; no fuzzy or substitute mapping is performed.",
               "Successful endpoint responses do not establish historical completeness, point-in-time validity, official settlement truth, or canonical team joins.",
-              "Provider request_remaining is a request-window indicator, not a guarantee of separate subscription billing/credit balance."
+              "Provider request_remaining is a request-window indicator, not a guarantee of separate subscription billing/credit balance.",
+              "Monthly credit budget is not verified by provider metadata; the pre-dispatch monthly-budget confirmation is an operator attestation only."
             ]
           })
           save_checkpoint()

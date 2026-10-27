@@ -15,6 +15,17 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotIn("\n  push:", trigger)
 
+    def test_probe_requires_explicit_provider_and_monthly_credit_confirmation(self):
+        trigger = self.text.split("permissions:", 1)[0]
+        self.assertIn("confirm_provider_credit_usage:", trigger)
+        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
+        self.assertIn("CONFIRM_PROVIDER_CREDIT_USAGE", self.text)
+        self.assertIn("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", self.text)
+        self.assertIn("Explicit provider-credit confirmation is required; zero requests made.", self.text)
+        self.assertIn("Current monthly FootyStats credit balance has not been explicitly confirmed; zero requests made.", self.text)
+        self.assertIn('"monthly_credit_budget_verified_by_provider": False', self.text)
+        self.assertIn("Monthly credit budget is not verified by provider metadata", self.text)
+
     def test_probe_is_hard_capped_and_never_retries(self):
         self.assertIn("MAX_CALLS = 201", self.text)
         self.assertIn("if calls >= MAX_CALLS", self.text)
