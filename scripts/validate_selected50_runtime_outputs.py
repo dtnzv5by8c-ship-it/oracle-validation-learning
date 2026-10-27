@@ -121,6 +121,10 @@ def main():
     assert governed_qa.get("all_rows_production_ineligible") is True
     assert governed_qa.get("all_combo_probabilities_blocked") is True
     assert governed_qa.get("all_combo_probabilities_masked_in_prediction_report") is True
+    combo_reason = str(governed_qa.get("combo_block_reason", ""))
+    assert "between 2 and 4 inclusive" in combo_reason
+    assert "total goals < 5" in combo_reason
+    assert "unresolved" in combo_reason.lower()
     assert int(governed_qa.get("combo_home_probabilities_remaining", -1)) == 0
     assert int(governed_qa.get("combo_away_probabilities_remaining", -1)) == 0
     assert feature_qa.get("production_model_logic_changed") is False
@@ -168,7 +172,7 @@ def main():
         "limitations": [
             "Contract validation does not verify canonical provider IDs, official settlement truth, or point-in-time provenance.",
             "Walk-forward scores are raw and uncalibrated; no odds/ROI benchmark is approved without verified odds provenance.",
-            "Combo remains blocked pending canonical fixture/team joins and official settlement truth; research target now matches the documented <=4-goal composite rule.",
+            "Combo remains blocked because the documented predictor target is Double Chance AND 2-4 total goals, while the current settlement helper uses Double Chance AND total goals <5 (including 0-1 goals); the authoritative market definition remains unresolved.",
         ],
     }
     (OUT / "oracle_selected50_runtime_validation.json").write_text(
