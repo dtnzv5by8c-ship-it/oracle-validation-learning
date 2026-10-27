@@ -255,3 +255,46 @@ The research-only Combo audit defect was corrected in PR #29 and validated by ru
 Full details: [Run #119 runtime/regression checkpoint](oracle-selected50-runtime-regression-checkpoint-2026-10-27-run119.md).
 
 No production repository, model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed. No provider API calls were made.
+
+
+## Cross-check after Run #119 and H2H workflow Run #34 — 2026-10-27 20:54 UTC
+
+This is a reporting-only checkpoint against the live public repository. The research branch head before this update was `d2ef4a2bd2dd91eb939d022af1806fb049093a1c`; the tested runtime code revision remains `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`.
+
+### Latest selected-50 workflow evidence
+
+- Research Runtime [Run #119](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724) — success on code revision `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`; artifact [#12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), SHA-256 `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`.
+- Dry-Run Planner [Run #463](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563) — success; artifact [#12768336597](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563/artifacts/12768336597), SHA-256 `699d7d17ad159dc40f6c900934408231fd29650c1c1255ddde290e73a451d727`.
+- Safety Contract Tests [Run #157](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750558) — success; no artifact published.
+
+The downloaded runtime and planner ZIPs match their GitHub-reported digests. The runtime artifact independently confirms 50 selected groups, 200 historical season groups, 59,049 deduplicated archive rows, 459 unique rolling-horizon fixture IDs, 2,295 fixture-market rows, 250 unique league-market rows and 750 unique league-market-fold rows. The output contract passes. Twenty-five fixtures remain blocked by missing required features; 434 have at least one research-market prediction. Both Combo probability columns remain blank in both exports. The computed 9,335 home and 8,017 away predictor-versus-settlement disagreement counts reconcile to the per-league diagnostics, but remain internal status/score QA rather than official settlement truth.
+
+The planner artifact independently reconfirms the stale current-feed gate: source manifest 2026-10-08, reconciliation 2026-10-07, last fixture date 2026-10-17, and schedule-window end 2026-10-22. All 50 groups remain stale/inconsistent, with zero current governed fixture rows and zero canonical fixture/team joins verified. The 50-row readiness matrix has 22 review candidates and 28 unresolved groups; parent competition IDs verified remain 0/50. All 250 market rows and 750 walk-forward rows remain production-ineligible.
+
+### Targeted schedule freshness — existing data only
+
+Run #119 still shows zero upcoming fixtures in its seven-day snapshot and zero observed 2027 archive rows for each of the three flagged groups:
+
+| Country / competition | Selected season ID | Archive rows | Explicitly completed | Upcoming in 7 days | 2027 rows observed |
+|---|---:|---:|---:|---:|---:|
+| Canada — Canadian Premier League | 16741 | 463 | 463 | 0 | 0 |
+| China — Chinese Super League | 16789 | 960 | 952 | 0 | 0 |
+| South Korea — K League 1 | 16627 | 882 | 882 | 0 | 0 |
+
+The archive has historical 2023–2026 rows for all three. These counts show archive presence, not complete history. Zero upcoming fixtures and zero observed 2027 rows do not establish that a league is unsupported or out of season. No fixture was synthesized and no provider API call was made. Freshness remains unresolved.
+
+Raw BTTS holdout accuracy remains 53.588%, below the 54.143% majority-class baseline; the metrics are uncalibrated and no betting edge/ROI is claimed.
+
+### H2H watch — PR #21 unchanged; separate test-workflow failure found
+
+No new Oracle H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. PR #21 remains open, draft and unmerged at `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`. The latest PR-associated runs remain Reporting [Run #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720), artifact [#12573751940](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720/artifacts/12573751940), and Exact-ID Tests [Run #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716), which has no artifact.
+
+Run #47 remains `PASS_WITH_REVIEW_ITEMS`: 95 Oracle fixture IDs, 95 H2H IDs and 95 joined rows; 95 unique IDs in each file; zero duplicates, zero unmatched exact IDs and zero joined league-code mismatches. The audit attests that Oracle probabilities were not changed, but the public join export does not contain the original probability columns for an independent value-by-value diff. Quality thresholds remain unchanged: 20% maximum unmatched rate, seven-day maximum archive age and five meetings for minimum H2H sample eligibility.
+
+The nine baseline team-side findings remain four with expected-league archive presence (Waregem, Rakow, Sepsi Sf. Gheorghe and Entella) and five not found (Wisla, Manchester Utd, Jagiellonia, Lusitania FC and Ceuta). The current diagnostic still reports 11 found and five not found across 16 team-side records; all rows have `mapping_approved=false`. No new source-row provenance establishes every alias, particularly the Manchester United FC variant and league-scoped Lusitania mapping; alias sign-off remains blocked. Wisla remains ambiguous, and Manchester Utd/Lusitania remain documented coverage gaps absent new authoritative evidence. St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain `POSSIBLE_LEAGUE_CODE_MISMATCH`, with zero H2H meetings and no cross-league joins; keep them review-only pending explicit policy.
+
+A separate H2H Exact-ID Join Tests [Run #34](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577728345) failed on the temporary PR #29 merge ref `0c22f42ad9cf25a2f49845e4b8ca2149835fca52`, branch `fix/combo-disagreement-audit-counts`. The test log shows 189 tests attempted and two import errors because `scikit-learn` was not installed (`ModuleNotFoundError: No module named 'sklearn'`). No artifact was published. This is a test-workflow dependency failure on the PR #29 merge ref, not a new run on PR #21 and not evidence that PR #21 Run #31 failed. It remains an independent CI dependency issue; no workflow or dependency code was changed here.
+
+### Decision
+
+Research output-contract checks pass, but production and betting release remain `NOT APPROVED`. Identity, canonical joins, official settlement truth, current-feed freshness, point-in-time provenance, calibration/ROI, Combo market-definition governance and H2H alias provenance remain open. No provider API calls were made. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers or governance were changed.
