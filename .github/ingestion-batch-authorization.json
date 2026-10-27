@@ -1,9 +1,9 @@
 {
-  "purpose": "One bounded resumable Selected-50 FootyStats ingestion batch",
-  "authorized_by": "User explicitly authorized additional read-only FootyStats API calls to expedite Project Oracle completion on 2026-10-26. Keep existing 250-attempt cap for this batch.",
-  "resume_archive_tag": "research-selected50-footystats-history-40349639485",
+  "purpose": "One bounded resumable Selected-50 FootyStats API ingestion batch to refresh the existing research archive from the latest verified private archive",
+  "authorized_by": "User explicitly instructed on 2026-10-27 to continue autonomously and ensure Oracle uses the FootyStats API rather than old CSV snapshots. One bounded read-only API batch; existing 250-request-attempt cap retained.",
+  "resume_archive_tag": "research-selected50-footystats-history-40375285207",
   "request_cap": 250,
   "raw_data_destination": "private repository release only",
   "production_changes": false,
-  "batch_number": 5
+  "batch_number": 6
 }
