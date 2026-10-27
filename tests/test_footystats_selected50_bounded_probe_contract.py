@@ -48,12 +48,13 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         trigger = runtime.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertIn("\n  push:", trigger)
-        self.assertIn("research-selected50-footystats-history-40375285207", trigger)
-        self.assertIn("paths-ignore:", trigger)
-        self.assertIn('"reports/**"', trigger)
-        self.assertIn('"tests/**"', trigger)
-        self.assertIn('"**/*.md"', trigger)
-        self.assertIn('".github/workflows/**"', trigger)
+        self.assertIn("research-selected50-footystats-history-40447419806", trigger)
+        self.assertIn("paths:", trigger)
+        self.assertIn('"!reports/**"', trigger)
+        self.assertIn('"!tests/**"', trigger)
+        self.assertIn('"!**/*.md"', trigger)
+        self.assertIn('"!.github/workflows/**"', trigger)
+        self.assertIn('".github/workflows/oracle-selected50-research-runtime.yml"', trigger)
         self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
         self.assertIn("Invalid private archive release tag format.", runtime)
         self.assertIn("Explicit private archive read confirmation required.", runtime)
@@ -107,7 +108,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
     def test_private_archive_qa_uses_the_same_current_archive_as_runtime(self):
         qa = (ROOT / ".github" / "workflows" / "oracle-selected50-private-archive-qa.yml").read_text(encoding="utf-8")
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
-        current_tag = "research-selected50-footystats-history-40375285207"
+        current_tag = "research-selected50-footystats-history-40447419806"
         self.assertIn(f"gh release download {current_tag}", qa)
         self.assertIn(current_tag, runtime)
         self.assertNotIn("research-selected50-footystats-history-20261025", qa)
