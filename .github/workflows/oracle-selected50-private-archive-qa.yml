@@ -69,10 +69,13 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
+          import csv
           import json
           from pathlib import Path
 
           report = json.loads(Path("selected50_archive_qa/selected50_archive_qa.json").read_text(encoding="utf-8"))
+          with Path("selected50_archive_qa/selected50_primary_window_coverage.csv").open(encoding="utf-8", newline="") as handle:
+              groups = list(csv.DictReader(handle))
           assert report["status"] == "QA_COMPLETE_REVIEW_REQUIRED"
           assert report["primary_window_start"] == "2025-03-20"
           assert report["primary_window_end"] == "2026-09-20"
@@ -88,6 +91,19 @@ jobs:
               bucket = report["primary_window_calendar_year_coverage"][year]
               assert sum(bucket["provider_status_counts"].values()) == bucket["archive_match_records"]
               assert bucket["unique_provider_match_ids"] <= bucket["archive_match_records"]
+          assert report["selected_group_primary_window_coverage_rows"] == 50
+          assert report["selected_group_labels_unique"] == 50
+          assert report["selected_groups_with_exactly_one_selected_current_season"] == 50
+          assert len(groups) == 50
+          assert len({(row["country"], row["competition_name"]) for row in groups}) == 50
+          assert all(row["selected_current_season_id_count"] == "1" for row in groups)
+          assert sum(int(row["primary_window_match_records"]) for row in groups) == total
+          assert report["selected_group_primary_window_records_sum"] == total
+          assert all(row["provider_parent_competition_id_verified"] == "NO" for row in groups)
+          assert all(row["canonical_league_mapping_verified"] == "NO" for row in groups)
+          assert all(row["canonical_fixture_team_joins_verified"] == "NO" for row in groups)
+          assert all(row["official_settlement_truth_verified"] == "NO" for row in groups)
+          assert all(row["production_eligible"] == "NO" for row in groups)
           assert report["primary_window_current_selected_season_folder_match_records"] <= total
           assert report["primary_window_current_selected_season_folder_complete_status_records"] <= report["primary_window_current_selected_season_folder_match_records"]
           assert report["primary_window_noncomplete_status_records_with_zero_zero_score_pair"] <= report["primary_window_noncomplete_status_records_with_parseable_score_pair"]
@@ -115,5 +131,6 @@ jobs:
           path: |
             selected50_archive_qa/selected50_archive_qa.json
             selected50_archive_qa/selected50_season_qa.csv
+            selected50_archive_qa/selected50_primary_window_coverage.csv
           if-no-files-found: error
           retention-days: 14
