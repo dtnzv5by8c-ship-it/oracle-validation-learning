@@ -424,3 +424,36 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - This checkpoint update is Markdown-only and is intentionally excluded from the contract-test push trigger; no additional run is expected from this documentation-only commit.
 - No provider requests were made. The one-call schema diagnostic is manual-dispatch-only, the available GitHub connector cannot dispatch workflows or read secret values, and current monthly FootyStats credits remain unverified. No credentials or raw provider payloads were exposed.
 - Production readiness remains `NOT_GRANTED`; no production repository, model logic, probabilities, calibration, thresholds, registries or ledgers were modified.
+
+
+## Automation continuation — primary-window per-league archive coverage (2026-10-27 02:00 UTC)
+
+### What changed
+- QA script commit [03c0aa66c398648f13e46f283a51e9fdd7857c45](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/03c0aa66c398648f13e46f283a51e9fdd7857c45) adds exact inclusive primary-window coverage calculations for 2025-03-20 through 2026-09-20, calendar-year split metrics, per-season counts, and a 50-row selected-group coverage CSV. The selected-group labels are inherited from the exact selected-season catalogue relationship for research grouping only; they are not canonical Oracle IDs or approved mappings.
+- The archive QA now rejects missing or duplicate season IDs in the ingestion manifest rather than silently collapsing them in a dictionary.
+- QA workflow commit [ca7b6e8b8098a1930ab22534c374b0be9fefb87e](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/ca7b6e8b8098a1930ab22534c374b0be9fefb87e) validates the new coverage totals, 50 unique selected groups, one selected-current-season ID per group, and all identity/settlement/production flags remaining NO; it publishes the new CSV in the sanitized artifact.
+- Contract-test commit [f482ce8e8c73cf6aa81f103f5c55e50cbf29054b](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/f482ce8e8c73cf6aa81f103f5c55e50cbf29054b) adds inclusive-boundary tests, manifest duplicate/missing-ID fail-closed tests, and contract assertions for the per-league artifact.
+- Runtime workflow filter commit [94bf3e84aa7a80ec144ba1b9814b11fdd8e030a1](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/94bf3e84aa7a80ec144ba1b9814b11fdd8e030a1) excludes changes to the archive-QA-only script from the expensive model runtime trigger. This prevents future QA-only fixes from automatically starting a full backtest.
+
+### Verified latest QA evidence
+- QA run [40435674199](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40435674199) — SUCCESS on commit `ca7b6e8b8098a1930ab22534c374b0be9fefb87e`; the primary-window reconciliation validation step passed.
+- Sanitized QA artifact [12704500660](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40435674199#artifacts), SHA-256 `214820e02ab38568e720d728ee08a44e913ba4a47a0fe365d89084fbb6c42e3d`. The artifact includes `selected50_primary_window_coverage.csv` and `selected50_season_qa.csv`; no raw provider match payloads were exported.
+- Safety contract tests [40435682643](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40435682643) — SUCCESS on commit `f482ce8e8c73cf6aa81f103f5c55e50cbf29054b`.
+- Dry-run planner [40435682706](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40435682706) — SUCCESS on the same test commit; no network/provider calls.
+- Latest verified branch head before this checkpoint append: `f482ce8e8c73cf6aa81f103f5c55e50cbf29054b`.
+
+### Primary-window coverage findings
+- Locked window: 2025-03-20 through 2026-09-20 inclusive.
+- Across all 200 archived season folders: 22,291 match records, 22,291 unique provider match IDs, zero duplicate provider IDs across the window; this is provider-record coverage, not a canonical-fixture count.
+- Statuses in that window: 22,256 `complete`, 24 `canceled`, 6 `incomplete`, 5 `suspended`.
+- All 35 non-complete rows with parseable score pairs are 0-0; none is settlement truth. Keep them quarantined.
+- Calendar split: 2025-03-20 to 2025-12-31 = 11,648 records (11,618 complete, 24 canceled, 3 incomplete, 3 suspended); 2026-01-01 to 2026-09-20 = 10,643 records (10,638 complete, 3 incomplete, 2 suspended).
+- The selected-current-season folders alone contribute 5,637 records in the locked window (5,633 provider-complete); that is a narrower slice than the 22,291 records across the 200-season archive.
+- The group matrix contains exactly 50 unique selected-group labels, exactly one selected-current-season ID per group, and coverage records for all 50 groups. Lowest observed per-group record counts are India Indian Super League 98, Canada Canadian Premier League 206, and Australia A-League 207. These counts do not certify completeness, representativeness, canonical identity, or sufficient backtest sample size. Per-league row counts and status counts are in the artifact CSV.
+- Summary marks `primary_window_coverage_is_canonical_fixture_count=false`, `official_settlement_truth_verified=false`, and `production_eligible=false`.
+
+### Provider and release gates
+- No FootyStats requests were made in this run. The current monthly credit balance cannot be verified through available tools, and this GitHub connection has no workflow-dispatch action. Existing one-call schema diagnostic remains manual-only with `confirm_provider_credit_usage=true`; do not use the historical request-window remaining value as monthly credit evidence.
+- Parent competition IDs verified: 0/50; provider-to-Oracle canonical bridges: 0/50; canonical fixture/team joins and official settlement truth remain unverified. Historical standings-as-of-kickoff and point-in-time xG/odds provenance remain unverified; Combo remains blocked by target/settlement mismatch.
+- The runtime run [40435508754](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40435508754), started on an earlier QA-script-only commit before the runtime path filter was added, was still in progress at last inspection. It is not needed to verify this QA-only change and must not be represented as complete unless its final status is checked.
+- No production repository or workflow was modified. Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. Production readiness remains `NOT_GRANTED`.
