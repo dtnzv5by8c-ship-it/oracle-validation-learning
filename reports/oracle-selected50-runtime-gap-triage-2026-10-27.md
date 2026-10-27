@@ -272,9 +272,19 @@ No imputation, zero-filling, minimum-history relaxation, cross-season identity s
 
 The inspected Run #119 artifact has 459 rows in each fixture report. Both Combo probability columns are blank in both exported CSVs; the governed QA reports 434 raw research Combo values masked per side and zero visible Combo values after export. The predictor target remains Double Chance AND 2–4 total goals inclusive, while the settlement helper remains Double Chance AND fewer than five goals. The 3 dedicated settlement-gate tests and 5 runtime target tests pass by asserting this disagreement stays explicit and blocked. No market definition was silently changed.
 
-### Other workflow result
+### Ancillary workflow result — fixed
 
-H2H Exact-ID Join Tests [Run #34 / 40577728345](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577728345) failed before the test suite ran because the shared test discovery imports the Selected-50 runtime but that H2H workflow does not install `scikit-learn` (`ModuleNotFoundError: sklearn`). This is an isolated CI dependency defect in the H2H workflow, not a failure of Run #119; no H2H code or workflow was changed in this runtime pass.
+H2H Exact-ID Join Tests Run #34 failed before executing tests because the shared `unittest discover -s tests` command imported Selected-50 tests requiring `scikit-learn`, which the H2H workflow had not installed. The failure was confirmed from logs.
+
+PR [#30](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/30) added `numpy scikit-learn` installation to `.github/workflows/h2h-exact-id-tests.yml` and was merged into the research branch as `99017b1ff38b1d32079fe633bc6cc1bc8a402968`. H2H Exact-ID Join Tests [Run #35](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593513957) completed successfully; reporting-script compilation passed and **196 tests passed**, including 3 Combo settlement-gate, 5 Combo target-contract, and 4 feature/training support tests.
+
+This fix changes CI dependency setup only. It does not change H2H logic, Oracle production logic, probabilities, calibration, thresholds, canonical registries, ledgers, or governance.
+
+### Run #119 artifact reinspection
+
+The runtime artifact [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010) was downloaded and inspected. SHA-256 matched GitHub: `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`. Both prediction exports contain 459 unique fixture IDs; the prediction CSV has 434 rows with at least one research-market output and 25 rows blocked by missing required features. Both Combo probability columns are blank across all 459 rows in both exports. Runtime output contract is `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; unavailable market models = 0; production/betting eligibility remain false.
+
+The settlement QA is internal status/score QA only: all 50 selected groups remain `INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED`. Non-final rows with numeric placeholder scores are separated by status; the settlement helper rejects unsupported non-final statuses rather than treating placeholder 0-0 values as settled outcomes. Official settlement truth is still not verified.
 
 ### Current release decision
 
