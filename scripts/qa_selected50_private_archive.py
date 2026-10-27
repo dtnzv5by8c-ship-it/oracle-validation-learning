@@ -213,8 +213,7 @@ def main():
         primary_window_calendar_counts = {"2025": 0, "2026": 0}
         primary_window_calendar_ids = {"2025": Counter(), "2026": Counter()}
         primary_window_calendar_status_counts = {"2025": Counter(), "2026": Counter()}
-        primary_window_calendar_2025_ids = Counter()
-        primary_window_calendar_2026_ids = Counter()
+        group_coverage = {}
         all_kickoff_dates = []
         for sid, meta in sorted(season_rows.items(), key=lambda x: (int(x[0]) if x[0].isdigit() else 0)):
             base = f"seasons/{sid}/"
@@ -268,6 +267,44 @@ def main():
             primary_window_calendar_status_counts["2026"].update(calendar_2026_audit["status_counts"])
             primary_window_calendar_ids["2025"].update(row_id(m) for m in calendar_2025_matches if row_id(m))
             primary_window_calendar_ids["2026"].update(row_id(m) for m in calendar_2026_matches if row_id(m))
+            country = str(meta.get("selected_country", "") or "").strip()
+            competition_name = str(meta.get("selected_competition_name", "") or "").strip()
+            group_key = (country, competition_name)
+            group = group_coverage.setdefault(group_key, {
+                "country": country,
+                "competition_name": competition_name,
+                "season_ids": [],
+                "selected_current_season_ids": [],
+                "primary_window_match_records": 0,
+                "primary_window_ids": Counter(),
+                "primary_window_status_counts": Counter(),
+                "primary_window_noncomplete_score_pair_rows": 0,
+                "primary_window_noncomplete_zero_zero_rows": 0,
+                "primary_window_complete_invalid_score_rows": 0,
+                "primary_window_calendar_2025_match_records": 0,
+                "primary_window_calendar_2025_ids": Counter(),
+                "primary_window_calendar_2025_status_counts": Counter(),
+                "primary_window_calendar_2026_match_records": 0,
+                "primary_window_calendar_2026_ids": Counter(),
+                "primary_window_calendar_2026_status_counts": Counter(),
+                "primary_window_dates": [],
+            })
+            group["season_ids"].append(sid)
+            if sid in selected_ids:
+                group["selected_current_season_ids"].append(sid)
+            group["primary_window_match_records"] += len(primary_window_matches)
+            group["primary_window_ids"].update(primary_window_ids_for_season)
+            group["primary_window_status_counts"].update(primary_window_audit["status_counts"])
+            group["primary_window_noncomplete_score_pair_rows"] += primary_window_audit["metrics"].get("noncomplete_status_records_with_parseable_score_pair", 0)
+            group["primary_window_noncomplete_zero_zero_rows"] += primary_window_audit["metrics"].get("noncomplete_status_records_with_zero_zero_score_pair", 0)
+            group["primary_window_complete_invalid_score_rows"] += primary_window_audit["metrics"].get("complete_status_records_missing_or_invalid_score_pair", 0)
+            group["primary_window_calendar_2025_match_records"] += len(calendar_2025_matches)
+            group["primary_window_calendar_2025_ids"].update(row_id(m) for m in calendar_2025_matches if row_id(m))
+            group["primary_window_calendar_2025_status_counts"].update(calendar_2025_audit["status_counts"])
+            group["primary_window_calendar_2026_match_records"] += len(calendar_2026_matches)
+            group["primary_window_calendar_2026_ids"].update(row_id(m) for m in calendar_2026_matches if row_id(m))
+            group["primary_window_calendar_2026_status_counts"].update(calendar_2026_audit["status_counts"])
+            group["primary_window_dates"].extend(date_value(m) for m in primary_window_matches if date_value(m))
             if sid in selected_ids:
                 primary_window_current_season_record_count += len(primary_window_matches)
                 primary_window_current_season_complete_count += primary_window_audit["status_counts"].get("complete", 0)
@@ -319,6 +356,41 @@ def main():
                 "tables_file_present": bool(tables_name), "season_stats_file_present": bool(stats_name)
             })
     cross_season_duplicate_ids = sum(1 for _, n in all_match_ids.items() if n > 1)
+    group_coverage_rows = []
+    for (country, competition_name), group in sorted(group_coverage.items()):
+        dates = group["primary_window_dates"]
+        selected_group_ids = group["selected_current_season_ids"]
+        group_coverage_rows.append({
+            "country": country,
+            "competition_name": competition_name,
+            "group_label_basis": "INHERITED_FROM_EXACT_SELECTED_SEASON_CATALOGUE_RELATION_RESEARCH_GROUPING_ONLY",
+            "archive_season_folder_count": len(group["season_ids"]),
+            "provider_season_ids": ";".join(sorted(group["season_ids"], key=lambda x: int(x) if x.isdigit() else x)),
+            "selected_current_season_id_count": len(selected_group_ids),
+            "selected_current_season_ids": ";".join(sorted(selected_group_ids)),
+            "primary_window_start": PRIMARY_WINDOW_START.isoformat(),
+            "primary_window_end": PRIMARY_WINDOW_END.isoformat(),
+            "primary_window_match_records": group["primary_window_match_records"],
+            "primary_window_unique_provider_match_ids": len(group["primary_window_ids"]),
+            "primary_window_complete_status_records": group["primary_window_status_counts"].get("complete", 0),
+            "primary_window_noncomplete_status_records": group["primary_window_match_records"] - group["primary_window_status_counts"].get("complete", 0),
+            "primary_window_noncomplete_status_records_with_parseable_score_pair": group["primary_window_noncomplete_score_pair_rows"],
+            "primary_window_noncomplete_status_records_with_zero_zero_score_pair": group["primary_window_noncomplete_zero_zero_rows"],
+            "primary_window_complete_status_records_missing_or_invalid_score_pair": group["primary_window_complete_invalid_score_rows"],
+            "primary_window_calendar_2025_match_records": group["primary_window_calendar_2025_match_records"],
+            "primary_window_calendar_2025_unique_provider_match_ids": len(group["primary_window_calendar_2025_ids"]),
+            "primary_window_calendar_2025_status_counts_json": json.dumps(dict(sorted(group["primary_window_calendar_2025_status_counts"].items())), sort_keys=True),
+            "primary_window_calendar_2026_match_records": group["primary_window_calendar_2026_match_records"],
+            "primary_window_calendar_2026_unique_provider_match_ids": len(group["primary_window_calendar_2026_ids"]),
+            "primary_window_calendar_2026_status_counts_json": json.dumps(dict(sorted(group["primary_window_calendar_2026_status_counts"].items())), sort_keys=True),
+            "primary_window_kickoff_date_min": min(dates) if dates else "",
+            "primary_window_kickoff_date_max": max(dates) if dates else "",
+            "provider_parent_competition_id_verified": "NO",
+            "canonical_league_mapping_verified": "NO",
+            "canonical_fixture_team_joins_verified": "NO",
+            "official_settlement_truth_verified": "NO",
+            "production_eligible": "NO",
+        })
     report = {
         "status": "QA_COMPLETE_REVIEW_REQUIRED",
         "scope": "private FootyStats archive; no raw payload exported",
@@ -348,6 +420,12 @@ def main():
         "primary_window_noncomplete_status_records_with_zero_zero_score_pair": primary_window_audit_metrics.get("noncomplete_status_records_with_zero_zero_score_pair", 0),
         "primary_window_current_selected_season_folder_match_records": primary_window_current_season_record_count,
         "primary_window_current_selected_season_folder_complete_status_records": primary_window_current_season_complete_count,
+        "selected_group_primary_window_coverage_rows": len(group_coverage_rows),
+        "selected_group_labels_unique": len({(r["country"], r["competition_name"]) for r in group_coverage_rows}),
+        "selected_groups_with_exactly_one_selected_current_season": sum(r["selected_current_season_id_count"] == 1 for r in group_coverage_rows),
+        "selected_group_primary_window_records_sum": sum(r["primary_window_match_records"] for r in group_coverage_rows),
+        "selected_group_primary_window_unique_provider_ids_sum": sum(r["primary_window_unique_provider_match_ids"] for r in group_coverage_rows),
+        "selected_group_labels_are_canonical_ids": False,
         "primary_window_calendar_year_coverage": {
             "2025": {
                 "start": PRIMARY_2025_START.isoformat(), "end": PRIMARY_2025_END.isoformat(),
@@ -397,11 +475,18 @@ def main():
     with (OUT / "selected50_season_qa.csv").open("w", newline="", encoding="utf-8") as f:
         fields = list(season_summaries[0]) if season_summaries else ["season_id"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(season_summaries)
+    with (OUT / "selected50_primary_window_coverage.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(group_coverage_rows[0]) if group_coverage_rows else ["country", "competition_name"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(group_coverage_rows)
     print(json.dumps({k: report[k] for k in (
         "status","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",
         "season_rows_with_ingested_status","season_rows_not_ingested","total_match_records",
         "match_records_with_id","match_records_with_date","match_records_with_both_parseable_scores",
+        "primary_window_archive_match_records","primary_window_archive_unique_provider_match_ids",
+        "primary_window_archive_duplicate_provider_match_id_rows_across_seasons",
+        "selected_group_primary_window_coverage_rows","selected_group_labels_unique",
+        "selected_groups_with_exactly_one_selected_current_season","selected_group_primary_window_records_sum",
         "total_team_records","duplicate_match_ids_within_season","match_ids_appearing_in_multiple_season_rows"
     )}, sort_keys=True))
 if __name__ == "__main__": main()
