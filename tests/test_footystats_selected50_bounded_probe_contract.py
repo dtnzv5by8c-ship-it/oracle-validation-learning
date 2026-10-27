@@ -386,8 +386,14 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
 
         self.assertIn('"primary_window_start": PRIMARY_WINDOW_START.isoformat()', source)
         self.assertIn('"primary_window_calendar_year_coverage"', source)
+        self.assertIn('"selected_group_primary_window_coverage_rows": len(group_coverage_rows)', source)
+        self.assertIn('"group_label_basis": "INHERITED_FROM_EXACT_SELECTED_SEASON_CATALOGUE_RELATION_RESEARCH_GROUPING_ONLY"', source)
         self.assertIn('"primary_window_coverage_is_canonical_fixture_count": False', source)
         self.assertIn('"official_settlement_truth_verified": False', source)
+        qa_workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-private-archive-qa.yml").read_text(encoding="utf-8")
+        self.assertIn("selected50_primary_window_coverage.csv", qa_workflow)
+        self.assertIn('assert len(groups) == 50', qa_workflow)
+        self.assertIn('assert all(row["production_eligible"] == "NO" for row in groups)', qa_workflow)
 
 
 if __name__ == "__main__":
