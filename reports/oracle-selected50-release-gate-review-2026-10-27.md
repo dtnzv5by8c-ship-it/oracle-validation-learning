@@ -238,3 +238,20 @@ The available GitHub connector has no workflow-dispatch action, so no manual dis
 - Do not invoke the one-season identity probe for this task; provider API calls are prohibited.
 
 No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers or governance were changed.
+
+
+## Runtime regression addendum — Run #119 (2026-10-27)
+
+The research-only Combo audit defect was corrected in PR #29 and validated by runtime Run #119.
+
+- Research branch commit: `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`.
+- Runtime: [Run #119 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724).
+- Artifact: [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), SHA-256 `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`.
+- Combo target contract tests: 5/5 passed; feature/training support tests: 4/4 passed; runtime output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+- Computed status/score QA now records 9,335 home and 8,017 away predictor-versus-settlement disagreement rows from deduplicated, explicitly finished integer-score records. Nonfinal score placeholders are excluded. This is internal QA only, not official settlement truth.
+- 459 current rolling-horizon fixture rows; 25 feature-blocked; zero unavailable market models. Combo probabilities remain masked in both exports.
+- Parent competition IDs verified: 0/50; provider-to-canonical bridges: 0. Production and betting gates remain blocked.
+
+Full details: [Run #119 runtime/regression checkpoint](oracle-selected50-runtime-regression-checkpoint-2026-10-27-run119.md).
+
+No production repository, model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed. No provider API calls were made.
