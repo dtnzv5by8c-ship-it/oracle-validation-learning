@@ -139,3 +139,41 @@ The research-only contract-test defect is repaired and the relevant safety and d
 ### Remaining permission-dependent action
 
 The identity endpoint follow-up remains a draft. Before any FootyStats call, the account holder must verify the current monthly credit balance and explicitly approve a strictly bounded one-request diagnostic. This audit did not request a key, call the provider, or purchase/upgrade anything.
+
+
+## Runtime/regression addendum — 2026-10-27, run #116
+
+**Current verified runtime:** [Run #116 / 40564605057](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564605057), source commit `61ffc6dbfe83b43c4cf4a2da153550dd2f84203f`, success.  
+**Current artifact:** [Artifact 12761018892](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564605057/artifacts/12761018892), SHA-256 `0ee27fffd3f03289dde95eddf811910e2aba35f8dfb9872f9c498e9d75043131`, 14 files, expires 2026-11-10 18:59:07 UTC.
+
+### Verified runtime and regression results
+
+- Combo target regression: **4/4 tests passed**. The tests preserve the documented predictor target, expose the low-goal settlement disagreement, retain the five-goal loss case, and test export masking.
+- Runtime output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+- Current output: 50 selected groups, 250 league-market readiness rows, 750 league-market-fold rows, 15 aggregate market/fold rows, and 456 fixture rows.
+- Both exported CSVs contain **zero visible Combo probabilities**: 456/456 prediction-report rows carry `combo_probability_status=BLOCKED_SETTLEMENT_SPEC_MISMATCH`; both Combo columns are blank in the prediction report and the governed report.
+- All rows remain production-ineligible; production and betting eligibility remain false. Parent competition IDs verified: 0/50; provider-to-canonical bridges verified: 0.
+- The run reads the existing private archive and makes no provider API calls.
+
+### Combo decision — preserve the disagreement, do not redefine it
+
+PR [#26](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/26) restored the existing research/predictor target to **Double Chance AND 2–4 total goals inclusive**. The settlement helper still accepts **Double Chance AND total goals <5**, including 0–1 total-goal outcomes. The disagreement is real: Home Combo differs at 0–0 and 1–0; Away Combo differs at 0–0 and 0–1. PR [#28](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/28) corrected the validation output to describe this as unresolved and added fail-closed assertions. Combo probabilities remain blocked pending an authoritative market definition, canonical fixture/team joins, and official settlement truth.
+
+### Feature/training support block — current rolling horizon
+
+The current run has **25 fixture rows blocked by unsupported features**. The prior run had 26; this one-row decrease is a rolling horizon/minimum-lead-time effect, not a feature repair.
+
+- 16 of 25 have fewer than five prior home matches in the required home orientation.
+- 10 of 25 have fewer than five prior away matches in the required away orientation.
+- One fixture has both sides below five; the union is 25 rows.
+- 24 rows have 35% feature coverage (7/20); one has 0% (both histories below five).
+- The code requires all 20 features and returns no probability when any required feature is null; it does not impute. The artifacts support a feature-support explanation. They do not expose per-fixture model-fit internals, so no separate model-training failure is asserted.
+
+### Artifact supersession and safety note
+
+- Run #114 artifact [12762340995](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40563743594/artifacts/12762340995) is **superseded and must not be used**: its prediction CSV exposed raw Combo values even though the governed CSV masked them.
+- Run #115 artifact [12761018459](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40564105545/artifacts/12761018459) masks Combo values, but its runtime-validation JSON still carried stale wording about the target being resolved; it is superseded by run #116.
+- These older GitHub artifacts remain available until their retention expiry. Use run #116 as the current runtime artifact.
+- The earlier note above that the identity endpoint request remained a draft has since been superseded: the separately approved one-call probe completed successfully in [run 40562430790](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790). It confirmed only the selected Argentina season record; it did not verify any parent competition ID. No further provider requests are authorized by that result.
+
+**Final runtime decision:** research runtime and output-contract QA pass. Combo, production, and betting release gates remain blocked. Oracle V1.6/V1.6.3 production logic and probabilities remain unchanged.
