@@ -62,6 +62,7 @@ def parse_score(value):
 def audit_matches(rows, audit_date):
     """Return aggregate status/date/score QA; never infer settlement truth."""
     status_counts = Counter()
+    status_score_patterns = Counter()
     dates = []
     metrics = Counter()
     home_keys = ("homeGoalCount", "home_goals", "home_score", "home_score_ft", "homeScore")
@@ -100,6 +101,16 @@ def audit_matches(rows, audit_date):
         pair_valid = home_score is not None and away_score is not None
         if pair_valid:
             metrics["records_with_both_parseable_scores"] += 1
+            pattern = "zero_zero" if home_score == 0 and away_score == 0 else "nonzero"
+            status_score_patterns[f"{status}:{pattern}"] += 1
+            if status != "complete" and pattern == "zero_zero":
+                metrics["noncomplete_status_records_with_zero_zero_score_pair"] += 1
+            if status != "complete" and pattern == "nonzero":
+                metrics["noncomplete_status_records_with_nonzero_score_pair"] += 1
+            if status == "complete" and pattern == "zero_zero":
+                metrics["complete_status_records_with_zero_zero_score_pair"] += 1
+            if status == "complete" and pattern == "nonzero":
+                metrics["complete_status_records_with_nonzero_score_pair"] += 1
         elif raw_home is not None or raw_away is not None:
             metrics["records_with_invalid_score_pair"] += 1
 
@@ -116,6 +127,7 @@ def audit_matches(rows, audit_date):
 
     return {
         "status_counts": dict(sorted(status_counts.items())),
+        "status_score_pattern_counts": dict(sorted(status_score_patterns.items())),
         "metrics": dict(metrics),
         "kickoff_date_min": min(dates) if dates else "",
         "kickoff_date_max": max(dates) if dates else "",
@@ -151,6 +163,7 @@ def main():
         total_duplicate_within_season = 0
         audit_date = dt.datetime.now(dt.timezone.utc).date()
         aggregate_status_counts = Counter()
+        aggregate_status_score_patterns = Counter()
         aggregate_audit_metrics = Counter()
         all_kickoff_dates = []
         for sid, meta in sorted(season_rows.items(), key=lambda x: (int(x[0]) if x[0].isdigit() else 0)):
@@ -180,6 +193,7 @@ def main():
             season_status_counts = match_audit["status_counts"]
             season_metrics = match_audit["metrics"]
             aggregate_status_counts.update(season_status_counts)
+            aggregate_status_score_patterns.update(match_audit["status_score_pattern_counts"])
             aggregate_audit_metrics.update(season_metrics)
             all_kickoff_dates.extend(v for v in date_values if v)
             complete_scores += season_metrics.get("records_with_both_parseable_scores", 0)
@@ -194,8 +208,13 @@ def main():
                 "duplicate_match_ids_within_season": duplicate_count,
                 "match_date_fields_populated": sum(bool(v) for v in date_values),
                 "provider_status_counts_json": json.dumps(season_status_counts, sort_keys=True),
+                "provider_status_score_pattern_counts_json": json.dumps(match_audit["status_score_pattern_counts"], sort_keys=True),
                 "records_with_both_parseable_scores": season_metrics.get("records_with_both_parseable_scores", 0),
                 "noncomplete_status_records_with_parseable_score_pair": season_metrics.get("noncomplete_status_records_with_parseable_score_pair", 0),
+                "noncomplete_status_records_with_zero_zero_score_pair": season_metrics.get("noncomplete_status_records_with_zero_zero_score_pair", 0),
+                "noncomplete_status_records_with_nonzero_score_pair": season_metrics.get("noncomplete_status_records_with_nonzero_score_pair", 0),
+                "complete_status_records_with_zero_zero_score_pair": season_metrics.get("complete_status_records_with_zero_zero_score_pair", 0),
+                "complete_status_records_with_nonzero_score_pair": season_metrics.get("complete_status_records_with_nonzero_score_pair", 0),
                 "complete_status_records_missing_or_invalid_score_pair": season_metrics.get("complete_status_records_missing_or_invalid_score_pair", 0),
                 "records_with_invalid_score_pair": season_metrics.get("records_with_invalid_score_pair", 0),
                 "incomplete_status_records_with_past_kickoff": season_metrics.get("incomplete_status_records_with_past_kickoff", 0),
@@ -229,8 +248,13 @@ def main():
         "match_records_with_home_score_field": score_home_present,
         "match_records_with_away_score_field": score_away_present,
         "provider_status_counts": dict(sorted(aggregate_status_counts.items())),
+        "provider_status_score_pattern_counts": dict(sorted(aggregate_status_score_patterns.items())),
         "records_with_missing_status": aggregate_audit_metrics.get("records_with_missing_status", 0),
         "noncomplete_status_records_with_parseable_score_pair": aggregate_audit_metrics.get("noncomplete_status_records_with_parseable_score_pair", 0),
+        "noncomplete_status_records_with_zero_zero_score_pair": aggregate_audit_metrics.get("noncomplete_status_records_with_zero_zero_score_pair", 0),
+        "noncomplete_status_records_with_nonzero_score_pair": aggregate_audit_metrics.get("noncomplete_status_records_with_nonzero_score_pair", 0),
+        "complete_status_records_with_zero_zero_score_pair": aggregate_audit_metrics.get("complete_status_records_with_zero_zero_score_pair", 0),
+        "complete_status_records_with_nonzero_score_pair": aggregate_audit_metrics.get("complete_status_records_with_nonzero_score_pair", 0),
         "complete_status_records_missing_or_invalid_score_pair": aggregate_audit_metrics.get("complete_status_records_missing_or_invalid_score_pair", 0),
         "records_with_invalid_score_pair": aggregate_audit_metrics.get("records_with_invalid_score_pair", 0),
         "incomplete_status_records_with_past_kickoff": aggregate_audit_metrics.get("incomplete_status_records_with_past_kickoff", 0),
