@@ -4,14 +4,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, ROOT / path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
+
 runtime = load_module("selected50_runtime", "scripts/build_selected50_research_runtime.py")
 settlement = load_module("settlement_rules", "scripts/settle_market_from_final_score.py")
+
 
 class ComboMarketContractTests(unittest.TestCase):
     def settle(self, market, selection, home, away):
@@ -30,19 +33,29 @@ class ComboMarketContractTests(unittest.TestCase):
         }
         return settlement.settle(prediction, result)["outcome"]
 
-    def test_home_combo_matches_documented_settlement(self):
-        for home, away in [(0,0),(1,0),(1,1),(2,1),(2,2),(4,0),(3,2)]:
-            expected = int(home >= away and home + away <= 4)
-            actual = self.settle("COMPOSITE", "HOME_1X_U45", home, away) == "WIN"
-            self.assertEqual(actual, bool(expected), (home, away))
-            self.assertEqual(runtime.MARKETS["COMBO_HOME"](home, away), expected)
+    def test_home_combo_preserves_existing_two_to_four_goal_predictor_target(self):
+        # Preserve the pre-existing research/predictor definition. Do not silently
+        # broaden it to all totals below five to make it match the ledger helper.
+        for home in range(6):
+            for away in range(6):
+                expected = int(home >= away and 2 <= home + away <= 4)
+                self.assertEqual(runtime.MARKETS["COMBO_HOME"](home, away), expected, (home, away))
+        # The settlement helper currently treats 0-0 and 1-0 as wins; predictor
+        # target treats them as losses. Keep this disagreement explicit.
+        for home, away in [(0, 0), (1, 0)]:
+            predictor = runtime.MARKETS["COMBO_HOME"](home, away) == 1
+            ledger = self.settle("COMPOSITE", "HOME_1X_U45", home, away) == "WIN"
+            self.assertNotEqual(predictor, ledger, (home, away))
 
-    def test_away_combo_matches_documented_settlement(self):
-        for home, away in [(0,0),(0,1),(1,1),(1,2),(2,2),(0,4),(2,3)]:
-            expected = int(away >= home and home + away <= 4)
-            actual = self.settle("COMPOSITE", "AWAY_X2_U45", home, away) == "WIN"
-            self.assertEqual(actual, bool(expected), (home, away))
-            self.assertEqual(runtime.MARKETS["COMBO_AWAY"](home, away), expected)
+    def test_away_combo_preserves_existing_two_to_four_goal_predictor_target(self):
+        for home in range(6):
+            for away in range(6):
+                expected = int(away >= home and 2 <= home + away <= 4)
+                self.assertEqual(runtime.MARKETS["COMBO_AWAY"](home, away), expected, (home, away))
+        for home, away in [(0, 0), (0, 1)]:
+            predictor = runtime.MARKETS["COMBO_AWAY"](home, away) == 1
+            ledger = self.settle("COMPOSITE", "AWAY_X2_U45", home, away) == "WIN"
+            self.assertNotEqual(predictor, ledger, (home, away))
 
     def test_five_total_goals_fails_both_combos(self):
         self.assertEqual(runtime.MARKETS["COMBO_HOME"](3, 2), 0)
@@ -50,5 +63,6 @@ class ComboMarketContractTests(unittest.TestCase):
         self.assertEqual(self.settle("COMPOSITE", "HOME_1X_U45", 3, 2), "LOSS")
         self.assertEqual(self.settle("COMPOSITE", "AWAY_X2_U45", 2, 3), "LOSS")
 
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
