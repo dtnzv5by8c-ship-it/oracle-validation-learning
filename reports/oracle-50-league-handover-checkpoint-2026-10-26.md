@@ -354,3 +354,41 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - No FootyStats calls were made in this automation run. The provider diagnostic references the existing `FOOTYSTATS_API_KEY` GitHub secret inside the workflow, but the connected read-only GitHub tools cannot verify current secret presence or expose monthly provider credits. The historical request-window remaining value of 1,750 is not current monthly-credit evidence.
 - The one-call schema diagnostic remains manual-dispatch-only and requires `confirm_provider_credit_usage=true`; the available GitHub connection has no workflow-dispatch operation. Do not weaken the manual trigger or introduce a push-triggered paid call. Exact safe action for a further provider call: confirm current FootyStats account credits, then manually dispatch the existing one-call diagnostic in GitHub Actions.
 - No production repository/workflow was changed. Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain untouched. Provider-to-canonical bridges, canonical fixture/team joins, official settlement truth, point-in-time xG/odds provenance and Combo target reconciliation remain blocked. Production readiness remains `NOT_GRANTED`.
+
+
+## Update — current private archive status/score/date QA and commit-pinned workflow verification (2026-10-27)
+
+### Corrected archive source and reproducible evidence binding
+
+- The private archive QA workflow had been pointing at stale release tag `research-selected50-footystats-history-20261025`. Corrected it to the exact batch-5 archive tag used by the runtime: `research-selected50-footystats-history-40375285207` (commit `8f4de15ca522906ed5ab9880de365df3ed6be90b`).
+- Added a regression test for the QA/runtime archive-tag match (commit `ab1a945ae4eb14e954572ef0c3db092929d01186`).
+- Private archive QA and safety contract workflows now check out the exact triggering commit via `github.sha`, rather than a moving branch head, so run SHA and tested code are bound consistently (commits `cba6f423b56a79ab188acaec39385e3efce5a0aa` and `428eb46e63c54fca1d5740b52f9de9fcb52b18ea`). Contract tests enforce this.
+- Added archive QA for provider status, score-pair patterns, kickoff-date exceptions and invalid score pairs (script commits `ceeb3b5400ffa0bf605a2b42d36f1f28316e8443`, `0604dd6a080d08fd8d4982626af9b7d1b05af243`, `44f4a9741c2554277c708334edaefc080d980672`). Regression-test fixes are included in `fbae8a90878df4565523de093afb1adb1a54e1e4` and `d06a2c0a491cad687c92656638767aab66d7b345`.
+- Published the sanitized audit at `reports/oracle-selected50-private-archive-status-score-date-audit-2026-10-27.md`; its evidence cross-check was committed in `3d825e34345185130f243aace174c7997cde4c4c`.
+
+### Fresh private archive QA — exact batch-5 archive
+
+- Commit-pinned QA run [40423922693](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693) — SUCCESS.
+- Sanitized artifact [12698682583](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922693#artifacts), ZIP SHA-256 `2fd2242e46d58267f7dbbffc35fb43675c7d74dd5168446e802b45a5a7667e2b`.
+- Archive SHA-256: `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`.
+- QA date UTC: `2026-10-27`. Selected IDs in archive manifest: 50/50; historical seasons: 200; ingested: 200/200; not ingested: 0; match rows: 59,049; team rows: 3,366; duplicate match IDs within a season: 0; repeated match IDs across season rows: 0. All 59,049 rows have IDs, parseable kickoff dates and two parseable non-negative integer score fields. Observed date range: 2023-01-20 through 2027-06-06.
+- The 50 selected-current-season folders contain 14,051 rows, matching the previously audited selected-season snapshot. This reconciles structural coverage for those folders; it does not prove full primary-window coverage or canonical identity.
+- Provider status counts across all 200 seasons: 51,983 `complete`, 6,962 `incomplete`, 57 `suspended`, 47 `canceled`. No missing status/date or invalid score pairs were observed. There are 27 `incomplete` rows with kickoff dates before the audit date (23 in the 50 selected-current-season folders).
+- **Critical score/status finding:** all 7,066 non-complete rows with parseable score pairs are 0-0: 6,962 incomplete, 57 suspended and 47 canceled. Zero non-complete rows have a non-zero score pair. The pattern is consistent with default/placeholder 0-0 values; do not treat them as settled scores or training labels.
+- Selected 50 current-season rows: 7,040 complete, 6,958 incomplete, 53 suspended; all 7,011 incomplete/suspended rows with score pairs are 0-0.
+- The runtime independently corroborates this in its 50-row `oracle_selected50_settlement_truth_qa.csv`: 59,049 source rows, 51,983 complete-status numeric-score rows, 7,066 non-finished numeric-score rows, zero non-integer scores, all rows marked `INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED` and `production_eligible=NO`.
+
+### Latest runtime and checks
+
+- Research runtime [40423792877](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423792877) — SUCCESS on commit `44f4a9741c2554277c708334edaefc080d980672`.
+- Runtime artifact [12698452196](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423792877#artifacts), ZIP SHA-256 `ef5359a46102f87c222b80b5e1a38793d25d64f3c9f50de55e56817c24ea0f2e`. Output contract: PASS; 50 selected groups, 463 governed fixture rows, 2,315 prediction rows, 250 league-market rows and 750 league-market-fold rows. 437 raw Combo Home and 437 raw Combo Away probabilities masked; zero Combo probabilities remain. All rows remain production- and betting-ineligible.
+- Safety contract tests [40423976833](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423976833) — SUCCESS on commit `5ae82c2b13138956b3bbdaa907229cc8dfdfbf56`.
+- Dry-run planner [40423939739](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423939739) — SUCCESS on commit `d06a2c0a491cad687c92656638767aab66d7b345`; latest commit-pinned QA workflow validation and dry-run [40423922632](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40423922632) also succeeded.
+- Several intermediate contract/dry-run runs failed while the new test assertions were being introduced (missing-status sentinel and absent zero-count Counter keys). The assertions and counter handling were corrected; the later pinned runs above passed. Do not cite intermediate failures as the final state.
+
+### Current release gates and provider budget
+
+- The QA confirms structural completeness, not official settlement truth. Do not use non-complete 0-0 pairs for training/evaluation. Exact canonical fixture/team joins, parent competition IDs, historical standings as-of-kickoff, point-in-time xG/odds provenance and Combo target/settlement reconciliation remain blocked.
+- Provider parent competition IDs verified: 0/50. Provider match-record `competition_id` is documented as a league season ID; it is not a parent competition ID. Provider-to-Oracle canonical bridges remain 0/50.
+- No FootyStats API calls were made in this run. Current monthly credits cannot be verified via the available tools, and there is no workflow-dispatch operation. The one-call schema diagnostic remains manual-only; confirm the current FootyStats account credit balance before manually dispatching it with `confirm_provider_credit_usage=true`. No credentials were exposed, no raw payloads were published, and no paid plan was changed.
+- Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain untouched. Production readiness remains `NOT_GRANTED`.
