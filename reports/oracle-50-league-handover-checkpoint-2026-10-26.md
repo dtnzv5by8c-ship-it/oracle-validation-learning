@@ -504,3 +504,10 @@ The provider match-record probe observed `competition_id` equal to the selected 
 - Runtime [40441885076](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885076) remains **IN_PROGRESS** at the build/backtest step. It was triggered by the earlier settlement-script push before the new path-ignore rule took effect; it must be checked later before any claim of completion.
 - Archive feature audits [40441885077](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885077) and [40441892742](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441892742) remain **IN_PROGRESS** at artifact upload and feature-matrix build respectively. They use the existing archive and make no FootyStats API requests.
 - No new provider call or production change occurred. These status updates do not change the release decision.
+
+
+### Status refresh — 2026-10-27 03:04 UTC
+
+- Archive feature audit [40441885077](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885077) subsequently completed **SUCCESS**. Artifact [12707110258](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885077#artifacts), 51,616,383 bytes, expires 2026-11-26 03:02:48 UTC. It was produced on utility-only commit `7120f61d1508ecf54449a699fa79d59fe08b3006` and is research-only.
+- Runtime [40441885076](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441885076) remained **IN_PROGRESS** at the runtime build/backtest step on the same utility-only commit. No final runtime conclusion or artifact was available at this refresh.
+- Older archive feature audit [40441892742](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40441892742) remained in progress on commit `925d6aeceed53b43253656ba6e62df1ff79eb165`; the newer successful audit supersedes it for the latest feature-audit output.
