@@ -271,3 +271,12 @@ Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds,
 - Production readiness: `NOT_GRANTED`; all unresolved rows remain quarantined and `production_eligible=false`.
 
 Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. No writes were made to `dtnzv5by8c-ship-it/oracle-football-data`.
+
+
+## Update — corrected workflow-trigger regression assertions (2026-10-27 10:01 SAST)
+
+- Follow-up inspection found seven regression assertions in `tests/test_footystats_selected50_bounded_probe_contract.py` used the literal backslash-plus-`n` sequence when checking for a YAML `push:` trigger, rather than an actual newline. Those assertions could pass without detecting a push trigger.
+- Commit `b72fccceb4ae6707c0ee2da6932b484ae181f4d0` fixes all seven checks to search for the actual newline followed by `push:`. The test file now contains eight correctly expressed newline-based trigger assertions in total, including the existing manual-only check.
+- This is a test-integrity correction: it does not alter provider requests, data, predictions, or production logic. It complements commit `e68abaca76903874291acd46c907f6a9624a694b`, which ensures per-league endpoint failures retain their selected-season context.
+- The current research branch head before this checkpoint-only update is `b72fccceb4ae6707c0ee2da6932b484ae181f4d0`.
+- CI verification is **not yet independently observable from the available connector**: the combined commit-status endpoint returned an empty status list, and the available workflow-run lookup only returns pull-request-triggered runs. Do not treat the code as test-passed until the push-triggered safety workflow result is confirmed in GitHub Actions. No provider requests were made.
