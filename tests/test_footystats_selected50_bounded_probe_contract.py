@@ -116,7 +116,12 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("research-selected50-footystats-history-20261025", qa)
         self.assertIn("sha256sum -c private-package.sha256", qa)
         self.assertIn("Upload sanitized QA only", qa)
+        self.assertIn("ref: ${{ github.sha }}", qa)
         self.assertNotIn("FOOTYSTATS_API_KEY", qa)
+
+        contracts = (ROOT / ".github" / "workflows" / "oracle-selected50-contract-tests.yml").read_text(encoding="utf-8")
+        self.assertIn("ref: ${{ github.sha }}", contracts)
+        self.assertNotIn("ref: research/oracle-50-league-readiness-audit", contracts)
 
     def test_private_transfer_uses_the_same_unique_run_tag(self):
         ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
