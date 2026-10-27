@@ -104,6 +104,15 @@ def main():
 
     assert len(schedule) == 50
     assert len(settlement) == 50
+    # The settlement audit must calculate, not hard-code, predictor/ledger
+    # disagreements. Only explicit finished integer-score rows are eligible.
+    home_disagreements = sum(int(r.get("combo_home_predictor_vs_ledger_disagreement_rows") or 0) for r in settlement)
+    away_disagreements = sum(int(r.get("combo_away_predictor_vs_ledger_disagreement_rows") or 0) for r in settlement)
+    assert feature_qa.get("combo_home_predictor_vs_ledger_disagreement_rows") == home_disagreements
+    assert feature_qa.get("combo_away_predictor_vs_ledger_disagreement_rows") == away_disagreements
+    assert home_disagreements > 0, "Expected observed home Combo target/settlement disagreements were not counted"
+    assert away_disagreements > 0, "Expected observed away Combo target/settlement disagreements were not counted"
+    assert all(r.get("settlement_truth_status") == "INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED" for r in settlement)
     assert len(calendar) == 250
     assert len(season_year) == 200
     assert len(governed) == int(feature_qa["governed_fixture_report_rows"])
