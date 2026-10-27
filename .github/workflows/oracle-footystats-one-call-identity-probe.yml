@@ -1,0 +1,60 @@
+name: Oracle FootyStats One-Call Identity Probe (Bootstrap)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm approval for exactly one FootyStats API request"
+        required: true
+        default: false
+        type: boolean
+      confirm_monthly_credit_budget_checked:
+        description: "Confirm monthly credits were checked and are sufficient for one request"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  one-call-identity-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout this workflow revision
+        uses: actions/checkout@v4
+      - name: Checkout the isolated research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+          path: research-source
+      - name: Enforce both explicit confirmations and run one request
+        shell: bash
+        working-directory: research-source
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
+        run: |
+          set -euo pipefail
+          if [ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" != "true" ]; then
+            echo "::error::Provider-credit approval required; no request made."
+            exit 1
+          fi
+          if [ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" != "true" ]; then
+            echo "::error::Monthly credit confirmation required; no request made."
+            exit 1
+          fi
+          if [ -z "${FOOTYSTATS_API_KEY:-}" ]; then
+            echo "::error::FOOTYSTATS_API_KEY repository secret is missing; no request made."
+            exit 1
+          fi
+          python scripts/oracle_selected50_one_season_identity_probe.py
+      - name: Upload sanitized summary only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-one-season-identity-probe
+          path: research-source/oracle-selected50-one-season-identity-probe/identity-probe-summary.json
+          if-no-files-found: error
+          retention-days: 7
