@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout research branch
+      - name: Checkout triggering commit
         uses: actions/checkout@v4
         with:
-          ref: research/oracle-50-league-readiness-audit
+          ref: ${{ github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
