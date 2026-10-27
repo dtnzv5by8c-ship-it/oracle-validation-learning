@@ -54,6 +54,29 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("gh release create", ingestion)
         self.assertNotIn("gh release download", ingestion)
 
+    def test_legacy_full_ingestion_and_catalogue_transfer_workflows_are_fail_closed(self):
+        paths = (
+            ".github/workflows/footystats-full-selected-league-historical-ingestion.yml",
+            ".github/workflows/footystats-full-universe-catalogue-transfer.yml",
+        )
+        for relative in paths:
+            workflow = (ROOT / relative).read_text(encoding="utf-8")
+            trigger = workflow.split("permissions:", 1)[0]
+            with self.subTest(workflow=relative):
+                self.assertIn("workflow_dispatch:", trigger)
+                self.assertNotIn("\\n  push:", trigger)
+                self.assertIn("Disabled", workflow)
+                self.assertIn("exit 1", workflow)
+                self.assertIn("contents: read", workflow)
+                self.assertNotIn("contents: write", workflow)
+                self.assertNotIn("secrets.FOOTYSTATS_API_KEY", workflow)
+                self.assertNotIn("secrets.ORACLE_PRIVATE_REPO_TOKEN", workflow)
+                self.assertNotIn("api.football-data-api.com", workflow)
+                self.assertNotIn("gh release create", workflow)
+                self.assertNotIn("gh release upload", workflow)
+                self.assertNotIn("oracle-football-data", workflow)
+
+
     def test_research_runtime_uses_verified_archive_and_guarded_triggers(self):
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
         trigger = runtime.split("permissions:", 1)[0]
