@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout governed research branch
+      - name: Checkout triggering commit
         uses: actions/checkout@v4
         with:
-          ref: research/oracle-50-league-readiness-audit
+          ref: ${{ github.sha }}
 
       - name: Guard private archive access
         shell: bash
