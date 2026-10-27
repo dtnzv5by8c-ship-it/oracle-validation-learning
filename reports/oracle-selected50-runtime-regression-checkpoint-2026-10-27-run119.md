@@ -81,9 +81,23 @@ The 25 blocked fixtures remain blocked because required feature history is insuf
 - Production eligibility: `NOT_GRANTED`.
 - Betting eligibility: `NOT_GRANTED`.
 
-## Ancillary workflow note
+## Ancillary workflow note — updated after Run #119
 
-H2H Exact-ID Join Tests Run #34 failed on the temporary PR branch at test import because that workflow did not install `scikit-learn` (`ModuleNotFoundError`). No H2H files were changed in PR #29; the Selected-50 runtime and its own dependency-install/test/build/validation steps passed. This is an independent workflow-environment issue and was not modified as part of this task.
+H2H Exact-ID Join Tests Run #34 failed before test execution because the workflow omitted `scikit-learn`, while `unittest discover -s tests` imports Selected-50 runtime tests. The error was verified in job logs: `ModuleNotFoundError: No module named 'sklearn'`.
+
+**Fix completed and validated:** PR [#30](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/30) added the same `numpy scikit-learn` installation used by the Selected-50 runtime workflow. The PR was merged into the research branch only as commit `99017b1ff38b1d32079fe633bc6cc1bc8a402968`. H2H Exact-ID Join Tests [Run #35](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593513957) passed: compile step succeeded and **196 tests passed**, including the three Combo settlement-gate tests, five Combo target-contract tests, and four feature/training support tests. No production repository or Oracle model logic was changed.
+
+## Artifact reinspection
+
+Run #119 artifact [12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010) was downloaded and inspected. The local SHA-256 matched GitHub's digest: `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`.
+
+- Prediction report: 459 rows, 459 unique fixture IDs; 434 rows have research-market outputs and 25 are blocked for missing required features.
+- Governed fixture report: 459 rows; all rows remain production-ineligible; both Combo probability columns are blank for all rows.
+- Runtime validation: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; unavailable market models: 0; production and betting eligibility: false.
+- Settlement QA: all 50 selected groups label the results `INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED`; non-final status/score combinations remain separated from completed-score rows. The settlement helper rejects unsupported non-final statuses rather than treating placeholder 0-0 scores as settled outcomes.
+- Combo predictor target remains Double Chance AND 2–4 total goals, while the settlement helper uses Double Chance AND fewer than five total goals. The disagreement remains explicit and Combo remains masked.
+
+The latest full runtime is still Run #119 because the subsequent research-branch changes were documentation and a test-workflow dependency correction only. A new full runtime dispatch was not necessary.
 
 ## Next safe actions
 
