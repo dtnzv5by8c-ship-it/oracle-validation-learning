@@ -236,3 +236,38 @@ The latest previously verified batch-6 private-archive QA remains [run 404490900
 
 Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. All unresolved rows remain quarantined and production-ineligible. No production workflow was run, and no write was made to `dtnzv5by8c-ship-it/oracle-football-data`.
 
+
+
+## Update — bounded probe failure-context preservation (2026-10-27 10:00 SAST)
+
+### Live branch inspection
+- Verified branch: `research/oracle-50-league-readiness-audit`.
+- Pre-checkpoint code head: `071b0f7bb8719652e53eed98eb0055f2491eaa62`; GitHub compare confirms this is the current branch head at the time of this checkpoint.
+- Protected production repository and production workflows were not accessed for writes or execution.
+
+### Research-only defect fixed
+- Commit `e68abaca76903874291acd46c907f6a9624a694b` updates `.github/workflows/footystats-selected50-bounded-endpoint-probe.yml`.
+- Previously, the per-league row was appended only after endpoint calls succeeded. If an endpoint returned an HTTP/network error, the sanitized endpoint-results file could record the failing endpoint while the league matrix omitted the selected season ID and its per-league context. That weakens exception triage and can leave an incomplete evidence artifact.
+- The workflow now appends each selected-season row before attempting its first endpoint call, keeps a stable CSV schema, records the last endpoint attempted, checkpoints before the request, and records `FAILED_OR_STOPPED` in that league's endpoint status if the request aborts. It retains the no-retry and 201-request hard cap. No provider call was made to test this path.
+- Commit `071b0f7bb8719652e53eed98eb0055f2491eaa62` adds a regression contract checking that the row is persisted before the request, the failure context is retained, and duplicate row replacement is absent.
+
+### Verification state
+- Latest code commit: `071b0f7bb8719652e53eed98eb0055f2491eaa62`.
+- The connected GitHub status endpoint returned no commit statuses, and the available workflow-run lookup returned no runs for this commit (it only exposes pull-request-triggered runs). Therefore **no completed CI run ID is available to claim for this change**. The safety workflow is configured to run on pushes to this branch when non-Markdown files change, but its final result must be checked in GitHub Actions.
+- The current checkpoint is documentation-only and does not alter model/runtime behavior.
+
+### FootyStats access and hard blocker
+- No FootyStats API calls were made in this run.
+- The reviewed schema diagnostic remains manual-dispatch-only, capped at one read-only `league-list` request, and requires both `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true`. The 201-request probe also requires both confirmations and stops if the provider's request-window metadata cannot support the planned pass.
+- Available GitHub tools do not expose workflow dispatch, current secret values, or the provider's monthly credit balance. The last observed request-window value of 1,743 is historical and is not monthly-credit evidence. Credential presence and monthly credits are therefore not verified.
+- Safe next step remains: check the current monthly credit balance in the FootyStats account, then manually dispatch the one-call **Oracle Selected-50 Provider ID Schema Diagnostic** with both confirmations true. Do not paste credentials into chat or use the 201-request probe without confirming sufficient balance for its full cap. No plan upgrade or purchase was made.
+
+### Release gates
+- Provider parent competition IDs: 0/50 verified.
+- Provider-to-Oracle canonical league bridges: 0/50 verified.
+- Canonical fixture/team joins and official settlement truth: unverified.
+- Historical standings and point-in-time xG/odds provenance: unverified.
+- Combo target/settlement reconciliation: blocked.
+- Production readiness: `NOT_GRANTED`; all unresolved rows remain quarantined and `production_eligible=false`.
+
+Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. No writes were made to `dtnzv5by8c-ship-it/oracle-football-data`.
