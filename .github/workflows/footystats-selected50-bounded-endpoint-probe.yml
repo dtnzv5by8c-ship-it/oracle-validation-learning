@@ -1,0 +1,293 @@
+name: FootyStats Selected-50 Bounded Endpoint Coverage Probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm this run may consume up to 201 FootyStats API requests"
+        required: true
+        default: false
+        type: boolean
+      confirm_monthly_credit_budget_checked:
+        description: "Confirm the current monthly FootyStats credit balance was checked and is sufficient for up to 201 calls; request_remaining is not monthly-credit evidence"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  selected50-endpoint-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe exact selected season IDs (max 201 requests; no retries)
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, re, time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+
+          if os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() != "true":
+              raise SystemExit("STOP: Explicit provider-credit confirmation is required; zero requests made.")
+          if os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() != "true":
+              raise SystemExit("STOP: Current monthly FootyStats credit balance has not been explicitly confirmed; zero requests made.")
+          KEY = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
+          if not KEY:
+              raise SystemExit("STOP: FOOTYSTATS_API_KEY secret is missing; zero requests made.")
+          BASE = "https://api.football-data-api.com/"
+          MAX_CALLS = 201
+          calls = 0
+          endpoint_results = []
+          remaining = None
+
+          def api(endpoint, params):
+              global calls, remaining
+              if calls >= MAX_CALLS:
+                  raise SystemExit("STOP: 201-request hard cap reached.")
+              q = dict(params)
+              q["key"] = KEY
+              req = Request(BASE + endpoint + "?" + urlencode(q),
+                            headers={"User-Agent": "Oracle-Selected50-Bounded-Endpoint-Probe/1.0"})
+              calls += 1
+              try:
+                  with urlopen(req, timeout=30) as response:
+                      payload = json.loads(response.read().decode("utf-8"))
+                      status = response.status
+              except HTTPError as exc:
+                  endpoint_results.append({"endpoint": endpoint, "http_status": exc.code,
+                    "success": False, "data_shape": "withheld", "data_count": None,
+                    "remaining_after_response": None})
+                  save_checkpoint()
+                  raise SystemExit(f"STOP: HTTP {exc.code} at {endpoint}; no retries or further calls.")
+              except Exception as exc:
+                  endpoint_results.append({"endpoint": endpoint, "http_status": None,
+                    "success": False, "data_shape": "withheld", "data_count": None,
+                    "remaining_after_response": None})
+                  save_checkpoint()
+                  raise SystemExit(f"STOP: {endpoint} failed ({type(exc).__name__}); no retries or further calls.")
+              ok = isinstance(payload, dict) and payload.get("success") is True
+              metadata = payload.get("metadata") if isinstance(payload, dict) else None
+              if not isinstance(metadata, dict) and isinstance(payload, dict):
+                  data_obj = payload.get("data")
+                  metadata = data_obj.get("metadata") if isinstance(data_obj, dict) else None
+              raw_remaining = metadata.get("request_remaining") if isinstance(metadata, dict) else None
+              try:
+                  remaining = int(raw_remaining) if raw_remaining is not None else None
+              except (TypeError, ValueError):
+                  remaining = None
+              data = payload.get("data") if isinstance(payload, dict) else None
+              shape = "list" if isinstance(data, list) else "dict" if isinstance(data, dict) else type(data).__name__
+              count = len(data) if isinstance(data, list) else None
+              endpoint_results.append({"endpoint": endpoint, "http_status": status,
+                "success": bool(ok), "data_shape": shape, "data_count": count,
+                "remaining_after_response": remaining})
+              save_checkpoint()
+              if not ok:
+                  raise SystemExit(f"STOP: {endpoint} did not return success=true; no retries.")
+              return payload
+
+          root = Path("selected50-probe")
+          root.mkdir(exist_ok=True)
+          selected_rows = []
+          per_league = []
+          summary = {}
+
+          def save_checkpoint():
+              summary.setdefault("status", "IN_PROGRESS_OR_STOPPED_FAIL_CLOSED")
+              summary.update({
+                "hard_request_cap": MAX_CALLS,
+                "operator_confirmed_provider_credit_usage": os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() == "true",
+                "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+                "monthly_credit_budget_verified_by_provider": False,
+                "actual_http_requests_started": calls,
+                "request_budget_remaining_last_observed": remaining,
+                "raw_provider_payloads_saved": False,
+                "api_key_logged_or_saved": False,
+                "private_repo_transfer_attempted": False,
+                "production_logic_or_probabilities_changed": False,
+                "production_eligibility": "NOT_GRANTED"
+              })
+              (root / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+              with (root / "endpoint_results.csv").open("w", newline="", encoding="utf-8") as f:
+                fields = ["endpoint", "http_status", "success", "data_shape", "data_count", "remaining_after_response"]
+                w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(endpoint_results)
+              if per_league:
+                with (root / "league_endpoint_matrix.csv").open("w", newline="", encoding="utf-8") as f:
+                  fields = list(per_league[0].keys())
+                  w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(per_league)
+
+          # Request 1: current selected catalogue. Require budget metadata before proceeding.
+          catalogue_payload = api("league-list", {"chosen_leagues_only": "true"})
+          if remaining is None:
+              raise SystemExit("STOP: no readable request_remaining metadata; no further requests.")
+          if remaining < 200:
+              raise SystemExit(f"STOP: {remaining} requests remain, fewer than the 200 additional calls required for a full pass.")
+          catalogue = catalogue_payload.get("data")
+          if not isinstance(catalogue, list):
+              raise SystemExit("STOP: catalogue response data is not a list.")
+          seasons_by_id = {}
+          for league in catalogue:
+              if not isinstance(league, dict) or not isinstance(league.get("season"), list):
+                  continue
+              name = str(league.get("name", "")).strip()
+              for season in league["season"]:
+                  if isinstance(season, dict) and season.get("id") not in (None, ""):
+                      sid = str(season["id"]).strip()
+                      if sid in seasons_by_id:
+                          # Preserve ambiguity instead of arbitrarily selecting one league.
+                          seasons_by_id[sid] = None
+                      else:
+                          seasons_by_id[sid] = {"provider_league_name": name, "season": season}
+
+          crosswalk_path = Path("reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv")
+          with crosswalk_path.open(encoding="utf-8-sig", newline="") as f:
+              selected_rows = list(csv.DictReader(f))
+          if len(selected_rows) != 50:
+              raise SystemExit(f"STOP: expected exactly 50 crosswalk rows; found {len(selected_rows)}.")
+          ids = [str(r.get("footystats_provider_id") or "").strip() for r in selected_rows]
+          if any(not x for x in ids) or len(set(ids)) != 50:
+              raise SystemExit("STOP: selected season IDs are blank or non-unique; no identity guessing.")
+          if calls + 4 * sum(sid in seasons_by_id and seasons_by_id[sid] is not None for sid in ids) > MAX_CALLS:
+              raise SystemExit("STOP: estimated endpoint calls exceed the hard cap.")
+
+          for idx, row in enumerate(selected_rows):
+              sid = str(row["footystats_provider_id"]).strip()
+              found = seasons_by_id.get(sid)
+              base_row = {
+                "selected_season_id": sid,
+                "country_from_existing_crosswalk": str(row.get("country") or ""),
+                "competition_from_existing_crosswalk": str(row.get("provider_competition_name") or ""),
+                "canonical_code_candidate": str(row.get("canonical_code_candidate") or ""),
+                "crosswalk_status_preserved": str(row.get("crosswalk_status") or ""),
+                "exact_season_id_found_in_live_catalogue": "YES" if found else "NO",
+                "live_catalogue_name": found["provider_league_name"] if found else "",
+                "season_year": str(found["season"].get("year", "")) if found else "",
+                "endpoint_calls_attempted": 0,
+                "last_endpoint_attempted": "",
+                "matches_status": "NOT_TESTED",
+                "teams_status": "NOT_TESTED",
+                "tables_status": "NOT_TESTED",
+                "season_stats_status": "NOT_TESTED",
+                "matches_sample_rows": "",
+                "matches_sample_field_names": "",
+                "team_count": "",
+                "tables_data_shape": "",
+                "season_stats_data_shape": "",
+                "request_budget_remaining_after_last_call": "",
+                "identity_note": ""
+              }
+              # Persist the league row before any endpoint request so a failed
+              # request still leaves a traceable selected-season exception.
+              per_league.append(base_row)
+              if not found:
+                  base_row["identity_note"] = "No exact selected season ID match in live catalogue; no substitute ID attempted."
+                  save_checkpoint()
+                  continue
+              if remaining is None or remaining < 4:
+                  base_row["identity_note"] = "Stopped before endpoint calls because request budget metadata was insufficient or unavailable."
+                  save_checkpoint()
+                  raise SystemExit("STOP: insufficient observed request budget before next league.")
+              checks = [
+                ("league-matches", "matches_status", {"season_id": sid, "max_per_page": 1, "page": 1}),
+                ("league-teams", "teams_status", {"season_id": sid, "include": "stats"}),
+                ("league-tables", "tables_status", {"season_id": sid}),
+                ("league-season", "season_stats_status", {"season_id": sid})
+              ]
+              for j, (endpoint, field, params) in enumerate(checks):
+                  needed_after = len(checks) - j - 1
+                  if remaining is None or remaining < needed_after + 1:
+                      base_row["identity_note"] = "Stopped before next endpoint: provider request budget below remaining planned calls."
+                      save_checkpoint()
+                      raise SystemExit("STOP: observed request budget insufficient for remaining endpoints.")
+                  base_row["last_endpoint_attempted"] = endpoint
+                  base_row[field] = "REQUEST_STARTED"
+                  base_row["endpoint_calls_attempted"] += 1
+                  save_checkpoint()
+                  try:
+                      payload = api(endpoint, params)
+                  except SystemExit:
+                      # api() has checkpointed the sanitized endpoint outcome.
+                      # Keep the matching selected-season row in the artifact.
+                      base_row[field] = "FAILED_OR_STOPPED"
+                      base_row["identity_note"] = f"Stopped at {endpoint}; inspect sanitized endpoint_results.csv for the request outcome."
+                      save_checkpoint()
+                      raise
+                  data = payload.get("data")
+                  ok = payload.get("success") is True
+                  base_row[field] = "SUCCESS" if ok else "FAILED"
+                  base_row["request_budget_remaining_after_last_call"] = remaining if remaining is not None else ""
+                  if endpoint == "league-matches":
+                      base_row["matches_sample_rows"] = len(data) if isinstance(data, list) else ""
+                      sample = data[0] if isinstance(data, list) and data and isinstance(data[0], dict) else {}
+                      base_row["matches_sample_field_names"] = ";".join(sorted(sample.keys()))
+                  elif endpoint == "league-teams":
+                      base_row["team_count"] = len(data) if isinstance(data, list) else ""
+                  elif endpoint == "league-tables":
+                      base_row["tables_data_shape"] = "dict" if isinstance(data, dict) else "list" if isinstance(data, list) else type(data).__name__
+                  elif endpoint == "league-season":
+                      base_row["season_stats_data_shape"] = "dict" if isinstance(data, dict) else "list" if isinstance(data, list) else type(data).__name__
+                  save_checkpoint()
+                  if not ok:
+                      base_row["identity_note"] = "Provider returned success=false; halted with no retries."
+                      save_checkpoint()
+                      raise SystemExit(f"STOP: provider success=false for {endpoint}; no retries.")
+                  time.sleep(0.35)
+              base_row["identity_note"] = "Endpoint/schema probe only; no canonical identity approval or data completeness claim."
+              save_checkpoint()
+
+          summary.update({
+            "status": "SELECTED50_BOUNDED_ENDPOINT_PROBE_COMPLETED_RESEARCH_ONLY",
+            "selected_crosswalk_rows": 50,
+            "exact_selected_season_ids_found_in_live_catalogue": sum(r["exact_season_id_found_in_live_catalogue"] == "YES" for r in per_league),
+            "unique_live_catalogue_league_names": len({r["live_catalogue_name"] for r in per_league if r.get("live_catalogue_name")}),
+            "leagues_with_all_four_endpoint_successes": sum(all(r.get(k) == "SUCCESS" for k in ("matches_status","teams_status","tables_status","season_stats_status")) for r in per_league),
+            "leagues_with_endpoint_failures_or_not_tested": sum(not all(r.get(k) == "SUCCESS" for k in ("matches_status","teams_status","tables_status","season_stats_status")) for r in per_league),
+            "operator_confirmed_provider_credit_usage": os.environ.get("CONFIRM_PROVIDER_CREDIT_USAGE", "false").lower() == "true",
+            "operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true",
+            "monthly_credit_budget_verified_by_provider": False,
+            "actual_http_requests_started": calls,
+            "request_budget_remaining_last_observed": remaining,
+            "raw_provider_payloads_saved": False,
+            "api_key_logged_or_saved": False,
+            "private_repo_transfer_attempted": False,
+            "production_logic_or_probabilities_changed": False,
+            "production_eligibility": "NOT_GRANTED",
+            "limitations": [
+              "Only one match row is requested per season for schema inspection; not full-season ingestion.",
+              "Provider season IDs are matched exactly; no fuzzy or substitute mapping is performed.",
+              "Successful endpoint responses do not establish historical completeness, point-in-time validity, official settlement truth, or canonical team joins.",
+              "Provider request_remaining is a request-window indicator, not a guarantee of separate subscription billing/credit balance.",
+              "Monthly credit budget is not verified by provider metadata; the pre-dispatch monthly-budget confirmation is an operator attestation only."
+            ]
+          })
+          save_checkpoint()
+          print(json.dumps({"status": summary["status"], "actual_http_requests_started": calls,
+            "selected_crosswalk_rows": 50,
+            "exact_selected_season_ids_found_in_live_catalogue": summary["exact_selected_season_ids_found_in_live_catalogue"],
+            "leagues_with_all_four_endpoint_successes": summary["leagues_with_all_four_endpoint_successes"],
+            "leagues_with_endpoint_failures_or_not_tested": summary["leagues_with_endpoint_failures_or_not_tested"],
+            "request_budget_remaining_last_observed": remaining,
+            "raw_provider_payloads_saved": False,
+            "production_eligibility": "NOT_GRANTED"}))
+          PY
+      - name: Upload sanitized probe outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-selected50-bounded-endpoint-probe
+          path: selected50-probe/
+          if-no-files-found: warn
+          retention-days: 7
