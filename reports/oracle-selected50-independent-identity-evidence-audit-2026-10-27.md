@@ -62,3 +62,8 @@ No canonical code is assigned to these rows. The CSV's `R50_...` values are expl
 ## Next evidence gate
 
 Obtain a written provider answer to the exact schema/identity questions in the clarification draft. Ask for the field semantics or a documented stable cross-season identifier; do not request another API call. If the provider confirms no parent identifier is exposed, any alternative identity contract must be separately reviewed and approved while preserving each selected value as a season ID.
+
+
+## Direct artifact inspection (2026-10-27)
+
+Artifact `12760832880` was downloaded read-only and inspected. The ZIP contains only `identity-probe-summary.json` (766 bytes); no raw provider payload or API key is present. The downloaded ZIP SHA-256 was recomputed as `54b25732953cae74b59963613e4c2948c643612dc86dafa11b038a58ffdb7015`, matching the GitHub artifact metadata and the existing report. The summary confirms one attempted `league-season` request, HTTP 200, provider success, one returned record and selected ID `16571` with the same `data.id`, Argentina, Primera División and season 2026. Its own interpretation explicitly says identifier semantics remain unverified. No request was repeated.
