@@ -303,3 +303,35 @@ Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds,
 - Canonical fixture/team joins, official settlement truth, historical standings, and point-in-time xG/odds provenance remain unverified; Combo target/settlement reconciliation remains blocked.
 - All unresolved rows remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
 - Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries, and ledgers remain unchanged. No production workflow was run, and no writes were made to `dtnzv5by8c-ship-it/oracle-football-data`.
+
+
+## Update — protected-repository write paths disabled (2026-10-27 12:00 SAST)
+
+### Live state inspected before edits
+- Research branch: `research/oracle-50-league-readiness-audit`.
+- Pre-checkpoint code head: `c9cb1912d873321d656b929a6601c5ad7b31f5f0`.
+- Repository workflow inventory was read from the live branch. Two additional manual workflows still downloaded the private historical archive and uploaded new releases to the protected repository. Those paths contradicted the standing instruction not to write to `dtnzv5by8c-ship-it/oracle-football-data`.
+
+### Research-only safety changes
+- Commit `86b10ffe3ff23cc4531a2d7036269bbcf686a1de` replaced `.github/workflows/audit-private-footystats-history-h2h.yml` with a manual-only fail-closed stub. It no longer downloads the private archive, reads the private token, or publishes a report release.
+- Commit `ce5a58d10cb122cb39f21221a24699d437e92a5b` replaced `.github/workflows/build-oracle-league-acquisition-tracker.yml` with a manual-only fail-closed stub. It no longer downloads the private archive, reads the private token, or uploads a tracker release.
+- Commit `c9cb1912d873321d656b929a6601c5ad7b31f5f0` extends `tests/test_footystats_ingestion_workflow_contract.py` to enforce that both workflows remain manual-only, read-only-permission stubs with no provider/private credentials, archive downloads, release creation, or remote writes.
+
+### Verification — all successful on the latest code commit
+- Safety Contract Tests: [run 40485144025](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144025) — SUCCESS on `c9cb1912d873321d656b929a6601c5ad7b31f5f0`.
+- Data Gate Contract: [run 40485144035](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144035) — SUCCESS on the same commit.
+- Dry-Run Planner: [run 40485144062](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144062) — SUCCESS on the same commit. It performed network-free planning and market/evidence gate checks.
+- The current checkpoint-only commit follows these successful code checks; no model runtime rerun was warranted because the changes are workflow guards and tests only.
+
+### FootyStats API and budget
+- No FootyStats requests were made. The GitHub tool inventory has no workflow-dispatch action and does not support reading secret values; the current `FOOTYSTATS_API_KEY` presence therefore cannot be independently verified here.
+- Current monthly provider credits are unavailable. The previously observed request-window balance of 1,743 is historical and is not monthly-credit evidence.
+- The one-call `Oracle Selected-50 Provider ID Schema Diagnostic` remains the smallest approved path: manual dispatch, both `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true`, hard cap one read-only catalogue request, sanitized output only.
+- Exact next safe action is to check the current monthly credit balance in the FootyStats account, then manually dispatch that one-call diagnostic with both confirmations true. Do not run the 201-request probe unless the balance is checked and sufficient for its full cap. Do not paste credentials into chat or purchase/upgrade a plan.
+
+### Research evidence and release gates
+- The latest previously verified batch-6 private-archive QA remains [run 40449090053](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449090053), artifact [12709820391](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449090053/artifacts/12709820391).
+- The matching research runtime remains [run 40449082433](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449082433), artifact [12709715992](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40449082433/artifacts/12709715992). These passed against the same batch-6 archive fingerprint but predate the workflow-only changes.
+- Parent competition IDs and provider-to-Oracle canonical bridges remain verified for 0/50 leagues. Canonical fixture/team joins, official settlement truth, historical standings, point-in-time xG/odds provenance, and Combo target/settlement reconciliation remain unresolved.
+- All unresolved outputs remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
+- Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. No production workflow was run and no write was made to the protected repository.
