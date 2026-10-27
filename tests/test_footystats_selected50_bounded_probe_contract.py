@@ -35,6 +35,23 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn('summary.setdefault("status", "IN_PROGRESS_OR_STOPPED_FAIL_CLOSED")', self.text)
         self.assertIn('"status": "SELECTED50_BOUNDED_ENDPOINT_PROBE_COMPLETED_RESEARCH_ONLY"', self.text)
 
+    def test_per_league_failure_context_is_checkpointed_before_network_call(self):
+        # A provider error must leave both the endpoint result and the selected
+        # season row in the sanitized artifact; CSV columns must stay stable.
+        self.assertEqual(self.text.count("per_league.append(base_row)"), 1)
+        self.assertIn('"last_endpoint_attempted": ""', self.text)
+        self.assertIn('"matches_sample_field_names": ""', self.text)
+        self.assertIn('"identity_note": ""', self.text)
+        row_append = self.text.index("per_league.append(base_row)")
+        endpoint_call = self.text.index("payload = api(endpoint, params)")
+        attempt_marker = self.text.index('base_row["last_endpoint_attempted"] = endpoint')
+        self.assertLess(row_append, attempt_marker)
+        self.assertLess(attempt_marker, endpoint_call)
+        self.assertNotEqual(self.text.rfind("save_checkpoint()", attempt_marker, endpoint_call), -1)
+        self.assertIn("except SystemExit:", self.text)
+        self.assertIn('base_row[field] = "FAILED_OR_STOPPED"', self.text)
+        self.assertNotIn("per_league[-1:] = [base_row]", self.text)
+
     def test_no_private_transfer_or_raw_payload_persistence(self):
         self.assertIn('"raw_provider_payloads_saved": False', self.text)
         self.assertIn('"private_repo_transfer_attempted": False', self.text)
