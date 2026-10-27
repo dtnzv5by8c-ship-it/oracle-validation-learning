@@ -1,11 +1,24 @@
 #!/usr/bin/env python3
 """Research-only score-to-market settlement rules. Unknown market semantics fail closed."""
-import argparse, json
+import argparse, json, math
 from pathlib import Path
 
 RULE_VERSION = "oracle-score-settlement-v1"
 REQUIRED = ("fixture_id", "competition_id", "scheduled_kickoff_utc", "home_team_id",
             "away_team_id", "home_score", "away_score", "match_status", "result_source")
+
+def parse_final_score(value):
+    """Accept only finite, non-negative integer-valued final scores."""
+    if isinstance(value, bool):
+        raise ValueError("INVALID_FINAL_SCORE")
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("INVALID_FINAL_SCORE")
+    if not math.isfinite(number) or number < 0 or not number.is_integer():
+        raise ValueError("INVALID_FINAL_SCORE")
+    return int(number)
+
 
 def settle(prediction, result):
     missing = [k for k in REQUIRED if result.get(k) in (None, "")]
@@ -22,12 +35,8 @@ def settle(prediction, result):
                 "settlement_rule_version":RULE_VERSION,"reason":"NON_FINAL_MATCH_STATUS"}
     if status not in {"FINISHED", "FT", "FULL_TIME"}:
         raise ValueError("UNSUPPORTED_MATCH_STATUS")
-    try:
-        h, a = int(result["home_score"]), int(result["away_score"])
-    except (TypeError, ValueError):
-        raise ValueError("INVALID_FINAL_SCORE")
-    if h < 0 or a < 0:
-        raise ValueError("INVALID_FINAL_SCORE")
+    h = parse_final_score(result["home_score"])
+    a = parse_final_score(result["away_score"])
     market = str(prediction.get("market","")).strip().upper().replace(" ","_")
     selection = str(prediction.get("selection","")).strip().upper().replace(" ","_")
     outcome = None
