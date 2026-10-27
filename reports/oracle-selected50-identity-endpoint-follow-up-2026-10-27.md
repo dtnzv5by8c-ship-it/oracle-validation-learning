@@ -30,3 +30,16 @@ Before any user-key API call:
 - No provider parent ID is inferred or approved.
 - No production registry, Oracle V1.6 model logic, probabilities, thresholds, calibration, or governance was changed.
 - Production and betting eligibility remain `NOT_GRANTED`.
+
+
+## Update — one-call probe completed (2026-10-27)
+
+The explicitly approved one-call probe has now completed successfully. See [sanitized probe result](oracle-footystats-one-call-identity-probe-result-2026-10-27.md).
+
+- Run: [40562430790](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790)
+- Artifact: [12760832880](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12760832880)
+- One request, HTTP 200, provider success true, no retry.
+- Requested season ID `16571` returned `data.id=16571`, name `Primera División`, country `Argentina`, season/start/end year `2026`.
+- The sample is consistent with a season-scoped record. It does not verify a parent competition ID or establish mappings for the other 49 selected IDs.
+- Parent competition IDs verified remains **0/50**; approved provider-to-canonical bridges remains **0**.
+- No further provider requests are authorized by this result. Do not run a 50-ID probe without separate explicit approval and verified credit budget.
