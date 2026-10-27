@@ -335,3 +335,29 @@ Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds,
 - Parent competition IDs and provider-to-Oracle canonical bridges remain verified for 0/50 leagues. Canonical fixture/team joins, official settlement truth, historical standings, point-in-time xG/odds provenance, and Combo target/settlement reconciliation remain unresolved.
 - All unresolved outputs remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
 - Oracle V1.6 and V1.6.3 production logic, probabilities, calibration, thresholds, registries and ledgers remain unchanged. No production workflow was run and no write was made to the protected repository.
+
+
+## Update — live branch and provider execution capability rechecked (2026-10-27 12:58 SAST)
+
+### Live GitHub state
+- Compared the branch ref against commit `0cc4f91421315407143a2c9dbf2fae2d6fb881e6`; GitHub reports `identical` with zero commits ahead or behind. This is the verified branch head before this checkpoint-only update.
+- Latest code-and-test commit remains `c9cb1912d873321d656b929a6601c5ad7b31f5f0`; `0cc4f91421315407143a2c9dbf2fae2d6fb881e6` is documentation-only.
+- Inspected the live one-call schema diagnostic and 201-call bounded endpoint probe. Both are manual-dispatch-only, require both provider-credit and monthly-budget confirmations (default false), and keep monthly credit verification explicitly false. The probe has no retries and a hard cap of 201 requests.
+
+### Re-verified automated checks
+- Safety Contract Tests [run 40485144025](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144025): job `contract-tests` completed SUCCESS; offline safety and score-settlement test steps both completed SUCCESS.
+- Data Gate Contract [run 40485144035](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144035): job `data-gate-contract` completed SUCCESS; Selected-50 compatibility, runtime migration, data-gate matrix, runtime 27-reference classification, and ingestion workflow safety/syntax test steps all completed.
+- Dry-Run Planner [run 40485144062](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40485144062): job `plan` completed SUCCESS; network-free plan, market gates, identifier separation, Combo settlement governance, archive evidence reconciliation, identity quarantine, readiness matrix, walk-forward integrity, season-year normalization, and bounded-probe governance steps all completed.
+- Combined commit-status endpoints returned empty status lists for the code commit and checkpoint commit; the above run/job records are the actual verification evidence. These successful checks predate this checkpoint-only update and ran on code commit `c9cb1912d873321d656b929a6601c5ad7b31f5f0`.
+
+### FootyStats execution blocker
+- No FootyStats API request was made during this check.
+- The connected GitHub tool inventory exposes repository/file reads and writes and workflow-run/job inspection, but no workflow-dispatch action. Secret values are not exposed; current `FOOTYSTATS_API_KEY` presence cannot be verified. The current monthly FootyStats credit balance is also unavailable.
+- The previously observed request-window remaining value of 1,743 is historical and is not monthly-credit evidence.
+- Exact safe next action: check the live monthly credit balance in the FootyStats account, then manually dispatch **Oracle Selected-50 Provider ID Schema Diagnostic** with `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true`. This is capped at one read-only catalogue request. Do not use the 201-request probe until the balance is checked and sufficient for its full cap. Do not paste credentials into chat or purchase/upgrade a plan.
+
+### Release gates unchanged
+- Provider parent competition IDs verified: 0/50; provider-to-Oracle canonical league bridges verified: 0/50.
+- Canonical fixture/team joins, official settlement truth, historical standings, and point-in-time xG/odds provenance remain unverified; Combo target/settlement reconciliation remains blocked.
+- All unresolved rows remain quarantined and `production_eligible=false`; production readiness remains `NOT_GRANTED`.
+- No model, probability, calibration, threshold, production registry, or ledger change was made. No production workflow was run, and no write was made to `dtnzv5by8c-ship-it/oracle-football-data`.
