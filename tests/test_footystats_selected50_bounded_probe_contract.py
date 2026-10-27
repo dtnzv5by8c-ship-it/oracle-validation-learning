@@ -30,21 +30,18 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.text)
 
 
-    def test_historical_ingestion_has_a_hard_request_cap_and_budget_preflight(self):
+    def test_legacy_historical_ingestion_is_disabled_and_fail_closed(self):
         ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
-        self.assertIn("MAX_API_REQUESTS = 250", ingestion)
-        self.assertIn("if api_calls >= MAX_API_REQUESTS", ingestion)
-        self.assertIn("request_hard_cap_reached", ingestion)
-        self.assertIn("request_remaining < MAX_API_REQUESTS", ingestion)
-        self.assertIn("provider_request_window_is_not_monthly_credit_proof", ingestion)
-
-    def test_historical_ingestion_uses_unique_private_archive_tag_and_keeps_production_blocked(self):
-        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
-        self.assertIn('TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"', ingestion)
-        self.assertIn('"production_readiness": "NOT_GRANTED"', ingestion)
-        self.assertIn("Transfer raw archive to private Oracle release only", ingestion)
-        self.assertIn("Upload sanitized ledger only to public research run", ingestion)
-
+        trigger = ingestion.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("DISABLED", ingestion)
+        self.assertIn("exit 1", ingestion)
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", ingestion)
+        self.assertNotIn("secrets.ORACLE_PRIVATE_REPO_TOKEN", ingestion)
+        self.assertNotIn("api.football-data-api.com", ingestion)
+        self.assertNotIn("gh release create", ingestion)
+        self.assertNotIn("gh release download", ingestion)
 
     def test_research_runtime_uses_verified_archive_and_guarded_triggers(self):
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
@@ -123,20 +120,14 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn("ref: ${{ github.sha }}", contracts)
         self.assertNotIn("ref: research/oracle-50-league-readiness-audit", contracts)
 
-    def test_private_transfer_uses_the_same_unique_run_tag(self):
+    def test_legacy_ingestion_has_no_resume_or_private_transfer_path(self):
         ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
-        self.assertIn('TAG="research-selected50-footystats-history-${GITHUB_RUN_ID}"', ingestion)
-        self.assertNotIn("TAG=research-selected50-footystats-history-20261025", ingestion)
-
-
-    def test_ingestion_supports_explicit_resume_and_skips_completed_seasons(self):
-        ingestion = (ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml").read_text(encoding="utf-8")
-        self.assertIn("resume_from_archive_tag:", ingestion)
-        self.assertIn('gh release download "${RESUME_FROM_ARCHIVE_TAG}"', ingestion)
-        self.assertIn('existing.get("status") == "INGESTED"', ingestion)
-        self.assertIn('prior_manifest = out / "ingestion_manifest.json"', ingestion)
-        self.assertIn("if not isinstance(prior_ledger, list)", ingestion)
-
+        self.assertNotIn("resume_from_archive_tag:", ingestion)
+        self.assertNotIn("gh release download", ingestion)
+        self.assertNotIn("gh release create", ingestion)
+        self.assertNotIn("Transfer raw archive to private Oracle release only", ingestion)
+        self.assertNotIn("Upload sanitized ledger only to public research run", ingestion)
+        self.assertIn("This legacy ingestion workflow is disabled", ingestion)
 
     def test_identity_market_gate_matrix_is_exactly_50_rows_and_fail_closed(self):
         import csv
