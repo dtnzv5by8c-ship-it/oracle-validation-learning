@@ -63,6 +63,23 @@ class ComboMarketContractTests(unittest.TestCase):
         self.assertEqual(self.settle("COMPOSITE", "HOME_1X_U45", 3, 2), "LOSS")
         self.assertEqual(self.settle("COMPOSITE", "AWAY_X2_U45", 2, 3), "LOSS")
 
+    def test_runtime_disagreement_diagnostic_counts_only_exact_completed_scoreline_mismatches(self):
+        expected = {
+            (0, 0): (True, True),
+            (1, 0): (True, False),
+            (0, 1): (False, True),
+            (1, 1): (False, False),
+            (2, 0): (False, False),
+            (3, 2): (False, False),
+            (0, 5): (False, False),
+        }
+        for score, flags in expected.items():
+            self.assertEqual(runtime.combo_predictor_vs_ledger_disagreements(*score), flags, score)
+        # Invalid or non-integer scores are not settled truth and must be ignored.
+        self.assertIsNone(runtime.combo_predictor_vs_ledger_disagreements(1.5, 0))
+        self.assertIsNone(runtime.combo_predictor_vs_ledger_disagreements(-1, 0))
+        self.assertIsNone(runtime.combo_predictor_vs_ledger_disagreements(None, 0))
+
     def test_combo_probabilities_are_masked_in_export_copy(self):
         source = [{
             "fixture_id": "f1",

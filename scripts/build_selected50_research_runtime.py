@@ -33,6 +33,29 @@ MARKETS = {
  "COMBO_AWAY": lambda h,a: int(a>=h and 2 <= h+a <= 4),
 }
 
+def combo_predictor_vs_ledger_disagreements(home, away):
+    """Return per-side predictor/settlement disagreement flags for a valid final score.
+
+    The research predictor requires 2-4 total goals. The current settlement helper
+    requires Double Chance and total goals <=4. Only the low-goal scorelines where
+    the relevant Double Chance condition is true can disagree.
+    """
+    try:
+        h, a = float(home), float(away)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(h) or not math.isfinite(a) or h < 0 or a < 0:
+        return None
+    if not h.is_integer() or not a.is_integer():
+        return None
+    h, a = int(h), int(a)
+    total = h + a
+    predictor_home = bool(MARKETS["COMBO_HOME"](h, a))
+    predictor_away = bool(MARKETS["COMBO_AWAY"](h, a))
+    settlement_home = (h >= a) and (total <= 4)
+    settlement_away = (a >= h) and (total <= 4)
+    return predictor_home != settlement_home, predictor_away != settlement_away
+
 def wilson_interval(successes, n, z=1.959963984540054):
     """Two-sided 95% Wilson interval for a binomial proportion; descriptive only."""
     if n <= 0:
@@ -469,13 +492,25 @@ def main():
                 if st in FINISHED and not has_score:
                     final_status_missing_score += 1
                 if st in FINISHED and has_score and (gh + ga) <= 1:
-                    # Low-total goals are valid under the established Oracle composite rule:
-                    # double chance AND total goals <= 4. Count them for QA, not as disagreements.
                     completed_total_goals_0_1_rows += 1
                 if st not in FINISHED and has_score:
                     nonfinal_status_with_score += 1
                 if has_score and (not float(gh).is_integer() or not float(ga).is_integer()):
                     noninteger_score_rows += 1
+            # Count actual predictor-vs-settlement disagreements on deduplicated,
+            # explicitly finished records only. Numeric placeholders on nonfinal
+            # rows are never treated as settled outcomes.
+            for r in normalized_comp:
+                m = r.get("raw_match") or {}
+                st = str(get_first(m, ("status", "game_status")) or "UNKNOWN").strip().lower() or "unknown"
+                gh, ga = match_score(m)
+                if st not in FINISHED or gh is None or ga is None:
+                    continue
+                disagreements = combo_predictor_vs_ledger_disagreements(gh, ga)
+                if disagreements is None:
+                    continue
+                combo_home_predictor_vs_ledger_disagreement_rows += int(disagreements[0])
+                combo_away_predictor_vs_ledger_disagreement_rows += int(disagreements[1])
             settlement_truth_qa.append({
                 "selected_id": str(cid), "selected_id_type": "SELECTED_SEASON_ID_SURROGATE_FOR_COMPETITION_GROUPING",
                 "provider_competition_id": provider_parent_id_by_selected.get(str(cid), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[0],
