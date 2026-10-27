@@ -347,3 +347,34 @@ The live default-branch Research Runtime workflow file now contains `workflow_di
 - Safety Contract Tests: [workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml); manual dispatch is defined on the default branch; no inputs. The workflow checks out the research branch.
 
 **Decision remains unchanged:** research-output contract PASS; production and betting release NOT APPROVED. No provider API calls, repository model-code changes, alias changes, production logic/probability/threshold/calibration changes, canonical registry/ledger changes, or governance changes were made.
+
+
+## Additional independent artifact reconciliation — 2026-10-28 00:14 SAST
+
+This reporting-only addendum records details independently verified from the existing Research Runtime #119 artifact and Dry-Run Planner #463 artifact after checking the live branch ref. It introduces no new model or provider data and makes no provider API calls.
+
+### Archive evidence layers — Planner #463
+
+- Planner run: [#463](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563); artifact [#12768336597](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750563/artifacts/12768336597), SHA-256 `699d7d17ad159dc40f6c900934408231fd29650c1c1255ddde290e73a451d727`.
+- The research-only archive-evidence reconciliation accounts for all 50 unique selected season IDs: 31 have direct Run 56 manifest matches and 19 have no exact Run 56 manifest row but are reconciled to retained private-package row-level QA.
+- The separate reported row-count sums are 9,708 for direct Run 56 manifest matches and 4,343 for the 19 gap-triage package records; gap-triage evidence also reports 2,822 primary-window rows, 3,476 recent-five home/away coverage rows, and 2,251 prior-H2H rows.
+- These counts come from distinct evidence layers and must not be added as a deduplicated archive total. A missing Run 56 manifest row does not prove a provider request failed or was never attempted. No provider calls were made.
+
+### Current-feed identity quarantine — Planner #463
+
+The artifact's 50-group fail-closed identity audit reports:
+- Approved crosswalk rows: 0; candidate rows: 22; unresolved rows: 28.
+- Verified provider-season-to-current-feed bridges: 0.
+- Current-feed display labels present for 12 groups; five groups have multiple candidate feed league IDs, seven lack a retained country field, and 38 have no matching current-feed label.
+- Canonical fixture joins: 0; canonical team joins: 0; official settlement-truth rows verified: 0.
+- The governed current-feed gate emits zero fixture and prediction rows from its 80-row snapshot. Its schedule evidence remains stale: last fixture date 2026-10-17 (10 days before the 2026-10-27 audit) and schedule window end 2026-10-22 (five days before audit).
+
+These are identity/freshness blockers, not permission to infer parent competition IDs from selected season IDs or display labels. All selected-50 outputs remain research-only and production/betting-ineligible.
+
+### Independent row-key verification
+
+I downloaded the three existing artifacts and recomputed their SHA-256 digests against GitHub's reported artifact digests. The Runtime #119 CSVs independently confirm 50 unique selected IDs, 250 unique selected-ID/market keys, 750 unique selected-ID/market/fold keys, 459 unique fixture IDs, and 2,295 fixture-market prediction rows. All 250 league-market rows remain `production_eligible=NO`; Combo probability columns remain null in the exported governed report. These counts verify row integrity, not canonical identity, archive completeness, official settlement truth, calibration, odds provenance, or betting edge.
+
+The H2H watch is unchanged from the prior addendum: no new PR #21 run, Run #47 exact-ID integrity remains 95/95 with no duplicates/unmatched IDs/league-code mismatches, and alias provenance remains blocked. Wisla remains ambiguous; Manchester Utd and Lusitania remain coverage gaps without authoritative new source evidence. St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain review-only.
+
+**Decision unchanged:** research-output contract PASS; production and betting release NOT APPROVED. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed.
