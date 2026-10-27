@@ -101,6 +101,15 @@ jobs:
                   raise SystemExit(f"STOP: {endpoint} did not return success=true; no retries.")
               return payload
 
+          # Preflight the governed crosswalk before making any provider request.
+          expected_crosswalk = Path("reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv")
+          print("Repository checkout:", os.popen("git rev-parse --show-toplevel").read().strip())
+          print("Checkout commit:", os.popen("git rev-parse HEAD").read().strip())
+          print("Crosswalk exists:", expected_crosswalk.is_file())
+          if not expected_crosswalk.is_file():
+              reports_dir = Path("reports")
+              candidates = sorted(str(p) for p in reports_dir.glob("*crosswalk*readiness*r17.csv")) if reports_dir.is_dir() else []
+              raise SystemExit(f"STOP before API calls: expected crosswalk missing; candidates={candidates}")
           root = Path("selected50-probe")
           root.mkdir(exist_ok=True)
           selected_rows = []
@@ -131,6 +140,15 @@ jobs:
                   fields = list(per_league[0].keys())
                   w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(per_league)
 
+          # Read and validate the crosswalk before any provider request.
+          with expected_crosswalk.open(encoding="utf-8-sig", newline="") as f:
+              selected_rows = list(csv.DictReader(f))
+          if len(selected_rows) != 50:
+              raise SystemExit(f"STOP before API calls: expected exactly 50 crosswalk rows; found {len(selected_rows)}.")
+          ids = [str(r.get("footystats_provider_id") or "").strip() for r in selected_rows]
+          if any(not x for x in ids) or len(set(ids)) != 50:
+              raise SystemExit("STOP before API calls: selected season IDs are blank or non-unique; no identity guessing.")
+
           # Request 1: current selected catalogue. Require budget metadata before proceeding.
           catalogue_payload = api("league-list", {"chosen_leagues_only": "true"})
           if remaining is None:
@@ -154,14 +172,6 @@ jobs:
                       else:
                           seasons_by_id[sid] = {"provider_league_name": name, "season": season}
 
-          crosswalk_path = Path("reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv")
-          with crosswalk_path.open(encoding="utf-8-sig", newline="") as f:
-              selected_rows = list(csv.DictReader(f))
-          if len(selected_rows) != 50:
-              raise SystemExit(f"STOP: expected exactly 50 crosswalk rows; found {len(selected_rows)}.")
-          ids = [str(r.get("footystats_provider_id") or "").strip() for r in selected_rows]
-          if any(not x for x in ids) or len(set(ids)) != 50:
-              raise SystemExit("STOP: selected season IDs are blank or non-unique; no identity guessing.")
           if calls + 4 * sum(sid in seasons_by_id and seasons_by_id[sid] is not None for sid in ids) > MAX_CALLS:
               raise SystemExit("STOP: estimated endpoint calls exceed the hard cap.")
 
