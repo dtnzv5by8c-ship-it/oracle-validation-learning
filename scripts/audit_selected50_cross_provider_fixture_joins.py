@@ -124,7 +124,7 @@ def main():
             f_complete=f["status"] in ("complete","completed","ft","finished")
             c_complete=c["finished"] or c["status"] in ("ft","aet","pen","complete","completed")
             score_agree=score_known and f_complete and c_complete and f["home_goals"]==c["home_goals"] and f["away_goals"]==c["away_goals"]
-            score_conflict=score_known and f["home_goals"]!=c["home_goals"] or (score_known and f_complete and c_complete and not score_agree)
+            score_conflict=score_known and (f["home_goals"]!=c["home_goals"] or f["away_goals"]!=c["away_goals"])
             status_agree=(f_complete==c_complete) or (f["status"] in ("suspended","postponed","cancelled","canceled") and (c["cancelled"] or c["status"] in ("pp","postponed","suspended","cancelled","canceled")))
             row={**base,"join_type":"FOTMOB_CURRENT","fotmob_league_id":c["fotmob_league_id"],"fotmob_league_name":c["fotmob_league_name"],"fotmob_match_id":c["fotmob_match_id"],"canonical_league_code_candidate":"","ledger_match_id":"","fotmob_score":f'{c["home_goals"]}-{c["away_goals"]}',"ledger_score":"","score_known_both_sources":bool(score_known),"score_agree":bool(score_agree),"score_conflict":bool(score_conflict),"status_agree":bool(status_agree)}
             joins.append(row);fotmob_groups[(sid,c["fotmob_league_id"],c["fotmob_league_name"])].append(row)
