@@ -137,13 +137,23 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.assertFalse(result["verified"])
         self.assertIn("runtime_ref_is_governed_research_branch", result["failed_checks"])
 
-    def test_snapshot_artifact_branch_and_commit_are_verified(self):
+    def test_snapshot_artifact_branch_must_be_governed(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_head_branch"] = "main"
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
         self.provenance["snapshot_artifact_head_branch"] = "main"
+        self.provenance["snapshot_artifact_metadata_sha256"] = sha(self.metadata)
         self.write_provenance()
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
-        self.assertIn("snapshot_artifact_head_branch_matches_manifest", result["failed_checks"])
         self.assertIn("snapshot_artifact_head_branch_is_governed_research_branch", result["failed_checks"])
+
+    def test_snapshot_artifact_head_sha_mismatch_is_blocked(self):
+        self.provenance["snapshot_artifact_head_sha"] = "e" * 40
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_head_sha_matches_manifest", result["failed_checks"])
 
     def test_wrong_run_id_is_not_accepted(self):
         self.provenance["runtime_run_id"] = "999"
