@@ -119,6 +119,8 @@ def verify_runtime_provenance(args, snapshot_sha256):
     result["snapshot_artifact_zip_sha256"] = s(provenance.get("snapshot_artifact_zip_sha256"))
     result["snapshot_artifact_zip_sha256_verified"] = provenance.get("snapshot_artifact_zip_sha256_verified") is True
     result["snapshot_artifact_metadata_sha256"] = s(provenance.get("snapshot_artifact_metadata_sha256"))
+    result["snapshot_artifact_head_branch"] = s(provenance.get("snapshot_artifact_head_branch"))
+    result["snapshot_artifact_head_sha"] = s(provenance.get("snapshot_artifact_head_sha"))
     result["snapshot_artifact_workflow_run_id"] = s(provenance.get("snapshot_artifact_workflow_run_id"))
 
     metadata_path = args.snapshot_artifact_metadata
@@ -147,11 +149,16 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_sha256_matches_supplied_snapshot": s(provenance.get("snapshot_file_sha256")) == snapshot_sha256,
         "expected_snapshot_run_id_matches": bool(args.expected_snapshot_run_id) and s(provenance.get("snapshot_run_id")) == s(args.expected_snapshot_run_id),
         "expected_runtime_run_id_matches": bool(args.expected_runtime_run_id) and s(provenance.get("runtime_run_id")) == s(args.expected_runtime_run_id),
+        "runtime_ref_is_governed_research_branch": s(provenance.get("runtime_ref")) == "refs/heads/research/oracle-50-league-readiness-audit",
         "snapshot_artifact_name_matches_expected": s(provenance.get("snapshot_artifact_name")) == "oracle-selected50-current-fixture-snapshot",
         "snapshot_artifact_id_present": bool(s(provenance.get("snapshot_artifact_id"))),
         "snapshot_artifact_digest_is_sha256": s(provenance.get("snapshot_artifact_digest")).startswith("sha256:") and len(s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1]) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1].lower()),
         "snapshot_artifact_metadata_sha256_is_valid": len(s(provenance.get("snapshot_artifact_metadata_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_metadata_sha256")).lower()),
         "snapshot_artifact_run_id_matches": bool(args.expected_snapshot_run_id) and s(provenance.get("snapshot_artifact_workflow_run_id")) == s(args.expected_snapshot_run_id),
+        "snapshot_artifact_head_branch_matches_manifest": metadata is not None and s(metadata.get("artifact_head_branch")) == s(provenance.get("snapshot_artifact_head_branch")),
+        "snapshot_artifact_head_sha_matches_manifest": metadata is not None and s(metadata.get("artifact_head_sha")) == s(provenance.get("snapshot_artifact_head_sha")),
+        "snapshot_artifact_head_branch_is_governed_research_branch": metadata is not None and s(metadata.get("artifact_head_branch")) == "research/oracle-50-league-readiness-audit",
+        "snapshot_artifact_head_sha_is_valid": metadata is not None and len(s(metadata.get("artifact_head_sha"))) == 40 and all(ch in "0123456789abcdef" for ch in s(metadata.get("artifact_head_sha")).lower()),
         "snapshot_artifact_metadata_file_present": metadata is not None,
         "snapshot_artifact_metadata_file_hash_matches_manifest": metadata is not None and bool(s(provenance.get("snapshot_artifact_metadata_sha256"))) and metadata_file_sha256 == s(provenance.get("snapshot_artifact_metadata_sha256")),
         "snapshot_artifact_metadata_id_matches_manifest": metadata is not None and s(metadata.get("artifact_id")) == s(provenance.get("snapshot_artifact_id")),

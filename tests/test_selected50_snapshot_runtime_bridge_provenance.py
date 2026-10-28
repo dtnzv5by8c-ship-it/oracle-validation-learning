@@ -51,6 +51,8 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "artifact_zip_sha256_verified": True,
             "artifact_expired": False,
             "artifact_workflow_run_id": "100",
+            "artifact_head_branch": "research/oracle-50-league-readiness-audit",
+            "artifact_head_sha": "d" * 40,
         }), encoding="utf-8")
         self.receipt_data = {
             "schema_version": 1,
@@ -80,6 +82,8 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_artifact_zip_sha256_verified": True,
             "snapshot_artifact_metadata_sha256": sha(self.metadata),
             "snapshot_artifact_workflow_run_id": "100",
+            "snapshot_artifact_head_branch": "research/oracle-50-league-readiness-audit",
+            "snapshot_artifact_head_sha": "d" * 40,
             "runtime_run_id": "200",
             "selected_input_matches_overlay": True,
             "selected_runtime_input_archive_sha256": "c" * 64,
@@ -125,6 +129,21 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("runtime_report_hash_matches_downloaded_report", result["failed_checks"])
+
+    def test_runtime_from_non_governed_branch_is_blocked(self):
+        self.provenance["runtime_ref"] = "refs/heads/main"
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("runtime_ref_is_governed_research_branch", result["failed_checks"])
+
+    def test_snapshot_artifact_branch_and_commit_are_verified(self):
+        self.provenance["snapshot_artifact_head_branch"] = "main"
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_head_branch_matches_manifest", result["failed_checks"])
+        self.assertIn("snapshot_artifact_head_branch_is_governed_research_branch", result["failed_checks"])
 
     def test_wrong_run_id_is_not_accepted(self):
         self.provenance["runtime_run_id"] = "999"
