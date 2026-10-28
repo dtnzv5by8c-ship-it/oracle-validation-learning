@@ -69,6 +69,11 @@ def main():
     retrieved = parse_utc(snap.get("retrieved_utc"))
     if retrieved is None:
         raise SystemExit("FAIL: snapshot retrieval timestamp must be valid timezone-aware ISO-8601")
+    if report_horizon_days > runtime_horizon_days and retrieved > runtime_started:
+        raise SystemExit(
+            "FAIL: snapshot retrieval timestamp is later than runtime start; "
+            "a post-runtime snapshot cannot establish out-of-window versus missing-join coverage"
+        )
     snapshot_age_seconds = int((now - retrieved).total_seconds())
     if snapshot_age_seconds < 0:
         raise SystemExit("FAIL: snapshot retrieval timestamp is in the future relative to report as-of time")
@@ -298,6 +303,11 @@ def main():
         "snapshot_age_seconds": snapshot_age_seconds,
         "snapshot_file_sha256": snapshot_sha256,
         "snapshot_provenance_status": "PASS_FRESH_TIMEZONE_AWARE",
+        "snapshot_retrieved_at_or_before_runtime_start": retrieved <= runtime_started,
+        "snapshot_runtime_chronology_gate": (
+            "PASS_SNAPSHOT_PRECEDES_RUNTIME_START" if retrieved <= runtime_started
+            else "NOT_REQUIRED_NO_HORIZON_EXPANSION"
+        ),
         "selected_seasons": len(seasons),
         "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
