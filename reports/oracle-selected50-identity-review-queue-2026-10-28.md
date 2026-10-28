@@ -68,6 +68,14 @@ The bounded FootyStats identity probe returned HTTP 200 for all 50 selected seas
 | Uruguay | Primera División | 16708 | 331 | — | — | NO_MATCH_IN_CURRENT_27_LEAGUE_REGISTRY | — |
 | Venezuela | Primera División | 16617 | 339 | — | — | NO_MATCH_IN_CURRENT_27_LEAGUE_REGISTRY | — |
 
+## Newly prioritized exact-overlap evidence
+
+Eight exact fixture joins now support two strong bridge candidates:
+- Canada CPL: FootyStats season 16741 / master ID 524 ↔ FotMob league ID 1000001192; four joins, one score/status conflict.
+- England EFL League One: season 17180 / master ID 6 ↔ FotMob league ID 938219; four joins, no score/status conflicts, three postponed matches.
+
+Both remain human-review candidates. The Canadian conflict shows that stale source records cannot be treated as settlement truth. Full evidence: [overlap join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
+
 ## Approval checklist for each row
 
 1. Confirm the FootyStats `comp_master_id` field semantics with authoritative documentation or written provider confirmation.
