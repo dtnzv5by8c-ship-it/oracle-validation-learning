@@ -120,7 +120,12 @@ def resolve_candidates(
             ref_settled = is_settled(ref)
             status = "CANDIDATE_REVIEW_REQUIRED"
             reason = "Cross-provider identity is research-only; human approval required."
-            if fs_settled and ref_settled and score_agreement is False:
+            fs_no_home_away = str(fs.get("no_home_away", "0")).strip().lower() in {"1", "true", "yes"}
+            ref_no_home_away = str(ref.get("no_home_away", "0")).strip().lower() in {"1", "true", "yes"}
+            if fs_no_home_away or ref_no_home_away:
+                status = "QUARANTINE_NO_HOME_AWAY"
+                reason = "At least one source flags the fixture as lacking a standard home/away assignment."
+            elif fs_settled and ref_settled and score_agreement is False:
                 status = "QUARANTINE_SCORE_CONFLICT"
                 reason = "Both sources claim completion but scores disagree."
             elif not fs_settled or not ref_settled:
