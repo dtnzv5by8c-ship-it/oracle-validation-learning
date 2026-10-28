@@ -59,6 +59,40 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             adapt(snap)
 
+    def test_naive_kickoff_is_quarantined_not_assumed_utc(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00", "status": "scheduled",
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "QUARANTINE_INVALID_KICKOFF")
+        self.assertEqual(rows[0]["kickoff_utc"], "")
+        self.assertEqual(rows[0]["source_kickoff_value"], "2026-10-30T18:00:00")
+
+    def test_offset_kickoff_is_normalized_to_utc(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T20:00:00+02:00", "status": "scheduled",
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "RESEARCH_FIXTURE_CANDIDATE")
+        self.assertEqual(rows[0]["kickoff_utc"], "2026-10-30T18:00:00Z")
+        self.assertEqual(rows[0]["source_kickoff_value"], "2026-10-30T20:00:00+02:00")
+
+    def test_completed_status_with_future_kickoff_is_quarantined(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00Z", "status": "complete",
+            "homeGoalCount": "2", "awayGoalCount": "1",
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "QUARANTINE_STATUS_KICKOFF_CONFLICT")
+        self.assertEqual(rows[0]["home_goals"], 2)
+        self.assertEqual(rows[0]["away_goals"], 1)
+
     def test_snapshot_retrieval_timestamp_is_required(self):
         snap = snapshot_with({
             "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,

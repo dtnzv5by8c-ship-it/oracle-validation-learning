@@ -56,6 +56,23 @@ def parse_snapshot_retrieved_utc(value: Any, now: datetime) -> datetime:
     return parsed
 
 
+def parse_kickoff_utc(value: Any) -> datetime | None:
+    """Parse an explicit-offset ISO-8601 kickoff and normalize it to UTC.
+
+    A naive timestamp is not silently interpreted as UTC because that would
+    manufacture precision for fixture identity and temporal settlement checks.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
 def classify(row: dict[str, Any], now: datetime) -> tuple[str, str]:
     status = str(row.get("status") or "").strip().lower()
     kickoff = str(row.get("kickoff_utc") or "")
@@ -67,14 +84,12 @@ def classify(row: dict[str, Any], now: datetime) -> tuple[str, str]:
         return "QUARANTINE_MISSING_TEAM_ID", "FootyStats home/away provider team ID missing."
     if not str(row.get("home_name") or "").strip() or not str(row.get("away_name") or "").strip():
         return "QUARANTINE_MISSING_TEAM_NAME", "Home/away team name missing."
-    try:
-        ko = datetime.fromisoformat(kickoff.replace("Z", "+00:00"))
-        if ko.tzinfo is None:
-            ko = ko.replace(tzinfo=timezone.utc)
-        ko = ko.astimezone(timezone.utc)
-    except (ValueError, TypeError):
-        return "QUARANTINE_INVALID_KICKOFF", "Kickoff timestamp missing or invalid."
+    ko = parse_kickoff_utc(kickoff)
+    if ko is None:
+        return "QUARANTINE_INVALID_KICKOFF", "Kickoff timestamp must be valid ISO-8601 with an explicit timezone; naive values are not assumed to be UTC."
     if status in {"complete", "completed", "finished", "ft", "full time"}:
+        if ko > now:
+            return "QUARANTINE_STATUS_KICKOFF_CONFLICT", "Completed status conflicts with a future kickoff timestamp."
         if integer_or_blank(row.get("homeGoalCount")) == "" or integer_or_blank(row.get("awayGoalCount")) == "":
             return "QUARANTINE_INCOMPLETE_SCORE", "Completed status but one or both scores are missing."
         return "HISTORICAL_COMPLETED_CANDIDATE", "Completed source record; settlement truth remains independently governed."
@@ -141,7 +156,11 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
             "competition": str(row.get("manifest_competition") or ""),
             "home_team": str(row.get("home_name") or ""),
             "away_team": str(row.get("away_name") or ""),
-            "kickoff_utc": str(row.get("kickoff_utc") or ""),
+            "source_kickoff_value": str(row.get("kickoff_utc") or ""),
+            "kickoff_utc": (
+                parse_kickoff_utc(row.get("kickoff_utc")).isoformat().replace("+00:00", "Z")
+                if parse_kickoff_utc(row.get("kickoff_utc")) is not None else ""
+            ),
             "source_status": str(row.get("status") or ""),
             "home_goals": integer_or_blank(row.get("homeGoalCount")),
             "away_goals": integer_or_blank(row.get("awayGoalCount")),
