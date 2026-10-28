@@ -20,6 +20,13 @@ def parse_utc(v):
 def valid_id(v):
     return v not in (None,"","0",0) and str(v).strip().lower() not in {"none","null"}
 
+def find_archive_path(names, season_id, kind):
+    suffix=f"seasons/{season_id}/{kind}.json"
+    matches=[name for name in names if name.endswith(suffix)]
+    if len(matches)>1:
+        raise SystemExit(f"FAIL: ambiguous archive path for season {season_id} {kind}")
+    return matches[0] if matches else None
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--archive",required=True,type=Path)
@@ -90,8 +97,8 @@ def main():
             candidates=[]
             for aid,ameta in meta_by_id.items():
                 alabel=(str(ameta.get("selected_country") or "").strip(),str(ameta.get("selected_competition_name") or "").strip())
-                mp=next((n for n in names if n.endswith(f"seasons/{aid}/matches.json")),None)
-                tp=next((n for n in names if n.endswith(f"seasons/{aid}/teams.json")),None)
+                mp=find_archive_path(names,aid,"matches")
+                tp=find_archive_path(names,aid,"teams")
                 if alabel==label and mp and tp:
                     candidates.append((aid,ameta))
             if not candidates:
@@ -103,7 +110,7 @@ def main():
             archive_target[sid]=candidates[0][0]
         season_files={}; season_match_paths={}
         for archive_sid in set(archive_target.values()):
-            p=next((n for n in names if n.endswith(f"seasons/{archive_sid}/matches.json")),None)
+            p=find_archive_path(names,archive_sid,"matches")
             if not p: raise SystemExit(f"FAIL: matches file missing for archive season {archive_sid}")
             season_match_paths[archive_sid]=p
             season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
