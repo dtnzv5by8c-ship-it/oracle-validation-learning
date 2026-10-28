@@ -48,6 +48,16 @@ The second snapshot was retrieved at `2026-10-28T06:19:09.645973+00:00` UTC. Its
 
 [Expanded snapshot artifact 12796207151](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796207151) · [Offline validator source](../scripts/validate_selected50_current_fixture_snapshot.py).
 
+## Latest identity-reconciliation breakthrough
+
+The read-only cross-provider audit joined the 14,051-row selected-season FootyStats archive to the 12,836-row existing Oracle historical ledger and 71-row stale FotMob current snapshot:
+- 577 ordered team-pair + calendar-date matches to the historical ledger, spanning 24 strong research-only canonical league-code candidates; all matched completed scores agree. These joins do not prove exact kickoff time, so require human review.
+- 10 exact FootyStats–FotMob team-pair + UTC-kickoff joins across two leagues: Canada CPL (4 joins, 3 completed score agreements, 1 source conflict) and England EFL League One (6 joins, 3 completed score agreements, 3 postponed/suspended).
+- 25/50 selected seasons now have at least one evidence-backed candidate identity; 25 remain without a supported join in this audit.
+- Approved canonical bridges remain **0/50**. The historical ledger's short `league_code` values are not automatically equivalent to the research candidate IDs.
+
+[Full join evidence and per-row results](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md) · [Audit artifact 12796818576](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644996669/artifacts/12796818576).
+
 ## Current FotMob feed incident
 
 The production `Oracle Current Data Staging` workflow has three latest visible failed runs:
