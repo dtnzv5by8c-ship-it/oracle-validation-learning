@@ -6,6 +6,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from scripts.record_selected50_archive_consumption import write_archive_consumption_receipt
 from scripts.write_selected50_runtime_provenance import build_provenance
 
 
@@ -22,6 +23,7 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         self.snapshot = self.root / "snapshot.json"
         self.qa = self.root / "overlay-qa.json"
         self.metadata = self.root / "snapshot-artifact-metadata.json"
+        self.receipt = self.root / "archive-consumption-receipt.json"
         self.report = self.root / "prediction.csv"
         self.snapshot_time = "2026-10-28T18:00:00+00:00"
         with zipfile.ZipFile(self.source, "w") as archive:
@@ -35,6 +37,8 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         }), encoding="utf-8")
         self.report.write_text("fixture_id,probability\nF1,55.0\n", encoding="utf-8")
         self.write_qa()
+        with zipfile.ZipFile(self.overlay) as opened_archive:
+            write_archive_consumption_receipt(self.overlay, opened_archive, self.receipt, runtime_commit_sha="abc123")
         self.metadata.write_text(json.dumps({
             "artifact_id": "789",
             "artifact_name": "oracle-selected50-current-fixture-snapshot",
@@ -65,6 +69,7 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
             archive_release_tag="research-selected50-footystats-history-40447419806",
             runtime_archive_env=str(self.overlay),
             selected_archive_sha256_before_runtime=sha(self.overlay),
+            consumption_receipt_path=self.receipt,
             snapshot_artifact_metadata_path=self.metadata,
         )
 
@@ -156,9 +161,25 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "exact GitHub artifact metadata is missing"):
             build_provenance(**self.kwargs)
 
+    def test_archive_consumption_receipt_hash_mismatch_fails_closed(self):
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        receipt["consumed_archive_sha256_at_open"] = "0" * 64
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "consumption receipt SHA-256"):
+            build_provenance(**self.kwargs)
+
+    def test_archive_consumption_receipt_path_mismatch_fails_closed(self):
+        receipt = json.loads(self.receipt.read_text(encoding="utf-8"))
+        receipt["consumed_archive_path"] = str(self.source)
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "receipt path does not match ORACLE_ARCHIVE"):
+            build_provenance(**self.kwargs)
+
     def test_disabled_overlay_explicitly_does_not_claim_snapshot_consumption(self):
         self.kwargs["include_current_snapshot"] = False
         result = build_provenance(**self.kwargs)
+        self.assertTrue(result["runtime_archive_consumption_verified"])
+        self.assertEqual(result["runtime_archive_consumption_status"], "PASS_RUNTIME_OPENED_INPUT_HASH_VERIFIED")
         self.assertEqual(result["snapshot_consumption_status"], "NOT_CONSUMED_OVERLAY_DISABLED")
         self.assertFalse(result["snapshot_consumption_verified"])
         self.assertIsNone(result["snapshot_file_sha256"])

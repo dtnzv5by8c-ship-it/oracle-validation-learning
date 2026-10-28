@@ -28,7 +28,7 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
                      include_current_snapshot, snapshot_run_id, runtime_run_id,
                      runtime_run_number, runtime_run_attempt, runtime_sha,
                      runtime_ref, archive_release_tag, runtime_archive_env,
-                     selected_archive_sha256_before_runtime,
+                     selected_archive_sha256_before_runtime, consumption_receipt_path,
                      snapshot_artifact_metadata_path=None):
     selected_path = Path(selected_archive_path)
     runtime_env_path = Path(runtime_archive_env)
@@ -41,6 +41,21 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
         raise SystemExit("FAIL: pre-runtime selected archive SHA-256 is missing or invalid")
     if selected_sha != before_sha:
         raise SystemExit("FAIL: selected runtime input archive changed between pre-runtime fingerprint and provenance capture")
+    if not consumption_receipt_path or not Path(consumption_receipt_path).is_file():
+        raise SystemExit("FAIL: runtime archive consumption receipt is missing")
+    receipt_path = Path(consumption_receipt_path)
+    receipt_sha = sha256_file(receipt_path)
+    receipt = load_json(receipt_path)
+    if receipt.get("archive_open_confirmed") is not True:
+        raise SystemExit("FAIL: runtime archive consumption receipt does not confirm an opened ZIP")
+    if str(receipt.get("consumed_archive_path") or "") != str(runtime_archive_env):
+        raise SystemExit("FAIL: runtime archive consumption receipt path does not match ORACLE_ARCHIVE")
+    if str(receipt.get("consumed_archive_sha256_at_open") or "").lower() != selected_sha:
+        raise SystemExit("FAIL: runtime archive consumption receipt SHA-256 does not match the selected runtime input")
+    if str(receipt.get("runtime_commit_sha") or "") != str(runtime_sha):
+        raise SystemExit("FAIL: runtime archive consumption receipt commit does not match the runtime commit")
+    if not isinstance(receipt.get("archive_member_count"), int) or receipt.get("archive_member_count") < 1:
+        raise SystemExit("FAIL: runtime archive consumption receipt has no verified archive members")
     provenance = {
         "schema_version": 1,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
@@ -55,6 +70,10 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
         "selected_runtime_input_archive_sha256_before_runtime": before_sha,
         "runtime_report_file": Path(runtime_report_path).name,
         "runtime_report_sha256": sha256_file(runtime_report_path),
+        "runtime_archive_consumption_receipt_sha256": receipt_sha,
+        "runtime_archive_consumption_verified": True,
+        "runtime_archive_consumption_status": "PASS_RUNTIME_OPENED_INPUT_HASH_VERIFIED",
+        "runtime_archive_consumption_receipt": receipt,
         "private_archive_release_tag": str(archive_release_tag),
         "snapshot_run_id": str(snapshot_run_id),
         "snapshot_artifact_id": None,
@@ -183,6 +202,7 @@ def main():
     parser.add_argument("--archive-release-tag", required=True)
     parser.add_argument("--runtime-archive-env", required=True)
     parser.add_argument("--selected-archive-sha256-before-runtime", required=True)
+    parser.add_argument("--consumption-receipt", required=True, type=Path)
     parser.add_argument("--snapshot-artifact-metadata", type=Path)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
@@ -203,6 +223,7 @@ def main():
         archive_release_tag=args.archive_release_tag,
         runtime_archive_env=args.runtime_archive_env,
         selected_archive_sha256_before_runtime=args.selected_archive_sha256_before_runtime,
+        consumption_receipt_path=args.consumption_receipt,
         snapshot_artifact_metadata_path=args.snapshot_artifact_metadata,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)

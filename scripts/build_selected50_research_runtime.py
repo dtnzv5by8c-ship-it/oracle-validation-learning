@@ -9,6 +9,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import brier_score_loss, log_loss, accuracy_score, roc_auc_score
 
+from record_selected50_archive_consumption import write_archive_consumption_receipt
+
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
 PARENT_ID_PROBE = Path("reports/oracle-selected50-parent-id-probe-2026-10-26.csv")
@@ -349,6 +351,9 @@ def main():
     provider_match_coverage_status = "PASS_PROVIDER_MATCH_COVERAGE_CONTRACT_50_OF_50"
 
     with zipfile.ZipFile(ARCHIVE) as z:
+        write_archive_consumption_receipt(
+            ARCHIVE, z, OUT / "oracle_selected50_archive_consumption_receipt.json"
+        )
         names=set(z.namelist())
         mn=next((n for n in names if n.endswith("ingestion_manifest.json")),None)
         if not mn: raise SystemExit("Private ingestion manifest missing.")

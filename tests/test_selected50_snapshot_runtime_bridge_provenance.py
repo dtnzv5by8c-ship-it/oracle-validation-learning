@@ -39,6 +39,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.snapshot = self.root / "snapshot.json"
         self.report = self.root / "runtime.csv"
         self.provenance_path = self.root / "runtime-provenance.json"
+        self.receipt = self.root / "archive-consumption-receipt.json"
         self.metadata = self.root / "snapshot-artifact-metadata.json"
         self.snapshot.write_text('{"retrieved_utc":"2026-10-28T18:00:00Z","per_season":[],"fixture_rows":[]}', encoding="utf-8")
         self.report.write_text("fixture_id,provider_season_id,home_team_provider_id,away_team_provider_id\nF1,S1,H1,A1\n", encoding="utf-8")
@@ -51,7 +52,23 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "artifact_expired": False,
             "artifact_workflow_run_id": "100",
         }), encoding="utf-8")
+        self.receipt_data = {
+            "schema_version": 1,
+            "archive_open_confirmed": True,
+            "consumed_archive_path": "private-download/oracle-selected50-runtime-selected.zip",
+            "consumed_archive_resolved_path": "/runner/private-download/oracle-selected50-runtime-selected.zip",
+            "consumed_archive_sha256_at_open": "c" * 64,
+            "consumed_archive_size_bytes": 123,
+            "archive_member_count": 4,
+            "runtime_commit_sha": "abc123",
+            "recorded_utc": "2026-10-28T18:00:00+00:00",
+        }
+        self.receipt.write_text(json.dumps(self.receipt_data), encoding="utf-8")
         self.provenance = {
+            "runtime_archive_consumption_receipt_sha256": sha(self.receipt),
+            "runtime_archive_consumption_verified": True,
+            "runtime_archive_consumption_status": "PASS_RUNTIME_OPENED_INPUT_HASH_VERIFIED",
+            "runtime_archive_consumption_receipt": self.receipt_data,
             "snapshot_consumption_verified": True,
             "snapshot_consumption_status": "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
             "snapshot_file_sha256": sha(self.snapshot),
@@ -78,6 +95,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.args = Namespace(
             runtime_provenance=self.provenance_path,
             snapshot_artifact_metadata=self.metadata,
+            runtime_consumption_receipt=self.receipt,
             expected_snapshot_run_id="100",
             expected_runtime_run_id="200",
             runtime_report=self.report,
@@ -191,6 +209,22 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.assertTrue(qa_path.is_file())
         qa = json.loads(qa_path.read_text(encoding="utf-8"))
         self.assertFalse(qa["snapshot_consumption_verified"])
+
+    def test_runtime_consumption_receipt_file_hash_must_match_manifest(self):
+        self.receipt.write_text(json.dumps({**self.receipt_data, "archive_member_count": 5}), encoding="utf-8")
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("runtime_archive_consumption_receipt_hash_matches_manifest", result["failed_checks"])
+
+    def test_runtime_receipt_opened_hash_must_match_selected_input(self):
+        receipt = {**self.receipt_data, "consumed_archive_sha256_at_open": "d" * 64}
+        self.receipt.write_text(json.dumps(receipt), encoding="utf-8")
+        self.provenance["runtime_archive_consumption_receipt_sha256"] = sha(self.receipt)
+        self.provenance["runtime_archive_consumption_receipt"] = receipt
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("runtime_receipt_sha256_matches_selected_input", result["failed_checks"])
 
     def test_missing_provenance_stays_unverified(self):
         self.args.runtime_provenance = self.root / "missing.json"

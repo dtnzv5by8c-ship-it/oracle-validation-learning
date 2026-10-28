@@ -94,6 +94,11 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_artifact_metadata_sha256": None,
         "snapshot_artifact_workflow_run_id": None,
         "snapshot_artifact_metadata_file_sha256": None,
+        "runtime_archive_consumption_verified": False,
+        "runtime_archive_consumption_status": "UNVERIFIED_RUNTIME_ARCHIVE_RECEIPT_MISSING",
+        "runtime_archive_consumption_receipt_sha256": None,
+        "runtime_archive_consumption_receipt_file_sha256": None,
+        "runtime_input_archive_sha256_at_open": None,
         "checks": {},
     }
     path = args.runtime_provenance
@@ -125,6 +130,17 @@ def verify_runtime_provenance(args, snapshot_sha256):
         metadata = json.loads(metadata_bytes.decode("utf-8"))
     result["snapshot_artifact_metadata_file_sha256"] = metadata_file_sha256
 
+    receipt_path = getattr(args, "runtime_consumption_receipt", None)
+    consumption_receipt = None
+    receipt_file_sha256 = None
+    if receipt_path is not None and receipt_path.is_file():
+        receipt_bytes = receipt_path.read_bytes()
+        receipt_file_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+        consumption_receipt = json.loads(receipt_bytes.decode("utf-8"))
+    result["runtime_archive_consumption_receipt_file_sha256"] = receipt_file_sha256
+    result["runtime_archive_consumption_receipt_sha256"] = s(provenance.get("runtime_archive_consumption_receipt_sha256"))
+    result["runtime_input_archive_sha256_at_open"] = s((consumption_receipt or {}).get("consumed_archive_sha256_at_open"))
+
     checks = {
         "snapshot_consumption_flag_true": provenance.get("snapshot_consumption_verified") is True,
         "snapshot_consumption_status_pass": s(provenance.get("snapshot_consumption_status")) == "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
@@ -150,12 +166,40 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "selected_input_archive_hash_is_sha256": len(s(provenance.get("selected_runtime_input_archive_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("selected_runtime_input_archive_sha256")).lower()),
         "selected_input_hash_matches_overlay_hash": bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(provenance.get("selected_runtime_input_archive_sha256")) == s(provenance.get("overlay_archive_sha256")),
         "runtime_input_hash_matches_pre_runtime_fingerprint": bool(s(provenance.get("selected_runtime_input_archive_sha256_before_runtime"))) and s(provenance.get("selected_runtime_input_archive_sha256_before_runtime")) == s(provenance.get("selected_runtime_input_archive_sha256")),
+        "runtime_archive_consumption_receipt_present": consumption_receipt is not None,
+        "runtime_archive_consumption_receipt_hash_matches_manifest": consumption_receipt is not None and bool(s(provenance.get("runtime_archive_consumption_receipt_sha256"))) and receipt_file_sha256 == s(provenance.get("runtime_archive_consumption_receipt_sha256")),
+        "runtime_archive_consumption_receipt_matches_manifest_copy": consumption_receipt is not None and provenance.get("runtime_archive_consumption_receipt") == consumption_receipt,
+        "runtime_archive_consumption_flag_true": provenance.get("runtime_archive_consumption_verified") is True,
+        "runtime_archive_consumption_status_pass": s(provenance.get("runtime_archive_consumption_status")) == "PASS_RUNTIME_OPENED_INPUT_HASH_VERIFIED",
+        "runtime_archive_open_confirmed": consumption_receipt is not None and consumption_receipt.get("archive_open_confirmed") is True,
+        "runtime_archive_path_matches_env": consumption_receipt is not None and s(consumption_receipt.get("consumed_archive_path")) == s(provenance.get("runtime_archive_env")),
+        "runtime_archive_basename_matches_selected_input": consumption_receipt is not None and Path(s(consumption_receipt.get("consumed_archive_path"))).name == s(provenance.get("selected_runtime_input_archive")),
+        "runtime_receipt_sha256_matches_selected_input": consumption_receipt is not None and bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(consumption_receipt.get("consumed_archive_sha256_at_open")) == s(provenance.get("selected_runtime_input_archive_sha256")),
+        "runtime_receipt_sha256_matches_pre_runtime_fingerprint": consumption_receipt is not None and bool(s(provenance.get("selected_runtime_input_archive_sha256_before_runtime"))) and s(consumption_receipt.get("consumed_archive_sha256_at_open")) == s(provenance.get("selected_runtime_input_archive_sha256_before_runtime")),
+        "runtime_receipt_commit_matches_manifest": consumption_receipt is not None and s(consumption_receipt.get("runtime_commit_sha")) == s(provenance.get("runtime_commit_sha")),
+        "runtime_receipt_archive_member_count_positive": consumption_receipt is not None and isinstance(consumption_receipt.get("archive_member_count"), int) and consumption_receipt.get("archive_member_count") > 0,
         "runtime_report_hash_matches_downloaded_report": bool(s(provenance.get("runtime_report_sha256"))) and s(provenance.get("runtime_report_sha256")) == hashlib.sha256(args.runtime_report.read_bytes()).hexdigest(),
     }
     result["checks"] = checks
     failed = [name for name, passed in checks.items() if not passed]
     result["verified"] = not failed
     result["status"] = "PASS_SNAPSHOT_TO_RUNTIME_PROVENANCE_VERIFIED" if not failed else "BLOCKED_RUNTIME_PROVENANCE_CHECKS_FAILED"
+    consumption_checks = [
+        "runtime_archive_consumption_receipt_present",
+        "runtime_archive_consumption_receipt_hash_matches_manifest",
+        "runtime_archive_consumption_receipt_matches_manifest_copy",
+        "runtime_archive_consumption_flag_true",
+        "runtime_archive_consumption_status_pass",
+        "runtime_archive_open_confirmed",
+        "runtime_archive_path_matches_env",
+        "runtime_archive_basename_matches_selected_input",
+        "runtime_receipt_sha256_matches_selected_input",
+        "runtime_receipt_sha256_matches_pre_runtime_fingerprint",
+        "runtime_receipt_commit_matches_manifest",
+        "runtime_receipt_archive_member_count_positive",
+    ]
+    result["runtime_archive_consumption_verified"] = all(checks.get(name) is True for name in consumption_checks)
+    result["runtime_archive_consumption_status"] = "PASS_RUNTIME_OPENED_INPUT_HASH_VERIFIED" if result["runtime_archive_consumption_verified"] else "BLOCKED_RUNTIME_ARCHIVE_CONSUMPTION_CHECKS_FAILED"
     result["failed_checks"] = failed
     result["runtime_ref"] = s(provenance.get("runtime_ref"))
     result["runtime_commit_sha"] = s(provenance.get("runtime_commit_sha"))
@@ -174,6 +218,7 @@ def main():
     p.add_argument("--runtime-report", required=True, type=Path)
     p.add_argument("--runtime-provenance", type=Path)
     p.add_argument("--snapshot-artifact-metadata", type=Path)
+    p.add_argument("--runtime-consumption-receipt", type=Path)
     p.add_argument("--expected-snapshot-run-id")
     p.add_argument("--expected-runtime-run-id")
     p.add_argument("--require-runtime-provenance", action="store_true", help="Return a nonzero exit if exact runtime provenance is missing or invalid")
@@ -281,6 +326,11 @@ def main():
       "runtime_input_archive_sha256":provenance.get("runtime_input_archive_sha256"),
       "runtime_input_archive_sha256_before_runtime":provenance.get("runtime_input_archive_sha256_before_runtime"),
       "runtime_report_sha256":provenance.get("runtime_report_sha256"),
+      "runtime_archive_consumption_verified":provenance.get("runtime_archive_consumption_verified"),
+      "runtime_archive_consumption_status":provenance.get("runtime_archive_consumption_status"),
+      "runtime_archive_consumption_receipt_sha256":provenance.get("runtime_archive_consumption_receipt_sha256"),
+      "runtime_archive_consumption_receipt_file_sha256":provenance.get("runtime_archive_consumption_receipt_file_sha256"),
+      "runtime_input_archive_sha256_at_open":provenance.get("runtime_input_archive_sha256_at_open"),
       "snapshot_consumption_verified":provenance["verified"],
       "snapshot_consumption_status":provenance["status"],
       "snapshot_runtime_provenance":provenance,
@@ -308,7 +358,7 @@ def main():
       "production_eligible":False,
       "betting_eligible":False,
       "prediction_generated":False,
-      "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, confirms the downloaded snapshot artifact ZIP SHA-256 equals the GitHub artifact digest, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
+      "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, verifies the downloaded snapshot ZIP SHA-256 against the GitHub digest, verifies an in-runtime receipt from the actual opened archive handle against the ORACLE_ARCHIVE path and pre-runtime input hash, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
     }
     (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True) + "\n",encoding="utf-8")
     print(json.dumps(qa,indent=2,sort_keys=True))

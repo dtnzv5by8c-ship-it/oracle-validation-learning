@@ -226,6 +226,7 @@ jobs:
             --archive-release-tag "$PRIVATE_ARCHIVE_RELEASE_TAG"
             --runtime-archive-env "$ORACLE_ARCHIVE"
             --selected-archive-sha256-before-runtime "$(cat selected50_runtime_output/runtime_input_archive_sha256_before.txt)"
+            --consumption-receipt selected50_runtime_output/oracle_selected50_archive_consumption_receipt.json
             --out selected50_runtime_output/oracle_selected50_runtime_provenance.json
           )
           if [[ "$INCLUDE_CURRENT_SNAPSHOT" == "true" ]]; then
@@ -259,5 +260,6 @@ jobs:
             selected50_runtime_output/current_snapshot_candidate_trace.csv
             selected50_runtime_output/oracle_selected50_runtime_provenance.json
             selected50_runtime_output/oracle_selected50_snapshot_artifact_metadata.json
+            selected50_runtime_output/oracle_selected50_archive_consumption_receipt.json
           if-no-files-found: error
           retention-days: 14
