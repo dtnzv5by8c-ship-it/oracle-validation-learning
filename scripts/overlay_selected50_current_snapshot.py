@@ -61,16 +61,52 @@ def main():
     if len(staged)>1000: raise SystemExit("FAIL: unexpectedly large staging batch; manual review required")
     with zipfile.ZipFile(args.archive,"r") as src:
         names=src.namelist()
-        season_files={}
+        manifest_path=next((n for n in names if n.endswith("ingestion_manifest.json")),None)
+        if not manifest_path: raise SystemExit("FAIL: private archive ingestion manifest missing")
+        manifest=json.loads(src.read(manifest_path).decode("utf-8"))
+        if not isinstance(manifest,list): raise SystemExit("FAIL: unexpected private archive manifest shape")
+        meta_by_id={str(m.get("season_id") or "").strip():m for m in manifest if isinstance(m,dict)}
+        # Runtime groups historical season files by exact country + competition labels.
+        # Current selected-season IDs may have no matches file; stage into a historical
+        # season file from the same exact label only, never by fuzzy display-name matching.
+        selected_labels={}
+        for m in seasons:
+            sid=str(m.get("selected_season_id") or "").strip()
+            label=(str(m.get("country") or "").strip(),str(m.get("competition") or "").strip())
+            if not all(label): raise SystemExit("FAIL: blank country/competition label in selected-50 snapshot")
+            if label in selected_labels: raise SystemExit("FAIL: duplicate country/competition label in selected-50 snapshot")
+            selected_labels[label]=sid
+        archive_target={}
+        for sid in season_ids:
+            meta=meta_by_id.get(sid)
+            if not meta: raise SystemExit(f"FAIL: selected season {sid} missing from archive manifest")
+            label=(str(meta.get("selected_country") or "").strip(),str(meta.get("selected_competition_name") or "").strip())
+            if label not in selected_labels or selected_labels[label]!=sid:
+                raise SystemExit(f"FAIL: selected season {sid} label does not exactly match current snapshot manifest")
         for sid,_,_ in staged:
-            p=f"seasons/{sid}/matches.json"
-            if p not in names:
-                raise SystemExit(f"FAIL: selected season {sid} has no exact archive matches file; cannot safely stage")
-            season_files[sid]=json.loads(src.read(p).decode("utf-8"))
-            if not isinstance(season_files[sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {sid}")
+            meta=meta_by_id[sid]
+            label=(str(meta.get("selected_country") or "").strip(),str(meta.get("selected_competition_name") or "").strip())
+            candidates=[]
+            for aid,ameta in meta_by_id.items():
+                alabel=(str(ameta.get("selected_country") or "").strip(),str(ameta.get("selected_competition_name") or "").strip())
+                mp=f"seasons/{aid}/matches.json"; tp=f"seasons/{aid}/teams.json"
+                if alabel==label and mp in names and tp in names:
+                    candidates.append((aid,ameta))
+            if not candidates:
+                raise SystemExit(f"FAIL: no archive season with matches+teams for exact selected label {label}")
+            # Prefer the selected season file if it has one; otherwise prefer the latest
+            # season start label available, using manifest order only as deterministic tie-break.
+            candidates.sort(key=lambda item:(item[0]==sid,str(item[1].get("season") or item[1].get("season_start") or "")),reverse=True)
+            archive_target[sid]=candidates[0][0]
+        season_files={}
+        for archive_sid in set(archive_target.values()):
+            p=f"seasons/{archive_sid}/matches.json"
+            season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
+            if not isinstance(season_files[archive_sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {archive_sid}")
         seen=set(); add_count=0; already=0; conflicts=0
         for sid,row,ko in staged:
-            records=season_files[sid]
+            archive_sid=archive_target[sid]
+            records=season_files[archive_sid]
             by_id={str(m.get("id")):m for m in records if isinstance(m,dict) and valid_id(m.get("id"))}
             fid=str(row.get("id") or "").strip()
             if not fid: quarantined+=1; continue
@@ -80,11 +116,11 @@ def main():
                 new_pair=(str(row.get("homeID") or ""),str(row.get("awayID") or ""))
                 if old_pair!=new_pair:
                     conflicts+=1
-                    raise SystemExit(f"FAIL: fixture ID {fid} conflicts with archive team IDs in season {sid}")
+                    raise SystemExit(f"FAIL: fixture ID {fid} conflicts with archive team IDs in archive season {archive_sid}")
                 already+=1
                 continue
-            if (sid,fid) in seen: raise SystemExit(f"FAIL: duplicate snapshot fixture key {sid}/{fid}")
-            seen.add((sid,fid))
+            if (archive_sid,fid) in seen: raise SystemExit(f"FAIL: duplicate snapshot fixture key {archive_sid}/{fid}")
+            seen.add((archive_sid,fid))
             # Keep provider-native fields, with no derived identities or invented data.
             clean=dict(row)
             clean["id"]=row["id"]
