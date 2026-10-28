@@ -129,6 +129,30 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.assertFalse(result["verified"])
         self.assertIn("runtime_input_hash_matches_pre_runtime_fingerprint", result["failed_checks"])
 
+    def test_required_provenance_makes_bridge_cli_fail_closed(self):
+        self.snapshot.write_text(json.dumps({
+            "retrieved_utc": "2026-10-28T18:00:00Z",
+            "per_season": [{"selected_season_id": f"S{i}"} for i in range(50)],
+            "fixture_rows": [],
+        }), encoding="utf-8")
+        argv = [
+            "audit_selected50_snapshot_runtime_bridge.py",
+            "--snapshot", str(self.snapshot),
+            "--runtime-report", str(self.report),
+            "--runtime-provenance", str(self.root / "missing-provenance.json"),
+            "--expected-snapshot-run-id", "100",
+            "--expected-runtime-run-id", "200",
+            "--require-runtime-provenance",
+            "--out-dir", str(self.root / "bridge-output"),
+        ]
+        with patch("sys.argv", argv), redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(SystemExit, "required snapshot-to-runtime provenance"):
+                main()
+        qa_path = self.root / "bridge-output" / "oracle_selected50_snapshot_runtime_bridge_qa.json"
+        self.assertTrue(qa_path.is_file())
+        qa = json.loads(qa_path.read_text(encoding="utf-8"))
+        self.assertFalse(qa["snapshot_consumption_verified"])
+
     def test_missing_provenance_stays_unverified(self):
         self.args.runtime_provenance = self.root / "missing.json"
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
