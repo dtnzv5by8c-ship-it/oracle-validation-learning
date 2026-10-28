@@ -432,3 +432,14 @@ The nine baseline team-side findings remain unresolved for sign-off: Waregem, Ra
 St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain cross-league review-only pending explicit policy. The separate H2H test dependency issue is resolved by Run #35, but this does not validate or resolve PR #21's alias-provenance blocker.
 
 **Decision unchanged: research-output contract PASS; production release NOT APPROVED; betting release NOT APPROVED.** No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were changed.
+
+
+## Runtime revalidation addendum — 2026-10-28
+
+The latest runtime [Run #120 / 40608511893](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893) passed on research commit `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2`. Artifact [#12781478212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893/artifacts/12781478212) digest verified as `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84`. The output contract passed with 460 fixture rows, 250 league-market rows, 750 walk-forward rows, 25 feature-blocked fixtures, zero training-blocked fixtures, and zero visible Combo probabilities.
+
+A reporting defect was corrected: prediction status now distinguishes feature-blocked, training-blocked, combined-gate and unclassified fail-closed cases. The validator and a new regression test enforce this. Combo remains blocked because the predictor's 2–4-goal target differs from the settlement helper's <5-goal rule. Parent competition IDs verified remain 0/50; canonical fixture/team joins and official settlement truth remain 0 verified. The current-feed snapshot remains stale and emits no governed fixture slate.
+
+Latest planner [Run #465 / 40608512212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212) passed with zero network calls and zero paid-provider calls; its artifact [#12781137784](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212/artifacts/12781137784) is retained. Safety tests [Run #159 / 40608511707](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511707) passed. No production model, probabilities, calibration, thresholds, protected registry, ledgers or governance changed.
+
+Detailed runtime checkpoint: [Run #120](oracle-selected50-runtime-regression-checkpoint-2026-10-28-run120.md). Production and betting release remain NOT APPROVED.
