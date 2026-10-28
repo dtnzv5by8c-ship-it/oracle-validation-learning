@@ -53,6 +53,9 @@ jobs:
       - name: Checkout research repository
         uses: actions/checkout@v4
 
+      - name: Install research test dependencies
+        run: python -m pip install --disable-pip-version-check numpy scikit-learn
+
       - name: Validate parser, chronology, freshness, ledger and metrics tests
         run: python -m unittest discover -s tests -v
 
