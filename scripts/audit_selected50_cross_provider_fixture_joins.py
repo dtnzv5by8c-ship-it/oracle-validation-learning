@@ -27,45 +27,45 @@ def timestamp(row, keys):
             continue
     return None
 
-def rows_from_csv_zip(zf, selected_ids):
-    candidates=[]
-    inventory=[]
+def match_array(payload):
+    if isinstance(payload,list): return payload
+    if isinstance(payload,dict):
+        for key in ("data","matches","results","fixtures","response"):
+            value=payload.get(key)
+            if isinstance(value,list): return value
+            if isinstance(value,dict):
+                nested=match_array(value)
+                if nested: return nested
+    return []
+
+def rows_from_zip(zf, selected_ids):
+    all_rows=[]; member_names=[]; selected_seen=Counter(); inventory=[]
     for name in zf.namelist():
-        if not name.lower().endswith(".csv"): continue
+        if not name.lower().endswith("/matches.json"): continue
+        m=re.search(r"/seasons/(\\d+)/matches\\.json$",name)
+        if not m: continue
+        season_id=m.group(1)
+        if season_id not in selected_ids: continue
         try:
-            with zf.open(name) as raw:
-                wrapper=io.TextIOWrapper(raw,encoding="utf-8-sig",errors="replace",newline="")
-                reader=csv.DictReader(wrapper)
-                fields={x.strip() for x in (reader.fieldnames or [])}
-                inventory.append({"member":name,"fields":sorted(fields)})
-                has_home=bool(fields & {"home_name","home_team","homeTeam","team_a","home_team_name","home"})
-                has_away=bool(fields & {"away_name","away_team","awayTeam","team_b","away_team_name","away"})
-                has_time=bool(fields & {"date_unix","kickoff_unix","date_utc","kickoff_utc","date","match_date","timestamp","kickoff","datetime","date_GMT"})
-                has_comp=bool(fields & {"competition_id","selected_season_id","season_id","provider_season_id","league_season_id"})
-                if has_home and has_away and has_time and has_comp:
-                    candidates.append((name,fields))
-        except Exception:
+            payload=json.loads(zf.read(name).decode("utf-8-sig"))
+        except Exception as exc:
+            inventory.append({"member":name,"season_id":season_id,"parse_error":type(exc).__name__})
             continue
-    if not candidates:
-        return [],[],[],inventory
-    all_rows=[]; member_names=[]; selected_seen=Counter()
-    for name,fields in candidates:
+        matches=match_array(payload)
+        first=next((x for x in matches if isinstance(x,dict)),{})
+        inventory.append({"member":name,"season_id":season_id,"row_count":len(matches),"fields":sorted(first.keys()) if first else []})
         member_names.append(name)
-        with zf.open(name) as raw:
-            reader=csv.DictReader(io.TextIOWrapper(raw,encoding="utf-8-sig",errors="replace",newline=""))
-            for row in reader:
-                comp=str(row.get("selected_season_id") or row.get("season_id") or row.get("provider_season_id") or row.get("competition_id") or "").strip()
-                if comp not in selected_ids: continue
-                ts=timestamp(row,("date_unix","kickoff_unix","kickoff_utc","date_utc","date"))
-                home=row.get("home_name") or row.get("home_team") or row.get("homeTeam") or row.get("team_a") or ""
-                away=row.get("away_name") or row.get("away_team") or row.get("awayTeam") or row.get("team_b") or ""
-                mid=str(row.get("id") or row.get("match_id") or row.get("fixture_id") or "").strip()
-                if not (ts and home and away and mid): continue
-                all_rows.append({"season_id":comp,"match_id":mid,"home":str(home),"away":str(away),"home_norm":norm(home),"away_norm":norm(away),"kickoff_unix":ts,"status":str(row.get("status") or "").strip().lower(),"home_goals":row.get("homeGoalCount") or row.get("home_goals") or row.get("home_score") or "","away_goals":row.get("awayGoalCount") or row.get("away_goals") or row.get("away_score") or ""})
-                selected_seen[comp]+=1
-    # Deduplicate by selected season and source match ID across archive files.
+        for row in matches:
+            if not isinstance(row,dict): continue
+            ts=timestamp(row,("date_unix","kickoff_unix","kickoff_utc","date_utc","date","timestamp"))
+            home=row.get("home_name") or row.get("home_team") or row.get("homeTeam") or row.get("home_team_name") or row.get("home") or ""
+            away=row.get("away_name") or row.get("away_team") or row.get("awayTeam") or row.get("away_team_name") or row.get("away") or ""
+            mid=str(row.get("id") or row.get("match_id") or row.get("fixture_id") or "").strip()
+            if not (ts and home and away and mid): continue
+            all_rows.append({"season_id":season_id,"match_id":mid,"home":str(home),"away":str(away),"home_norm":norm(home),"away_norm":norm(away),"kickoff_unix":ts,"status":str(row.get("status") or "").strip().lower(),"home_goals":row.get("homeGoalCount") if row.get("homeGoalCount") is not None else row.get("home_goals") or row.get("home_score") or "","away_goals":row.get("awayGoalCount") if row.get("awayGoalCount") is not None else row.get("away_goals") or row.get("away_score") or ""})
+            selected_seen[season_id]+=1
     dedup={}
-    for r in all_rows: dedup[(r["season_id"],r["match_id"])]=r
+    for row in all_rows: dedup[(row["season_id"],row["match_id"])]=row
     return list(dedup.values()),member_names,selected_seen,inventory
 
 def load_current_matches(path):
@@ -101,10 +101,10 @@ def main():
     with open(args.identity_crosswalk,encoding="utf-8-sig",newline="") as f:
         for r in csv.DictReader(f): master[str(r.get("selected_manifest_id") or "").strip()]=str(r.get("provider_comp_master_id_observed") or "").strip()
     with zipfile.ZipFile(args.archive) as zf:
-        footy,archive_members,per_season,inventory=rows_from_csv_zip(zf,set(selected))
+        footy,archive_members,per_season,inventory=rows_from_zip(zf,set(selected))
         member_list=zf.namelist()
     if not footy:
-        print("ARCHIVE_SCHEMA_INVENTORY="+json.dumps({"members":member_list,"csv_headers":inventory},sort_keys=True))
+        print("ARCHIVE_SCHEMA_INVENTORY="+json.dumps({"members":member_list,"selected_season_match_json_inventory":inventory},sort_keys=True))
         raise SystemExit("No archive CSV with selected season ID, home/away team and kickoff fields was found. No matches inferred.")
     current=load_current_matches(args.current_matches)
     # Exact key only: normalized ordered home/away pair and exact UTC Unix kickoff.
@@ -145,7 +145,7 @@ def main():
             m=json.loads(Path(args.current_source_manifest).read_text(encoding="utf-8"))
             manifest_info={"generated_utc":m.get("generated_utc"),"requested_start":m.get("requested_start"),"requested_end":m.get("requested_end"),"source":m.get("source"),"path":m.get("path")}
         except Exception: manifest_info={"parse_status":"UNAVAILABLE"}
-    summary={"diagnostic":"SELECTED50_EXACT_CROSS_PROVIDER_FIXTURE_JOIN_AUDIT","generated_utc":datetime.now(timezone.utc).isoformat(),"selected_seasons":len(selected),"footystats_archive_rows":len(footy),"current_fotmob_rows":len(current),"exact_fixture_joins":len(joins),"selected_seasons_with_any_exact_join":len({x["selected_season_id"] for x in joins}),"fotmob_league_ids_with_exact_joins":len({x["fotmob_league_id"] for x in joins}),"bridge_candidate_groups":len(bridge),"strong_candidates":sum(x["bridge_status"].startswith("STRONG") for x in bridge),"source_conflict_rows":sum(not x["score_agree"] or not x["status_agree"] for x in joins),"approved_canonical_bridges":0,"production_eligible":False,"archive_match_csv_members":archive_members,"archive_members_seen":len(member_list),"current_source_manifest":manifest_info,"method":"Exact normalized ordered home/away names plus exact UTC kickoff timestamp; no display-name-only or fuzzy joins; candidate status never grants production eligibility."}
+    summary={"diagnostic":"SELECTED50_EXACT_CROSS_PROVIDER_FIXTURE_JOIN_AUDIT","generated_utc":datetime.now(timezone.utc).isoformat(),"selected_seasons":len(selected),"footystats_archive_rows":len(footy),"current_fotmob_rows":len(current),"exact_fixture_joins":len(joins),"selected_seasons_with_any_exact_join":len({x["selected_season_id"] for x in joins}),"fotmob_league_ids_with_exact_joins":len({x["fotmob_league_id"] for x in joins}),"bridge_candidate_groups":len(bridge),"strong_candidates":sum(x["bridge_status"].startswith("STRONG") for x in bridge),"source_conflict_rows":sum(not x["score_agree"] or not x["status_agree"] for x in joins),"approved_canonical_bridges":0,"production_eligible":False,"archive_match_json_members":archive_members,"archive_members_seen":len(member_list),"current_source_manifest":manifest_info,"method":"Exact normalized ordered home/away names plus exact UTC kickoff timestamp; no display-name-only or fuzzy joins; candidate status never grants production eligibility."}
     (out/"audit_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
     print(json.dumps(summary,indent=2,sort_keys=True))
     print("BRIDGE_CANDIDATES")
