@@ -6,7 +6,7 @@ No network access, provider calls, canonical ledger writes, or mapping inference
 import argparse, csv, hashlib, json
 from datetime import datetime, timezone
 from pathlib import Path
-from validate_current_feed_identity_contract import classify_match
+from scripts.validate_current_feed_identity_contract import classify_match
 
 def sha256(path):
     h=hashlib.sha256()
