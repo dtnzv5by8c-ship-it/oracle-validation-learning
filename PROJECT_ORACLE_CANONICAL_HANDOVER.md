@@ -687,7 +687,7 @@ The automation update calls returned `success=true` and `is_enabled=true`. The s
 ## 56. Selected-50 adapter source-provenance and score-integrity guard — 2026-10-28 13:25 SAST
 
 - Research-only code committed on the public branch; latest verified checkpoint report: [source provenance and score integrity guard](reports/oracle-selected50-source-provenance-score-guard-2026-10-28-1325-sast.md).
-- Current branch head after report commit: `71eea389dc3536cc43679185d24b737c7fc7e42e`.
+- Source-provenance report commit: `71eea389dc3536cc43679185d24b737c7fc7e42e`; handover checkpoint commit: `33318959f8aa91fad642c2cfd5124e38e2b35622`.
 - Updated `scripts/oracle_selected50_footystats_adapter.py` to fail closed when `retrieved_utc` is missing, malformed, timezone-naive or later than adaptation time. It now exports canonical-JSON SHA-256 and retrieval timestamp per row and in the manifest, plus source snapshot age. This hash is over the parsed canonical JSON object, not the original ZIP bytes.
 - Fixed a score-coercion defect: the old `int(float(value))` truncated fractional scores and accepted booleans. The adapter now accepts only finite, non-negative integer scores; invalid values remain blank and completed rows are quarantined as `QUARANTINE_INCOMPLETE_SCORE`.
 - Added seven adapter regression tests: four for snapshot provenance and three for fractional/negative/boolean scores. The identity/adapter workflow push path filter now includes the adapter and its tests; a manual `workflow_dispatch` trigger was added to the offline workflow.
