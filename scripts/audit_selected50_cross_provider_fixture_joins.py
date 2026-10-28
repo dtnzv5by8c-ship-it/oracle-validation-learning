@@ -166,7 +166,7 @@ def main():
             c_complete=c["finished"] or c["status"] in ("ft","aet","pen","complete","completed")
             score_agree=score_known and f_complete and c_complete and f["home_goals"]==c["home_goals"] and f["away_goals"]==c["away_goals"]
             score_conflict=score_known and (f["home_goals"]!=c["home_goals"] or f["away_goals"]!=c["away_goals"])
-            status_agree=None if snapshot_pre_kickoff else ((f_complete==c_complete) or (f["status"] in ("suspended","postponed","cancelled","canceled") and (c["cancelled"] or c["status"] in ("pp","postponed","suspended","cancelled","canceled"))))
+            status_agree="NOT_COMPARABLE_PRE_KICKOFF" if snapshot_pre_kickoff else ((f_complete==c_complete) or (f["status"] in ("suspended","postponed","cancelled","canceled") and (c["cancelled"] or c["status"] in ("pp","postponed","suspended","cancelled","canceled"))))
             row={**base,"join_type":"FOTMOB_CURRENT","fotmob_league_id":c["fotmob_league_id"],"fotmob_league_name":c["fotmob_league_name"],"fotmob_match_id":c["fotmob_match_id"],"canonical_league_code_candidate":"","ledger_match_id":"","fotmob_score":f'{c["home_goals"]}-{c["away_goals"]}',"ledger_score":"","snapshot_generated_utc":c.get("snapshot_generated_utc",""),"snapshot_pre_kickoff":snapshot_pre_kickoff,"score_known_both_sources":bool(score_known),"score_agree":bool(score_agree),"score_conflict":bool(score_conflict),"status_agree":status_agree}
             joins.append(row);fotmob_groups[(sid,c["fotmob_league_id"],c["fotmob_league_name"])].append(row)
         exact_ledger_matches=ledger_by_key.get((f["home_norm"],f["away_norm"],f["kickoff_unix"]),[])

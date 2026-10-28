@@ -107,7 +107,8 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
         self.assertEqual(summary["source_conflict_rows"],0)
         self.assertEqual(exact[0]["snapshot_pre_kickoff"],"True")
         self.assertEqual(exact[0]["score_known_both_sources"],"False")
-        self.assertIsNone(exact[0]["status_agree"])
+        self.assertEqual(exact[0]["status_agree"],"NOT_COMPARABLE_PRE_KICKOFF")
+        self.assertNotIn("_SOURCE_CONFLICT",candidates[0]["bridge_status"])
         self.assertIn("CONTAINS_PRE_KICKOFF_SNAPSHOT_ROWS",candidates[0]["bridge_status"])
 
     def test_date_only_timestamp_is_not_promoted_to_midnight_utc(self):
