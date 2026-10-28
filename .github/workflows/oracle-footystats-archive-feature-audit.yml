@@ -39,6 +39,9 @@ on:
       - "tests/test_score_verified_evaluation.py"
       - "scripts/validate_result_snapshot_provenance.py"
       - "tests/test_result_snapshot_provenance.py"
+      - "scripts/validate_current_feed_identity_contract.py"
+      - "tests/test_current_feed_identity_contract.py"
+      - "data/current_feed_identity_allowlist.research.json"
       - "docs/oracle-result-source-trust-policy-research-only-2026-10-21.md"
       - "docs/oracle-prospective-prediction-evaluation-protocol-v1.md"
 
