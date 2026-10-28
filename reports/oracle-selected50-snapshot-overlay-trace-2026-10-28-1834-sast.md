@@ -96,3 +96,8 @@ No production repository writes, no private-repository Actions runs, no provider
 ## Runtime performance guard — Run #159
 
 The latest completed runtime log reports the raw BTTS backtest accuracy at **53.588%**, versus a **54.143% majority-class baseline**, with AUC **0.5379**. These are raw, uncalibrated research metrics; there is no approved odds/ROI benchmark and no positive betting-edge claim is justified. The runtime output contract passed (`PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`), with 435 rows having at least one supported raw research-market prediction and 25 rows blocked by missing required features. Combo home/away probability counts remained zero.
+
+
+## Latest governed identity matrix — Dry-Run #557
+
+The latest dry-run artifact reports 50 selected season groups, 22 provider-to-current-feed mapping candidates requiring human review, and 28 unresolved groups. **Approved mappings: 0; canonical fixture joins: 0; canonical team joins: 0; official settlement truth: 0; point-in-time xG/odds provenance: 0.** The primary blocker counts are 38 groups with no matching current-feed label, 7 where country is not retained in the current feed, and 5 ambiguous display-label groups with multiple feed IDs. The 22 candidates are not approved mappings. The governed fixture gate remains `BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE`, with zero current governed rows. Dry-Run #557 made zero network calls and zero paid-provider calls; see artifact #12832433378.
