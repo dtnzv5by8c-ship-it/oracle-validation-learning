@@ -80,7 +80,7 @@ jobs:
           mkdir -p current-snapshot
           gh run download "$SNAPSHOT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name oracle-selected50-current-fixture-snapshot --dir current-snapshot
           test -f current-snapshot/current-fixture-snapshot.json
-          gh api "repos/\${GITHUB_REPOSITORY}/actions/runs/\${SNAPSHOT_RUN_ID}/artifacts" > current-snapshot/artifacts-api.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SNAPSHOT_RUN_ID}/artifacts" > current-snapshot/artifacts-api.json
           python - <<'PY'
           import json
           import os
