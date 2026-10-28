@@ -496,3 +496,50 @@ The PR #21 alias diff still contains entries not independently traceable to a ra
 Source references: [run #47 log/source commit](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720); [read-only source archive at commit 015df644](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/015df644864392501ad0173b6350dd3a15d10e1f/database/matches.csv); [current H2H branch diff for PR #21](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/21/files).
 
 This is a reporting-only audit. It does not change the H2H report artifact, Oracle probabilities, production logic, quality thresholds, canonical ledgers, or cross-league policy.
+
+
+## Combined workstream checkpoint — 2026-10-28 04:24 SAST
+
+### Live run state and new verification
+
+- Live research branch head before this reporting-only update: `62e344873e0274e17ff725d5c8405102e1902033`.
+- Latest full runtime remains [Run #120](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893), commit `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2`, artifact [#12781478212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893/artifacts/12781478212), SHA-256 `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84`. No newer runtime run was present in the inspected workflow history.
+- [Dry-Run Planner Run #466](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012759) succeeded on test-only commit `2939f73038265085890bca86cedcdf5150be711b`; artifact [#12787031534](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012759/artifacts/12787031534), SHA-256 `9a1da18e704a97caa319f19d91d4722fbbb5837229c9b9cb8a618cf3fb55abca`.
+- [Safety Contract Tests Run #160](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012826) succeeded on the same commit.
+- Commit `2939f73038265085890bca86cedcdf5150be711b` changes only `tests/test_selected50_current_feed_identity_quarantine.py`, closing the generated CSV through a context manager. The new planner job logs contain no Python ResourceWarning; the planner confirms `network_calls_made=0` and `paid_provider_calls_made=0`.
+- I downloaded Run #466 and previous Planner #465 artifacts and compared all 25 CSV/JSON files by content hash. Every corresponding file is identical. Therefore, the new planner run provides successful regression revalidation but no new archive, identity, coverage, or readiness data finding.
+
+### Independent output validation
+
+The downloaded Runtime #120 artifact independently passes these integrity checks:
+- Selected-50 schedule matrix: 50 unique selected season IDs.
+- League-market readiness: 250 unique `(selected_id, market)` keys.
+- Walk-forward metrics: 750 unique `(selected_id, market, fold)` keys.
+- Prediction export and governed fixture export: 460 rows each, each with 460 unique fixture IDs.
+- The runtime reports 2,300 fixture-market prediction records, 25 feature-blocked fixtures and 435 with at least one research prediction.
+- Both Combo probability columns are blank for all 460 fixture rows; production and betting eligibility remain false.
+
+Planner #466's identity and archive evidence remain research-only: 50 selected groups accounted for; 31 exact Run 56 manifest matches and 19 reconciled through retained private-package QA; 22 unapproved identity candidates, 28 unresolved groups, zero approved bridges, zero verified parent competition IDs, zero canonical fixture/team joins, and zero official settlement-truth rows. The separate row-count sums across evidence layers are not a deduplicated archive total, and manifest absence does not prove that an ingestion request failed.
+
+### Schedule freshness — existing data only
+
+The Runtime #120 schedule snapshot still shows no fixture in the next seven days for:
+- Canada — Canadian Premier League, selected ID 16741: 463 archive rows, 463 explicitly completed.
+- China — Chinese Super League, selected ID 16789: 960 archive rows, 952 explicitly completed.
+- South Korea — K League 1, selected ID 16627: 882 archive rows, 882 explicitly completed.
+
+These figures establish observed archive presence, not provider-history completeness. Zero upcoming fixtures and zero observed 2027 rows do not establish that a league is unsupported or out of season. The separate current-feed snapshot remains stale: source manifest 8 October, reconciliation 7 October, last fixture date 17 October, schedule-window end 22 October; zero governed fixture rows are emitted. No fixtures were synthesized.
+
+Raw BTTS holdout accuracy remains 53.588%, below the 54.143% majority-class baseline; Brier is 0.24746 and AUC is 0.5379. These are raw, uncalibrated research metrics. No odds/ROI benchmark or betting edge is established. Combo remains blocked by the unresolved predictor-versus-settlement definition mismatch.
+
+### H2H watch retained
+
+No new Oracle H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. Latest remain Reporting Run #47 and Tests Run #31. PR #21 remains open, draft, and unmerged at `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`.
+
+Run #47 remains `PASS_WITH_REVIEW_ITEMS`: 95 unique fixture IDs in each of the Oracle, H2H, and joined exports; identical ID sets; zero duplicate IDs, unmatched exact IDs, or joined league-code mismatches. The audit attests probabilities unchanged, but the joined CSV does not support an independent value-by-value probability diff. Thresholds remain 20% maximum unmatched rate, seven-day maximum archive age, and five meetings minimum H2H sample.
+
+No alias was changed or approved. Wisla remains ambiguous; Manchester Utd, Jagiellonia, Lusitania FC and Ceuta remain unresolved in the current report unless new authoritative source evidence is validated through a rerun. St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain cross-league review-only pending explicit policy. Alias provenance remains blocked.
+
+### Decision
+
+Research-output contract: **PASS**. Production release and betting release: **NOT APPROVED**. This update is reporting-only. No provider API calls, PR #21 merge, or changes to production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were made.
