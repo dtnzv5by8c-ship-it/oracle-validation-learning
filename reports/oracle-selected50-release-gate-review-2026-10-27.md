@@ -590,3 +590,59 @@ The governed current-feed snapshot remains stale and internally inconsistent: so
 Walk-forward and holdout metrics remain raw/uncalibrated. The current runtime's BTTS holdout accuracy remains below the recorded majority-class baseline; odds/ROI benchmarking is not approved. Combo remains blocked because the predictor target is Double Chance plus 2–4 total goals inclusive, while the settlement helper accepts fewer than five goals. The mismatch diagnostic remains two scorelines per side; it is not market-policy approval.
 
 **Decision: research-output contracts PASS for the cited runs; production release NOT APPROVED; betting release NOT APPROVED.** No provider API calls, PR #21 merge, production model logic/probability/threshold/calibration changes, canonical registry/ledger changes, or governance changes were made.
+
+## Combined staggered workstream checkpoint — 2026-10-28 07:05 SAST
+
+### Live state and scope
+
+The research branch was re-read at head `8d6e23f46a260ece3ac167c906d2ca878bc64cd7` before this reporting update. Its latest commit before the checkpoint is a documentation-only execution checkpoint; the tested code head for the latest runtime is `f149d0656f7c72ebd0dc7080603516ddee106832`. Comparing that runtime head with `b2a4f7998ba95950929a0610d3a4b3e264d1c0f7` shows only two later workflow-file changes: the archive-audit trigger and safety-contract workflow. No production Oracle code, runtime probability calculation, thresholds, calibration, canonical registry, ledgers, or governance changed.
+
+### Part A — H2H watch
+
+No new Oracle H2H Reporting or H2H Exact-ID Join Tests run exists for PR #21 / `fix/h2h-run31-diagnostic-remediation`. PR #21 remains open, draft, and unmerged at `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`; reviewed baseline remains `06d4ee5dcae3586fc255c390140f8ac46d1d8e63`.
+
+- Reporting [Run #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720), artifact [#12573751940](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720/artifacts/12573751940), SHA-256 `549d8352e939d076bfc764ab8730ced15ec7b5d5bc51026831dd5ddf59231c3f`.
+- Exact-ID Join Tests [Run #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716), successful, no artifact published.
+- The Oracle fixture-ID export, H2H report, and joined report each contain 95 unique fixture IDs; sets match exactly, with zero duplicate IDs, unmatched exact IDs, or joined league-code mismatches.
+- The artifact's 16-row team-side review table has every `mapping_approved=false`. The nine baseline findings remain evidence-limited: Waregem, Rakow, Sepsi Sf. Gheorghe and Entella have prior expected-league archive evidence but no final sign-off; Wisla remains ambiguous; Manchester Utd, Jagiellonia, Lusitania FC and Ceuta remain unresolved coverage gaps unless authoritative new evidence is validated through a new run.
+- St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain review-only pending explicit cross-league policy. No unintended cross-league join appears in the reviewed artifact.
+- The report remains `PASS_WITH_REVIEW_ITEMS`; thresholds remain 20% maximum unmatched rate, seven-day maximum archive age and five meetings minimum H2H sample. Probability preservation is audit-attested; the published joined CSV does not expose the original Oracle probability columns for an independent value-by-value comparison.
+
+### Part B — Selected-50 runtime, planner and archive audit
+
+Latest successful runs on the research branch:
+
+- Research Runtime [Run #125](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633725121), artifact [#12792931105](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633725121/artifacts/12792931105), SHA-256 `e07d12177fdb96ffd217c5a955d95cecfb74ca443ab86bd423943a6ee234d9d9`.
+- Dry-Run Planner [Run #479](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633801419), artifact [#12792208906](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633801419/artifacts/12792208906), SHA-256 `bc9929206d4a61dddb13b1d74493c30891053d8fb112eb7f0ab91568c04c6950`.
+- Safety Contract Tests [Run #173](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633801353) — success. Logs confirm 22 bounded-probe tests, 17 score/settlement tests, seven current-feed identity-contract tests and two offline staging-adapter tests passed.
+- Archive Feature Audit [Run #62](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633801455), artifact [#12792058856](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40633801455/artifacts/12792058856), SHA-256 `276aac82af03db7d3b2b4e43a13699526e547ca6f705262d1a008ff9d8e37f75`. The full audit test suite passed 207 tests. All three ZIP digests were independently computed and match GitHub artifact metadata.
+
+Runtime #125's actual CSV/JSON artifacts validate:
+- Readiness matrix: 50 unique selected season IDs.
+- League-market readiness: 250 unique `(selected_id, market)` keys.
+- Walk-forward metrics: 750 unique `(selected_id, market, fold)` keys.
+- Prediction and governed fixture exports: 463 rows each, 463 unique fixture IDs in each, identical ID sets.
+- 438 fixtures have at least one raw research prediction; 25 remain blocked by required-feature support; zero are production-eligible. Combo probabilities remain masked/null.
+
+I compared Runtime #120 artifact #12781478212 against Runtime #125 artifact #12792931105. The new horizon has three additional fixture IDs (Brazil: Internacional–Coritiba; Colombia: Millonarios–América de Cali; Peru: Alianza Lima–Cienciano). For all 460 overlapping fixtures, BTTS, DC_HOME and DC_AWAY probability fields are exactly equal, including null status; both Combo columns remain null. This is a research-challenger artifact comparison, not a production Oracle probability diff.
+
+The separate archive audit contains 35,819 rows across 126 season folders, 35,819 parseable kickoffs and strict-cutoff feature rows, 28,491 rows meeting explicit settled-status plus complete-score criteria, zero parse errors and zero duplicate fixture IDs. It is a distinct historical archive evidence layer, not a completeness certificate and not an extension of the Selected-50 runtime's 59,049-row archive. The provider catalogue has 43 rows with blank provider IDs; the 126-row archive manifest has blank provider league IDs throughout. The scope guard remains `BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE`; the provisional crosswalk has 25 candidates requiring review and 18 unmatched names, with zero approved canonical mappings. The offline staging adapter's two tests pass, but the adapter has not been executed against a real current-feed source snapshot; no such source was synthesized.
+
+Planner #479 remains dry-run only: zero network calls and zero paid-provider calls. It reports 22 identity candidates requiring human review, 28 unresolved groups, zero approved bridges, zero verified parent competition IDs, zero canonical fixture/team joins and zero official settlement-truth rows. The historical Run 56 31/19 manifest split remains a separate evidence layer; it is not a deduplicated archive total.
+
+### Schedule freshness and confirmed current-feed root cause
+
+Runtime #125's archive-derived next-seven-day snapshot still has zero upcoming fixtures for:
+- Canada — Canadian Premier League, selected ID 16741: 463 archive rows, 463 explicitly completed.
+- China — Chinese Super League, selected ID 16789: 960 archive rows, 952 explicitly completed.
+- South Korea — K League 1, selected ID 16627: 882 archive rows, 882 explicitly completed.
+
+Those counts establish archive presence, not completeness or a live schedule refresh. The separate governed current-feed snapshot remains stale/inconsistent: last fixture date 2026-10-17, schedule-window end 2026-10-22, and zero governed fixture/prediction rows.
+
+The branch's read-only [feed freshness report](oracle-selected50-feed-freshness-verification-2026-10-28.md) and [code-level root-cause report](oracle-selected50-current-feed-code-level-root-cause-2026-10-28.md) confirm that the accessible production-branch manifest was generated `2026-10-06T07:49:26.139704Z`, with requested dates only through 2026-10-08. The inspected production ingestion script admits leagues by display name before recording `league_id`; country/category is not retained as an identity guard, and no reviewed exact-ID allowlist is enforced. This confirms an identity-admission defect and a stale checked-in manifest, but does not prove the scheduler failed or that no newer artifact exists elsewhere. Identity and freshness must be remediated independently. The research allowlist remains intentionally empty, and the legacy name-only ingestion path must not be run as a refresh workaround.
+
+### Metrics and decision
+
+Raw BTTS holdout remains 53.588% accuracy versus a 54.143% majority-class baseline, Brier 0.24746 and AUC 0.5379. These metrics remain uncalibrated; odds/ROI benchmarking is not approved. Combo remains blocked by the predictor target (Double Chance plus 2–4 goals inclusive) versus settlement helper (<5 total goals); no market definition was inferred.
+
+**Decision: research-output contracts PASS for the cited runs; production release NOT APPROVED; betting release NOT APPROVED.** No provider API calls were made. No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers or governance were changed.
