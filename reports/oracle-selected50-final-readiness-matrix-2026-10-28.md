@@ -82,6 +82,12 @@ Historical columns are preserved from the 27 October archive readiness report. T
 - The new schedule artifact provides filtered upcoming fixtures and recent completed matches with provider-native match/team IDs.
 - A repaired research identity crosswalk records all 50 observed `comp_master_id` values and the request provenance.
 
+## Snapshot data quality
+
+The retrieved FootyStats snapshot has 1,744 rows in the 28-day audit window: 871 future fixtures and 871 recent completed results, plus 2 recent suspended rows. Across the window, 354 rows have `no_home_away=1` (181 future and 173 recent); 14 future rows are suspended. Quarantine suspended fixtures and all no-home/away fixtures from standard home/away markets. All rows have team names, team IDs and kickoff timestamps; no duplicate match IDs were detected. There are 47 recent rows with status `complete` and a 0–0 score; retain the source status but reconcile settlement truth before use.
+
+[Read the detailed fixture snapshot data-quality audit](oracle-selected50-fixture-snapshot-data-quality-2026-10-28.md).
+
 ## What is not unblocked
 
 1. The FootyStats snapshot is not the same feed as production's FotMob `database/current_matches.csv`. It must not be substituted silently into production.
