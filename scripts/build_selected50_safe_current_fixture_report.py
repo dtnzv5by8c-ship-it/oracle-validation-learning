@@ -63,6 +63,26 @@ def main():
     required = {"provider_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"}
     if not runtime or not required.issubset(runtime[0]):
         raise SystemExit("FAIL: runtime report missing required exact identity columns")
+    combo_probability_columns = [
+        name for name in runtime[0]
+        if "combo" in name.casefold()
+        and ("probability" in name.casefold() or "prob" in name.casefold())
+        and not any(token in name.casefold() for token in ("status", "reason", "mask", "blocked", "eligibility"))
+    ]
+    visible_combo_columns = sorted({
+        name for row in runtime for name in combo_probability_columns
+        if text(row.get(name))
+    })
+    if visible_combo_columns:
+        raise SystemExit(
+            "FAIL: Combo probability values must remain masked until canonical joins "
+            "and official settlement truth are verified; nonblank values found in: "
+            + ", ".join(visible_combo_columns)
+        )
+    combo_masking_status = (
+        "PASS_ALL_COMBO_PROBABILITY_VALUES_BLANK"
+        if combo_probability_columns else "PASS_NO_COMBO_PROBABILITY_COLUMNS_PRESENT"
+    )
     runtime_by_key = {}
     duplicate_runtime_key_occurrences = 0
     duplicate_runtime_key_set = set()
@@ -164,6 +184,9 @@ def main():
         "runtime_report_rows": len(runtime),
         "duplicate_runtime_exact_keys": duplicate_runtime_key_occurrences,
         "ambiguous_runtime_exact_key_count": len(duplicate_runtime_key_set),
+        "combo_probability_columns_checked": combo_probability_columns,
+        "combo_probability_nonblank_cells": 0,
+        "combo_masking_status": combo_masking_status,
         "source_candidates_blocked_by_duplicate_runtime_exact_key": reason_counts.get("BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", 0),
         "source_candidates_in_7_day_window": total_valid_source_rows,
         "safe_exact_join_rows": len(out_rows),
