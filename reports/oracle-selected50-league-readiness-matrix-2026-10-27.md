@@ -16,7 +16,7 @@
 ## Per-league coverage and release gates
 
 | Country | Competition | Selected season ID | Observed years | Seasons | Archive rows | Completed rows | Primary-window completed | Full 20-feature rows | Fixtures next 7d | Schedule status | Identity gate | Production eligible | FootyStats comp_master_id observed | FotMob bridge evidence | Current feed freshness |
-|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---|
+|---|---|---:|---|---:|---:|---:|---:|---:|---|---|---|---||---:|---|---|
 | Argentina | Primera División | 16571 | 2023;2024;2025;2026 | 4 | 1,965 | 1,932 | 763 | 1,663 | 16 | FIXTURES_FOUND | Parent/canonical unverified | NO | 27 | NO_VERIFIED_BRIDGE | STALE_MANIFEST_2026-10-06 |
 | Australia | A-League | 17326 | 2023;2024;2025;2026 | 4 | 664 | 519 | 207 | 590 | 6 | FIXTURES_FOUND | Parent/canonical unverified | NO | 34 | NO_VERIFIED_BRIDGE | STALE_MANIFEST_2026-10-06 |
 | Austria | Bundesliga | 17181 | 2023;2024;2025;2026 | 4 | 717 | 645 | 300 | 634 | 6 | FIXTURES_FOUND | Parent/canonical unverified | NO | 40 | NO_VERIFIED_BRIDGE | STALE_MANIFEST_2026-10-06 |
