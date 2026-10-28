@@ -1,0 +1,72 @@
+name: Oracle Selected-50 Current Fixture Snapshot (Research Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm approval for at most 50 FootyStats league-matches requests"
+        required: true
+        type: boolean
+        default: false
+      confirm_monthly_credit_budget_checked:
+        description: "Confirm FootyStats credit budget was checked and is sufficient for at most 50 requests"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  current-fixture-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout this workflow revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Checkout isolated research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+          path: research-source
+          persist-credentials: false
+
+      - name: Enforce both explicit confirmations
+        env:
+          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
+        run: |
+          if [ "$CONFIRM_PROVIDER_CREDIT_USAGE" != "true" ]; then
+            echo "::error::Provider-credit approval required; no request made."
+            exit 1
+          fi
+          if [ "$CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED" != "true" ]; then
+            echo "::error::Monthly credit confirmation required; no request made."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run one sequential league-matches request per selected season
+        working-directory: research-source
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: python scripts/oracle_selected50_current_fixture_probe.py
+
+      - name: Validate sanitized snapshot contract
+        working-directory: research-source
+        run: python scripts/validate_selected50_current_fixture_snapshot.py oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
+
+      - name: Upload sanitized current fixture snapshot only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-current-fixture-snapshot
+          path: research-source/oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
+          if-no-files-found: error
+          retention-days: 14
