@@ -470,3 +470,29 @@ The separate governed current-feed snapshot remains stale and inconsistent acros
 No new H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. Latest remain Reporting Run #47 and Tests Run #31; PR #21 remains open, draft, and unmerged. Run #47 still reports `PASS_WITH_REVIEW_ITEMS`; independent checks remain 95/95 exact fixture IDs, zero duplicates, zero unmatched IDs, and zero joined league-code mismatches. The report audit attests probabilities unchanged, but its joined CSV does not support a value-by-value Oracle probability diff. Alias provenance remains blocked; Wisla remains ambiguous; Manchester Utd and Lusitania remain gaps without authoritative new evidence; St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain review-only. Thresholds remain unchanged.
 
 No provider API calls were made. No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were changed. Production and betting release remain **NOT APPROVED**.
+
+
+## Read-only H2H source-row audit — 2026-10-28 03:31 SAST
+
+The source commit logged by H2H Reporting Run #47 is `015df644864392501ad0173b6350dd3a15d10e1f` in private source repository `oracle-football-data`, branch `fix/epl-btts-team-state-aliases`. The checked-in `database/matches.csv` blob is `002abc9cea35ec75af39bd25a131559d029a861b` and contains 12,836 rows at that commit. The H2H workflow subsequently extended the local archive to 75,351 rows (audit SHA-256 `d66afe71e0e2e1f3dab36e58e58cb287be2adcac2cc4c7fae5d56dfceb2a0eae`). Therefore, the following counts corroborate source identity from the starting snapshot; they are not a substitute for inspecting every row in the extended archive.
+
+| League | Raw archive team label | Occurrences in starting snapshot | Review result |
+|---|---|---:|---|
+| B1 | Zulte Waregem | 43 | Supports the Waregem → Zulte Waregem candidate |
+| POL | Raków Częstochowa | 52 | Supports the Rakow → Raków Częstochowa candidate |
+| I2 | Virtus Entella | 43 | Supports the Entella → Virtus Entella candidate |
+| ROU | Sepsi OSK | 18 | Supports the Sepsi Sf. Gheorghe → Sepsi OSK candidate; existing private team-alignment code also has this league-scoped mapping |
+| E0 | Man United | 52 | New source evidence for the Manchester Utd case, but the H2H alias table lacks the normalized `manunited` key; current artifact remains unresolved pending a rerun |
+| POL | Jagiellonia Białystok | 51 | New source evidence for Jagiellonia; `norm()` drops the non-decomposing `ł`, producing `jagielloniabiaystok`, while the current alias key is `jagielloniabialystok`; that key does not match the actual normalized spelling |
+| SP2 | AD Ceuta FC | 48 | New source evidence for Ceuta; current alias table has `adceuta` but lacks `adceutafc`, so the full source label does not match |
+| POL | Wisła Płock | 42 | Supports a specific Wisła Płock alias only |
+| POL | Wisła Kraków | 9 | Confirms the generic label “Wisla” is ambiguous; do not map it to either club |
+| POR2 | Lusitânia Lourosa | 40 | Confirms a canonical team exists in the league, but does not independently prove that fixture label “Lusitania FC” is the same identity |
+
+The current H2H report still has five `NOT_FOUND_IN_ARCHIVE` team-side records: Wisla, Manchester Utd, Jagiellonia, Lusitania FC, and Ceuta. The new source snapshot gives actionable, evidence-backed candidates for Manchester Utd, Jagiellonia, and Ceuta, but no alias was changed and none of those cases is marked resolved without a new H2H run. For Lusitania FC, no explicit identity bridge from that exact fixture label to Lusitânia Lourosa was found; retain the coverage gap. Wisla remains ambiguous.
+
+The PR #21 alias diff still contains entries not independently traceable to a raw source row or a label in the reviewed 95-fixture export, including `manchesterunitedfc`, `ado`, and `asaintetienne`. These remain unapproved pending evidence. Other newly added aliases have source-label support in the inspected snapshot, but full alias-provenance sign-off is still blocked until every addition is tied to a source spelling, league scope, and matching canonical archive label. No PR branch changes were made and no new H2H run was triggered.
+
+Source references: [run #47 log/source commit](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720); [read-only source archive at commit 015df644](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/015df644864392501ad0173b6350dd3a15d10e1f/database/matches.csv); [current H2H branch diff for PR #21](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/21/files).
+
+This is a reporting-only audit. It does not change the H2H report artifact, Oracle probabilities, production logic, quality thresholds, canonical ledgers, or cross-league policy.
