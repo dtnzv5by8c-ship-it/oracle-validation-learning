@@ -66,6 +66,22 @@ class ResolverTests(unittest.TestCase):
         fs = [{"selected_season_id": "16741", "id": 2, "home_name": "", "away_name": ""}]
         self.assertEqual(resolve_candidates(fs, [{"home_team": "A", "away_team": "B"}]), [])
 
+    def test_no_home_away_flag_is_quarantined(self):
+        fs = [{
+            "selected_season_id": "16741", "id": 12, "home_name": "Forge FC",
+            "away_name": "Pacific FC", "date_unix": 1790895600,
+            "status": "complete", "homeGoalCount": 3, "awayGoalCount": 0,
+            "no_home_away": 1,
+        }]
+        ref = [{
+            "match_id": "x", "home_team": "Forge", "away_team": "Pacific",
+            "kickoff_utc": "2026-10-01T23:00:00+00:00", "status": "complete",
+            "home_goals": 3, "away_goals": 0,
+        }]
+        rows = resolve_candidates(fs, ref)
+        self.assertEqual(rows[0]["settlement_status"], "QUARANTINE_NO_HOME_AWAY")
+        self.assertEqual(rows[0]["decision"], "NOT_APPROVED")
+
 
 if __name__ == "__main__":
     unittest.main()
