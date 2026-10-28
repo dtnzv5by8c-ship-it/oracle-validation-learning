@@ -37,10 +37,10 @@ def run(input_path, allowlist_path, output_dir):
             result=classify_match(row,allow)
             record={"source_line":line_no,"source_row":row,"identity_audit":result}
             if result["admitted"]:
-                ok.write(json.dumps(record,ensure_ascii=False,sort_keys=True)+"\\n")
+                ok.write(json.dumps(record,ensure_ascii=False,sort_keys=True)+"\n")
                 counts["accepted_rows"]+=1
             else:
-                q.write(json.dumps(record,ensure_ascii=False,sort_keys=True)+"\\n")
+                q.write(json.dumps(record,ensure_ascii=False,sort_keys=True)+"\n")
                 counts["quarantined_rows"]+=1
                 reason=result["reason"]; counts["reasons"][reason]=counts["reasons"].get(reason,0)+1
     manifest={
@@ -52,7 +52,7 @@ def run(input_path, allowlist_path, output_dir):
       "accepted_sha256":sha256(accepted),"quarantined_sha256":sha256(quarantined),
       "release_policy":"Accepted rows are staging candidates only; this manifest does not approve production eligibility or official settlement truth."
     }
-    (out/"manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+    (out/"manifest.json").write_text(json.dumps(manifest,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     return manifest
 
 def main():
