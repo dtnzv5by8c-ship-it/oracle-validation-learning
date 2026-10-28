@@ -88,6 +88,10 @@ The retrieved FootyStats snapshot has 1,744 rows in the 28-day audit window: 871
 
 [Read the detailed fixture snapshot data-quality audit](oracle-selected50-fixture-snapshot-data-quality-2026-10-28.md).
 
+## Current-feed incident
+
+The latest three visible production `Oracle Current Data Staging` workflow runs (26–27 October) failed. The exact failure cause remains unverified because the connected log read did not expose the job logs. Do not infer a quota or code cause without the failure step. [Incident evidence and safe remediation](oracle-selected50-production-current-feed-incident-2026-10-28.md).
+
 ## What is not unblocked
 
 1. The FootyStats snapshot is not the same feed as production's FotMob `database/current_matches.csv`. It must not be substituted silently into production.
