@@ -1,0 +1,21 @@
+name: Selected-50 Safe Current Fixture Report Contract (Research Dispatch)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run isolated safe-report contract test
+        run: python tests/test_selected50_safe_current_fixture_report.py -v
