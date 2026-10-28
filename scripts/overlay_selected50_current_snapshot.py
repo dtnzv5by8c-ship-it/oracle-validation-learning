@@ -11,7 +11,7 @@ from pathlib import Path
 BAD_STATUS=("suspend","postpon","cancel","abandon","void","delay")
 TRACE_COLUMNS = [
     "snapshot_row_number", "snapshot_file_sha256", "source_archive_sha256", "snapshot_retrieved_utc",
-    "selected_season_id", "fixture_id", "kickoff_utc", "status", "no_home_away",
+    "selected_season_id", "selected_country", "selected_competition", "fixture_id", "kickoff_utc", "status", "no_home_away",
     "home_team_provider_id", "away_team_provider_id", "trace_outcome", "trace_reason",
     "target_archive_season_id", "production_eligible", "betting_eligible",
     "canonical_fixture_join_status", "canonical_team_join_status",
@@ -57,14 +57,17 @@ def no_home_away_flag(value):
         return False
     return None
 
-def make_trace_row(row_number, row, snapshot_sha256, archive_sha256, retrieved_utc):
+def make_trace_row(row_number, row, snapshot_sha256, archive_sha256, retrieved_utc, season_meta=None):
     source = row if isinstance(row, dict) else {}
+    season_meta = season_meta or {}
     return {
         "snapshot_row_number": row_number,
         "snapshot_file_sha256": snapshot_sha256,
         "source_archive_sha256": archive_sha256,
         "snapshot_retrieved_utc": retrieved_utc,
         "selected_season_id": str(source.get("selected_season_id") or "").strip(),
+        "selected_country": str(season_meta.get("country") or "").strip(),
+        "selected_competition": str(season_meta.get("competition") or "").strip(),
         "fixture_id": str(source.get("id") or "").strip(),
         "kickoff_utc": str(source.get("kickoff_utc") or "").strip(),
         "status": str(source.get("status") or "").strip(),
@@ -131,10 +134,12 @@ def main():
     if not isinstance(fixture_rows,list):
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
     season_set=set(season_ids)
+    season_meta_by_id={str(x.get("selected_season_id") or "").strip():x for x in seasons if isinstance(x,dict)}
     staged=[]; trace_rows=[]; quarantined=0; beyond=0; historical=0
     quarantine_reason_counts={}
+    no_home_away_by_league={}
     for row_number, row in enumerate(fixture_rows, start=1):
-        trace=make_trace_row(row_number,row,snapshot_sha256,archive_sha256,snap.get("retrieved_utc") or "")
+        trace=make_trace_row(row_number,row,snapshot_sha256,archive_sha256,snap.get("retrieved_utc") or "",season_meta_by_id.get(str(row.get("selected_season_id") or "").strip()) if isinstance(row,dict) else None)
         trace_rows.append(trace)
         if not isinstance(row,dict):
             quarantined+=1
@@ -163,11 +168,18 @@ def main():
             continue
         status=str(row.get("status") or "").strip().lower()
         flag=no_home_away_flag(row.get("no_home_away"))
+        meta=season_meta_by_id.get(sid,{})
+        league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
+        league_diag=no_home_away_by_league.setdefault(league_key,{"selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),"future_rows_in_7d":0,"no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,"suspended_or_nonstandard_status":0})
+        league_diag["future_rows_in_7d"]+=1
+        league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
         reasons=[]
         if flag is True: reasons.append("NO_HOME_AWAY_FLAGGED")
         elif flag is None: reasons.append("NO_HOME_AWAY_FLAG_UNKNOWN")
         if not status: reasons.append("MISSING_STATUS")
-        if any(w in status for w in BAD_STATUS): reasons.append("NONSTANDARD_STATUS")
+        if any(w in status for w in BAD_STATUS):
+            reasons.append("NONSTANDARD_STATUS")
+            league_diag["suspended_or_nonstandard_status"]+=1
         if not valid_id(row.get("id")): reasons.append("INVALID_FIXTURE_ID")
         if not valid_id(row.get("homeID")): reasons.append("INVALID_HOME_TEAM_ID")
         if not valid_id(row.get("awayID")): reasons.append("INVALID_AWAY_TEAM_ID")
@@ -299,6 +311,8 @@ def main():
       "staged_window_days":7,"candidate_rows_added":add_count,
       "already_present_exact_fixture_ids":already,"quarantined_or_invalid_rows":quarantined,
       "quarantine_reason_counts":dict(sorted(quarantine_reason_counts.items())),
+      "no_home_away_flag_semantics":"UNVERIFIED_PER_FIXTURE; flagged rows remain quarantined until provider semantics are verified against authoritative league-season metadata",
+      "no_home_away_flag_by_league":sorted(no_home_away_by_league.values(),key=lambda x:(x["country"],x["competition"])),
       "unsupported_archive_rows_not_staged":unsupported_rows,
       "unsupported_selected_league_count":len(unsupported_labels),
       "unsupported_selected_leagues":unsupported_labels,
