@@ -50,9 +50,9 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_artifact_workflow_run_id": "100",
             "runtime_run_id": "200",
             "selected_input_matches_overlay": True,
-            "selected_runtime_input_archive_sha256": "overlay-hash",
-            "selected_runtime_input_archive_sha256_before_runtime": "overlay-hash",
-            "overlay_archive_sha256": "overlay-hash",
+            "selected_runtime_input_archive_sha256": "c" * 64,
+            "selected_runtime_input_archive_sha256_before_runtime": "c" * 64,
+            "overlay_archive_sha256": "c" * 64,
             "runtime_report_sha256": sha(self.report),
             "runtime_ref": "refs/heads/research/oracle-50-league-readiness-audit",
             "runtime_commit_sha": "abc123",
@@ -98,6 +98,15 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("expected_runtime_run_id_matches", result["failed_checks"])
+
+    def test_non_sha256_runtime_archive_fingerprint_is_a_release_blocker(self):
+        self.provenance["selected_runtime_input_archive_sha256"] = "not-a-hash"
+        self.provenance["selected_runtime_input_archive_sha256_before_runtime"] = "not-a-hash"
+        self.provenance["overlay_archive_sha256"] = "not-a-hash"
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("selected_input_archive_hash_is_sha256", result["failed_checks"])
 
     def test_missing_artifact_identity_is_a_release_blocker(self):
         self.provenance["snapshot_artifact_id"] = None
