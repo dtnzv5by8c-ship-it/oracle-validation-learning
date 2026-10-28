@@ -29,6 +29,20 @@ class FeatureBuilderUnitTests(unittest.TestCase):
         self.assertFalse(mod.settled({"status": "postponed"}))
         self.assertTrue(mod.settled({"status": "complete"}))
 
+    def test_non_complete_zero_zero_placeholders_are_not_settled_truth(self):
+        # Numeric zero scores can parse successfully even when the source status
+        # says the match is not complete. Status must therefore gate truth.
+        for raw_status in ("incomplete", "suspended", "canceled", "cancelled", "postponed", "abandoned"):
+            with self.subTest(status=raw_status):
+                row = {"status": raw_status, "homeGoalCount": 0, "awayGoalCount": 0}
+                self.assertEqual(mod.score(row, mod.HG_KEYS, "homeGoals"), (0, "explicit_score_field"))
+                self.assertEqual(mod.score(row, mod.AG_KEYS, "awayGoals"), (0, "explicit_score_field"))
+                self.assertFalse(mod.settled(row))
+
+        # A complete 0-0 can be a research truth candidate, but is not by itself
+        # proof of source authenticity, fixture identity, or production settlement.
+        self.assertTrue(mod.settled({"status": "complete", "homeGoalCount": 0, "awayGoalCount": 0}))
+
     def test_missing_score_not_imputed(self):
         self.assertEqual(mod.score({}, mod.HG_KEYS, "homeGoals"), (None, "unavailable"))
 
