@@ -21,6 +21,7 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         self.overlay = self.root / "overlay.zip"
         self.snapshot = self.root / "snapshot.json"
         self.qa = self.root / "overlay-qa.json"
+        self.metadata = self.root / "snapshot-artifact-metadata.json"
         self.report = self.root / "prediction.csv"
         self.snapshot_time = "2026-10-28T18:00:00+00:00"
         with zipfile.ZipFile(self.source, "w") as archive:
@@ -34,6 +35,18 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         }), encoding="utf-8")
         self.report.write_text("fixture_id,probability\nF1,55.0\n", encoding="utf-8")
         self.write_qa()
+        self.metadata.write_text(json.dumps({
+            "artifact_id": "789",
+            "artifact_name": "oracle-selected50-current-fixture-snapshot",
+            "artifact_digest": "sha256:" + "a" * 64,
+            "artifact_size_bytes": 103738,
+            "artifact_created_at": "2026-10-28T17:22:29Z",
+            "artifact_expires_at": "2026-11-11T17:22:27Z",
+            "artifact_expired": False,
+            "artifact_workflow_run_id": "123",
+            "artifact_head_branch": "research/oracle-50-league-readiness-audit",
+            "artifact_head_sha": "deadbeef",
+        }), encoding="utf-8")
         self.kwargs = dict(
             snapshot_path=self.snapshot,
             overlay_qa_path=self.qa,
@@ -49,6 +62,8 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
             runtime_ref="refs/heads/research/oracle-50-league-readiness-audit",
             archive_release_tag="research-selected50-footystats-history-40447419806",
             runtime_archive_env=str(self.overlay),
+            selected_archive_sha256_before_runtime=sha(self.overlay),
+            snapshot_artifact_metadata_path=self.metadata,
         )
 
     def tearDown(self):
@@ -77,6 +92,10 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         self.assertEqual(result["selected_runtime_input_archive_sha256"], sha(self.overlay))
         self.assertEqual(result["overlay_archive_sha256"], sha(self.overlay))
         self.assertEqual(result["runtime_report_sha256"], sha(self.report))
+        self.assertEqual(result["snapshot_artifact_id"], "789")
+        self.assertEqual(result["snapshot_artifact_digest"], "sha256:" + "a" * 64)
+        self.assertEqual(result["snapshot_artifact_workflow_run_id"], "123")
+        self.assertEqual(result["selected_runtime_input_archive_sha256_before_runtime"], sha(self.overlay))
         self.assertFalse(result["production_eligible"])
         self.assertFalse(result["betting_eligible"])
 
@@ -93,6 +112,23 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
     def test_runtime_archive_environment_must_match_selected_input_path(self):
         self.kwargs["runtime_archive_env"] = str(self.source)
         with self.assertRaisesRegex(SystemExit, "ORACLE_ARCHIVE path"):
+            build_provenance(**self.kwargs)
+
+    def test_pre_runtime_archive_hash_mismatch_fails_closed(self):
+        self.kwargs["selected_archive_sha256_before_runtime"] = "0" * 64
+        with self.assertRaisesRegex(SystemExit, "changed between pre-runtime fingerprint"):
+            build_provenance(**self.kwargs)
+
+    def test_snapshot_artifact_run_mismatch_fails_closed(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_workflow_run_id"] = "999"
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "artifact metadata run ID"):
+            build_provenance(**self.kwargs)
+
+    def test_missing_snapshot_artifact_metadata_fails_closed(self):
+        self.kwargs["snapshot_artifact_metadata_path"] = self.root / "missing-metadata.json"
+        with self.assertRaisesRegex(SystemExit, "exact GitHub artifact metadata is missing"):
             build_provenance(**self.kwargs)
 
     def test_disabled_overlay_explicitly_does_not_claim_snapshot_consumption(self):
