@@ -270,5 +270,49 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                     self.assertIn(message, proc.stderr)
 
 
+
+    def test_exact_fixture_key_with_kickoff_mismatch_is_blocked(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
+            snap = root / "snapshot.json"
+            snap.write_text(json.dumps({
+                "retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,
+                "fixture_rows":[{"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-29T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2"}]
+            }), encoding="utf-8")
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.DictWriter(h, fieldnames=[
+                    "provider_season_id","fixture_id","date_utc","home_team_provider_id",
+                    "away_team_provider_id","BTTS_probability_pct",
+                    "COMBO_HOME_probability_pct","COMBO_AWAY_probability_pct"
+                ])
+                w.writeheader()
+                w.writerow({"provider_season_id":"0","fixture_id":"A","date_utc":"2026-10-29T12:05:00Z","home_team_provider_id":"1","away_team_provider_id":"2","BTTS_probability_pct":"61.5"})
+            out = root / "out"
+            proc = subprocess.run([
+                sys.executable, str(SCRIPT), "--snapshot", str(snap),
+                "--runtime-report", str(report), "--out-dir", str(out),
+                "--as-of-utc", "2026-10-28T10:00:00Z"
+            ], text=True, capture_output=True)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            qa = json.loads((out / "oracle_selected50_safe_current_fixture_report_qa.json").read_text())
+            self.assertEqual(qa["safe_exact_join_rows"], 0)
+            self.assertEqual(qa["source_candidates_blocked_by_missing_runtime_or_team_identity"], 1)
+            self.assertEqual(qa["reason_counts"]["BLOCKED_KICKOFF_MISMATCH"], 1)
+            with (out / "oracle_selected50_safe_current_fixture_report.csv").open(newline="", encoding="utf-8") as h:
+                self.assertEqual(list(csv.DictReader(h)), [])
+            with (out / "oracle_selected50_safe_current_fixture_exclusions.csv").open(newline="", encoding="utf-8") as h:
+                rows = list(csv.DictReader(h))
+            self.assertEqual(rows[0]["classification"], "BLOCKED_KICKOFF_MISMATCH")
+            self.assertEqual(rows[0]["market_gate_status"], "BLOCKED_KICKOFF_MISMATCH")
+            self.assertEqual(rows[0]["runtime_kickoff_utc"], "2026-10-29T12:05:00Z")
+            self.assertEqual(rows[0]["canonical_fixture_join_status"], "NOT_VERIFIED")
+            self.assertEqual(rows[0]["official_settlement_truth_status"], "NOT_VERIFIED")
+            self.assertEqual(rows[0]["combo_masked"], "YES")
+            self.assertEqual(rows[0]["production_eligible"], "NO")
+            self.assertEqual(rows[0]["betting_eligible"], "NO")
+
+
 if __name__ == "__main__":
     unittest.main()
