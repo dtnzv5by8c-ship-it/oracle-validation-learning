@@ -289,3 +289,16 @@ The settlement QA is internal status/score QA only: all 50 selected groups remai
 ### Current release decision
 
 **Runtime/regression QA: PASS. Production/betting eligibility: NOT GRANTED.** Parent competition IDs remain 0/50 verified; provider-to-canonical bridges remain 0; canonical fixture/team joins, official settlement truth, point-in-time provenance, and approved calibration/odds evidence remain outstanding. Production Oracle V1.6/V1.6.3, probabilities, thresholds, calibration, registry, ledgers, and governance remain unchanged. The source code has not changed since Run #119, so a new runtime dispatch was not necessary for this documentation-only checkpoint.
+
+
+## Run #120 addendum — 2026-10-28
+
+Latest live runtime [Run #120 / 40608511893](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893) passed. Artifact [#12781478212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893/artifacts/12781478212) has 14 files, 157,457 bytes; independently computed SHA-256 `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84` matches GitHub's digest.
+
+The runtime now reports specific `prediction_status` values rather than the legacy generic `NO_PREDICTION_FEATURE_OR_TRAINING_GATE`. The output validator enforces the status/reason mapping; a new fail-closed unclassified-status regression test was added. Combo target tests passed 5/5, support diagnostics tests 5/5, output contract `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+
+Current horizon: 460 fixture rows, 435 with at least one research-market prediction, 25 blocked by missing required features, zero blocked by unavailable training. All 25 feature-blocked rows have all five model fits available (44,568 eligible training rows per market). The previous 26-row count included Vicenza–Modena fixture `8614496`, now outside the future-fixture horizon.
+
+Combo probabilities remain masked in both exports. Production eligibility remains `NO` for all fixtures and all 250 league-market rows. No provider API calls were made; the workflow used the existing private archive tag `research-selected50-footystats-history-40447419806`.
+
+Research code/test commit: `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2`. Full checkpoint: [Run #120 runtime regression checkpoint](oracle-selected50-runtime-regression-checkpoint-2026-10-28-run120.md).
