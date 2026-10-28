@@ -247,7 +247,7 @@ def main():
             season_match_paths[archive_sid]=p
             season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
             if not isinstance(season_files[archive_sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {archive_sid}")
-        seen=set(); add_count=0; already=0; conflicts=0; unsupported_rows=0
+        seen=set(); add_count=0; already=0; refreshed=0; conflicts=0; unsupported_rows=0
         for sid,row,ko,trace in staged:
             if sid not in archive_target:
                 unsupported_rows+=1
@@ -274,9 +274,30 @@ def main():
                     trace["trace_reason"]="EXACT_PROVIDER_FIXTURE_ID_HAS_DIFFERENT_HOME_AWAY_TEAM_IDS"
                     write_trace(trace_path,trace_rows)
                     raise SystemExit(f"FAIL: fixture ID {fid} conflicts with archive team IDs in archive season {archive_sid}")
-                already+=1
-                trace["trace_outcome"]="ALREADY_PRESENT_EXACT_FIXTURE_ID_AND_TEAM_IDS"
-                trace["trace_reason"]="PROVIDER_FIXTURE_ID_AND_ORDERED_TEAM_IDS_MATCH_ARCHIVE"
+                # An exact ID/team match can still carry stale schedule/status fields in the
+                # historical archive. Refresh only provider-supplied, non-empty identity and
+                # scheduling fields in this isolated research copy; preserve historical stats
+                # and all fields absent from the fresh snapshot.
+                refresh_fields = (
+                    "kickoff_utc", "date_unix", "kickoff_unix", "timestamp", "kickoff",
+                    "date", "datetime", "match_date", "status", "game_status",
+                    "no_home_away", "homeID", "awayID", "home_id", "away_id",
+                    "home_name", "away_name", "homeTeam", "awayTeam",
+                )
+                changed_fields = []
+                for field in refresh_fields:
+                    fresh_value = row.get(field)
+                    if fresh_value not in (None, "") and old.get(field) != fresh_value:
+                        old[field] = fresh_value
+                        changed_fields.append(field)
+                if changed_fields:
+                    refreshed += 1
+                    trace["trace_outcome"]="REFRESHED_PRESENT_EXACT_FIXTURE_ID_AND_TEAM_IDS"
+                    trace["trace_reason"]="EXACT_PROVIDER_FIXTURE_ID_AND_ORDERED_TEAM_IDS_MATCH; FRESH_NONEMPTY_SCHEDULE_FIELDS_REFRESHED: " + ";".join(changed_fields)
+                else:
+                    already+=1
+                    trace["trace_outcome"]="ALREADY_PRESENT_EXACT_FIXTURE_ID_AND_TEAM_IDS"
+                    trace["trace_reason"]="PROVIDER_FIXTURE_ID_AND_ORDERED_TEAM_IDS_MATCH_ARCHIVE; NO_REFRESHABLE_FIELD_CHANGED"
                 continue
             if (archive_sid,fid) in seen:
                 trace["trace_outcome"]="DUPLICATE_SNAPSHOT_FIXTURE_KEY"
@@ -309,7 +330,9 @@ def main():
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":7,"candidate_rows_added":add_count,
-      "already_present_exact_fixture_ids":already,"quarantined_or_invalid_rows":quarantined,
+      "already_present_exact_fixture_ids":already,
+      "refreshed_present_exact_fixture_ids":refreshed,
+      "quarantined_or_invalid_rows":quarantined,
       "quarantine_reason_counts":dict(sorted(quarantine_reason_counts.items())),
       "no_home_away_flag_semantics":"UNVERIFIED_PER_FIXTURE; flagged rows remain quarantined until provider semantics are verified against authoritative league-season metadata",
       "no_home_away_flag_by_league":sorted(no_home_away_by_league.values(),key=lambda x:(x["country"],x["competition"])),
