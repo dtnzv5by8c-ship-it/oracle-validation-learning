@@ -707,3 +707,49 @@ The research branch's [one-call identity-probe workflow](https://github.com/dtnz
 ### Decision
 
 Research-output contracts PASS for the cited runs. Production release and betting release remain **NOT APPROVED**. Raw BTTS accuracy remains 53.588%, below the 54.143% majority-class baseline; Brier 0.24746 and AUC 0.5379 remain uncalibrated research metrics, not betting-edge evidence. Combo remains blocked by the predictor/settlement definition mismatch. No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers or governance were changed.
+
+
+---
+
+## Combined live checkpoint — 2026-10-28 13:10 SAST
+
+### Live refs and run status
+
+- Research branch head: [`2adcc1deaecf012c6e61977fe0a91f6273275bf9`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/2adcc1deaecf012c6e61977fe0a91f6273275bf9).
+- [PR #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/31) is open, draft, and unmerged. Its current diff spans 248 files, including the research-only FootyStats resolver/adapter, tests, documentation, and workflow guard changes. This is not merge approval.
+- [Research Runtime #150](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677788876), source commit `6ac1b0ae89115e77d2a448d7fcbc4091416a862e`, succeeded; [artifact #12810274858](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677788876/artifacts/12810274858), SHA-256 `fd03e898ae116910cccc4195e0386be88b06e28002b1266a67cb305a4d7f8701`.
+- [Dry-Run Planner #520](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677813787) on the current head succeeded; [artifact #12811452579](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677813787/artifacts/12811452579), SHA-256 `cb67d4524092bfa67db47d5cfac283abf1535705b02e41975549efd4eb4732b5`.
+- [Safety Contract Tests #222](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677813708) and [FootyStats Identity Resolver Tests #4](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40677813719) passed on the current head. Resolver tests: 7 passed; adapter tests: 5 passed. The three commits after Runtime #150 change only the identity-test workflow, adapter tests, and adapter documentation—not runtime logic.
+
+### H2H watch — no material change
+
+No new run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. [H2H Reporting #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720) and [Exact-ID Join Tests #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716) remain latest. Report artifact #12573751940 remains SHA-256 `549d8352e939d076bfc764ab8730ced15ec7b5d5bc51026831dd5ddf59231c3f`: 95 rows and 95 unique fixture IDs in each of the three exports; identical ID sets; zero duplicates, unmatched IDs, or joined league-code mismatches. Status remains `PASS_WITH_REVIEW_ITEMS`; thresholds unchanged (20% unmatched, seven-day archive age, five meetings minimum). The nine monitored team-side findings remain without final alias sign-off; Wisla remains ambiguous, Manchester Utd/Lusitania remain coverage gaps, and St Etienne–Nantes, Hull–Brentford, Auxerre–Le Mans remain review-only. PR #21 remains open/draft/unmerged; no aliases were changed or approved.
+
+### Selected-50 integrity and probability stability
+
+Runtime #150 independently reports 50 selected IDs, 250 unique selected-ID/market rows, 750 unique selected-ID/market/fold rows, 463 unique fixture IDs in each prediction/governed export, and 2,315 fixture-market prediction rows. There are 438 fixtures with at least one research prediction and 25 blocked by missing required features. All 250 market rows and 750 walk-forward rows remain production-ineligible; Combo probabilities are masked; no fixture is production-eligible.
+
+Compared Runtime #150 with [Runtime #147 artifact #12797526943](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418147/artifacts/12797526943), SHA-256 `cd281b5dd35656815879ba546ffb860bd1db75cc8daeca6db3373bb777ba16db`: all 463 fixture IDs are identical, and BTTS, DC_HOME, DC_AWAY, both Combo probability fields, and Combo status are unchanged for every row. This is a research-challenger comparison, not a production Oracle probability diff.
+
+The new resolver and adapter remain candidate-only research tooling. They use FootyStats season IDs as research anchors, never as parent competition or Oracle canonical IDs; fuzzy matches and exact candidate matches remain unapproved. No real snapshot-to-reference candidate run was produced by the unit-test workflow. The bounded endpoint-probe workflow can make up to 201 provider requests and requires two explicit credit/budget confirmations; it was not dispatched under the current no-provider-call instruction.
+
+### Keep evidence layers separate — schedule-count reconciliation
+
+The existing [FootyStats one-call snapshot artifact #12796207151](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796207151), SHA-256 `813818e24514e15f542b9cc63deddb92d5507521d364c9b755d318e7bbcb14e4`, was retrieved at `2026-10-28T06:19:09.645973Z`. Its actual `identity-probe-summary.json` reports 2,250 rows across 50 selected seasons, 871 upcoming rows in the 14-day window, and **1,372** recent completed rows in the 30-day window. The stated 871 recent-completed count is not supported by this artifact: 871 is the future-window count. No newer schedule-snapshot artifact was found in the inspected run history. No provider API call was made in this checkpoint.
+
+| Evidence layer | Verified state | Interpretation |
+|---|---|---|
+| Runtime historical archive | 59,049 deduplicated match records across 200 historical seasons; 51,983 explicitly completed records | Runtime training/history layer; not the same population as the selected-season QA snapshot |
+| Selected-50 private-archive QA snapshot | 14,051 rows across 50 season folders | Its own manifest marks the QA snapshot as pre-batch-5 and superseded for current archive coverage; do not treat it as current completeness or add its counts to runtime totals |
+| FootyStats schedule snapshot | 871 upcoming / 14 days; 1,372 recent completed / 30 days; 50/50 HTTP 200, zero request failures in the historical snapshot | Provider-native schedule evidence only; not a FotMob refresh or production eligibility |
+| FotMob current-feed | Manifest 8 Oct, reconciliation 7 Oct, last fixture 17 Oct, schedule window through 22 Oct; zero governed fixture rows | Stale/inconsistent; do not rerun the legacy display-name ingestion path as a shortcut |
+| Identity / exact joins | 22 candidate mappings for human review; 28 unresolved; zero approved bridges; zero verified parent IDs; zero canonical fixture/team joins; zero official settlement-truth rows | Identity, exact-join, settlement, and market gates remain blocked |
+| Market readiness | 250 league-market rows and 750 walk-forward rows, all ineligible; point-in-time xG/odds provenance unverified | Raw metrics only; no calibration/ROI approval or betting edge |
+
+The inspected FootyStats snapshot has 50 seasons with returned fixtures. Canada—Canadian Premier League (selected season 16741) has 4 upcoming and 18 recent completed rows; all 4 upcoming rows have `no_home_away=1`. China—Chinese Super League (16789) has 8 upcoming and 24 recent completed rows; upcoming rows have `no_home_away=0`. South Korea—K League 1 (16627) has 12 upcoming and 18 recent completed rows; all 12 upcoming rows have `no_home_away=1` and must be quarantined from standard home/away markets. These are provider-native observations, not canonical joins.
+
+The planner still reports zero groups with an exact league-ID allowlist and zero with a retained country field in the FotMob current-feed snapshot; five groups have multiple feed league IDs, seven lack country in the feed, and 38 have no matching feed label. Parent competition IDs remain 0/50. The old production-main ingestion path is not a safe refresh shortcut and was not run.
+
+### Decision
+
+Research-output contracts pass for the cited runs. Production release and betting release remain **NOT APPROVED**. No provider API calls, production writes, PR merges, model/probability/threshold/calibration changes, canonical registry/ledger changes, or governance changes were made in this checkpoint.
