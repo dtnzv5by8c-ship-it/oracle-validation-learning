@@ -24,7 +24,12 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
-                w = csv.DictWriter(h, fieldnames=["provider_season_id","fixture_id","home_team_provider_id","away_team_provider_id","BTTS_probability_pct"])
+                w = csv.DictWriter(h, fieldnames=[
+                    "provider_season_id", "fixture_id", "home_team_provider_id",
+                    "away_team_provider_id", "BTTS_probability_pct",
+                    "COMBO_HOME_probability_pct", "COMBO_AWAY_probability_pct",
+                    "combo_probability_status"
+                ])
                 w.writeheader()
                 w.writerow({"provider_season_id":"0","fixture_id":"100","home_team_provider_id":"1","away_team_provider_id":"2","BTTS_probability_pct":"61.5"})
                 w.writerow({"provider_season_id":"1","fixture_id":"101","home_team_provider_id":"3","away_team_provider_id":"4","BTTS_probability_pct":"70"})
@@ -38,6 +43,9 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(qa["snapshot_provenance_status"], "PASS_FRESH_TIMEZONE_AWARE")
             self.assertEqual(qa["snapshot_age_seconds"], 36000)
             self.assertEqual(qa["snapshot_file_sha256"], hashlib.sha256(snap.read_bytes()).hexdigest())
+            self.assertEqual(qa["combo_probability_columns_checked"], ["COMBO_HOME_probability_pct", "COMBO_AWAY_probability_pct"])
+            self.assertEqual(qa["combo_probability_nonblank_cells"], 0)
+            self.assertEqual(qa["combo_masking_status"], "PASS_ALL_COMBO_PROBABILITY_VALUES_BLANK")
             self.assertEqual(qa["reason_counts"]["QUARANTINE_NO_HOME_AWAY_TRUE"], 1)
             self.assertEqual(qa["reason_counts"]["QUARANTINE_NO_HOME_AWAY_UNKNOWN"], 1)
             self.assertEqual(qa["reason_counts"]["BLOCKED_ORDERED_TEAM_ID_MISMATCH"], 1)
@@ -51,6 +59,8 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(rows[0]["snapshot_provenance_status"], "PASS_FRESH_TIMEZONE_AWARE")
             self.assertEqual(rows[0]["snapshot_age_seconds"], "36000")
             self.assertEqual(rows[0]["snapshot_file_sha256"], hashlib.sha256(snap.read_bytes()).hexdigest())
+            self.assertEqual(rows[0]["COMBO_HOME_probability_pct"], "")
+            self.assertEqual(rows[0]["COMBO_AWAY_probability_pct"], "")
 
     def test_missing_naive_future_and_stale_snapshot_timestamps_fail_closed(self):
         cases = [
