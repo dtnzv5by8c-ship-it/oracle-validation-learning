@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "purpose": "Research-only exact current-feed identity allowlist. No entries are approved until authoritative provider ID and country evidence is reviewed.",
+  "entries": [],
+  "release_policy": "Fail closed: an empty or unapproved entry set admits zero fixtures. Never infer provider league IDs from display names or season IDs."
+}
