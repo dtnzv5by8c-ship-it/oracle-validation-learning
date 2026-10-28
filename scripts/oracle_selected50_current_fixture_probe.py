@@ -12,7 +12,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-OUT=Path("oracle-selected50-one-season-identity-probe"); OUT.mkdir(exist_ok=True)
+OUT=Path("oracle-selected50-current-fixture-snapshot"); OUT.mkdir(exist_ok=True)
 manifest=Path("reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md")
 crosswalk=Path("reports/oracle-selected50-provider-identity-reconciliation-2026-10-27.csv")
 if not manifest.is_file() or not crosswalk.is_file():
@@ -104,7 +104,7 @@ summary={
  "identity_warning":"FootyStats-native season/team/match IDs only; comp_master_id semantics and FotMob/Oracle canonical bridge are not approved.",
  "fixture_rows":all_window_matches,"per_season":results
 }
-(OUT/"identity-probe-summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
+(OUT/"current-fixture-snapshot.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
 print(json.dumps({k:v for k,v in summary.items() if k not in ("fixture_rows","per_season")},indent=2,sort_keys=True))
 print("PER_SEASON_SUMMARY")
 print(json.dumps([{k:r[k] for k in ("country","competition","selected_season_id","provider_comp_master_id_observed","http_status","provider_success","returned_match_count","max_page","future_14d_count","recent_completed_30d_count","schedule_status","error_class")} for r in results],indent=2,sort_keys=True))
