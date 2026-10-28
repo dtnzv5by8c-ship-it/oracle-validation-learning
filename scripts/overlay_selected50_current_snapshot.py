@@ -323,10 +323,13 @@ def main():
         outcome=trace.get("trace_outcome") or "UNCLASSIFIED_TRACE_OUTCOME"
         trace_outcome_counts[outcome]=trace_outcome_counts.get(outcome,0)+1
     write_trace(trace_path,trace_rows)
+    # Hash the exact overlay ZIP that the runtime workflow must select as its input.
+    overlay_archive_sha256=sha256_file(args.out_archive)
     qa={
       "status":"PASS_RESEARCH_ONLY_STAGED" if conflicts==0 and not unsupported_labels else ("PARTIAL_RESEARCH_ONLY_UNSUPPORTED_LEAGUES" if conflicts==0 else "FAIL"),
       "source_provider":"FootyStats","snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_file_sha256":snapshot_sha256,"source_archive_sha256":archive_sha256,
+      "overlay_archive_sha256":overlay_archive_sha256,
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":7,"candidate_rows_added":add_count,
