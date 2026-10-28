@@ -1,4 +1,4 @@
-name: Oracle FootyStats One-Call Identity Probe (Bootstrap)
+name: Oracle FootyStats Selected-50 Identity Reconciliation
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
         with:
           ref: research/oracle-50-league-readiness-audit
           path: research-source
-      - name: Enforce both explicit confirmations and run bounded selected-50 identity check
+      - name: Enforce confirmations and reconcile selected-50 season identities
         shell: bash
         working-directory: research-source
         env:
