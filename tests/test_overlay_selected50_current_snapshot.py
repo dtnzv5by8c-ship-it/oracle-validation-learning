@@ -8,7 +8,8 @@ import unittest
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch, redirect_stdout
+from unittest.mock import patch
+from contextlib import redirect_stdout
 
 from scripts.overlay_selected50_current_snapshot import (
     TRACE_COLUMNS, find_archive_path, main, no_home_away_flag, parse_utc, valid_id,
