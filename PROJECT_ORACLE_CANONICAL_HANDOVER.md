@@ -618,3 +618,57 @@ Done means a real, traceable run has ingested supported historical/current data 
 - Added manual-only workflow `.github/workflows/oracle-selected50-contract-tests.yml` (commit `e5036370264f2e02272c0924f4733a8bb0986938`) to run `test_footystats_selected50_bounded_probe_contract.py` on a public runner using Python's standard library.
 - The test workflow has no provider API calls, no private archive read, no secrets, no data transfer and no production side effects. Run it before dispatching either live ingestion or the research runtime. Workflow URL: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-contract-tests.yml
 - The current session cannot dispatch GitHub Actions, so this workflow has been created but not yet run. Do not report its tests as passing until the Actions run completes successfully.
+
+
+## 54. Post-deadline Selected-50 execution state — 2026-10-28 12:15 SAST
+
+This section is the current checkpoint and supersedes earlier status statements where they conflict. Deadline noon SAST has passed; continue execution rather than restarting or repeating completed tests. Production/betting remains **NO-GO**.
+
+### Repositories, branches and resource budgets (user-confirmed)
+- Public research repository: `dtnzv5by8c-ship-it/oracle-validation-learning`, branch `research/oracle-50-league-readiness-audit`.
+- Private production repository: `dtnzv5by8c-ship-it/oracle-football-data`, branch `main`.
+- User reports private GitHub Actions usage capped at 3,000 minutes/month; do not use private Actions to accelerate work. Use public repo Actions for safe research QA.
+- User reports FootyStats allowance of 1,800 requests/hour and explicitly permits using it within allocation when justified. Never upgrade/charge more, expose API key, retry unnecessarily, or confuse hourly rate limit with remaining monthly credits.
+- Production model is Oracle V1.6 benchmark; V1.6.3 Master Development Model. No redesign, production logic/probability/calibration/threshold change, protected registry change, or production promotion without explicit authorization and release gates.
+
+### Latest research workflow verification
+On source commit `964d962024c9e02f3cdf5a2703a8b4d44b96674b`, all four latest research workflows passed:
+- Runtime/backtest run [40646418147](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418147), artifact [12797526943](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418147/artifacts/12797526943).
+- Dry-run planner [40646418143](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418143), artifact [12797517430](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418143/artifacts/12797517430).
+- Safety contract tests [40646418166](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418166).
+- Exact cross-provider fixture join audit [40646418126](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418126), artifact [12797871592](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418126/artifacts/12797871592).
+Runtime artifact checksum verified as `cd281b5dd35656815879ba546ffb860bd1db75cc8daeca6db3373bb777ba16db`. Runtime includes 50 groups, 200 seasons, 59,049 deduplicated archive records, 51,983 explicitly completed, 463 upcoming fixture rows, 438 with at least one raw research market output, 25 blocked for missing required features, 0 production-eligible rows, and Combo probabilities fully masked. Raw walk-forward metrics are uncalibrated and do not certify betting edge.
+
+### FootyStats calls completed (bounded; do not repeat without new reason)
+- One `league-season` call for each of 50 selected season IDs, 50/50 HTTP 200/provider success, returned ID/country/name aligned, 50 distinct non-null `comp_master_id` values, no retries. Run [40562430790, attempt 6](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790). Sanitized report: [master-ID reconciliation](reports/oracle-selected50-footystats-master-id-reconciliation-2026-10-28.md).
+- One `league-matches` call for each selected season, 50/50 HTTP 200/provider success, retrieval timestamp `2026-10-28T06:11:51.985177Z`, 871 upcoming rows in next 14 days and 871 recent completed rows in prior 14 days, no pagination/retries. Report: [current fixture snapshot](reports/oracle-selected50-current-fixture-snapshot-2026-10-28.md).
+- These are fresh FootyStats-native evidence. They do NOT refresh the production FotMob feed. `comp_master_id` is provider evidence, not an approved Oracle/FotMob canonical ID; do not promote automatically.
+- Schedule QA: 16 suspended rows (14 future, 2 recent); 354 rows with `no_home_away=1` (181 future, 173 recent); 47 recent rows have completed status and 0–0 scores. Quarantine suspended/no-home-away rows; verify completed 0–0 settlement against official truth before treating as settled.
+
+### Cross-provider join audit
+Report: [FootyStats–FotMob and historical-ledger join audit](reports/oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
+- 10 exact FootyStats–FotMob fixture/team/UTC-kickoff joins across 2 leagues.
+- Canada CPL: FootyStats master ID 524, candidate FotMob league ID 1000001192, 4 exact fixture joins, 3 score agreements, 1 material score/status conflict; quarantine.
+- England EFL League One: FootyStats master ID 6, candidate FotMob league ID 938219, 6 exact joins, 3 score agreements, 3 postponed/suspended status matches; review required.
+- 577 FootyStats–historical-ledger ordered-team-pair + date joins across 24 competitions, 587 total records across source paths, 24 strong research-only league-code candidates. Date-only historical joins do not prove kickoff precision.
+- Approved FotMob/canonical bridges: 0/50. Exact historical Oracle ledger fixture joins: 0. The two FotMob IDs remain review-only; 48 other leagues have no verified FotMob bridge in this audit.
+
+### Current FotMob feed incident
+Report: [production current-feed incident](reports/oracle-selected50-production-current-feed-incident-2026-10-28.md).
+- Accessible `data/current_source_manifest.json` generated `2026-10-06T07:49:26.139704Z`, requested dates only through 2026-10-08.
+- Latest visible production current-data workflow runs failed; exact failing step has not been verified from logs. Do not guess cause.
+- Existing `.github/workflows/oracle_current_data.yml` runs `scripts/ingest_current_fotmob.py`, which admits competitions by display name and commits staging files to production `main`. Do NOT rerun as an emergency shortcut. Fix/validate exact ID + country/category guard and staging-only destination in an isolated branch first.
+- FootyStats current schedule is not a substitute for FotMob feed freshness. Fresh source != approved cross-provider identity.
+
+### Release status / next concrete actions
+1. Do not repeat unchanged green tests or bounded FootyStats calls.
+2. Obtain authoritative semantics for `comp_master_id` and confirm its intended scope; never assume it is an Oracle canonical or FotMob ID.
+3. Review Canada and EFL League One candidates against official league catalogue and full fixture status/score evidence. Canada conflict must be resolved before any approval.
+4. Build a reviewed FotMob ID + country/category allowlist from authoritative evidence; leave all unverified entries quarantined.
+5. Find/diagnose failed FotMob current-data workflow logs and build a research-only, identity-safe refresh path writing only to research artifact; never push raw staging into production `main`.
+6. Reconcile exact fixture/team IDs, UTC kickoff, status, official score and settlement. Keep non-complete 0–0 placeholders excluded; Combo markets remain masked while settlement specification mismatch persists.
+7. Update the 50-row readiness matrix and executive completion pack. Historical coverage, FootyStats schedule freshness, FotMob freshness, canonical identity, market readiness and production eligibility must remain separate columns.
+8. Production and betting release stay **NO-GO / NOT_GRANTED** until mandatory gates pass. Do not trade correctness for the missed noon deadline.
+
+### Automation and continuity honesty
+Do not promise background work merely because a new chat is open. Use configured scheduled tasks and GitHub Actions only when their enabled status/run evidence is verified. In an active session, continue directly to the next executable action; report only a major milestone, a real blocker, or a user action that is genuinely required. Do not loop through status-only updates.
