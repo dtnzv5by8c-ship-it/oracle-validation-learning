@@ -12,7 +12,7 @@ class OfflineIdentityStagingTests(unittest.TestCase):
               {"canonical_competition_code":"GER_D1","league_id":"35","league_name":"Bundesliga"},
               {"canonical_competition_code":"ENG_E0","league_id":"17","country":"Scotland","league_name":"Premier League"},
             ]
-            inp.write_text("".join(json.dumps(x)+"\\n" for x in rows),encoding="utf-8")
+            inp.write_text("".join(json.dumps(x)+"\n" for x in rows),encoding="utf-8")
             allow.write_text(json.dumps({"entries":[
               {"canonical_competition_code":"ENG_E0","status":"APPROVED","league_id":"17","country":"England"}
             ]}),encoding="utf-8")
