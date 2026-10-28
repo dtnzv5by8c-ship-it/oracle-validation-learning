@@ -26,9 +26,15 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_consumption_status": "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
             "snapshot_file_sha256": sha(self.snapshot),
             "snapshot_run_id": "100",
+            "snapshot_artifact_name": "oracle-selected50-current-fixture-snapshot",
+            "snapshot_artifact_id": "789",
+            "snapshot_artifact_digest": "sha256:" + "a" * 64,
+            "snapshot_artifact_metadata_sha256": "b" * 64,
+            "snapshot_artifact_workflow_run_id": "100",
             "runtime_run_id": "200",
             "selected_input_matches_overlay": True,
             "selected_runtime_input_archive_sha256": "overlay-hash",
+            "selected_runtime_input_archive_sha256_before_runtime": "overlay-hash",
             "overlay_archive_sha256": "overlay-hash",
             "runtime_report_sha256": sha(self.report),
             "runtime_ref": "refs/heads/research/oracle-50-league-readiness-audit",
@@ -75,6 +81,27 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("expected_runtime_run_id_matches", result["failed_checks"])
+
+    def test_missing_artifact_identity_is_a_release_blocker(self):
+        self.provenance["snapshot_artifact_id"] = None
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_id_present", result["failed_checks"])
+
+    def test_snapshot_artifact_run_mismatch_is_a_release_blocker(self):
+        self.provenance["snapshot_artifact_workflow_run_id"] = "999"
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_run_id_matches", result["failed_checks"])
+
+    def test_runtime_input_hash_must_match_pre_runtime_fingerprint(self):
+        self.provenance["selected_runtime_input_archive_sha256_before_runtime"] = "different-hash"
+        self.write_provenance()
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("runtime_input_hash_matches_pre_runtime_fingerprint", result["failed_checks"])
 
     def test_missing_provenance_stays_unverified(self):
         self.args.runtime_provenance = self.root / "missing.json"
