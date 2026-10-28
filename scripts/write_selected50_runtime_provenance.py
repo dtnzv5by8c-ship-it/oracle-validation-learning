@@ -99,8 +99,9 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
     artifact_run_id = str(metadata.get("artifact_workflow_run_id") or "")
     if artifact_name != "oracle-selected50-current-fixture-snapshot":
         raise SystemExit("FAIL: snapshot artifact metadata name does not match the expected artifact")
-    if not artifact_id or not artifact_digest.startswith("sha256:"):
-        raise SystemExit("FAIL: snapshot artifact ID or GitHub SHA-256 digest is missing")
+    digest_value = artifact_digest.split(":", 1)[1] if artifact_digest.startswith("sha256:") else ""
+    if not artifact_id or len(digest_value) != 64 or any(ch not in "0123456789abcdef" for ch in digest_value.lower()):
+        raise SystemExit("FAIL: snapshot artifact ID or valid GitHub SHA-256 digest is missing")
     if artifact_run_id != str(snapshot_run_id):
         raise SystemExit("FAIL: snapshot artifact metadata run ID does not match the requested snapshot run")
     if metadata.get("artifact_expired") is not False:
