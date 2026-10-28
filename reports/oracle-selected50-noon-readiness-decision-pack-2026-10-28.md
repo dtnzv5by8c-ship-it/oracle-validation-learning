@@ -103,7 +103,7 @@ The 50 selected seasons exceed the existing 27-league canonical registry scope. 
 - [Fixture snapshot data-quality audit](oracle-selected50-fixture-snapshot-data-quality-2026-10-28.md)
 - [Production current-feed incident](oracle-selected50-production-current-feed-incident-2026-10-28.md)
 - [Identity review queue](oracle-selected50-identity-review-queue-2026-10-28.md)
-- [Sanitized fixture artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796425175) · [Latest runtime run 40643730062](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062) · [Latest runtime artifact 12796307772](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062/artifacts/12796307772)
+- [Sanitized fixture artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796425175) · [Latest runtime run 40644996653](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644996653) · [Latest runtime artifact 12797455274](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644996653/artifacts/12797455274)
 
 ## Governance
 
