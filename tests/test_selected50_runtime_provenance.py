@@ -119,6 +119,13 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "changed between pre-runtime fingerprint"):
             build_provenance(**self.kwargs)
 
+    def test_invalid_snapshot_artifact_digest_fails_closed(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_digest"] = "sha256:not-a-valid-digest"
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "valid GitHub SHA-256 digest"):
+            build_provenance(**self.kwargs)
+
     def test_snapshot_artifact_run_mismatch_fails_closed(self):
         metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
         metadata["artifact_workflow_run_id"] = "999"
