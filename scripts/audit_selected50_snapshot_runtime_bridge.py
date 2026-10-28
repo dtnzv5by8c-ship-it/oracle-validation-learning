@@ -22,13 +22,27 @@ def utc(value):
 def s(value):
     return "" if value is None else str(value).strip()
 
+def no_home_away_flag(value):
+    """Return True/False only for explicit provider values; unknown stays unknown."""
+    if isinstance(value, bool):
+        return value
+    raw = s(value).casefold()
+    if raw in {"1", "1.0", "true", "yes"}:
+        return True
+    if raw in {"0", "0.0", "false", "no"}:
+        return False
+    return None
+
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--snapshot", required=True, type=Path)
     p.add_argument("--runtime-report", required=True, type=Path)
     p.add_argument("--out-dir", required=True, type=Path)
     args=p.parse_args()
-    snap=json.loads(args.snapshot.read_text(encoding="utf-8"))
+    snapshot_bytes=args.snapshot.read_bytes()
+    import hashlib
+    snapshot_sha256=hashlib.sha256(snapshot_bytes).hexdigest()
+    snap=json.loads(snapshot_bytes.decode("utf-8"))
     runtime=list(csv.DictReader(args.runtime_report.open(encoding="utf-8-sig", newline="")))
     if len(snap.get("per_season", [])) != 50 or len({s(x.get("selected_season_id")) for x in snap.get("per_season", [])}) != 50:
         raise SystemExit("FAIL: snapshot must contain exactly 50 unique selected season IDs")
@@ -63,9 +77,11 @@ def main():
         seen.add(key)
         ko=utc(f.get("kickoff_utc"))
         status=s(f.get("status")).lower()
-        noha=str(f.get("no_home_away","")).lower() in {"1","true","yes"}
-        if noha:
+        noha=no_home_away_flag(f.get("no_home_away"))
+        if noha is True:
             eligibility="QUARANTINE_NO_HOME_AWAY"
+        elif noha is None:
+            eligibility="QUARANTINE_NO_HOME_AWAY_FLAG_UNKNOWN"
         elif any(x in status for x in ("suspend","postpon","cancel","abandon","void")):
             eligibility="QUARANTINE_NONSTANDARD_STATUS"
         elif ko is None:
@@ -85,7 +101,7 @@ def main():
             away_ok=s(f.get("awayID")) == s(r.get("away_team_provider_id"))
             ids_match = home_ok and away_ok
             source_quarantined = (
-                noha
+                noha is not False
                 or any(x in status for x in ("suspend", "postpon", "cancel", "abandon", "void"))
                 or ko is None
                 or (ko <= now and status not in {"complete","completed","finished","ft","full time"})
@@ -129,7 +145,7 @@ def main():
       "status":"PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS" if unsafe_runtime_rows or future_7d_unmatched else "PASS_BRIDGE_AUDIT_RESEARCH_ONLY",
       "generated_utc":now.isoformat(),
       "snapshot_retrieved_utc":snap.get("retrieved_utc"),
-      "snapshot_sha256":None,
+      "snapshot_sha256":snapshot_sha256,
       "selected_seasons":len(season_ids),
       "snapshot_fixture_rows":len(snap.get("fixture_rows",[])),
       "runtime_report_rows":len(runtime),
@@ -152,7 +168,7 @@ def main():
       "production_eligible":False,
       "betting_eligible":False,
       "prediction_generated":False,
-      "interpretation":"Exact join coverage audit only. Runtime predictions were generated from the existing archive; this report does not claim the current snapshot was consumed by the model runtime."
+      "interpretation":"Exact join coverage audit only. This report hashes the supplied snapshot and compares its provider identities with the supplied runtime report. Snapshot consumption must be established by matching this hash to the successful runtime overlay QA artifact; this audit alone does not grant production or betting eligibility."
     }
     (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True),encoding="utf-8")
     print(json.dumps(qa,indent=2,sort_keys=True))
