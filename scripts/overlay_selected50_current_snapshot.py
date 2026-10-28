@@ -77,6 +77,7 @@ def main():
             if label in selected_labels: raise SystemExit("FAIL: duplicate country/competition label in selected-50 snapshot")
             selected_labels[label]=sid
         archive_target={}
+        unsupported_labels=[]
         for sid in season_ids:
             meta=meta_by_id.get(sid)
             if not meta: raise SystemExit(f"FAIL: selected season {sid} missing from archive manifest")
@@ -93,7 +94,8 @@ def main():
                 if alabel==label and mp in names and tp in names:
                     candidates.append((aid,ameta))
             if not candidates:
-                raise SystemExit(f"FAIL: no archive season with matches+teams for exact selected label {label}")
+                unsupported_labels.append({"selected_season_id":sid,"country":label[0],"competition":label[1],"reason":"NO_EXACT_LABEL_ARCHIVE_SEASON_WITH_MATCHES_AND_TEAMS"})
+                continue
             # Prefer the selected season file if it has one; otherwise prefer the latest
             # season start label available, using manifest order only as deterministic tie-break.
             candidates.sort(key=lambda item:(item[0]==sid,str(item[1].get("season") or item[1].get("season_start") or "")),reverse=True)
@@ -103,8 +105,11 @@ def main():
             p=f"seasons/{archive_sid}/matches.json"
             season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
             if not isinstance(season_files[archive_sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {archive_sid}")
-        seen=set(); add_count=0; already=0; conflicts=0
+        seen=set(); add_count=0; already=0; conflicts=0; unsupported_rows=0
         for sid,row,ko in staged:
+            if sid not in archive_target:
+                unsupported_rows+=1
+                continue
             archive_sid=archive_target[sid]
             records=season_files[archive_sid]
             by_id={str(m.get("id")):m for m in records if isinstance(m,dict) and valid_id(m.get("id"))}
@@ -132,12 +137,13 @@ def main():
                 data=json.dumps(season_files[info.filename.split("/")[1]],separators=(",",":"),ensure_ascii=False).encode("utf-8") if info.filename.startswith("seasons/") and len(info.filename.split("/"))==3 and info.filename.endswith("/matches.json") and info.filename.split("/")[1] in season_files else src.read(info.filename)
                 dst.writestr(info,data)
     qa={
-      "status":"PASS_RESEARCH_ONLY_STAGED" if conflicts==0 else "FAIL",
+      "status":"PASS_RESEARCH_ONLY_STAGED" if conflicts==0 and not unsupported_labels else ("PARTIAL_RESEARCH_ONLY_UNSUPPORTED_LEAGUES" if conflicts==0 else "FAIL"),
       "source_provider":"FootyStats","snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":7,"candidate_rows_added":add_count,
       "already_present_exact_fixture_ids":already,"quarantined_or_invalid_rows":quarantined,
+      "unsupported_archive_rows_not_staged":unsupported_rows,"unsupported_selected_leagues":unsupported_labels,
       "historical_rows_not_staged":historical,"future_rows_beyond_7d_not_staged":beyond,
       "team_id_conflicts":conflicts,"production_writes":0,"model_logic_changed":False,
       "prediction_generated":False,"production_eligible":False,"betting_eligible":False,
