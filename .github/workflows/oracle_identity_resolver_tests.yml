@@ -1,0 +1,34 @@
+name: Oracle FootyStats Identity Resolver Tests
+
+on:
+  pull_request:
+    paths:
+      - "scripts/oracle_selected50_footystats_identity_resolver.py"
+      - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+      - ".github/workflows/oracle_identity_resolver_tests.yml"
+  push:
+    branches:
+      - "research/oracle-50-league-readiness-audit"
+    paths:
+      - "scripts/oracle_selected50_footystats_identity_resolver.py"
+      - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+      - ".github/workflows/oracle_identity_resolver_tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  identity-resolver-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile resolver
+        run: python -m py_compile scripts/oracle_selected50_footystats_identity_resolver.py
+      - name: Run resolver unit tests
+        run: python -m unittest discover -s tests -p 'test_oracle_selected50_footystats_identity_resolver.py' -v
