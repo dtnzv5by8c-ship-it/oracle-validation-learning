@@ -42,7 +42,7 @@ def rows_from_zip(zf, selected_ids):
     all_rows=[]; member_names=[]; selected_seen=Counter(); inventory=[]
     for name in zf.namelist():
         if not name.lower().endswith("/matches.json"): continue
-        m=re.search(r"/seasons/(\\d+)/matches\\.json$",name)
+        m=re.search(r"/seasons/(\d+)/matches\.json$",name)
         if not m: continue
         season_id=m.group(1)
         if season_id not in selected_ids: continue
