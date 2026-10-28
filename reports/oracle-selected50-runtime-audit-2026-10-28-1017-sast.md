@@ -79,7 +79,7 @@ The runtime validator states that it does not certify canonical provider IDs, of
 
 ## Exact reconciliation of the historical 26 blockers
 
-The old Run #112 count of 26 reconciles to 25 in the current report. Fixture `8614496` (Vicenza–Modena) has left the upcoming-fixture horizon after its scheduled kickoff; this is a rolling-horizon change, not a model improvement.
+I independently downloaded Run #112 artifact [12757295232](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40554064150/artifacts/12757295232); its SHA-256 is `983a4f3cc09dcb94ab03e7693bc65ad46ed23cf4cdd2d92d05f543a75cfdbf50`, matching GitHub metadata. Its 26 rows used the older generic status `NO_PREDICTION_FEATURE_OR_TRAINING_GATE`. Exact fixture-ID comparison shows all 25 current blocked IDs were already in that set, with only `8614496` (Vicenza–Modena) removed after its scheduled kickoff left the upcoming horizon; no new blocked fixture appeared. This is a rolling-horizon change, not a model improvement. Run #147 now classifies all 25 remaining rows specifically as missing required features and confirms all five market models have training support.
 
 The current 25 blocked fixture IDs are:
 
