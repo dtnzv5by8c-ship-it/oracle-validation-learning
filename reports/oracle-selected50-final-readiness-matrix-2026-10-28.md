@@ -96,6 +96,10 @@ A read-only overlap audit found 8 exact home/away-team + UTC-kickoff joins acros
 
 A second, expanded FootyStats snapshot (30-day lookback + 14-day future window) was retrieved at `2026-10-28T06:19:09.645973+00:00` UTC. The offline snapshot validator passed: 50/50 requests succeeded, 2,250 rows, 871 future fixtures, 1,372 recent completed results, zero duplicate match IDs and no missing team IDs/names/kickoff timestamps. It found 19 suspended rows and 486 `no_home_away=1` rows (181 future, 305 recent), which must be quarantined from unsupported markets. The [overlap join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md) documents the eight exact joins and one score/status conflict.
 
+## Historical ledger crosswalk progress
+
+The read-only cross-provider audit now finds **24 strong research-only historical ledger league-code candidates** across 24 selected seasons, supported by 577 ordered home/away team + UTC calendar-date joins. The observed historical scores agree across these joins. The historical ledger does not provide kickoff precision in the matched file, so these are candidates for human review—not approved canonical mappings. A further 2 FotMob league-ID candidates are supported by 10 exact team/kickoff joins; England overlaps with the 24-code list, while Canada has one score/status conflict. Overall, 25 of 50 selected seasons have at least one evidence-backed identity candidate; 25 remain without a supported join in the current audit. **Approved canonical bridges remain 0/50.** [Full join evidence](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
+
 ## Current-feed incident
 
 The latest three visible production `Oracle Current Data Staging` workflow runs (26–27 October) failed. The exact failure cause remains unverified because the connected log read did not expose the job logs. Do not infer a quota or code cause without the failure step. [Incident evidence and safe remediation](oracle-selected50-production-current-feed-incident-2026-10-28.md).
