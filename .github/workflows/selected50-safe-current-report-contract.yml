@@ -30,4 +30,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run isolated safe-report contract test
-        run: python -m unittest tests/test_selected50_safe_current_fixture_report.py -v
+        run: python tests/test_selected50_safe_current_fixture_report.py -v
