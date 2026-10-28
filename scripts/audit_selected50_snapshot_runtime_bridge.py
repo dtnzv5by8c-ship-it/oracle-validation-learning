@@ -116,9 +116,17 @@ def main():
         w=csv.DictWriter(h,fieldnames=fields); w.writeheader(); w.writerows(rows)
     future=[r for r in rows if r["fixture_eligibility"]=="FUTURE_RESEARCH_CANDIDATE"]
     future_joined=[r for r in future if r["runtime_join_status"]=="EXACT_ID_AND_TEAM_IDS_MATCH"]
+    report_window_end=now.timestamp()+7*24*60*60
+    def kickoff_epoch(row):
+        parsed=utc(row.get("kickoff_utc"))
+        return parsed.timestamp() if parsed else None
+    future_7d=[r for r in future if kickoff_epoch(r) is not None and kickoff_epoch(r) <= report_window_end]
+    future_7d_joined=[r for r in future_7d if r["runtime_join_status"]=="EXACT_ID_AND_TEAM_IDS_MATCH"]
+    future_7d_unmatched=[r for r in future_7d if r["runtime_join_status"]!="EXACT_ID_AND_TEAM_IDS_MATCH"]
+    future_beyond_7d=[r for r in future if kickoff_epoch(r) is not None and kickoff_epoch(r) > report_window_end]
     unsafe_runtime_rows=[r for r in rows if r["runtime_join_status"]=="EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"]
     qa={
-      "status":"PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS" if unsafe_runtime_rows or (len(future)-len(future_joined)) else "PASS_BRIDGE_AUDIT_RESEARCH_ONLY",
+      "status":"PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS" if unsafe_runtime_rows or future_7d_unmatched else "PASS_BRIDGE_AUDIT_RESEARCH_ONLY",
       "generated_utc":now.isoformat(),
       "snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_sha256":None,
@@ -130,6 +138,13 @@ def main():
       "future_research_candidates":len(future),
       "future_candidates_exact_id_and_team_match":len(future_joined),
       "future_candidates_without_exact_id_and_team_match":len(future)-len(future_joined),
+      "seven_day_report_window_end_utc":datetime.fromtimestamp(report_window_end,timezone.utc).isoformat(),
+      "future_candidates_within_7d_window":len(future_7d),
+      "future_candidates_within_7d_exactly_matched":len(future_7d_joined),
+      "future_candidates_within_7d_missing_runtime_match":len(future_7d_unmatched),
+      "future_candidates_beyond_7d_report_window":len(future_beyond_7d),
+      "within_7d_match_coverage_pct":round(100*len(future_7d_joined)/len(future_7d),2) if future_7d else None,
+      "within_7d_missing_fixture_ids":[{"season_id":r["source_season_id"],"fixture_id":r["source_match_id"],"kickoff_utc":r["kickoff_utc"],"home_team":r["home_team"],"away_team":r["away_team"]} for r in future_7d_unmatched],
       "runtime_rows_matching_source_but_source_quarantined":len(unsafe_runtime_rows),
       "runtime_rows_with_safe_future_candidate_status":len(future_joined),
       "all_source_rows_exactly_joined":sum(r["runtime_join_status"] in {"EXACT_ID_AND_TEAM_IDS_MATCH","EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"} for r in rows),
