@@ -14,6 +14,8 @@ on:
     paths:
       - "scripts/oracle_selected50_footystats_identity_resolver.py"
       - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+      - "scripts/oracle_selected50_footystats_adapter.py"
+      - "tests/test_oracle_selected50_footystats_adapter.py"
       - ".github/workflows/oracle_identity_resolver_tests.yml"
 
 permissions:
