@@ -1,6 +1,7 @@
 name: Oracle FootyStats Identity Resolver Tests
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "scripts/oracle_selected50_footystats_identity_resolver.py"
