@@ -120,7 +120,9 @@ class SnapshotOverlayContractTests(unittest.TestCase):
 
             self.assertEqual(qa["candidate_rows_added"], 1)
             self.assertEqual(qa["unsupported_archive_rows_not_staged"], 2)
-            self.assertIn("UNVERIFIED_PER_FIXTURE", qa["no_home_away_flag_semantics"])
+            self.assertIn("DOCUMENTED_FIELD_SEMANTICS", qa["no_home_away_flag_semantics"])
+            self.assertIn("no_home_away=1", qa["no_home_away_flag_semantics"])
+            self.assertIn("remain quarantined", qa["no_home_away_flag_semantics"])
             by_league = {f'{row["country"]} | {row["competition"]}': row for row in qa["no_home_away_flag_by_league"]}
             self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_7d"], 3)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
