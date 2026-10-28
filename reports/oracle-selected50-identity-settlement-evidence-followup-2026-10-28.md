@@ -56,3 +56,13 @@ The existing cross-provider report records six completed score agreements, three
 `scripts/validate_identity_settlement_evidence_register.py` is an offline fail-closed contract checker. It pins the ten evidence rows and exact IDs, requires explicit UTC timestamps, protects the Canada quarantine, rejects non-final 0–0 settlement labels, and enforces masked Combo and NOT_GRANTED release flags. It makes no network calls and writes only a local JSON summary in CI.
 
 The focused public GitHub Actions run and sanitized artifact are recorded in the follow-up handover checkpoint after execution. Passing these tests verifies this evidence register's safeguards only; it does not approve any mapping or settle any fixture.
+
+
+## 7. Focused validation evidence
+
+- Code/report/register commit: [31b73d3ad75ca09ce9c604d0e6cece90201e6a02](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/31b73d3ad75ca09ce9c604d0e6cece90201e6a02).
+- Focused public CI run: [40680130993 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680130993), head SHA `31b73d3ad75ca09ce9c604d0e6cece90201e6a02`.
+- Sanitized CI artifact: [12811837484 — oracle-identity-settlement-evidence-40680130993](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680130993/artifacts/12811837484). It contains the validator summary JSON, the 10-row register and this report.
+- Validator summary: 10 evidence rows; 6 completed cross-provider score agreements; 1 Canada conflict quarantined; 3 EFL postponed/suspended 0–0 rows excluded; 0 official settlement-truth rows; 0 approved canonical bridges; 0 Combo-unmasked rows; 0 production-eligible rows; 0 betting-eligible rows; 0 provider API calls; 0 production writes.
+- Focused CI tests passed: 9 new register tests, 7 existing identity-resolver tests and 12 existing adapter tests (**28 tests total**). The run also compiled the research tools and validated the register.
+- Passing means the evidence register and its fail-closed rules are internally consistent. It does **not** resolve the Canadian source conflict, verify official settlement truth, approve either FotMob bridge, or grant production/betting eligibility.
