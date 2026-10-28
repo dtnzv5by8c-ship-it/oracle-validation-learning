@@ -1,59 +1,90 @@
 # Oracle Selected-50 Noon Readiness Decision Pack — 2026-10-28
 
-**Decision time:** 2026-10-28 08:05 SAST  
+**Decision checkpoint:** 2026-10-28 08:20 SAST  
 **Target deadline:** 2026-10-28 12:00 SAST  
 **Repository:** `dtnzv5by8c-ship-it/oracle-validation-learning`  
 **Branch:** `research/oracle-50-league-readiness-audit`  
-**Decision:** **NO-GO for production predictions and betting release** until the mandatory source, identity, fixture and settlement gates pass.
+**Decision:** **NO-GO for production predictions and betting release** until the mandatory FotMob/canonical identity, freshness, fixture/team and settlement gates pass.
 
 ## Executive summary
 
-The research workflows and tests pass, including the offline current-feed identity contract and staging-adapter tests. The remaining blockers are not additional unit-test failures: they require verified data and approved mappings that are not present in the current evidence. Re-running green tests cannot manufacture that evidence.
+The work has made a material step forward since the initial checkpoint. The approved bounded FootyStats research calls now establish current provider-side season identity and fixture schedule coverage for all 50 selected seasons. This is not the same as refreshing the production FotMob feed or approving the cross-provider mappings.
 
-### Three gates
+### Gate status
 
 | Gate | Status | Evidence | Exit condition |
 |---|---|---|---|
-| 1. Automated validation | PASS | Safety workflow run 40633801353; archive audit 40633801455; dry-run 40633801419; runtime/backtest 40633725121 | Reopen only if relevant code/data changes |
-| 2. Current feed freshness | FAIL / UNVERIFIED | Accessible production-branch manifest generated 2026-10-06 07:49:26 UTC, requested through 2026-10-08; no newer authoritative feed manifest/run verified | Approved staging snapshot with timestamp, source cutoff, successful per-date requests, counts and checksum |
-| 3. Canonical identity + fixture/settlement readiness | FAIL | Approved provider-season-to-FotMob bridges 0/50; verified fixture joins 0; verified team joins 0 in audited ledger | Reviewed exact-ID/country bridges, exact fixture/team IDs, and official score/status settlement evidence |
+| 1. Automated validation | PASS | Safety contract run 40633801353; archive audit 40633801455; dry-run 40633801419; runtime/backtest 40633725121 | Reopen only if relevant code/data changes |
+| 2A. FootyStats season identity | PASS as provider evidence | 50/50 successful responses; returned season ID/country/name matched; 50 distinct `comp_master_id` values | Confirm `comp_master_id` semantics before using as parent/canonical ID |
+| 2B. FootyStats current schedule | PASS as provider retrieval | 50/50 successful `league-matches` calls; 871 future fixture rows next 14 days; 871 recent completed results in prior 14 days | Quarantine suspended/no-home-away rows; use only as research source until crosswalk approved |
+| 2C. Production FotMob freshness | FAIL / STALE | Checked-in manifest generated 2026-10-06 07:49 UTC, requested dates through 2026-10-08; three latest visible current-data workflow runs on 26–27 Oct failed | Diagnose actual failed step and refresh only through reviewed identity-safe staging |
+| 3. Canonical identity + settlement readiness | FAIL | Approved FootyStats-to-FotMob bridges 0/50; canonical fixture/team joins 0 verified in audited ledger; Combo settlement mismatch remains | Approved cross-provider bridge, exact fixture/team joins, official score/status settlement evidence |
 
-## Identity disposition across selected 50
+## Newly verified provider-side evidence
 
-The 50-row crosswalk has **22 candidate matches requiring human review** and **28 with no match in the current 27-league registry**. These are candidate labels/crosswalk states only. They are not 22 approved mappings. Parent competition IDs remain unverified for 50/50, and production eligibility is not granted for any league.
+### FootyStats identity
 
-The current-feed collision audit separately found 12/50 groups with a display-label hit, five with ambiguous feed league IDs, 38 with no matching display label, and seven label hits lacking country evidence. The 12 label hits are not verified bridges.
+- Exactly one `league-season` request was made for each selected season (50 total; no retries).
+- 50/50 responses returned HTTP 200 and provider success.
+- 50/50 returned season IDs, countries and competition names aligned with the selected manifest.
+- 50/50 returned non-null `comp_master_id` values, with 50 distinct values.
+- The observed field is retained as `provider_comp_master_id_observed` and marked `REVIEW_REQUIRED_NOT_CANONICAL`. The public API field listing does not precisely define the mapping to Oracle canonical codes or FotMob IDs.
 
-No parent competition ID may be inferred from a season ID, display name, or candidate canonical code. The research allowlist intentionally remains empty until authoritative evidence is reviewed.
+### FootyStats current fixtures
 
-## Current feed and safe refresh
+- 50/50 `league-matches` requests returned HTTP 200 and provider success; one page per season; no retries.
+- Retrieval timestamp: `2026-10-28T06:11:51.985177+00:00`.
+- Window contains 871 upcoming fixture rows and 871 recent completed matches.
+- Snapshot data-quality audit: 16 suspended rows (14 future, 2 recent); 354 rows with `no_home_away=1` (181 future, 173 recent); 47 recent rows have completed status and 0–0 scores. No missing team names/IDs/kickoff timestamps and no duplicate match IDs were detected within the window.
+- Suspended rows and no-home/away rows must be quarantined from standard markets. Completed 0–0 rows are not automatically invalid, but require settlement provenance checks.
 
-The checked-in `data/current_source_manifest.json` on the inspected production branch was generated at `2026-10-06T07:49:26.139704+00:00`; its requested window ended 2026-10-08. This proves that the accessible manifest is stale, but does not prove no newer artifact exists elsewhere or identify why ingestion stopped.
+## Current FotMob feed incident
 
-The old ingestion path is unsafe for refresh because it admits competitions by display name rather than approved exact IDs and omits country/category as an identity safeguard. Do not reactivate it as a shortcut. No provider API calls were made in this checkpoint; the previously approved single identity probe is not repeated.
+The production `Oracle Current Data Staging` workflow has three latest visible failed runs:
+- [40375719891 — 26 Oct](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40375719891)
+- [40447687936 — 27 Oct](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40447687936)
+- [40483639498 — 27 Oct](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/actions/runs/40483639498)
 
-## Data and settlement controls
+The connected log reader did not expose their detailed job logs, so the precise failing step remains unknown. Do not guess that this is caused by API quota, permissions or code. The existing ingestion script's name-only admission defect is independently confirmed, so do not rerun it as a refresh shortcut.
 
-- 210 staged ledger rows lack home-team IDs; 210 lack away-team IDs.
-- Audited fixture candidates: 105 competition-aligned; 20 competition/crosswalk gaps; 85 without an exact kickoff/team candidate. None verified or score-eligible.
-- 7,066 non-complete records with numeric 0–0 placeholders remain excluded from settled truth.
-- Combo predictor/settlement disagreement for 0–1 total-goal outcomes remains unresolved; Combo probabilities stay masked.
+## Identity disposition across the selected 50
+
+- Candidate matches to the current 27-league registry: 22, still requiring human review.
+- No match in current 27-league registry: 28; require a supported canonical identity proposal or explicit out-of-scope disposition.
+- Provider master IDs observed: 50/50.
+- Approved FootyStats-to-FotMob bridges: 0/50.
+- Production eligibility: not granted for any league.
+
+The 50 selected seasons exceed the existing 27-league canonical registry scope. Do not force the remaining 28 into a guessed code, and do not automatically approve the 22 candidate matches.
+
+## Other release blockers
+
+- 210 staged ledger rows lack home-team IDs and 210 lack away-team IDs.
+- Audited fixture candidates: 105 competition-aligned, 20 competition/crosswalk gaps and 85 without exact kickoff/team candidates; none verified or score-eligible.
+- 7,066 non-complete archive rows with numeric 0–0 placeholders remain excluded from settled truth.
+- Combo predictor/settlement disagreement for 0–1 total-goal outcomes remains unresolved; Combo probabilities remain masked.
 - 25 research runtime fixtures remain blocked by minimum recent home/away history requirements; do not impute missing history.
-- Point-in-time xG/odds provenance and calibrated betting edge remain unverified.
+- Point-in-time xG/odds provenance and calibrated betting-edge evidence remain unverified.
 
-## Next actions to the noon checkpoint
+## Immediate actions to the noon checkpoint
 
-1. Stop rerunning unchanged passing workflows. Gate 1 is closed for this code revision.
-2. Review the 22 crosswalk candidates against authoritative provider and canonical evidence, one by one. Promote only entries with traceable evidence and human approval; leave others quarantined.
-3. Locate the latest approved staging-feed artifact and its run manifest. If none exists, record the observability/source-access blocker; do not run the unsafe name-only ingestion.
-4. Once a safe existing snapshot is available, run the offline adapter and verify manifest timestamp, checksums, row counts, and accepted/quarantined reasons.
-5. Reconcile exact fixture/team IDs and kickoff, status, score, and settlement sources.
-6. Publish the final 50-row matrix with separate archive-data coverage, current-feed freshness, identity, market readiness, and release status. Keep all unresolved rows NO-GO.
+1. Confirm the provider semantics of `comp_master_id` from authoritative documentation/support.
+2. Retrieve the full logs for failed current-data run `40483639498` through a supported GitHub Actions view; establish the exact failing step.
+3. Use the 50 observed master IDs and 50-season schedule snapshot to prepare a research-only candidate crosswalk, but keep every FootyStats-to-FotMob bridge unapproved until the FotMob IDs/country evidence is verified.
+4. Keep suspended and no-home/away fixture rows quarantined; verify kickoff/team IDs, status, score and official settlement truth.
+5. Publish the final 50-row matrix with separate historical archive, FootyStats schedule, FotMob freshness, identity, market support and release status.
+6. If authoritative cross-provider evidence or safe current-feed refresh is still unavailable by noon, publish a NO-GO decision with exact blockers. The deadline does not override release gates.
 
-## Final governance decision
+## Key evidence
 
-**Research QA: PASS for cited workflow runs. Production and betting release: NO-GO.**
+- [Final 50-league readiness matrix](oracle-selected50-final-readiness-matrix-2026-10-28.md)
+- [FootyStats master-ID reconciliation](oracle-selected50-footystats-master-id-reconciliation-2026-10-28.md)
+- [Current FootyStats fixture snapshot](oracle-selected50-current-fixture-snapshot-2026-10-28.md)
+- [Fixture snapshot data-quality audit](oracle-selected50-fixture-snapshot-data-quality-2026-10-28.md)
+- [Production current-feed incident](oracle-selected50-production-current-feed-incident-2026-10-28.md)
+- [Identity review queue](oracle-selected50-identity-review-queue-2026-10-28.md)
+- [Sanitized fixture artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796425175)
 
-This is a technical release gate, not a deadline preference. If authoritative mapping evidence or a safe fresh snapshot remains unavailable by 12:00 SAST, report the blocker transparently and keep release disabled. Do not bypass safeguards or mark unknown values as verified.
+## Governance
 
-No production repository files, Oracle V1.6/V1.6.3 logic, probabilities, calibration, thresholds, protected canonical registry, ledgers, or governance were changed. No new provider requests were made.
+Research-only changes. No production repository files, Oracle V1.6/V1.6.3 logic, probabilities, calibration, thresholds, protected canonical registry, ledgers or governance were changed. No automatic canonical approvals were made. Production and betting eligibility remain NO-GO.
