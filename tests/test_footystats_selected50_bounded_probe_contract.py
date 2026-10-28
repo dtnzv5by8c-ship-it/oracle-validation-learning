@@ -14,11 +14,11 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         trigger = self.text.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotIn("\n  push:", trigger)
-        self.assertIn("confirm_private_archive_read:", trigger)
+        self.assertIn("confirm_provider_credit_usage:", trigger)
+        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
         self.assertIn("default: false", trigger)
-        self.assertIn('default: "research-selected50-footystats-history-40447419806"', trigger)
         self.assertNotIn("paths:", trigger)
-        self.assertNotIn("gh release download", ingestion)
+        self.assertNotIn("gh release download", self.text)
 
     def test_legacy_full_ingestion_and_catalogue_transfer_workflows_are_fail_closed(self):
         paths = (
@@ -47,19 +47,15 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
         trigger = runtime.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertIn("\n  push:", trigger)
-        self.assertIn("research-selected50-footystats-history-40447419806", trigger)
-        self.assertIn("paths:", trigger)
-        self.assertIn('"!reports/**"', trigger)
-        self.assertIn('"!tests/**"', trigger)
-        self.assertIn('"!**/*.md"', trigger)
-        self.assertIn('"!.github/workflows/**"', trigger)
-        self.assertIn('".github/workflows/oracle-selected50-research-runtime.yml"', trigger)
+        self.assertNotIn("\n  push:", trigger)
+        self.assertIn("confirm_private_archive_read:", trigger)
+        self.assertIn("default: false", trigger)
+        self.assertIn('default: "research-selected50-footystats-history-40447419806"', trigger)
+        self.assertNotIn("paths:", trigger)
         self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
         self.assertIn("Invalid private archive release tag format.", runtime)
         self.assertIn("Explicit private archive read confirmation required.", runtime)
         self.assertIn("if [[ \"${GITHUB_EVENT_NAME}\" == \"workflow_dispatch\" ]]; then", runtime)
-
 
     def test_private_archive_qa_reports_status_score_and_date_exceptions_without_settlement_claims(self):
         import datetime as dt
