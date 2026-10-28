@@ -119,10 +119,11 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "expected_runtime_run_id_matches": bool(args.expected_runtime_run_id) and s(provenance.get("runtime_run_id")) == s(args.expected_runtime_run_id),
         "snapshot_artifact_name_matches_expected": s(provenance.get("snapshot_artifact_name")) == "oracle-selected50-current-fixture-snapshot",
         "snapshot_artifact_id_present": bool(s(provenance.get("snapshot_artifact_id"))),
-        "snapshot_artifact_digest_is_sha256": s(provenance.get("snapshot_artifact_digest")).startswith("sha256:") and len(s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1]) == 64,
-        "snapshot_artifact_metadata_sha256_is_valid": len(s(provenance.get("snapshot_artifact_metadata_sha256"))) == 64,
+        "snapshot_artifact_digest_is_sha256": s(provenance.get("snapshot_artifact_digest")).startswith("sha256:") and len(s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1]) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1].lower()),
+        "snapshot_artifact_metadata_sha256_is_valid": len(s(provenance.get("snapshot_artifact_metadata_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_metadata_sha256")).lower()),
         "snapshot_artifact_run_id_matches": bool(args.expected_snapshot_run_id) and s(provenance.get("snapshot_artifact_workflow_run_id")) == s(args.expected_snapshot_run_id),
         "selected_input_matches_overlay_flag": provenance.get("selected_input_matches_overlay") is True,
+        "selected_input_archive_hash_is_sha256": len(s(provenance.get("selected_runtime_input_archive_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("selected_runtime_input_archive_sha256")).lower()),
         "selected_input_hash_matches_overlay_hash": bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(provenance.get("selected_runtime_input_archive_sha256")) == s(provenance.get("overlay_archive_sha256")),
         "runtime_input_hash_matches_pre_runtime_fingerprint": bool(s(provenance.get("selected_runtime_input_archive_sha256_before_runtime"))) and s(provenance.get("selected_runtime_input_archive_sha256_before_runtime")) == s(provenance.get("selected_runtime_input_archive_sha256")),
         "runtime_report_hash_matches_downloaded_report": bool(s(provenance.get("runtime_report_sha256"))) and s(provenance.get("runtime_report_sha256")) == hashlib.sha256(args.runtime_report.read_bytes()).hexdigest(),
@@ -282,7 +283,7 @@ def main():
       "prediction_generated":False,
       "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
     }
-    (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True) + "\\n",encoding="utf-8")
+    (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True) + "\n",encoding="utf-8")
     print(json.dumps(qa,indent=2,sort_keys=True))
     if args.require_runtime_provenance and not provenance["verified"]:
         raise SystemExit("FAIL: required snapshot-to-runtime provenance is missing or failed verification; see bridge QA output")
