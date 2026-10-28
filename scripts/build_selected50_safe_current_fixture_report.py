@@ -231,6 +231,11 @@ def main():
                 # Quarantine before horizon classification so it cannot be
                 # mislabeled as an ordinary out-of-window fixture.
                 reason = "QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"
+            elif ko > now and status != "incomplete":
+                # Match the FootyStats overlay's documented future-status contract:
+                # only "incomplete" is eligible; unknown values fail closed before
+                # they can be counted as clean out-of-runtime-window candidates.
+                reason = "QUARANTINE_UNKNOWN_OR_UNSUPPORTED_FUTURE_STATUS"
             elif ko <= now and status not in FINISHED:
                 reason = "QUARANTINE_NONFUTURE_UNSETTLED"
             elif ko <= now:
