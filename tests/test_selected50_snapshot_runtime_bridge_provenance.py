@@ -1,13 +1,16 @@
 import hashlib
+import io
 import json
 import tempfile
 import unittest
 from argparse import Namespace
+from contextlib import redirect_stdout
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.audit_selected50_snapshot_runtime_bridge import (
-    classify_source_eligibility, verify_runtime_provenance,
+    classify_source_eligibility, main, verify_runtime_provenance,
 )
 
 
