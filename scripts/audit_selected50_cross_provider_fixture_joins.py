@@ -29,6 +29,7 @@ def timestamp(row, keys):
 
 def rows_from_csv_zip(zf, selected_ids):
     candidates=[]
+    inventory=[]
     for name in zf.namelist():
         if not name.lower().endswith(".csv"): continue
         try:
@@ -36,16 +37,17 @@ def rows_from_csv_zip(zf, selected_ids):
                 wrapper=io.TextIOWrapper(raw,encoding="utf-8-sig",errors="replace",newline="")
                 reader=csv.DictReader(wrapper)
                 fields={x.strip() for x in (reader.fieldnames or [])}
-                has_home=bool(fields & {"home_name","home_team","homeTeam","team_a"})
-                has_away=bool(fields & {"away_name","away_team","awayTeam","team_b"})
-                has_time=bool(fields & {"date_unix","kickoff_unix","date_utc","kickoff_utc","date"})
-                has_comp=bool(fields & {"competition_id","selected_season_id","season_id","provider_season_id"})
+                inventory.append({"member":name,"fields":sorted(fields)})
+                has_home=bool(fields & {"home_name","home_team","homeTeam","team_a","home_team_name","home"})
+                has_away=bool(fields & {"away_name","away_team","awayTeam","team_b","away_team_name","away"})
+                has_time=bool(fields & {"date_unix","kickoff_unix","date_utc","kickoff_utc","date","match_date","timestamp","kickoff","datetime","date_GMT"})
+                has_comp=bool(fields & {"competition_id","selected_season_id","season_id","provider_season_id","league_season_id"})
                 if has_home and has_away and has_time and has_comp:
                     candidates.append((name,fields))
         except Exception:
             continue
     if not candidates:
-        return [],[],[]
+        return [],[],[],inventory
     all_rows=[]; member_names=[]; selected_seen=Counter()
     for name,fields in candidates:
         member_names.append(name)
@@ -64,7 +66,7 @@ def rows_from_csv_zip(zf, selected_ids):
     # Deduplicate by selected season and source match ID across archive files.
     dedup={}
     for r in all_rows: dedup[(r["season_id"],r["match_id"])]=r
-    return list(dedup.values()),member_names,selected_seen
+    return list(dedup.values()),member_names,selected_seen,inventory
 
 def load_current_matches(path):
     with open(path,encoding="utf-8-sig",newline="") as f:
@@ -99,9 +101,11 @@ def main():
     with open(args.identity_crosswalk,encoding="utf-8-sig",newline="") as f:
         for r in csv.DictReader(f): master[str(r.get("selected_manifest_id") or "").strip()]=str(r.get("provider_comp_master_id_observed") or "").strip()
     with zipfile.ZipFile(args.archive) as zf:
-        footy,archive_members,per_season=rows_from_csv_zip(zf,set(selected))
+        footy,archive_members,per_season,inventory=rows_from_csv_zip(zf,set(selected))
         member_list=zf.namelist()
-    if not footy: raise SystemExit("No archive CSV with season ID, home/away team and kickoff fields was found. No matches inferred.")
+    if not footy:
+        print("ARCHIVE_SCHEMA_INVENTORY="+json.dumps({"members":member_list,"csv_headers":inventory},sort_keys=True))
+        raise SystemExit("No archive CSV with selected season ID, home/away team and kickoff fields was found. No matches inferred.")
     current=load_current_matches(args.current_matches)
     # Exact key only: normalized ordered home/away pair and exact UTC Unix kickoff.
     current_by_key=defaultdict(list)
