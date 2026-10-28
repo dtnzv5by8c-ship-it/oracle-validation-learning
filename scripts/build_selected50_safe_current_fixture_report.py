@@ -64,13 +64,15 @@ def main():
     if not runtime or not required.issubset(runtime[0]):
         raise SystemExit("FAIL: runtime report missing required exact identity columns")
     runtime_by_key = {}
-    duplicate_runtime_keys = 0
+    duplicate_runtime_key_occurrences = 0
+    duplicate_runtime_key_set = set()
     for r in runtime:
         k = (text(r.get("provider_season_id")), text(r.get("fixture_id")))
         if not all(k):
             continue
         if k in runtime_by_key:
-            duplicate_runtime_keys += 1
+            duplicate_runtime_key_occurrences += 1
+            duplicate_runtime_key_set.add(k)
         else:
             runtime_by_key[k] = r
     season_meta = {text(x.get("selected_season_id")): x for x in seasons}
@@ -113,7 +115,11 @@ def main():
         if reason != "CANDIDATE_FOR_EXACT_JOIN":
             continue
         total_valid_source_rows += 1
-        r = runtime_by_key.get((season, fid))
+        runtime_key = (season, fid)
+        if runtime_key in duplicate_runtime_key_set:
+            reason_counts["BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY"] = reason_counts.get("BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", 0) + 1
+            continue
+        r = runtime_by_key.get(runtime_key)
         if r is None:
             reason_counts["BLOCKED_NO_EXACT_RUNTIME_ROW"] = reason_counts.get("BLOCKED_NO_EXACT_RUNTIME_ROW", 0) + 1
             continue
@@ -156,7 +162,9 @@ def main():
         "selected_seasons": len(seasons),
         "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
-        "duplicate_runtime_exact_keys": duplicate_runtime_keys,
+        "duplicate_runtime_exact_keys": duplicate_runtime_key_occurrences,
+        "ambiguous_runtime_exact_key_count": len(duplicate_runtime_key_set),
+        "source_candidates_blocked_by_duplicate_runtime_exact_key": reason_counts.get("BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", 0),
         "source_candidates_in_7_day_window": total_valid_source_rows,
         "safe_exact_join_rows": len(out_rows),
         "source_candidates_blocked_by_missing_runtime_or_team_identity": total_valid_source_rows - len(out_rows),
