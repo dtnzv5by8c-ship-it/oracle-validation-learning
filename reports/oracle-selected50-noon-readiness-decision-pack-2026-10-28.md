@@ -38,6 +38,10 @@ The work has made a material step forward since the initial checkpoint. The appr
 - Snapshot data-quality audit: 16 suspended rows (14 future, 2 recent); 354 rows with `no_home_away=1` (181 future, 173 recent); 47 recent rows have completed status and 0–0 scores. No missing team names/IDs/kickoff timestamps and no duplicate match IDs were detected within the window.
 - Suspended rows and no-home/away rows must be quarantined from standard markets. Completed 0–0 rows are not automatically invalid, but require settlement provenance checks.
 
+## New exact cross-provider join evidence
+
+A 30-day overlap between the stale FotMob staging snapshot and fresh FootyStats season data yielded eight exact team-pair/kickoff joins across two competitions. Canada CPL has three completed score agreements and one source conflict; England EFL League One has one completed score agreement and three postponed/suspended matches. These support two research candidates but do not approve a production bridge. See [the exact join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
+
 ## Current FotMob feed incident
 
 The production `Oracle Current Data Staging` workflow has three latest visible failed runs:
@@ -52,7 +56,7 @@ The connected log reader did not expose their detailed job logs, so the precise 
 - Candidate matches to the current 27-league registry: 22, still requiring human review.
 - No match in current 27-league registry: 28; require a supported canonical identity proposal or explicit out-of-scope disposition.
 - Provider master IDs observed: 50/50.
-- Approved FootyStats-to-FotMob bridges: 0/50.
+- Approved FootyStats-to-FotMob bridges: 0/50. Two strong research-only candidates have now been found from eight exact fixture joins: Canada CPL (FotMob 1000001192; 4 joins, one source conflict) and England EFL League One (FotMob 938219; 4 joins). Neither is human-approved.
 - Production eligibility: not granted for any league.
 
 The 50 selected seasons exceed the existing 27-league canonical registry scope. Do not force the remaining 28 into a guessed code, and do not automatically approve the 22 candidate matches.
