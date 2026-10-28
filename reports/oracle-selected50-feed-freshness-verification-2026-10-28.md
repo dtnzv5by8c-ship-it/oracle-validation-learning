@@ -68,6 +68,10 @@ The archive audit executed all seven current-feed identity-contract tests succes
 
 ### Archive audit findings
 
+- [Run #61 archive audit artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40630847423/artifacts/12791402647)
+- Artifact SHA-256: `2d9375590eb6f87db34a6c8939fd602d83c58dbd1925671d1189231330bbf3f0` — independently calculated from the downloaded 50 MB ZIP and matches GitHub's digest.
+- The artifact contains 547 files; the archive integrity and scope-guard JSON outputs were extracted and inspected.
+- Run #61 passed 205 tests, including all seven exact-ID current-feed identity-contract tests.
 - 126 season folders; 35,819 match records/features; 28,491 records with explicitly settled status and complete numeric scores; zero parse errors.
 - The provider catalogue's `provider_league_id` field is present but blank in all 43 catalogue rows; the 126-row archive manifest's provider ID field is blank in all 126 rows.
 - The provisional crosswalk produces candidates only. No canonical mapping is approved, and no production or betting eligibility is granted.
