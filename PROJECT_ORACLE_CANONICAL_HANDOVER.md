@@ -1,5 +1,5 @@
 # Project Oracle — Canonical Handover & Completion Pack
-Last reviewed: 2026-10-26 05:57 SAST
+Last reviewed: 2026-10-28 19:18 SAST
 Purpose: single source of truth for continuing the existing Project Oracle without making Nolan repeat decisions or context.
 
 **Latest verified checkpoint:** Section 25 and runtime run [40221071770](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40221071770) supersede earlier runtime counts and earlier notes that season-year mapping was unavailable. Use the provider season-year matrix from that artifact for current year coverage; the older annual reconciliation CSV is an earlier archive snapshot. Provider parent competition IDs remain unavailable, and production is still NOT_GRANTED.
@@ -802,3 +802,16 @@ The latest completed runtime log reports the raw BTTS backtest accuracy at **53.
 ## Latest governed identity matrix — Dry-Run #557
 
 The latest dry-run artifact reports 50 selected season groups, 22 provider-to-current-feed mapping candidates requiring human review, and 28 unresolved groups. **Approved mappings: 0; canonical fixture joins: 0; canonical team joins: 0; official settlement truth: 0; point-in-time xG/odds provenance: 0.** The primary blocker counts are 38 groups with no matching current-feed label, 7 where country is not retained in the current feed, and 5 ambiguous display-label groups with multiple feed IDs. The 22 candidates are not approved mappings. The governed fixture gate remains `BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE`, with zero current governed rows. Dry-Run #557 made zero network calls and zero paid-provider calls; see artifact #12832433378.
+
+
+## Safe current-report snapshot provenance guard — 2026-10-28 19:18 SAST
+
+- Reviewed the canonical handover and the latest runtime overlay audit first. The runtime overlay trace report dated 18:34 SAST remains the latest verified runtime audit; no newer runtime run is verified in this checkpoint.
+- Fixed a concrete defect in `scripts/build_selected50_safe_current_fixture_report.py`: it previously accepted a saved snapshot without validating retrieval time and did not preserve exact snapshot-file provenance in the report.
+- The builder now requires timezone-aware `retrieved_utc`, rejects future-dated and >24-hour-old snapshots relative to the report as-of time, validates `per_season`/`fixture_rows` list shape, hashes the exact snapshot bytes, and includes normalized retrieval time, age, SHA-256 and provenance status in QA and joined rows.
+- Code commit: `7691029335a60eb6d320f656253006e14e238853`. Regression tests: `8c18d7c1cd349b945bb6a29a3a7eaacc7cf00ad7`. Report commit: `364f1bb970031f1ad41c5d1defe5e8ee85566120`.
+- Local validation passed for the existing exact-identity/flag test and the new provenance test. The new test covers missing, timezone-naive, future and stale retrieval timestamps; valid fixture output carries the snapshot digest and calculated age. The synthetic test suite completed 2 tests successfully, including all four invalid timestamp subcases.
+- GitHub Actions validation of this latest change is **NOT VERIFIED**. The connected status endpoint returned no status entries and the available GitHub tools do not expose a workflow-run listing or dispatch action. The public workflow `.github/workflows/selected50-safe-current-report-contract.yml` is push-triggered; inspect its run before claiming CI success.
+- The current report is still research-only. Runtime fixture support remains 25 blocked by insufficient venue-specific history; Combo remains masked due to unresolved target/settlement semantics; canonical fixture/team joins, official settlement truth and point-in-time xG/odds provenance remain unverified.
+- No provider API calls, private Actions runs, production repository writes, or changes to Oracle V1.6/V1.6.3 logic, probabilities, calibration, thresholds, registry, ledgers or governance occurred.
+- Next action: inspect the public safe-report contract workflow run for the latest commit. Separately, the runtime candidate trace still needs a new runtime dispatch with the existing snapshot artifact to resolve fixture `8432254`; do not claim that trace has been generated until the runtime artifact is downloaded and inspected.
