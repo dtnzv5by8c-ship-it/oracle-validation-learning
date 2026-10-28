@@ -159,11 +159,18 @@ def main():
             pred.get("fixture_id"), pred["prediction_block_reason"]
         )
         assert pred["prediction_block_reason"] == gov["prediction_block_reason"]
-        if pred["prediction_status"] == "NO_PREDICTION_FEATURE_OR_TRAINING_GATE":
-            assert pred["prediction_block_reason"] != "RESEARCH_PREDICTION_AVAILABLE"
+        expected_prediction_status = {
+            "RESEARCH_PREDICTION_AVAILABLE": "RAW_RESEARCH_ONLY",
+            "BLOCKED_MISSING_REQUIRED_FEATURES": "BLOCKED_MISSING_REQUIRED_FEATURES",
+            "BLOCKED_MODEL_TRAINING_GATE": "BLOCKED_MODEL_TRAINING_GATE",
+            "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE": "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE",
+        }.get(pred["prediction_block_reason"], "BLOCKED_UNCLASSIFIED_NO_PREDICTION")
+        assert pred["prediction_status"] == expected_prediction_status, (
+            pred.get("fixture_id"), pred["prediction_status"], pred["prediction_block_reason"]
+        )
+        assert gov["prediction_status"] == expected_prediction_status
+        if expected_prediction_status != "RAW_RESEARCH_ONLY":
             assert all(pred.get(m + "_probability_pct", "") == "" for m in MARKETS)
-        else:
-            assert pred["prediction_block_reason"] == "RESEARCH_PREDICTION_AVAILABLE"
     # Combo probabilities must be masked in every uploaded prediction CSV, not just
     # the separately governed report, until market semantics and identity gates pass.
     assert all(r.get("COMBO_HOME_probability_pct", "") == "" and r.get("COMBO_AWAY_probability_pct", "") == "" for r in prediction_report)
@@ -224,7 +231,7 @@ def main():
         "governed_fixture_rows": len(governed),
         "feature_support_blocked_rows": sum(1 for r in prediction_report if r["feature_support_status"] != "PASS_ALL_20_REQUIRED_FEATURES"),
         "rows_with_any_unavailable_market_model": sum(1 for r in prediction_report if r["training_support_status"] != "PASS_ALL_MARKET_MODELS"),
-        "rows_without_any_supported_prediction": sum(1 for r in prediction_report if r["prediction_status"] == "NO_PREDICTION_FEATURE_OR_TRAINING_GATE"),
+        "rows_without_any_supported_prediction": sum(1 for r in prediction_report if r["prediction_status"] != "RAW_RESEARCH_ONLY"),
         "prediction_block_reason_counts": dict(sorted(Counter(r["prediction_block_reason"] for r in prediction_report).items())),
         "combo_home_probabilities_remaining": governed_qa["combo_home_probabilities_remaining"],
         "combo_away_probabilities_remaining": governed_qa["combo_away_probabilities_remaining"],

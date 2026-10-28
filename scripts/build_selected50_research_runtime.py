@@ -222,6 +222,13 @@ def prediction_support_diagnostics(feature, model_fits, any_probability_availabl
             f"{market}:{int(fit[1])}" for market, fit in model_fits.items()
         ),
         "prediction_block_reason": block_reason,
+        "prediction_status": (
+            "RAW_RESEARCH_ONLY" if any_probability_available else {
+                "BLOCKED_MISSING_REQUIRED_FEATURES": "BLOCKED_MISSING_REQUIRED_FEATURES",
+                "BLOCKED_MODEL_TRAINING_GATE": "BLOCKED_MODEL_TRAINING_GATE",
+                "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE": "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE",
+            }.get(block_reason, "BLOCKED_UNCLASSIFIED_NO_PREDICTION")
+        ),
     }
 
 
@@ -721,7 +728,6 @@ def main():
                 for market in MARKETS: row[market+"_probability_pct"]=round(100*predict(models[market],f),2) if predict(models[market],f) is not None else None
                 has_probability=any(row[m+"_probability_pct"] is not None for m in MARKETS)
                 row.update(prediction_support_diagnostics(f, model_fits, has_probability))
-                row["prediction_status"]="RAW_RESEARCH_ONLY" if has_probability else "NO_PREDICTION_FEATURE_OR_TRAINING_GATE"
                 predictions.append(row)
         # Write private normalized research package.
         normalized_path=OUT/"normalized_selected50_matches.csv"

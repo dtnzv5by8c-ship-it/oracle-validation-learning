@@ -20,6 +20,7 @@ class Selected50PredictionSupportDiagnosticsTests(unittest.TestCase):
         self.assertEqual(result["feature_support_status"], "PASS_ALL_20_REQUIRED_FEATURES")
         self.assertEqual(result["training_support_status"], "PASS_ALL_MARKET_MODELS")
         self.assertEqual(result["prediction_block_reason"], "RESEARCH_PREDICTION_AVAILABLE")
+        self.assertEqual(result["prediction_status"], "RAW_RESEARCH_ONLY")
         self.assertEqual(result["missing_required_features"], "")
         self.assertEqual(result["unavailable_training_markets"], "")
 
@@ -31,6 +32,7 @@ class Selected50PredictionSupportDiagnosticsTests(unittest.TestCase):
         self.assertEqual(result["missing_required_features"], "home_gf5")
         self.assertEqual(result["training_support_status"], "PASS_ALL_MARKET_MODELS")
         self.assertEqual(result["prediction_block_reason"], "BLOCKED_MISSING_REQUIRED_FEATURES")
+        self.assertEqual(result["prediction_status"], "BLOCKED_MISSING_REQUIRED_FEATURES")
 
     def test_training_gate_is_distinguished_from_feature_gate(self):
         fits = {market: (None, 299) for market in runtime.MARKETS}
@@ -43,6 +45,12 @@ class Selected50PredictionSupportDiagnosticsTests(unittest.TestCase):
             ";".join(f"{market}:299" for market in runtime.MARKETS),
         )
         self.assertEqual(result["prediction_block_reason"], "BLOCKED_MODEL_TRAINING_GATE")
+        self.assertEqual(result["prediction_status"], "BLOCKED_MODEL_TRAINING_GATE")
+
+    def test_unclassified_no_prediction_fails_closed_with_explicit_status(self):
+        result = runtime.prediction_support_diagnostics(self.features, self.fits, False)
+        self.assertEqual(result["prediction_block_reason"], "BLOCKED_UNCLASSIFIED_NO_PREDICTION")
+        self.assertEqual(result["prediction_status"], "BLOCKED_UNCLASSIFIED_NO_PREDICTION")
 
     def test_combined_gate_failure_is_explicit(self):
         feature = dict(self.features)
@@ -51,6 +59,7 @@ class Selected50PredictionSupportDiagnosticsTests(unittest.TestCase):
         fits["COMBO_AWAY"] = (None, 0)
         result = runtime.prediction_support_diagnostics(feature, fits, False)
         self.assertEqual(result["prediction_block_reason"], "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE")
+        self.assertEqual(result["prediction_status"], "BLOCKED_MISSING_FEATURES_AND_TRAINING_GATE")
         self.assertEqual(result["unavailable_training_markets"], "COMBO_AWAY")
 
 
