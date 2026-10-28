@@ -88,7 +88,7 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
         summary,exact,_,_,_=self.run_audit(current_status="complete",current_finished=True)
         self.assertEqual(summary["fotmob_exact_join_rows"],1)
         self.assertEqual(summary["source_conflict_rows"],1)
-        self.assertFalse(exact[0]["score_known_both_sources"])
+        self.assertEqual(exact[0]["score_known_both_sources"], "False")
 
     def test_matching_status_and_missing_scores_are_not_a_conflict(self):
         summary,exact,_,_,_=self.run_audit()
