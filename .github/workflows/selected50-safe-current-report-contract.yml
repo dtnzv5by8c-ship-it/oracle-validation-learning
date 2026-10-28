@@ -1,0 +1,33 @@
+name: Selected-50 Safe Current Fixture Report Contract
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/build_selected50_safe_current_fixture_report.py"
+      - "tests/test_selected50_safe_current_fixture_report.py"
+      - ".github/workflows/selected50-safe-current-report-contract.yml"
+  pull_request:
+    paths:
+      - "scripts/build_selected50_safe_current_fixture_report.py"
+      - "tests/test_selected50_safe_current_fixture_report.py"
+      - ".github/workflows/selected50-safe-current-report-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run isolated safe-report contract test
+        run: python -m unittest tests/test_selected50_safe_current_fixture_report.py -v
