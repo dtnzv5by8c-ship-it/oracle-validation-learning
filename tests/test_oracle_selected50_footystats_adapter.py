@@ -103,6 +103,39 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(rows[0]["source_snapshot_retrieved_utc"], "2026-10-28T06:00:00Z")
         self.assertEqual(manifest["source_snapshot_age_seconds_at_adaptation"], 21600)
 
+    def test_fractional_completed_score_is_quarantined_not_truncated(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-20T18:00:00+00:00", "status": "complete",
+            "homeGoalCount": "1.5", "awayGoalCount": "0",
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "QUARANTINE_INCOMPLETE_SCORE")
+        self.assertEqual(rows[0]["home_goals"], "")
+
+    def test_negative_completed_score_is_quarantined(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-20T18:00:00+00:00", "status": "complete",
+            "homeGoalCount": "-1", "awayGoalCount": "0",
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "QUARANTINE_INCOMPLETE_SCORE")
+        self.assertEqual(rows[0]["home_goals"], "")
+
+    def test_boolean_completed_score_is_quarantined(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-20T18:00:00+00:00", "status": "complete",
+            "homeGoalCount": True, "awayGoalCount": 0,
+        }
+        rows, _ = adapt(snapshot_with(row), datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows[0]["fixture_eligibility"], "QUARANTINE_INCOMPLETE_SCORE")
+        self.assertEqual(rows[0]["home_goals"], "")
+
     def test_duplicate_match_id_in_season_fails_closed(self):
         row = {"selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
                "home_name": "Home", "away_name": "Away", "kickoff_utc": "2026-10-30T18:00:00+00:00",
