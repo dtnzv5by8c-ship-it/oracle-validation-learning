@@ -22,9 +22,12 @@ def validate(path):
     rows=d.get("fixture_rows")
     if not isinstance(seasons,list) or len(seasons)!=50: errors.append("per_season must contain exactly 50 rows")
     if not isinstance(rows,list): errors.append("fixture_rows must be a list"); rows=[]
+    selected_season_id_set = set()
     if isinstance(seasons,list):
-        season_ids=[str(x.get("selected_season_id","")) for x in seasons]
+        season_ids=[str(x.get("selected_season_id") or "").strip() for x in seasons]
+        if any(not sid for sid in season_ids): errors.append("one or more selected season IDs are missing")
         if len(set(season_ids))!=50: errors.append("selected season IDs are not unique")
+        selected_season_id_set = {sid for sid in season_ids if sid}
         for x in seasons:
             if x.get("http_status")!=200 or x.get("provider_success") is not True:
                 errors.append(f"provider request failed for season {x.get('selected_season_id')}")
@@ -35,7 +38,12 @@ def validate(path):
         if not mid: errors.append(f"row {i}: missing match id")
         elif mid in seen: errors.append(f"duplicate match id {mid}")
         seen.add(mid)
-        if str(r.get("competition_id") or "")!=str(r.get("selected_season_id") or ""):
+        row_season_id = str(r.get("selected_season_id") or "").strip()
+        if not row_season_id:
+            errors.append(f"row {i}: missing selected season ID")
+        elif row_season_id not in selected_season_id_set:
+            errors.append(f"row {i}: selected season ID is not in the requested 50-season set")
+        if str(r.get("competition_id") or "").strip()!=row_season_id:
             errors.append(f"row {i}: competition_id does not match selected season ID")
         for key in ("homeID","awayID","home_name","away_name","date_unix","kickoff_utc","status"):
             if r.get(key) in (None,""): missing_fields[key]+=1

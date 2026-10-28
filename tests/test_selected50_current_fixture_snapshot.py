@@ -25,6 +25,23 @@ class SnapshotValidatorTests(unittest.TestCase):
             d=self.build();d["fixture_rows"][1]["id"]=d["fixture_rows"][0]["id"]
             p=Path(td)/"snapshot.json";p.write_text(json.dumps(d))
             self.assertEqual(validate(p)["status"],"FAIL")
+    def test_fixture_for_unrequested_season_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=self.build()
+            d["fixture_rows"][0]["selected_season_id"]="999"
+            d["fixture_rows"][0]["competition_id"]="999"
+            p=Path(td)/"snapshot.json";p.write_text(json.dumps(d))
+            self.assertEqual(validate(p)["status"],"FAIL")
+    def test_empty_selected_season_id_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=self.build();d["per_season"][0]["selected_season_id"]=""
+            p=Path(td)/"snapshot.json";p.write_text(json.dumps(d))
+            self.assertEqual(validate(p)["status"],"FAIL")
+    def test_competition_id_must_match_selected_season_id(self):
+        with tempfile.TemporaryDirectory() as td:
+            d=self.build();d["fixture_rows"][0]["competition_id"]="999"
+            p=Path(td)/"snapshot.json";p.write_text(json.dumps(d))
+            self.assertEqual(validate(p)["status"],"FAIL")
     def test_production_eligibility_must_remain_blocked(self):
         with tempfile.TemporaryDirectory() as td:
             d=self.build();d["production_eligibility"]="APPROVED"
