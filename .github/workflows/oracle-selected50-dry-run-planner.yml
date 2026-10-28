@@ -1,0 +1,207 @@
+name: Oracle Selected-50 Dry-Run Planner
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths-ignore:
+      - "reports/**"
+      - "*.md"
+      - "**/*.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate dry-run plan (no network calls)
+        run: python scripts/plan_selected50_dry_run.py
+      - name: Build conservative market gates
+        run: python scripts/build_selected50_market_gates.py
+      - name: Run planner regression tests
+        run: python tests/test_selected50_dry_run_planner.py
+      - name: Run market gate regression tests
+        run: python tests/test_selected50_market_gates.py
+      - name: Run exact catalogue resolver tests
+        run: python tests/test_selected50_catalogue_resolver.py
+      - name: Run prediction input contract tests
+        run: python tests/test_selected50_prediction_inputs.py
+      - name: Validate governed Selected-50 compatibility contract
+        run: python tests/test_selected50_compatibility_contract.py
+      - name: Validate FootyStats identifier separation contract (no API calls)
+        run: python tests/test_footystats_ingestion_workflow_contract.py
+      - name: Generate Combo settlement mismatch diagnostic (no network calls)
+        run: python scripts/build_combo_settlement_mismatch_audit.py
+      - name: Run Combo settlement governance regression tests
+        run: python tests/test_selected50_combo_settlement_gate.py
+      - name: Validate Combo diagnostic output
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          rows = list(csv.DictReader((root / "selected50_combo_settlement_mismatch_matrix.csv").open(encoding="utf-8", newline="")))
+          summary = json.loads((root / "selected50_combo_settlement_mismatch_summary.json").read_text(encoding="utf-8"))
+          assert len(rows) == 121
+          assert summary["combo_home_disagreement_scorelines"] == 2
+          assert summary["combo_away_disagreement_scorelines"] == 2
+          assert all(r["production_eligible"] == "NO" for r in rows)
+          assert summary["production_eligible"] is False
+          print("PASS: Combo mismatch is explicit, reproducible, and remains blocked.")
+          PY
+      - name: Validate plan output
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          rows = list(csv.DictReader((root / "selected50_dry_run_coverage_matrix.csv").open()))
+          gates = list(csv.DictReader((root / "selected50_market_readiness_gates.csv").open()))
+          summary = json.loads((root / "selected50_dry_run_summary.json").read_text())
+          assert len(rows) == len(gates) == 50
+          assert len({r["selected_id"] for r in rows}) == 50
+          assert summary["network_calls_made"] == summary["paid_provider_calls_made"] == 0
+          assert all(r["production_eligible"] == "NO" for r in rows + gates)
+          assert all(r["btts_yes_gate"] == "NOT_VERIFIED" for r in gates)
+          print("PASS: 50 IDs, evidence joins, conservative market gates, zero provider calls.")
+          PY
+      - name: Validate evidence-layer reconciliation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("audit-output/selected50_evidence_layer_reconciliation.json")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          e = d["run56_exact_id_evidence"]
+          selected_count = d["selected_group_count"]
+          present = e["manifest_records_present"]
+          absent = e["no_manifest_record"]
+          archive_rows = e["archive_records"]
+          # Assert stable invariants rather than freezing today's 31/19 split.
+          # A refreshed evidence snapshot may legitimately change the counts.
+          assert selected_count == 50
+          assert present >= 0 and absent >= 0 and present + absent == selected_count
+          assert e["exact_archive_coverage_rows"] == present
+          for field in ("archive_score_complete_rows", "archive_settled_status_allowed_rows",
+                        "archive_parseable_kickoff_rows", "archive_complete_team_id_rows",
+                        "archive_rows_missing_team_names"):
+              assert 0 <= e[field] <= archive_rows, (field, e[field], archive_rows)
+          assert d["identity_findings"]["provider_parent_competition_ids_populated_by_this_dry_run"] == 0
+          assert d["identity_findings"]["parent_ids_inferred_from_season_ids"] is False
+          assert d["identity_findings"]["canonical_fixture_team_join_verified"] is False
+          assert d["identity_findings"]["settlement_truth_verified"] is False
+          assert d["live_ingestion"]["network_calls_made"] == 0
+          assert d["live_ingestion"]["paid_provider_calls_made"] == 0
+          assert d["live_ingestion"]["minimum_endpoint_calls_if_one_pass"] >= selected_count
+          assert d["production_eligible"] is False
+          print(f"PASS: {selected_count} groups accounted for ({present} exact manifest matches, {absent} absent); counts internally consistent; no network calls; production blocked.")
+          PY
+      - name: Reconcile selected-50 archive evidence layers (no network calls)
+        run: python scripts/build_selected50_archive_evidence_reconciliation.py
+      - name: Test selected-50 archive evidence reconciliation
+        run: python tests/test_selected50_archive_evidence_reconciliation.py
+      - name: Build latest sanitized private-archive coverage matrix (no network calls)
+        run: python scripts/build_selected50_latest_private_archive_coverage.py
+      - name: Test latest sanitized private-archive coverage matrix
+        run: python tests/test_selected50_latest_private_archive_coverage.py
+      - name: Reconcile Selected-50 identity snapshot scopes (no network calls)
+        run: python scripts/build_selected50_identity_snapshot_reconciliation.py
+      - name: Test Selected-50 identity snapshot reconciliation
+        run: python tests/test_selected50_identity_snapshot_reconciliation.py
+      - name: Build Selected-50 current-feed identity quarantine (no network calls)
+        run: python scripts/build_selected50_current_feed_identity_quarantine.py
+      - name: Test Selected-50 current-feed identity quarantine
+        run: python tests/test_selected50_current_feed_identity_quarantine.py
+      - name: Build sanitized Selected-50 governed readiness matrix (no network calls)
+        run: python scripts/build_selected50_governed_readiness_matrix.py
+      - name: Test Selected-50 governed readiness matrix
+        run: python tests/test_selected50_governed_readiness_matrix.py
+      - name: Validate Selected-50 governed readiness matrix outputs
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          s = json.loads((root / "selected50_governed_readiness_summary.json").read_text(encoding="utf-8"))
+          rows = list(csv.DictReader((root / "selected50_governed_readiness_matrix.csv").open(encoding="utf-8", newline="")))
+          assert s["status"] == "PASS_SANITIZED_SELECTED50_GOVERNED_READINESS_MATRIX_RESEARCH_ONLY"
+          assert len(rows) == 50 and len({r["selected_season_id"] for r in rows}) == 50
+          assert s["crosswalk_status_counts"]["CANDIDATE_REQUIRES_HUMAN_REVIEW_NOT_APPROVED"] == 22
+          assert s["crosswalk_status_counts"]["UNRESOLVED_NO_EXACT_OR_EXPLICIT_ALIAS"] == 28
+          assert int(s["latest_private_archive_seasons_global"]) == 50
+          assert int(s["latest_private_archive_fixture_rows_global"]) == 14051
+          assert s["parent_competition_ids_verified"] == 0
+          assert s["canonical_fixture_joins_verified"] == 0
+          assert s["canonical_team_joins_verified"] == 0
+          assert s["official_settlement_truth_verified"] == 0
+          assert s["current_feed_groups_with_label_rows"] == 12
+          assert s["current_feed_groups_with_multiple_league_id_collisions"] == 5
+          assert s["current_feed_groups_with_no_label_rows"] == 38
+          assert s["current_feed_country_field_present_groups"] == 0
+          assert s["current_feed_exact_league_id_allowlist_groups"] == 0
+          assert s["provider_season_to_feed_bridge_verified_groups"] == 0
+          assert s["xg_point_in_time_provenance_verified"] == 0
+          assert s["odds_point_in_time_provenance_verified"] == 0
+          from datetime import date, datetime, timezone
+          audit_date = date.fromisoformat(s["audit_date"])
+          utc_today = datetime.now(timezone.utc).date()
+          assert abs((utc_today - audit_date).days) <= 1, (utc_today, audit_date)
+          last_fixture_date = date.fromisoformat(s["schedule_last_fixture_date"])
+          schedule_window_end = date.fromisoformat(s["schedule_manifest_window_end"])
+          assert int(s["days_since_last_fixture_date"]) == (audit_date - last_fixture_date).days
+          assert int(s["days_since_schedule_window_end"]) == (audit_date - schedule_window_end).days
+          assert s["schedule_last_fixture_date"] == "2026-10-17"
+          assert s["schedule_manifest_window_end"] == "2026-10-22"
+          gate = json.loads((root / "selected50_governed_fixture_report_gate.json").read_text(encoding="utf-8"))
+          assert s["production_eligible_rows"] == 0
+          assert s["raw_feed_examples_exported"] is False
+          assert s["network_calls_made"] == 0 and s["paid_provider_calls_made"] == 0
+          assert s["governed_fixture_report_gate_status"] == "BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE"
+          assert s["governed_fixture_rows_emitted"] == 0
+          assert gate["status"] == "BLOCKED_NO_CURRENT_GOVERNED_FIXTURE_SLATE"
+          assert gate["current_fixture_rows_emitted"] == 0 and gate["prediction_rows_emitted"] == 0
+          assert gate["unsupported_predictions_emitted"] == 0 and gate["missing_fields_filled"] == 0
+          assert gate["production_eligible"] is False and gate["research_only"] is True
+          assert set(gate["market_gates"]) == {"BTTS", "DOUBLE_CHANCE", "COMBO", "M1UP"}
+          assert all(r["production_eligible"] == "NO" and r["raw_feed_examples_exported"] == "NO" for r in rows)
+          print("PASS: 50-row readiness matrix and fail-closed fixture-report gate; no unsupported slate emitted.")
+          PY
+      - name: Audit pinned aggregate walk-forward metrics (no network calls)
+        run: python scripts/audit_selected50_walk_forward_snapshot.py
+      - name: Test aggregate walk-forward integrity audit
+        run: python tests/test_selected50_walk_forward_snapshot.py
+      - name: Validate walk-forward audit artifact outputs
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("audit-output")
+          summary = json.loads((root / "selected50_walk_forward_integrity_audit.json").read_text(encoding="utf-8"))
+          markets = list(csv.DictReader((root / "selected50_walk_forward_market_summary.csv").open(encoding="utf-8", newline="")))
+          assert summary["status"] == "PASS_AGGREGATE_WALK_FORWARD_INTEGRITY_AUDIT_RESEARCH_ONLY"
+          assert summary["aggregate_market_fold_rows"] == 15
+          assert summary["wilson_intervals_recomputed"] == 15
+          assert summary["brier_skill_formula_checks"] == 15
+          assert len(markets) == 5
+          assert summary["production_eligible"] is False
+          assert summary["betting_eligible"] is False
+          assert summary["combo_probabilities_remaining"] == 0
+          assert all(row["production_eligible"] == "NO" for row in markets)
+          print("PASS: walk-forward arithmetic, chronological fold contract, and research-only gates.")
+          PY
+      - name: Test conservative FootyStats season-year normalization (no network calls)
+        run: python tests/test_footystats_season_year_normalizer.py
+      - name: Test bounded Selected-50 probe governance contract (no network calls)
+        run: python tests/test_footystats_selected50_bounded_probe_contract.py
+      - name: Upload dry-run and readiness artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-dry-run-plan
+          path: audit-output/
+          if-no-files-found: error
