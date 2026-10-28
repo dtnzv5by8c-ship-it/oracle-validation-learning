@@ -46,3 +46,7 @@ jobs:
         run: python -m py_compile scripts/overlay_selected50_current_snapshot.py
       - name: Run current snapshot overlay safety tests
         run: python -m unittest discover -s tests -p "test_overlay_selected50_current_snapshot.py" -v
+      - name: Compile runtime provenance writer
+        run: python -m py_compile scripts/write_selected50_runtime_provenance.py
+      - name: Run runtime provenance contract tests
+        run: python -m unittest discover -s tests -p "test_selected50_runtime_provenance.py" -v
