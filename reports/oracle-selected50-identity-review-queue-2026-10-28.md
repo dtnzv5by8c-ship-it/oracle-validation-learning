@@ -76,6 +76,12 @@ Eight exact fixture joins now support two strong bridge candidates:
 
 Both remain human-review candidates. The Canadian conflict shows that stale source records cannot be treated as settlement truth. Full evidence: [overlap join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
 
+## Historical ledger join evidence now available
+
+The latest read-only audit adds **24 strong historical-ledger code candidates** (577 exact ordered team-pair + calendar-date joins; all matched completed scores agree). Because the ledger file does not prove kickoff time and its short code namespace may differ from the research canonical IDs, keep all 24 candidates in human review. It also found two FotMob league-ID candidates from ten exact kickoff joins: Canada CPL (one source conflict) and England EFL League One (three postponed/suspended fixtures). These are candidate mappings, not approvals.
+
+[Full 24-code and FotMob join evidence](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md) · [Sanitized audit artifact](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644996669/artifacts/12796818576).
+
 ## Approval checklist for each row
 
 1. Confirm the FootyStats `comp_master_id` field semantics with authoritative documentation or written provider confirmation.
