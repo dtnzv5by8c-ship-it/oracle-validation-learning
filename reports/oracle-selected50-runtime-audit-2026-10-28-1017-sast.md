@@ -100,7 +100,7 @@ All 25 blocked fixtures report `PASS_ALL_MARKET_MODELS`, with 44,568 eligible tr
 
 ## Combo target/settlement contract
 
-The predictor target is **Double Chance AND total goals 2–4 inclusive**. The current settlement helper represents Double Chance plus total goals **<5**, including 0–1 goals. The score-grid diagnostic evaluates 121 scorelines and identifies:
+The current predictor target is **Double Chance AND total goals 2–4 inclusive**. The unchanged settlement helper represents Double Chance plus total goals **<4.5** (integer scores 0–4), including 0–1 goals. A source comparison exposed a material historical change: Run #112's source commit `adae74577d9f5c73f4981ec69c8d3068fd718fac` used `h+a <= 4` for both Combo labels and its tests asserted equality with the helper; current Run #147 source commit `964d962024c9e02f3cdf5a2703a8b4d44b96674b` uses `2 <= h+a <= 4` and explicitly diagnoses the disagreement. The settlement-helper blob SHA is unchanged (`32b2bb3b29b6d16d3d3ee2ea964c4fbb6545eaeb`); the research target/test changed. Run #112's zero-disagreement artifact therefore does not prove the current target matches settlement semantics. The official bookmaker market definition remains unverified, so do not silently revert either definition. The score-grid diagnostic evaluates 121 scorelines and identifies:
 - Home Combo disagreement: 0–0 and 1–0.
 - Away Combo disagreement: 0–0 and 0–1.
 
