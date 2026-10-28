@@ -11,8 +11,8 @@
 | BTTS | 3 | 23 | 4 | 20 | 0/50 |
 | Double Chance — Home | 17 | 13 | 0 | 20 | 0/50 |
 | Double Chance — Away | 19 | 11 | 0 | 20 | 0/50 |
-| Home Combo | 12 | 16 | 2 | 20 | 0/50 |
-| Away Combo | 18 | 12 | 0 | 20 | 0/50 |
+| Home Combo | 15 | 15 | 0 | 20 | 0/50 |
+| Away Combo | 17 | 13 | 0 | 20 | 0/50 |
 
 “Positive Brier skill” is a diagnostic comparison to league prevalence, not a betting-edge claim. “Insufficient” means the league-specific fold did not satisfy minimum train/test sample or metric availability; it is not a pass.
 
@@ -22,11 +22,11 @@ For each market, 49/50 leagues met the minimum sample gate but still require fol
 
 ## Combo market control
 
-The governed fixture report contains 461 historical-archive future fixture candidates. Combo probabilities are masked on all rows until exact canonical fixture/team joins and official settlement truth are verified. The predictor/settlement disagreement for 0–1 total-goal outcomes remains a release blocker. Do not unmask Combo values from the new FootyStats fixture snapshot.
+The latest research runtime contains 463 historical-archive future fixture candidates. QA reports 9,335 Home Combo and 8,017 Away Combo predictor-versus-ledger disagreement rows; the governed report masks all 438 available Home Combo and 438 Away Combo probabilities. The predictor target is Double Chance AND 2–4 total goals, while the settlement helper uses Double Chance AND total goals <5 (including 0–1 goals). The authoritative market definition remains unresolved. Do not unmask Combo values from the new FootyStats fixture snapshot.
 
 ## Current fixtures versus model predictions
 
-The live FootyStats-native snapshot contains 871 upcoming fixtures in the next 14 days. It is a source-schedule retrieval result, not a production prediction report. The previous archive runtime predicted 461 fixture candidates in a seven-day horizon across 40 competitions; 25 fixtures remain blocked by minimum recent home/away history requirements. Do not treat the 871 current source fixtures as model-scored or production-eligible.
+The live FootyStats-native snapshot contains 871 upcoming fixtures in the next 14 days. It is a source-schedule retrieval result, not a production prediction report. The latest archive runtime produced 463 fixture candidates in a seven-day horizon across 40 competitions; 25 fixtures remain blocked by minimum recent home/away history requirements. Do not treat the 871 current source fixtures as model-scored or production-eligible.
 
 ## Required gates before any market release
 
@@ -40,8 +40,8 @@ The live FootyStats-native snapshot contains 871 upcoming fixtures in the next 1
 
 ## Evidence
 
-- [Research runtime/backtest run #112](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40554064150)
-- [Sanitized runtime artifact 12757295232](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40554064150/artifacts/12757295232)
+- [Latest research runtime/backtest run](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062)
+- [Latest sanitized runtime artifact 12796307772](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062/artifacts/12796307772)
 - [Final Selected-50 readiness matrix](oracle-selected50-final-readiness-matrix-2026-10-28.md)
 - [FootyStats–FotMob overlap audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md)
 
