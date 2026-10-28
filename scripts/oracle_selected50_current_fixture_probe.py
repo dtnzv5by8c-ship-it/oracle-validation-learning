@@ -98,7 +98,7 @@ summary={
  "seasons_needing_pagination":pagination_gaps,"complete_one_page_responses":sum(1 for x in results if x["schedule_status"]=="ONE_PAGE_RESPONSE"),
  "seasons_with_future_14d_fixtures":sum(1 for x in results if x["future_14d_count"]>0),
  "future_14d_fixture_rows":sum(1 for x in all_window_matches if x["window_class"]=="FUTURE_14D"),
- "recent_completed_14d_rows":sum(1 for x in all_window_matches if x["window_class"]=="RECENT_14D" and str(x.get("status","")).lower()=="complete"),
+ "recent_completed_30d_rows":sum(1 for x in all_window_matches if x["window_class"]=="RECENT_30D" and str(x.get("status","")).lower()=="complete"),
  "raw_provider_payload_persisted":False,"api_key_persisted":False,"production_ledger_written":False,
  "production_eligibility":"NOT_GRANTED","betting_eligibility":"NOT_GRANTED",
  "identity_warning":"FootyStats-native season/team/match IDs only; comp_master_id semantics and FotMob/Oracle canonical bridge are not approved.",
