@@ -90,8 +90,9 @@ def main():
             candidates=[]
             for aid,ameta in meta_by_id.items():
                 alabel=(str(ameta.get("selected_country") or "").strip(),str(ameta.get("selected_competition_name") or "").strip())
-                mp=f"seasons/{aid}/matches.json"; tp=f"seasons/{aid}/teams.json"
-                if alabel==label and mp in names and tp in names:
+                mp=next((n for n in names if n.endswith(f"seasons/{aid}/matches.json")),None)
+                tp=next((n for n in names if n.endswith(f"seasons/{aid}/teams.json")),None)
+                if alabel==label and mp and tp:
                     candidates.append((aid,ameta))
             if not candidates:
                 unsupported_labels.append({"selected_season_id":sid,"country":label[0],"competition":label[1],"reason":"NO_EXACT_LABEL_ARCHIVE_SEASON_WITH_MATCHES_AND_TEAMS"})
@@ -100,9 +101,11 @@ def main():
             # season start label available, using manifest order only as deterministic tie-break.
             candidates.sort(key=lambda item:(item[0]==sid,str(item[1].get("season") or item[1].get("season_start") or "")),reverse=True)
             archive_target[sid]=candidates[0][0]
-        season_files={}
+        season_files={}; season_match_paths={}
         for archive_sid in set(archive_target.values()):
-            p=f"seasons/{archive_sid}/matches.json"
+            p=next((n for n in names if n.endswith(f"seasons/{archive_sid}/matches.json")),None)
+            if not p: raise SystemExit(f"FAIL: matches file missing for archive season {archive_sid}")
+            season_match_paths[archive_sid]=p
             season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
             if not isinstance(season_files[archive_sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {archive_sid}")
         seen=set(); add_count=0; already=0; conflicts=0; unsupported_rows=0
@@ -134,7 +137,8 @@ def main():
         args.out_archive.parent.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(args.out_archive,"w",zipfile.ZIP_DEFLATED) as dst:
             for info in src.infolist():
-                data=json.dumps(season_files[info.filename.split("/")[1]],separators=(",",":"),ensure_ascii=False).encode("utf-8") if info.filename.startswith("seasons/") and len(info.filename.split("/"))==3 and info.filename.endswith("/matches.json") and info.filename.split("/")[1] in season_files else src.read(info.filename)
+                archive_sid=next((sid for sid,p in season_match_paths.items() if info.filename==p),None)
+                data=json.dumps(season_files[archive_sid],separators=(",",":"),ensure_ascii=False).encode("utf-8") if archive_sid is not None else src.read(info.filename)
                 dst.writestr(info,data)
     qa={
       "status":"PASS_RESEARCH_ONLY_STAGED" if conflicts==0 and not unsupported_labels else ("PARTIAL_RESEARCH_ONLY_UNSUPPORTED_LEAGUES" if conflicts==0 else "FAIL"),
