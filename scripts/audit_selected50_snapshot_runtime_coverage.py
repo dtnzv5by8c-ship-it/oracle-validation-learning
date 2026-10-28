@@ -23,11 +23,23 @@ def aware_utc(value, field):
 
 
 def score(value):
+    """Parse a score only when it is a finite, non-negative integer.
+
+    Booleans, fractional values, negatives, NaN and infinity are not valid
+    settlement scores and must never be used to exclude a row as completed.
+    """
+    if isinstance(value, bool) or value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
     try:
-        n = float(value)
+        n = float(raw)
     except (TypeError, ValueError, OverflowError):
         return None
-    return n if math.isfinite(n) and n >= 0 else None
+    if not math.isfinite(n) or n < 0 or not n.is_integer():
+        return None
+    return int(n)
 
 
 def no_home_away(value):
@@ -80,6 +92,7 @@ def audit(snapshot, runtime_rows, runtime_started_utc, minimum_lead_minutes=15, 
     lower = start + dt.timedelta(minutes=minimum_lead_minutes)
     upper = start + dt.timedelta(days=horizon_days)
     snapshot_candidates = {}
+    quarantined_invalid_scores = {}
     for r in fixture_rows:
         if not isinstance(r, dict):
             continue
@@ -88,10 +101,17 @@ def audit(snapshot, runtime_rows, runtime_started_utc, minimum_lead_minutes=15, 
             continue
         kickoff = aware_utc(r.get("kickoff_utc"), f"snapshot fixture {fid} kickoff_utc")
         status = str(r.get("status") or r.get("game_status") or "").strip().casefold()
-        if not (kickoff > lower and kickoff <= upper) or runtime_finished(r) or status in CANCELLED:
+        if not (kickoff > lower and kickoff <= upper) or status in CANCELLED:
             continue
         k = (sid, fid)
-        if k in snapshot_candidates:
+        if status in FINISHED:
+            if runtime_finished(r):
+                continue
+            if k in snapshot_candidates or k in quarantined_invalid_scores:
+                raise ValueError(f"duplicate snapshot fixture key: {k}")
+            quarantined_invalid_scores[k] = r
+            continue
+        if k in snapshot_candidates or k in quarantined_invalid_scores:
             raise ValueError(f"duplicate snapshot fixture key: {k}")
         snapshot_candidates[k] = r
 
@@ -142,6 +162,20 @@ def audit(snapshot, runtime_rows, runtime_started_utc, minimum_lead_minutes=15, 
             "canonical_join_created": 0, "prediction_created": 0, "production_eligible": "NO",
         })
 
+    for k, r in sorted(quarantined_invalid_scores.items()):
+        flag = no_home_away(r.get("no_home_away"))
+        diffs.append({
+            "selected_season_id": k[0], "fixture_id": k[1], "side": "SNAPSHOT_QUARANTINED",
+            "classification": "QUARANTINE_FINISHED_STATUS_INVALID_SCORE",
+            "no_home_away": "" if flag is None else int(flag),
+            "kickoff_utc": str(r.get("kickoff_utc") or ""),
+            "country": str(r.get("manifest_country") or ""), "league": str(r.get("manifest_competition") or ""),
+            "home_team": str(r.get("home_name") or ""), "home_team_provider_id": str(r.get("homeID") or ""),
+            "away_team": str(r.get("away_name") or ""), "away_team_provider_id": str(r.get("awayID") or ""),
+            "snapshot_status": str(r.get("status") or r.get("game_status") or ""), "runtime_status": "",
+            "canonical_join_created": 0, "prediction_created": 0, "production_eligible": "NO",
+        })
+
     valid_flag_false = [k for k in snapshot_only if no_home_away(snapshot_candidates[k].get("no_home_away")) is False]
     flagged = [k for k in snapshot_only if no_home_away(snapshot_candidates[k].get("no_home_away")) is True]
     unknown_flag = [k for k in snapshot_only if no_home_away(snapshot_candidates[k].get("no_home_away")) is None]
@@ -152,6 +186,8 @@ def audit(snapshot, runtime_rows, runtime_started_utc, minimum_lead_minutes=15, 
         "window_start_exclusive_utc": lower.isoformat(), "window_end_inclusive_utc": upper.isoformat(),
         "minimum_lead_minutes": minimum_lead_minutes, "horizon_days": horizon_days,
         "snapshot_rows_in_runtime_window": len(snapshot_candidates),
+        "snapshot_finished_invalid_score_rows": len(quarantined_invalid_scores),
+        "snapshot_finished_invalid_score_keys": [list(k) for k in sorted(quarantined_invalid_scores)],
         "runtime_rows_in_declared_window": len(runtime_candidates),
         "exact_season_id_and_fixture_id_matches": len(common),
         "snapshot_only_rows": len(snapshot_only), "runtime_only_rows": len(runtime_only),
