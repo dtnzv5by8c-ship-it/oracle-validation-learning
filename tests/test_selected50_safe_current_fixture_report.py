@@ -244,6 +244,52 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 self.assertEqual(row["combo_probability_emitted"], "0")
                 self.assertEqual(row["prediction_created"], "0")
 
+    def test_future_completed_status_is_quarantined_before_horizon_classification(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
+            fixtures = [
+                {"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-30T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2"},
+                {"selected_season_id":"1","id":"B","kickoff_utc":"2026-11-02T12:00:00Z","status":"finished","no_home_away":0,"homeID":"3","awayID":"4"},
+                {"selected_season_id":"2","id":"C","kickoff_utc":"2026-11-08T12:00:00Z","status":"complete","no_home_away":0,"homeID":"5","awayID":"6"},
+            ]
+            snap = root / "snapshot.json"
+            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.DictWriter(h, fieldnames=[
+                    "provider_season_id", "fixture_id", "date_utc", "home_team_provider_id",
+                    "away_team_provider_id", "BTTS_probability_pct",
+                    "COMBO_HOME_probability_pct", "COMBO_AWAY_probability_pct"
+                ])
+                w.writeheader()
+                w.writerow({"provider_season_id":"0","fixture_id":"A","date_utc":"2026-10-30T12:00:00Z","home_team_provider_id":"1","away_team_provider_id":"2","BTTS_probability_pct":"61.5"})
+            out = root / "out"
+            proc = subprocess.run([
+                sys.executable, str(SCRIPT), "--snapshot", str(snap),
+                "--runtime-report", str(report), "--out-dir", str(out),
+                "--as-of-utc", "2026-10-28T10:00:00Z",
+                "--runtime-started-utc", "2026-10-28T10:00:00Z",
+                "--report-horizon-days", "14", "--runtime-horizon-days", "7",
+                "--minimum-lead-minutes", "15"
+            ], text=True, capture_output=True)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            qa = json.loads((out / "oracle_selected50_safe_current_fixture_report_qa.json").read_text())
+            self.assertEqual(qa["source_candidates_in_report_horizon"], 1)
+            self.assertEqual(qa["source_candidates_outside_runtime_window_not_missing_join"], 0)
+            self.assertEqual(qa["safe_exact_join_rows"], 1)
+            self.assertEqual(qa["reason_counts"]["QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"], 2)
+            with (out / "oracle_selected50_safe_current_fixture_exclusions.csv").open(newline="", encoding="utf-8") as h:
+                excluded = list(csv.DictReader(h))
+            by_id = {r["fixture_id"]: r for r in excluded}
+            for fixture_id in ("B", "C"):
+                self.assertEqual(by_id[fixture_id]["classification"], "QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF")
+                self.assertEqual(by_id[fixture_id]["market_gate_status"], "BLOCKED_SOURCE_QUARANTINE")
+                self.assertEqual(by_id[fixture_id]["combo_masked"], "YES")
+                self.assertEqual(by_id[fixture_id]["combo_probability_emitted"], "0")
+                self.assertEqual(by_id[fixture_id]["production_eligible"], "NO")
+                self.assertEqual(by_id[fixture_id]["betting_eligible"], "NO")
+
     def test_expanded_report_requires_runtime_start_and_runtime_horizon_stays_at_most_seven_days(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
