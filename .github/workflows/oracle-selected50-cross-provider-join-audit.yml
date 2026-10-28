@@ -78,6 +78,9 @@ jobs:
             > private-source/current_source_manifest.json
           test -s private-source/matches.csv
           test -s private-source/current_source_manifest.json
+          echo "Current historical match CSV bytes: $(wc -c < private-source/matches.csv)"
+          echo "Current historical match CSV header:"
+          head -n 1 private-source/matches.csv
           sha256sum private-source/matches.csv private-source/current_source_manifest.json
 
       - name: Run exact join audit; no provider calls and no production writes
