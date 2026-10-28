@@ -91,3 +91,8 @@ No production repository writes, no private-repository Actions runs, no provider
 - The 103 flagged rows are distributed across Argentina Primera División (15), Peru Primera División (15), Colombia Categoria Primera A (14), Mexico Liga MX (10), Paraguay Division Profesional (10), Scotland Premiership (10), Ecuador Primera Categoría Serie A (8), Uruguay Primera División (8), South Korea K League 1 (6), Finland Veikkausliiga (5), and Canada Canadian Premier League (2).
 - The six suspended-status rows are IDs `8543968`, `8543993`, `8543998`, `8544109` (Colombia), `8558448` (Scotland), and `8565711` (England EFL League One). Four Colombia rows and the Scotland row overlap the flagged set; the England row is the one additional status-only quarantine.
 - This is an independent analysis of an existing sanitized snapshot, not a new provider call and not yet the generated runtime trace. Fixture `8432254` remains absent from Runtime #159's report despite being future-dated in the snapshot. Its precise archive status/kickoff reason is still unverified; a metadata comparison may be needed after the new trace is generated.
+
+
+## Runtime performance guard — Run #159
+
+The latest completed runtime log reports the raw BTTS backtest accuracy at **53.588%**, versus a **54.143% majority-class baseline**, with AUC **0.5379**. These are raw, uncalibrated research metrics; there is no approved odds/ROI benchmark and no positive betting-edge claim is justified. The runtime output contract passed (`PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`), with 435 rows having at least one supported raw research-market prediction and 25 rows blocked by missing required features. Combo home/away probability counts remained zero.
