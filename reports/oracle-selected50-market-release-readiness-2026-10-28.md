@@ -40,7 +40,7 @@ The live FootyStats-native snapshot contains 871 upcoming fixtures in the next 1
 
 ## Evidence
 
-- [Latest research runtime/backtest run](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062)
+- [Latest research runtime/backtest run](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644996653)
 - [Latest sanitized runtime artifact 12796307772](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062/artifacts/12796307772)
 - [Final Selected-50 readiness matrix](oracle-selected50-final-readiness-matrix-2026-10-28.md)
 - [FootyStats–FotMob overlap audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md)
