@@ -75,3 +75,34 @@ The runtime predictor target remains Double Chance AND 2–4 total goals inclusi
 - Production eligibility and betting eligibility remain **NOT_GRANTED**.
 
 Next action: continue resolving identity, official settlement and point-in-time provenance from existing authoritative sources and retained artifacts. Do not make provider API calls without separate fresh approval and a verified credit budget. Do not unmask Combo probabilities or change production Oracle V1.6/V1.6.3 logic, probabilities, calibration, thresholds, registry, ledgers or governance.
+
+
+## Addendum — 2026-10-28 post-checkpoint verification
+
+**Verified live branch head before this addendum:** `2939f73038265085890bca86cedcdf5150be711b`  
+**Latest runtime code-tested commit:** `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2`  
+**Latest runtime:** [Run #120 / 40608511893](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893) — success. The commits after the tested runtime revision were documentation-only plus the test-only file-handle correction below; runtime scripts, runtime validator and runtime workflow were unchanged, so no redundant full runtime dispatch was made.
+
+### Test-only resource warning correction
+
+The Run #120 dry-run log showed a Python `ResourceWarning` from `tests/test_selected50_current_feed_identity_quarantine.py`: the generated CSV file was opened inline and not explicitly closed. This did not fail the test, but it was a real test-hygiene issue. The test now reads the CSV inside a context manager.
+
+- Commit: `2939f73038265085890bca86cedcdf5150be711b`
+- [Safety Contract Tests #160 / 40620012826](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012826): success; 22 bounded-probe safety tests and 17 settlement tests passed.
+- [Dry-Run Planner #466 / 40620012759](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012759): success; current-feed identity quarantine tests (3/3) and Combo settlement governance tests (3/3) passed. The former `ResourceWarning` did not recur in the new job log.
+- Dry-run artifact: [12787031534](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40620012759/artifacts/12787031534), 25 files, 36,351 bytes, SHA-256 `9a1da18e704a97caa319f19d91d4722fbbb5837229c9b9cb8a618cf3fb55abca`. The downloaded ZIP digest matched GitHub's artifact digest.
+
+### Output and governance spot-check
+
+The downloaded dry-run artifact was inspected directly. It contains 121 Combo score-grid rows; two disagreement scorelines per Combo side; all 121 rows are `production_eligible=NO`. The predictor/ledger mismatch remains diagnostic-only, not a market-definition approval. The artifact records `network_calls_made=0` and `paid_provider_calls_made=0`.
+
+The latest Selected-50 runtime artifact was also downloaded and inspected directly: 14 files, 157,457 bytes, SHA-256 `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84`, matching GitHub. Both CSV exports contain 460 unique fixture IDs; Combo Home/Away probability columns are blank in all 460 rows. All rows remain production-ineligible; canonical fixture/team joins are `NOT_VERIFIED`, and settlement truth is `NOT_VERIFIED_AGAINST_PRODUCTION_MARKET_SPEC`.
+
+### Current decision
+
+- Runtime Run #120 remains the latest runtime run; no runtime-code changes occurred after it.
+- Combo target tests: 5/5 passed in Run #120; Combo settlement-governance tests: 3/3 passed in Run #466.
+- Feature/training support tests: 5/5 passed in Run #120.
+- Current blocked fixture count in the latest runtime artifact: 25, all feature-blocked; model-training gates pass for all five markets. This is the rolling-horizon follow-up to the earlier 26-row count, not a model improvement.
+- Provider parent competition IDs verified: 0/50; approved canonical bridges: 0; official settlement truth verified: 0; current governed fixture rows emitted: 0.
+- Production/betting release remains `NOT_GRANTED`. No provider API calls were made. Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registry, ledgers and governance remain unchanged.
