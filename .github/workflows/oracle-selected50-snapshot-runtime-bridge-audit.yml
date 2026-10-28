@@ -57,12 +57,11 @@ jobs:
             --expected-runtime-run-id "$RUNTIME_RUN_ID"
             --out-dir selected50_bridge_output
           )
-          if [[ -f input/runtime/oracle_selected50_runtime_provenance.json ]]; then
-            args+=(--runtime-provenance input/runtime/oracle_selected50_runtime_provenance.json)
-          fi
+          args+=(--runtime-provenance input/runtime/oracle_selected50_runtime_provenance.json --require-runtime-provenance)
           python scripts/audit_selected50_snapshot_runtime_bridge.py "${args[@]}"
 
       - name: Upload sanitized bridge audit only
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-snapshot-runtime-bridge-audit
