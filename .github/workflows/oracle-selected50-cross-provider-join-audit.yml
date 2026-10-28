@@ -74,20 +74,27 @@ jobs:
             "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/database/matches.csv?ref=fix%2Fepl-btts-team-state-aliases" \
             > private-source/matches.csv
           gh api -H "Accept: application/vnd.github.raw" \
+            "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/database/current_matches.csv?ref=fix%2Fepl-btts-team-state-aliases" \
+            > private-source/current_matches.csv
+          gh api -H "Accept: application/vnd.github.raw" \
             "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/data/current_source_manifest.json?ref=fix%2Fepl-btts-team-state-aliases" \
             > private-source/current_source_manifest.json
           test -s private-source/matches.csv
+          test -s private-source/current_matches.csv
           test -s private-source/current_source_manifest.json
           echo "Current historical match CSV bytes: $(wc -c < private-source/matches.csv)"
           echo "Current historical match CSV header:"
           head -n 1 private-source/matches.csv
+          echo "FotMob current snapshot CSV header:"
+          head -n 1 private-source/current_matches.csv
           sha256sum private-source/matches.csv private-source/current_source_manifest.json
 
       - name: Run exact join audit; no provider calls and no production writes
         run: |
           python scripts/audit_selected50_cross_provider_fixture_joins.py \
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
-            --current-matches private-source/matches.csv \
+            --current-matches private-source/current_matches.csv \
+            --historical-matches private-source/matches.csv \
             --manifest reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md \
             --identity-crosswalk reports/oracle-selected50-provider-identity-reconciliation-2026-10-27.csv \
             --current-source-manifest private-source/current_source_manifest.json \
@@ -99,7 +106,8 @@ jobs:
           name: oracle-selected50-cross-provider-fixture-join-audit
           path: |
             selected50_cross_provider_audit_output/audit_summary.json
-            selected50_cross_provider_audit_output/bridge_candidates.csv
+            selected50_cross_provider_audit_output/fotmob_bridge_candidates.csv
+            selected50_cross_provider_audit_output/canonical_code_candidates.csv
             selected50_cross_provider_audit_output/exact_fixture_join_rows.csv
           if-no-files-found: error
           retention-days: 14
