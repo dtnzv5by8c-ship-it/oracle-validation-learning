@@ -74,8 +74,19 @@ def main():
             "FAIL: snapshot retrieval timestamp is later than runtime start; "
             "a post-runtime snapshot cannot establish out-of-window versus missing-join coverage"
         )
+    snapshot_window_start = parse_utc(snap.get("window_start_utc"))
     snapshot_window_end = parse_utc(snap.get("window_end_utc"))
     if report_horizon_days > runtime_horizon_days:
+        if snapshot_window_start is None:
+            raise SystemExit(
+                "FAIL: snapshot window_start_utc must be valid timezone-aware ISO-8601 "
+                "when assessing beyond the runtime generation horizon"
+            )
+        if snapshot_window_start > runtime_started:
+            raise SystemExit(
+                "FAIL: snapshot window_start_utc is later than runtime start; "
+                "the snapshot cannot establish complete runtime-window coverage"
+            )
         if snapshot_window_end is None:
             raise SystemExit(
                 "FAIL: snapshot window_end_utc must be valid timezone-aware ISO-8601 "
@@ -315,9 +326,14 @@ def main():
         "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
         "snapshot_retrieved_utc": retrieved.isoformat(),
+        "snapshot_window_start_utc": snapshot_window_start.isoformat() if snapshot_window_start else None,
         "snapshot_window_end_utc": snapshot_window_end.isoformat() if snapshot_window_end else None,
         "requested_report_end_utc": report_end.isoformat(),
-        "snapshot_window_covers_requested_report_horizon": bool(snapshot_window_end and report_end <= snapshot_window_end),
+        "snapshot_window_covers_runtime_start": bool(snapshot_window_start and snapshot_window_start <= runtime_started),
+        "snapshot_window_covers_requested_report_horizon": bool(
+            snapshot_window_start and snapshot_window_start <= runtime_started
+            and snapshot_window_end and report_end <= snapshot_window_end
+        ),
         "reporting_horizon_coverage_status": (
             "PASS_DECLARED_SNAPSHOT_WINDOW_COVERS_REQUESTED_HORIZON"
             if report_horizon_days > runtime_horizon_days and snapshot_window_end and report_end <= snapshot_window_end
