@@ -108,5 +108,40 @@ class SnapshotRuntimeCoverageTests(unittest.TestCase):
             audit(snapshot([snapshot_row("A")], api_key_persisted=True), [runtime_row("A")], START)
 
 
+    def _assert_invalid_completed_score_is_quarantined(self, row):
+        diffs, summary = audit(snapshot([row]), [runtime_row("B")], START)
+        self.assertEqual(summary["snapshot_finished_invalid_score_rows"], 1)
+        self.assertEqual(summary["snapshot_finished_invalid_score_keys"], [["S1", "A"]])
+        self.assertEqual(summary["snapshot_rows_in_runtime_window"], 0)
+        self.assertEqual(summary["snapshot_only_rows"], 0)
+        quarantined = [d for d in diffs if d["side"] == "SNAPSHOT_QUARANTINED"]
+        self.assertEqual(len(quarantined), 1)
+        self.assertEqual(quarantined[0]["classification"], "QUARANTINE_FINISHED_STATUS_INVALID_SCORE")
+        self.assertEqual(quarantined[0]["production_eligible"], "NO")
+        self.assertEqual(quarantined[0]["prediction_created"], 0)
+
+    def test_fractional_score_cannot_make_completed_status_settlement_truth(self):
+        row = snapshot_row("A", status="complete", homeGoalCount=1.5, awayGoalCount=0)
+        self._assert_invalid_completed_score_is_quarantined(row)
+
+    def test_boolean_score_cannot_make_completed_status_settlement_truth(self):
+        row = snapshot_row("A", status="complete", homeGoalCount=True, awayGoalCount=0)
+        self._assert_invalid_completed_score_is_quarantined(row)
+
+    def test_negative_score_cannot_make_completed_status_settlement_truth(self):
+        row = snapshot_row("A", status="complete", homeGoalCount=-1, awayGoalCount=0)
+        self._assert_invalid_completed_score_is_quarantined(row)
+
+    def test_missing_score_on_completed_status_is_quarantined(self):
+        row = snapshot_row("A", status="complete", homeGoalCount="", awayGoalCount=0)
+        self._assert_invalid_completed_score_is_quarantined(row)
+
+    def test_integer_valued_decimal_score_remains_valid_completed_result(self):
+        row = snapshot_row("A", status="complete", homeGoalCount="1.0", awayGoalCount="0.0")
+        _, summary = audit(snapshot([row]), [runtime_row("B")], START)
+        self.assertEqual(summary["snapshot_finished_invalid_score_rows"], 0)
+        self.assertEqual(summary["snapshot_rows_in_runtime_window"], 0)
+        self.assertEqual(summary["snapshot_only_rows"], 0)
+
 if __name__ == "__main__":
     unittest.main()
