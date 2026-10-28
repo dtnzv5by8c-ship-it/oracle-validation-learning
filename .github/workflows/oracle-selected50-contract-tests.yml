@@ -38,3 +38,5 @@ jobs:
         run: python -m py_compile scripts/validate_selected50_current_fixture_snapshot.py
       - name: Run current fixture snapshot validator tests
         run: python -m unittest discover -s tests -p "test_selected50_current_fixture_snapshot.py" -v
+      - name: Run one-call identity workflow safety tests
+        run: python -m unittest discover -s tests -p "test_footystats_one_call_identity_workflow.py" -v

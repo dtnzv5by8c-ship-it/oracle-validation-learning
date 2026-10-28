@@ -1,52 +1,19 @@
-name: FootyStats One-Call Selected-Season Identity Probe
+name: FootyStats One-Call Selected-Season Identity Probe (Fail-Closed)
 
 on:
   workflow_dispatch:
-    inputs:
-      confirm_provider_credit_usage:
-        description: "Confirm approval for exactly one FootyStats API request"
-        required: true
-        default: false
-        type: boolean
-      confirm_monthly_credit_budget_checked:
-        description: "Confirm current monthly credits were checked and are sufficient for one request"
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: read
 
 jobs:
-  one-call-identity-probe:
+  block-mismatched-probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
-      - name: Checkout selected-50 research branch
-        uses: actions/checkout@v4
-        with:
-          ref: research/oracle-50-league-readiness-audit
-      - name: Run exactly one sanitized identity request
+      - name: Explain why no provider request is permitted
         shell: bash
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
-          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
         run: |
           set -euo pipefail
-          if [ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" != "true" ]; then
-            echo "::error::Provider-credit approval required; no request made."
-            exit 1
-          fi
-          if [ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" != "true" ]; then
-            echo "::error::Monthly credit confirmation required; no request made."
-            exit 1
-          fi
-          python scripts/oracle_selected50_one_season_identity_probe.py
-      - name: Upload sanitized summary only
-        uses: actions/upload-artifact@v4
-        with:
-          name: oracle-selected50-one-season-identity-probe
-          path: oracle-selected50-one-season-identity-probe/identity-probe-summary.json
-          if-no-files-found: error
-          retention-days: 7
+          echo "::error::This workflow is intentionally fail-closed. Its current entrypoint iterates over 50 selected seasons, not exactly one request. No provider requests were made. Reintroduce a true single-season entrypoint or obtain separate approval for a batch workflow with an explicit 50-request credit budget."
+          exit 1
