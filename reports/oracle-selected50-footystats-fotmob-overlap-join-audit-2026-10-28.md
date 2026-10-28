@@ -1,5 +1,16 @@
 # Selected-50 FootyStats–FotMob Overlap Join Audit — 2026-10-28
 
+## Snapshot validation
+
+The expanded 30-day-overlap snapshot was retrieved at `2026-10-28T06:19:09.645973+00:00` UTC and passed the offline snapshot contract validator.
+
+- [Sanitized 30-day overlap snapshot artifact 12796207151](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796207151)
+- 50/50 season requests succeeded; 2,250 fixture/result rows in the 30-day lookback + 14-day future window.
+- 871 upcoming fixtures in the next 14 days; 1,372 recent completed results in the previous 30 days.
+- 19 suspended rows in the full window; 486 rows have `no_home_away=1` (181 future, 305 recent).
+- No duplicate match IDs; all rows had home/away IDs, team names, kickoff timestamp, and `competition_id` matching the selected season ID.
+- The snapshot contract validator returned **PASS**; production and betting eligibility remained `NOT_GRANTED`.
+
 ## Outcome
 
 A read-only exact fixture join between the stale production FotMob staging snapshot and the fresh FootyStats 30-day overlap snapshot found **8 exact fixture/team/kickoff joins across 2 selected leagues**.
