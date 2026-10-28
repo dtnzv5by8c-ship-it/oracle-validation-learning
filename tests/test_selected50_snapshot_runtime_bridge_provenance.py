@@ -46,6 +46,8 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "artifact_id": "789",
             "artifact_name": "oracle-selected50-current-fixture-snapshot",
             "artifact_digest": "sha256:" + "a" * 64,
+            "artifact_zip_sha256": "a" * 64,
+            "artifact_zip_sha256_verified": True,
             "artifact_expired": False,
             "artifact_workflow_run_id": "100",
         }), encoding="utf-8")
@@ -57,6 +59,8 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_artifact_name": "oracle-selected50-current-fixture-snapshot",
             "snapshot_artifact_id": "789",
             "snapshot_artifact_digest": "sha256:" + "a" * 64,
+            "snapshot_artifact_zip_sha256": "a" * 64,
+            "snapshot_artifact_zip_sha256_verified": True,
             "snapshot_artifact_metadata_sha256": sha(self.metadata),
             "snapshot_artifact_workflow_run_id": "100",
             "runtime_run_id": "200",
@@ -148,6 +152,14 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("snapshot_artifact_run_id_matches", result["failed_checks"])
+
+    def test_snapshot_artifact_zip_hash_mismatch_is_a_release_blocker(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_zip_sha256"] = "b" * 64
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_zip_hash_matches_github_digest", result["failed_checks"])
 
     def test_runtime_input_hash_must_match_pre_runtime_fingerprint(self):
         self.provenance["selected_runtime_input_archive_sha256_before_runtime"] = "different-hash"

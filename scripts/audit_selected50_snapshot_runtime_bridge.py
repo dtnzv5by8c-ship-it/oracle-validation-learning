@@ -89,6 +89,8 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_artifact_name": None,
         "snapshot_artifact_id": None,
         "snapshot_artifact_digest": None,
+        "snapshot_artifact_zip_sha256": None,
+        "snapshot_artifact_zip_sha256_verified": False,
         "snapshot_artifact_metadata_sha256": None,
         "snapshot_artifact_workflow_run_id": None,
         "snapshot_artifact_metadata_file_sha256": None,
@@ -109,6 +111,8 @@ def verify_runtime_provenance(args, snapshot_sha256):
     result["snapshot_artifact_name"] = s(provenance.get("snapshot_artifact_name"))
     result["snapshot_artifact_id"] = s(provenance.get("snapshot_artifact_id"))
     result["snapshot_artifact_digest"] = s(provenance.get("snapshot_artifact_digest"))
+    result["snapshot_artifact_zip_sha256"] = s(provenance.get("snapshot_artifact_zip_sha256"))
+    result["snapshot_artifact_zip_sha256_verified"] = provenance.get("snapshot_artifact_zip_sha256_verified") is True
     result["snapshot_artifact_metadata_sha256"] = s(provenance.get("snapshot_artifact_metadata_sha256"))
     result["snapshot_artifact_workflow_run_id"] = s(provenance.get("snapshot_artifact_workflow_run_id"))
 
@@ -139,6 +143,9 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_artifact_metadata_digest_matches_manifest": metadata is not None and s(metadata.get("artifact_digest")) == s(provenance.get("snapshot_artifact_digest")),
         "snapshot_artifact_metadata_run_id_matches_manifest": metadata is not None and s(metadata.get("artifact_workflow_run_id")) == s(provenance.get("snapshot_artifact_workflow_run_id")),
         "snapshot_artifact_metadata_not_expired": metadata is not None and metadata.get("artifact_expired") is False,
+        "snapshot_artifact_zip_hash_verification_flag_true": metadata is not None and metadata.get("artifact_zip_sha256_verified") is True and provenance.get("snapshot_artifact_zip_sha256_verified") is True,
+        "snapshot_artifact_zip_hash_matches_github_digest": metadata is not None and s(metadata.get("artifact_zip_sha256")) == s(provenance.get("snapshot_artifact_zip_sha256")) and s(metadata.get("artifact_zip_sha256")) == s(provenance.get("snapshot_artifact_digest")).replace("sha256:", "", 1),
+        "snapshot_artifact_zip_hash_is_sha256": len(s(provenance.get("snapshot_artifact_zip_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_zip_sha256")).lower()),
         "selected_input_matches_overlay_flag": provenance.get("selected_input_matches_overlay") is True,
         "selected_input_archive_hash_is_sha256": len(s(provenance.get("selected_runtime_input_archive_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("selected_runtime_input_archive_sha256")).lower()),
         "selected_input_hash_matches_overlay_hash": bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(provenance.get("selected_runtime_input_archive_sha256")) == s(provenance.get("overlay_archive_sha256")),
@@ -268,6 +275,8 @@ def main():
       "snapshot_artifact_name":provenance.get("snapshot_artifact_name"),
       "snapshot_artifact_id":provenance.get("snapshot_artifact_id"),
       "snapshot_artifact_digest":provenance.get("snapshot_artifact_digest"),
+      "snapshot_artifact_zip_sha256":provenance.get("snapshot_artifact_zip_sha256"),
+      "snapshot_artifact_zip_sha256_verified":provenance.get("snapshot_artifact_zip_sha256_verified"),
       "runtime_input_archive":provenance.get("selected_runtime_input_archive"),
       "runtime_input_archive_sha256":provenance.get("runtime_input_archive_sha256"),
       "runtime_input_archive_sha256_before_runtime":provenance.get("runtime_input_archive_sha256_before_runtime"),
@@ -299,7 +308,7 @@ def main():
       "production_eligible":False,
       "betting_eligible":False,
       "prediction_generated":False,
-      "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
+      "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, confirms the downloaded snapshot artifact ZIP SHA-256 equals the GitHub artifact digest, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
     }
     (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True) + "\n",encoding="utf-8")
     print(json.dumps(qa,indent=2,sort_keys=True))

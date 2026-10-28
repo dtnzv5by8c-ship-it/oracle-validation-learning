@@ -117,6 +117,31 @@ jobs:
           )
           print(json.dumps(metadata, indent=2, sort_keys=True))
           PY
+          ARTIFACT_ID="$(python -c 'import json; print(json.load(open("current-snapshot/snapshot_artifact_metadata.json"))["artifact_id"])')"
+          EXPECTED_SNAPSHOT_ARTIFACT_SHA256="$(python -c 'import json; print(json.load(open("current-snapshot/snapshot_artifact_metadata.json"))["artifact_digest"].split(":", 1)[1].lower())')"
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            -o current-snapshot/snapshot-artifact.zip
+          ACTUAL_SNAPSHOT_ARTIFACT_SHA256="$(sha256sum current-snapshot/snapshot-artifact.zip | awk '{print $1}')"
+          [[ "${ACTUAL_SNAPSHOT_ARTIFACT_SHA256}" == "${EXPECTED_SNAPSHOT_ARTIFACT_SHA256}" ]] || { echo "::error::Downloaded snapshot artifact ZIP SHA-256 does not match GitHub artifact digest."; exit 1; }
+          export ACTUAL_SNAPSHOT_ARTIFACT_SHA256
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          path = Path("current-snapshot/snapshot_artifact_metadata.json")
+          metadata = json.loads(path.read_text(encoding="utf-8"))
+          actual = str(os.environ.get("ACTUAL_SNAPSHOT_ARTIFACT_SHA256") or "").lower()
+          expected = str(metadata.get("artifact_digest") or "").split(":", 1)[-1].lower()
+          if len(actual) != 64 or actual != expected:
+              raise SystemExit("FAIL: downloaded snapshot artifact ZIP digest verification failed")
+          metadata["artifact_zip_sha256"] = actual
+          metadata["artifact_zip_sha256_verified"] = True
+          path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print("Verified exact snapshot artifact ZIP SHA-256 against GitHub artifact digest.")
+          PY
           python scripts/overlay_selected50_current_snapshot.py \
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
             --snapshot current-snapshot/current-fixture-snapshot.json \

@@ -60,6 +60,8 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
         "snapshot_artifact_id": None,
         "snapshot_artifact_name": "oracle-selected50-current-fixture-snapshot",
         "snapshot_artifact_digest": None,
+        "snapshot_artifact_zip_sha256": None,
+        "snapshot_artifact_zip_sha256_verified": False,
         "snapshot_artifact_metadata_sha256": None,
         "snapshot_artifact_size_bytes": None,
         "snapshot_artifact_created_at": None,
@@ -106,6 +108,11 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
         raise SystemExit("FAIL: snapshot artifact metadata run ID does not match the requested snapshot run")
     if metadata.get("artifact_expired") is not False:
         raise SystemExit("FAIL: snapshot artifact metadata is expired or expiry status is unknown")
+    artifact_zip_sha = str(metadata.get("artifact_zip_sha256") or "").lower()
+    if metadata.get("artifact_zip_sha256_verified") is not True:
+        raise SystemExit("FAIL: downloaded snapshot artifact ZIP hash was not verified against GitHub digest")
+    if artifact_zip_sha != digest_value.lower():
+        raise SystemExit("FAIL: downloaded snapshot artifact ZIP SHA-256 does not match GitHub artifact digest")
 
     snapshot_sha = sha256_file(snapshot_path)
     overlay_qa_sha = sha256_file(overlay_qa_path)
@@ -137,6 +144,8 @@ def build_provenance(*, snapshot_path, overlay_qa_path, source_archive_path,
         "snapshot_artifact_id": artifact_id,
         "snapshot_artifact_name": artifact_name,
         "snapshot_artifact_digest": artifact_digest,
+        "snapshot_artifact_zip_sha256": artifact_zip_sha,
+        "snapshot_artifact_zip_sha256_verified": True,
         "snapshot_artifact_metadata_sha256": metadata_sha,
         "snapshot_artifact_size_bytes": metadata.get("artifact_size_bytes"),
         "snapshot_artifact_created_at": metadata.get("artifact_created_at"),

@@ -39,6 +39,8 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
             "artifact_id": "789",
             "artifact_name": "oracle-selected50-current-fixture-snapshot",
             "artifact_digest": "sha256:" + "a" * 64,
+            "artifact_zip_sha256": "a" * 64,
+            "artifact_zip_sha256_verified": True,
             "artifact_size_bytes": 103738,
             "artifact_created_at": "2026-10-28T17:22:29Z",
             "artifact_expires_at": "2026-11-11T17:22:27Z",
@@ -94,6 +96,8 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         self.assertEqual(result["runtime_report_sha256"], sha(self.report))
         self.assertEqual(result["snapshot_artifact_id"], "789")
         self.assertEqual(result["snapshot_artifact_digest"], "sha256:" + "a" * 64)
+        self.assertEqual(result["snapshot_artifact_zip_sha256"], "a" * 64)
+        self.assertTrue(result["snapshot_artifact_zip_sha256_verified"])
         self.assertEqual(result["snapshot_artifact_workflow_run_id"], "123")
         self.assertEqual(result["selected_runtime_input_archive_sha256_before_runtime"], sha(self.overlay))
         self.assertFalse(result["production_eligible"])
@@ -124,6 +128,20 @@ class Selected50RuntimeProvenanceTests(unittest.TestCase):
         metadata["artifact_digest"] = "sha256:not-a-valid-digest"
         self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
         with self.assertRaisesRegex(SystemExit, "valid GitHub SHA-256 digest"):
+            build_provenance(**self.kwargs)
+
+    def test_snapshot_artifact_zip_hash_mismatch_fails_closed(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_zip_sha256"] = "b" * 64
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "ZIP SHA-256 does not match GitHub artifact digest"):
+            build_provenance(**self.kwargs)
+
+    def test_snapshot_artifact_zip_hash_unverified_fails_closed(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_zip_sha256_verified"] = False
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        with self.assertRaisesRegex(SystemExit, "ZIP hash was not verified"):
             build_provenance(**self.kwargs)
 
     def test_snapshot_artifact_run_mismatch_fails_closed(self):
