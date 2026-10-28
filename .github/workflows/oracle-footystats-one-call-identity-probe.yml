@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       confirm_provider_credit_usage:
-        description: "Confirm approval for exactly one FootyStats API request"
+        description: "Confirm approval for a bounded identity check of 50 selected seasons (at most 50 FootyStats API requests)"
         required: true
         default: false
         type: boolean
       confirm_monthly_credit_budget_checked:
-        description: "Confirm monthly credits were checked and are sufficient for one request"
+        description: "Confirm FootyStats credit budget was checked and is sufficient for at most 50 requests"
         required: true
         default: false
         type: boolean
@@ -29,7 +29,7 @@ jobs:
         with:
           ref: research/oracle-50-league-readiness-audit
           path: research-source
-      - name: Enforce both explicit confirmations and run one request
+      - name: Enforce both explicit confirmations and run bounded selected-50 identity check
         shell: bash
         working-directory: research-source
         env:
