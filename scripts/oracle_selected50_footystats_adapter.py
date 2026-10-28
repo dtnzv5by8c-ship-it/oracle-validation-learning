@@ -35,6 +35,22 @@ def valid_team_id(value: Any) -> bool:
     return value not in (None, "") and str(value).strip().lower() not in {"0", "none", "null"}
 
 
+def parse_snapshot_retrieved_utc(value: Any, now: datetime) -> datetime:
+    """Require an explicit, parseable, non-future source retrieval timestamp."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("snapshot retrieved_utc is required for source provenance")
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except (ValueError, TypeError) as exc:
+        raise ValueError("snapshot retrieved_utc must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("snapshot retrieved_utc must include an explicit timezone")
+    parsed = parsed.astimezone(timezone.utc)
+    if parsed > now:
+        raise ValueError("snapshot retrieved_utc cannot be later than adaptation time")
+    return parsed
+
+
 def classify(row: dict[str, Any], now: datetime) -> tuple[str, str]:
     status = str(row.get("status") or "").strip().lower()
     kickoff = str(row.get("kickoff_utc") or "")
@@ -63,7 +79,20 @@ def classify(row: dict[str, Any], now: datetime) -> tuple[str, str]:
 
 
 def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    now = now or datetime.now(timezone.utc)
+    if now is None:
+        now = datetime.now(timezone.utc)
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("adaptation time must include an explicit timezone")
+    now = now.astimezone(timezone.utc)
+    retrieved_utc = parse_snapshot_retrieved_utc(snapshot.get("retrieved_utc"), now)
+    try:
+        canonical_snapshot = json.dumps(
+            snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError("snapshot must be valid finite JSON for provenance hashing") from exc
+    source_snapshot_sha256 = hashlib.sha256(canonical_snapshot.encode("utf-8")).hexdigest()
+    source_snapshot_retrieved_utc = retrieved_utc.isoformat().replace("+00:00", "Z")
     rows = snapshot.get("fixture_rows")
     seasons = snapshot.get("per_season")
     if not isinstance(rows, list) or not isinstance(seasons, list):
@@ -96,6 +125,8 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
         eligibility, reason = classify(row, now)
         output.append({
             "source_provider": "FootyStats",
+            "source_snapshot_retrieved_utc": source_snapshot_retrieved_utc,
+            "source_snapshot_sha256": source_snapshot_sha256,
             "source_season_id": season,
             "research_league_key": f"FS_SEASON_{season}",
             "source_match_id": match_id,
@@ -123,7 +154,10 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
     summary = {
         "diagnostic": "FOOTYSTATS_SELECTED50_PROVIDER_NEUTRAL_ADAPTER",
         "generated_utc": now.isoformat(),
-        "source_snapshot_retrieved_utc": snapshot.get("retrieved_utc", "UNKNOWN"),
+        "source_snapshot_retrieved_utc": source_snapshot_retrieved_utc,
+        "source_snapshot_hash_method": "canonical_json_sha256_sorted_keys_compact_v1",
+        "source_snapshot_sha256": source_snapshot_sha256,
+        "source_snapshot_age_seconds_at_adaptation": int((now - retrieved_utc).total_seconds()),
         "selected_league_seasons": 50,
         "season_retrieval_success": len(successful),
         "source_fixture_rows": len(rows),
@@ -154,7 +188,8 @@ def main() -> int:
     args.output_csv.parent.mkdir(parents=True, exist_ok=True)
     args.output_manifest.parent.mkdir(parents=True, exist_ok=True)
     fields = list(rows[0]) if rows else [
-        "source_provider", "source_season_id", "research_league_key", "source_match_id",
+        "source_provider", "source_snapshot_retrieved_utc", "source_snapshot_sha256",
+        "source_season_id", "research_league_key", "source_match_id",
         "source_home_team_id", "source_away_team_id", "fixture_eligibility",
         "eligibility_reason", "model_prediction_status", "production_eligible"
     ]
