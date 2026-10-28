@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import subprocess
 import sys
@@ -34,6 +35,9 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
             qa = json.loads((out / "oracle_selected50_safe_current_fixture_report_qa.json").read_text())
             self.assertEqual(qa["safe_exact_join_rows"], 1)
+            self.assertEqual(qa["snapshot_provenance_status"], "PASS_FRESH_TIMEZONE_AWARE")
+            self.assertEqual(qa["snapshot_age_seconds"], 36000)
+            self.assertEqual(qa["snapshot_file_sha256"], hashlib.sha256(snap.read_bytes()).hexdigest())
             self.assertEqual(qa["reason_counts"]["QUARANTINE_NO_HOME_AWAY_TRUE"], 1)
             self.assertEqual(qa["reason_counts"]["QUARANTINE_NO_HOME_AWAY_UNKNOWN"], 1)
             self.assertEqual(qa["reason_counts"]["BLOCKED_ORDERED_TEAM_ID_MISMATCH"], 1)
@@ -44,6 +48,39 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(rows[0]["BTTS_probability_pct"], "61.5")
             self.assertEqual(rows[0]["production_eligible"], "NO")
             self.assertEqual(rows[0]["betting_eligible"], "NO")
+            self.assertEqual(rows[0]["snapshot_provenance_status"], "PASS_FRESH_TIMEZONE_AWARE")
+            self.assertEqual(rows[0]["snapshot_age_seconds"], "36000")
+            self.assertEqual(rows[0]["snapshot_file_sha256"], hashlib.sha256(snap.read_bytes()).hexdigest())
+
+    def test_missing_naive_future_and_stale_snapshot_timestamps_fail_closed(self):
+        cases = [
+            ("missing", None),
+            ("timezone_naive", "2026-10-28T00:00:00"),
+            ("future", "2026-10-28T10:01:00Z"),
+            ("stale", "2026-10-26T09:59:00Z"),
+        ]
+        for label, retrieved in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
+                snap_obj = {"per_season": seasons, "fixture_rows": []}
+                if retrieved is not None:
+                    snap_obj["retrieved_utc"] = retrieved
+                snap = root / "snapshot.json"
+                snap.write_text(json.dumps(snap_obj), encoding="utf-8")
+                report = root / "runtime.csv"
+                with report.open("w", newline="", encoding="utf-8") as h:
+                    w = csv.writer(h)
+                    w.writerow(["provider_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"])
+                    w.writerow(["0", "100", "1", "2"])
+                out = root / "out"
+                proc = subprocess.run(
+                    [sys.executable, str(SCRIPT), "--snapshot", str(snap), "--runtime-report", str(report),
+                     "--out-dir", str(out), "--as-of-utc", "2026-10-28T10:00:00Z"],
+                    text=True, capture_output=True
+                )
+                self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                self.assertIn("FAIL:", proc.stderr)
 
 if __name__ == "__main__":
     unittest.main()
