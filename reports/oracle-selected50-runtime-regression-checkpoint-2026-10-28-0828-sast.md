@@ -144,7 +144,7 @@ Branch head observed before this report update: `0f3b3e816761fccf48e9e5db20b925f
 ### Artifact hashes independently checked
 - [Runtime #144 artifact #12797114323](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501528/artifacts/12797114323): SHA-256 `a1cdcce28395b95a9834424c23d7b948803d7ef195dc24c8ae4fffee97e4ac3a` (14 files; 158,044 bytes).
 - [Dry-run #508 artifact #12797143939](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578043/artifacts/12797143939): SHA-256 `4a87872aaa3b76b5386adda5269a2c0c47d22a13484ddcd7bc810e2cb28e481d` (25 files; 36,351 bytes).
-- [Cross-provider audit #12 artifact #12797228734](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490/artifacts/12797228734): SHA-256 `f9ea39e267aab0ebab853258ebf2719023a932270d8e72381fc7cc15618ad015` (five CSV/JSON diagnostic outputs before the newest separation change was added to the workflow artifact list).
+- [Cross-provider audit #12 artifact #12797228734](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490/artifacts/12797228734): SHA-256 `f9ea39e267aab0ebab853258ebf2719023a932270d8e72381fc7cc15618ad015` (six outputs: summary JSON, exact-join rows, date-only candidate rows, FotMob bridge candidates, exact canonical-code candidates, and date-only candidate groups).
 
 ### Cross-provider audit findings
 The regenerated audit examined 14,051 FootyStats archive rows, 71 rows in the current FotMob snapshot, and 12,836 rows in the historical ledger source.
