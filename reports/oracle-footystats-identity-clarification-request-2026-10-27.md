@@ -88,14 +88,25 @@ Project Oracle data validation
 
 Attach `reports/oracle-selected50-independent-identity-evidence-register-2026-10-27.csv` or the simpler selected manifest. The CSV is research-only and marks all mappings unapproved. Do not include API keys, raw provider payloads, or private credentials.
 
+### Updated evidence after bounded 50-season reconciliation (2026-10-28)
+
+The account holder subsequently authorized bounded FootyStats API use and confirmed the stated 1,800 requests/hour allocation. Two research-only batches have now completed:
+- 50 `league-season` requests: 50/50 HTTP 200/provider-success; returned season ID, country and competition name matched the selected manifest; 50/50 exposed a non-null `comp_master_id`, with 50 distinct values.
+- 50 `league-matches` requests: 50/50 HTTP 200/provider-success; one page per season. A sanitized current fixture snapshot was produced.
+- The observed `comp_master_id` values are recorded as provider evidence only and remain `REVIEW_REQUIRED_NOT_CANONICAL`. The accessible public field list does not define them precisely enough to assert that they are stable parent competition IDs or map them to FotMob IDs.
+- An exact overlap audit found two strong research-only FootyStats-to-FotMob bridge candidates based on eight exact fixture/team/kickoff joins. Canada CPL has one score/status conflict; neither bridge is approved.
+- No raw provider payload or API key was written to the reports. Production model logic and protected registries remain unchanged.
+
+This updated evidence does not eliminate the need for provider clarification. It narrows the question to the semantics and stability of `comp_master_id` and the supported cross-season identity contract.
+
 ### Additional official-documentation finding (2026-10-28)
 
 The public League Matches reference describes the match-level `competition_id` field as the **season ID of the league**. This is a naming ambiguity, not evidence of a stable parent competition ID. The revised questions explicitly ask FootyStats to confirm that field's semantics. The request remains **DRAFT ONLY — NOT SENT**.
 
 ### Governance after this update
 
-- The existing one-call result remains the only approved provider call for this identity question.
-- No further provider API calls are authorized without fresh explicit approval and a verified credit budget.
-- Parent competition IDs remain **0/50 verified**; provider-to-canonical bridges remain **0/50 verified**.
+- The account holder explicitly authorized the bounded 50-season identity and 50-season schedule retrieval; both batches completed within the stated hourly allocation.
+- Further provider calls are not needed for the present evidence package. Any additional batch should be separately scoped and budget-checked.
+- Provider `comp_master_id` values are observed for **50/50** seasons, but parent-ID semantics remain **0/50 verified**; human-approved provider-to-FotMob/Oracle canonical bridges remain **0/50**. Two bridge candidates are documented as research-only and unapproved.
 - The email remains a draft and must not be sent by an automation or agent. Sending requires separate approval from the account holder.
 - Production and betting release remain `NOT_GRANTED`.
