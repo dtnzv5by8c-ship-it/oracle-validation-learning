@@ -10,6 +10,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -23,12 +24,16 @@ def truthy(value: Any) -> bool:
 
 
 def integer_or_blank(value: Any) -> int | str:
+    """Accept only finite, non-negative integer scores; never truncate invalid input."""
+    if value in (None, "") or isinstance(value, bool):
+        return ""
     try:
-        if value in (None, ""):
-            return ""
-        return int(float(value))
+        number = float(value)
     except (TypeError, ValueError, OverflowError):
         return ""
+    if not math.isfinite(number) or number < 0 or not number.is_integer():
+        return ""
+    return int(number)
 
 
 def valid_team_id(value: Any) -> bool:
