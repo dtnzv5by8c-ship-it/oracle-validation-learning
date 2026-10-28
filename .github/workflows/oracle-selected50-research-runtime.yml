@@ -128,6 +128,40 @@ jobs:
       - name: Validate walk-forward metrics, league gates and governed report outputs
         run: python scripts/validate_selected50_runtime_outputs.py
 
+      - name: Record exact snapshot-to-runtime provenance
+        shell: bash
+        env:
+          INCLUDE_CURRENT_SNAPSHOT: ${{ inputs.include_current_snapshot }}
+          SNAPSHOT_RUN_ID: ${{ inputs.snapshot_run_id }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag }}
+          RUNTIME_RUN_ID: ${{ github.run_id }}
+          RUNTIME_RUN_NUMBER: ${{ github.run_number }}
+          RUNTIME_RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUNTIME_SHA: ${{ github.sha }}
+          RUNTIME_REF: ${{ github.ref }}
+          ORACLE_ARCHIVE: private-download/oracle-selected50-runtime-selected.zip
+        run: |
+          set -euo pipefail
+          args=(
+            --overlay-qa selected50_runtime_output/current_snapshot_overlay_qa.json
+            --source-archive private-download/oracle-selected50-footystats-private-ingestion.zip
+            --selected-archive "$ORACLE_ARCHIVE"
+            --runtime-report selected50_runtime_output/oracle_selected50_prediction_report.csv
+            --snapshot-run-id "$SNAPSHOT_RUN_ID"
+            --runtime-run-id "$RUNTIME_RUN_ID"
+            --runtime-run-number "$RUNTIME_RUN_NUMBER"
+            --runtime-run-attempt "$RUNTIME_RUN_ATTEMPT"
+            --runtime-sha "$RUNTIME_SHA"
+            --runtime-ref "$RUNTIME_REF"
+            --archive-release-tag "$PRIVATE_ARCHIVE_RELEASE_TAG"
+            --runtime-archive-env "$ORACLE_ARCHIVE"
+            --out selected50_runtime_output/oracle_selected50_runtime_provenance.json
+          )
+          if [[ "$INCLUDE_CURRENT_SNAPSHOT" == "true" ]]; then
+            args+=(--include-current-snapshot --snapshot current-snapshot/current-fixture-snapshot.json)
+          fi
+          python scripts/write_selected50_runtime_provenance.py "${args[@]}"
+
       - name: Upload derived report and sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -149,5 +183,6 @@ jobs:
             selected50_runtime_output/oracle_selected50_runtime_validation.json
             selected50_runtime_output/current_snapshot_overlay_qa.json
             selected50_runtime_output/current_snapshot_candidate_trace.csv
+            selected50_runtime_output/oracle_selected50_runtime_provenance.json
           if-no-files-found: error
           retention-days: 14
