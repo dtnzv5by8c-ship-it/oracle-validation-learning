@@ -664,29 +664,29 @@ The report remains `PASS_WITH_REVIEW_ITEMS`. Thresholds remain unchanged: maximu
 
 ### Part B — Selected-50 runtime and release gates
 
-Latest verified research workflows:
+Latest verified research workflows, checked against the actual downloaded ZIP contents:
 
-- [Research Runtime #144](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501528) · [artifact #12797114323](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501528/artifacts/12797114323), SHA-256 `a1cdcce28395b95a9834424c23d7b948803d7ef195dc24c8ae4fffee97e4ac3a`.
-- [Dry-Run Planner #508](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578043) · [artifact #12797143939](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578043/artifacts/12797143939), SHA-256 `4a87872aaa3b76b5386adda5269a2c0c47d22a13484ddcd7bc810e2cb28e481d`.
-- [Safety Contract Tests #210](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578318) — PASS, including six cross-provider regression tests; the one-call identity workflow remains fail-closed.
-- [Exact Cross-Provider Fixture Join Audit #12](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490) · [artifact #12797228734](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490/artifacts/12797228734), SHA-256 `f9ea39e267aab0ebab853258ebf2719023a932270d8e72381fc7cc15618ad015`.
+- [Research Runtime #147](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418147) · [artifact #12797526943](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418147/artifacts/12797526943), SHA-256 `cd281b5dd35656815879ba546ffb860bd1db75cc8daeca6db3373bb777ba16db`.
+- [Dry-Run Planner #512](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418143) · [artifact #12797517430](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418143/artifacts/12797517430), SHA-256 `d1e3890965ddb633997142e3582ebca70f97f9f573df1361ea27c7cfacab4342`.
+- [Safety Contract Tests #214](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418166) — PASS; no artifact published.
+- [Exact Cross-Provider Fixture Join Audit #15](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418126) · [artifact #12797871592](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418126/artifacts/12797871592), SHA-256 `f9efee081b0a01e5f5cb98b5ff0632e733906373fd933a5d901a62c0ff3047e8`.
 
-All three downloaded artifact digests match GitHub metadata. Runtime #144 independently validates 50 unique selected IDs, 250 unique league-market rows, 750 unique walk-forward rows, 463 unique fixture IDs in each of the prediction and governed exports, identical fixture-ID sets and zero duplicates. There are 438 raw research prediction rows and 25 blocked by missing required features. No row is production-eligible. Both Combo probability columns remain null for all 463 fixtures.
+All three downloaded artifact digests match GitHub metadata. Runtime #147 independently validates 50 unique selected IDs, 250 unique selected-ID/market keys, 750 unique selected-ID/market/fold keys, 463 unique fixture IDs in each prediction and governed export, identical fixture-ID sets and zero duplicate keys. All 250 market-readiness rows and 750 walk-forward rows are production-ineligible and have `edge_claim=NOT_APPROVED`. The runtime has 438 research predictions and 25 feature-blocked fixtures; no fixture is production-eligible. Both Combo probability columns remain masked.
 
-A value-by-value comparison of Runtime #144 against Runtime #135 artifact #12796307772 (SHA-256 `05d5315c5aa6c95f2a5d0f73c307c09fa85156748e85d69ddd62327f3a9597b9`) shows all 463 fixture IDs unchanged and exact equality of BTTS, DC_HOME, DC_AWAY and both Combo probability fields, including null status. This is a research-challenger comparison, not a production Oracle V1.6/V1.6.3 probability diff.
+A value-by-value comparison of Runtime #147 against Runtime #144 artifact #12797114323 (SHA-256 `a1cdcce28395b95a9834424c23d7b948803d7ef195dc24c8ae4fffee97e4ac3a`) shows all 463 fixture IDs unchanged and exact equality of BTTS, DC_HOME, DC_AWAY and both Combo probability fields, including null status. This is a research-challenger comparison, not a production Oracle V1.6/V1.6.3 probability diff.
 
 ### Corrected cross-provider join interpretation
 
-The latest [cross-provider audit artifact #12797228734](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490/artifacts/12797228734) separates exact kickoff joins from date-only historical-ledger overlaps. It reports:
+The latest [cross-provider audit artifact #12797871592](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40646418126/artifacts/12797871592) uses exact normalized ordered home/away names plus exact UTC kickoff for exact joins, and keeps calendar-date-only historical-ledger matches separate. It reports:
 
-- 10 exact FootyStats–FotMob fixture joins across two candidate groups.
-- Canada CPL: four joins, three score agreements and one material score/status conflict.
-- England EFL League One: six joins, three completed score agreements and three suspended/postponed cases; no recorded score conflict.
+- 10 exact FootyStats–FotMob fixture joins across two candidate groups: four Canadian Premier League and six England EFL League One.
+- Canada CPL: three completed score agreements and one pre-kickoff snapshot row explicitly marked `NOT_COMPARABLE_PRE_KICKOFF`. The corrected artifact reports **zero source-conflict rows**; the pre-kickoff row is not evidence of a score/status conflict or settlement truth.
+- England EFL League One: three completed score agreements and three postponed/suspended cases.
 - Zero exact kickoff joins to the historical Oracle ledger.
-- 577 date-only historical-ledger overlaps across 24 groups, with no kickoff-time proof.
-- Zero canonical-code candidate groups from the exact-kickoff audit; two FotMob bridge candidates; zero approved canonical bridges.
+- 577 date-only historical-ledger overlaps across 24 groups, without kickoff-time proof.
+- Zero exact-join canonical-code candidates, two FotMob bridge candidates and zero approved canonical bridges.
 
-This supersedes the earlier interpretation of 24 “strong canonical-code candidates”: the 577 matches are date-only evidence and must remain human-review candidates, not canonical joins. The Canadian candidate is especially unsafe for settlement until the source conflict is resolved; the observed FotMob label is “Premier League”, which is not sufficient evidence of league identity.
+This supersedes the earlier interpretation of 24 “strong canonical-code candidates”: the 577 matches are date-only evidence and must remain human-review candidates, not canonical joins. The Canadian candidate remains unapproved because the FotMob snapshot predates kickoff for one row, the observed league label is only “Premier League”, and no authoritative bridge or settlement truth has been approved.
 
 ### Schedule freshness — existing snapshots only
 
