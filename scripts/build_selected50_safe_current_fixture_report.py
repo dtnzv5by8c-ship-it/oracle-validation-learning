@@ -6,12 +6,14 @@ Does not generate predictions or change model probabilities.
 """
 import argparse
 import csv
+import hashlib
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 FINISHED = {"complete", "completed", "finished", "ft", "full time", "full-time", "ended", "played"}
 BAD_STATUS_PARTS = ("suspend", "postpon", "cancel", "abandon", "void", "delay")
+MAX_SNAPSHOT_AGE = timedelta(hours=24)
 
 def text(v):
     return "" if v is None else str(v).strip()
@@ -35,8 +37,24 @@ def main():
     now = parse_utc(a.as_of_utc) if a.as_of_utc else datetime.now(timezone.utc)
     if now is None:
         raise SystemExit("FAIL: --as-of-utc must include a timezone")
-    snap = json.loads(a.snapshot.read_text(encoding="utf-8"))
+    snapshot_bytes = a.snapshot.read_bytes()
+    snapshot_sha256 = hashlib.sha256(snapshot_bytes).hexdigest()
+    try:
+        snap = json.loads(snapshot_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"FAIL: snapshot JSON is invalid: {exc}")
+    retrieved = parse_utc(snap.get("retrieved_utc"))
+    if retrieved is None:
+        raise SystemExit("FAIL: snapshot retrieval timestamp must be valid timezone-aware ISO-8601")
+    snapshot_age_seconds = int((now - retrieved).total_seconds())
+    if snapshot_age_seconds < 0:
+        raise SystemExit("FAIL: snapshot retrieval timestamp is in the future relative to report as-of time")
+    if retrieved < now - MAX_SNAPSHOT_AGE:
+        raise SystemExit("FAIL: snapshot is older than the 24-hour current-report freshness limit")
     seasons = snap.get("per_season", [])
+    fixture_rows = snap.get("fixture_rows", [])
+    if not isinstance(seasons, list) or not isinstance(fixture_rows, list):
+        raise SystemExit("FAIL: snapshot per_season and fixture_rows must be lists")
     season_ids = {text(x.get("selected_season_id")) for x in seasons}
     if len(seasons) != 50 or len(season_ids) != 50 or "" in season_ids:
         raise SystemExit("FAIL: snapshot must contain exactly 50 unique nonblank selected season IDs")
@@ -61,7 +79,7 @@ def main():
     reason_counts = {}
     total_valid_source_rows = 0
     now_end = now + timedelta(days=7)
-    for f in snap.get("fixture_rows", []):
+    for f in fixture_rows:
         season, fid = text(f.get("selected_season_id")), text(f.get("id"))
         if not season or not fid or season not in season_ids:
             reason = "QUARANTINE_INVALID_SOURCE_IDENTITY"
@@ -111,6 +129,10 @@ def main():
         row["snapshot_status"] = text(f.get("status"))
         row["snapshot_no_home_away"] = text(f.get("no_home_away"))
         row["snapshot_exact_join_status"] = "EXACT_SEASON_FIXTURE_AND_ORDERED_TEAM_IDS_MATCH"
+        row["snapshot_retrieved_utc"] = retrieved.isoformat()
+        row["snapshot_age_seconds"] = snapshot_age_seconds
+        row["snapshot_file_sha256"] = snapshot_sha256
+        row["snapshot_provenance_status"] = "PASS_FRESH_TIMEZONE_AWARE"
         row["production_eligible"] = "NO"
         row["betting_eligible"] = "NO"
         out_rows.append(row)
@@ -127,9 +149,12 @@ def main():
     qa = {
         "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
-        "snapshot_retrieved_utc": snap.get("retrieved_utc"),
+        "snapshot_retrieved_utc": retrieved.isoformat(),
+        "snapshot_age_seconds": snapshot_age_seconds,
+        "snapshot_file_sha256": snapshot_sha256,
+        "snapshot_provenance_status": "PASS_FRESH_TIMEZONE_AWARE",
         "selected_seasons": len(seasons),
-        "snapshot_fixture_rows": len(snap.get("fixture_rows", [])),
+        "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
         "duplicate_runtime_exact_keys": duplicate_runtime_keys,
         "source_candidates_in_7_day_window": total_valid_source_rows,
