@@ -42,6 +42,12 @@ The work has made a material step forward since the initial checkpoint. The appr
 
 A 30-day overlap between the stale FotMob staging snapshot and fresh FootyStats season data yielded eight exact team-pair/kickoff joins across two competitions. Canada CPL has three completed score agreements and one source conflict; England EFL League One has one completed score agreement and three postponed/suspended matches. These support two research candidates but do not approve a production bridge. See [the exact join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
 
+### Expanded 30-day overlap snapshot and offline validation
+
+The second snapshot was retrieved at `2026-10-28T06:19:09.645973+00:00` UTC. Its offline contract validator passed: 2,250 rows across the 50 selected seasons, 871 future fixtures, 1,372 recent completed results, 19 suspended rows and 486 `no_home_away=1` rows (181 future, 305 recent). No duplicate match IDs or missing team IDs/names/kickoff timestamps were detected. The 181 future no-home/away fixtures and 14 future suspended fixtures must be quarantined from standard home/away markets.
+
+[Expanded snapshot artifact 12796207151](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40562430790/artifacts/12796207151) · [Offline validator source](../scripts/validate_selected50_current_fixture_snapshot.py).
+
 ## Current FotMob feed incident
 
 The production `Oracle Current Data Staging` workflow has three latest visible failed runs:
