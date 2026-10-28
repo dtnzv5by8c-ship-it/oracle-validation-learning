@@ -109,13 +109,8 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.assertIn("expected_runtime_run_id_matches", result["failed_checks"])
 
     def test_artifact_metadata_bytes_must_match_manifest_hash(self):
-        self.metadata.write_text(json.dumps({
-            "artifact_id": "789",
-            "artifact_name": "oracle-selected50-current-fixture-snapshot",
-            "artifact_digest": "sha256:" + "a" * 64,
-            "artifact_expired": False,
-            "artifact_workflow_run_id": "100",
-        }) + "changed", encoding="utf-8")
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        self.metadata.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("snapshot_artifact_metadata_file_hash_matches_manifest", result["failed_checks"])
