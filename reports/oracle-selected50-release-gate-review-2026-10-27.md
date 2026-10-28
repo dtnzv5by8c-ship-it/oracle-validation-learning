@@ -543,3 +543,50 @@ No alias was changed or approved. Wisla remains ambiguous; Manchester Utd, Jagie
 ### Decision
 
 Research-output contract: **PASS**. Production release and betting release: **NOT APPROVED**. This update is reporting-only. No provider API calls, PR #21 merge, or changes to production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were made.
+
+
+## Combined staggered workstream checkpoint — 2026-10-28 05:14 SAST
+
+### Live GitHub state
+
+The research branch head before this report-only update was `988de53ad82821354b9aa20d884536238dc0d273`. PR #21 remains open, draft, and unmerged at `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`. No new Oracle H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`.
+
+### H2H watch — unchanged
+
+- Reporting [Run #47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720) and Exact-ID Tests [Run #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716) remain the latest PR #21 runs.
+- Downloaded artifact [#12573751940](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720/artifacts/12573751940) independently hashes to `549d8352e939d076bfc764ab8730ced15ec7b5d5bc51026831dd5ddf59231c3f`, matching GitHub metadata.
+- Oracle fixture export, H2H report, and joined report each contain 95 unique fixture IDs; their ID sets are identical, with zero duplicates, zero unmatched exact IDs, and zero joined league-code mismatches.
+- The H2H audit records `oracle_values_changed=false`, `oracle_probability_values_modified=false`, `production_model_logic_changed=false`, and `quality_gate_changed=false`. The joined CSV does not expose original probability columns for an independent value-by-value diff.
+- Thresholds remain 20% maximum unmatched rate, seven-day maximum archive age, and five meetings minimum H2H sample. Report status remains `PASS_WITH_REVIEW_ITEMS`.
+- The nine baseline team-side findings remain evidence-limited. Waregem, Rakow, Sepsi Sf. Gheorghe, and Entella have prior expected-league archive evidence but are not fully signed off; Wisla remains ambiguous; Manchester Utd, Jagiellonia, Lusitania FC, and Ceuta remain unresolved unless authoritative evidence is validated through a new run. No alias was changed or approved.
+- St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain review-only until cross-league policy is explicit.
+
+### New archive-feature audit and dependency repair
+
+The first archive-feature audit attempt, [Run #59](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624844360), failed before data processing because test discovery could not import `sklearn` in two tests. Commit [`72959792c45a2c2b153beb9612a2f826e67dd316`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/72959792c45a2c2b153beb9612a2f826e67dd316) adds research test dependency installation (`numpy scikit-learn`) before test discovery. The rerun [Run #60](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624909115) passed: 198 tests passed, all audit steps completed, and no provider API calls were made. Its artifact [#12788389889](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624909115/artifacts/12788389889) is 51,616,766 bytes and independently hashes to `cfc1fd08023a59d116e0c32acfed7ee50d13826e1118863161bed5e3af9d8db2`, matching GitHub metadata.
+
+The successful feature audit reports 35,819 archive records across 126 season folders, 35,819 parseable kickoffs, 35,819 strict-cutoff feature rows, zero parse errors, zero duplicate fixture IDs, and 28,491 records satisfying explicit settled-status plus complete-score criteria. Provisional standings have both team positions for 34,083 rows, but use a conventional 3-1-0 reconstruction without competition-format validation; they are not production historical standings. Presence of xG/odds fields does not establish pre-kickoff provenance; prematch xG and odds provenance remain unverified.
+
+**Important scope/provenance limitation:** this audit package is a separate 126-folder evidence layer and must not be equated with the 59,049-row Selected-50 runtime archive or added to it. Its 43-row provider catalogue has blank provider IDs on all 43 rows, and its 126-row archive manifest has blank `provider_league_id` on all 126 rows. The scope guard therefore returns `BLOCKED_EXACT_SCOPE_OR_ID_PROVENANCE`; the package does not independently bridge these 126 folders to the selected 50 IDs. The provisional competition crosswalk has 25 candidate matches requiring review and 18 unmatched names; the 43 alias/type classifications remain pending human decisions, with zero approved canonical mappings. This is a real provenance blocker, not proof that historical data is absent.
+
+### Selected-50 runtime and planner — actual artifact checks
+
+- Research Runtime [Run #120](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893), artifact [#12781478212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893/artifacts/12781478212), was downloaded and hashed to `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84`, matching GitHub metadata.
+- Dry-Run Planner [Run #468](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624909114), artifact [#12789091929](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624909114/artifacts/12789091929), was downloaded and hashed to `08565001d8ce17c629d320c194fa5400dbfec2ba4aad8f05a504dc3a6ed7e7fc`, matching GitHub metadata. It reports dry-run only, zero network calls, and zero paid-provider calls.
+- Safety Contract Tests [Run #162](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40624909188) passed on the same code commit `72959792c45a2c2b153beb9612a2f826e67dd316`.
+- Independent CSV checks confirm the Selected-50 readiness matrix has 50 unique IDs and all 50 are `production_eligible=NO`; Runtime #120 has 250 unique `(selected_id, market)` rows and 750 unique `(selected_id, market, fold)` rows, with zero duplicate keys. Its prediction and governed fixture exports each contain 460 unique fixture IDs. There are 435 fixtures with at least one research prediction and 25 feature-blocked fixtures; both Combo probability columns remain null across all 460 rows.
+- Identity remains blocked: 22 candidate mappings require human review, 28 groups are unresolved, parent competition IDs verified 0/50, canonical fixture/team joins verified 0, and official settlement-truth rows verified 0. The older Run 56 31/19 manifest split is a separate historical evidence layer; the planner explicitly warns that its row sums are not a deduplicated total and manifest absence does not prove a provider request failed.
+
+### Schedule freshness — Canada, China, South Korea
+
+Runtime #120's archive-derived seven-day snapshot records zero upcoming fixtures for Canada — Canadian Premier League (selected ID 16741; 463 rows, 463 explicitly completed), China — Chinese Super League (16789; 960 rows, 952 explicitly completed), and South Korea — K League 1 (16627; 882 rows, 882 explicitly completed). These counts are archive presence, not completeness or a current-feed refresh.
+
+The planner's separate private-archive QA matrix records 112, 240, and 198 rows for those selected seasons respectively, but explicitly labels its source QA snapshot as `PRE_BATCH5_QA_SNAPSHOT_SUPERSEDED_FOR_CURRENT_ARCHIVE_COVERAGE` by ingestion run `40375285207`. The new 126-folder feature-audit package does not contain matching Canada/China/K League 1 folders and has blank provider IDs throughout. Therefore, those older counts cannot be treated as fresh confirmation of current schedule coverage.
+
+The governed current-feed snapshot remains stale and internally inconsistent: source manifest `2026-10-08`, reconciliation `2026-10-07`, last fixture date `2026-10-17`, schedule-window end `2026-10-22`, and zero governed fixture/prediction rows. Its audit reports `current_matches.csv=241` versus reconciliation count 108; `current_goal_events.csv=137` versus reconciliation status count 128; `current_prematch_team_state.csv=0` while its manifest claims 12,883; and zero immutable feature-snapshot manifest rows. This verifies an observability/consistency blocker, but does not identify the ingestion failure cause. No fixtures were synthesized.
+
+### Metrics and release decision
+
+Walk-forward and holdout metrics remain raw/uncalibrated. The current runtime's BTTS holdout accuracy remains below the recorded majority-class baseline; odds/ROI benchmarking is not approved. Combo remains blocked because the predictor target is Double Chance plus 2–4 total goals inclusive, while the settlement helper accepts fewer than five goals. The mismatch diagnostic remains two scorelines per side; it is not market-policy approval.
+
+**Decision: research-output contracts PASS for the cited runs; production release NOT APPROVED; betting release NOT APPROVED.** No provider API calls, PR #21 merge, production model logic/probability/threshold/calibration changes, canonical registry/ledger changes, or governance changes were made.
