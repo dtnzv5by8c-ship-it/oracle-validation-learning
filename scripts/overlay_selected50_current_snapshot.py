@@ -334,7 +334,7 @@ def main():
       "refreshed_present_exact_fixture_ids":refreshed,
       "quarantined_or_invalid_rows":quarantined,
       "quarantine_reason_counts":dict(sorted(quarantine_reason_counts.items())),
-      "no_home_away_flag_semantics":"UNVERIFIED_PER_FIXTURE; flagged rows remain quarantined until provider semantics are verified against authoritative league-season metadata",
+      "no_home_away_flag_semantics":"DOCUMENTED_FIELD_SEMANTICS; official FootyStats League Matches schema defines no_home_away=1 as no home/away distinction; the provider flag is not independently cross-checked against venue metadata; flagged rows remain quarantined from standard home/away-dependent markets",
       "no_home_away_flag_by_league":sorted(no_home_away_by_league.values(),key=lambda x:(x["country"],x["competition"])),
       "unsupported_archive_rows_not_staged":unsupported_rows,
       "unsupported_selected_league_count":len(unsupported_labels),
