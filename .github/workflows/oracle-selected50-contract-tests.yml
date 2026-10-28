@@ -50,3 +50,7 @@ jobs:
         run: python -m py_compile scripts/write_selected50_runtime_provenance.py
       - name: Run runtime provenance contract tests
         run: python -m unittest discover -s tests -p "test_selected50_runtime_provenance.py" -v
+      - name: Compile snapshot-runtime bridge audit
+        run: python -m py_compile scripts/audit_selected50_snapshot_runtime_bridge.py
+      - name: Run snapshot-runtime bridge provenance tests
+        run: python -m unittest discover -s tests -p "test_selected50_snapshot_runtime_bridge_provenance.py" -v
