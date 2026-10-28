@@ -16,12 +16,21 @@ def timestamp(row,keys):
     for key in keys:
         value=row.get(key)
         if value in (None,""): continue
+        if key.endswith("_unix") or key in ("date_unix","kickoff_unix","timestamp","timestamp_unix"):
+            try:
+                n=float(value)
+                if n>1_000_000_000:
+                    if n>1_000_000_000_000:n/=1000
+                    return int(n)
+            except (ValueError,TypeError,OverflowError):
+                pass
         try:
-            if key.endswith("_unix") or key in ("date_unix","kickoff_unix","timestamp_unix"):
-                n=int(float(value))
-                if n>10**12:n//=1000
-                return n
-            return int(datetime.fromisoformat(str(value).strip().replace("Z","+00:00")).timestamp())
+            s=str(value).strip().replace("Z","+00:00")
+            # Exact fixture joins require a time-of-day; date-only values are not midnight UTC.
+            if not re.search(r"\\d{2}:\\d{2}",s): continue
+            parsed=datetime.fromisoformat(s)
+            if parsed.tzinfo is None: parsed=parsed.replace(tzinfo=timezone.utc)
+            return int(parsed.timestamp())
         except (ValueError,TypeError,OverflowError): continue
     return None
 
@@ -77,17 +86,35 @@ def load_fotmob_current(path):
 
 def load_historical_ledger(path):
     rows=[];header=[]
+    stats={"source_rows_seen":0,"rows_exact_kickoff":0,"rows_date_only":0,"rows_missing_exact_kickoff":0}
     with open(path,encoding="utf-8-sig",newline="") as f:
         reader=csv.DictReader(f);header=reader.fieldnames or []
         for r in reader:
-            ts=timestamp(r,("date_utc","date","kickoff_utc","date_unix"))
+            stats["source_rows_seen"]+=1
+            ts=timestamp(r,("date_unix","kickoff_unix","timestamp_unix","date_utc","kickoff_utc","date"))
+            raw_date=str(r.get("date_utc") or r.get("date") or r.get("kickoff_utc") or "").strip()
+            date_key=raw_date[:10] if re.match(r"^\\d{4}-\\d{2}-\\d{2}",raw_date) else ""
+            if ts is not None:
+                precision="EXACT_UTC_KICKOFF";stats["rows_exact_kickoff"]+=1
+                if not date_key: date_key=datetime.fromtimestamp(ts,timezone.utc).date().isoformat()
+            elif date_key and not re.search(r"\\d{2}:\\d{2}",raw_date):
+                precision="DATE_ONLY_NO_KICKOFF_PROOF";stats["rows_date_only"]+=1
+            else:
+                stats["rows_missing_exact_kickoff"]+=1
+                continue
             home=r.get("home_team") or r.get("home_name") or ""
             away=r.get("away_team") or r.get("away_name") or ""
             code=str(r.get("league_code") or "").strip()
             mid=str(r.get("match_id") or r.get("id") or r.get("source_match_id") or "").strip()
-            if not(ts and home and away and code and mid):continue
-            rows.append({"source_system":"Oracle historical ledger","ledger_match_id":mid,"canonical_league_code_candidate":code,"ledger_league_name":str(r.get("league") or "").strip(),"home":str(home),"away":str(away),"home_norm":norm(home),"away_norm":norm(away),"kickoff_unix":ts,"date_key":str(r.get("date") or datetime.fromtimestamp(ts,timezone.utc).date().isoformat())[:10],"source":str(r.get("source") or "").strip(),"home_goals":str(r.get("home_goals") or "").strip(),"away_goals":str(r.get("away_goals") or "").strip()})
-    return rows,header
+            if not (home and away and code and mid and date_key):continue
+            rows.append({"source_system":"Oracle historical ledger","ledger_match_id":mid,
+                         "canonical_league_code_candidate":code,"ledger_league_name":str(r.get("league") or "").strip(),
+                         "home":str(home),"away":str(away),"home_norm":norm(home),"away_norm":norm(away),
+                         "kickoff_unix":ts,"join_precision":precision,"date_key":date_key,
+                         "source":str(r.get("source") or "").strip(),
+                         "home_goals":str(r.get("home_goals") or "").strip(),
+                         "away_goals":str(r.get("away_goals") or "").strip()})
+    return rows,header,stats
 
 def main():
     ap=argparse.ArgumentParser()
@@ -107,14 +134,16 @@ def main():
     with zipfile.ZipFile(args.archive) as zf:
         footy,archive_members,inventory=load_footystats_archive(zf,set(selected));archive_member_count=len(zf.namelist())
     current,current_header=load_fotmob_current(args.current_matches)
-    ledger,ledger_header=load_historical_ledger(args.historical_matches)
+    ledger,ledger_header,ledger_stats=load_historical_ledger(args.historical_matches)
     current_by_key=defaultdict(list)
     for r in current:current_by_key[(r["home_norm"],r["away_norm"],r["kickoff_unix"])].append(r)
     ledger_by_key=defaultdict(list);ledger_by_date_key=defaultdict(list)
     for r in ledger:
-        ledger_by_key[(r["home_norm"],r["away_norm"],r["kickoff_unix"])].append(r)
-        ledger_by_date_key[(r["home_norm"],r["away_norm"],r["date_key"])].append(r)
-    joins=[];fotmob_groups=defaultdict(list);canonical_groups=defaultdict(list)
+        if r["join_precision"]=="EXACT_UTC_KICKOFF" and r["kickoff_unix"] is not None:
+            ledger_by_key[(r["home_norm"],r["away_norm"],r["kickoff_unix"])].append(r)
+        elif r["join_precision"]=="DATE_ONLY_NO_KICKOFF_PROOF":
+            ledger_by_date_key[(r["home_norm"],r["away_norm"],r["date_key"])].append(r)
+    joins=[];date_only_joins=[];fotmob_groups=defaultdict(list);canonical_groups=defaultdict(list);date_only_groups=defaultdict(list)
     for f in footy:
         sid=f["selected_season_id"];s=selected.get(sid)
         if not s:continue
@@ -136,7 +165,10 @@ def main():
             score_agree=score_known and f_complete and f["home_goals"]==h["home_goals"] and f["away_goals"]==h["away_goals"]
             score_conflict=score_known and f_complete and (f["home_goals"]!=h["home_goals"] or f["away_goals"]!=h["away_goals"])
             row={**base,"join_type":"ORACLE_HISTORICAL_LEDGER" if precision=="EXACT_UTC_KICKOFF" else "ORACLE_HISTORICAL_LEDGER_DATE_ONLY","join_precision":precision,"fotmob_league_id":"","fotmob_league_name":"","fotmob_match_id":"","canonical_league_code_candidate":h["canonical_league_code_candidate"],"ledger_match_id":h["ledger_match_id"],"fotmob_score":"","ledger_score":f'{h["home_goals"]}-{h["away_goals"]}',"score_known_both_sources":bool(score_known),"score_agree":bool(score_agree),"score_conflict":bool(score_conflict),"status_agree":None}
-            joins.append(row);canonical_groups[(sid,h["canonical_league_code_candidate"],h["ledger_league_name"])].append(row)
+            if precision=="EXACT_UTC_KICKOFF":
+                joins.append(row);canonical_groups[(sid,h["canonical_league_code_candidate"],h["ledger_league_name"])].append(row)
+            else:
+                date_only_joins.append(row);date_only_groups[(sid,h["canonical_league_code_candidate"],h["ledger_league_name"])].append(row)
     def aggregate(groups,kind):
         outrows=[]
         for key,rr in sorted(groups.items()):
@@ -153,18 +185,34 @@ def main():
         return outrows
     fotmob_candidates=aggregate(fotmob_groups,"fotmob")
     canonical_candidates=aggregate(canonical_groups,"canonical")
-    join_fields=list(joins[0].keys()) if joins else ["selected_season_id"]
-    for name,rows in (("exact_fixture_join_rows.csv",joins),("fotmob_bridge_candidates.csv",fotmob_candidates),("canonical_code_candidates.csv",canonical_candidates)):
+    date_only_candidates=[]
+    for key,rr in sorted(date_only_groups.items()):
+        known=[r for r in rr if r["score_known_both_sources"]]
+        agree=[r for r in known if r["score_agree"]]
+        conflicts=[r for r in rr if r.get("score_conflict")]
+        date_only_candidates.append({"country":selected[key[0]]["country"],"competition":selected[key[0]]["competition"],
+            "selected_season_id":key[0],"canonical_league_code_candidate":key[1],"ledger_league_name_observed":key[2],
+            "date_only_overlap_rows":len(rr),"score_agreements":len(agree),"score_conflicts":len(conflicts),
+            "bridge_status":"DATE_ONLY_OVERLAP_HUMAN_REVIEW_REQUIRED_NO_KICKOFF_PROOF","production_eligible":"NO"})
+    exact_fields=list(joins[0].keys()) if joins else ["selected_season_id","join_type","join_precision"]
+    date_only_fields=list(date_only_joins[0].keys()) if date_only_joins else ["selected_season_id","join_type","join_precision"]
+    outputs=[
+        ("exact_fixture_join_rows.csv",joins,exact_fields),
+        ("date_only_ledger_candidate_rows.csv",date_only_joins,date_only_fields),
+        ("fotmob_bridge_candidates.csv",fotmob_candidates,list(fotmob_candidates[0].keys()) if fotmob_candidates else ["selected_season_id"]),
+        ("canonical_code_candidates.csv",canonical_candidates,list(canonical_candidates[0].keys()) if canonical_candidates else ["selected_season_id"]),
+        ("date_only_ledger_candidates.csv",date_only_candidates,list(date_only_candidates[0].keys()) if date_only_candidates else ["selected_season_id","bridge_status"])
+    ]
+    for name,rows,fields in outputs:
         with open(out/name,"w",encoding="utf-8",newline="") as f:
-            w=csv.DictWriter(f,fieldnames=join_fields if name=="exact_fixture_join_rows.csv" else (list(rows[0].keys()) if rows else ["selected_season_id"]))
-            w.writeheader();w.writerows(rows)
+            w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
     manifest_info={}
     if args.current_source_manifest and Path(args.current_source_manifest).is_file():
         try:
             m=json.loads(Path(args.current_source_manifest).read_text(encoding="utf-8"))
             manifest_info={"generated_utc":m.get("generated_utc"),"source":m.get("source"),"path":m.get("path")}
         except Exception:manifest_info={"parse_status":"UNAVAILABLE"}
-    summary={"diagnostic":"SELECTED50_EXACT_CROSS_PROVIDER_FIXTURE_JOIN_AUDIT","generated_utc":datetime.now(timezone.utc).isoformat(),"selected_seasons":len(selected),"footystats_archive_rows":len(footy),"footystats_archive_match_json_members":len(archive_members),"archive_members_seen":archive_member_count,"fotmob_current_rows":len(current),"fotmob_current_header":current_header,"oracle_historical_ledger_rows":len(ledger),"oracle_historical_ledger_header":ledger_header,"exact_join_rows_total":len(joins),"fotmob_exact_join_rows":sum(1 for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"historical_ledger_exact_join_rows":sum(1 for r in joins if r["join_type"]=="ORACLE_HISTORICAL_LEDGER"),"historical_ledger_date_only_join_rows":sum(1 for r in joins if r["join_type"]=="ORACLE_HISTORICAL_LEDGER_DATE_ONLY"),"selected_seasons_with_any_exact_join":len({r["selected_season_id"] for r in joins}),"fotmob_bridge_candidate_groups":len(fotmob_candidates),"strong_fotmob_candidates":sum(r["bridge_status"].startswith("STRONG") for r in fotmob_candidates),"canonical_code_candidate_groups":len(canonical_candidates),"strong_canonical_code_candidates":sum(r["bridge_status"].startswith("STRONG") for r in canonical_candidates),"source_conflict_rows":sum(bool(r.get("score_conflict")) or r.get("status_agree") is False for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"approved_canonical_bridges":0,"production_eligible":False,"current_source_manifest":manifest_info,"method":"Exact normalized ordered home/away names plus exact UTC kickoff; no display-name-only or fuzzy joins. Candidate statuses never grant production eligibility."}
+    summary={"diagnostic":"SELECTED50_EXACT_CROSS_PROVIDER_FIXTURE_JOIN_AUDIT","generated_utc":datetime.now(timezone.utc).isoformat(),"selected_seasons":len(selected),"footystats_archive_rows":len(footy),"footystats_archive_match_json_members":len(archive_members),"archive_members_seen":archive_member_count,"fotmob_current_rows":len(current),"fotmob_current_header":current_header,"oracle_historical_ledger_rows":len(ledger),"oracle_historical_ledger_source_rows_seen":ledger_stats["source_rows_seen"],"oracle_historical_ledger_exact_kickoff_rows":ledger_stats["rows_exact_kickoff"],"oracle_historical_ledger_rows_date_only":ledger_stats["rows_date_only"],"oracle_historical_ledger_rows_missing_exact_kickoff":ledger_stats["rows_missing_exact_kickoff"],"oracle_historical_ledger_header":ledger_header,"exact_join_rows_total":len(joins),"fotmob_exact_join_rows":sum(1 for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"historical_ledger_exact_join_rows":sum(1 for r in joins if r["join_type"]=="ORACLE_HISTORICAL_LEDGER"),"historical_ledger_date_only_join_rows":len(date_only_joins),"selected_seasons_with_any_exact_join":len({r["selected_season_id"] for r in joins}),"selected_seasons_with_date_only_overlap":len({r["selected_season_id"] for r in date_only_joins}),"fotmob_bridge_candidate_groups":len(fotmob_candidates),"strong_fotmob_candidates":sum(r["bridge_status"].startswith("STRONG") for r in fotmob_candidates),"canonical_code_candidate_groups":len(canonical_candidates),"date_only_ledger_candidate_groups":len(date_only_candidates),"date_only_ledger_score_conflict_rows":sum(1 for r in date_only_joins if r.get("score_conflict")),"strong_canonical_code_candidates":sum(r["bridge_status"].startswith("STRONG") for r in canonical_candidates),"source_conflict_rows":sum(bool(r.get("score_conflict")) or r.get("status_agree") is False for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"approved_canonical_bridges":0,"production_eligible":False,"current_source_manifest":manifest_info,"method":"Exact normalized ordered home/away names plus exact UTC kickoff; no display-name-only or fuzzy joins. Candidate statuses never grant production eligibility."}
     (out/"audit_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
     print(json.dumps(summary,indent=2,sort_keys=True))
     print("FOTMOB_BRIDGE_CANDIDATES="+json.dumps(fotmob_candidates,sort_keys=True))
