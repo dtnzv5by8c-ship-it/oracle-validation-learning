@@ -443,3 +443,30 @@ A reporting defect was corrected: prediction status now distinguishes feature-bl
 Latest planner [Run #465 / 40608512212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212) passed with zero network calls and zero paid-provider calls; its artifact [#12781137784](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212/artifacts/12781137784) is retained. Safety tests [Run #159 / 40608511707](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511707) passed. No production model, probabilities, calibration, thresholds, protected registry, ledgers or governance changed.
 
 Detailed runtime checkpoint: [Run #120](oracle-selected50-runtime-regression-checkpoint-2026-10-28-run120.md). Production and betting release remain NOT APPROVED.
+
+
+## Independent live-artifact recheck — 2026-10-28 03:31 SAST
+
+The public branch ref was read before the artifact audit. At inspection, the research branch head was `723e70f044c8a4a6ff5d2a1b059cee64633facc9`; its four commits after runtime commit `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2` are documentation-only. The runtime source diff from Run #119's `9438a9f743cb84b9b130586ea2f7dbbdbaa1be58` to the tested `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2` changes prediction-status reporting, output validation, and tests only; it does not change probability calculation.
+
+### Artifact verification
+
+- Research Runtime [Run #120 / 40608511893](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893), tested commit `f2860913e4a0436c8c48b5b198d1eea0bf8b18f2`; artifact [#12781478212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511893/artifacts/12781478212), SHA-256 `85465472388e563b485e167f8a93fc8cea2650d878ab0caba8c085e973b71a84`. Downloaded digest matches GitHub.
+- Dry-Run Planner [Run #465 / 40608512212](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212), artifact [#12781137784](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608512212/artifacts/12781137784), SHA-256 `c3be5bbe0b36648d22c8cd1d0a3d024d2529073786ce726ec5fed423b9eef0e1`. Downloaded digest matches GitHub. Planner reports dry-run only, zero network calls, zero paid-provider calls.
+- Safety Contract Tests [Run #159 / 40608511707](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40608511707) succeeded; no artifact was published.
+
+Independent checks of the actual files confirm 50 unique selected groups in the planner matrix, 250 unique `(selected_id, market)` rows, and 750 unique `(selected_id, market, fold)` walk-forward rows. Runtime prediction and governed exports each contain 460 rows with identical sets of 460 unique fixture IDs and zero duplicates. Of these, 435 are raw research predictions and 25 are explicitly feature-blocked; no fixture or market row is production-eligible. Both Combo probability columns are null for all 460 fixtures.
+
+### Research-output comparison and schedule freshness
+
+Compared with Runtime Run #119 / artifact #12768701010 (SHA-256 `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`), Run #120 has 460 versus 459 fixtures: 456 IDs overlap, four are newly in the horizon and three have left it. For the 431 overlapping fixtures with non-null BTTS, DC_HOME, and DC_AWAY probabilities in both artifacts, all values are identical and null status did not change. Combo remains null in both runs. This is an independent comparison of the research challenger outputs, not a production Oracle probability diff.
+
+Run #120's archive-derived seven-day schedule snapshot has at least one fixture for 47/50 selected groups. The three groups with zero fixtures are Canada — Canadian Premier League (selected season ID 16741; 463 archive rows, 463 explicitly completed), China — Chinese Super League (16789; 960 archive rows, 952 explicitly completed), and South Korea — K League 1 (16627; 882 archive rows, 882 explicitly completed). This is schedule evidence from existing archive data only; it does not establish completeness or that any league is unsupported or out of season.
+
+The separate governed current-feed snapshot remains stale and inconsistent across all 50 groups: source manifest 2026-10-08, reconciliation 2026-10-07, last fixture date 2026-10-17, schedule window end 2026-10-22, and zero governed fixture rows. The newer archive-derived schedule view does not repair that current-feed gate. Parent competition IDs verified remain 0/50, canonical fixture/team joins remain zero, official settlement truth remains unverified, raw metrics remain uncalibrated, and no odds/ROI edge is established.
+
+### H2H watch
+
+No new H2H Reporting or H2H Exact-ID Join Tests run was found for PR #21 / `fix/h2h-run31-diagnostic-remediation`. Latest remain Reporting Run #47 and Tests Run #31; PR #21 remains open, draft, and unmerged. Run #47 still reports `PASS_WITH_REVIEW_ITEMS`; independent checks remain 95/95 exact fixture IDs, zero duplicates, zero unmatched IDs, and zero joined league-code mismatches. The report audit attests probabilities unchanged, but its joined CSV does not support a value-by-value Oracle probability diff. Alias provenance remains blocked; Wisla remains ambiguous; Manchester Utd and Lusitania remain gaps without authoritative new evidence; St Etienne–Nantes, Hull–Brentford and Auxerre–Le Mans remain review-only. Thresholds remain unchanged.
+
+No provider API calls were made. No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were changed. Production and betting release remain **NOT APPROVED**.
