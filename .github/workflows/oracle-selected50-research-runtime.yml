@@ -148,14 +148,6 @@ jobs:
           PY
           fi
 
-      - name: Fingerprint exact selected runtime input before prediction generation
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p selected50_runtime_output
-          sha256sum private-download/oracle-selected50-runtime-selected.zip | awk '{print $1}' > selected50_runtime_output/runtime_input_archive_sha256_before.txt
-          test "$(cat selected50_runtime_output/runtime_input_archive_sha256_before.txt | wc -c)" -eq 65
-
       - name: Install research runtime dependencies
         run: python -m pip install --disable-pip-version-check numpy scikit-learn
 
@@ -164,6 +156,14 @@ jobs:
 
       - name: Test per-fixture feature and training support diagnostics
         run: python -m unittest discover -s tests -p 'test_selected50_prediction_support_diagnostics.py' -v
+
+      - name: Fingerprint exact selected runtime input before prediction generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p selected50_runtime_output
+          sha256sum private-download/oracle-selected50-runtime-selected.zip | awk '{print $1}' > selected50_runtime_output/runtime_input_archive_sha256_before.txt
+          test "$(cat selected50_runtime_output/runtime_input_archive_sha256_before.txt | wc -c)" -eq 65
 
       - name: Build isolated Selected-50 research runtime, features, backtest and report
         env:
