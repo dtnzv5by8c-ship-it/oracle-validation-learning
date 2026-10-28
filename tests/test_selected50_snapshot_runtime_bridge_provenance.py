@@ -36,8 +36,16 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.snapshot = self.root / "snapshot.json"
         self.report = self.root / "runtime.csv"
         self.provenance_path = self.root / "runtime-provenance.json"
+        self.metadata = self.root / "snapshot-artifact-metadata.json"
         self.snapshot.write_text('{"retrieved_utc":"2026-10-28T18:00:00Z","per_season":[],"fixture_rows":[]}', encoding="utf-8")
         self.report.write_text("fixture_id,provider_season_id,home_team_provider_id,away_team_provider_id\nF1,S1,H1,A1\n", encoding="utf-8")
+        self.metadata.write_text(json.dumps({
+            "artifact_id": "789",
+            "artifact_name": "oracle-selected50-current-fixture-snapshot",
+            "artifact_digest": "sha256:" + "a" * 64,
+            "artifact_expired": False,
+            "artifact_workflow_run_id": "100",
+        }), encoding="utf-8")
         self.provenance = {
             "snapshot_consumption_verified": True,
             "snapshot_consumption_status": "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
@@ -46,7 +54,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_artifact_name": "oracle-selected50-current-fixture-snapshot",
             "snapshot_artifact_id": "789",
             "snapshot_artifact_digest": "sha256:" + "a" * 64,
-            "snapshot_artifact_metadata_sha256": "b" * 64,
+            "snapshot_artifact_metadata_sha256": sha(self.metadata),
             "snapshot_artifact_workflow_run_id": "100",
             "runtime_run_id": "200",
             "selected_input_matches_overlay": True,
@@ -62,6 +70,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.write_provenance()
         self.args = Namespace(
             runtime_provenance=self.provenance_path,
+            snapshot_artifact_metadata=self.metadata,
             expected_snapshot_run_id="100",
             expected_runtime_run_id="200",
             runtime_report=self.report,
@@ -98,6 +107,26 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
         self.assertIn("expected_runtime_run_id_matches", result["failed_checks"])
+
+    def test_artifact_metadata_bytes_must_match_manifest_hash(self):
+        self.metadata.write_text(json.dumps({
+            "artifact_id": "789",
+            "artifact_name": "oracle-selected50-current-fixture-snapshot",
+            "artifact_digest": "sha256:" + "a" * 64,
+            "artifact_expired": False,
+            "artifact_workflow_run_id": "100",
+        }) + "changed", encoding="utf-8")
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_metadata_file_hash_matches_manifest", result["failed_checks"])
+
+    def test_artifact_metadata_identity_must_match_manifest(self):
+        metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
+        metadata["artifact_id"] = "wrong"
+        self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
+        result = verify_runtime_provenance(self.args, sha(self.snapshot))
+        self.assertFalse(result["verified"])
+        self.assertIn("snapshot_artifact_metadata_id_matches_manifest", result["failed_checks"])
 
     def test_non_sha256_runtime_archive_fingerprint_is_a_release_blocker(self):
         self.provenance["selected_runtime_input_archive_sha256"] = "not-a-hash"
