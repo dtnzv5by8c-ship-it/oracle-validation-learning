@@ -33,10 +33,33 @@ def main():
     p.add_argument("--runtime-report", required=True, type=Path)
     p.add_argument("--out-dir", required=True, type=Path)
     p.add_argument("--as-of-utc", help="Fixed ISO-8601 audit time for repeatable tests")
+    p.add_argument("--report-horizon-days", type=int, default=7, help="Snapshot assessment horizon (1-14 days); does not extend runtime generation")
+    p.add_argument("--runtime-horizon-days", type=int, default=7, help="Declared runtime generation horizon (currently capped at 7 days)")
+    p.add_argument("--runtime-started-utc", help="Timezone-aware start of the runtime whose rows are being joined; required for report horizons over 7 days")
+    p.add_argument("--minimum-lead-minutes", type=int, default=15, help="Minimum future lead before a fixture can be reported")
     a = p.parse_args()
     now = parse_utc(a.as_of_utc) if a.as_of_utc else datetime.now(timezone.utc)
     if now is None:
         raise SystemExit("FAIL: --as-of-utc must include a timezone")
+    report_horizon_days = a.report_horizon_days
+    runtime_horizon_days = a.runtime_horizon_days
+    minimum_lead_minutes = a.minimum_lead_minutes
+    if not 1 <= report_horizon_days <= 14:
+        raise SystemExit("FAIL: --report-horizon-days must be between 1 and 14, matching the saved snapshot's declared future coverage")
+    if not 1 <= runtime_horizon_days <= 7 or runtime_horizon_days > report_horizon_days:
+        raise SystemExit("FAIL: --runtime-horizon-days must be between 1 and 7 and no greater than the report horizon")
+    if minimum_lead_minutes < 0:
+        raise SystemExit("FAIL: --minimum-lead-minutes must be non-negative")
+    if report_horizon_days > 7 and not a.runtime_started_utc:
+        raise SystemExit("FAIL: --runtime-started-utc is required when assessing a report horizon beyond seven days")
+    runtime_started = parse_utc(a.runtime_started_utc) if a.runtime_started_utc else now
+    if runtime_started is None:
+        raise SystemExit("FAIL: --runtime-started-utc must include a timezone")
+    if runtime_started > now:
+        raise SystemExit("FAIL: runtime start cannot be later than report as-of time")
+    runtime_end = runtime_started + timedelta(days=runtime_horizon_days)
+    report_end = now + timedelta(days=report_horizon_days)
+    minimum_lead_cutoff = now + timedelta(minutes=minimum_lead_minutes)
     snapshot_bytes = a.snapshot.read_bytes()
     snapshot_sha256 = hashlib.sha256(snapshot_bytes).hexdigest()
     try:
@@ -98,9 +121,58 @@ def main():
     season_meta = {text(x.get("selected_season_id")): x for x in seasons}
     seen = set()
     out_rows = []
+    exclusion_rows = []
     reason_counts = {}
     total_valid_source_rows = 0
-    now_end = now + timedelta(days=7)
+
+    def record_exclusion(f, season, fid, reason, runtime_row=None):
+        meta = season_meta.get(season, {})
+        runtime_row = runtime_row or {}
+        feature_status = text(runtime_row.get("feature_support_status"))
+        prediction_status = text(runtime_row.get("prediction_status"))
+        if reason.startswith("QUARANTINE_"):
+            market_gate, feature_gate = "BLOCKED_SOURCE_QUARANTINE", "NOT_EVALUATED_SOURCE_QUARANTINE"
+        elif reason == "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_JOIN":
+            market_gate, feature_gate = "NOT_EVALUATED_OUTSIDE_RUNTIME_GENERATION_WINDOW", "NOT_EVALUATED_NO_RUNTIME_GENERATION"
+        elif reason == "OUTSIDE_MINIMUM_LEAD_WINDOW_NOT_MISSING_JOIN":
+            market_gate, feature_gate = "NOT_EVALUATED_MINIMUM_LEAD_WINDOW", "NOT_EVALUATED_MINIMUM_LEAD_WINDOW"
+        elif reason.startswith("OUTSIDE_"):
+            market_gate, feature_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_WINDOW", "NOT_EVALUATED_OUTSIDE_REPORTING_WINDOW"
+        elif reason == "BLOCKED_NO_EXACT_RUNTIME_ROW":
+            market_gate, feature_gate = "BLOCKED_NO_EXACT_RUNTIME_ROW", "NOT_EVALUATED_NO_RUNTIME_ROW"
+        elif reason == "BLOCKED_ORDERED_TEAM_ID_MISMATCH":
+            market_gate, feature_gate = "BLOCKED_ORDERED_TEAM_ID_MISMATCH", "NOT_EVALUATED_IDENTITY_BLOCKED"
+        elif reason == "BLOCKED_KICKOFF_MISMATCH":
+            market_gate, feature_gate = "BLOCKED_KICKOFF_MISMATCH", "NOT_EVALUATED_TEMPORAL_IDENTITY_BLOCKED"
+        elif reason == "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY":
+            market_gate, feature_gate = "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", "NOT_EVALUATED_AMBIGUOUS_RUNTIME_KEY"
+        elif reason == "NOT_FUTURE_FIXTURE":
+            market_gate, feature_gate = "NOT_EVALUATED_NOT_FUTURE", "NOT_EVALUATED_NOT_FUTURE"
+        else:
+            market_gate, feature_gate = "BLOCKED_SOURCE_OR_IDENTITY_REVIEW", feature_status or "NOT_VERIFIED"
+        exclusion_rows.append({
+            "provider_season_id": season, "fixture_id": fid,
+            "snapshot_country": text(meta.get("country")),
+            "snapshot_competition": text(meta.get("competition")),
+            "snapshot_kickoff_utc": text(f.get("kickoff_utc")),
+            "runtime_kickoff_utc": text(runtime_row.get("date_utc")),
+            "snapshot_status": text(f.get("status")),
+            "snapshot_no_home_away": text(f.get("no_home_away")),
+            "home_team_provider_id": text(f.get("homeID")),
+            "away_team_provider_id": text(f.get("awayID")),
+            "classification": reason,
+            "report_horizon_days": report_horizon_days,
+            "runtime_generation_horizon_days": runtime_horizon_days,
+            "runtime_feature_support_status": feature_status,
+            "runtime_prediction_status": prediction_status,
+            "market_gate_status": market_gate, "feature_gate_status": feature_gate,
+            "canonical_fixture_join_status": "NOT_VERIFIED",
+            "canonical_team_join_status": "NOT_VERIFIED",
+            "official_settlement_truth_status": "NOT_VERIFIED",
+            "combo_masked": "YES", "combo_probability_emitted": 0,
+            "prediction_created": 0, "production_eligible": "NO", "betting_eligible": "NO",
+        })
+
     for f in fixture_rows:
         season, fid = text(f.get("selected_season_id")), text(f.get("id"))
         if not season or not fid or season not in season_ids:
@@ -127,24 +199,40 @@ def main():
                 reason = "QUARANTINE_NONFUTURE_UNSETTLED"
             elif ko <= now:
                 reason = "NOT_FUTURE_FIXTURE"
-            elif ko > now_end:
-                reason = "OUTSIDE_7_DAY_REPORT_WINDOW"
+            elif not text(f.get("homeID")) or not text(f.get("awayID")):
+                reason = "QUARANTINE_MISSING_ORDERED_TEAM_IDS"
+            elif ko <= minimum_lead_cutoff:
+                reason = "OUTSIDE_MINIMUM_LEAD_WINDOW_NOT_MISSING_JOIN"
+            elif ko > report_end:
+                reason = f"OUTSIDE_{report_horizon_days}_DAY_REPORT_WINDOW"
+            elif ko > runtime_end:
+                reason = "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_JOIN"
             else:
                 reason = "CANDIDATE_FOR_EXACT_JOIN"
         reason_counts[reason] = reason_counts.get(reason, 0) + 1
         if reason != "CANDIDATE_FOR_EXACT_JOIN":
+            record_exclusion(f, season, fid, reason)
             continue
         total_valid_source_rows += 1
         runtime_key = (season, fid)
         if runtime_key in duplicate_runtime_key_set:
             reason_counts["BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY"] = reason_counts.get("BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", 0) + 1
+            record_exclusion(f, season, fid, "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", runtime_by_key.get(runtime_key))
             continue
         r = runtime_by_key.get(runtime_key)
         if r is None:
             reason_counts["BLOCKED_NO_EXACT_RUNTIME_ROW"] = reason_counts.get("BLOCKED_NO_EXACT_RUNTIME_ROW", 0) + 1
+            record_exclusion(f, season, fid, "BLOCKED_NO_EXACT_RUNTIME_ROW")
             continue
         if text(f.get("homeID")) != text(r.get("home_team_provider_id")) or text(f.get("awayID")) != text(r.get("away_team_provider_id")):
             reason_counts["BLOCKED_ORDERED_TEAM_ID_MISMATCH"] = reason_counts.get("BLOCKED_ORDERED_TEAM_ID_MISMATCH", 0) + 1
+            record_exclusion(f, season, fid, "BLOCKED_ORDERED_TEAM_ID_MISMATCH", r)
+            continue
+        snapshot_kickoff = parse_utc(f.get("kickoff_utc"))
+        runtime_kickoff = parse_utc(r.get("date_utc"))
+        if snapshot_kickoff is None or runtime_kickoff is None or snapshot_kickoff != runtime_kickoff:
+            reason_counts["BLOCKED_KICKOFF_MISMATCH"] = reason_counts.get("BLOCKED_KICKOFF_MISMATCH", 0) + 1
+            record_exclusion(f, season, fid, "BLOCKED_KICKOFF_MISMATCH", r)
             continue
         row = dict(r)
         row["snapshot_country"] = text(season_meta[season].get("country"))
@@ -159,6 +247,16 @@ def main():
         row["snapshot_age_seconds"] = snapshot_age_seconds
         row["snapshot_file_sha256"] = snapshot_sha256
         row["snapshot_provenance_status"] = "PASS_FRESH_TIMEZONE_AWARE"
+        row["report_horizon_days"] = report_horizon_days
+        row["runtime_generation_horizon_days"] = runtime_horizon_days
+        row["market_gate_status"] = ("BLOCKED_FEATURE_SUPPORT" if "BLOCKED_MISSING_REQUIRED_FEATURES" in text(r.get("feature_support_status")) or "BLOCKED" in text(r.get("prediction_status")) else "RAW_RESEARCH_ONLY_NOT_FOR_BETTING")
+        row["canonical_fixture_join_status"] = "NOT_VERIFIED"
+        row["canonical_team_join_status"] = "NOT_VERIFIED"
+        row["official_settlement_truth_status"] = "NOT_VERIFIED"
+        row["combo_masked"] = "YES"
+        row["combo_probability_emitted"] = 0
+        row["canonical_join_created"] = 0
+        row["prediction_created"] = 0
         row["production_eligible"] = "NO"
         row["betting_eligible"] = "NO"
         out_rows.append(row)
@@ -172,8 +270,24 @@ def main():
         w = csv.DictWriter(h, fieldnames=fields)
         w.writeheader()
         w.writerows(out_rows)
+    exclusion_path = a.out_dir / "oracle_selected50_safe_current_fixture_exclusions.csv"
+    exclusion_fields = [
+        "provider_season_id", "fixture_id", "snapshot_country", "snapshot_competition",
+        "snapshot_kickoff_utc", "runtime_kickoff_utc", "snapshot_status", "snapshot_no_home_away",
+        "home_team_provider_id", "away_team_provider_id", "classification",
+        "report_horizon_days", "runtime_generation_horizon_days",
+        "runtime_feature_support_status", "runtime_prediction_status",
+        "market_gate_status", "feature_gate_status", "canonical_fixture_join_status",
+        "canonical_team_join_status", "official_settlement_truth_status",
+        "combo_masked", "combo_probability_emitted", "prediction_created",
+        "production_eligible", "betting_eligible"
+    ]
+    with exclusion_path.open("w", encoding="utf-8", newline="") as h:
+        w = csv.DictWriter(h, fieldnames=exclusion_fields)
+        w.writeheader()
+        w.writerows(exclusion_rows)
     qa = {
-        "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
+        "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
         "snapshot_retrieved_utc": retrieved.isoformat(),
         "snapshot_age_seconds": snapshot_age_seconds,
@@ -188,7 +302,24 @@ def main():
         "combo_probability_nonblank_cells": 0,
         "combo_masking_status": combo_masking_status,
         "source_candidates_blocked_by_duplicate_runtime_exact_key": reason_counts.get("BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY", 0),
+        "report_horizon_days": report_horizon_days,
+        "runtime_generation_horizon_days": runtime_horizon_days,
+        "runtime_started_utc": runtime_started.isoformat(),
+        "minimum_lead_minutes": minimum_lead_minutes,
         "source_candidates_in_7_day_window": total_valid_source_rows,
+        "source_candidates_within_runtime_generation_window": total_valid_source_rows,
+        "source_candidates_in_report_horizon": total_valid_source_rows + reason_counts.get("OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_JOIN", 0),
+        "source_candidates_outside_runtime_window_not_missing_join": reason_counts.get("OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_JOIN", 0),
+        "source_candidates_outside_minimum_lead_window_not_missing_join": reason_counts.get("OUTSIDE_MINIMUM_LEAD_WINDOW_NOT_MISSING_JOIN", 0),
+        "source_candidates_outside_report_horizon": reason_counts.get(f"OUTSIDE_{report_horizon_days}_DAY_REPORT_WINDOW", 0),
+        "per_fixture_exclusion_report": exclusion_path.name,
+        "per_fixture_exclusion_rows": len(exclusion_rows),
+        "per_fixture_quarantine_preserved": True,
+        "market_gates_preserved": True,
+        "canonical_joins_created": 0,
+        "official_settlement_truth_verified": 0,
+        "expanded_prediction_report_approved": False,
+        "reporting_window_expansion_status": "ASSESSMENT_ONLY_RUNTIME_REMAINS_AT_DECLARED_HORIZON" if report_horizon_days > runtime_horizon_days else "REPORT_WITHIN_RUNTIME_HORIZON_ONLY",
         "safe_exact_join_rows": len(out_rows),
         "source_candidates_blocked_by_missing_runtime_or_team_identity": total_valid_source_rows - len(out_rows),
         "reason_counts": dict(sorted(reason_counts.items())),
