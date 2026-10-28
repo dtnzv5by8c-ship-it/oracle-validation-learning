@@ -92,6 +92,10 @@ The retrieved FootyStats snapshot has 1,744 rows in the 28-day audit window: 871
 
 A read-only overlap audit found 8 exact home/away-team + UTC-kickoff joins across two selected leagues. Canada Canadian Premier League (FootyStats season 16741 / observed master ID 524) maps as a strong candidate to FotMob league ID 1000001192 with four exact joins, three completed scores agreeing and one score/status conflict. England EFL League One (season 17180 / master ID 6) maps as a strong candidate to FotMob league ID 938219 with four exact joins, one completed score agreeing and three postponed/suspended matches. These are **research candidates only**, not approved canonical bridges. [Full join evidence and conflict details](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
 
+## Expanded overlap snapshot and validator
+
+A second, expanded FootyStats snapshot (30-day lookback + 14-day future window) was retrieved at `2026-10-28T06:19:09.645973+00:00` UTC. The offline snapshot validator passed: 50/50 requests succeeded, 2,250 rows, 871 future fixtures, 1,372 recent completed results, zero duplicate match IDs and no missing team IDs/names/kickoff timestamps. It found 19 suspended rows and 486 `no_home_away=1` rows (181 future, 305 recent), which must be quarantined from unsupported markets. The [overlap join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md) documents the eight exact joins and one score/status conflict.
+
 ## Current-feed incident
 
 The latest three visible production `Oracle Current Data Staging` workflow runs (26–27 October) failed. The exact failure cause remains unverified because the connected log read did not expose the job logs. Do not infer a quota or code cause without the failure step. [Incident evidence and safe remediation](oracle-selected50-production-current-feed-incident-2026-10-28.md).
