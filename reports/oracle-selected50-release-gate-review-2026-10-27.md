@@ -392,3 +392,43 @@ A previously recorded ancillary CI blocker has now been resolved on the research
 The live research branch was inspected at commit `779cd9de6104602dd435c880f382a5bb14231900` before this reporting-only update. The latest full Selected-50 runtime remains Run #119 / artifact #12768701010 and the latest planner remains Run #463 / artifact #12768336597; subsequent changes are documentation and a test-workflow dependency correction. No provider API calls were made.
 
 **Decision unchanged:** research-output contract PASS; production and betting release NOT APPROVED. H2H alias provenance, canonical identity/joins, official settlement truth, current-feed freshness, point-in-time provenance, calibration/ROI and Combo market-definition governance remain unresolved. No production model logic, probabilities, thresholds, calibration, canonical registry/ledgers, or governance were changed.
+
+
+## Live-state revalidation — 2026-10-28 01:59 SAST
+
+This is a reporting-only checkpoint from public repository state and retained artifacts. No provider API calls or production changes were made.
+
+### Live branch and workflow evidence
+
+- Branch head before this report update: [`da37c8d486cfaa77a16184a15ea173ca382fd50b`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/da37c8d486cfaa77a16184a15ea173ca382fd50b), which adds the Selected-50 runtime revalidation report.
+- Compare from tested runtime source [`9438a9f743cb84b9b130586ea2f7dbbdbaa1be58`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/9438a9f743cb84b9b130586ea2f7dbbdbaa1be58) to this head is 13 commits ahead across five paths: one H2H test-workflow dependency file and four documentation reports. No Selected-50 runtime script, runtime test, output validator, or Selected-50 runtime workflow changed after Runtime #119; a repeat runtime execution was not warranted by the documentation/CI-only changes.
+- Selected-50 Research Runtime [Run #119](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724), artifact [#12768701010](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40577750724/artifacts/12768701010), remains the latest inspectable runtime output. Downloaded ZIP SHA-256: `3f8a9ad3d8d922ffef85a604081574f4919bd090ef9610ac1a78ca86d06733ca`, matching GitHub's digest.
+- Selected-50 Dry-Run Planner [Run #464](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593643152), artifact [#12774983045](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593643152/artifacts/12774983045), completed successfully. Downloaded ZIP SHA-256: `0b12068a0f8f0ef19660f7e789794e1362bd4e9b5ee9ce295e4601c3ac69bdea`, matching GitHub's digest. It reports `DRY_RUN_ONLY`, zero network calls, and zero paid-provider calls.
+- Selected-50 Safety Contract Tests [Run #158](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593642786) passed; its job log confirms 22 bounded-probe contract tests and 17 score/settlement tests. H2H Exact-ID Join Tests [Run #35](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40593513957) passed 196 tests after the research-branch dependency fix; no artifact was published for either test run.
+
+### Revalidated coverage and release gates
+
+- Runtime #119 exports: 50 unique selected IDs; 250 unique selected-ID/market rows; 750 unique selected-ID/market/fold rows; 459 unique fixture IDs in each fixture export; 2,295 fixture-market records. No duplicate keys were found. All 50 groups, 250 market rows, and 750 walk-forward rows remain production-ineligible.
+- Planner #464 readiness: 50 unique selected IDs; 22 candidate mappings require human review; 28 groups remain unresolved; zero approved crosswalks; parent competition IDs verified 0/50; canonical fixture joins 0; canonical team joins 0; official settlement-truth rows verified 0.
+- Archive reconciliation accounts for all 50 IDs across evidence layers: 31 exact Run 56 manifest matches and 19 IDs reconciled to retained private-package QA despite no exact manifest row. The 9,708 direct-manifest row sum and 4,343 gap-triage row sum are separate evidence layers, not a deduplicated total. A missing manifest row does not prove a provider request failed or was never attempted.
+- Runtime #119 has 459 fixture candidates: 434 with at least one research prediction and 25 blocked by missing required features. All 25 have training support for every market model (44,568 eligible training rows per market in the artifact); the block is feature support, not missing fitted models. Sixteen lack five prior home matches, ten lack five prior away matches, and one fixture is in both groups. Twenty-four blocked rows have 35% feature coverage and one has 0%; no imputation was used.
+- Combo remains blocked and masked in both exports. The predictor target remains Double Chance plus 2–4 total goals inclusive, while the settlement helper uses fewer than five total goals. The 121-scoreline diagnostic still finds two disagreement scorelines per side. Passing tests do not approve a market definition or establish official settlement truth.
+- Raw BTTS holdout remains uncalibrated: accuracy 53.588% versus 54.143% majority-class baseline, Brier 0.24746, AUC 0.5379. No calibration, verified odds/ROI benchmark, or betting edge is established.
+
+### Schedule freshness as of 2026-10-28
+
+The separate governed current-feed snapshot remains stale/inconsistent across all 50 groups: source manifest dated 2026-10-08 (20 days old), reconciliation dated 2026-10-07 (21 days old), last fixture date 2026-10-17 (11 days old), and schedule-window end 2026-10-22 (6 days old). It still emits zero governed fixture rows and has zero selected-50 canonical joins.
+
+The existing archive-derived seven-day snapshot reports zero upcoming fixtures and zero observed 2027 rows for Canada — Canadian Premier League (selected ID 16741; 463 archive rows, 463 explicitly completed), China — Chinese Super League (16789; 960 archive rows, 952 explicitly completed), and South Korea — K League 1 (16627; 882 archive rows, 882 explicitly completed). These counts establish archive presence, not completeness or current schedule freshness; they do not establish that a league is unsupported or out of season. No fixture was synthesized.
+
+### H2H watch — no material change on PR #21
+
+The live PR head remains `1116a3f141410fe5d67c73725cd0aea32c8ba9d2`; PR #21 remains open, draft, and unmerged. Commit-associated runs remain Reporting [#47](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388720) and Exact-ID Tests [#31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40124388716); no new PR #21 validation run was found.
+
+Run #47 remains `PASS_WITH_REVIEW_ITEMS`. Independent checks of its artifact confirm 95 unique fixture IDs in each Oracle/H2H/join export, identical ID sets, zero duplicates, zero unmatched exact IDs, and zero joined league-code mismatches. The audit attests that Oracle probability values were not modified; the published joined CSV does not permit an independent value-by-value probability diff. Thresholds remain 20% maximum unmatched rate, seven-day maximum archive age, and five meetings minimum H2H sample.
+
+The nine baseline team-side findings remain unresolved for sign-off: Waregem, Rakow, Sepsi Sf. Gheorghe, and Entella have prior expected-league archive evidence, but disappearance from the unresolved queue does not prove full resolution; Wisla, Manchester Utd, Jagiellonia, Lusitania FC, and Ceuta remain not found in the current diagnostic. Wisla remains ambiguous; Manchester Utd and Lusitania remain documented coverage gaps absent authoritative new source evidence. Alias provenance remains blocked because the PR diff adds aliases beyond the target findings without authoritative source-row provenance for every entry. No alias was changed or approved.
+
+St Etienne–Nantes, Hull–Brentford, and Auxerre–Le Mans remain cross-league review-only pending explicit policy. The separate H2H test dependency issue is resolved by Run #35, but this does not validate or resolve PR #21's alias-provenance blocker.
+
+**Decision unchanged: research-output contract PASS; production release NOT APPROVED; betting release NOT APPROVED.** No production Oracle V1.6/V1.6.3 logic, probabilities, thresholds, calibration, canonical registry, ledgers, or governance were changed.
