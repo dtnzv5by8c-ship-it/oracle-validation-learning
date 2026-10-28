@@ -91,6 +91,7 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_artifact_digest": None,
         "snapshot_artifact_metadata_sha256": None,
         "snapshot_artifact_workflow_run_id": None,
+        "snapshot_artifact_metadata_file_sha256": None,
         "checks": {},
     }
     path = args.runtime_provenance
@@ -111,6 +112,15 @@ def verify_runtime_provenance(args, snapshot_sha256):
     result["snapshot_artifact_metadata_sha256"] = s(provenance.get("snapshot_artifact_metadata_sha256"))
     result["snapshot_artifact_workflow_run_id"] = s(provenance.get("snapshot_artifact_workflow_run_id"))
 
+    metadata_path = args.snapshot_artifact_metadata
+    metadata = None
+    metadata_file_sha256 = None
+    if metadata_path is not None and metadata_path.is_file():
+        metadata_bytes = metadata_path.read_bytes()
+        metadata_file_sha256 = hashlib.sha256(metadata_bytes).hexdigest()
+        metadata = json.loads(metadata_bytes.decode("utf-8"))
+    result["snapshot_artifact_metadata_file_sha256"] = metadata_file_sha256
+
     checks = {
         "snapshot_consumption_flag_true": provenance.get("snapshot_consumption_verified") is True,
         "snapshot_consumption_status_pass": s(provenance.get("snapshot_consumption_status")) == "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
@@ -122,6 +132,13 @@ def verify_runtime_provenance(args, snapshot_sha256):
         "snapshot_artifact_digest_is_sha256": s(provenance.get("snapshot_artifact_digest")).startswith("sha256:") and len(s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1]) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_digest")).split(":", 1)[1].lower()),
         "snapshot_artifact_metadata_sha256_is_valid": len(s(provenance.get("snapshot_artifact_metadata_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("snapshot_artifact_metadata_sha256")).lower()),
         "snapshot_artifact_run_id_matches": bool(args.expected_snapshot_run_id) and s(provenance.get("snapshot_artifact_workflow_run_id")) == s(args.expected_snapshot_run_id),
+        "snapshot_artifact_metadata_file_present": metadata is not None,
+        "snapshot_artifact_metadata_file_hash_matches_manifest": metadata is not None and bool(s(provenance.get("snapshot_artifact_metadata_sha256"))) and metadata_file_sha256 == s(provenance.get("snapshot_artifact_metadata_sha256")),
+        "snapshot_artifact_metadata_id_matches_manifest": metadata is not None and s(metadata.get("artifact_id")) == s(provenance.get("snapshot_artifact_id")),
+        "snapshot_artifact_metadata_name_matches_manifest": metadata is not None and s(metadata.get("artifact_name")) == s(provenance.get("snapshot_artifact_name")),
+        "snapshot_artifact_metadata_digest_matches_manifest": metadata is not None and s(metadata.get("artifact_digest")) == s(provenance.get("snapshot_artifact_digest")),
+        "snapshot_artifact_metadata_run_id_matches_manifest": metadata is not None and s(metadata.get("artifact_workflow_run_id")) == s(provenance.get("snapshot_artifact_workflow_run_id")),
+        "snapshot_artifact_metadata_not_expired": metadata is not None and metadata.get("artifact_expired") is False,
         "selected_input_matches_overlay_flag": provenance.get("selected_input_matches_overlay") is True,
         "selected_input_archive_hash_is_sha256": len(s(provenance.get("selected_runtime_input_archive_sha256"))) == 64 and all(ch in "0123456789abcdef" for ch in s(provenance.get("selected_runtime_input_archive_sha256")).lower()),
         "selected_input_hash_matches_overlay_hash": bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(provenance.get("selected_runtime_input_archive_sha256")) == s(provenance.get("overlay_archive_sha256")),
@@ -149,6 +166,7 @@ def main():
     p.add_argument("--snapshot", required=True, type=Path)
     p.add_argument("--runtime-report", required=True, type=Path)
     p.add_argument("--runtime-provenance", type=Path)
+    p.add_argument("--snapshot-artifact-metadata", type=Path)
     p.add_argument("--expected-snapshot-run-id")
     p.add_argument("--expected-runtime-run-id")
     p.add_argument("--require-runtime-provenance", action="store_true", help="Return a nonzero exit if exact runtime provenance is missing or invalid")
