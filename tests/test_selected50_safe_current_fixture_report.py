@@ -132,5 +132,39 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 rows = list(csv.DictReader(h))
             self.assertEqual(rows, [])
 
+    def test_nonblank_combo_probability_input_fails_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
+            snap = root / "snapshot.json"
+            snap.write_text(json.dumps({
+                "retrieved_utc": "2026-10-28T19:00:00Z",
+                "per_season": seasons, "fixture_rows": []
+            }), encoding="utf-8")
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.DictWriter(h, fieldnames=[
+                    "provider_season_id", "fixture_id", "home_team_provider_id",
+                    "away_team_provider_id", "COMBO_HOME_probability_pct",
+                    "COMBO_AWAY_probability_pct", "combo_probability_status"
+                ])
+                w.writeheader()
+                w.writerow({
+                    "provider_season_id": "0", "fixture_id": "100",
+                    "home_team_provider_id": "1", "away_team_provider_id": "2",
+                    "COMBO_HOME_probability_pct": "55.0",
+                    "COMBO_AWAY_probability_pct": "",
+                    "combo_probability_status": "BLOCKED_SETTLEMENT_SPEC_MISMATCH"
+                })
+            out = root / "out"
+            proc = subprocess.run([
+                sys.executable, str(SCRIPT), "--snapshot", str(snap),
+                "--runtime-report", str(report), "--out-dir", str(out),
+                "--as-of-utc", "2026-10-28T20:00:00Z"
+            ], text=True, capture_output=True)
+            self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertIn("Combo probability values must remain masked", proc.stderr)
+            self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
+
 if __name__ == "__main__":
     unittest.main()
