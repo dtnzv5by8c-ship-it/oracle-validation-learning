@@ -3,7 +3,7 @@
 
 This tool does not generate predictions, alter model logic, or approve production/betting.
 """
-import argparse, csv, json
+import argparse, csv, hashlib, json
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,17 +33,68 @@ def no_home_away_flag(value):
         return False
     return None
 
+def verify_runtime_provenance(args, snapshot_sha256):
+    """Verify the exact snapshot, runtime run, selected archive and report hashes."""
+    result = {
+        "verified": False,
+        "status": "UNVERIFIED_RUNTIME_PROVENANCE_MISSING",
+        "runtime_provenance_sha256": None,
+        "runtime_provenance_runtime_run_id": None,
+        "runtime_provenance_snapshot_run_id": None,
+        "runtime_input_archive_sha256": None,
+        "runtime_report_sha256": None,
+        "checks": {},
+    }
+    path = args.runtime_provenance
+    if path is None or not path.is_file():
+        return result
+
+    raw = path.read_bytes()
+    provenance = json.loads(raw.decode("utf-8"))
+    result["runtime_provenance_sha256"] = hashlib.sha256(raw).hexdigest()
+    result["runtime_provenance_runtime_run_id"] = s(provenance.get("runtime_run_id"))
+    result["runtime_provenance_snapshot_run_id"] = s(provenance.get("snapshot_run_id"))
+    result["runtime_input_archive_sha256"] = s(provenance.get("selected_runtime_input_archive_sha256"))
+    result["runtime_report_sha256"] = s(provenance.get("runtime_report_sha256"))
+
+    checks = {
+        "snapshot_consumption_flag_true": provenance.get("snapshot_consumption_verified") is True,
+        "snapshot_consumption_status_pass": s(provenance.get("snapshot_consumption_status")) == "PASS_SNAPSHOT_TO_RUNTIME_INPUT_HASH_VERIFIED",
+        "snapshot_sha256_matches_supplied_snapshot": s(provenance.get("snapshot_file_sha256")) == snapshot_sha256,
+        "expected_snapshot_run_id_matches": bool(args.expected_snapshot_run_id) and s(provenance.get("snapshot_run_id")) == s(args.expected_snapshot_run_id),
+        "expected_runtime_run_id_matches": bool(args.expected_runtime_run_id) and s(provenance.get("runtime_run_id")) == s(args.expected_runtime_run_id),
+        "selected_input_matches_overlay_flag": provenance.get("selected_input_matches_overlay") is True,
+        "selected_input_hash_matches_overlay_hash": bool(s(provenance.get("selected_runtime_input_archive_sha256"))) and s(provenance.get("selected_runtime_input_archive_sha256")) == s(provenance.get("overlay_archive_sha256")),
+        "runtime_report_hash_matches_downloaded_report": bool(s(provenance.get("runtime_report_sha256"))) and s(provenance.get("runtime_report_sha256")) == hashlib.sha256(args.runtime_report.read_bytes()).hexdigest(),
+    }
+    result["checks"] = checks
+    failed = [name for name, passed in checks.items() if not passed]
+    result["verified"] = not failed
+    result["status"] = "PASS_SNAPSHOT_TO_RUNTIME_PROVENANCE_VERIFIED" if not failed else "BLOCKED_RUNTIME_PROVENANCE_CHECKS_FAILED"
+    result["failed_checks"] = failed
+    result["runtime_ref"] = s(provenance.get("runtime_ref"))
+    result["runtime_commit_sha"] = s(provenance.get("runtime_commit_sha"))
+    result["runtime_archive_env"] = s(provenance.get("runtime_archive_env"))
+    result["selected_runtime_input_archive"] = s(provenance.get("selected_runtime_input_archive"))
+    result["snapshot_file_sha256"] = s(provenance.get("snapshot_file_sha256"))
+    result["overlay_archive_sha256"] = s(provenance.get("overlay_archive_sha256"))
+    return result
+
+
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--snapshot", required=True, type=Path)
     p.add_argument("--runtime-report", required=True, type=Path)
+    p.add_argument("--runtime-provenance", type=Path)
+    p.add_argument("--expected-snapshot-run-id")
+    p.add_argument("--expected-runtime-run-id")
     p.add_argument("--out-dir", required=True, type=Path)
     args=p.parse_args()
     snapshot_bytes=args.snapshot.read_bytes()
-    import hashlib
     snapshot_sha256=hashlib.sha256(snapshot_bytes).hexdigest()
     snap=json.loads(snapshot_bytes.decode("utf-8"))
     runtime=list(csv.DictReader(args.runtime_report.open(encoding="utf-8-sig", newline="")))
+    provenance=verify_runtime_provenance(args, snapshot_sha256)
     if len(snap.get("per_season", [])) != 50 or len({s(x.get("selected_season_id")) for x in snap.get("per_season", [])}) != 50:
         raise SystemExit("FAIL: snapshot must contain exactly 50 unique selected season IDs")
     season_ids={s(x.get("selected_season_id")) for x in snap["per_season"]}
@@ -142,10 +193,15 @@ def main():
     future_beyond_7d=[r for r in future if kickoff_epoch(r) is not None and kickoff_epoch(r) > report_window_end]
     unsafe_runtime_rows=[r for r in rows if r["runtime_join_status"]=="EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"]
     qa={
-      "status":"PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS" if unsafe_runtime_rows or future_7d_unmatched else "PASS_BRIDGE_AUDIT_RESEARCH_ONLY",
+      "status":"PASS_BRIDGE_AUDIT_RESEARCH_ONLY" if not (unsafe_runtime_rows or future_7d_unmatched or not provenance["verified"]) else "PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS",
       "generated_utc":now.isoformat(),
       "snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_sha256":snapshot_sha256,
+      "snapshot_consumption_verified":provenance["verified"],
+      "snapshot_consumption_status":provenance["status"],
+      "snapshot_runtime_provenance":provenance,
+      "expected_snapshot_run_id":s(args.expected_snapshot_run_id),
+      "expected_runtime_run_id":s(args.expected_runtime_run_id),
       "selected_seasons":len(season_ids),
       "snapshot_fixture_rows":len(snap.get("fixture_rows",[])),
       "runtime_report_rows":len(runtime),
@@ -168,7 +224,7 @@ def main():
       "production_eligible":False,
       "betting_eligible":False,
       "prediction_generated":False,
-      "interpretation":"Exact join coverage audit only. This report hashes the supplied snapshot and compares its provider identities with the supplied runtime report. Snapshot consumption must be established by matching this hash to the successful runtime overlay QA artifact; this audit alone does not grant production or betting eligibility."
+      "interpretation":"Exact join coverage is not proof of snapshot consumption. Snapshot consumption is marked verified only when the supplied runtime provenance artifact matches the exact snapshot SHA-256 and expected snapshot/runtime run IDs, confirms the selected runtime input archive hash equals the overlay archive hash, and matches the downloaded runtime prediction-report SHA-256. Missing or mismatched provenance remains a release blocker. This audit does not grant production or betting eligibility."
     }
     (args.out_dir/"oracle_selected50_snapshot_runtime_bridge_qa.json").write_text(json.dumps(qa,indent=2,sort_keys=True),encoding="utf-8")
     print(json.dumps(qa,indent=2,sort_keys=True))
