@@ -360,5 +360,42 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(rows[0]["betting_eligible"], "NO")
 
 
+    def test_expanded_horizon_rejects_snapshot_retrieved_after_runtime_started(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [
+                {"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"}
+                for i in range(50)
+            ]
+            snap = root / "snapshot.json"
+            snap.write_text(json.dumps({
+                "retrieved_utc": "2026-10-28T10:01:00Z",
+                "per_season": seasons,
+                "fixture_rows": []
+            }), encoding="utf-8")
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.writer(h)
+                w.writerow([
+                    "provider_season_id", "fixture_id", "date_utc",
+                    "home_team_provider_id", "away_team_provider_id"
+                ])
+                w.writerow(["0", "A", "2026-10-29T12:00:00Z", "1", "2"])
+            out = root / "out"
+            proc = subprocess.run([
+                sys.executable, str(SCRIPT),
+                "--snapshot", str(snap),
+                "--runtime-report", str(report),
+                "--out-dir", str(out),
+                "--as-of-utc", "2026-10-28T10:02:00Z",
+                "--runtime-started-utc", "2026-10-28T10:00:00Z",
+                "--report-horizon-days", "14",
+                "--runtime-horizon-days", "7"
+            ], text=True, capture_output=True)
+            self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertIn("post-runtime snapshot cannot establish out-of-window versus missing-join coverage", proc.stderr)
+            self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
