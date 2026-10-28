@@ -120,6 +120,14 @@ class SnapshotOverlayContractTests(unittest.TestCase):
 
             self.assertEqual(qa["candidate_rows_added"], 1)
             self.assertEqual(qa["unsupported_archive_rows_not_staged"], 2)
+            self.assertIn("UNVERIFIED_PER_FIXTURE", qa["no_home_away_flag_semantics"])
+            by_league = {f'{row["country"]} | {row["competition"]}': row for row in qa["no_home_away_flag_by_league"]}
+            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_7d"], 3)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 1)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_unknown"], 1)
+            self.assertEqual(by_league["Country 01 | League 01"]["future_rows_in_7d"], 2)
+            self.assertEqual(by_league["Country 01 | League 01"]["no_home_away_false"], 2)
             self.assertEqual(qa["unsupported_selected_league_count"], 1)
             self.assertEqual(len(qa["unsupported_selected_leagues"]), 1)
             self.assertEqual(qa["candidate_trace_rows"], len(fixture_rows))
@@ -136,6 +144,10 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(by_id["BAD-TIME"]["trace_outcome"], "QUARANTINED_INVALID_KICKOFF")
             self.assertEqual(by_id["FUTURE-1"]["production_eligible"], "NO")
             self.assertEqual(by_id["FUTURE-1"]["canonical_fixture_join_status"], "NOT_VERIFIED")
+            self.assertIn("selected_country", TRACE_COLUMNS)
+            self.assertIn("selected_competition", TRACE_COLUMNS)
+            self.assertEqual(by_id["FUTURE-1"]["selected_country"], "Country 00")
+            self.assertEqual(by_id["FUTURE-1"]["selected_competition"], "League 00")
             self.assertNotIn("home_name", TRACE_COLUMNS)
             self.assertNotIn("away_name", TRACE_COLUMNS)
             with zipfile.ZipFile(out_archive) as staged_archive:
