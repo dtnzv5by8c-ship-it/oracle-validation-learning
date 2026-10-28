@@ -195,6 +195,11 @@ def main():
                 reason = "QUARANTINE_NONSTANDARD_STATUS"
             elif ko is None:
                 reason = "QUARANTINE_INVALID_KICKOFF"
+            elif ko > now and status in FINISHED:
+                # A completed/played status conflicts with a future kickoff.
+                # Quarantine before horizon classification so it cannot be
+                # mislabeled as an ordinary out-of-window fixture.
+                reason = "QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"
             elif ko <= now and status not in FINISHED:
                 reason = "QUARANTINE_NONFUTURE_UNSETTLED"
             elif ko <= now:
