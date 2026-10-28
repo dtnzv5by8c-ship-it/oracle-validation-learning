@@ -12,7 +12,7 @@ from unittest.mock import patch
 from contextlib import redirect_stdout
 
 from scripts.overlay_selected50_current_snapshot import (
-    TRACE_COLUMNS, find_archive_path, main, no_home_away_flag, parse_utc, valid_id,
+    TRACE_COLUMNS, find_archive_path, main, no_home_away_flag, future_status_quarantine_reason, parse_utc, valid_id,
 )
 
 
@@ -50,6 +50,15 @@ class SnapshotOverlayContractTests(unittest.TestCase):
         self.assertIsNone(no_home_away_flag(None))
         self.assertIsNone(no_home_away_flag("unknown"))
 
+    def test_future_status_gate_is_fail_closed_to_documented_enum(self):
+        self.assertIsNone(future_status_quarantine_reason("incomplete"))
+        self.assertEqual(future_status_quarantine_reason("complete"), "STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF")
+        self.assertEqual(future_status_quarantine_reason("suspended"), "NONSTANDARD_STATUS")
+        self.assertEqual(future_status_quarantine_reason("canceled"), "NONSTANDARD_STATUS")
+        self.assertEqual(future_status_quarantine_reason("postponed"), "NONSTANDARD_STATUS")
+        self.assertEqual(future_status_quarantine_reason("scheduled"), "UNKNOWN_STATUS_VALUE")
+        self.assertEqual(future_status_quarantine_reason(None), "MISSING_STATUS")
+
     def test_runtime_workflow_emits_trace_and_placeholder_when_overlay_disabled(self):
         workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
         self.assertIn("--out-trace selected50_runtime_output/current_snapshot_candidate_trace.csv", workflow)
@@ -82,6 +91,10 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             fixture("UNSUPPORTED-2", sid="S01", kickoff=now + timedelta(hours=3)),
             fixture("FLAGGED", no_home_away=1),
             fixture("UNKNOWN-FLAG", no_home_away="unknown"),
+            fixture("UNKNOWN-STATUS", status="scheduled"),
+            fixture("COMPLETE-FUTURE", status="complete"),
+            fixture("SUSPENDED-FUTURE", status="suspended"),
+            fixture("MISSING-STATUS", status=""),
             fixture("HISTORICAL", kickoff=now - timedelta(hours=1)),
             fixture("BEYOND", kickoff=now + timedelta(days=8)),
             fixture("BAD-TIME", kickoff_utc="not-a-timestamp"),
@@ -124,9 +137,9 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertIn("no_home_away=1", qa["no_home_away_flag_semantics"])
             self.assertIn("remain quarantined", qa["no_home_away_flag_semantics"])
             by_league = {f'{row["country"]} | {row["competition"]}': row for row in qa["no_home_away_flag_by_league"]}
-            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_7d"], 3)
+            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_7d"], 7)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
-            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 1)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 5)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_unknown"], 1)
             self.assertEqual(by_league["Country 01 | League 01"]["future_rows_in_7d"], 2)
             self.assertEqual(by_league["Country 01 | League 01"]["no_home_away_false"], 2)
@@ -142,6 +155,10 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(by_id["UNSUPPORTED-2"]["trace_outcome"], "UNSUPPORTED_ARCHIVE_NO_EXACT_LABEL_SEASON_WITH_MATCHES_AND_TEAMS")
             self.assertEqual(by_id["FLAGGED"]["trace_outcome"], "QUARANTINED_INVALID_OR_NONSTANDARD")
             self.assertEqual(by_id["UNKNOWN-FLAG"]["trace_reason"], "NO_HOME_AWAY_FLAG_UNKNOWN")
+            self.assertEqual(by_id["UNKNOWN-STATUS"]["trace_reason"], "UNKNOWN_STATUS_VALUE")
+            self.assertEqual(by_id["COMPLETE-FUTURE"]["trace_reason"], "STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF")
+            self.assertEqual(by_id["SUSPENDED-FUTURE"]["trace_reason"], "NONSTANDARD_STATUS")
+            self.assertEqual(by_id["MISSING-STATUS"]["trace_reason"], "MISSING_STATUS")
             self.assertEqual(by_id["HISTORICAL"]["trace_outcome"], "HISTORICAL_NOT_STAGED")
             self.assertEqual(by_id["BEYOND"]["trace_outcome"], "BEYOND_7D_NOT_STAGED")
             self.assertEqual(by_id["BAD-TIME"]["trace_outcome"], "QUARANTINED_INVALID_KICKOFF")

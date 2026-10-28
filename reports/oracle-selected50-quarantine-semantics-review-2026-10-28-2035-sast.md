@@ -84,3 +84,10 @@ The first safety run on the semantics-only commit failed because its regression 
 ## Governance
 
 No provider credits were spent, no raw payloads or secrets were exposed, no production model logic/probabilities/thresholds were changed, and no production merge or eligibility approval was made.
+
+
+## Follow-up: fail-closed future status semantics
+
+A further code review found a status-gating gap: the earlier overlay and bridge audit blocked known suspended/postponed/canceled-like strings, but could classify an arbitrary non-empty future status as a research candidate if it did not contain one of those substrings. The official provider schema documents the status enum as `complete`, `suspended`, `canceled`, and `incomplete`. The research-only gate now admits only `incomplete` as coherent with a future kickoff; `complete` with a future kickoff is treated as inconsistent, while missing, unknown, suspended, canceled, and postponed-like values remain quarantined. This is a preventive logic correction; the inspected sanitized 7-day trace contained no unknown future status values.
+
+The previous bridge CSV did not expose the raw `no_home_away` flag alongside the quarantine reason. The bridge output now includes `source_no_home_away` so future row-level audits can verify the exact provider value without guessing from IDs or status. No rows are auto-admitted by this change, and the `no_home_away=1` guard remains unchanged.

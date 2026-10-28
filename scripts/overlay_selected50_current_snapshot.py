@@ -9,6 +9,21 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 BAD_STATUS=("suspend","postpon","cancel","abandon","void","delay")
+
+def future_status_quarantine_reason(value):
+    """Fail closed against the documented provider status enum for future fixtures."""
+    status = str(value or "").strip().casefold()
+    if not status:
+        return "MISSING_STATUS"
+    # The documented enum is complete/suspended/canceled/incomplete.
+    # Only incomplete is coherent with a future scheduled fixture.
+    if status == "incomplete":
+        return None
+    if status == "complete":
+        return "STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"
+    if status in {"suspended", "canceled"} or any(token in status for token in BAD_STATUS):
+        return "NONSTANDARD_STATUS"
+    return "UNKNOWN_STATUS_VALUE"
 TRACE_COLUMNS = [
     "snapshot_row_number", "snapshot_file_sha256", "source_archive_sha256", "snapshot_retrieved_utc",
     "selected_season_id", "selected_country", "selected_competition", "fixture_id", "kickoff_utc", "status", "no_home_away",
@@ -170,16 +185,18 @@ def main():
         flag=no_home_away_flag(row.get("no_home_away"))
         meta=season_meta_by_id.get(sid,{})
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
-        league_diag=no_home_away_by_league.setdefault(league_key,{"selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),"future_rows_in_7d":0,"no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,"suspended_or_nonstandard_status":0})
+        league_diag=no_home_away_by_league.setdefault(league_key,{"selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),"future_rows_in_7d":0,"no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,"suspended_or_nonstandard_status":0,"status_not_eligible_for_future_fixture":0})
         league_diag["future_rows_in_7d"]+=1
         league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
         reasons=[]
         if flag is True: reasons.append("NO_HOME_AWAY_FLAGGED")
         elif flag is None: reasons.append("NO_HOME_AWAY_FLAG_UNKNOWN")
-        if not status: reasons.append("MISSING_STATUS")
-        if any(w in status for w in BAD_STATUS):
-            reasons.append("NONSTANDARD_STATUS")
-            league_diag["suspended_or_nonstandard_status"]+=1
+        status_reason=future_status_quarantine_reason(status)
+        if status_reason:
+            reasons.append(status_reason)
+            league_diag["status_not_eligible_for_future_fixture"]+=1
+            if status_reason != "MISSING_STATUS":
+                league_diag["suspended_or_nonstandard_status"]+=1
         if not valid_id(row.get("id")): reasons.append("INVALID_FIXTURE_ID")
         if not valid_id(row.get("homeID")): reasons.append("INVALID_HOME_TEAM_ID")
         if not valid_id(row.get("awayID")): reasons.append("INVALID_AWAY_TEAM_ID")
@@ -338,6 +355,7 @@ def main():
       "quarantined_or_invalid_rows":quarantined,
       "quarantine_reason_counts":dict(sorted(quarantine_reason_counts.items())),
       "no_home_away_flag_semantics":"DOCUMENTED_FIELD_SEMANTICS; official FootyStats League Matches schema defines no_home_away=1 as no home/away distinction; the provider flag is not independently cross-checked against venue metadata; flagged rows remain quarantined from standard home/away-dependent markets",
+      "future_status_semantics":"DOCUMENTED_ENUM_FAIL_CLOSED; only status=incomplete is eligible for a future fixture; status=complete conflicts with a future kickoff; suspended/canceled and missing or unknown statuses remain quarantined",
       "no_home_away_flag_by_league":sorted(no_home_away_by_league.values(),key=lambda x:(x["country"],x["competition"])),
       "unsupported_archive_rows_not_staged":unsupported_rows,
       "unsupported_selected_league_count":len(unsupported_labels),

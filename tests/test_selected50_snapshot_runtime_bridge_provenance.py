@@ -3,13 +3,30 @@ import json
 import tempfile
 import unittest
 from argparse import Namespace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from scripts.audit_selected50_snapshot_runtime_bridge import verify_runtime_provenance
+from scripts.audit_selected50_snapshot_runtime_bridge import (
+    classify_source_eligibility, verify_runtime_provenance,
+)
 
 
 def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+class SnapshotRuntimeBridgeStatusTests(unittest.TestCase):
+    def test_only_documented_incomplete_status_is_eligible_for_future_fixture(self):
+        now = datetime(2026, 10, 28, tzinfo=timezone.utc)
+        future = now + timedelta(hours=2)
+        self.assertEqual(classify_source_eligibility(False, "incomplete", future, now), "FUTURE_RESEARCH_CANDIDATE")
+        self.assertEqual(classify_source_eligibility(False, "complete", future, now), "QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF")
+        self.assertEqual(classify_source_eligibility(False, "scheduled", future, now), "QUARANTINE_UNKNOWN_STATUS")
+        self.assertEqual(classify_source_eligibility(False, "", future, now), "QUARANTINE_MISSING_STATUS")
+        self.assertEqual(classify_source_eligibility(False, "suspended", future, now), "QUARANTINE_NONSTANDARD_STATUS")
+        self.assertEqual(classify_source_eligibility(False, "canceled", future, now), "QUARANTINE_NONSTANDARD_STATUS")
+        self.assertEqual(classify_source_eligibility(True, "incomplete", future, now), "QUARANTINE_NO_HOME_AWAY")
+        self.assertEqual(classify_source_eligibility(None, "incomplete", future, now), "QUARANTINE_NO_HOME_AWAY_FLAG_UNKNOWN")
 
 
 class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):

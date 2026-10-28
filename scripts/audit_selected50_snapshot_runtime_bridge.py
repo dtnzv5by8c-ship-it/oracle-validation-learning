@@ -22,6 +22,48 @@ def utc(value):
 def s(value):
     return "" if value is None else str(value).strip()
 
+BAD_STATUS = ("suspend", "postpon", "cancel", "abandon", "void", "delay")
+COMPLETED_STATUSES = {"complete", "completed", "finished", "ft", "full time"}
+
+def future_status_quarantine_reason(value):
+    """Fail closed against the documented provider status enum for future fixtures."""
+    status = s(value).casefold()
+    if not status:
+        return "MISSING_STATUS"
+    if status == "incomplete":
+        return None
+    if status == "complete":
+        return "STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"
+    if status in {"suspended", "canceled"} or any(token in status for token in BAD_STATUS):
+        return "NONSTANDARD_STATUS"
+    return "UNKNOWN_STATUS_VALUE"
+
+def classify_source_eligibility(noha, status, kickoff, now):
+    """Classify source eligibility without admitting an unknown future status."""
+    status = s(status).casefold()
+    if noha is True:
+        return "QUARANTINE_NO_HOME_AWAY"
+    if noha is None:
+        return "QUARANTINE_NO_HOME_AWAY_FLAG_UNKNOWN"
+    if any(token in status for token in BAD_STATUS):
+        return "QUARANTINE_NONSTANDARD_STATUS"
+    if kickoff is None:
+        return "QUARANTINE_INVALID_KICKOFF"
+    if kickoff <= now and status not in COMPLETED_STATUSES:
+        return "QUARANTINE_NONFUTURE_UNSETTLED"
+    if kickoff <= now:
+        return "HISTORICAL_NOT_CURRENT_FIXTURE"
+    reason = future_status_quarantine_reason(status)
+    if reason == "MISSING_STATUS":
+        return "QUARANTINE_MISSING_STATUS"
+    if reason == "NONSTANDARD_STATUS":
+        return "QUARANTINE_NONSTANDARD_STATUS"
+    if reason == "STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF":
+        return "QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"
+    if reason == "UNKNOWN_STATUS_VALUE":
+        return "QUARANTINE_UNKNOWN_STATUS"
+    return "FUTURE_RESEARCH_CANDIDATE"
+
 def no_home_away_flag(value):
     """Return True/False only for explicit provider values; unknown stays unknown."""
     if isinstance(value, bool):
@@ -150,20 +192,7 @@ def main():
         ko=utc(f.get("kickoff_utc"))
         status=s(f.get("status")).lower()
         noha=no_home_away_flag(f.get("no_home_away"))
-        if noha is True:
-            eligibility="QUARANTINE_NO_HOME_AWAY"
-        elif noha is None:
-            eligibility="QUARANTINE_NO_HOME_AWAY_FLAG_UNKNOWN"
-        elif any(x in status for x in ("suspend","postpon","cancel","abandon","void")):
-            eligibility="QUARANTINE_NONSTANDARD_STATUS"
-        elif ko is None:
-            eligibility="QUARANTINE_INVALID_KICKOFF"
-        elif ko <= now and status not in {"complete","completed","finished","ft","full time"}:
-            eligibility="QUARANTINE_NONFUTURE_UNSETTLED"
-        elif ko <= now:
-            eligibility="HISTORICAL_NOT_CURRENT_FIXTURE"
-        else:
-            eligibility="FUTURE_RESEARCH_CANDIDATE"
+        eligibility=classify_source_eligibility(noha, status, ko, now)
         r=rt.get(key)
         if r is None:
             join="NO_EXACT_RUNTIME_ROW"
@@ -172,12 +201,10 @@ def main():
             home_ok=s(f.get("homeID")) == s(r.get("home_team_provider_id"))
             away_ok=s(f.get("awayID")) == s(r.get("away_team_provider_id"))
             ids_match = home_ok and away_ok
-            source_quarantined = (
-                noha is not False
-                or any(x in status for x in ("suspend", "postpon", "cancel", "abandon", "void"))
-                or ko is None
-                or (ko <= now and status not in {"complete","completed","finished","ft","full time"})
-            )
+            source_quarantined = eligibility not in {
+                "FUTURE_RESEARCH_CANDIDATE",
+                "HISTORICAL_NOT_CURRENT_FIXTURE",
+            }
             if not ids_match:
                 join="EXACT_FIXTURE_ID_TEAM_ID_MISMATCH"
                 counts["exact_id_team_mismatch"] += 1
@@ -190,6 +217,7 @@ def main():
         rows.append({
             "source_season_id":season,"source_match_id":match,
             "kickoff_utc":s(f.get("kickoff_utc")),"source_status":s(f.get("status")),
+            "source_no_home_away":s(f.get("no_home_away")),
             "home_team":s(f.get("home_name")),"away_team":s(f.get("away_name")),
             "source_home_team_id":s(f.get("homeID")),"source_away_team_id":s(f.get("awayID")),
             "fixture_eligibility":eligibility,"runtime_join_status":join,
