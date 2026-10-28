@@ -129,3 +129,40 @@ Validation:
 - [Run #492 dry-run artifact #12796558159](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644269274/artifacts/12796558159), SHA-256 `3fec015a5227d2236a57171914bdd04a483bcb8a880eca568b2998db43250271`.
 
 The workflow-only/test change does not alter runtime code, so [Research Runtime #135](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062) remains the latest completed runtime: PASS, output contract `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`, 463 fixtures, 25 feature-blocked, zero training-blocked, Combo masked. No new runtime dispatch was required.
+
+
+## Follow-up checkpoint — 08:46 SAST: cross-provider audit evidence and date-only quarantine
+
+Branch head observed before this report update: `0f3b3e816761fccf48e9e5db20b925f9093a584e`.
+
+### Latest verified runs
+- [Research Runtime #144](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501528): PASS; source commit `8a3b4cf942034d5256b41d20142ed38968ffd255`. All runtime steps passed, including private archive guard/checksum, Combo target contract, feature/training support, report build and output validation.
+- [Dry-Run Planner #508](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578043): PASS; source commit `0f3b3e816761fccf48e9e5db20b925f9093a584e`. Zero network and paid-provider calls.
+- [Safety Contract Tests #210](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578318): PASS; source commit `0f3b3e816761fccf48e9e5db20b925f9093a584e`. New cross-provider regression suite 6/6 passed; the one-call identity workflow remains fail-closed.
+- [Exact Cross-Provider Fixture Join Audit #12](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490): PASS as a research diagnostic; source commit `8a3b4cf942034d5256b41d20142ed38968ffd255`.
+
+### Artifact hashes independently checked
+- [Runtime #144 artifact #12797114323](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501528/artifacts/12797114323): SHA-256 `a1cdcce28395b95a9834424c23d7b948803d7ef195dc24c8ae4fffee97e4ac3a` (14 files; 158,044 bytes).
+- [Dry-run #508 artifact #12797143939](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645578043/artifacts/12797143939): SHA-256 `4a87872aaa3b76b5386adda5269a2c0c47d22a13484ddcd7bc810e2cb28e481d` (25 files; 36,351 bytes).
+- [Cross-provider audit #12 artifact #12797228734](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40645501490/artifacts/12797228734): SHA-256 `f9ea39e267aab0ebab853258ebf2719023a932270d8e72381fc7cc15618ad015` (five CSV/JSON diagnostic outputs before the newest separation change was added to the workflow artifact list).
+
+### Cross-provider audit findings
+The regenerated audit examined 14,051 FootyStats archive rows, 71 rows in the current FotMob snapshot, and 12,836 rows in the historical ledger source.
+
+- Exact fixture overlaps: **10**, all from the current snapshot, across two selected groups.
+- Exact historical-ledger kickoff joins: **0**.
+- Historical-ledger date-only overlaps: **577** across 24 groups. These lack kickoff-time proof and are not canonical joins.
+- Candidate FotMob league groups: **2**, both still human-review candidates; approved canonical bridges: **0**.
+- Exact current-source conflicts: **1**. The Canadian Premier League candidate has a suspicious observed FotMob label of “Premier League” and one score/status conflict among four overlaps. The England League One candidate has six overlaps without a recorded score conflict. Neither is approved.
+
+The research audit now keeps date-only ledger overlaps in separate outputs (`date_only_ledger_candidate_rows.csv` and `date_only_ledger_candidates.csv`) instead of counting them as exact fixture joins or canonical-code candidates. Exact joins remain in `exact_fixture_join_rows.csv`; canonical code candidate groups remain zero. The date-only groups are explicitly `DATE_ONLY_OVERLAP_HUMAN_REVIEW_REQUIRED_NO_KICKOFF_PROOF` and production-ineligible.
+
+The exact join audit is diagnostic evidence only. It does not establish canonical team IDs, approved competition parent IDs, official settlement truth or a current governed fixture slate. The current-feed snapshot remains stale (last fixture date 2026-10-17; schedule window ends 2026-10-22).
+
+### Runtime and Combo contract reconfirmed
+- Runtime #144 output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`.
+- 463 unique fixture IDs in each runtime export; 438 raw research-market outputs; 25 blocked for missing required features; zero blocked by model training; all rows `production_eligible=NO`.
+- Both Combo probability columns remain blank in both exports.
+- Combo target/settlement mismatch remains unresolved: predictor = Double Chance AND 2–4 goals; existing helper = Double Chance AND total goals <5. Dry-Run #508's three dedicated settlement-governance tests passed, and the 121-scoreline diagnostic remains non-authoritative.
+
+No provider API calls were made by this task. The private archive tag `research-selected50-footystats-history-40447419806` was preserved. Oracle V1.6/V1.6.3 production logic, probabilities, calibration, thresholds, registry, ledgers and governance remain unchanged.
