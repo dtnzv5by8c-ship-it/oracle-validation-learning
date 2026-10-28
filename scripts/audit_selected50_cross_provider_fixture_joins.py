@@ -135,6 +135,12 @@ def main():
         footy,archive_members,inventory=load_footystats_archive(zf,set(selected));archive_member_count=len(zf.namelist())
     current,current_header=load_fotmob_current(args.current_matches)
     ledger,ledger_header,ledger_stats=load_historical_ledger(args.historical_matches)
+    manifest_info={}
+    if args.current_source_manifest and Path(args.current_source_manifest).is_file():
+        try:
+            m=json.loads(Path(args.current_source_manifest).read_text(encoding="utf-8"))
+            manifest_info={"generated_utc":m.get("generated_utc"),"source":m.get("source"),"path":m.get("path")}
+        except Exception:manifest_info={"parse_status":"UNAVAILABLE"}
     snapshot_ts=timestamp({"generated_utc":manifest_info.get("generated_utc")},("generated_utc",))
     for current_row in current:
         current_row["snapshot_generated_utc"]=manifest_info.get("generated_utc") or ""
@@ -214,12 +220,6 @@ def main():
     for name,rows,fields in outputs:
         with open(out/name,"w",encoding="utf-8",newline="") as f:
             w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
-    manifest_info={}
-    if args.current_source_manifest and Path(args.current_source_manifest).is_file():
-        try:
-            m=json.loads(Path(args.current_source_manifest).read_text(encoding="utf-8"))
-            manifest_info={"generated_utc":m.get("generated_utc"),"source":m.get("source"),"path":m.get("path")}
-        except Exception:manifest_info={"parse_status":"UNAVAILABLE"}
     summary={"diagnostic":"SELECTED50_EXACT_CROSS_PROVIDER_FIXTURE_JOIN_AUDIT","generated_utc":datetime.now(timezone.utc).isoformat(),"selected_seasons":len(selected),"footystats_archive_rows":len(footy),"footystats_archive_match_json_members":len(archive_members),"archive_members_seen":archive_member_count,"fotmob_current_rows":len(current),"fotmob_current_header":current_header,"oracle_historical_ledger_rows":len(ledger),"oracle_historical_ledger_source_rows_seen":ledger_stats["source_rows_seen"],"oracle_historical_ledger_exact_kickoff_rows":ledger_stats["rows_exact_kickoff"],"oracle_historical_ledger_rows_date_only":ledger_stats["rows_date_only"],"oracle_historical_ledger_rows_missing_exact_kickoff":ledger_stats["rows_missing_exact_kickoff"],"oracle_historical_ledger_header":ledger_header,"exact_join_rows_total":len(joins),"fotmob_exact_join_rows":sum(1 for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"pre_kickoff_snapshot_rows":sum(1 for r in joins if r["join_type"]=="FOTMOB_CURRENT" and r.get("snapshot_pre_kickoff")),"historical_ledger_exact_join_rows":sum(1 for r in joins if r["join_type"]=="ORACLE_HISTORICAL_LEDGER"),"historical_ledger_date_only_join_rows":len(date_only_joins),"selected_seasons_with_any_exact_join":len({r["selected_season_id"] for r in joins}),"selected_seasons_with_date_only_overlap":len({r["selected_season_id"] for r in date_only_joins}),"fotmob_bridge_candidate_groups":len(fotmob_candidates),"strong_fotmob_candidates":sum(r["bridge_status"].startswith("STRONG") for r in fotmob_candidates),"canonical_code_candidate_groups":len(canonical_candidates),"date_only_ledger_candidate_groups":len(date_only_candidates),"date_only_ledger_score_conflict_rows":sum(1 for r in date_only_joins if r.get("score_conflict")),"strong_canonical_code_candidates":sum(r["bridge_status"].startswith("STRONG") for r in canonical_candidates),"source_conflict_rows":sum(bool(r.get("score_conflict")) or r.get("status_agree") is False for r in joins if r["join_type"]=="FOTMOB_CURRENT"),"approved_canonical_bridges":0,"production_eligible":False,"current_source_manifest":manifest_info,"method":"Exact normalized ordered home/away names plus exact UTC kickoff; no display-name-only or fuzzy joins. Candidate statuses never grant production eligibility."}
     (out/"audit_summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
     print(json.dumps(summary,indent=2,sort_keys=True))
