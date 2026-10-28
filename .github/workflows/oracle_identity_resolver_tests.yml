@@ -21,6 +21,8 @@ on:
     branches:
       - "research/oracle-50-league-readiness-audit"
     paths:
+      - "scripts/audit_selected50_snapshot_runtime_coverage.py"
+      - "tests/test_selected50_snapshot_runtime_coverage.py"
       - "scripts/oracle_selected50_footystats_identity_resolver.py"
       - "tests/test_oracle_selected50_footystats_identity_resolver.py"
       - "scripts/oracle_selected50_footystats_adapter.py"
