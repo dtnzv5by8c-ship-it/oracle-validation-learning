@@ -1,4 +1,4 @@
-# Oracle Selected-50 Executive Execution Update — 2026-10-28 08:55 UTC
+# Oracle Selected-50 Executive Execution Update — 2026-10-28 08:55 SAST
 
 ## Decision
 
