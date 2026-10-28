@@ -115,3 +115,17 @@ Observed provider master IDs in the research crosswalk are explicitly marked `RE
 2. Continue read-only evidence reconciliation for canonical league/team/fixture identity and official settlement truth.
 3. Investigate current-feed freshness separately; do not silently substitute FootyStats into the stale FotMob production feed.
 4. Do not invoke the current-feed provider probe from this task. No provider API calls were made here.
+
+
+## Follow-up checkpoint — 08:31 SAST: prevent accidental 50-call probe dispatch
+
+A separate research workflow mismatch was confirmed by inspecting the current branch's workflow and entrypoint. The workflow described and budgeted itself as **one API request**, but the configured script loops over the 50 selected seasons. The pre-existing sanitized artifact from Run `40562430790` shows 50/50 requests succeeded, confirming the mismatch is substantive. This audit did not invoke the script and made zero provider API calls.
+
+To prevent accidental calls under a one-request confirmation, commit `d93c54d1d28cda987cc1b2da3ccde2e80196754a` changes the manual identity-probe workflow to fail closed before loading a provider key or executing the batch script. It requires a separately reviewed single-season entrypoint or a separately approved, explicitly budgeted batch workflow before any future probe. The script itself was not executed or changed by this safety fix.
+
+Validation:
+- [Safety Contract Tests — Run #192](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644269278): PASS. New workflow-safety regression tests 3/3 passed; the six current-snapshot validator tests also remain green.
+- [Dry-Run Planner — Run #492](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644269274): PASS; zero network calls and zero paid-provider calls.
+- [Run #492 dry-run artifact #12796558159](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40644269274/artifacts/12796558159), SHA-256 `3fec015a5227d2236a57171914bdd04a483bcb8a880eca568b2998db43250271`.
+
+The workflow-only/test change does not alter runtime code, so [Research Runtime #135](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062) remains the latest completed runtime: PASS, output contract `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`, 463 fixtures, 25 feature-blocked, zero training-blocked, Combo masked. No new runtime dispatch was required.
