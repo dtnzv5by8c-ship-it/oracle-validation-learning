@@ -49,6 +49,29 @@ class IdentitySettlementEvidenceRegisterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "JOIN_PRECISION_NOT_EXACT"):
             MODULE.validate_rows(rows)
 
+    def test_exact_fixture_ids_teams_utc_kickoffs_statuses_and_scores_are_pinned(self):
+        expected = {
+            "8465230": ("1000008711", "2026-09-30T23:00:00Z", "Atlético Ottawa", "Cavalry FC", "complete", "3", "2", "FT", "3", "2"),
+            "8465240": ("1000008713", "2026-10-03T20:00:00Z", "Forge FC", "HFX Wanderers FC", "complete", "3", "3", "FT", "3", "3"),
+            "8465202": ("5175979", "2026-10-04T20:00:00Z", "Supra du Québec", "Pacific FC", "complete", "5", "0", "FT", "5", "0"),
+            "8465167": ("1000008675", "2026-10-07T23:00:00Z", "Forge FC", "Pacific FC", "complete", "3", "0", "unfinished", "0", "0"),
+            "8565639": ("5837184", "2026-10-03T14:00:00Z", "Barnsley", "Milton Keynes Dons", "suspended", "0", "0", "PP / postponed", "0", "0"),
+            "8565337": ("5837186", "2026-10-03T14:00:00Z", "Bromley", "Wycombe Wanderers", "suspended", "0", "0", "PP / postponed", "0", "0"),
+            "8565333": ("5837191", "2026-10-03T14:00:00Z", "Peterborough United", "Notts County", "suspended", "0", "0", "PP / postponed", "0", "0"),
+            "8565677": ("5837187", "2026-10-03T14:00:00Z", "Burton Albion", "Huddersfield Town", "complete", "1", "3", "FT", "1", "3"),
+            "8565598": ("5837192", "2026-10-03T14:00:00Z", "Reading", "Bradford City", "complete", "1", "1", "FT", "1", "1"),
+            "8565602": ("5837188", "2026-10-03T14:00:00Z", "Leyton Orient", "Plymouth Argyle", "complete", "0", "2", "FT", "0", "2"),
+        }
+        actual = {
+            r["footystats_fixture_id"]: (
+                r["fotmob_fixture_id"], r["kickoff_utc"], r["home_team"], r["away_team"],
+                r["footystats_status"], r["footystats_home_goals"], r["footystats_away_goals"],
+                r["fotmob_status"], r["fotmob_home_goals"], r["fotmob_away_goals"],
+            )
+            for r in self.rows
+        }
+        self.assertEqual(actual, expected)
+
     def test_comp_master_id_semantics_must_remain_unresolved(self):
         rows = [dict(r) for r in self.rows]
         rows[0]["provider_comp_master_id_semantics"] = "CANONICAL_ORACLE_ID"
