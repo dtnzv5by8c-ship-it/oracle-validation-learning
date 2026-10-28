@@ -30,3 +30,7 @@ jobs:
         run: python -m unittest discover -s tests -p "test_footystats_selected50_bounded_probe_contract.py" -v
       - name: Run research score-settlement contract tests
         run: python -m unittest discover -s tests -p "test_score_market_settlement.py" -v
+      - name: Run current-feed identity contract tests (research only)
+        run: python -m unittest discover -s tests -p "test_current_feed_identity_contract.py" -v
+      - name: Run offline current-feed staging adapter tests (research only)
+        run: python -m unittest discover -s tests -p "test_stage_current_feed_identity.py" -v
