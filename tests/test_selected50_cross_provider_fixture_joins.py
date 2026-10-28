@@ -16,12 +16,13 @@ from scripts.audit_selected50_cross_provider_fixture_joins import main, timestam
 class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
     def run_audit(self, *, ledger_exact=False, current_status="incomplete", current_finished=False,
                   current_home_goals="", current_away_goals="", footy_status="incomplete",
-                  footy_home_goals="", footy_away_goals="", include_current=True):
+                  footy_home_goals="", footy_away_goals="", include_current=True,
+                  manifest_generated_utc="2026-10-31T00:00:00+00:00"):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
             archive=root/"archive.zip"; manifest=root/"manifest.md"
             crosswalk=root/"crosswalk.csv"; current=root/"current_matches.csv"
-            ledger=root/"historical_matches.csv"; out=root/"out"
+            ledger=root/"historical_matches.csv"; source_manifest=root/"current_source_manifest.json"; out=root/"out"
             kickoff=datetime(2026,10,30,18,0,tzinfo=timezone.utc)
             unix=int(kickoff.timestamp())
             match={"id":"fs-1","home_name":"Home FC","away_name":"Away FC","date_unix":unix,
@@ -44,6 +45,7 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
                                      "league":"Test League","home_id":"11","home_team":"Home FC","away_id":"22","away_team":"Away FC",
                                      "home_goals":current_home_goals,"away_goals":current_away_goals,
                                      "finished":str(current_finished).lower(),"started":"false","cancelled":"false","status":current_status})
+            source_manifest.write_text(json.dumps({"generated_utc":manifest_generated_utc,"source":"FotMob test fixture","path":""}),encoding="utf-8")
             with ledger.open("w",encoding="utf-8",newline="") as f:
                 fields=["match_id","date","date_utc","league_code","league","home_team","away_team","home_goals","away_goals","source","source_season","source_match_id"]
                 writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader()
@@ -54,16 +56,17 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
                                  "source":"FotMob","source_season":"2025/2026","source_match_id":"fm-1"})
             argv=["audit_selected50_cross_provider_fixture_joins.py","--archive",str(archive),
                   "--current-matches",str(current),"--historical-matches",str(ledger),
-                  "--manifest",str(manifest),"--identity-crosswalk",str(crosswalk),"--out",str(out)]
+                  "--manifest",str(manifest),"--identity-crosswalk",str(crosswalk),
+                  "--current-source-manifest",str(source_manifest),"--out",str(out)]
             with patch.object(sys,"argv",argv),contextlib.redirect_stdout(io.StringIO()):
                 main()
             summary=json.loads((out/"audit_summary.json").read_text(encoding="utf-8"))
             def read_csv(name):
                 with (out/name).open(encoding="utf-8",newline="") as f:return list(csv.DictReader(f))
-            return summary,read_csv("exact_fixture_join_rows.csv"),read_csv("date_only_ledger_candidate_rows.csv"),read_csv("canonical_code_candidates.csv"),read_csv("date_only_ledger_candidates.csv")
+            return summary,read_csv("exact_fixture_join_rows.csv"),read_csv("date_only_ledger_candidate_rows.csv"),read_csv("canonical_code_candidates.csv"),read_csv("date_only_ledger_candidates.csv"),read_csv("fotmob_bridge_candidates.csv")
 
     def test_date_only_ledger_is_not_reported_as_exact_or_canonical_join(self):
-        summary,exact,date_only,canonical,date_groups=self.run_audit(include_current=False)
+        summary,exact,date_only,canonical,date_groups,_=self.run_audit(include_current=False)
         self.assertEqual(summary["exact_join_rows_total"],0)
         self.assertEqual(summary["historical_ledger_exact_join_rows"],0)
         self.assertEqual(summary["historical_ledger_date_only_join_rows"],1)
@@ -75,7 +78,7 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
         self.assertEqual(canonical,[])
 
     def test_exact_timestamp_ledger_join_is_separate_from_date_only_candidate(self):
-        summary,exact,date_only,canonical,date_groups=self.run_audit(ledger_exact=True,include_current=False)
+        summary,exact,date_only,canonical,date_groups,_=self.run_audit(ledger_exact=True,include_current=False)
         self.assertEqual(summary["historical_ledger_exact_join_rows"],1)
         self.assertEqual(summary["historical_ledger_date_only_join_rows"],0)
         self.assertEqual(len(exact),1)
@@ -85,15 +88,27 @@ class CrossProviderFixtureJoinAuditTests(unittest.TestCase):
         self.assertEqual(date_groups,[])
 
     def test_status_conflict_is_counted_even_when_scores_are_missing(self):
-        summary,exact,_,_,_=self.run_audit(current_status="complete",current_finished=True)
+        summary,exact,_,_,_,_=self.run_audit(current_status="complete",current_finished=True)
         self.assertEqual(summary["fotmob_exact_join_rows"],1)
         self.assertEqual(summary["source_conflict_rows"],1)
-        self.assertEqual(exact[0]["score_known_both_sources"], "False")
+        self.assertEqual(exact[0]["score_known_both_sources"],"False")
 
     def test_matching_status_and_missing_scores_are_not_a_conflict(self):
-        summary,exact,_,_,_=self.run_audit()
+        summary,exact,_,_,_,_=self.run_audit()
         self.assertEqual(summary["fotmob_exact_join_rows"],1)
         self.assertEqual(summary["source_conflict_rows"],0)
+
+    def test_pre_kickoff_snapshot_is_not_counted_as_settlement_conflict(self):
+        summary,exact,_,_,_,candidates=self.run_audit(
+            footy_status="complete",footy_home_goals="3",footy_away_goals="0",
+            current_status="scheduled",current_finished=False,current_home_goals="0",current_away_goals="0",
+            manifest_generated_utc="2026-10-29T00:00:00+00:00")
+        self.assertEqual(summary["pre_kickoff_snapshot_rows"],1)
+        self.assertEqual(summary["source_conflict_rows"],0)
+        self.assertEqual(exact[0]["snapshot_pre_kickoff"],"True")
+        self.assertEqual(exact[0]["score_known_both_sources"],"False")
+        self.assertIsNone(exact[0]["status_agree"])
+        self.assertIn("CONTAINS_PRE_KICKOFF_SNAPSHOT_ROWS",candidates[0]["bridge_status"])
 
     def test_date_only_timestamp_is_not_promoted_to_midnight_utc(self):
         self.assertIsNone(timestamp({"date":"2026-10-30"},("date",)))
