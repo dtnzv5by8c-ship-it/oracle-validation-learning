@@ -53,4 +53,4 @@ The canonical handover stated that the research runtime was manual-dispatch-only
 - Generated team CSV SHA-256: a8b517ec1825969d45a7b719a8babee098719ff3b7adda7a354840f704221cb9
 - Generated summary JSON SHA-256: 9d1a5b9bab5242d7f7b3c4840b207e373fb99aff31254313d3af2afbaa370f0a
 
-Full GitHub Actions validation of the new diagnostic test and workflow guard is pending. No runtime rebuild was started, and no provider API calls were made.
+GitHub Actions validation is now complete: identity/settlement Run #13 (40699110792) passed the 15 feature-blocker tests and the 13 snapshot/runtime coverage tests; Safety Run #235 (40699110635) and Dry-Run #533 (40699110621) also passed. The runtime workflow's manual-only trigger guard is covered by regression tests. The runtime was not rebuilt because runtime/model code did not change. No provider API calls were made.

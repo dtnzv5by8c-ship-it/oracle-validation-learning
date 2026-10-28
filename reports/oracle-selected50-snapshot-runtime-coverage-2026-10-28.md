@@ -44,4 +44,4 @@ No prediction was created for the three missing fixtures, no source row was cano
 - Generated summary JSON SHA-256: 3e656e367ea95ec197835cca6822c5d8a083770230ccb44abe61ecb332639faa
 - Combo probability columns remained blank; the script refuses a nonblank Combo field.
 - No provider API calls, no canonical joins, no production writes, no model/probability changes.
-- Full GitHub Actions validation is pending; this report is research-only and does not grant production or betting eligibility.
+- GitHub Actions validation completed: identity/settlement Run #13 (40699110792) passed all 13 coverage tests; Safety Run #235 (40699110635) and Dry-Run #533 (40699110621) passed. The comparison remains research-only and does not grant production or betting eligibility.
