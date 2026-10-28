@@ -84,7 +84,8 @@ jobs:
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
             --snapshot current-snapshot/current-fixture-snapshot.json \
             --out-archive private-download/oracle-selected50-research-overlay.zip \
-            --out-qa selected50_runtime_output/current_snapshot_overlay_qa.json
+            --out-qa selected50_runtime_output/current_snapshot_overlay_qa.json \
+            --out-trace selected50_runtime_output/current_snapshot_candidate_trace.csv
           cp private-download/oracle-selected50-research-overlay.zip private-download/oracle-selected50-runtime-input.zip
 
       - name: Select validated archive input
@@ -99,6 +100,15 @@ jobs:
             cp private-download/oracle-selected50-footystats-private-ingestion.zip private-download/oracle-selected50-runtime-selected.zip
             mkdir -p selected50_runtime_output
             echo '{"status":"NOT_RUN_SNAPSHOT_OVERLAY_DISABLED","production_eligible":false,"betting_eligible":false}' > selected50_runtime_output/current_snapshot_overlay_qa.json
+            python - <<'PY'
+          import csv
+          from pathlib import Path
+          from scripts.overlay_selected50_current_snapshot import TRACE_COLUMNS
+          trace_path = Path("selected50_runtime_output/current_snapshot_candidate_trace.csv")
+          trace_path.parent.mkdir(parents=True, exist_ok=True)
+          with trace_path.open("w", encoding="utf-8", newline="") as trace_file:
+              csv.DictWriter(trace_file, fieldnames=TRACE_COLUMNS).writeheader()
+          PY
           fi
 
       - name: Install research runtime dependencies
@@ -138,5 +148,6 @@ jobs:
             selected50_runtime_output/oracle_selected50_settlement_truth_qa.csv
             selected50_runtime_output/oracle_selected50_runtime_validation.json
             selected50_runtime_output/current_snapshot_overlay_qa.json
+            selected50_runtime_output/current_snapshot_candidate_trace.csv
           if-no-files-found: error
           retention-days: 14

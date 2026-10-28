@@ -4,11 +4,19 @@
 Only future, standard home/away fixtures inside the next 7 days are staged.
 No predictions are produced here. Production model logic and probabilities are untouched.
 """
-import argparse, json, math, zipfile
+import argparse, csv, hashlib, json, math, zipfile
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 BAD_STATUS=("suspend","postpon","cancel","abandon","void","delay")
+TRACE_COLUMNS = [
+    "snapshot_row_number", "snapshot_file_sha256", "source_archive_sha256", "snapshot_retrieved_utc",
+    "selected_season_id", "fixture_id", "kickoff_utc", "status", "no_home_away",
+    "home_team_provider_id", "away_team_provider_id", "trace_outcome", "trace_reason",
+    "target_archive_season_id", "production_eligible", "betting_eligible",
+    "canonical_fixture_join_status", "canonical_team_join_status",
+    "official_settlement_truth_status",
+]
 
 def parse_utc(v):
     if not isinstance(v,str) or not v.strip(): return None
@@ -18,7 +26,74 @@ def parse_utc(v):
     return d.astimezone(timezone.utc)
 
 def valid_id(v):
-    return v not in (None,"","0",0) and str(v).strip().lower() not in {"none","null"}
+    if isinstance(v, bool) or v is None:
+        return False
+    raw = str(v).strip()
+    if raw.casefold() in {"", "0", "0.0", "none", "null", "false", "true"}:
+        return False
+    try:
+        numeric = float(raw)
+    except (TypeError, ValueError, OverflowError):
+        numeric = None
+    if numeric is not None and (not math.isfinite(numeric) or numeric <= 0 or not numeric.is_integer()):
+        return False
+    return True
+
+def no_home_away_flag(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        if not math.isfinite(float(value)):
+            return None
+        if float(value) == 1:
+            return True
+        if float(value) == 0:
+            return False
+        return None
+    raw = str(value or "").strip().casefold()
+    if raw in {"1", "1.0", "true", "yes"}:
+        return True
+    if raw in {"0", "0.0", "false", "no"}:
+        return False
+    return None
+
+def make_trace_row(row_number, row, snapshot_sha256, archive_sha256, retrieved_utc):
+    source = row if isinstance(row, dict) else {}
+    return {
+        "snapshot_row_number": row_number,
+        "snapshot_file_sha256": snapshot_sha256,
+        "source_archive_sha256": archive_sha256,
+        "snapshot_retrieved_utc": retrieved_utc,
+        "selected_season_id": str(source.get("selected_season_id") or "").strip(),
+        "fixture_id": str(source.get("id") or "").strip(),
+        "kickoff_utc": str(source.get("kickoff_utc") or "").strip(),
+        "status": str(source.get("status") or "").strip(),
+        "no_home_away": str(source.get("no_home_away") if source.get("no_home_away") is not None else ""),
+        "home_team_provider_id": str(source.get("homeID") or "").strip(),
+        "away_team_provider_id": str(source.get("awayID") or "").strip(),
+        "trace_outcome": "",
+        "trace_reason": "",
+        "target_archive_season_id": "",
+        "production_eligible": "NO",
+        "betting_eligible": "NO",
+        "canonical_fixture_join_status": "NOT_VERIFIED",
+        "canonical_team_join_status": "NOT_VERIFIED",
+        "official_settlement_truth_status": "NOT_VERIFIED",
+    }
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+def write_trace(path, rows):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as trace_file:
+        writer = csv.DictWriter(trace_file, fieldnames=TRACE_COLUMNS, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
 
 def find_archive_path(names, season_id, kind):
     suffix=f"seasons/{season_id}/{kind}.json"
@@ -33,9 +108,14 @@ def main():
     ap.add_argument("--snapshot",required=True,type=Path)
     ap.add_argument("--out-archive",required=True,type=Path)
     ap.add_argument("--out-qa",required=True,type=Path)
+    ap.add_argument("--out-trace",type=Path,help="Sanitized row-level snapshot staging trace CSV")
     args=ap.parse_args()
+    trace_path=args.out_trace or args.out_qa.with_name("current_snapshot_candidate_trace.csv")
     now=datetime.now(timezone.utc)
-    snap=json.loads(args.snapshot.read_text(encoding="utf-8"))
+    snapshot_bytes=args.snapshot.read_bytes()
+    snapshot_sha256=hashlib.sha256(snapshot_bytes).hexdigest()
+    archive_sha256=sha256_file(args.archive)
+    snap=json.loads(snapshot_bytes.decode("utf-8"))
     retrieved=parse_utc(snap.get("retrieved_utc"))
     if retrieved is None or retrieved>now or now-retrieved>timedelta(hours=24):
         raise SystemExit("FAIL: snapshot provenance missing, future-dated, or older than 24 hours")
@@ -51,20 +131,58 @@ def main():
     if not isinstance(fixture_rows,list):
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
     season_set=set(season_ids)
-    staged=[]; quarantined=0; beyond=0; historical=0
-    for row in fixture_rows:
-        if not isinstance(row,dict): quarantined+=1; continue
+    staged=[]; trace_rows=[]; quarantined=0; beyond=0; historical=0
+    quarantine_reason_counts={}
+    for row_number, row in enumerate(fixture_rows, start=1):
+        trace=make_trace_row(row_number,row,snapshot_sha256,archive_sha256,snap.get("retrieved_utc") or "")
+        trace_rows.append(trace)
+        if not isinstance(row,dict):
+            quarantined+=1
+            trace["trace_outcome"]="QUARANTINED_NON_OBJECT_ROW"
+            trace["trace_reason"]="FIXTURE_ROW_NOT_OBJECT"
+            quarantine_reason_counts["FIXTURE_ROW_NOT_OBJECT"]=quarantine_reason_counts.get("FIXTURE_ROW_NOT_OBJECT",0)+1
+            continue
         sid=str(row.get("selected_season_id") or "").strip()
         if sid not in season_set: raise SystemExit("FAIL: fixture row references season outside selected-50 manifest")
         ko=parse_utc(row.get("kickoff_utc"))
-        if ko is None: quarantined+=1; continue
-        if ko<=now: historical+=1; continue
-        if ko>now+timedelta(days=7): beyond+=1; continue
+        if ko is None:
+            quarantined+=1
+            trace["trace_outcome"]="QUARANTINED_INVALID_KICKOFF"
+            trace["trace_reason"]="KICKOFF_MISSING_MALFORMED_OR_TIMEZONE_NAIVE"
+            quarantine_reason_counts["KICKOFF_MISSING_MALFORMED_OR_TIMEZONE_NAIVE"]=quarantine_reason_counts.get("KICKOFF_MISSING_MALFORMED_OR_TIMEZONE_NAIVE",0)+1
+            continue
+        if ko<=now:
+            historical+=1
+            trace["trace_outcome"]="HISTORICAL_NOT_STAGED"
+            trace["trace_reason"]="KICKOFF_NOT_AFTER_OVERLAY_START"
+            continue
+        if ko>now+timedelta(days=7):
+            beyond+=1
+            trace["trace_outcome"]="BEYOND_7D_NOT_STAGED"
+            trace["trace_reason"]="KICKOFF_AFTER_SEVEN_DAY_STAGING_HORIZON"
+            continue
         status=str(row.get("status") or "").strip().lower()
-        noha=str(row.get("no_home_away") or "").strip().lower() in {"1","true","yes"}
-        if noha or any(w in status for w in BAD_STATUS) or not valid_id(row.get("homeID")) or not valid_id(row.get("awayID")) or not str(row.get("home_name") or "").strip() or not str(row.get("away_name") or "").strip():
-            quarantined+=1; continue
-        staged.append((sid,row,ko))
+        flag=no_home_away_flag(row.get("no_home_away"))
+        reasons=[]
+        if flag is True: reasons.append("NO_HOME_AWAY_FLAGGED")
+        elif flag is None: reasons.append("NO_HOME_AWAY_FLAG_UNKNOWN")
+        if not status: reasons.append("MISSING_STATUS")
+        if any(w in status for w in BAD_STATUS): reasons.append("NONSTANDARD_STATUS")
+        if not valid_id(row.get("id")): reasons.append("INVALID_FIXTURE_ID")
+        if not valid_id(row.get("homeID")): reasons.append("INVALID_HOME_TEAM_ID")
+        if not valid_id(row.get("awayID")): reasons.append("INVALID_AWAY_TEAM_ID")
+        if not str(row.get("home_name") or "").strip(): reasons.append("MISSING_HOME_TEAM_NAME")
+        if not str(row.get("away_name") or "").strip(): reasons.append("MISSING_AWAY_TEAM_NAME")
+        if reasons:
+            quarantined+=1
+            trace["trace_outcome"]="QUARANTINED_INVALID_OR_NONSTANDARD"
+            trace["trace_reason"]=";".join(reasons)
+            for reason in reasons:
+                quarantine_reason_counts[reason]=quarantine_reason_counts.get(reason,0)+1
+            continue
+        trace["trace_outcome"]="ELIGIBLE_FOR_ARCHIVE_TARGET_RESOLUTION"
+        trace["trace_reason"]="VALID_FUTURE_STANDARD_FIXTURE_WITH_SOURCE_TEAM_IDS"
+        staged.append((sid,row,ko,trace))
     if len(staged)>1000: raise SystemExit("FAIL: unexpectedly large staging batch; manual review required")
     with zipfile.ZipFile(args.archive,"r") as src:
         names=src.namelist()
@@ -91,7 +209,8 @@ def main():
             label=(str(meta.get("selected_country") or "").strip(),str(meta.get("selected_competition_name") or "").strip())
             if label not in selected_labels or selected_labels[label]!=sid:
                 raise SystemExit(f"FAIL: selected season {sid} label does not exactly match current snapshot manifest")
-        for sid,_,_ in staged:
+        unsupported_by_sid={}
+        for sid in dict.fromkeys(item[0] for item in staged):
             meta=meta_by_id[sid]
             label=(str(meta.get("selected_country") or "").strip(),str(meta.get("selected_competition_name") or "").strip())
             candidates=[]
@@ -102,12 +221,13 @@ def main():
                 if alabel==label and mp and tp:
                     candidates.append((aid,ameta))
             if not candidates:
-                unsupported_labels.append({"selected_season_id":sid,"country":label[0],"competition":label[1],"reason":"NO_EXACT_LABEL_ARCHIVE_SEASON_WITH_MATCHES_AND_TEAMS"})
+                unsupported_by_sid[sid]={"selected_season_id":sid,"country":label[0],"competition":label[1],"reason":"NO_EXACT_LABEL_ARCHIVE_SEASON_WITH_MATCHES_AND_TEAMS"}
                 continue
             # Prefer the selected season file if it has one; otherwise prefer the latest
             # season start label available, using manifest order only as deterministic tie-break.
             candidates.sort(key=lambda item:(item[0]==sid,str(item[1].get("season") or item[1].get("season_start") or "")),reverse=True)
             archive_target[sid]=candidates[0][0]
+        unsupported_labels=list(unsupported_by_sid.values())
         season_files={}; season_match_paths={}
         for archive_sid in set(archive_target.values()):
             p=find_archive_path(names,archive_sid,"matches")
@@ -116,49 +236,79 @@ def main():
             season_files[archive_sid]=json.loads(src.read(p).decode("utf-8"))
             if not isinstance(season_files[archive_sid],list): raise SystemExit(f"FAIL: archive match container is not a list for season {archive_sid}")
         seen=set(); add_count=0; already=0; conflicts=0; unsupported_rows=0
-        for sid,row,ko in staged:
+        for sid,row,ko,trace in staged:
             if sid not in archive_target:
                 unsupported_rows+=1
+                trace["trace_outcome"]="UNSUPPORTED_ARCHIVE_NO_EXACT_LABEL_SEASON_WITH_MATCHES_AND_TEAMS"
+                trace["trace_reason"]="NO_EXACT_LABEL_ARCHIVE_SEASON_WITH_MATCHES_AND_TEAMS"
                 continue
             archive_sid=archive_target[sid]
+            trace["target_archive_season_id"]=archive_sid
             records=season_files[archive_sid]
             by_id={str(m.get("id")):m for m in records if isinstance(m,dict) and valid_id(m.get("id"))}
             fid=str(row.get("id") or "").strip()
-            if not fid: quarantined+=1; continue
+            if not fid:
+                quarantined+=1
+                trace["trace_outcome"]="QUARANTINED_INVALID_OR_NONSTANDARD"
+                trace["trace_reason"]="INVALID_FIXTURE_ID"
+                continue
             if fid in by_id:
                 old=by_id[fid]
                 old_pair=(str(old.get("homeID") or ""),str(old.get("awayID") or ""))
                 new_pair=(str(row.get("homeID") or ""),str(row.get("awayID") or ""))
                 if old_pair!=new_pair:
                     conflicts+=1
+                    trace["trace_outcome"]="CONFLICT_FIXTURE_ID_TEAM_PAIR"
+                    trace["trace_reason"]="EXACT_PROVIDER_FIXTURE_ID_HAS_DIFFERENT_HOME_AWAY_TEAM_IDS"
+                    write_trace(trace_path,trace_rows)
                     raise SystemExit(f"FAIL: fixture ID {fid} conflicts with archive team IDs in archive season {archive_sid}")
                 already+=1
+                trace["trace_outcome"]="ALREADY_PRESENT_EXACT_FIXTURE_ID_AND_TEAM_IDS"
+                trace["trace_reason"]="PROVIDER_FIXTURE_ID_AND_ORDERED_TEAM_IDS_MATCH_ARCHIVE"
                 continue
-            if (archive_sid,fid) in seen: raise SystemExit(f"FAIL: duplicate snapshot fixture key {archive_sid}/{fid}")
+            if (archive_sid,fid) in seen:
+                trace["trace_outcome"]="DUPLICATE_SNAPSHOT_FIXTURE_KEY"
+                trace["trace_reason"]="DUPLICATE_ARCHIVE_SEASON_AND_FIXTURE_ID_IN_SNAPSHOT"
+                write_trace(trace_path,trace_rows)
+                raise SystemExit(f"FAIL: duplicate snapshot fixture key {archive_sid}/{fid}")
             seen.add((archive_sid,fid))
             # Keep provider-native fields, with no derived identities or invented data.
             clean=dict(row)
             clean["id"]=row["id"]
             records.append(clean)
             add_count+=1
+            trace["trace_outcome"]="STAGED_PROVIDER_NATIVE_ROW_RESEARCH_ONLY"
+            trace["trace_reason"]="EXACT_PROVIDER_NATIVE_ID_STAGED_WITHOUT_CANONICAL_JOIN_APPROVAL"
         args.out_archive.parent.mkdir(parents=True,exist_ok=True)
         with zipfile.ZipFile(args.out_archive,"w",zipfile.ZIP_DEFLATED) as dst:
             for info in src.infolist():
                 archive_sid=next((sid for sid,p in season_match_paths.items() if info.filename==p),None)
                 data=json.dumps(season_files[archive_sid],separators=(",",":"),ensure_ascii=False).encode("utf-8") if archive_sid is not None else src.read(info.filename)
                 dst.writestr(info,data)
+    trace_outcome_counts={}
+    for trace in trace_rows:
+        outcome=trace.get("trace_outcome") or "UNCLASSIFIED_TRACE_OUTCOME"
+        trace_outcome_counts[outcome]=trace_outcome_counts.get(outcome,0)+1
+    write_trace(trace_path,trace_rows)
     qa={
       "status":"PASS_RESEARCH_ONLY_STAGED" if conflicts==0 and not unsupported_labels else ("PARTIAL_RESEARCH_ONLY_UNSUPPORTED_LEAGUES" if conflicts==0 else "FAIL"),
       "source_provider":"FootyStats","snapshot_retrieved_utc":snap.get("retrieved_utc"),
+      "snapshot_file_sha256":snapshot_sha256,"source_archive_sha256":archive_sha256,
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":7,"candidate_rows_added":add_count,
       "already_present_exact_fixture_ids":already,"quarantined_or_invalid_rows":quarantined,
-      "unsupported_archive_rows_not_staged":unsupported_rows,"unsupported_selected_leagues":unsupported_labels,
+      "quarantine_reason_counts":dict(sorted(quarantine_reason_counts.items())),
+      "unsupported_archive_rows_not_staged":unsupported_rows,
+      "unsupported_selected_league_count":len(unsupported_labels),
+      "unsupported_selected_leagues":unsupported_labels,
       "historical_rows_not_staged":historical,"future_rows_beyond_7d_not_staged":beyond,
+      "candidate_trace_rows":len(trace_rows),
+      "candidate_trace_outcome_counts":dict(sorted(trace_outcome_counts.items())),
+      "candidate_trace_file":trace_path.name,
       "team_id_conflicts":conflicts,"production_writes":0,"model_logic_changed":False,
       "prediction_generated":False,"production_eligible":False,"betting_eligible":False,
-      "guard":"Only exact provider season/match IDs and unchanged provider-native fixture fields are staged. This is not canonical identity approval."
+      "guard":"Trace is sanitized row-level evidence only; provider-native IDs are preserved, canonical joins and official settlement truth remain unverified."
     }
     args.out_qa.parent.mkdir(parents=True,exist_ok=True)
     args.out_qa.write_text(json.dumps(qa,indent=2,sort_keys=True)+"\n",encoding="utf-8")
