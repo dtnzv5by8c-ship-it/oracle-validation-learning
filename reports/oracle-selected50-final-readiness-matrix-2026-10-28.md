@@ -100,6 +100,10 @@ A second, expanded FootyStats snapshot (30-day lookback + 14-day future window) 
 
 The latest three visible production `Oracle Current Data Staging` workflow runs (26–27 October) failed. The exact failure cause remains unverified because the connected log read did not expose the job logs. Do not infer a quota or code cause without the failure step. [Incident evidence and safe remediation](oracle-selected50-production-current-feed-incident-2026-10-28.md).
 
+## Market release readiness
+
+The historical walk-forward diagnostics remain research-only: across 50 leagues, positive Brier skill was stable across all available folds for 3 BTTS leagues, 17 DC_HOME, 19 DC_AWAY, 12 Home Combo and 18 Away Combo; 20 leagues per market have insufficient fold sample/metric. **Production-eligible leagues remain 0/50 for every market.** Combo probabilities remain masked pending canonical fixture/team joins and official settlement truth. The new FootyStats schedule rows are not model predictions. [Full market release readiness](oracle-selected50-market-release-readiness-2026-10-28.md).
+
 ## What is not unblocked
 
 1. The FootyStats snapshot is not the same feed as production's FotMob `database/current_matches.csv`. It must not be substituted silently into production.
