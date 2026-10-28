@@ -150,7 +150,7 @@ def main():
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
     season_set=set(season_ids)
     season_meta_by_id={str(x.get("selected_season_id") or "").strip():x for x in seasons if isinstance(x,dict)}
-    staged=[]; trace_rows=[]; quarantined=0; beyond=0; historical=0
+    staged=[]; trace_rows=[]; quarantined=0; beyond=0; beyond_total=0; beyond_quarantined=0; historical=0
     quarantine_reason_counts={}
     no_home_away_by_league={}
     for row_number, row in enumerate(fixture_rows, start=1):
@@ -176,27 +176,41 @@ def main():
             trace["trace_outcome"]="HISTORICAL_NOT_STAGED"
             trace["trace_reason"]="KICKOFF_NOT_AFTER_OVERLAY_START"
             continue
-        if ko>now+timedelta(days=7):
-            beyond+=1
-            trace["trace_outcome"]="BEYOND_7D_NOT_STAGED"
-            trace["trace_reason"]="KICKOFF_AFTER_SEVEN_DAY_STAGING_HORIZON"
-            continue
         status=str(row.get("status") or "").strip().lower()
         flag=no_home_away_flag(row.get("no_home_away"))
         meta=season_meta_by_id.get(sid,{})
+        within_7d = ko <= now+timedelta(days=7)
+        if not within_7d:
+            beyond_total+=1
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
-        league_diag=no_home_away_by_league.setdefault(league_key,{"selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),"future_rows_in_7d":0,"no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,"suspended_or_nonstandard_status":0,"status_not_eligible_for_future_fixture":0})
-        league_diag["future_rows_in_7d"]+=1
-        league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
+        league_diag=no_home_away_by_league.setdefault(league_key,{
+            "selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),
+            "future_rows_in_7d":0,"future_rows_beyond_7d":0,
+            "no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,
+            "no_home_away_true_beyond_7d":0,"no_home_away_false_beyond_7d":0,"no_home_away_unknown_beyond_7d":0,
+            "suspended_or_nonstandard_status":0,"status_not_eligible_for_future_fixture":0,
+            "suspended_or_nonstandard_status_beyond_7d":0,"status_not_eligible_for_future_fixture_beyond_7d":0
+        })
+        if within_7d:
+            league_diag["future_rows_in_7d"]+=1
+            league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
+        else:
+            league_diag["future_rows_beyond_7d"]+=1
+            league_diag["no_home_away_true_beyond_7d" if flag is True else "no_home_away_false_beyond_7d" if flag is False else "no_home_away_unknown_beyond_7d"]+=1
         reasons=[]
         if flag is True: reasons.append("NO_HOME_AWAY_FLAGGED")
         elif flag is None: reasons.append("NO_HOME_AWAY_FLAG_UNKNOWN")
         status_reason=future_status_quarantine_reason(status)
         if status_reason:
             reasons.append(status_reason)
-            league_diag["status_not_eligible_for_future_fixture"]+=1
-            if status_reason != "MISSING_STATUS":
-                league_diag["suspended_or_nonstandard_status"]+=1
+            if within_7d:
+                league_diag["status_not_eligible_for_future_fixture"]+=1
+                if status_reason != "MISSING_STATUS":
+                    league_diag["suspended_or_nonstandard_status"]+=1
+            else:
+                league_diag["status_not_eligible_for_future_fixture_beyond_7d"]+=1
+                if status_reason != "MISSING_STATUS":
+                    league_diag["suspended_or_nonstandard_status_beyond_7d"]+=1
         if not valid_id(row.get("id")): reasons.append("INVALID_FIXTURE_ID")
         if not valid_id(row.get("homeID")): reasons.append("INVALID_HOME_TEAM_ID")
         if not valid_id(row.get("awayID")): reasons.append("INVALID_AWAY_TEAM_ID")
@@ -204,10 +218,18 @@ def main():
         if not str(row.get("away_name") or "").strip(): reasons.append("MISSING_AWAY_TEAM_NAME")
         if reasons:
             quarantined+=1
+            if not within_7d:
+                beyond_quarantined+=1
+                reasons.append("OUTSIDE_7D_STAGING_HORIZON")
             trace["trace_outcome"]="QUARANTINED_INVALID_OR_NONSTANDARD"
             trace["trace_reason"]=";".join(reasons)
             for reason in reasons:
                 quarantine_reason_counts[reason]=quarantine_reason_counts.get(reason,0)+1
+            continue
+        if not within_7d:
+            beyond+=1
+            trace["trace_outcome"]="BEYOND_7D_NOT_STAGED"
+            trace["trace_reason"]="KICKOFF_AFTER_SEVEN_DAY_STAGING_HORIZON"
             continue
         trace["trace_outcome"]="ELIGIBLE_FOR_ARCHIVE_TARGET_RESOLUTION"
         trace["trace_reason"]="VALID_FUTURE_STANDARD_FIXTURE_WITH_SOURCE_TEAM_IDS"
@@ -350,6 +372,7 @@ def main():
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":7,"candidate_rows_added":add_count,
+      "future_rows_beyond_7d_total":beyond_total,"future_rows_beyond_7d_quarantined":beyond_quarantined,
       "already_present_exact_fixture_ids":already,
       "refreshed_present_exact_fixture_ids":refreshed,
       "quarantined_or_invalid_rows":quarantined,
