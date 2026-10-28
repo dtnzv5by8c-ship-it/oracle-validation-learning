@@ -59,6 +59,50 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             adapt(snap)
 
+    def test_snapshot_retrieval_timestamp_is_required(self):
+        snap = snapshot_with({
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00+00:00", "status": "incomplete",
+        })
+        snap.pop("retrieved_utc")
+        with self.assertRaisesRegex(ValueError, "retrieved_utc is required"):
+            adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+
+    def test_snapshot_retrieval_timestamp_must_be_timezone_aware(self):
+        snap = snapshot_with({
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00+00:00", "status": "incomplete",
+        })
+        snap["retrieved_utc"] = "2026-10-28T06:00:00"
+        with self.assertRaisesRegex(ValueError, "explicit timezone"):
+            adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+
+    def test_future_snapshot_retrieval_timestamp_fails_closed(self):
+        snap = snapshot_with({
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00+00:00", "status": "incomplete",
+        })
+        snap["retrieved_utc"] = "2026-10-28T13:00:00Z"
+        with self.assertRaisesRegex(ValueError, "cannot be later"):
+            adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+
+    def test_snapshot_hash_and_retrieval_time_are_exported(self):
+        snap = snapshot_with({
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home", "away_name": "Away",
+            "kickoff_utc": "2026-10-30T18:00:00+00:00", "status": "incomplete",
+        })
+        rows, manifest = adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        digest = manifest["source_snapshot_sha256"]
+        self.assertRegex(digest, r"^[0-9a-f]{64}$")
+        self.assertEqual(manifest["source_snapshot_hash_method"], "canonical_json_sha256_sorted_keys_compact_v1")
+        self.assertEqual(rows[0]["source_snapshot_sha256"], digest)
+        self.assertEqual(rows[0]["source_snapshot_retrieved_utc"], "2026-10-28T06:00:00Z")
+        self.assertEqual(manifest["source_snapshot_age_seconds_at_adaptation"], 21600)
+
     def test_duplicate_match_id_in_season_fails_closed(self):
         row = {"selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
                "home_name": "Home", "away_name": "Away", "kickoff_utc": "2026-10-30T18:00:00+00:00",
