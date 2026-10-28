@@ -109,5 +109,7 @@ jobs:
             selected50_cross_provider_audit_output/fotmob_bridge_candidates.csv
             selected50_cross_provider_audit_output/canonical_code_candidates.csv
             selected50_cross_provider_audit_output/exact_fixture_join_rows.csv
+            selected50_cross_provider_audit_output/date_only_ledger_candidate_rows.csv
+            selected50_cross_provider_audit_output/date_only_ledger_candidates.csv
           if-no-files-found: error
           retention-days: 14
