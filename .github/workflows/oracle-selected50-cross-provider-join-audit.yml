@@ -1,0 +1,102 @@
+name: Oracle Selected-50 Exact Cross-Provider Fixture Join Audit (Research Only)
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/audit_selected50_cross_provider_fixture_joins.py"
+      - ".github/workflows/oracle-selected50-cross-provider-join-audit.yml"
+      - "reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md"
+      - "reports/oracle-selected50-provider-identity-reconciliation-2026-10-27.csv"
+  workflow_dispatch:
+    inputs:
+      confirm_private_archive_and_fixture_read:
+        description: "Confirm read-only use of the existing private FootyStats archive and current FotMob match CSV"
+        required: true
+        type: boolean
+        default: false
+      private_archive_release_tag:
+        description: "Exact private research archive release tag"
+        required: true
+        type: string
+        default: "research-selected50-footystats-history-40447419806"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-cross-provider-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Guard read-only private source access
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PRIVATE_READ: ${{ inputs.confirm_private_archive_and_fixture_read }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            [[ "${CONFIRM_PRIVATE_READ:-false}" == "true" ]] || { echo "::error::Explicit read confirmation required; no private files downloaded."; exit 1; }
+          fi
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing."; exit 1; }
+          gh auth status
+
+      - name: Download and verify existing private FootyStats archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag || 'research-selected50-footystats-history-40447419806' }}
+        run: |
+          set -euo pipefail
+          [[ "${PRIVATE_ARCHIVE_RELEASE_TAG}" =~ ^research-selected50-footystats-history-[0-9]+$ ]] || { echo "::error::Invalid private archive release tag format."; exit 1; }
+          mkdir -p private-download private-source
+          gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}" \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --pattern 'private-package.sha256' \
+            --dir private-download
+          (cd private-download && sha256sum -c private-package.sha256)
+
+      - name: Read current FotMob match CSV and source manifest (read-only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/vnd.github.raw" \
+            "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/database/matches.csv?ref=fix%2Fepl-btts-team-state-aliases" \
+            > private-source/matches.csv
+          gh api -H "Accept: application/vnd.github.raw" \
+            "repos/dtnzv5by8c-ship-it/oracle-football-data/contents/data/current_source_manifest.json?ref=fix%2Fepl-btts-team-state-aliases" \
+            > private-source/current_source_manifest.json
+          test -s private-source/matches.csv
+          test -s private-source/current_source_manifest.json
+          sha256sum private-source/matches.csv private-source/current_source_manifest.json
+
+      - name: Run exact join audit; no provider calls and no production writes
+        run: |
+          python scripts/audit_selected50_cross_provider_fixture_joins.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --current-matches private-source/matches.csv \
+            --manifest reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md \
+            --identity-crosswalk reports/oracle-selected50-provider-identity-reconciliation-2026-10-27.csv \
+            --current-source-manifest private-source/current_source_manifest.json \
+            --out selected50_cross_provider_audit_output
+
+      - name: Upload sanitized candidate bridge evidence only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-cross-provider-fixture-join-audit
+          path: |
+            selected50_cross_provider_audit_output/audit_summary.json
+            selected50_cross_provider_audit_output/bridge_candidates.csv
+            selected50_cross_provider_audit_output/exact_fixture_join_rows.csv
+          if-no-files-found: error
+          retention-days: 14
