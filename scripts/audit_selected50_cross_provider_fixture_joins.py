@@ -27,7 +27,7 @@ def timestamp(row,keys):
         try:
             s=str(value).strip().replace("Z","+00:00")
             # Exact fixture joins require a time-of-day; date-only values are not midnight UTC.
-            if not re.search(r"\\d{2}:\\d{2}",s): continue
+            if not re.search(r"\d{2}:\d{2}",s): continue
             parsed=datetime.fromisoformat(s)
             if parsed.tzinfo is None: parsed=parsed.replace(tzinfo=timezone.utc)
             return int(parsed.timestamp())
@@ -93,11 +93,11 @@ def load_historical_ledger(path):
             stats["source_rows_seen"]+=1
             ts=timestamp(r,("date_unix","kickoff_unix","timestamp_unix","date_utc","kickoff_utc","date"))
             raw_date=str(r.get("date_utc") or r.get("date") or r.get("kickoff_utc") or "").strip()
-            date_key=raw_date[:10] if re.match(r"^\\d{4}-\\d{2}-\\d{2}",raw_date) else ""
+            date_key=raw_date[:10] if re.match(r"^\d{4}-\d{2}-\d{2}",raw_date) else ""
             if ts is not None:
                 precision="EXACT_UTC_KICKOFF";stats["rows_exact_kickoff"]+=1
                 if not date_key: date_key=datetime.fromtimestamp(ts,timezone.utc).date().isoformat()
-            elif date_key and not re.search(r"\\d{2}:\\d{2}",raw_date):
+            elif date_key and not re.search(r"\d{2}:\d{2}",raw_date):
                 precision="DATE_ONLY_NO_KICKOFF_PROOF";stats["rows_date_only"]+=1
             else:
                 stats["rows_missing_exact_kickoff"]+=1
