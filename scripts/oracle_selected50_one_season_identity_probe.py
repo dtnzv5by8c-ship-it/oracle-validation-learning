@@ -37,7 +37,7 @@ url = "https://api.football-data-api.com/league-season?" + urlencode({
     "season_id": sample["selected_season_id"],
 })
 summary = {
-    "diagnostic": "ONE_CALL_SELECTED_SEASON_IDENTITY_PROBE",
+    "diagnostic": "ONE_CALL_SELECTED_SEASON_IDENTITY_PROBE_EXPANDED_FIELDS",
     "planned_requests": 1,
     "actual_request_attempted": True,
     "selected_season_id": sample["selected_season_id"],
@@ -82,8 +82,9 @@ if isinstance(payload, dict):
         summary["returned_data_shape"] = type(data).__name__
         summary["returned_data_count"] = None
         data = {}
-    allow = ("id", "name", "league_name", "competition_name", "country", "country_name",
-             "season", "season_name", "year", "starting_year", "ending_year")
+    allow = ("id", "comp_master_id", "parent_competition_id", "parent_id", "league_id", "competition_id",
+             "name", "league_name", "competition_name", "country", "country_name", "iso", "type", "division",
+             "url", "parent_url", "shortHand", "short_hand", "season", "season_name", "year", "starting_year", "ending_year")
     summary["returned_fields"] = {k: data.get(k) for k in allow if k in data and isinstance(data.get(k), (str, int, float, bool, type(None)))}
     if summary["provider_success"] and summary["http_status"] == 200:
         summary["interpretation"] = "Provider response received. Identifier semantics remain unverified; compare returned fields to official docs and existing catalogue before any mapping."
