@@ -445,5 +445,53 @@ class SafeCurrentReportContractTests(unittest.TestCase):
 
 
 
+
+    def test_expanded_horizon_requires_snapshot_start_to_cover_runtime_start(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [
+                {"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"}
+                for i in range(50)
+            ]
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.writer(h)
+                w.writerow([
+                    "provider_season_id", "fixture_id", "date_utc",
+                    "home_team_provider_id", "away_team_provider_id"
+                ])
+                w.writerow(["0", "A", "2026-10-29T12:00:00Z", "1", "2"])
+            scenarios = [
+                (None, "snapshot window_start_utc must be valid timezone-aware ISO-8601"),
+                ("2026-10-28T10:01:00Z", "window_start_utc is later than runtime start"),
+            ]
+            for index, (window_start, message) in enumerate(scenarios):
+                with self.subTest(window_start=window_start), tempfile.TemporaryDirectory() as case_dir:
+                    case = Path(case_dir)
+                    snap_obj = {
+                        "retrieved_utc": "2026-10-28T09:59:00Z",
+                        "window_end_utc": "2026-11-11T10:02:00Z",
+                        "per_season": seasons,
+                        "fixture_rows": [],
+                    }
+                    if window_start is not None:
+                        snap_obj["window_start_utc"] = window_start
+                    snap = case / "snapshot.json"
+                    snap.write_text(json.dumps(snap_obj), encoding="utf-8")
+                    out = case / "out"
+                    proc = subprocess.run([
+                        sys.executable, str(SCRIPT),
+                        "--snapshot", str(snap),
+                        "--runtime-report", str(report),
+                        "--out-dir", str(out),
+                        "--as-of-utc", "2026-10-28T10:02:00Z",
+                        "--runtime-started-utc", "2026-10-28T10:00:00Z",
+                        "--report-horizon-days", "14",
+                        "--runtime-horizon-days", "7",
+                    ], text=True, capture_output=True)
+                    self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                    self.assertIn(message, proc.stderr)
+                    self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
+
 if __name__ == "__main__":
     unittest.main()
