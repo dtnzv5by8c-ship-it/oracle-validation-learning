@@ -15,10 +15,10 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             root = Path(td)
             seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
             fixtures = [
-                {"selected_season_id":"0","id":"100","kickoff_utc":"2026-10-29T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2","home_name":"Home A","away_name":"Away A"},
-                {"selected_season_id":"1","id":"101","kickoff_utc":"2026-10-29T13:00:00Z","status":"scheduled","no_home_away":1,"homeID":"3","awayID":"4","home_name":"Home B","away_name":"Away B"},
-                {"selected_season_id":"2","id":"102","kickoff_utc":"2026-10-29T14:00:00Z","status":"scheduled","no_home_away":None,"homeID":"5","awayID":"6","home_name":"Home C","away_name":"Away C"},
-                {"selected_season_id":"3","id":"103","kickoff_utc":"2026-10-29T15:00:00Z","status":"scheduled","no_home_away":0,"homeID":"7","awayID":"8","home_name":"Home D","away_name":"Away D"},
+                {"selected_season_id":"0","id":"100","kickoff_utc":"2026-10-29T12:00:00Z","status":"incomplete","no_home_away":0,"homeID":"1","awayID":"2","home_name":"Home A","away_name":"Away A"},
+                {"selected_season_id":"1","id":"101","kickoff_utc":"2026-10-29T13:00:00Z","status":"incomplete","no_home_away":1,"homeID":"3","awayID":"4","home_name":"Home B","away_name":"Away B"},
+                {"selected_season_id":"2","id":"102","kickoff_utc":"2026-10-29T14:00:00Z","status":"incomplete","no_home_away":None,"homeID":"5","awayID":"6","home_name":"Home C","away_name":"Away C"},
+                {"selected_season_id":"3","id":"103","kickoff_utc":"2026-10-29T15:00:00Z","status":"incomplete","no_home_away":0,"homeID":"7","awayID":"8","home_name":"Home D","away_name":"Away D"},
             ]
             snap = root / "snapshot.json"
             snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
@@ -98,7 +98,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
             fixtures = [{
                 "selected_season_id": "0", "id": "100",
-                "kickoff_utc": "2026-10-29T12:00:00Z", "status": "scheduled",
+                "kickoff_utc": "2026-10-29T12:00:00Z", "status": "incomplete",
                 "no_home_away": 0, "homeID": "1", "awayID": "2",
                 "home_name": "Home A", "away_name": "Away A"
             }]
@@ -182,12 +182,12 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             root = Path(td)
             seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
             fixtures = [
-                {"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-29T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2"},
-                {"selected_season_id":"1","id":"B","kickoff_utc":"2026-11-07T13:00:00Z","status":"scheduled","no_home_away":0,"homeID":"3","awayID":"4"},
-                {"selected_season_id":"2","id":"C","kickoff_utc":"2026-11-08T14:00:00Z","status":"scheduled","no_home_away":1,"homeID":"5","awayID":"6"},
+                {"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-29T12:00:00Z","status":"incomplete","no_home_away":0,"homeID":"1","awayID":"2"},
+                {"selected_season_id":"1","id":"B","kickoff_utc":"2026-11-07T13:00:00Z","status":"incomplete","no_home_away":0,"homeID":"3","awayID":"4"},
+                {"selected_season_id":"2","id":"C","kickoff_utc":"2026-11-08T14:00:00Z","status":"incomplete","no_home_away":1,"homeID":"5","awayID":"6"},
                 {"selected_season_id":"3","id":"D","kickoff_utc":"2026-11-09T14:00:00Z","status":"suspended","no_home_away":0,"homeID":"7","awayID":"8"},
-                {"selected_season_id":"4","id":"E","kickoff_utc":"2026-10-31T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"9","awayID":"10"},
-                {"selected_season_id":"5","id":"F","kickoff_utc":"2026-10-28T10:05:00Z","status":"scheduled","no_home_away":0,"homeID":"11","awayID":"12"},
+                {"selected_season_id":"4","id":"E","kickoff_utc":"2026-10-31T12:00:00Z","status":"incomplete","no_home_away":0,"homeID":"9","awayID":"10"},
+                {"selected_season_id":"5","id":"F","kickoff_utc":"2026-10-28T10:05:00Z","status":"incomplete","no_home_away":0,"homeID":"11","awayID":"12"},
             ]
             snap = root / "snapshot.json"
             snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
@@ -249,9 +249,10 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             root = Path(td)
             seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
             fixtures = [
-                {"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-30T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2"},
+                {"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-30T12:00:00Z","status":"incomplete","no_home_away":0,"homeID":"1","awayID":"2"},
                 {"selected_season_id":"1","id":"B","kickoff_utc":"2026-11-02T12:00:00Z","status":"finished","no_home_away":0,"homeID":"3","awayID":"4"},
                 {"selected_season_id":"2","id":"C","kickoff_utc":"2026-11-08T12:00:00Z","status":"complete","no_home_away":0,"homeID":"5","awayID":"6"},
+                {"selected_season_id":"3","id":"D","kickoff_utc":"2026-11-08T14:00:00Z","status":"scheduled","no_home_away":0,"homeID":"7","awayID":"8"},
             ]
             snap = root / "snapshot.json"
             snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
@@ -279,6 +280,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(qa["source_candidates_outside_runtime_window_not_missing_join"], 0)
             self.assertEqual(qa["safe_exact_join_rows"], 1)
             self.assertEqual(qa["reason_counts"]["QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF"], 2)
+            self.assertEqual(qa["reason_counts"]["QUARANTINE_UNKNOWN_OR_UNSUPPORTED_FUTURE_STATUS"], 1)
             with (out / "oracle_selected50_safe_current_fixture_exclusions.csv").open(newline="", encoding="utf-8") as h:
                 excluded = list(csv.DictReader(h))
             by_id = {r["fixture_id"]: r for r in excluded}
@@ -289,6 +291,12 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 self.assertEqual(by_id[fixture_id]["combo_probability_emitted"], "0")
                 self.assertEqual(by_id[fixture_id]["production_eligible"], "NO")
                 self.assertEqual(by_id[fixture_id]["betting_eligible"], "NO")
+            self.assertEqual(by_id["D"]["classification"], "QUARANTINE_UNKNOWN_OR_UNSUPPORTED_FUTURE_STATUS")
+            self.assertEqual(by_id["D"]["market_gate_status"], "BLOCKED_SOURCE_QUARANTINE")
+            self.assertEqual(by_id["D"]["combo_masked"], "YES")
+            self.assertEqual(by_id["D"]["combo_probability_emitted"], "0")
+            self.assertEqual(by_id["D"]["production_eligible"], "NO")
+            self.assertEqual(by_id["D"]["betting_eligible"], "NO")
 
     def test_expanded_report_requires_runtime_start_and_runtime_horizon_stays_at_most_seven_days(self):
         with tempfile.TemporaryDirectory() as td:
@@ -324,7 +332,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             snap = root / "snapshot.json"
             snap.write_text(json.dumps({
                 "retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,
-                "fixture_rows":[{"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-29T12:00:00Z","status":"scheduled","no_home_away":0,"homeID":"1","awayID":"2"}]
+                "fixture_rows":[{"selected_season_id":"0","id":"A","kickoff_utc":"2026-10-29T12:00:00Z","status":"incomplete","no_home_away":0,"homeID":"1","awayID":"2"}]
             }), encoding="utf-8")
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
