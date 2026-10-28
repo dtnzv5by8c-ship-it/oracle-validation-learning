@@ -110,7 +110,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
                 w = csv.DictWriter(h, fieldnames=[
-                    "provider_season_id", "fixture_id", "home_team_provider_id",
+                    "provider_season_id", "fixture_id", "date_utc", "home_team_provider_id",
                     "away_team_provider_id", "BTTS_probability_pct"
                 ])
                 w.writeheader()
