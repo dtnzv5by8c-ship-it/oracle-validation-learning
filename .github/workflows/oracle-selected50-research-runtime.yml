@@ -1,19 +1,6 @@
 name: Oracle Selected-50 Research Runtime and Backtest
 
 on:
-  push:
-    branches:
-      - research/oracle-50-league-readiness-audit
-    paths:
-      - "**"
-      - "!reports/**"
-      - "!tests/**"
-      - "!scripts/qa_selected50_private_archive.py"
-      - "!scripts/settle_market_from_final_score.py"
-      - "!*.md"
-      - "!**/*.md"
-      - "!.github/workflows/**"
-      - ".github/workflows/oracle-selected50-research-runtime.yml"
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:

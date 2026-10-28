@@ -6,6 +6,9 @@ on:
     paths:
       - "scripts/oracle_selected50_footystats_identity_resolver.py"
       - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+      - "scripts/diagnose_selected50_feature_blockers.py"
+      - "tests/test_selected50_feature_blocker_diagnostics.py"
+      - ".github/workflows/oracle-selected50-research-runtime.yml"
       - "scripts/oracle_selected50_footystats_adapter.py"
       - "tests/test_oracle_selected50_footystats_adapter.py"
       - "scripts/validate_identity_settlement_evidence_register.py"
@@ -40,7 +43,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile research identity and settlement tools
-        run: python -m py_compile scripts/oracle_selected50_footystats_identity_resolver.py scripts/oracle_selected50_footystats_adapter.py scripts/validate_identity_settlement_evidence_register.py
+        run: python -m py_compile scripts/oracle_selected50_footystats_identity_resolver.py scripts/oracle_selected50_footystats_adapter.py scripts/validate_identity_settlement_evidence_register.py scripts/diagnose_selected50_feature_blockers.py
       - name: Validate fixture-level identity and settlement evidence
         run: python scripts/validate_identity_settlement_evidence_register.py --input data/oracle-identity-settlement-evidence-register-2026-10-28.csv --output identity_settlement_evidence_summary.json
       - name: Run identity and settlement evidence regression tests
@@ -49,6 +52,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_oracle_selected50_footystats_identity_resolver.py' -v
       - name: Run FootyStats adapter unit tests
         run: python -m unittest discover -s tests -p 'test_oracle_selected50_footystats_adapter.py' -v
+      - name: Run Selected-50 feature blocker diagnostics tests
+        run: python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
       - name: Upload sanitized identity and settlement evidence
         uses: actions/upload-artifact@v4
         with:
@@ -57,5 +62,6 @@ jobs:
             identity_settlement_evidence_summary.json
             data/oracle-identity-settlement-evidence-register-2026-10-28.csv
             reports/oracle-selected50-identity-settlement-evidence-followup-2026-10-28.md
+            reports/oracle-selected50-feature-blocker-diagnostic-2026-10-28-1523-sast.md
           if-no-files-found: error
           retention-days: 14
