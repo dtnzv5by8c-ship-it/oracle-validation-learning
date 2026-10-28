@@ -135,6 +135,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(qa["candidate_trace_rows"], len(fixture_rows))
             self.assertEqual(qa["snapshot_file_sha256"], hashlib.sha256(snapshot_bytes).hexdigest())
             self.assertEqual(qa["source_archive_sha256"], hashlib.sha256(archive_path.read_bytes()).hexdigest())
+            self.assertEqual(qa["overlay_archive_sha256"], hashlib.sha256(out_archive.read_bytes()).hexdigest())
             self.assertEqual(len(trace_rows), len(fixture_rows))
             self.assertEqual(by_id["FUTURE-1"]["trace_outcome"], "STAGED_PROVIDER_NATIVE_ROW_RESEARCH_ONLY")
             self.assertEqual(by_id["UNSUPPORTED-1"]["trace_outcome"], "UNSUPPORTED_ARCHIVE_NO_EXACT_LABEL_SEASON_WITH_MATCHES_AND_TEAMS")
