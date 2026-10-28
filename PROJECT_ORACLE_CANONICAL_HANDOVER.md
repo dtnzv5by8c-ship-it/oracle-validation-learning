@@ -672,3 +672,14 @@ Report: [production current-feed incident](reports/oracle-selected50-production-
 
 ### Automation and continuity honesty
 Do not promise background work merely because a new chat is open. Use configured scheduled tasks and GitHub Actions only when their enabled status/run evidence is verified. In an active session, continue directly to the next executable action; report only a major milestone, a real blocker, or a user action that is genuinely required. Do not loop through status-only updates.
+
+
+## 55. Post-deadline automation resumption — 2026-10-28 12:15 SAST
+
+Following Nolan's explicit request to continue with staggered automation, the three relevant Project Oracle research automations were re-enabled and their prompts refreshed to reflect Section 54 and the latest verified evidence:
+
+- **Oracle Identity & Settlement** — ID `6add0da349608191b33619803d020852`; hourly at minute 00, starting 13:00 SAST.
+- **Oracle Runtime & Regression** — ID `6ae0e7bd48088191b5788b08f94cc406`; hourly at minute 20, starting 13:20 SAST.
+- **Oracle Coverage, Release & H2H** — ID `6adce619e5608191903be8b07e3f5170`; hourly at minute 40, starting 13:40 SAST.
+
+The automation update calls returned `success=true` and `is_enabled=true`. The scheduler response did not supply next-run timestamps, so the first actual execution still needs verification through a subsequent peek/run record. These assistant automations are separate from GitHub Actions. They must not repeat completed FootyStats probes, make new provider calls without a new justified question and budget check, or touch production logic. They do not guarantee uninterrupted eight-hour background execution; report completion only when the recorded task result and evidence support it.
