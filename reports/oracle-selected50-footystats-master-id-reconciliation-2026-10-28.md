@@ -78,6 +78,14 @@ The official FootyStats API overview lists `comp_master_id` among its league dat
 | Uruguay | Primera División | 16708 | 331 | 2026 | uy | 200 | SEASON_ID_COUNTRY_NAME_MATCH_PARENT_FIELD_REQUIRES_SEMANTIC_REVIEW |
 | Venezuela | Primera División | 16617 | 339 | 2026 | ve | 200 | SEASON_ID_COUNTRY_NAME_MATCH_PARENT_FIELD_REQUIRES_SEMANTIC_REVIEW |
 
+## Cross-provider overlap result
+
+The later overlap audit found eight exact team-pair + UTC-kickoff joins across two selected leagues:
+- Canada Canadian Premier League: FootyStats season 16741 / master ID 524 ↔ candidate FotMob league ID 1000001192; four exact joins, three completed score agreements and one score/status conflict.
+- England EFL League One: FootyStats season 17180 / master ID 6 ↔ candidate FotMob league ID 938219; four exact joins, one completed score agreement and three postponed/suspended matches.
+
+These are strong **research-only candidates**, not approved canonical bridges. The Canadian conflict must remain quarantined. See [full overlap join audit](oracle-selected50-footystats-fotmob-overlap-join-audit-2026-10-28.md).
+
 ## What this resolves
 
 - Confirms all 50 selected IDs are recognized by the FootyStats `league-season` endpoint at the time of the probe.
