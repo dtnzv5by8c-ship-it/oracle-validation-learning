@@ -97,6 +97,8 @@ jobs:
             cp private-download/oracle-selected50-runtime-input.zip private-download/oracle-selected50-runtime-selected.zip
           else
             cp private-download/oracle-selected50-footystats-private-ingestion.zip private-download/oracle-selected50-runtime-selected.zip
+            mkdir -p selected50_runtime_output
+            echo '{"status":"NOT_RUN_SNAPSHOT_OVERLAY_DISABLED","production_eligible":false,"betting_eligible":false}' > selected50_runtime_output/current_snapshot_overlay_qa.json
           fi
 
       - name: Install research runtime dependencies
