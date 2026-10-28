@@ -1,0 +1,61 @@
+name: Oracle Selected-50 Snapshot-to-Runtime Bridge Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      snapshot_run_id:
+        description: "Successful current-fixture snapshot workflow run ID"
+        required: true
+        default: "40708750173"
+        type: string
+      runtime_run_id:
+        description: "Successful research-runtime workflow run ID"
+        required: true
+        default: "40708378185"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  bridge-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download exact successful run artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_RUN_ID: ${{ inputs.snapshot_run_id }}
+          RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SNAPSHOT_RUN_ID" =~ ^[0-9]+$ && "$RUNTIME_RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::Run IDs must be numeric."; exit 1; }
+          mkdir -p input/snapshot input/runtime
+          gh run download "$SNAPSHOT_RUN_ID" --repo "$GITHUB_REPOSITORY" --name oracle-selected50-current-fixture-snapshot --dir input/snapshot
+          gh run download "$RUNTIME_RUN_ID" --repo "$GITHUB_REPOSITORY" --name oracle-selected50-research-runtime-report --dir input/runtime
+          test -f input/snapshot/current-fixture-snapshot.json
+          test -f input/runtime/oracle_selected50_prediction_report.csv
+
+      - name: Run read-only exact identity bridge audit
+        run: |
+          python scripts/audit_selected50_snapshot_runtime_bridge.py \
+            --snapshot input/snapshot/current-fixture-snapshot.json \
+            --runtime-report input/runtime/oracle_selected50_prediction_report.csv \
+            --out-dir selected50_bridge_output
+
+      - name: Upload sanitized bridge audit only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-snapshot-runtime-bridge-audit
+          path: |
+            selected50_bridge_output/oracle_selected50_snapshot_runtime_bridge.csv
+            selected50_bridge_output/oracle_selected50_snapshot_runtime_bridge_qa.json
+          if-no-files-found: error
+          retention-days: 14
