@@ -38,7 +38,8 @@ class IdentityQuarantineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             summary = MODULE.reconcile(MODULE.DEFAULT_CROSSWALK, MODULE.DEFAULT_COLLISIONS, td)
             out = Path(td)
-            rows = list(csv.DictReader((out / "selected50_current_feed_identity_quarantine.csv").open(encoding="utf-8", newline="")))
+            with (out / "selected50_current_feed_identity_quarantine.csv").open(encoding="utf-8", newline="") as csv_file:
+                rows = list(csv.DictReader(csv_file))
             loaded = json.loads((out / "selected50_current_feed_identity_quarantine_summary.json").read_text(encoding="utf-8"))
             self.assertEqual(len(rows), 50)
             self.assertEqual(len({r["selected_season_id"] for r in rows}), 50)
