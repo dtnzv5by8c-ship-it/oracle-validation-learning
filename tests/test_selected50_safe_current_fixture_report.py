@@ -21,7 +21,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 {"selected_season_id":"3","id":"103","kickoff_utc":"2026-10-29T15:00:00Z","status":"scheduled","no_home_away":0,"homeID":"7","awayID":"8","home_name":"Home D","away_name":"Away D"},
             ]
             snap = root / "snapshot.json"
-            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
+            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
                 w = csv.DictWriter(h, fieldnames=[
@@ -190,7 +190,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 {"selected_season_id":"5","id":"F","kickoff_utc":"2026-10-28T10:05:00Z","status":"scheduled","no_home_away":0,"homeID":"11","awayID":"12"},
             ]
             snap = root / "snapshot.json"
-            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
+            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
                 w = csv.DictWriter(h, fieldnames=[
@@ -254,7 +254,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                 {"selected_season_id":"2","id":"C","kickoff_utc":"2026-11-08T12:00:00Z","status":"complete","no_home_away":0,"homeID":"5","awayID":"6"},
             ]
             snap = root / "snapshot.json"
-            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
+            snap.write_text(json.dumps({"retrieved_utc":"2026-10-28T00:00:00Z","window_start_utc":"2026-09-28T10:00:00Z","window_end_utc":"2026-11-11T10:00:00Z","per_season":seasons,"fixture_rows":fixtures}), encoding="utf-8")
             report = root / "runtime.csv"
             with report.open("w", newline="", encoding="utf-8") as h:
                 w = csv.DictWriter(h, fieldnames=[
@@ -395,6 +395,54 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
             self.assertIn("post-runtime snapshot cannot establish out-of-window versus missing-join coverage", proc.stderr)
             self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
+
+
+    def test_expanded_horizon_requires_declared_snapshot_coverage_end(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [
+                {"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"}
+                for i in range(50)
+            ]
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.writer(h)
+                w.writerow([
+                    "provider_season_id", "fixture_id", "date_utc",
+                    "home_team_provider_id", "away_team_provider_id"
+                ])
+                w.writerow(["0", "A", "2026-10-29T12:00:00Z", "1", "2"])
+            scenarios = [
+                (None, "snapshot window_end_utc must be valid timezone-aware ISO-8601"),
+                ("2026-11-11T09:00:00Z", "extends 3600 seconds beyond declared snapshot window_end_utc"),
+            ]
+            for window_end, message in scenarios:
+                with self.subTest(window_end=window_end):
+                    snap_obj = {
+                        "retrieved_utc": "2026-10-28T00:00:00Z",
+                        "window_start_utc": "2026-09-28T10:00:00Z",
+                        "per_season": seasons,
+                        "fixture_rows": [],
+                    }
+                    if window_end is not None:
+                        snap_obj["window_end_utc"] = window_end
+                    snap = root / ("snapshot-missing-end.json" if window_end is None else "snapshot-short-window.json")
+                    snap.write_text(json.dumps(snap_obj), encoding="utf-8")
+                    out = root / ("out-missing-end" if window_end is None else "out-short-window")
+                    proc = subprocess.run([
+                        sys.executable, str(SCRIPT),
+                        "--snapshot", str(snap),
+                        "--runtime-report", str(report),
+                        "--out-dir", str(out),
+                        "--as-of-utc", "2026-10-28T10:00:00Z",
+                        "--runtime-started-utc", "2026-10-28T10:00:00Z",
+                        "--report-horizon-days", "14",
+                        "--runtime-horizon-days", "7",
+                    ], text=True, capture_output=True)
+                    self.assertNotEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                    self.assertIn(message, proc.stderr)
+                    self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
+
 
 
 if __name__ == "__main__":
