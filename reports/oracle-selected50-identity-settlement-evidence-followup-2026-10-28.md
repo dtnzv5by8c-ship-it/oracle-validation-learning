@@ -60,9 +60,11 @@ The focused public GitHub Actions run and sanitized artifact are recorded in the
 
 ## 7. Focused validation evidence
 
-- Code/report/register commit: [31b73d3ad75ca09ce9c604d0e6cece90201e6a02](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/31b73d3ad75ca09ce9c604d0e6cece90201e6a02).
-- Focused public CI run: [40680130993 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680130993), head SHA `31b73d3ad75ca09ce9c604d0e6cece90201e6a02`.
-- Sanitized CI artifact: [12811837484 — oracle-identity-settlement-evidence-40680130993](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680130993/artifacts/12811837484). It contains the validator summary JSON, the 10-row register and this report.
+- Evidence register, validator, report and workflow implementation: [31b73d3ad75ca09ce9c604d0e6cece90201e6a02](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/31b73d3ad75ca09ce9c604d0e6cece90201e6a02).
+- Exact-fixture test hardening: [b74694ad840b29e28b13b40e453687f5f3fc500d](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/b74694ad840b29e28b13b40e453687f5f3fc500d); the new regression pins all ten FootyStats/FotMob fixture-ID pairs, ordered teams, UTC kickoff timestamps, statuses and scores.
+- Latest focused public CI run: [40680433628 — success](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680433628), head SHA `b74694ad840b29e28b13b40e453687f5f3fc500d`.
+- Sanitized CI artifact: [12812407352 — oracle-identity-settlement-evidence-40680433628](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40680433628/artifacts/12812407352). It contains the validator summary JSON, the 10-row register and this report.
 - Validator summary: 10 evidence rows; 6 completed cross-provider score agreements; 1 Canada conflict quarantined; 3 EFL postponed/suspended 0–0 rows excluded; 0 official settlement-truth rows; 0 approved canonical bridges; 0 Combo-unmasked rows; 0 production-eligible rows; 0 betting-eligible rows; 0 provider API calls; 0 production writes.
-- Focused CI tests passed: 9 new register tests, 7 existing identity-resolver tests and 12 existing adapter tests (**28 tests total**). The run also compiled the research tools and validated the register.
+- Focused CI tests passed: 10 register tests, 7 existing identity-resolver tests and 12 existing adapter tests (**29 tests total**). The run also compiled the research tools and validated the register.
 - Passing means the evidence register and its fail-closed rules are internally consistent. It does **not** resolve the Canadian source conflict, verify official settlement truth, approve either FotMob bridge, or grant production/betting eligibility.
+
