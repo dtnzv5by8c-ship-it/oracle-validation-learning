@@ -83,11 +83,22 @@ def main():
             counts["exact_season_match_join"] += 1
             home_ok=s(f.get("homeID")) == s(r.get("home_team_provider_id"))
             away_ok=s(f.get("awayID")) == s(r.get("away_team_provider_id"))
-            join="EXACT_ID_AND_TEAM_IDS_MATCH" if home_ok and away_ok else "EXACT_FIXTURE_ID_TEAM_ID_MISMATCH"
-            if join == "EXACT_ID_AND_TEAM_IDS_MATCH":
-                counts["exact_id_and_team_ids_match"] += 1
-            else:
+            ids_match = home_ok and away_ok
+            source_quarantined = (
+                noha
+                or any(x in status for x in ("suspend", "postpon", "cancel", "abandon", "void"))
+                or ko is None
+                or (ko <= now and status not in {"complete","completed","finished","ft","full time"})
+            )
+            if not ids_match:
+                join="EXACT_FIXTURE_ID_TEAM_ID_MISMATCH"
                 counts["exact_id_team_mismatch"] += 1
+            elif source_quarantined:
+                join="EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"
+                counts["exact_id_and_team_ids_match_but_source_quarantined"] += 1
+            else:
+                join="EXACT_ID_AND_TEAM_IDS_MATCH"
+                counts["exact_id_and_team_ids_match"] += 1
         rows.append({
             "source_season_id":season,"source_match_id":match,
             "kickoff_utc":s(f.get("kickoff_utc")),"source_status":s(f.get("status")),
@@ -105,8 +116,9 @@ def main():
         w=csv.DictWriter(h,fieldnames=fields); w.writeheader(); w.writerows(rows)
     future=[r for r in rows if r["fixture_eligibility"]=="FUTURE_RESEARCH_CANDIDATE"]
     future_joined=[r for r in future if r["runtime_join_status"]=="EXACT_ID_AND_TEAM_IDS_MATCH"]
+    unsafe_runtime_rows=[r for r in rows if r["runtime_join_status"]=="EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"]
     qa={
-      "status":"PASS_BRIDGE_AUDIT_EXECUTED_RESEARCH_ONLY",
+      "status":"PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS" if unsafe_runtime_rows or (len(future)-len(future_joined)) else "PASS_BRIDGE_AUDIT_RESEARCH_ONLY",
       "generated_utc":now.isoformat(),
       "snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_sha256":None,
@@ -118,7 +130,9 @@ def main():
       "future_research_candidates":len(future),
       "future_candidates_exact_id_and_team_match":len(future_joined),
       "future_candidates_without_exact_id_and_team_match":len(future)-len(future_joined),
-      "all_source_rows_exactly_joined":sum(r["runtime_join_status"]=="EXACT_ID_AND_TEAM_IDS_MATCH" for r in rows),
+      "runtime_rows_matching_source_but_source_quarantined":len(unsafe_runtime_rows),
+      "runtime_rows_with_safe_future_candidate_status":len(future_joined),
+      "all_source_rows_exactly_joined":sum(r["runtime_join_status"] in {"EXACT_ID_AND_TEAM_IDS_MATCH","EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"} for r in rows),
       "counts":dict(sorted(counts.items())),
       "production_eligible":False,
       "betting_eligible":False,
