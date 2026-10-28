@@ -32,7 +32,7 @@ for x in selected:
 key=os.environ.get("FOOTYSTATS_API_KEY","").strip()
 if not key: raise SystemExit("FOOTYSTATS_API_KEY missing; zero requests made.")
 now=datetime.now(timezone.utc); now_ts=int(now.timestamp())
-past_cutoff=now_ts-int(timedelta(days=14).total_seconds())
+past_cutoff=now_ts-int(timedelta(days=30).total_seconds())
 future_cutoff=now_ts+int(timedelta(days=14).total_seconds())
 fields=("id","homeID","awayID","home_name","away_name","season","status","roundID","game_week",
         "homeGoalCount","awayGoalCount","totalGoalCount","date_unix","competition_id","no_home_away",
@@ -43,7 +43,7 @@ for item in selected:
     url="https://api.football-data-api.com/league-matches?"+urlencode(query)
     result={**item,"http_status":None,"provider_success":False,"returned_match_count":0,
             "max_page":None,"current_page":None,"error_class":None,"matches_in_window":0,
-            "future_14d_count":0,"recent_completed_14d_count":0,"schedule_status":"UNVERIFIED"}
+            "future_14d_count":0,"recent_completed_30d_count":0,"schedule_status":"UNVERIFIED"}
     payload=None
     try:
         req=Request(url,headers={"User-Agent":"Oracle-Selected50-Current-Fixture-Snapshot/1.0"})
@@ -74,11 +74,11 @@ for item in selected:
                     "provider_comp_master_id_observed":item["provider_comp_master_id_observed"],
                     "manifest_country":item["country"],"manifest_competition":item["competition"],
                     "kickoff_utc":datetime.fromtimestamp(kick,tz=timezone.utc).isoformat(),
-                    "window_class":"FUTURE_14D" if kick>=now_ts else "RECENT_14D"
+                    "window_class":"FUTURE_14D" if kick>=now_ts else "RECENT_30D"
                 })
                 all_window_matches.append(clean); result["matches_in_window"]+=1
                 if kick>=now_ts: result["future_14d_count"]+=1
-                elif str(match.get("status","")).lower()=="complete": result["recent_completed_14d_count"]+=1
+                elif str(match.get("status","")).lower()=="complete": result["recent_completed_30d_count"]+=1
         if result["http_status"]==200 and result["provider_success"]:
             result["schedule_status"]="REQUIRES_PAGINATION" if result["max_page"] and int(result["max_page"])>1 else "ONE_PAGE_RESPONSE"
     if not (result["http_status"]==200 and result["provider_success"]):
@@ -107,4 +107,4 @@ summary={
 (OUT/"identity-probe-summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True),encoding="utf-8")
 print(json.dumps({k:v for k,v in summary.items() if k not in ("fixture_rows","per_season")},indent=2,sort_keys=True))
 print("PER_SEASON_SUMMARY")
-print(json.dumps([{k:r[k] for k in ("country","competition","selected_season_id","provider_comp_master_id_observed","http_status","provider_success","returned_match_count","max_page","future_14d_count","recent_completed_14d_count","schedule_status","error_class")} for r in results],indent=2,sort_keys=True))
+print(json.dumps([{k:r[k] for k in ("country","competition","selected_season_id","provider_comp_master_id_observed","http_status","provider_success","returned_match_count","max_page","future_14d_count","recent_completed_30d_count","schedule_status","error_class")} for r in results],indent=2,sort_keys=True))
