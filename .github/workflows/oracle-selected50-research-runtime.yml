@@ -21,7 +21,7 @@ on:
       snapshot_run_id:
         description: "Successful current-fixture snapshot workflow run ID (used only when include_current_snapshot=true)"
         required: true
-        default: "40708750173"
+        default: "40734991542"
         type: string
 
 permissions:
