@@ -40,3 +40,5 @@ jobs:
         run: python -m unittest discover -s tests -p "test_selected50_current_fixture_snapshot.py" -v
       - name: Run one-call identity workflow safety tests
         run: python -m unittest discover -s tests -p "test_footystats_one_call_identity_workflow.py" -v
+      - name: Run exact cross-provider fixture join audit tests (offline)
+        run: python -m unittest discover -s tests -p "test_selected50_cross_provider_fixture_joins.py" -v
