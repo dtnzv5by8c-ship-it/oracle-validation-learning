@@ -102,7 +102,11 @@ The latest three visible production `Oracle Current Data Staging` workflow runs 
 
 ## Market release readiness
 
-The historical walk-forward diagnostics remain research-only: across 50 leagues, positive Brier skill was stable across all available folds for 3 BTTS leagues, 17 DC_HOME, 19 DC_AWAY, 12 Home Combo and 18 Away Combo; 20 leagues per market have insufficient fold sample/metric. **Production-eligible leagues remain 0/50 for every market.** Combo probabilities remain masked pending canonical fixture/team joins and official settlement truth. The new FootyStats schedule rows are not model predictions. [Full market release readiness](oracle-selected50-market-release-readiness-2026-10-28.md).
+The latest historical walk-forward diagnostics remain research-only: across 50 leagues, positive Brier skill was stable across all available folds for 3 BTTS leagues, 17 DC_HOME, 19 DC_AWAY, 15 Home Combo and 17 Away Combo; 20 leagues per market have insufficient fold sample/metric. **Production-eligible leagues remain 0/50 for every market.** Combo probabilities remain masked pending canonical fixture/team joins and official settlement truth. The new FootyStats schedule rows are not model predictions. [Full market release readiness](oracle-selected50-market-release-readiness-2026-10-28.md).
+
+## Latest runtime and Combo QA
+
+Latest research runtime [run 40643730062](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062), [artifact 12796307772](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40643730062/artifacts/12796307772), passed the research output contract. It produced 463 seven-day fixture candidates across 40 competitions; 25 were blocked by minimum recent home/away history requirements. QA reports 9,335 Home Combo and 8,017 Away Combo predictor-versus-ledger disagreement rows. The governed report masks all 438 available Combo probabilities on each side because the predictor target (Double Chance AND 2–4 goals) differs from the settlement helper (Double Chance AND total goals <5, including 0–1 goals). Combo remains blocked; do not silently change either definition.
 
 ## What is not unblocked
 
