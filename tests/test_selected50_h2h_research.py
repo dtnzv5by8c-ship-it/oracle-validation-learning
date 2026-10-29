@@ -12,6 +12,7 @@ from scripts.build_selected50_research_runtime import (
     completed_fixture_signature_key,
     market_targets_for_match,
     team_ids,
+    provider_fixture_id_collision_diagnostics,
 )
 
 
@@ -177,6 +178,40 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
             "kickoff_unix": 1000,
             "competition_id": "C",
         }))
+
+
+    def test_same_fixture_id_exact_duplicate_is_reported_for_safe_deduplication(self):
+        rows = [
+            {"competition_id": "C", "fixture_id": "same", "kickoff_unix": 1000,
+             "home_id": "A", "away_id": "B", "home_goals": 2, "away_goals": 1, "finished": True},
+            {"competition_id": "C", "fixture_id": "same", "kickoff_unix": 1000,
+             "home_id": "B", "away_id": "A", "home_goals": 1, "away_goals": 2, "finished": True},
+        ]
+        qa = provider_fixture_id_collision_diagnostics(rows)
+        self.assertEqual(qa["duplicate_fixture_id_groups"], 1)
+        self.assertEqual(qa["exact_duplicate_fixture_id_groups"], 1)
+        self.assertEqual(qa["exact_duplicate_fixture_id_extra_rows_deduplicated"], 1)
+        self.assertEqual(qa["conflicting_fixture_id_groups"], 0)
+
+    def test_same_fixture_id_with_conflicting_score_is_quarantined(self):
+        rows = [
+            {"competition_id": "C", "fixture_id": "same", "kickoff_unix": 1000,
+             "home_id": "A", "away_id": "B", "home_goals": 2, "away_goals": 1, "finished": True},
+            {"competition_id": "C", "fixture_id": "same", "kickoff_unix": 1000,
+             "home_id": "B", "away_id": "A", "home_goals": 1, "away_goals": 0, "finished": True},
+        ]
+        qa = provider_fixture_id_collision_diagnostics(rows)
+        self.assertEqual(qa["conflicting_fixture_id_groups"], 1)
+        self.assertEqual(qa["conflicting_fixture_id_rows_quarantined"], 2)
+        self.assertEqual(qa["conflicting_fixture_id_keys"], [("C", "same")])
+
+    def test_same_fixture_id_with_different_kickoff_is_quarantined(self):
+        base = {"competition_id": "C", "fixture_id": "same", "home_id": "A", "away_id": "B",
+                "home_goals": 2, "away_goals": 1, "finished": True}
+        rows = [{**base, "kickoff_unix": 1000}, {**base, "kickoff_unix": 2000}]
+        qa = provider_fixture_id_collision_diagnostics(rows)
+        self.assertEqual(qa["conflicting_fixture_id_groups"], 1)
+        self.assertEqual(qa["conflicting_fixture_id_rows_quarantined"], 2)
 
 
 if __name__ == "__main__":
