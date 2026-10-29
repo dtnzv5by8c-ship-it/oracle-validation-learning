@@ -286,7 +286,8 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         # Keep the behavioral guard connected to the production research path:
         # targets are constructed through the tested helper, and training requires
         # a non-null target plus complete model features.
-        self.assertIn("f.update(market_targets_for_match(r))", source)
+        self.assertIn("f.update(market_targets_for_match(r, duplicate_signature_keys))", source)
+        self.assertIn("if completed_fixture_signature_key(r) in duplicate_signature_keys: continue", source)
         self.assertIn(
             'valid=[r for r in rows if r["target_"+market] is not None and all(r.get(f) is not None for f in FEATURES)]',
             source,
