@@ -132,6 +132,15 @@ def match_score(m):
     a=num(get_first(m,("awayGoalCount","away_goals","away_score")))
     return h,a
 
+def valid_completed_score(home, away):
+    """True only for finite, non-negative integer football scores."""
+    try:
+        h, a = float(home), float(away)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return (math.isfinite(h) and math.isfinite(a) and h >= 0 and a >= 0
+            and h.is_integer() and a.is_integer())
+
 def finished(m):
     status=str(get_first(m,("status","game_status")) or "").strip().lower()
     h,a=match_score(m)
@@ -226,6 +235,39 @@ def h2h_result_from_target_home_perspective(old_match, target_home_id):
     if old_match["away_id"] == target_home_id:
         return "W" if old_away > old_home else "D" if old_away == old_home else "L"
     raise ValueError("Target home team is not present in the historical H2H fixture")
+
+
+def h2h_duplicate_signature_diagnostics(matches):
+    """Detect same competition/kickoff/team-pair rows even when fixture IDs differ."""
+    groups = defaultdict(list)
+    for row in matches:
+        if not row.get("finished") or not valid_completed_score(row.get("home_goals"), row.get("away_goals")):
+            continue
+        home_id, away_id = str(row.get("home_id") or "").strip(), str(row.get("away_id") or "").strip()
+        if not home_id or not away_id or home_id == away_id:
+            continue
+        pair = tuple(sorted((home_id, away_id)))
+        try:
+            kickoff = float(row["kickoff_unix"])
+        except (KeyError, TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(kickoff):
+            continue
+        # Normalize score orientation to the lexicographically first team ID.
+        score = ((int(row["home_goals"]), int(row["away_goals"])) if home_id == pair[0]
+                 else (int(row["away_goals"]), int(row["home_goals"])))
+        groups[(str(row.get("competition_id") or ""), kickoff, pair)].append(
+            {"fixture_id": str(row.get("fixture_id") or ""), "canonical_score": score}
+        )
+    duplicate_groups = [rows for rows in groups.values() if len(rows) > 1]
+    return {
+        "valid_completed_signature_groups": len(groups),
+        "duplicate_signature_groups": len(duplicate_groups),
+        "duplicate_extra_rows": sum(len(rows) - 1 for rows in duplicate_groups),
+        "conflicting_score_groups": sum(
+            1 for rows in duplicate_groups if len({row["canonical_score"] for row in rows}) > 1
+        ),
+    }
 
 
 def prediction_support_diagnostics(feature, model_fits, any_probability_available=False):
@@ -586,11 +628,23 @@ def main():
                 "settlement_truth_status": "INTERNAL_STATUS_SCORE_QA_ONLY_OFFICIAL_SETTLEMENT_UNVERIFIED",
                 "production_eligible": "NO"
             })
-        # Histories contain only explicit completed matches with valid scores.
+        # Research-only score/identity gate: malformed completed scores and self-fixtures
+        # are retained for QA but cannot become historical features or training labels.
+        completed_status_rows=[r for r in matches if r["finished"]]
+        invalid_completed_score_rows=[r for r in completed_status_rows
+            if not valid_completed_score(r.get("home_goals"),r.get("away_goals"))]
+        invalid_completed_team_identity_rows=[r for r in completed_status_rows
+            if valid_completed_score(r.get("home_goals"),r.get("away_goals"))
+            and (not str(r.get("home_id") or "").strip() or not str(r.get("away_id") or "").strip()
+                 or str(r.get("home_id")) == str(r.get("away_id")))]
+        h2h_duplicate_qa=h2h_duplicate_signature_diagnostics(matches)
+        # Histories contain only explicit completed matches with valid integer scores and distinct team IDs.
         home_history=defaultdict(list); away_history=defaultdict(list); h2h_history=defaultdict(list)
         for r in matches:
             if not r["finished"]: continue
-            if r["home_goals"] is None or r["away_goals"] is None: continue
+            if not valid_completed_score(r.get("home_goals"),r.get("away_goals")): continue
+            if not str(r.get("home_id") or "").strip() or not str(r.get("away_id") or "").strip(): continue
+            if str(r.get("home_id")) == str(r.get("away_id")): continue
             comp=r["competition_id"]; hkey=(comp,r["home_id"]); akey=(comp,r["away_id"])
             home_history[hkey].append((r["kickoff_unix"],r["raw_match"],True))
             away_history[akey].append((r["kickoff_unix"],r["raw_match"],False))
@@ -646,8 +700,8 @@ def main():
             f["data_risk_pct"]=None
             f["data_risk_status"]="NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING"
             f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
-            if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None:
-                for market,fn in MARKETS.items(): f["target_"+market]=fn(r["home_goals"],r["away_goals"])
+            if r["finished"] and valid_completed_score(r.get("home_goals"),r.get("away_goals")):
+                for market,fn in MARKETS.items(): f["target_"+market]=fn(int(r["home_goals"]),int(r["away_goals"]))
             else:
                 for market in MARKETS: f["target_"+market]=None
             feature_rows.append(f)
@@ -676,8 +730,15 @@ def main():
         h2h_history_qa={
             "status":"RESEARCH_ONLY_H2H_HISTORY_DIAGNOSTICS",
             "history_source_rows":len(matches),
-            "explicit_finished_with_numeric_scores":sum(1 for m in matches if m.get("finished") and m.get("home_goals") is not None and m.get("away_goals") is not None),
+            "explicit_finished_status_rows":len(completed_status_rows),
+            "explicit_finished_with_valid_integer_scores":len(completed_status_rows)-len(invalid_completed_score_rows),
+            "explicit_finished_with_invalid_or_noninteger_scores_excluded":len(invalid_completed_score_rows),
+            "valid_score_rows_excluded_from_history_for_missing_or_same_team_ids":len(invalid_completed_team_identity_rows),
             "feature_rows_checked":len(feature_rows),
+            "duplicate_fixture_signature_groups_same_competition_kickoff_team_pair":h2h_duplicate_qa["duplicate_signature_groups"],
+            "duplicate_fixture_signature_extra_rows":h2h_duplicate_qa["duplicate_extra_rows"],
+            "duplicate_fixture_signature_conflicting_score_groups":h2h_duplicate_qa["conflicting_score_groups"],
+            "research_label_integrity_status":("BLOCKED_DUPLICATE_FIXTURE_SIGNATURES" if h2h_duplicate_qa["duplicate_signature_groups"] else "TECHNICAL_SCORE_AND_DUPLICATE_CHECKS_PASS_CANONICAL_SETTLEMENT_UNVERIFIED"),
             "rows_with_any_prior_h2h":len(h2h_rows_with_prior),
             "rows_with_cross_season_prior_h2h":len(h2h_rows_cross_season),
             "cross_season_prior_meeting_count_sum":sum(int(r.get("h2h_cross_season_prior_n") or 0) for r in feature_rows),
