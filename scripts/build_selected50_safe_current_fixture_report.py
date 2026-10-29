@@ -400,6 +400,8 @@ def main():
             classification = "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY"
         elif source_rows and source_quarantine:
             classification = "BLOCKED_SOURCE_QUARANTINE"
+        elif (runtime_season, runtime_fixture) in duplicate_runtime_key_set:
+            classification = "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY"
         elif runtime_kickoff is None:
             classification = "BLOCKED_RUNTIME_KICKOFF_INVALID"
         elif runtime_kickoff <= now:
@@ -442,6 +444,9 @@ def main():
         elif classification == "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY":
             market_gate = "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY"
             feature_gate = "NOT_EVALUATED_AMBIGUOUS_SNAPSHOT_KEY"
+        elif classification == "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY":
+            market_gate = "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY"
+            feature_gate = "NOT_EVALUATED_AMBIGUOUS_RUNTIME_KEY"
         elif classification.startswith("OUTSIDE_"):
             market_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
             feature_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
@@ -535,6 +540,9 @@ def main():
     runtime_duplicate_snapshot_key_count = sum(
         row["classification"] == "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY" for row in runtime_snapshot_reconciliation_rows
     )
+    runtime_duplicate_runtime_key_count = sum(
+        row["classification"] == "BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY" for row in runtime_snapshot_reconciliation_rows
+    )
     runtime_snapshot_out_of_window_count = sum(
         row["classification"].startswith("OUTSIDE_") for row in runtime_snapshot_reconciliation_rows
     )
@@ -567,6 +575,7 @@ def main():
         "runtime_rows_blocked_by_ordered_team_id_mismatch": runtime_ordered_team_mismatch_count,
         "runtime_rows_blocked_by_kickoff_mismatch": runtime_kickoff_mismatch_count,
         "runtime_rows_blocked_by_duplicate_snapshot_key": runtime_duplicate_snapshot_key_count,
+        "runtime_rows_blocked_by_duplicate_runtime_key": runtime_duplicate_runtime_key_count,
         "runtime_rows_outside_window_not_snapshot_gaps": runtime_snapshot_out_of_window_count,
         "runtime_rows_exact_clean_snapshot_matches": runtime_exact_clean_snapshot_matches,
         "runtime_rows_not_exact_clean_snapshot_matches": len(runtime_snapshot_reconciliation_rows),
