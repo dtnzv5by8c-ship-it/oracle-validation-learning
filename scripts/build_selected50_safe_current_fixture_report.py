@@ -150,6 +150,18 @@ def main():
         else:
             runtime_by_key[k] = r
     season_meta = {text(x.get("selected_season_id")): x for x in seasons}
+    # Reverse coverage index: runtime rows absent from the snapshot must not disappear
+    # silently, and must not be mislabeled as ordinary out-of-window fixtures.
+    snapshot_rows_by_key = {}
+    snapshot_seasons_by_fixture_id = {}
+    for source_row in fixture_rows:
+        if not isinstance(source_row, dict):
+            continue
+        source_season = text(source_row.get("selected_season_id"))
+        source_fixture = text(source_row.get("id"))
+        if source_season and source_fixture:
+            snapshot_rows_by_key.setdefault((source_season, source_fixture), []).append(source_row)
+            snapshot_seasons_by_fixture_id.setdefault(source_fixture, set()).add(source_season)
     seen = set()
     out_rows = []
     exclusion_rows = []
@@ -344,6 +356,66 @@ def main():
         row["betting_eligible"] = "NO"
         out_rows.append(row)
         reason_counts["PASS_SAFE_EXACT_JOIN"] = reason_counts.get("PASS_SAFE_EXACT_JOIN", 0) + 1
+    # Reverse audit of runtime rows that have no matching snapshot season/fixture key.
+    # Source quarantines remain represented in the per-snapshot exclusion CSV above;
+    # only rows absent from that source key are classified here.
+    runtime_snapshot_gap_rows = []
+    for runtime_row in runtime:
+        runtime_season = text(runtime_row.get("provider_season_id"))
+        runtime_fixture = text(runtime_row.get("fixture_id"))
+        if not runtime_season or not runtime_fixture:
+            classification = "BLOCKED_INVALID_RUNTIME_IDENTITY"
+        elif (runtime_season, runtime_fixture) in snapshot_rows_by_key:
+            continue
+        else:
+            runtime_kickoff = parse_utc(runtime_row.get("date_utc"))
+            if runtime_kickoff is None:
+                classification = "BLOCKED_RUNTIME_KICKOFF_INVALID"
+            elif runtime_kickoff <= now:
+                classification = "NOT_FUTURE_RUNTIME_ROW_NOT_SNAPSHOT_GAP"
+            elif runtime_kickoff > report_end:
+                classification = f"OUTSIDE_{report_horizon_days}_DAY_REPORT_WINDOW_NOT_SNAPSHOT_GAP"
+            elif runtime_kickoff > runtime_end:
+                classification = "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_SNAPSHOT_JOIN"
+            elif runtime_fixture in snapshot_seasons_by_fixture_id:
+                classification = "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"
+            else:
+                classification = "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW"
+        if classification == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW":
+            market_gate = "BLOCKED_NO_EXACT_SNAPSHOT_SOURCE"
+            feature_gate = "NOT_EVALUATED_NO_SNAPSHOT_SOURCE"
+        elif classification == "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH":
+            market_gate = "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"
+            feature_gate = "NOT_EVALUATED_SNAPSHOT_IDENTITY_BLOCKED"
+        elif classification.startswith("OUTSIDE_"):
+            market_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
+            feature_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
+        elif classification == "NOT_FUTURE_RUNTIME_ROW_NOT_SNAPSHOT_GAP":
+            market_gate = "NOT_EVALUATED_NOT_FUTURE"
+            feature_gate = "NOT_EVALUATED_NOT_FUTURE"
+        else:
+            market_gate = "BLOCKED_RUNTIME_SOURCE_OR_IDENTITY_REVIEW"
+            feature_gate = "NOT_EVALUATED_RUNTIME_SOURCE_OR_IDENTITY_REVIEW"
+        runtime_snapshot_gap_rows.append({
+            "provider_season_id": runtime_season,
+            "fixture_id": runtime_fixture,
+            "runtime_kickoff_utc": text(runtime_row.get("date_utc")),
+            "runtime_home_team_provider_id": text(runtime_row.get("home_team_provider_id")),
+            "runtime_away_team_provider_id": text(runtime_row.get("away_team_provider_id")),
+            "runtime_prediction_status": text(runtime_row.get("prediction_status")),
+            "runtime_feature_support_status": text(runtime_row.get("feature_support_status")),
+            "classification": classification,
+            "market_gate_status": market_gate,
+            "feature_gate_status": feature_gate,
+            "canonical_fixture_join_status": "NOT_VERIFIED",
+            "canonical_team_join_status": "NOT_VERIFIED",
+            "official_settlement_truth_status": "NOT_VERIFIED",
+            "combo_masked": "YES",
+            "combo_probability_emitted": 0,
+            "prediction_created": 0,
+            "production_eligible": "NO",
+            "betting_eligible": "NO",
+        })
     a.out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = a.out_dir / "oracle_selected50_safe_current_fixture_report.csv"
     fields = list(dict.fromkeys([k for row in out_rows for k in row]))
@@ -373,6 +445,28 @@ def main():
         w = csv.DictWriter(h, fieldnames=exclusion_fields)
         w.writeheader()
         w.writerows(exclusion_rows)
+    runtime_gap_path = a.out_dir / "oracle_selected50_runtime_snapshot_coverage_gaps.csv"
+    runtime_gap_fields = [
+        "provider_season_id", "fixture_id", "runtime_kickoff_utc",
+        "runtime_home_team_provider_id", "runtime_away_team_provider_id",
+        "runtime_prediction_status", "runtime_feature_support_status", "classification",
+        "market_gate_status", "feature_gate_status", "canonical_fixture_join_status",
+        "canonical_team_join_status", "official_settlement_truth_status", "combo_masked",
+        "combo_probability_emitted", "prediction_created", "production_eligible", "betting_eligible"
+    ]
+    with runtime_gap_path.open("w", encoding="utf-8", newline="") as h:
+        w = csv.DictWriter(h, fieldnames=runtime_gap_fields)
+        w.writeheader()
+        w.writerows(runtime_snapshot_gap_rows)
+    runtime_snapshot_missing_count = sum(
+        row["classification"] == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW" for row in runtime_snapshot_gap_rows
+    )
+    runtime_snapshot_season_mismatch_count = sum(
+        row["classification"] == "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH" for row in runtime_snapshot_gap_rows
+    )
+    runtime_snapshot_out_of_window_count = sum(
+        row["classification"].startswith("OUTSIDE_") for row in runtime_snapshot_gap_rows
+    )
     qa = {
         "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
@@ -391,6 +485,12 @@ def main():
         "selected_seasons": len(seasons),
         "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
+        "runtime_rows_without_exact_snapshot_key": len(runtime_snapshot_gap_rows),
+        "runtime_rows_missing_snapshot_fixture_row": runtime_snapshot_missing_count,
+        "runtime_rows_with_snapshot_season_mismatch": runtime_snapshot_season_mismatch_count,
+        "runtime_rows_outside_window_not_snapshot_gaps": runtime_snapshot_out_of_window_count,
+        "runtime_snapshot_coverage_gap_report": runtime_gap_path.name,
+        "runtime_snapshot_coverage_gap_rows": len(runtime_snapshot_gap_rows),
         "duplicate_runtime_exact_keys": duplicate_runtime_key_occurrences,
         "ambiguous_runtime_exact_key_count": len(duplicate_runtime_key_set),
         "combo_probability_columns_checked": combo_probability_columns,
