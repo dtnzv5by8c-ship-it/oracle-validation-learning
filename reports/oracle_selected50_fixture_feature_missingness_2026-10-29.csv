@@ -1,0 +1,21 @@
+feature,fixtures_missing_feature,fixture_rows,missing_pct,note
+pair_btts_mean,25,436,5.73,Underlying and derived feature counts overlap.
+pair_cs_mean,25,436,5.73,Underlying and derived feature counts overlap.
+pair_fts_mean,25,436,5.73,Underlying and derived feature counts overlap.
+score_environment,25,436,5.73,Underlying and derived feature counts overlap.
+score_gap5,25,436,5.73,Underlying and derived feature counts overlap.
+shot_environment,25,436,5.73,Underlying and derived feature counts overlap.
+home_btts5,17,436,3.90,Underlying and derived feature counts overlap.
+home_cs5,17,436,3.90,Underlying and derived feature counts overlap.
+home_fts5,17,436,3.90,Underlying and derived feature counts overlap.
+home_ga5,17,436,3.90,Underlying and derived feature counts overlap.
+home_gf5,17,436,3.90,Underlying and derived feature counts overlap.
+home_shots5,17,436,3.90,Underlying and derived feature counts overlap.
+home_sot5,17,436,3.90,Underlying and derived feature counts overlap.
+away_btts5,9,436,2.06,Underlying and derived feature counts overlap.
+away_cs5,9,436,2.06,Underlying and derived feature counts overlap.
+away_fts5,9,436,2.06,Underlying and derived feature counts overlap.
+away_ga5,9,436,2.06,Underlying and derived feature counts overlap.
+away_gf5,9,436,2.06,Underlying and derived feature counts overlap.
+away_shots5,9,436,2.06,Underlying and derived feature counts overlap.
+away_sot5,9,436,2.06,Underlying and derived feature counts overlap.
