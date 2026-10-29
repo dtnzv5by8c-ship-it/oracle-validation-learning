@@ -102,3 +102,16 @@ The runtime QA reports the provider's competition_id matches the selected identi
 ## Governance decision
 
 **Continue research; no promotion and no betting approval.** The most useful current signal is that Double Chance Home/Away have more league-level candidates than BTTS under the existing fold screen, while team-level performance DNA remains blocked by missing team-attributed walk-forward predictions and unverified settlement/canonical joins. Production logic and frozen probabilities remain unchanged.
+
+
+## Follow-on data-quality checkpoint — 29 October 2026 evening
+
+A separate analysis of the same Run #168 artifact was added in [Selected-50 Data Quality & Market Screen](PROJECT_ORACLE_SELECTED50_DATA_QUALITY_MARKET_SCREEN_2026-10-29.md), with a reproducible script at `scripts/analyze_selected50_data_quality.py` and companion missing-feature / blocked-fixture diagnostics under `reports/`.
+
+Additional verified findings:
+- 20,913 rows in the primary validation window have all 20 required features.
+- Of the 25 blocked current fixture predictions, 17 lack five home split-form matches, 9 lack five away split-form matches, and 1 lacks both; these counts overlap. Keep all 25 blocked rather than silently imputing required features.
+- The snapshot contained 2,255 fixture rows; 355 exact fixture IDs were refreshed in the archive copy, zero candidate rows were added, and 179 overlay rows were quarantined/invalid.
+- The runtime artifact was approximately 3.4 hours old at analysis time; its snapshot was approximately 8.8 hours old.
+
+These findings improve data-quality triage, but they do not unblock team-performance DNA. Canonical parent competition IDs, canonical fixture/team bridges and official settlement truth remain unverified. Production and betting eligibility remain unapproved.
