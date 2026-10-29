@@ -514,5 +514,69 @@ class SafeCurrentReportContractTests(unittest.TestCase):
                     self.assertIn(message, proc.stderr)
                     self.assertFalse((out / "oracle_selected50_safe_current_fixture_report.csv").exists())
 
+    def test_runtime_rows_missing_snapshot_are_reported_separately_from_out_of_window_rows(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            seasons = [{"selected_season_id": str(i), "country": "Test", "competition": f"League {i}"} for i in range(50)]
+            snap = root / "snapshot.json"
+            snap.write_text(json.dumps({
+                "retrieved_utc": "2026-10-28T19:00:00Z",
+                "window_start_utc": "2026-09-28T19:00:00Z",
+                "window_end_utc": "2026-11-12T00:00:00Z",
+                "per_season": seasons,
+                "fixture_rows": []
+            }), encoding="utf-8")
+            report = root / "runtime.csv"
+            with report.open("w", newline="", encoding="utf-8") as h:
+                w = csv.DictWriter(h, fieldnames=[
+                    "provider_season_id", "fixture_id", "date_utc",
+                    "home_team_provider_id", "away_team_provider_id",
+                    "BTTS_probability_pct", "COMBO_HOME_probability_pct",
+                    "COMBO_AWAY_probability_pct"
+                ])
+                w.writeheader()
+                w.writerow({
+                    "provider_season_id": "0", "fixture_id": "999",
+                    "date_utc": "2026-10-29T12:00:00Z",
+                    "home_team_provider_id": "1", "away_team_provider_id": "2",
+                    "BTTS_probability_pct": "60"
+                })
+                w.writerow({
+                    "provider_season_id": "0", "fixture_id": "1000",
+                    "date_utc": "2026-11-10T12:00:00Z",
+                    "home_team_provider_id": "3", "away_team_provider_id": "4",
+                    "BTTS_probability_pct": "65"
+                })
+            out = root / "out"
+            proc = subprocess.run([
+                sys.executable, str(SCRIPT), "--snapshot", str(snap),
+                "--runtime-report", str(report), "--out-dir", str(out),
+                "--as-of-utc", "2026-10-28T20:00:00Z",
+                "--report-horizon-days", "14",
+                "--runtime-horizon-days", "7",
+                "--runtime-started-utc", "2026-10-28T19:00:00Z"
+            ], text=True, capture_output=True)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            qa = json.loads((out / "oracle_selected50_safe_current_fixture_report_qa.json").read_text())
+            self.assertEqual(qa["status"], "PASS_REPORT_ONLY_WITH_BLOCKERS")
+            self.assertEqual(qa["runtime_rows_without_exact_snapshot_key"], 2)
+            self.assertEqual(qa["runtime_rows_missing_snapshot_fixture_row"], 1)
+            self.assertEqual(qa["runtime_rows_outside_window_not_snapshot_gaps"], 1)
+            with (out / "oracle_selected50_runtime_snapshot_coverage_gaps.csv").open(newline="", encoding="utf-8") as h:
+                rows = {row["fixture_id"]: row for row in csv.DictReader(h)}
+            self.assertEqual(rows["999"]["classification"], "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW")
+            self.assertEqual(rows["999"]["market_gate_status"], "BLOCKED_NO_EXACT_SNAPSHOT_SOURCE")
+            self.assertEqual(rows["1000"]["classification"], "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_SNAPSHOT_JOIN")
+            for row in rows.values():
+                self.assertEqual(row["canonical_fixture_join_status"], "NOT_VERIFIED")
+                self.assertEqual(row["canonical_team_join_status"], "NOT_VERIFIED")
+                self.assertEqual(row["official_settlement_truth_status"], "NOT_VERIFIED")
+                self.assertEqual(row["combo_masked"], "YES")
+                self.assertEqual(row["combo_probability_emitted"], "0")
+                self.assertEqual(row["prediction_created"], "0")
+                self.assertEqual(row["production_eligible"], "NO")
+                self.assertEqual(row["betting_eligible"], "NO")
+
+
 if __name__ == "__main__":
     unittest.main()
