@@ -16,12 +16,12 @@ on:
       include_current_snapshot:
         description: "Stage clean fixtures from a successful fresh FootyStats snapshot into an isolated research archive copy"
         required: true
-        default: false
+        default: true
         type: boolean
       snapshot_run_id:
         description: "Successful current-fixture snapshot workflow run ID (used only when include_current_snapshot=true)"
         required: true
-        default: "40734991542"
+        default: "40867886151"
         type: string
 
 permissions:
