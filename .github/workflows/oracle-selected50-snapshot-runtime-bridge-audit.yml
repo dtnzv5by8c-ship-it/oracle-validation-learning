@@ -6,10 +6,10 @@ on:
       snapshot_run_id:
         description: "Successful current-fixture snapshot workflow run ID"
         required: true
-        default: "40708750173"
+        default: "40867886151"
         type: string
       runtime_run_id:
-        description: "Successful research-runtime workflow run ID"
+        description: "Fresh successful research runtime run ID; must include current snapshot and provenance artifacts"
         required: true
         default: "40708378185"
         type: string
