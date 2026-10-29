@@ -6,7 +6,9 @@
 
 ## Latest verified runtime and artifact state
 - Latest successful full historical runtime remains [Run #168](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40917698925), artifact `12915559785`. Its H2H metrics predate the later fixture-ID collision quarantine and timestamp-normalization changes.
-- Safety contract and dry-run workflows passed in the latest previously reviewed checks. Those checks do not establish that the new H2H runtime changes passed against the private archive.
+- Safety contract [Run 40950454036](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40950454036) completed successfully; all 19 snapshot/runtime provenance tests and the other listed offline contract-test steps passed. No artifact was attached.
+- Dry-run planner [Run 40950454221](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40950454221) completed successfully and produced artifact [12931661091](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40950454221/artifacts/12931661091). The artifact records zero network/provider calls, 22 identity-crosswalk candidates requiring human review, 28 unresolved mappings, zero verified canonical fixture/team joins, zero official settlement-truth rows, and zero governed current-fixture rows. The schedule evidence ends 2026-10-22 and is stale for 2026-10-30.
+- These checks do not establish that the new H2H runtime changes passed against the private archive.
 - The newest team-form uncertainty report was committed at [`2aa10da`](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/commit/2aa10da5ba8e76f57f8d5452f9b9968fcabbcb6a). It derives from Run #168 and the snapshot retrieved at `2026-10-29T11:46:20Z`; it is not fresh current-fixture evidence for the morning of 30 October.
 
 ## Latest team/form context report
