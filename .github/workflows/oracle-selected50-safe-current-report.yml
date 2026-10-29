@@ -6,6 +6,8 @@ on:
       - research/oracle-50-league-readiness-audit
     paths:
       - ".github/workflows/oracle-selected50-safe-current-report.yml"
+      - "scripts/build_selected50_safe_current_fixture_report.py"
+      - "tests/test_selected50_safe_current_fixture_report.py"
   workflow_dispatch:
     inputs:
       snapshot_run_id:
