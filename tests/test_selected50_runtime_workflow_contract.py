@@ -41,7 +41,7 @@ class Selected50RuntimeWorkflowContractTests(unittest.TestCase):
     def test_stale_snapshot_is_not_the_default_for_historical_validation(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         match = re.search(
-            r"(?ms)^      include_current_snapshot:\\n(?P<body>.*?)(?=^      [a-z_]+:|^\\npermissions:)",
+            r"(?ms)^      include_current_snapshot:\n(?P<body>.*?)(?=^      [a-z_]+:|^\npermissions:)",
             text,
         )
         self.assertIsNotNone(match, "snapshot overlay input must remain declared")
@@ -49,7 +49,7 @@ class Selected50RuntimeWorkflowContractTests(unittest.TestCase):
         self.assertIn("Opt in only after verifying a fresh successful snapshot run", match.group("body"))
 
         run_id = re.search(
-            r"(?ms)^      snapshot_run_id:\\n(?P<body>.*?)(?=^\\npermissions:)",
+            r"(?ms)^      snapshot_run_id:\n(?P<body>.*?)(?=^\npermissions:)",
             text,
         )
         self.assertIsNotNone(run_id, "snapshot run ID input must remain declared")
