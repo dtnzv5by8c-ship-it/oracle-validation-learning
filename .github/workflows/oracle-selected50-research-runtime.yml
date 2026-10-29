@@ -181,6 +181,8 @@ jobs:
 
       - name: Test per-fixture feature and training support diagnostics
         run: python -m unittest discover -s tests -p 'test_selected50_prediction_support_diagnostics.py' -v
+      - name: Test H2H chronology and model feature contract
+        run: python -m unittest discover -s tests -p 'test_selected50_h2h_research.py' -v
 
       - name: Fingerprint exact selected runtime input before prediction generation
         shell: bash
@@ -255,6 +257,8 @@ jobs:
             selected50_runtime_output/oracle_selected50_calendar_year_coverage.csv
             selected50_runtime_output/oracle_selected50_provider_season_year_coverage.csv
             selected50_runtime_output/oracle_selected50_settlement_truth_qa.csv
+            selected50_runtime_output/oracle_selected50_h2h_ablation_metrics.json
+            selected50_runtime_output/oracle_selected50_h2h_paired_predictions.csv
             selected50_runtime_output/oracle_selected50_runtime_validation.json
             selected50_runtime_output/current_snapshot_overlay_qa.json
             selected50_runtime_output/current_snapshot_candidate_trace.csv
