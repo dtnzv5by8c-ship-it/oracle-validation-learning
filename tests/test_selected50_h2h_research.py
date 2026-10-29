@@ -5,6 +5,8 @@ from scripts.build_selected50_research_runtime import (
     FEATURES,
     make_model_for_features,
     predict_for_features,
+    h2h_prior_meetings,
+    h2h_result_from_target_home_perspective,
 )
 
 
@@ -61,6 +63,33 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         model, n = make_model_for_features(rows, "BTTS", names)
         self.assertEqual(n, len(rows) - 1)
         self.assertIsNone(predict_for_features(model, rows[0], names))
+
+    def test_h2h_prior_meetings_excludes_same_kickoff_and_future(self):
+        history = [
+            (100, {"fixture_id": "old"}),
+            (200, {"fixture_id": "same-time"}),
+            (300, {"fixture_id": "future"}),
+        ]
+        prior = h2h_prior_meetings(history, 200)
+        self.assertEqual([row["fixture_id"] for _, row in prior], ["old"])
+
+    def test_h2h_prior_meetings_allows_all_strictly_earlier_rows(self):
+        history = [(100, {"fixture_id": "a"}), (150, {"fixture_id": "b"})]
+        self.assertEqual(len(h2h_prior_meetings(history, 151)), 2)
+
+    def test_h2h_result_is_from_target_home_team_perspective(self):
+        target_home_id = "A"
+        old_when_target_home_was_home = {"home_id": "A", "away_id": "B", "home_goals": 2, "away_goals": 1}
+        old_when_target_home_was_away = {"home_id": "B", "away_id": "A", "home_goals": 0, "away_goals": 1}
+        old_draw = {"home_id": "B", "away_id": "A", "home_goals": 2, "away_goals": 2}
+        self.assertEqual(h2h_result_from_target_home_perspective(old_when_target_home_was_home, target_home_id), "W")
+        self.assertEqual(h2h_result_from_target_home_perspective(old_when_target_home_was_away, target_home_id), "W")
+        self.assertEqual(h2h_result_from_target_home_perspective(old_draw, target_home_id), "D")
+
+    def test_h2h_result_rejects_unrelated_team(self):
+        unrelated = {"home_id": "X", "away_id": "Y", "home_goals": 1, "away_goals": 0}
+        with self.assertRaises(ValueError):
+            h2h_result_from_target_home_perspective(unrelated, "A")
 
 
 if __name__ == "__main__":
