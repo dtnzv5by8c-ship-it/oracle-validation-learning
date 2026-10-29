@@ -765,6 +765,64 @@ def main():
                 "baseline_ece_10_bins":expected_calibration_error(labels,bp) if paired else None,
                 "candidate_ece_10_bins":expected_calibration_error(labels,cp) if paired else None,
                 "production_eligible":"NO","betting_eligible":"NO"})
+        # Additional chronological folds deliberately include 2024 as a test period and as training history
+        # for later folds. Every fold trains strictly before its test start; this does not replace the primary holdout.
+        h2h_fold_edges = [
+            ("H2H_WF1_2024H1", dt.datetime(2024,1,1,tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2024,7,1,tzinfo=dt.timezone.utc).timestamp()),
+            ("H2H_WF2_2024H2", dt.datetime(2024,7,1,tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2025,1,1,tzinfo=dt.timezone.utc).timestamp()),
+            ("H2H_WF3_2025H1", dt.datetime(2025,1,1,tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2025,7,1,tzinfo=dt.timezone.utc).timestamp()),
+            ("H2H_WF4_2025H2", dt.datetime(2025,7,1,tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2026,1,1,tzinfo=dt.timezone.utc).timestamp()),
+            ("H2H_WF5_2026H1", dt.datetime(2026,1,1,tzinfo=dt.timezone.utc).timestamp(), dt.datetime(2026,7,1,tzinfo=dt.timezone.utc).timestamp()),
+        ]
+        h2h_expanding_rows=[]
+        for fold_name, fold_start, fold_end in h2h_fold_edges:
+            fold_train=[r for r in train_rows if r.get("kickoff_unix",0)<fold_start]
+            fold_test=[r for r in train_rows if fold_start<=r.get("kickoff_unix",0)<fold_end]
+            common_train=[r for r in fold_train if
+                all(r.get(k) is not None and math.isfinite(float(r[k])) for k in FEATURES+h2h_feature_names)]
+            for market in MARKETS:
+                candidate_features=FEATURES+h2h_feature_names
+                base_model,base_n=make_model_for_features(common_train,market,FEATURES)
+                cand_model,cand_n=make_model_for_features(common_train,market,candidate_features)
+                eligible=[r for r in fold_test if r.get("target_"+market) is not None and
+                    all(r.get(k) is not None and math.isfinite(float(r[k])) for k in FEATURES+h2h_feature_names)]
+                bprob=[predict_for_features(base_model,r,FEATURES) for r in eligible]
+                cprob=[predict_for_features(cand_model,r,candidate_features) for r in eligible]
+                paired=[(r,b,c,int(r["target_"+market])) for r,b,c in zip(eligible,bprob,cprob) if b is not None and c is not None]
+                if paired:
+                    yy=[x[3] for x in paired]; bp0=[x[1] for x in paired]; cp0=[x[2] for x in paired]
+                    ba=accuracy_score(yy,[int(p>=0.5) for p in bp0]); ca=accuracy_score(yy,[int(p>=0.5) for p in cp0])
+                    bb=brier_score_loss(yy,bp0); cb=brier_score_loss(yy,cp0)
+                    bl=log_loss(yy,[min(max(p,1e-6),1-1e-6) for p in bp0],labels=[0,1])
+                    cl=log_loss(yy,[min(max(p,1e-6),1-1e-6) for p in cp0],labels=[0,1])
+                    aucb=roc_auc_score(yy,bp0) if len(set(yy))==2 else None
+                    aucc=roc_auc_score(yy,cp0) if len(set(yy))==2 else None
+                    status="EXPANDING_WINDOW_RESEARCH_ONLY_NOT_CALIBRATED"
+                else:
+                    ba=ca=bb=cb=bl=cl=aucb=aucc=None
+                    status="INSUFFICIENT_PAIRED_TEST_PREDICTIONS"
+                h2h_expanding_rows.append({"fold":fold_name,"test_start_utc":dt.datetime.fromtimestamp(fold_start,dt.timezone.utc).isoformat(),
+                    "test_end_exclusive_utc":dt.datetime.fromtimestamp(fold_end,dt.timezone.utc).isoformat(),"market":market,
+                    "training_cutoff_exclusive_utc":dt.datetime.fromtimestamp(fold_start,dt.timezone.utc).isoformat(),
+                    "baseline_train_n":base_n,"candidate_train_n":cand_n,"test_n_h2h_available":len(eligible),
+                    "paired_test_n":len(paired),"status":status,
+                    "baseline_accuracy_at_0_5":round(float(ba),5) if ba is not None else None,
+                    "candidate_accuracy_at_0_5":round(float(ca),5) if ca is not None else None,
+                    "accuracy_delta_candidate_minus_baseline":round(float(ca-ba),5) if ca is not None and ba is not None else None,
+                    "baseline_brier":round(float(bb),5) if bb is not None else None,
+                    "candidate_brier":round(float(cb),5) if cb is not None else None,
+                    "brier_delta_candidate_minus_baseline":round(float(cb-bb),5) if cb is not None and bb is not None else None,
+                    "baseline_log_loss":round(float(bl),5) if bl is not None else None,
+                    "candidate_log_loss":round(float(cl),5) if cl is not None else None,
+                    "log_loss_delta_candidate_minus_baseline":round(float(cl-bl),5) if cl is not None and bl is not None else None,
+                    "baseline_auc":round(float(aucb),5) if aucb is not None else None,
+                    "candidate_auc":round(float(aucc),5) if aucc is not None else None,
+                    "production_eligible":"NO","betting_eligible":"NO"})
+        h2h_expanding_path=OUT/"oracle_selected50_h2h_expanding_window_metrics.json"
+        h2h_expanding_path.write_text(json.dumps({"status":"RESEARCH_ONLY_CHRONOLOGICAL_FOLDS_NOT_CALIBRATED",
+            "fold_policy":"Expanding history strictly before each fold start; H2H and baseline trained on the same H2H-eligible training rows.",
+            "feature_set":"EXISTING_20_PLUS_4_H2H_FEATURES_FOR_CANDIDATE",
+            "folds":h2h_expanding_rows},indent=2)+"\\n",encoding="utf-8")
         h2h_json_path=OUT/"oracle_selected50_h2h_ablation_metrics.json"
         h2h_json_path.write_text(json.dumps({"status":"RESEARCH_ONLY_ABLATION_NOT_CALIBRATED",
             "primary_window":"2025-03-20 through 2026-09-20",
