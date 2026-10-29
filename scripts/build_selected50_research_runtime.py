@@ -141,6 +141,27 @@ def valid_completed_score(home, away):
     return (math.isfinite(h) and math.isfinite(a) and h >= 0 and a >= 0
             and h.is_integer() and a.is_integer())
 
+
+def market_targets_for_match(match):
+    """Return market labels only for explicit completed, valid, identifiable fixtures."""
+    markets = {
+        "BTTS": lambda h, a: int(h > 0 and a > 0),
+        "DC_HOME": lambda h, a: int(h >= a),
+        "DC_AWAY": lambda h, a: int(a >= h),
+        "COMBO_HOME": lambda h, a: int(h >= a and 2 <= h + a <= 4),
+        "COMBO_AWAY": lambda h, a: int(a >= h and 2 <= h + a <= 4),
+    }
+    home_id = str(match.get("home_id") or "").strip()
+    away_id = str(match.get("away_id") or "").strip()
+    if not (match.get("finished")
+            and valid_completed_score(match.get("home_goals"), match.get("away_goals"))
+            and home_id and away_id and home_id != away_id):
+        return {f"target_{market}": None for market in markets}
+    home_goals = int(float(match["home_goals"]))
+    away_goals = int(float(match["away_goals"]))
+    return {f"target_{market}": fn(home_goals, away_goals) for market, fn in markets.items()}
+
+
 def finished(m):
     status=str(get_first(m,("status","game_status")) or "").strip().lower()
     h,a=match_score(m)
@@ -700,12 +721,7 @@ def main():
             f["data_risk_pct"]=None
             f["data_risk_status"]="NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING"
             f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
-            if (r["finished"] and valid_completed_score(r.get("home_goals"),r.get("away_goals"))
-                and str(r.get("home_id") or "").strip() and str(r.get("away_id") or "").strip()
-                and str(r.get("home_id")) != str(r.get("away_id"))):
-                for market,fn in MARKETS.items(): f["target_"+market]=fn(int(r["home_goals"]),int(r["away_goals"]))
-            else:
-                for market in MARKETS: f["target_"+market]=None
+            f.update(market_targets_for_match(r))
             feature_rows.append(f)
         # Research-only H2H integrity diagnostics. These do not change model inputs or eligibility.
         team_id_names=defaultdict(set); team_id_seasons=defaultdict(set); normalized_name_ids=defaultdict(set)
