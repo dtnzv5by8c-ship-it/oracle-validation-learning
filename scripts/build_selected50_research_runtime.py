@@ -142,14 +142,33 @@ def valid_completed_score(home, away):
             and h.is_integer() and a.is_integer())
 
 
-def market_targets_for_match(match):
-    """Return market labels only for explicit completed, valid, identifiable fixtures."""
+def completed_fixture_signature_key(row):
+    """Canonical research signature for a completed score row; None if identity is incomplete."""
+    if not row.get("finished") or not valid_completed_score(row.get("home_goals"), row.get("away_goals")):
+        return None
+    home_id = str(row.get("home_id") or "").strip()
+    away_id = str(row.get("away_id") or "").strip()
+    if not home_id or not away_id or home_id == away_id:
+        return None
+    try:
+        kickoff = float(row["kickoff_unix"])
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(kickoff):
+        return None
+    return (str(row.get("competition_id") or ""), kickoff, tuple(sorted((home_id, away_id))))
+
+
+def market_targets_for_match(match, excluded_signatures=None):
+    """Return labels only for valid completed fixtures not quarantined as duplicate signatures."""
     markets = MARKETS
+    signature = completed_fixture_signature_key(match)
     home_id = str(match.get("home_id") or "").strip()
     away_id = str(match.get("away_id") or "").strip()
     if not (match.get("finished")
             and valid_completed_score(match.get("home_goals"), match.get("away_goals"))
-            and home_id and away_id and home_id != away_id):
+            and home_id and away_id and home_id != away_id
+            and not (signature is not None and signature in (excluded_signatures or set()))):
         return {f"target_{market}": None for market in markets}
     home_goals = int(float(match["home_goals"]))
     away_goals = int(float(match["away_goals"]))
@@ -253,35 +272,27 @@ def h2h_result_from_target_home_perspective(old_match, target_home_id):
 
 
 def h2h_duplicate_signature_diagnostics(matches):
-    """Detect same competition/kickoff/team-pair rows even when fixture IDs differ."""
+    """Detect duplicate completed fixture signatures and return keys for quarantine."""
     groups = defaultdict(list)
     for row in matches:
-        if not row.get("finished") or not valid_completed_score(row.get("home_goals"), row.get("away_goals")):
+        key = completed_fixture_signature_key(row)
+        if key is None:
             continue
-        home_id, away_id = str(row.get("home_id") or "").strip(), str(row.get("away_id") or "").strip()
-        if not home_id or not away_id or home_id == away_id:
-            continue
-        pair = tuple(sorted((home_id, away_id)))
-        try:
-            kickoff = float(row["kickoff_unix"])
-        except (KeyError, TypeError, ValueError, OverflowError):
-            continue
-        if not math.isfinite(kickoff):
-            continue
+        _, _, pair = key
+        home_id = str(row.get("home_id") or "").strip()
         # Normalize score orientation to the lexicographically first team ID.
         score = ((int(row["home_goals"]), int(row["away_goals"])) if home_id == pair[0]
                  else (int(row["away_goals"]), int(row["home_goals"])))
-        groups[(str(row.get("competition_id") or ""), kickoff, pair)].append(
-            {"fixture_id": str(row.get("fixture_id") or ""), "canonical_score": score}
-        )
-    duplicate_groups = [rows for rows in groups.values() if len(rows) > 1]
+        groups[key].append({"fixture_id": str(row.get("fixture_id") or ""), "canonical_score": score})
+    duplicate_groups = [(key, rows) for key, rows in groups.items() if len(rows) > 1]
     return {
         "valid_completed_signature_groups": len(groups),
         "duplicate_signature_groups": len(duplicate_groups),
-        "duplicate_extra_rows": sum(len(rows) - 1 for rows in duplicate_groups),
+        "duplicate_extra_rows": sum(len(rows) - 1 for _, rows in duplicate_groups),
         "conflicting_score_groups": sum(
-            1 for rows in duplicate_groups if len({row["canonical_score"] for row in rows}) > 1
+            1 for _, rows in duplicate_groups if len({row["canonical_score"] for row in rows}) > 1
         ),
+        "duplicate_signature_keys": [key for key, _ in duplicate_groups],
     }
 
 
@@ -653,9 +664,15 @@ def main():
             and (not str(r.get("home_id") or "").strip() or not str(r.get("away_id") or "").strip()
                  or str(r.get("home_id")) == str(r.get("away_id")))]
         h2h_duplicate_qa=h2h_duplicate_signature_diagnostics(matches)
-        # Histories contain only explicit completed matches with valid integer scores and distinct team IDs.
+        duplicate_signature_keys=set(h2h_duplicate_qa["duplicate_signature_keys"])
+        duplicate_rows_quarantined=sum(
+            1 for r in matches if completed_fixture_signature_key(r) in duplicate_signature_keys
+        )
+        # Duplicate-signature rows are excluded from history and labels, not merely counted.
+        # Histories otherwise contain only explicit completed matches with valid integer scores and distinct team IDs.
         home_history=defaultdict(list); away_history=defaultdict(list); h2h_history=defaultdict(list)
         for r in matches:
+            if completed_fixture_signature_key(r) in duplicate_signature_keys: continue
             if not r["finished"]: continue
             if not valid_completed_score(r.get("home_goals"),r.get("away_goals")): continue
             if not str(r.get("home_id") or "").strip() or not str(r.get("away_id") or "").strip(): continue
@@ -715,7 +732,7 @@ def main():
             f["data_risk_pct"]=None
             f["data_risk_status"]="NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING"
             f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
-            f.update(market_targets_for_match(r))
+            f.update(market_targets_for_match(r, duplicate_signature_keys))
             feature_rows.append(f)
         # Research-only H2H integrity diagnostics. These do not change model inputs or eligibility.
         team_id_names=defaultdict(set); team_id_seasons=defaultdict(set); normalized_name_ids=defaultdict(set)
@@ -750,7 +767,8 @@ def main():
             "duplicate_fixture_signature_groups_same_competition_kickoff_team_pair":h2h_duplicate_qa["duplicate_signature_groups"],
             "duplicate_fixture_signature_extra_rows":h2h_duplicate_qa["duplicate_extra_rows"],
             "duplicate_fixture_signature_conflicting_score_groups":h2h_duplicate_qa["conflicting_score_groups"],
-            "research_label_integrity_status":("BLOCKED_DUPLICATE_FIXTURE_SIGNATURES" if h2h_duplicate_qa["duplicate_signature_groups"] else "TECHNICAL_SCORE_AND_DUPLICATE_CHECKS_PASS_CANONICAL_SETTLEMENT_UNVERIFIED"),
+            "duplicate_fixture_rows_quarantined_from_history_and_labels":duplicate_rows_quarantined,
+            "research_label_integrity_status":("BLOCKED_DUPLICATE_FIXTURE_SIGNATURES_QUARANTINED_FROM_HISTORY_AND_LABELS" if h2h_duplicate_qa["duplicate_signature_groups"] else "TECHNICAL_SCORE_AND_DUPLICATE_CHECKS_PASS_CANONICAL_SETTLEMENT_UNVERIFIED"),
             "rows_with_any_prior_h2h":len(h2h_rows_with_prior),
             "rows_with_cross_season_prior_h2h":len(h2h_rows_cross_season),
             "cross_season_prior_meeting_count_sum":sum(int(r.get("h2h_cross_season_prior_n") or 0) for r in feature_rows),
