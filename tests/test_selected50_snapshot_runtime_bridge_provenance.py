@@ -51,7 +51,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "artifact_zip_sha256_verified": True,
             "artifact_expired": False,
             "artifact_workflow_run_id": "100",
-            "artifact_head_branch": "research/oracle-50-league-readiness-audit",
+            "artifact_head_branch": "main",
             "artifact_head_sha": "d" * 40,
         }), encoding="utf-8")
         self.receipt_data = {
@@ -82,7 +82,7 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
             "snapshot_artifact_zip_sha256_verified": True,
             "snapshot_artifact_metadata_sha256": sha(self.metadata),
             "snapshot_artifact_workflow_run_id": "100",
-            "snapshot_artifact_head_branch": "research/oracle-50-league-readiness-audit",
+            "snapshot_artifact_head_branch": "main",
             "snapshot_artifact_head_sha": "d" * 40,
             "runtime_run_id": "200",
             "selected_input_matches_overlay": True,
@@ -137,16 +137,16 @@ class SnapshotRuntimeBridgeProvenanceTests(unittest.TestCase):
         self.assertFalse(result["verified"])
         self.assertIn("runtime_ref_is_governed_research_branch", result["failed_checks"])
 
-    def test_snapshot_artifact_branch_must_be_governed(self):
+    def test_snapshot_artifact_branch_must_match_snapshot_workflow_branch(self):
         metadata = json.loads(self.metadata.read_text(encoding="utf-8"))
-        metadata["artifact_head_branch"] = "main"
+        metadata["artifact_head_branch"] = "research/oracle-50-league-readiness-audit"
         self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
-        self.provenance["snapshot_artifact_head_branch"] = "main"
+        self.provenance["snapshot_artifact_head_branch"] = "research/oracle-50-league-readiness-audit"
         self.provenance["snapshot_artifact_metadata_sha256"] = sha(self.metadata)
         self.write_provenance()
         result = verify_runtime_provenance(self.args, sha(self.snapshot))
         self.assertFalse(result["verified"])
-        self.assertIn("snapshot_artifact_head_branch_is_governed_research_branch", result["failed_checks"])
+        self.assertIn("snapshot_artifact_head_branch_matches_snapshot_workflow_branch", result["failed_checks"])
 
     def test_snapshot_artifact_head_sha_mismatch_is_blocked(self):
         self.provenance["snapshot_artifact_head_sha"] = "e" * 40
