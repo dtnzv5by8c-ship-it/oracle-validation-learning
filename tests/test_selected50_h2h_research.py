@@ -9,6 +9,8 @@ from scripts.build_selected50_research_runtime import (
     h2h_result_from_target_home_perspective,
     h2h_duplicate_signature_diagnostics,
     valid_completed_score,
+    completed_fixture_signature_key,
+    market_targets_for_match,
 )
 
 
@@ -134,6 +136,27 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         qa = h2h_duplicate_signature_diagnostics(matches)
         self.assertEqual(qa["duplicate_signature_groups"], 1)
         self.assertEqual(qa["conflicting_score_groups"], 1)
+
+    def test_duplicate_signatures_are_quarantined_from_market_labels(self):
+        matches = [
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+             "home_goals": 2, "away_goals": 1, "finished": True, "fixture_id": "f1"},
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "B", "away_id": "A",
+             "home_goals": 1, "away_goals": 2, "finished": True, "fixture_id": "f2"},
+        ]
+        qa = h2h_duplicate_signature_diagnostics(matches)
+        excluded = set(qa["duplicate_signature_keys"])
+        self.assertEqual(len(excluded), 1)
+        for match in matches:
+            with self.subTest(fixture=match["fixture_id"]):
+                self.assertTrue(all(value is None for value in market_targets_for_match(match, excluded).values()))
+
+    def test_duplicate_signatures_are_excluded_from_historical_signature_key(self):
+        valid = {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+                 "home_goals": 2, "away_goals": 1, "finished": True}
+        self.assertEqual(completed_fixture_signature_key(valid), ("C", 1000.0, ("A", "B")))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "finished": False}))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "home_id": "A", "away_id": "A"}))
 
 
 if __name__ == "__main__":
