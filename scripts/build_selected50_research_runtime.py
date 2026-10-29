@@ -133,7 +133,10 @@ def match_score(m):
     return h,a
 
 def valid_completed_score(home, away):
-    """True only for finite, non-negative integer football scores."""
+    """True only for finite, non-negative integer football scores (not booleans)."""
+    # bool is a subclass of int in Python; reject it explicitly as malformed score data.
+    if isinstance(home, bool) or isinstance(away, bool):
+        return False
     try:
         h, a = float(home), float(away)
     except (TypeError, ValueError, OverflowError):
@@ -181,9 +184,10 @@ def finished(m):
     return status in FINISHED and h is not None and a is not None
 
 def team_ids(m):
+    """Return trimmed provider team IDs so whitespace cannot split or disguise identities."""
     h=get_first(m,("homeID","home_id","home_team_id"))
     a=get_first(m,("awayID","away_id","away_team_id"))
-    return (str(h) if h is not None else "", str(a) if a is not None else "")
+    return (str(h).strip() if h is not None else "", str(a).strip() if a is not None else "")
 
 def form_features(home_hist, away_hist):
     # Histories are already sorted and contain only completed fixtures strictly before target kickoff.
