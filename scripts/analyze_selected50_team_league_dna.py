@@ -121,6 +121,8 @@ def main():
     schedule = read_csv(d / "oracle_selected50_schedule_coverage.csv")
     feature_qa = json.loads((d / "oracle_selected50_feature_qa.json").read_text(encoding="utf-8"))
     validation = json.loads((d / "oracle_selected50_runtime_validation.json").read_text(encoding="utf-8"))
+    provenance_path = d / "oracle_selected50_runtime_provenance.json"
+    provenance = json.loads(provenance_path.read_text(encoding="utf-8")) if provenance_path.exists() else {}
     team_rows = build_team_context(fixtures)
     league_rows = build_league_screen(readiness)
     write_csv(args.output_dir / "oracle_selected50_team_fixture_context_dna.csv", team_rows)
@@ -142,7 +144,7 @@ def main():
         }
     summary = {
         "status": "RESEARCH_ONLY_TEAM_LEAGUE_ANALYTICS_COMPLETE_WITH_TEAM_PERFORMANCE_DNA_BLOCKED",
-        "source_artifact_runtime_generated_utc": "2026-10-29T17:09:30Z",
+        "source_artifact_runtime_generated_utc": provenance.get("generated_utc", "NOT_RECORDED_IN_ARTIFACT"),
         "selected_leagues": feature_qa.get("selected_leagues"),
         "selected_groups_with_match_rows": feature_qa.get("selected_groups_with_match_rows"),
         "historical_archive_rows": feature_qa.get("raw_match_records_retained_after_dedup"),
