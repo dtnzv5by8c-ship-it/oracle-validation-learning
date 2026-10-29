@@ -3,6 +3,12 @@
 import bisect, csv, datetime as dt, hashlib, json, math, os, re, zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
+import sys
+
+# Ensure sibling research helpers import correctly when this file is loaded by tests.
+SCRIPTS_DIR = str(Path(__file__).resolve().parent)
+if SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, SCRIPTS_DIR)
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
