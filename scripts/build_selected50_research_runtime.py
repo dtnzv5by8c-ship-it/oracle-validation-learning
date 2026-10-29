@@ -212,6 +212,22 @@ def predict_for_features(model, feature, feature_names):
     return float(model.predict_proba([values])[0,1])
 
 
+def h2h_prior_meetings(history, target_kickoff):
+    """Return only prior meetings; ties at the target kickoff are excluded."""
+    times = [item[0] for item in history]
+    return history[:bisect.bisect_left(times, target_kickoff)]
+
+
+def h2h_result_from_target_home_perspective(old_match, target_home_id):
+    """W/D/L from the target fixture's home team's perspective."""
+    old_home, old_away = old_match["home_goals"], old_match["away_goals"]
+    if old_match["home_id"] == target_home_id:
+        return "W" if old_home > old_away else "D" if old_home == old_away else "L"
+    if old_match["away_id"] == target_home_id:
+        return "W" if old_away > old_home else "D" if old_away == old_home else "L"
+    raise ValueError("Target home team is not present in the historical H2H fixture")
+
+
 def prediction_support_diagnostics(feature, model_fits, any_probability_available=False):
     """Expose why a fixture did or did not pass feature/training support gates.
 
@@ -593,15 +609,13 @@ def main():
             ah=history_before(away_history[(comp,r["away_id"])],ts)
             f=form_features(hh,ah)
             h2h_all=h2h_history[(comp,*sorted((r["home_id"],r["away_id"])))]
-            h2h_cut=bisect.bisect_left([x[0] for x in h2h_all],ts)
-            h2h=h2h_all[:h2h_cut]
+            h2h=h2h_prior_meetings(h2h_all,ts)
             last_h2h=h2h[-5:]
             h2h_btts=[]; h2h_home_results=[]; h2h_goals=[]
             for (_, old) in last_h2h:
                 oh,oa=old["home_goals"],old["away_goals"]
                 h2h_btts.append(int(oh>0 and oa>0)); h2h_goals.append(oh+oa)
-                if old["home_id"]==r["home_id"]: rel= "W" if oh>oa else "D" if oh==oa else "L"
-                else: rel= "W" if oa>oh else "D" if oa==oh else "L"
+                rel=h2h_result_from_target_home_perspective(old,r["home_id"])
                 h2h_home_results.append(rel)
             f.update({"fixture_id":r["fixture_id"],"season_id":r["season_id"],"competition_id":comp,"country":r["country"],
                       "league":r["league"],"kickoff_unix":ts,"date_utc":dt.datetime.fromtimestamp(ts,dt.timezone.utc).isoformat(),
@@ -610,7 +624,8 @@ def main():
                       "home_recent5_results":"".join("W" if match_score(m)[0]>match_score(m)[1] else "D" if match_score(m)[0]==match_score(m)[1] else "L" for m,is_home in hh[-5:]),
                       "away_recent5_results":"".join("W" if match_score(m)[1]>match_score(m)[0] else "D" if match_score(m)[1]==match_score(m)[0] else "L" for m,is_home in ah[-5:]),
                       "home_recent5_n":len(hh[-5:]),"away_recent5_n":len(ah[-5:]),
-                      "h2h_prior_n":len(h2h),"h2h_last5_results_home_perspective":"".join(h2h_home_results),
+                      "h2h_prior_n":len(h2h),"h2h_cross_season_prior_n":sum(1 for _, old in h2h if str(old.get("season_id")) != str(r["season_id"])),
+                      "h2h_last5_results_home_perspective":"".join(h2h_home_results),
                       "h2h_btts_rate_last5":sum(h2h_btts)/len(h2h_btts) if h2h_btts else None,
                       "h2h_avg_total_goals_last5":sum(h2h_goals)/len(h2h_goals) if h2h_goals else None,
                       "h2h_last_date_utc":dt.datetime.fromtimestamp(last_h2h[-1][0],dt.timezone.utc).isoformat() if last_h2h else ""})
@@ -636,6 +651,46 @@ def main():
             else:
                 for market in MARKETS: f["target_"+market]=None
             feature_rows.append(f)
+        # Research-only H2H integrity diagnostics. These do not change model inputs or eligibility.
+        team_id_names=defaultdict(set); team_id_seasons=defaultdict(set); normalized_name_ids=defaultdict(set)
+        for match in matches:
+            for side in ("home","away"):
+                tid=str(match.get(side+"_id") or "").strip()
+                name=" ".join(str(match.get(side+"_team") or "").casefold().split())
+                if not tid or not name: continue
+                key=(str(match.get("competition_id") or ""),tid)
+                team_id_names[key].add(name)
+                team_id_seasons[key].add(str(match.get("season_id") or ""))
+                normalized_name_ids[(str(match.get("competition_id") or ""),name)].add(tid)
+        h2h_rows_with_prior=[r for r in feature_rows if int(r.get("h2h_prior_n") or 0)>0]
+        h2h_rows_cross_season=[r for r in feature_rows if int(r.get("h2h_cross_season_prior_n") or 0)>0]
+        h2h_cutoff_violations=0
+        for row in feature_rows:
+            last_date=row.get("h2h_last_date_utc")
+            if not last_date: continue
+            try:
+                last_ts=dt.datetime.fromisoformat(str(last_date).replace("Z","+00:00")).timestamp()
+                if last_ts >= float(row["kickoff_unix"]): h2h_cutoff_violations += 1
+            except (ValueError,TypeError,OverflowError,KeyError):
+                h2h_cutoff_violations += 1
+        h2h_history_qa={
+            "status":"RESEARCH_ONLY_H2H_HISTORY_DIAGNOSTICS",
+            "history_source_rows":len(matches),
+            "explicit_finished_with_numeric_scores":sum(1 for m in matches if m.get("finished") and m.get("home_goals") is not None and m.get("away_goals") is not None),
+            "feature_rows_checked":len(feature_rows),
+            "rows_with_any_prior_h2h":len(h2h_rows_with_prior),
+            "rows_with_cross_season_prior_h2h":len(h2h_rows_cross_season),
+            "cross_season_prior_meeting_count_sum":sum(int(r.get("h2h_cross_season_prior_n") or 0) for r in feature_rows),
+            "strict_kickoff_cutoff_violations":h2h_cutoff_violations,
+            "competition_team_ids_with_multiple_normalized_names":sum(1 for names in team_id_names.values() if len(names)>1),
+            "competition_team_ids_seen_across_multiple_seasons":sum(1 for seasons in team_id_seasons.values() if len(seasons-{""})>1),
+            "competition_normalized_names_mapped_to_multiple_team_ids":sum(1 for ids in normalized_name_ids.values() if len(ids)>1),
+            "limitations":["Name variation counts are diagnostics, not proof of a wrong identity; manual canonical review remains required.",
+                           "Provider team IDs and source completeness are not certified by these counts.",
+                           "H2H rows are scoped to the research-selected competition group and provider team IDs; ambiguous IDs are not automatically reconciled."]
+        }
+        if h2h_cutoff_violations:
+            raise SystemExit("H2H strict pre-kickoff cutoff audit failed; fail closed.")
         train_rows=[r for r in feature_rows if r.get("finished") and r.get("kickoff_unix",NOW)>=0]
         # Historical validation window: model is trained only before 20 March 2025.
         train_pre=[r for r in train_rows if r["kickoff_unix"]<PRIMARY_START]
@@ -1304,7 +1359,7 @@ def main():
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
             "future_fixture_candidates_in_report_horizon":len(future),
             "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_mapped_by_exact_labels":mapped_historical_seasons,"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
-            "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),
+            "raw_match_records_retained_after_dedup":len(matches),"completed_match_records":sum(r["finished"] for r in matches),"h2h_history_qa":h2h_history_qa,
             "raw_rows_missing_normalized_fixture_id":sum(int(r.get("rows_missing_normalized_fixture_id") or 0) for r in season_qa),
             "finished_status_missing_numeric_score_rows":sum(int(r.get("rows_explicit_finished_status_missing_numeric_score") or 0) for r in season_qa),
             "completed_total_goals_0_1_rows":sum(int(r.get("completed_total_goals_0_1_rows") or 0) for r in settlement_truth_qa),
