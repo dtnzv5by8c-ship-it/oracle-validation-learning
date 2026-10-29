@@ -1,0 +1,244 @@
+name: Oracle Selected-50 Safe Current Fixture Report
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-selected50-safe-current-report.yml"
+  workflow_dispatch:
+    inputs:
+      snapshot_run_id:
+        description: "Successful existing current-fixture snapshot workflow run ID"
+        required: true
+        default: "40734991542"
+        type: string
+      runtime_run_id:
+        description: "Successful existing Selected-50 runtime/backtest workflow run ID"
+        required: true
+        default: "40816899941"
+        type: string
+      report_horizon_days:
+        description: "Report-only horizon; runtime generation remains capped at seven days"
+        required: true
+        default: "13"
+        type: choice
+        options:
+          - "7"
+          - "13"
+      as_of_utc:
+        description: "Optional fixed timezone-aware ISO-8601 audit time; leave blank to use current UTC"
+        required: false
+        default: ""
+        type: string
+      minimum_lead_minutes:
+        description: "Minimum lead time for fixture inclusion"
+        required: true
+        default: "15"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  safe-current-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify existing run and artifact provenance
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_RUN_ID: ${{ github.event.inputs.snapshot_run_id || '40734991542' }}
+          RUNTIME_RUN_ID: ${{ github.event.inputs.runtime_run_id || '40816899941' }}
+        run: |
+          set -euo pipefail
+          [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" ]] || { echo "::error::Research branch only."; exit 1; }
+          [[ "${SNAPSHOT_RUN_ID}" =~ ^[0-9]+$ ]] || { echo "::error::Snapshot run ID must be numeric."; exit 1; }
+          [[ "${RUNTIME_RUN_ID}" =~ ^[0-9]+$ ]] || { echo "::error::Runtime run ID must be numeric."; exit 1; }
+          mkdir -p report-input/snapshot report-input/runtime
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SNAPSHOT_RUN_ID}" > report-input/snapshot/run.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUNTIME_RUN_ID}" > report-input/runtime/run.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SNAPSHOT_RUN_ID}/artifacts?per_page=100" > report-input/snapshot/artifacts.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUNTIME_RUN_ID}/artifacts?per_page=100" > report-input/runtime/artifacts.json
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUNTIME_RUN_ID}/jobs?per_page=100" > report-input/runtime/jobs.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          expected_branch = "research/oracle-50-league-readiness-audit"
+          specs = [
+              ("snapshot", "oracle-selected50-current-fixture-snapshot", Path("report-input/snapshot")),
+              ("runtime", "oracle-selected50-research-runtime-report", Path("report-input/runtime")),
+          ]
+          meta = {}
+          for key, expected_name, root in specs:
+              run = json.loads((root / "run.json").read_text(encoding="utf-8"))
+              artifacts_doc = json.loads((root / "artifacts.json").read_text(encoding="utf-8"))
+              if run.get("status") != "completed" or run.get("conclusion") != "success":
+                  raise SystemExit(f"FAIL: {key} workflow run is not completed successfully")
+              if run.get("head_branch") != expected_branch:
+                  raise SystemExit(f"FAIL: {key} run is not from the governed research branch")
+              matches = [a for a in artifacts_doc.get("artifacts", []) if a.get("name") == expected_name]
+              if len(matches) != 1:
+                  raise SystemExit(f"FAIL: expected exactly one {expected_name} artifact for run {run.get('id')}")
+              artifact = matches[0]
+              workflow_run = artifact.get("workflow_run") or {}
+              if str(workflow_run.get("id") or "") != str(run.get("id")):
+                  raise SystemExit(f"FAIL: {key} artifact does not belong to the requested run")
+              if workflow_run.get("head_branch") != expected_branch:
+                  raise SystemExit(f"FAIL: {key} artifact branch does not match the governed research branch")
+              if artifact.get("expired") is not False:
+                  raise SystemExit(f"FAIL: {key} artifact is expired or expiry status is unknown")
+              digest = str(artifact.get("digest") or "")
+              if not digest.startswith("sha256:") or len(digest.split(":", 1)[1]) != 64:
+                  raise SystemExit(f"FAIL: {key} artifact SHA-256 digest is unavailable")
+              meta[key] = {
+                  "run_id": str(run["id"]),
+                  "run_head_sha": run.get("head_sha"),
+                  "run_html_url": run.get("html_url"),
+                  "artifact_id": str(artifact["id"]),
+                  "artifact_name": artifact["name"],
+                  "artifact_digest": digest,
+                  "artifact_size_bytes": artifact.get("size_in_bytes"),
+                  "artifact_created_at": artifact.get("created_at"),
+                  "artifact_expires_at": artifact.get("expires_at"),
+              }
+          jobs_doc = json.loads(Path("report-input/runtime/jobs.json").read_text(encoding="utf-8"))
+          runtime_jobs = [j for j in jobs_doc.get("jobs", []) if j.get("name") == "selected50-runtime"]
+          if len(runtime_jobs) != 1 or runtime_jobs[0].get("conclusion") != "success" or not runtime_jobs[0].get("started_at"):
+              raise SystemExit("FAIL: exact successful selected50-runtime job start timestamp is unavailable")
+          meta["runtime"]["runtime_started_utc"] = runtime_jobs[0]["started_at"]
+          Path("report-input/verified_artifact_metadata.json").write_text(
+              json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          print(json.dumps({
+              "status": "PASS_EXISTING_ARTIFACT_PROVENANCE",
+              "snapshot_run_id": meta["snapshot"]["run_id"],
+              "snapshot_artifact_id": meta["snapshot"]["artifact_id"],
+              "runtime_run_id": meta["runtime"]["run_id"],
+              "runtime_artifact_id": meta["runtime"]["artifact_id"],
+              "runtime_started_utc": meta["runtime"]["runtime_started_utc"],
+              "provider_api_calls": 0,
+              "production_writes": 0
+          }, indent=2))
+          PY
+
+      - name: Download and verify existing GitHub artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SNAPSHOT_ARTIFACT_ID="$(python -c 'import json; print(json.load(open("report-input/verified_artifact_metadata.json"))["snapshot"]["artifact_id"])')"
+          RUNTIME_ARTIFACT_ID="$(python -c 'import json; print(json.load(open("report-input/verified_artifact_metadata.json"))["runtime"]["artifact_id"])')"
+          SNAPSHOT_EXPECTED="$(python -c 'import json; print(json.load(open("report-input/verified_artifact_metadata.json"))["snapshot"]["artifact_digest"].split(":",1)[1].lower())')"
+          RUNTIME_EXPECTED="$(python -c 'import json; print(json.load(open("report-input/verified_artifact_metadata.json"))["runtime"]["artifact_digest"].split(":",1)[1].lower())')"
+          curl --fail --location --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${SNAPSHOT_ARTIFACT_ID}/zip" -o report-input/snapshot.zip
+          curl --fail --location --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${RUNTIME_ARTIFACT_ID}/zip" -o report-input/runtime.zip
+          printf '%s  %s\n' "${SNAPSHOT_EXPECTED}" report-input/snapshot.zip | sha256sum -c -
+          printf '%s  %s\n' "${RUNTIME_EXPECTED}" report-input/runtime.zip | sha256sum -c -
+          unzip -q report-input/snapshot.zip -d report-input/snapshot/unpacked
+          unzip -q report-input/runtime.zip -d report-input/runtime/unpacked
+          test -f report-input/snapshot/unpacked/current-fixture-snapshot.json
+          test -f report-input/runtime/unpacked/oracle_selected50_prediction_report.csv
+
+      - name: Build 13-day reporting assessment without extending runtime generation
+        shell: bash
+        env:
+          REPORT_HORIZON_DAYS: ${{ github.event.inputs.report_horizon_days || '13' }}
+          AS_OF_UTC: ${{ github.event.inputs.as_of_utc || '' }}
+          MINIMUM_LEAD_MINUTES: ${{ github.event.inputs.minimum_lead_minutes || '15' }}
+        run: |
+          set -euo pipefail
+          [[ "${REPORT_HORIZON_DAYS}" == "7" || "${REPORT_HORIZON_DAYS}" == "13" ]] || { echo "::error::Only 7-day and evidence-supported 13-day report horizons are allowed."; exit 1; }
+          [[ "${MINIMUM_LEAD_MINUTES}" =~ ^[0-9]+$ ]] || { echo "::error::Minimum lead must be a non-negative integer."; exit 1; }
+          RUNTIME_STARTED_UTC="$(python -c 'import json; print(json.load(open("report-input/verified_artifact_metadata.json"))["runtime"]["runtime_started_utc"])')"
+          args=(
+            --snapshot report-input/snapshot/unpacked/current-fixture-snapshot.json
+            --runtime-report report-input/runtime/unpacked/oracle_selected50_prediction_report.csv
+            --out-dir safe-report-output
+            --report-horizon-days "${REPORT_HORIZON_DAYS}"
+            --runtime-horizon-days 7
+            --runtime-started-utc "${RUNTIME_STARTED_UTC}"
+            --minimum-lead-minutes "${MINIMUM_LEAD_MINUTES}"
+          )
+          if [[ -n "${AS_OF_UTC}" ]]; then args+=(--as-of-utc "${AS_OF_UTC}"); fi
+          python scripts/build_selected50_safe_current_fixture_report.py "${args[@]}"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa = json.loads(Path("safe-report-output/oracle_selected50_safe_current_fixture_report_qa.json").read_text(encoding="utf-8"))
+          required = {
+              "production_eligible": False,
+              "betting_eligible": False,
+              "expanded_prediction_report_approved": False,
+              "canonical_joins_created": 0,
+              "official_settlement_truth_verified": 0,
+              "combo_probability_nonblank_cells": 0,
+              "per_fixture_quarantine_preserved": True,
+              "market_gates_preserved": True,
+          }
+          for key, expected in required.items():
+              if qa.get(key) != expected:
+                  raise SystemExit(f"FAIL: report gate {key} expected {expected!r}, got {qa.get(key)!r}")
+          if qa.get("report_horizon_days", 0) > qa.get("runtime_generation_horizon_days", 7):
+              if qa.get("reporting_horizon_coverage_status") != "PASS_DECLARED_SNAPSHOT_WINDOW_COVERS_REQUESTED_HORIZON":
+                  raise SystemExit("FAIL: expanded report lacks declared snapshot coverage")
+          metadata = json.loads(Path("report-input/verified_artifact_metadata.json").read_text(encoding="utf-8"))
+          inputs = {
+              "snapshot_run_id": metadata["snapshot"]["run_id"],
+              "snapshot_artifact_id": metadata["snapshot"]["artifact_id"],
+              "snapshot_artifact_sha256": metadata["snapshot"]["artifact_digest"],
+              "runtime_run_id": metadata["runtime"]["run_id"],
+              "runtime_artifact_id": metadata["runtime"]["artifact_id"],
+              "runtime_artifact_sha256": metadata["runtime"]["artifact_digest"],
+              "runtime_started_utc": metadata["runtime"]["runtime_started_utc"],
+              "report_as_of_utc": qa.get("generated_utc"),
+              "report_horizon_days": qa.get("report_horizon_days"),
+              "runtime_generation_horizon_days": qa.get("runtime_generation_horizon_days"),
+              "provider_api_calls": 0,
+              "production_writes": 0,
+          }
+          Path("safe-report-output/oracle_selected50_safe_report_inputs.json").write_text(
+              json.dumps(inputs, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          print(json.dumps({
+              "status": qa.get("status"),
+              "report_horizon_days": qa.get("report_horizon_days"),
+              "runtime_generation_horizon_days": qa.get("runtime_generation_horizon_days"),
+              "safe_exact_join_rows": qa.get("safe_exact_join_rows"),
+              "clean_out_of_window_rows": qa.get("source_candidates_outside_runtime_window_not_missing_join"),
+              "runtime_rows_missing_snapshot_fixture_row": qa.get("runtime_rows_missing_snapshot_fixture_row"),
+              "quarantine_preserved": qa.get("per_fixture_quarantine_preserved"),
+              "market_gates_preserved": qa.get("market_gates_preserved"),
+              "production_eligible": qa.get("production_eligible"),
+              "betting_eligible": qa.get("betting_eligible"),
+          }, indent=2))
+          PY
+          {
+            echo "### Oracle Selected-50 safe current report"
+            echo "- Provider API calls: **0**"
+            echo "- Production writes: **0**"
+            echo "- Runtime generation horizon remains **7 days**"
+            echo "- Report horizon: **${REPORT_HORIZON_DAYS} days**"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload report-only outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-safe-current-report
+          path: safe-report-output/
+          if-no-files-found: error
+          retention-days: 14
