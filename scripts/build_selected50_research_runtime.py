@@ -705,10 +705,13 @@ def main():
             row["h2h_days_since_last"] = days_since
         h2h_comparison = []
         h2h_fixture_rows = []
+        h2h_common_train = [r for r in train_pre if
+            all(r.get(k) is not None and math.isfinite(float(r[k])) for k in FEATURES + h2h_feature_names)]
         for market in MARKETS:
-            base_model, base_train_n = make_model_for_features(train_pre, market, FEATURES)
+            # Train both sides of the ablation on the exact same historical rows to isolate H2H feature value.
+            base_model, base_train_n = make_model_for_features(h2h_common_train, market, FEATURES)
             candidate_features = FEATURES + h2h_feature_names
-            candidate_model, candidate_train_n = make_model_for_features(train_pre, market, candidate_features)
+            candidate_model, candidate_train_n = make_model_for_features(h2h_common_train, market, candidate_features)
             base_test = [r for r in test_rows if r.get("target_"+market) is not None and
                          all(r.get(k) is not None and math.isfinite(float(r[k])) for k in FEATURES)]
             paired_test = [r for r in base_test if all(r.get(k) is not None and math.isfinite(float(r[k])) for k in h2h_feature_names)]
