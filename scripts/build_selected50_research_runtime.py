@@ -117,10 +117,14 @@ def stamp(m):
     return None
 
 def num(v):
+    # Reject booleans before float conversion: float(True) == 1.0 would disguise
+    # malformed source scores and other numeric fields as valid measurements.
+    if isinstance(v, bool):
+        return None
     try:
         n=float(v)
         return n if math.isfinite(n) and n >= 0 else None
-    except (TypeError,ValueError): return None
+    except (TypeError,ValueError,OverflowError): return None
 
 def get_first(row, keys):
     for k in keys:
