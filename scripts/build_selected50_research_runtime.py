@@ -300,6 +300,52 @@ def h2h_duplicate_signature_diagnostics(matches):
     }
 
 
+def provider_fixture_id_collision_diagnostics(rows):
+    """Detect same-ID rows that disagree on fixture identity before ID-based deduplication.
+
+    Identical repeats can be deduplicated. If a competition-scoped provider fixture
+    ID maps to different kickoff/team/score/completion identities, quarantine every
+    row in that group instead of silently retaining the first archive occurrence.
+    """
+    groups = defaultdict(list)
+    for row in rows:
+        fixture_id = str(row.get("fixture_id") or "").strip()
+        if not fixture_id:
+            continue
+        competition_id = str(row.get("competition_id") or "")
+        home_id = str(row.get("home_id") or "").strip()
+        away_id = str(row.get("away_id") or "").strip()
+        pair = tuple(sorted((home_id, away_id))) if home_id and away_id and home_id != away_id else None
+        try:
+            kickoff = float(row.get("kickoff_unix"))
+            if not math.isfinite(kickoff):
+                kickoff = None
+        except (TypeError, ValueError, OverflowError):
+            kickoff = None
+        canonical_score = None
+        if pair is not None and valid_completed_score(row.get("home_goals"), row.get("away_goals")):
+            home_goals = int(float(row["home_goals"]))
+            away_goals = int(float(row["away_goals"]))
+            canonical_score = ((home_goals, away_goals) if home_id == pair[0]
+                               else (away_goals, home_goals))
+        identity = (kickoff, pair, canonical_score, bool(row.get("finished")))
+        groups[(competition_id, fixture_id)].append(identity)
+
+    duplicate_groups = [(key, identities) for key, identities in groups.items() if len(identities) > 1]
+    conflicting_groups = [(key, identities) for key, identities in duplicate_groups
+                         if len(set(identities)) > 1]
+    exact_groups = [(key, identities) for key, identities in duplicate_groups
+                    if len(set(identities)) == 1]
+    return {
+        "duplicate_fixture_id_groups": len(duplicate_groups),
+        "exact_duplicate_fixture_id_groups": len(exact_groups),
+        "exact_duplicate_fixture_id_extra_rows_deduplicated": sum(len(rows) - 1 for _, rows in exact_groups),
+        "conflicting_fixture_id_groups": len(conflicting_groups),
+        "conflicting_fixture_id_rows_quarantined": sum(len(rows) for _, rows in conflicting_groups),
+        "conflicting_fixture_id_keys": [key for key, _ in conflicting_groups],
+    }
+
+
 def prediction_support_diagnostics(feature, model_fits, any_probability_available=False):
     """Expose why a fixture did or did not pass feature/training support gates.
 
@@ -582,10 +628,17 @@ def main():
         # Fail closed on unresolved competition mapping or gross archive loss.
         present_comps={r["competition_id"] for r in all_matches}
         if len(present_comps)!=50: raise SystemExit(f"Only {len(present_comps)} of 50 selected grouping keys yielded matches.")
-        # Deduplicate by competition + fixture ID only; identical IDs across comps are distinct provider namespace.
+        # Audit competition-scoped provider fixture-ID collisions BEFORE deduplication.
+        # Identical repeats may be deduplicated; conflicting IDs are quarantined wholesale.
+        fixture_id_collision_qa=provider_fixture_id_collision_diagnostics(all_matches)
+        conflicting_fixture_id_keys={tuple(key) for key in fixture_id_collision_qa["conflicting_fixture_id_keys"]}
         dedup={}
         for r in all_matches:
-            key=(r["competition_id"],r["fixture_id"]) if r["fixture_id"] else (r["competition_id"],r["season_id"],r["kickoff_unix"],r["home_id"],r["away_id"])
+            fixture_id=str(r.get("fixture_id") or "").strip()
+            comp_id=str(r.get("competition_id") or "")
+            if fixture_id and (comp_id,fixture_id) in conflicting_fixture_id_keys:
+                continue
+            key=(comp_id,fixture_id) if fixture_id else (comp_id,r["season_id"],r["kickoff_unix"],r["home_id"],r["away_id"])
             dedup.setdefault(key,r)
         matches=sorted(dedup.values(),key=lambda r:(r["competition_id"],r["kickoff_unix"],r["fixture_id"]))
         # Internal status/score/ID consistency audit; this is not official settlement verification.
@@ -772,7 +825,12 @@ def main():
             "duplicate_fixture_signature_extra_rows":h2h_duplicate_qa["duplicate_extra_rows"],
             "duplicate_fixture_signature_conflicting_score_groups":h2h_duplicate_qa["conflicting_score_groups"],
             "duplicate_fixture_rows_quarantined_from_history_and_labels":duplicate_rows_quarantined,
-            "research_label_integrity_status":("BLOCKED_DUPLICATE_FIXTURE_SIGNATURES_QUARANTINED_FROM_HISTORY_AND_LABELS" if h2h_duplicate_qa["duplicate_signature_groups"] else "TECHNICAL_SCORE_AND_DUPLICATE_CHECKS_PASS_CANONICAL_SETTLEMENT_UNVERIFIED"),
+            "provider_fixture_id_collision_groups":fixture_id_collision_qa["duplicate_fixture_id_groups"],
+            "provider_fixture_id_exact_duplicate_groups":fixture_id_collision_qa["exact_duplicate_fixture_id_groups"],
+            "provider_fixture_id_exact_duplicate_extra_rows_deduplicated":fixture_id_collision_qa["exact_duplicate_fixture_id_extra_rows_deduplicated"],
+            "provider_fixture_id_conflicting_groups_quarantined":fixture_id_collision_qa["conflicting_fixture_id_groups"],
+            "provider_fixture_id_conflicting_rows_quarantined":fixture_id_collision_qa["conflicting_fixture_id_rows_quarantined"],
+            "research_label_integrity_status":("BLOCKED_FIXTURE_ID_OR_SIGNATURE_COLLISIONS_QUARANTINED" if (h2h_duplicate_qa["duplicate_signature_groups"] or fixture_id_collision_qa["conflicting_fixture_id_groups"]) else "TECHNICAL_SCORE_AND_DUPLICATE_CHECKS_PASS_CANONICAL_SETTLEMENT_UNVERIFIED"),
             "rows_with_any_prior_h2h":len(h2h_rows_with_prior),
             "rows_with_cross_season_prior_h2h":len(h2h_rows_cross_season),
             "cross_season_prior_meeting_count_sum":sum(int(r.get("h2h_cross_season_prior_n") or 0) for r in feature_rows),
