@@ -162,6 +162,7 @@ jobs:
             cp private-download/oracle-selected50-footystats-private-ingestion.zip private-download/oracle-selected50-runtime-selected.zip
             mkdir -p selected50_runtime_output
             echo '{"status":"NOT_RUN_SNAPSHOT_OVERLAY_DISABLED","production_eligible":false,"betting_eligible":false}' > selected50_runtime_output/current_snapshot_overlay_qa.json
+            echo '{"status":"NOT_RUN_SNAPSHOT_OVERLAY_DISABLED","artifact_metadata_available":false,"production_eligible":false,"betting_eligible":false}' > selected50_runtime_output/oracle_selected50_snapshot_artifact_metadata.json
             python - <<'PY'
           import csv
           from pathlib import Path
@@ -175,6 +176,9 @@ jobs:
 
       - name: Install research runtime dependencies
         run: python -m pip install --disable-pip-version-check numpy scikit-learn
+
+      - name: Test snapshot-disabled artifact contract
+        run: python -m unittest discover -s tests -p 'test_selected50_runtime_workflow_contract.py' -v
 
       - name: Test composite-market target against settlement contract
         run: python -m unittest discover -s tests -p 'test_selected50_combo_target_contract.py' -v
