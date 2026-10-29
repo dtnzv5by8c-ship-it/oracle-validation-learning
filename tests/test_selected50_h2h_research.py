@@ -11,6 +11,7 @@ from scripts.build_selected50_research_runtime import (
     valid_completed_score,
     completed_fixture_signature_key,
     market_targets_for_match,
+    team_ids,
 )
 
 
@@ -157,6 +158,25 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         self.assertEqual(completed_fixture_signature_key(valid), ("C", 1000.0, ("A", "B")))
         self.assertIsNone(completed_fixture_signature_key({**valid, "finished": False}))
         self.assertIsNone(completed_fixture_signature_key({**valid, "home_id": "A", "away_id": "A"}))
+
+    def test_boolean_values_are_not_accepted_as_goal_counts(self):
+        self.assertFalse(valid_completed_score(True, 1))
+        self.assertFalse(valid_completed_score(0, False))
+
+    def test_provider_team_ids_are_trimmed_before_identity_checks(self):
+        home_id, away_id = team_ids({"homeID": " 123 ", "awayID": "123"})
+        self.assertEqual(home_id, "123")
+        self.assertEqual(away_id, "123")
+        # After normalization, a whitespace-variant self-fixture cannot form a signature.
+        self.assertIsNone(completed_fixture_signature_key({
+            "finished": True,
+            "home_goals": 1,
+            "away_goals": 0,
+            "home_id": home_id,
+            "away_id": away_id,
+            "kickoff_unix": 1000,
+            "competition_id": "C",
+        }))
 
 
 if __name__ == "__main__":
