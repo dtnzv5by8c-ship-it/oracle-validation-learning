@@ -155,6 +155,26 @@ def main():
     exclusion_rows = []
     reason_counts = {}
     total_valid_source_rows = 0
+    snapshot_window_covers_runtime_start = bool(
+        snapshot_window_start and snapshot_window_start <= runtime_started
+    )
+    snapshot_window_covers_requested_report_horizon = bool(
+        snapshot_window_covers_runtime_start
+        and snapshot_window_end
+        and report_end <= snapshot_window_end
+    )
+    reporting_horizon_coverage_status = (
+        "PASS_DECLARED_SNAPSHOT_WINDOW_COVERS_REQUESTED_HORIZON"
+        if report_horizon_days > runtime_horizon_days and snapshot_window_covers_requested_report_horizon
+        else "NOT_REQUIRED_NO_HORIZON_EXPANSION"
+        if report_horizon_days <= runtime_horizon_days
+        else "NOT_VERIFIED"
+    )
+    snapshot_runtime_chronology_gate = (
+        "PASS_SNAPSHOT_PRECEDES_RUNTIME_START"
+        if retrieved <= runtime_started
+        else "NOT_REQUIRED_NO_HORIZON_EXPANSION"
+    )
 
     def record_exclusion(f, season, fid, reason, runtime_row=None):
         meta = season_meta.get(season, {})
@@ -189,6 +209,19 @@ def main():
             "runtime_kickoff_utc": text(runtime_row.get("date_utc")),
             "snapshot_status": text(f.get("status")),
             "snapshot_no_home_away": text(f.get("no_home_away")),
+            "snapshot_retrieved_utc": retrieved.isoformat(),
+            "snapshot_age_seconds": snapshot_age_seconds,
+            "snapshot_file_sha256": snapshot_sha256,
+            "snapshot_provenance_status": "PASS_FRESH_TIMEZONE_AWARE",
+            "snapshot_window_start_utc": snapshot_window_start.isoformat() if snapshot_window_start else "",
+            "snapshot_window_end_utc": snapshot_window_end.isoformat() if snapshot_window_end else "",
+            "runtime_started_utc": runtime_started.isoformat(),
+            "runtime_generation_end_utc": runtime_end.isoformat(),
+            "requested_report_end_utc": report_end.isoformat(),
+            "snapshot_runtime_chronology_gate": snapshot_runtime_chronology_gate,
+            "snapshot_window_covers_runtime_start": snapshot_window_covers_runtime_start,
+            "snapshot_window_covers_requested_report_horizon": snapshot_window_covers_requested_report_horizon,
+            "reporting_horizon_coverage_status": reporting_horizon_coverage_status,
             "home_team_provider_id": text(f.get("homeID")),
             "away_team_provider_id": text(f.get("awayID")),
             "classification": reason,
@@ -288,6 +321,15 @@ def main():
         row["snapshot_age_seconds"] = snapshot_age_seconds
         row["snapshot_file_sha256"] = snapshot_sha256
         row["snapshot_provenance_status"] = "PASS_FRESH_TIMEZONE_AWARE"
+        row["snapshot_window_start_utc"] = snapshot_window_start.isoformat() if snapshot_window_start else ""
+        row["snapshot_window_end_utc"] = snapshot_window_end.isoformat() if snapshot_window_end else ""
+        row["runtime_started_utc"] = runtime_started.isoformat()
+        row["runtime_generation_end_utc"] = runtime_end.isoformat()
+        row["requested_report_end_utc"] = report_end.isoformat()
+        row["snapshot_runtime_chronology_gate"] = snapshot_runtime_chronology_gate
+        row["snapshot_window_covers_runtime_start"] = snapshot_window_covers_runtime_start
+        row["snapshot_window_covers_requested_report_horizon"] = snapshot_window_covers_requested_report_horizon
+        row["reporting_horizon_coverage_status"] = reporting_horizon_coverage_status
         row["report_horizon_days"] = report_horizon_days
         row["runtime_generation_horizon_days"] = runtime_horizon_days
         row["market_gate_status"] = ("BLOCKED_FEATURE_SUPPORT" if "BLOCKED_MISSING_REQUIRED_FEATURES" in text(r.get("feature_support_status")) or "BLOCKED" in text(r.get("prediction_status")) else "RAW_RESEARCH_ONLY_NOT_FOR_BETTING")
@@ -315,7 +357,11 @@ def main():
     exclusion_fields = [
         "provider_season_id", "fixture_id", "snapshot_country", "snapshot_competition",
         "snapshot_kickoff_utc", "runtime_kickoff_utc", "snapshot_status", "snapshot_no_home_away",
-        "home_team_provider_id", "away_team_provider_id", "classification",
+        "snapshot_retrieved_utc", "snapshot_age_seconds", "snapshot_file_sha256", "snapshot_provenance_status",
+        "snapshot_window_start_utc", "snapshot_window_end_utc", "runtime_started_utc",
+        "runtime_generation_end_utc", "requested_report_end_utc", "snapshot_runtime_chronology_gate",
+        "snapshot_window_covers_runtime_start", "snapshot_window_covers_requested_report_horizon",
+        "reporting_horizon_coverage_status", "home_team_provider_id", "away_team_provider_id", "classification",
         "report_horizon_days", "runtime_generation_horizon_days",
         "runtime_feature_support_status", "runtime_prediction_status",
         "market_gate_status", "feature_gate_status", "canonical_fixture_join_status",
@@ -334,25 +380,14 @@ def main():
         "snapshot_window_start_utc": snapshot_window_start.isoformat() if snapshot_window_start else None,
         "snapshot_window_end_utc": snapshot_window_end.isoformat() if snapshot_window_end else None,
         "requested_report_end_utc": report_end.isoformat(),
-        "snapshot_window_covers_runtime_start": bool(snapshot_window_start and snapshot_window_start <= runtime_started),
-        "snapshot_window_covers_requested_report_horizon": bool(
-            snapshot_window_start and snapshot_window_start <= runtime_started
-            and snapshot_window_end and report_end <= snapshot_window_end
-        ),
-        "reporting_horizon_coverage_status": (
-            "PASS_DECLARED_SNAPSHOT_WINDOW_COVERS_REQUESTED_HORIZON"
-            if report_horizon_days > runtime_horizon_days and snapshot_window_end and report_end <= snapshot_window_end
-            else "NOT_REQUIRED_NO_HORIZON_EXPANSION" if report_horizon_days <= runtime_horizon_days
-            else "NOT_VERIFIED"
-        ),
+        "snapshot_window_covers_runtime_start": snapshot_window_covers_runtime_start,
+        "snapshot_window_covers_requested_report_horizon": snapshot_window_covers_requested_report_horizon,
+        "reporting_horizon_coverage_status": reporting_horizon_coverage_status,
         "snapshot_age_seconds": snapshot_age_seconds,
         "snapshot_file_sha256": snapshot_sha256,
         "snapshot_provenance_status": "PASS_FRESH_TIMEZONE_AWARE",
         "snapshot_retrieved_at_or_before_runtime_start": retrieved <= runtime_started,
-        "snapshot_runtime_chronology_gate": (
-            "PASS_SNAPSHOT_PRECEDES_RUNTIME_START" if retrieved <= runtime_started
-            else "NOT_REQUIRED_NO_HORIZON_EXPANSION"
-        ),
+        "snapshot_runtime_chronology_gate": snapshot_runtime_chronology_gate,
         "selected_seasons": len(seasons),
         "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
