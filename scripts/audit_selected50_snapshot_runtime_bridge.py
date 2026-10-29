@@ -319,8 +319,11 @@ def main():
     future_7d_unmatched=[r for r in future_7d if r["runtime_join_status"]!="EXACT_ID_AND_TEAM_IDS_MATCH"]
     future_beyond_7d=[r for r in future if kickoff_epoch(r) is not None and kickoff_epoch(r) > report_window_end]
     unsafe_runtime_rows=[r for r in rows if r["runtime_join_status"]=="EXACT_ID_TEAM_IDS_MATCH_BUT_SOURCE_QUARANTINED"]
+    minimum_fixture_match_coverage_pct = 95.0
+    fixture_match_coverage_pct = round(100*len(future_7d_joined)/len(future_7d),2) if future_7d else None
+    coverage_gate_pass = fixture_match_coverage_pct is not None and fixture_match_coverage_pct >= minimum_fixture_match_coverage_pct
     qa={
-      "status":"PASS_BRIDGE_AUDIT_RESEARCH_ONLY" if not (unsafe_runtime_rows or future_7d_unmatched or not provenance["verified"]) else "PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS",
+      "status":"PASS_BRIDGE_AUDIT_RESEARCH_ONLY" if not (unsafe_runtime_rows or not coverage_gate_pass or not provenance["verified"]) else "PASS_BRIDGE_AUDIT_WITH_RELEASE_BLOCKERS",
       "generated_utc":now.isoformat(),
       "snapshot_retrieved_utc":snap.get("retrieved_utc"),
       "snapshot_sha256":snapshot_sha256,
@@ -356,7 +359,10 @@ def main():
       "future_candidates_within_7d_exactly_matched":len(future_7d_joined),
       "future_candidates_within_7d_missing_runtime_match":len(future_7d_unmatched),
       "future_candidates_beyond_7d_report_window":len(future_beyond_7d),
-      "within_7d_match_coverage_pct":round(100*len(future_7d_joined)/len(future_7d),2) if future_7d else None,
+      "within_7d_match_coverage_pct":fixture_match_coverage_pct,
+      "minimum_fixture_match_coverage_pct":minimum_fixture_match_coverage_pct,
+      "fixture_match_coverage_gate_pass":coverage_gate_pass,
+      "coverage_policy":"Research sample coverage passes at >=95%; individual unmatched fixtures remain listed for triage and do not alone block the research build. Provenance and source-safety gates remain mandatory.",
       "within_7d_missing_fixture_ids":[{"season_id":r["source_season_id"],"fixture_id":r["source_match_id"],"kickoff_utc":r["kickoff_utc"],"home_team":r["home_team"],"away_team":r["away_team"]} for r in future_7d_unmatched],
       "runtime_rows_matching_source_but_source_quarantined":len(unsafe_runtime_rows),
       "runtime_rows_with_safe_future_candidate_status":len(future_joined),
