@@ -1,90 +1,113 @@
 #!/usr/bin/env python3
-"""Research-only cross-season stability probe for FootyStats comp_master_id.
-Reads the selected-50 registry and archived ingestion manifest, then makes at most
-one sequential league-season request per league. Never writes production data.
+"""Research-only one-call audit of FootyStats selected-50 season identity.
+
+Uses the documented league-list endpoint once. It checks whether each selected
+season ID is present under the exact country/competition entry and inventories
+other seasons listed under that same provider competition object. It does NOT
+claim independent per-season master-ID stability if the API exposes the parent
+comp_master_id only once for the competition object.
 """
-import csv, json, os, re, time, zipfile
+import csv, json, os, re
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from datetime import datetime, timezone
 
 REG = Path("reports/oracle-selected50-footystats-first-identity-registry-2026-10-29.csv")
-ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 OUT = Path("oracle-selected50-cross-season-stability")
 OUT.mkdir(exist_ok=True)
 key = os.environ.get("FOOTYSTATS_API_KEY", "").strip()
 if not REG.is_file(): raise SystemExit("Registry missing; zero provider calls.")
-if not ARCHIVE.is_file(): raise SystemExit("Private archive missing; zero provider calls.")
 if not key: raise SystemExit("FOOTYSTATS_API_KEY secret missing; zero provider calls.")
+with REG.open(encoding="utf-8-sig", newline="") as f:
+    registry = list(csv.DictReader(f))
+if len(registry) != 50:
+    raise SystemExit(f"Expected 50 registry rows, got {len(registry)}; zero provider calls.")
 
-with REG.open(encoding="utf-8-sig", newline="") as f: registry = list(csv.DictReader(f))
-if len(registry) != 50: raise SystemExit(f"Expected 50 registry rows, got {len(registry)}; zero provider calls.")
-with zipfile.ZipFile(ARCHIVE) as z:
-    candidates = [n for n in z.namelist() if n.endswith("ingestion_manifest.csv")]
-    if not candidates: raise SystemExit("Archive ingestion_manifest.csv missing; zero provider calls.")
-    raw = z.read(candidates[0]).decode("utf-8-sig")
-import io
-with io.StringIO(raw) as f: manifest = list(csv.DictReader(f))
-if not manifest: raise SystemExit("Archive manifest empty; zero provider calls.")
-def norm(s): return re.sub(r"[^a-z0-9]", "", str(s or "").casefold())
-# The manifest is only used to locate prior season IDs. Names are exact-normalized;
-# no fuzzy match or provider ID is promoted to canonical Oracle identity.
-results=[]
+def norm(s):
+    return re.sub(r"[^a-z0-9]", "", str(s or "").casefold())
+def val(obj, *keys):
+    for k in keys:
+        x = obj.get(k) if isinstance(obj, dict) else None
+        if x not in (None, ""): return x
+    return ""
+url = "https://api.football-data-api.com/league-list?" + urlencode({"key": key, "chosen_leagues_only": "true"})
+try:
+    req = Request(url, headers={"User-Agent":"Oracle-Selected50-LeagueList-Audit/1.0","Accept":"application/json"})
+    with urlopen(req, timeout=45) as response:
+        status = response.status
+        payload = json.loads(response.read().decode("utf-8"))
+except HTTPError as e:
+    raise SystemExit(f"FootyStats league-list request failed with HTTP {e.code}; no retries.")
+except URLError as e:
+    raise SystemExit(f"FootyStats league-list request failed ({type(e).__name__}); no retries.")
+except Exception as e:
+    raise SystemExit(f"FootyStats league-list response could not be parsed ({type(e).__name__}); no retries.")
+if status != 200 or payload.get("success") is not True or not isinstance(payload.get("data"), list):
+    raise SystemExit("FootyStats league-list response did not satisfy success/data contract; no retries.")
+provider = payload["data"]
+rows=[]
 for r in registry:
-    name=norm(r.get("competition"))
-    current_id=str(r.get("footystats_season_id","")).strip()
-    rows=[m for m in manifest if norm(m.get("provider_league_name") or m.get("provider_competition_name") or m.get("league_name")) == name]
-    prior=[]
-    for m in rows:
-        sid=str(m.get("season_id") or m.get("provider_season_id") or "").strip()
-        year=str(m.get("season_start_year") or m.get("season_year") or "").strip()
-        if sid and sid != current_id and year.isdigit():
-            prior.append((int(year), sid))
-    prior=[x for x in prior if x[0] < 2026]
-    row={ "country":r["country"],"competition":r["competition"],"current_season_id":current_id,
-          "current_comp_master_id":r.get("footystats_comp_master_id_observed",""),
-          "prior_season_id":"","prior_season_year":"","prior_comp_master_id":"",
-          "http_status":"","provider_success":False,"assessment":"NO_EXACT_PRIOR_SEASON_CANDIDATE",
-          "error_class":""}
-    if prior:
-        year,sid=sorted(prior, reverse=True)[0]
-        row["prior_season_id"]=sid; row["prior_season_year"]=str(year)
-        url="https://api.football-data-api.com/league-season?"+urlencode({"key":key,"season_id":sid})
-        try:
-            req=Request(url,headers={"User-Agent":"Oracle-Selected50-CrossSeason-Stability/1.0","Accept":"application/json"})
-            with urlopen(req,timeout=25) as resp:
-                row["http_status"]=str(resp.status); payload=json.loads(resp.read().decode("utf-8"))
-            row["provider_success"]=payload.get("success") is True
-            data=payload.get("data")
-            if isinstance(data,list): data=data[0] if data and isinstance(data[0],dict) else {}
-            if not isinstance(data,dict): data={}
-            got=str(data.get("comp_master_id") or "").strip()
-            row["prior_comp_master_id"]=got
-            cur=str(row["current_comp_master_id"] or "").strip()
-            if row["http_status"]=="200" and row["provider_success"] and got and cur and got==cur:
-                row["assessment"]="STABLE_ACROSS_TWO_SEASONS_OBSERVED"
-            elif row["http_status"]=="200" and row["provider_success"] and got and cur and got!=cur:
-                row["assessment"]="MASTER_ID_CHANGED_REVIEW_REQUIRED"
-            elif row["http_status"]=="200" and row["provider_success"]:
-                row["assessment"]="PRIOR_MASTER_ID_MISSING"
-            else: row["assessment"]="PROVIDER_RESPONSE_NOT_SUCCESSFUL"
-        except HTTPError as e: row["http_status"]=str(e.code); row["error_class"]="HTTPError"; row["assessment"]="PROVIDER_REQUEST_FAILED"
-        except URLError as e: row["error_class"]=type(e).__name__; row["assessment"]="PROVIDER_REQUEST_FAILED"
-        except Exception as e: row["error_class"]=type(e).__name__; row["assessment"]="PROVIDER_RESPONSE_PARSE_FAILED"
-        time.sleep(1.25)
-    results.append(row)
-fields=list(results[0].keys()) if results else ["assessment"]
+    country, comp = r["country"], r["competition"]
+    selected_id = str(r["footystats_season_id"]).strip()
+    expected_master = str(r.get("footystats_comp_master_id_observed","")).strip()
+    matches=[]
+    for p in provider:
+        pname = val(p,"name","competition_name","league_name","english_name")
+        pcountry = val(p,"country","country_name")
+        # Some provider records encode country into the display name; exact normalized
+        # full display-name match is allowed only when the country field is absent.
+        name_ok = norm(pname) == norm(comp) or norm(pname) == norm(f"{country} {comp}") or norm(pname) == norm(f"{comp} {country}")
+        country_ok = norm(pcountry) == norm(country) if pcountry else (norm(pname) in {norm(f"{country} {comp}"),norm(f"{comp} {country}")})
+        if name_ok and country_ok:
+            matches.append(p)
+    base={"country":country,"competition":comp,"selected_season_id":selected_id,
+          "observed_comp_master_id":expected_master,"matching_provider_competition_objects":len(matches),
+          "current_season_id_present":"NO","listed_season_count":0,"listed_prior_season_count":0,
+          "listed_season_ids":"","listed_season_years":"","provider_comp_master_id":"",
+          "master_id_matches_observed":"UNVERIFIED","assessment":"NO_EXACT_PROVIDER_COMPETITION_MATCH"}
+    if len(matches)==1:
+        p=matches[0]
+        seasons=p.get("season") or p.get("seasons") or []
+        if isinstance(seasons,dict): seasons=[seasons]
+        if not isinstance(seasons,list): seasons=[]
+        season_ids=[]; years=[]
+        for s in seasons:
+            if not isinstance(s,dict): continue
+            sid=str(val(s,"id","season_id","seasonID")).strip()
+            yr=str(val(s,"year","season","season_year")).strip()
+            if sid: season_ids.append(sid)
+            if yr: years.append(yr)
+        master=str(val(p,"comp_master_id","compMasterId","parent_competition_id")).strip()
+        base.update({"listed_season_count":len(set(season_ids)),
+          "listed_prior_season_count":sum(1 for sid in set(season_ids) if sid != selected_id),
+          "listed_season_ids":";".join(sorted(set(season_ids))),
+          "listed_season_years":";".join(sorted(set(years))),
+          "provider_comp_master_id":master,
+          "current_season_id_present":"YES" if selected_id in season_ids else "NO",
+          "master_id_matches_observed":"YES" if master and expected_master and master==expected_master else ("NO" if master and expected_master else "UNVERIFIED")})
+        if base["current_season_id_present"]=="YES" and base["master_id_matches_observed"]=="YES" and len(set(season_ids))>1:
+            base["assessment"]="SELECTED_SEASON_AND_MULTIPLE_SEASONS_CONFIRMED_UNDER_COMPETITION_OBJECT"
+        elif base["current_season_id_present"]=="YES" and base["master_id_matches_observed"]=="YES":
+            base["assessment"]="SELECTED_SEASON_AND_MASTER_ID_MATCH; MULTI_SEASON_EVIDENCE_INSUFFICIENT"
+        elif base["current_season_id_present"]!="YES":
+            base["assessment"]="SELECTED_SEASON_ID_NOT_FOUND_IN_EXACT_COMPETITION_OBJECT"
+        elif base["master_id_matches_observed"]=="NO":
+            base["assessment"]="MASTER_ID_CONFLICT_REVIEW_REQUIRED"
+        else:
+            base["assessment"]="CANONICAL_COMPETITION_IDENTITY_UNVERIFIED"
+    elif len(matches)>1:
+        base["assessment"]="AMBIGUOUS_PROVIDER_COMPETITION_MATCH"
+    rows.append(base)
+fields=list(rows[0].keys())
 with (OUT/"cross_season_stability.csv").open("w",encoding="utf-8",newline="") as f:
-    w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(results)
+    w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
 counts={}
-for r in results: counts[r["assessment"]]=counts.get(r["assessment"],0)+1
-summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"scope":"selected 50 only","provider_requests_attempted":sum(bool(r["http_status"] or r["error_class"]) for r in results),
-"max_requests":50,"retries":0,"sequential":True,"raw_provider_payload_saved":False,
-"current_master_id_source":"previously observed sanitized identity crosswalk",
-"prior_master_id_source":"one exact-normalized competition-name prior-season row from existing private archive manifest",
-"counts":counts,"production_eligible":False,"betting_eligible":False,
-"warning":"Two-season equality is supporting evidence only, not proof of canonical Oracle identity or production approval."}
+for r in rows: counts[r["assessment"]]=counts.get(r["assessment"],0)+1
+summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"endpoint":"FootyStats league-list?chosen_leagues_only=true",
+"provider_requests_attempted":1,"retries":0,"selected_leagues":len(rows),"provider_success":True,
+"counts":counts,"raw_provider_payload_saved":False,"production_eligible":False,"betting_eligible":False,
+"interpretation":"This one-call audit verifies selected-season membership and observed comp_master_id alignment within provider competition objects. It does not independently prove that comp_master_id is stable on each season record or establish Oracle canonical IDs."}
 (OUT/"summary.json").write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n",encoding="utf-8")
 print(json.dumps(summary,indent=2,sort_keys=True))
