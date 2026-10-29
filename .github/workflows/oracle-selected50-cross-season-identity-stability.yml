@@ -1,0 +1,82 @@
+name: Oracle Selected-50 Cross-Season FootyStats Identity Stability (Research Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_provider_credit_usage:
+        description: "Confirm up to 50 sequential FootyStats league-season requests; no retries"
+        required: true
+        type: boolean
+        default: false
+      confirm_private_archive_read:
+        description: "Confirm read-only use of the existing private archive to locate prior season IDs"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  stability-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Guard explicit permissions and required secrets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          CONFIRM_CREDITS: ${{ inputs.confirm_provider_credit_usage }}
+          CONFIRM_ARCHIVE: ${{ inputs.confirm_private_archive_read }}
+        run: |
+          set -euo pipefail
+          [[ "${CONFIRM_CREDITS:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation required; zero requests made."; exit 1; }
+          [[ "${CONFIRM_ARCHIVE:-false}" == "true" ]] || { echo "::error::Explicit private-archive read confirmation required; no archive downloaded."; exit 1; }
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing; zero provider requests made."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN missing; no archive downloaded."; exit 1; }
+          gh auth status
+
+      - name: Download and verify existing private archive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p private-download
+          gh release download research-selected50-footystats-history-40447419806 \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --pattern 'private-package.sha256' \
+            --dir private-download
+          (cd private-download && sha256sum -c private-package.sha256)
+          test -s private-download/oracle-selected50-footystats-private-ingestion.zip
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate and run bounded cross-season probe
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          ORACLE_ARCHIVE: private-download/oracle-selected50-footystats-private-ingestion.zip
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/oracle_selected50_cross_season_stability_probe.py
+          python scripts/oracle_selected50_cross_season_stability_probe.py
+
+      - name: Upload sanitized research evidence only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-cross-season-identity-stability
+          path: |
+            oracle-selected50-cross-season-stability/summary.json
+            oracle-selected50-cross-season-stability/cross_season_stability.csv
+          if-no-files-found: error
+          retention-days: 14
