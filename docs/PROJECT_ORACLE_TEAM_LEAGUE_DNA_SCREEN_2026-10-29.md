@@ -115,3 +115,18 @@ Additional verified findings:
 - The runtime artifact was approximately 3.4 hours old at analysis time; its snapshot was approximately 8.8 hours old.
 
 These findings improve data-quality triage, but they do not unblock team-performance DNA. Canonical parent competition IDs, canonical fixture/team bridges and official settlement truth remain unverified. Production and betting eligibility remain unapproved.
+
+
+## Addendum — market-screen uncertainty audit (29 October 2026)
+
+A separate research-only audit of the aggregate chronological league-fold metrics now adds per-market fold ECE, worst-fold Brier skill, minimum test sample sizes and accuracy confidence-interval widths. It does not read the locked H2H paired holdout and does not rank teams.
+
+- BTTS: 3/30 sample-gated league-market pairs had positive Brier skill in all three folds; one of those had maximum fold ECE ≥ 0.10.
+- Double Chance Home: 17/30; six had maximum fold ECE ≥ 0.10.
+- Double Chance Away: 19/30; six had maximum fold ECE ≥ 0.10.
+
+These are descriptive calibration diagnostics, not universal thresholds. There are 150 league-market hypotheses in the screen and no multiplicity-adjusted inference or confidence intervals for Brier-skill differences in the source artifact. The candidate list remains a retest queue only.
+
+See the [Market Screen Uncertainty Audit](PROJECT_ORACLE_MARKET_SCREEN_UNCERTAINTY_AUDIT_2026-10-29.md), [candidate CSV](../reports/oracle_selected50_market_screen_uncertainty_candidates_2026-10-29.csv), and [machine-readable summary](../reports/oracle_selected50_market_screen_uncertainty_summary_2026-10-29.json).
+
+Next: validate candidates on a new untouched chronological period with reliability diagnostics, then build team-market profiles only after canonical identity joins and settlement truth are verified. Production and betting eligibility remain unapproved.
