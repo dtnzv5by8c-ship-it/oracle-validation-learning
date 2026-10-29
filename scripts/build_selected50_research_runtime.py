@@ -191,6 +191,26 @@ def predict(model, feature):
     if model is None or any(feature.get(f) is None for f in FEATURES): return None
     return float(model.predict_proba([[float(feature[f]) for f in FEATURES]])[0,1])
 
+def make_model_for_features(rows, market, feature_names, min_train=300):
+    """Research-only model helper for a separately specified feature set."""
+    valid=[r for r in rows if r.get("target_"+market) is not None
+           and all(r.get(f) is not None and math.isfinite(float(r[f])) for f in feature_names)]
+    if len(valid)<min_train or len({r["target_"+market] for r in valid})<2:
+        return None,len(valid)
+    X=[[float(r[f]) for f in feature_names] for r in valid]
+    y=[int(r["target_"+market]) for r in valid]
+    model=Pipeline([("scale",StandardScaler()),("lr",LogisticRegression(max_iter=2000,C=0.5,random_state=42))])
+    model.fit(X,y)
+    return model,len(valid)
+
+def predict_for_features(model, feature, feature_names):
+    if model is None or any(feature.get(f) is None for f in feature_names):
+        return None
+    values=[float(feature[f]) for f in feature_names]
+    if not all(math.isfinite(v) for v in values):
+        return None
+    return float(model.predict_proba([values])[0,1])
+
 
 def prediction_support_diagnostics(feature, model_fits, any_probability_available=False):
     """Expose why a fixture did or did not pass feature/training support gates.
@@ -670,6 +690,90 @@ def main():
                              "baseline_constant_probability_brier":baseline_brier,"baseline_constant_probability_log_loss":baseline_logloss,
                              "expected_calibration_error_10_bins":round(ece,5),"reliability_bins":bins,
                              "per_league_test_metrics":per_league})
+        # Paired research-only ablation: frozen 20-feature baseline vs the same baseline plus numeric H2H features.
+        # The existing production/research baseline fit and probabilities above remain untouched.
+        h2h_feature_names = ["h2h_prior_n", "h2h_btts_rate_last5", "h2h_avg_total_goals_last5", "h2h_days_since_last"]
+        for row in feature_rows:
+            last_date = row.get("h2h_last_date_utc")
+            days_since = None
+            if last_date:
+                try:
+                    last_ts = dt.datetime.fromisoformat(str(last_date).replace("Z","+00:00")).timestamp()
+                    days_since = max(0.0, (float(row["kickoff_unix"]) - last_ts) / 86400.0)
+                except (ValueError, TypeError, OverflowError):
+                    days_since = None
+            row["h2h_days_since_last"] = days_since
+        h2h_comparison = []
+        h2h_fixture_rows = []
+        for market in MARKETS:
+            base_model, base_train_n = make_model_for_features(train_pre, market, FEATURES)
+            candidate_features = FEATURES + h2h_feature_names
+            candidate_model, candidate_train_n = make_model_for_features(train_pre, market, candidate_features)
+            base_test = [r for r in test_rows if r.get("target_"+market) is not None and
+                         all(r.get(k) is not None and math.isfinite(float(r[k])) for k in FEATURES)]
+            paired_test = [r for r in base_test if all(r.get(k) is not None and math.isfinite(float(r[k])) for k in h2h_feature_names)]
+            base_probs = [predict_for_features(base_model, r, FEATURES) for r in paired_test]
+            cand_probs = [predict_for_features(candidate_model, r, candidate_features) for r in paired_test]
+            paired = [(r, bp, cp, int(r["target_"+market])) for r,bp,cp in zip(paired_test,base_probs,cand_probs)
+                      if bp is not None and cp is not None]
+            if paired:
+                labels=[x[3] for x in paired]; bp=[x[1] for x in paired]; cp=[x[2] for x in paired]
+                base_brier=brier_score_loss(labels,bp); cand_brier=brier_score_loss(labels,cp)
+                base_ll=log_loss(labels,[min(max(p,1e-6),1-1e-6) for p in bp],labels=[0,1])
+                cand_ll=log_loss(labels,[min(max(p,1e-6),1-1e-6) for p in cp],labels=[0,1])
+                base_acc=accuracy_score(labels,[int(p>=0.5) for p in bp])
+                cand_acc=accuracy_score(labels,[int(p>=0.5) for p in cp])
+                auc_base=roc_auc_score(labels,bp) if len(set(labels))==2 else None
+                auc_cand=roc_auc_score(labels,cp) if len(set(labels))==2 else None
+                result_status="PAIRED_RESEARCH_ONLY_NOT_CALIBRATED"
+                for r, bprob, cprob, label in paired:
+                    h2h_fixture_rows.append({"fixture_id":r.get("fixture_id",""),"date_utc":r.get("date_utc",""),
+                        "competition_id":r.get("competition_id",""),"league":r.get("league",""),
+                        "home_team":r.get("home_team",""),"away_team":r.get("away_team",""),
+                        "market":market,"actual":label,"baseline_probability":round(bprob,8),
+                        "h2h_candidate_probability":round(cprob,8),"h2h_prior_n":r.get("h2h_prior_n"),
+                        "h2h_btts_rate_last5":r.get("h2h_btts_rate_last5"),
+                        "h2h_avg_total_goals_last5":r.get("h2h_avg_total_goals_last5"),
+                        "h2h_days_since_last":r.get("h2h_days_since_last"),
+                        "baseline_correct":int((bprob>=0.5)==bool(label)),
+                        "h2h_candidate_correct":int((cprob>=0.5)==bool(label))})
+            else:
+                base_brier=cand_brier=base_ll=cand_ll=base_acc=cand_acc=auc_base=auc_cand=None
+                result_status="NO_PAIRED_TEST_PREDICTIONS"
+            h2h_comparison.append({"market":market,"status":result_status,
+                "test_window":"2025-03-20 through 2026-09-20",
+                "baseline_features":"EXISTING_20_FEATURES",
+                "candidate_features":"EXISTING_20_PLUS_4_H2H_FEATURES",
+                "baseline_train_n":base_train_n,"candidate_train_n":candidate_train_n,
+                "baseline_test_n":len(base_test),"h2h_available_test_n":len(paired_test),
+                "paired_test_n":len(paired_test) if paired else 0,
+                "h2h_test_coverage_pct":round(100*len(paired_test)/len(base_test),2) if base_test else None,
+                "baseline_accuracy_at_0_5":round(float(base_acc),5) if base_acc is not None else None,
+                "candidate_accuracy_at_0_5":round(float(cand_acc),5) if cand_acc is not None else None,
+                "accuracy_delta_candidate_minus_baseline":round(float(cand_acc-base_acc),5) if cand_acc is not None and base_acc is not None else None,
+                "baseline_brier":round(float(base_brier),5) if base_brier is not None else None,
+                "candidate_brier":round(float(cand_brier),5) if cand_brier is not None else None,
+                "brier_delta_candidate_minus_baseline":round(float(cand_brier-base_brier),5) if cand_brier is not None and base_brier is not None else None,
+                "baseline_log_loss":round(float(base_ll),5) if base_ll is not None else None,
+                "candidate_log_loss":round(float(cand_ll),5) if cand_ll is not None else None,
+                "log_loss_delta_candidate_minus_baseline":round(float(cand_ll-base_ll),5) if cand_ll is not None and base_ll is not None else None,
+                "baseline_auc":round(float(auc_base),5) if auc_base is not None else None,
+                "candidate_auc":round(float(auc_cand),5) if auc_cand is not None else None,
+                "baseline_ece_10_bins":expected_calibration_error(labels,bp) if paired else None,
+                "candidate_ece_10_bins":expected_calibration_error(labels,cp) if paired else None,
+                "production_eligible":"NO","betting_eligible":"NO"})
+        h2h_json_path=OUT/"oracle_selected50_h2h_ablation_metrics.json"
+        h2h_json_path.write_text(json.dumps({"status":"RESEARCH_ONLY_ABLATION_NOT_CALIBRATED",
+            "primary_window":"2025-03-20 through 2026-09-20",
+            "h2h_feature_names":h2h_feature_names,
+            "interpretation":"Paired holdout comparison only. A positive delta means the candidate metric is numerically higher; for Brier/log loss lower is better. No betting or production approval.",
+            "markets":h2h_comparison},indent=2)+"\\n",encoding="utf-8")
+        h2h_csv_path=OUT/"oracle_selected50_h2h_paired_predictions.csv"
+        h2h_columns=["fixture_id","date_utc","competition_id","league","home_team","away_team","market","actual",
+            "baseline_probability","h2h_candidate_probability","h2h_prior_n","h2h_btts_rate_last5",
+            "h2h_avg_total_goals_last5","h2h_days_since_last","baseline_correct","h2h_candidate_correct"]
+        with h2h_csv_path.open("w",newline="",encoding="utf-8") as h2h_file:
+            writer=csv.DictWriter(h2h_file,fieldnames=h2h_columns);writer.writeheader();writer.writerows(h2h_fixture_rows)
         # Decision report horizon: next seven days only. Exclude fixtures with less than 15 minutes of lead time.
         report_start=NOW+15*60
         report_end=NOW+7*24*60*60
