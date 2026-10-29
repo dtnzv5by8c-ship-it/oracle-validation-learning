@@ -246,7 +246,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         source = runtime_path.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(runtime_path))
         selected = []
-        wanted = {"valid_completed_score", "market_targets_for_match"}
+        wanted = {"valid_completed_score", "completed_fixture_signature_key", "market_targets_for_match"}
         for node in tree.body:
             if isinstance(node, ast.Assign) and any(
                 isinstance(target, ast.Name) and target.id == "MARKETS"
