@@ -7,6 +7,8 @@ from scripts.build_selected50_research_runtime import (
     predict_for_features,
     h2h_prior_meetings,
     h2h_result_from_target_home_perspective,
+    h2h_duplicate_signature_diagnostics,
+    valid_completed_score,
 )
 
 
@@ -90,6 +92,48 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         unrelated = {"home_id": "X", "away_id": "Y", "home_goals": 1, "away_goals": 0}
         with self.assertRaises(ValueError):
             h2h_result_from_target_home_perspective(unrelated, "A")
+
+    def test_valid_completed_score_requires_finite_nonnegative_integer_goals(self):
+        self.assertTrue(valid_completed_score(2, 1))
+        self.assertTrue(valid_completed_score(0, 0))
+        self.assertFalse(valid_completed_score(2.5, 1))
+        self.assertFalse(valid_completed_score(-1, 0))
+        self.assertFalse(valid_completed_score(float("nan"), 1))
+        self.assertFalse(valid_completed_score(None, 1))
+
+    def test_duplicate_signature_detects_different_fixture_ids(self):
+        matches = [
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+             "home_goals": 2, "away_goals": 1, "finished": True, "fixture_id": "f1"},
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+             "home_goals": 2, "away_goals": 1, "finished": True, "fixture_id": "f2"},
+        ]
+        qa = h2h_duplicate_signature_diagnostics(matches)
+        self.assertEqual(qa["duplicate_signature_groups"], 1)
+        self.assertEqual(qa["duplicate_extra_rows"], 1)
+        self.assertEqual(qa["conflicting_score_groups"], 0)
+
+    def test_duplicate_signature_normalizes_reversed_home_away_score(self):
+        matches = [
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+             "home_goals": 2, "away_goals": 1, "finished": True, "fixture_id": "f1"},
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "B", "away_id": "A",
+             "home_goals": 1, "away_goals": 2, "finished": True, "fixture_id": "f2"},
+        ]
+        qa = h2h_duplicate_signature_diagnostics(matches)
+        self.assertEqual(qa["duplicate_signature_groups"], 1)
+        self.assertEqual(qa["conflicting_score_groups"], 0)
+
+    def test_duplicate_signature_flags_conflicting_score(self):
+        matches = [
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "A", "away_id": "B",
+             "home_goals": 2, "away_goals": 1, "finished": True, "fixture_id": "f1"},
+            {"competition_id": "C", "kickoff_unix": 1000, "home_id": "B", "away_id": "A",
+             "home_goals": 0, "away_goals": 2, "finished": True, "fixture_id": "f2"},
+        ]
+        qa = h2h_duplicate_signature_diagnostics(matches)
+        self.assertEqual(qa["duplicate_signature_groups"], 1)
+        self.assertEqual(qa["conflicting_score_groups"], 1)
 
 
 if __name__ == "__main__":
