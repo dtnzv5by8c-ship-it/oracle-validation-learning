@@ -44,3 +44,32 @@ The prior offline 13-day fixture reconciliation is unchanged and dated: 842 futu
 ## Release gates
 
 Combo remains masked. Canonical fixture/team joins and official settlement truth remain unverified. No predictions were created by this report-only change. Production and betting eligibility remain `NO`. No provider API calls, private Actions, production writes or merges occurred.
+
+
+## Updated offline reconciliation against the retained artifacts
+
+The existing snapshot and Runtime #162 artifacts were downloaded and their digests independently rechecked:
+
+- Snapshot ZIP SHA-256: `fad627dbda876f8f204b4e6c458a242b17a09312b67acaf264a84d64605a67fd`.
+- Snapshot JSON SHA-256: `073723e536d4ee38c14f585f5761ac790dd90989aad380bb985bb38486255761`.
+- Runtime #162 ZIP SHA-256: `5d3d0741d513da0245eddc851caace8649db7ca67b9da3451472a33b43e7666d`.
+
+Using a fixed audit time of `2026-10-29T00:15:00Z`, the retained snapshot still supports 13 days but not 14:
+
+- 13-day report end: `2026-11-11T00:15:00Z`; declared window headroom: 61,619 seconds (17h06m59s).
+- 14-day report end: `2026-11-12T00:15:00Z`; declared-window shortfall: 24,781 seconds (6h53m01s).
+
+Independent offline reclassification of the actual 2,250-row snapshot against the 460-row Runtime #162 report produced 833 future fixtures in the 13-day window, including the explicit minimum-lead cutoff:
+
+| Classification | Rows |
+|---|---:|
+| Exact safe runtime joins | 339 |
+| Clean outside seven-day runtime-generation window, not missing joins | 308 |
+| Quarantined for `no_home_away=1` | 169 |
+| Quarantined for nonstandard status | 9 |
+| Within 15-minute minimum-lead cutoff | 8 |
+| **Total** | **833** |
+
+Of 339 exact joins, 23 remain blocked for missing required features and 316 have all 20 required inputs but remain raw research-only. The 460-row runtime report has 460 unique fixture IDs and zero duplicate season/fixture keys. The two Combo probability columns have zero nonblank cells. No eligible in-window missing runtime rows, ordered-team mismatches, or kickoff mismatches were found in this independent reconciliation.
+
+This is a reproducible offline reclassification of existing artifacts, not a new runtime, provider refresh, or execution of the safe-report builder against the real artifacts. The repository contract suite and dry-run planner passed on the changed code/test commit as recorded above.
