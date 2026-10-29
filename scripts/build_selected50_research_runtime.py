@@ -749,7 +749,7 @@ def main():
                 "candidate_features":"EXISTING_20_PLUS_4_H2H_FEATURES",
                 "baseline_train_n":base_train_n,"candidate_train_n":candidate_train_n,
                 "baseline_test_n":len(base_test),"h2h_available_test_n":len(paired_test),
-                "paired_test_n":len(paired_test) if paired else 0,
+                "paired_test_n":len(paired),
                 "h2h_test_coverage_pct":round(100*len(paired_test)/len(base_test),2) if base_test else None,
                 "baseline_accuracy_at_0_5":round(float(base_acc),5) if base_acc is not None else None,
                 "candidate_accuracy_at_0_5":round(float(cand_acc),5) if cand_acc is not None else None,
@@ -770,7 +770,7 @@ def main():
             "primary_window":"2025-03-20 through 2026-09-20",
             "h2h_feature_names":h2h_feature_names,
             "interpretation":"Paired holdout comparison only. A positive delta means the candidate metric is numerically higher; for Brier/log loss lower is better. No betting or production approval.",
-            "markets":h2h_comparison},indent=2)+"\\n",encoding="utf-8")
+            "markets":h2h_comparison},indent=2)+"\n",encoding="utf-8")
         h2h_csv_path=OUT/"oracle_selected50_h2h_paired_predictions.csv"
         h2h_columns=["fixture_id","date_utc","competition_id","league","home_team","away_team","market","actual",
             "baseline_probability","h2h_candidate_probability","h2h_prior_n","h2h_btts_rate_last5",
