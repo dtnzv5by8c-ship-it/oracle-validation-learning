@@ -700,7 +700,9 @@ def main():
             f["data_risk_pct"]=None
             f["data_risk_status"]="NOT_QUANTIFIED_NO_VALIDATED_RISK_MAPPING"
             f["risk_profile"]="HIGH_UNVALIDATED" if all(f.get(k) is not None for k in FEATURES) else "CRITICAL_INCOMPLETE_INPUTS"
-            if r["finished"] and valid_completed_score(r.get("home_goals"),r.get("away_goals")):
+            if (r["finished"] and valid_completed_score(r.get("home_goals"),r.get("away_goals"))
+                and str(r.get("home_id") or "").strip() and str(r.get("away_id") or "").strip()
+                and str(r.get("home_id")) != str(r.get("away_id"))):
                 for market,fn in MARKETS.items(): f["target_"+market]=fn(int(r["home_goals"]),int(r["away_goals"]))
             else:
                 for market in MARKETS: f["target_"+market]=None
