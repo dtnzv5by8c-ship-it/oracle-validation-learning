@@ -144,13 +144,7 @@ def valid_completed_score(home, away):
 
 def market_targets_for_match(match):
     """Return market labels only for explicit completed, valid, identifiable fixtures."""
-    markets = {
-        "BTTS": lambda h, a: int(h > 0 and a > 0),
-        "DC_HOME": lambda h, a: int(h >= a),
-        "DC_AWAY": lambda h, a: int(a >= h),
-        "COMBO_HOME": lambda h, a: int(h >= a and 2 <= h + a <= 4),
-        "COMBO_AWAY": lambda h, a: int(a >= h and 2 <= h + a <= 4),
-    }
+    markets = MARKETS
     home_id = str(match.get("home_id") or "").strip()
     away_id = str(match.get("away_id") or "").strip()
     if not (match.get("finished")
