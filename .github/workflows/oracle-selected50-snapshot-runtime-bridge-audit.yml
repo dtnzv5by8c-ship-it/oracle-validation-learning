@@ -42,12 +42,21 @@ jobs:
           gh run download "$RUNTIME_RUN_ID" --repo "$GITHUB_REPOSITORY" --name oracle-selected50-research-runtime-report --dir input/runtime
           test -f input/snapshot/current-fixture-snapshot.json
           test -f input/runtime/oracle_selected50_prediction_report.csv
+          test -f input/runtime/oracle_selected50_runtime_provenance.json
+          test -f input/runtime/oracle_selected50_snapshot_artifact_metadata.json
+          test -f input/runtime/oracle_selected50_archive_consumption_receipt.json
 
       - name: Run read-only exact identity bridge audit
         run: |
           python scripts/audit_selected50_snapshot_runtime_bridge.py \
             --snapshot input/snapshot/current-fixture-snapshot.json \
             --runtime-report input/runtime/oracle_selected50_prediction_report.csv \
+            --runtime-provenance input/runtime/oracle_selected50_runtime_provenance.json \
+            --snapshot-artifact-metadata input/runtime/oracle_selected50_snapshot_artifact_metadata.json \
+            --runtime-consumption-receipt input/runtime/oracle_selected50_archive_consumption_receipt.json \
+            --expected-snapshot-run-id "${{ inputs.snapshot_run_id }}" \
+            --expected-runtime-run-id "${{ inputs.runtime_run_id }}" \
+            --require-runtime-provenance \
             --out-dir selected50_bridge_output
 
       - name: Upload sanitized bridge audit only
