@@ -246,10 +246,10 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         source = runtime_path.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(runtime_path))
         selected = []
-        wanted = {"num", "get_first", "match_score", "finished"}
+        wanted = {"valid_completed_score", "market_targets_for_match"}
         for node in tree.body:
             if isinstance(node, ast.Assign) and any(
-                isinstance(target, ast.Name) and target.id == "FINISHED"
+                isinstance(target, ast.Name) and target.id == "MARKETS"
                 for target in node.targets
             ):
                 selected.append(node)
@@ -261,19 +261,34 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         )
         namespace = {"math": math}
         exec(compile(ast.Module(body=selected, type_ignores=[]), str(runtime_path), "exec"), namespace)
-        is_finished = namespace["finished"]
+        build_targets = namespace["market_targets_for_match"]
 
-        self.assertTrue(is_finished({"status": "complete", "homeGoalCount": 0, "awayGoalCount": 0}))
-        self.assertTrue(is_finished({"status": "COMPLETE", "homeGoalCount": 2, "awayGoalCount": 1}))
-        self.assertFalse(is_finished({"status": "incomplete", "homeGoalCount": 0, "awayGoalCount": 0}))
-        self.assertFalse(is_finished({"status": "suspended", "homeGoalCount": 0, "awayGoalCount": 0}))
-        self.assertFalse(is_finished({"status": "canceled", "homeGoalCount": 0, "awayGoalCount": 0}))
-        self.assertFalse(is_finished({"status": "abandoned", "homeGoalCount": 2, "awayGoalCount": 1}))
-        self.assertFalse(is_finished({"status": "complete", "homeGoalCount": None, "awayGoalCount": 0}))
-        self.assertFalse(is_finished({"status": "complete", "homeGoalCount": -1, "awayGoalCount": 0}))
+        valid = {
+            "finished": True, "home_goals": 2, "away_goals": 1,
+            "home_id": "team-a", "away_id": "team-b",
+        }
+        self.assertEqual(build_targets(valid), {
+            "target_BTTS": 1, "target_DC_HOME": 1, "target_DC_AWAY": 0,
+            "target_COMBO_HOME": 1, "target_COMBO_AWAY": 0,
+        })
 
+        invalid_rows = [
+            {**valid, "finished": False},  # numeric placeholder on a non-final row
+            {**valid, "home_goals": 1.5},  # non-integer score
+            {**valid, "home_goals": -1},   # impossible negative score
+            {**valid, "home_id": ""},      # missing identity
+            {**valid, "away_id": "team-a"},# self-fixture
+        ]
+        for row in invalid_rows:
+            with self.subTest(row=row):
+                self.assertTrue(all(v is None for v in build_targets(row).values()))
+
+        # Keep the behavioral guard connected to the production research path:
+        # targets are constructed through the tested helper, and training requires
+        # a non-null target plus complete model features.
+        self.assertIn("f.update(market_targets_for_match(r))", source)
         self.assertIn(
-            'if r["finished"] and r["home_goals"] is not None and r["away_goals"] is not None:',
+            'valid=[r for r in rows if r["target_"+market] is not None and all(r.get(f) is not None for f in FEATURES)]',
             source,
         )
         self.assertIn(
