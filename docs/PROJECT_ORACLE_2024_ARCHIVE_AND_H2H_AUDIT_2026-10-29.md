@@ -1,42 +1,56 @@
-# Project Oracle — 2024 Archive Coverage and H2H Audit (2026-10-29)
+# Project Oracle — 2024 archive and H2H usage audit
+**Date:** 2026-10-29  
+**Scope:** Research branch only. No production model, probability, threshold, calibration, or governance changes.
 
-## Finding: 2024 data is present in the existing research runtime archive
+## Executive decision
+FootyStats historical data is already present in the private archive and the selected-50 research runtime can read it. The archive does not need to be re-downloaded merely to gain access to 2024. However, “data is present” is not the same as “the model uses it in training” or “H2H influences probabilities.”
 
-The runtime's existing calendar-year coverage output confirms observed archive rows for all 50 selected league groups in calendar year 2024.
+## Verified archive coverage
+The latest selected-50 research runtime artifact reports:
+- 2024: 50/50 selected league groups have archive rows.
+- 14,761 fixture rows in calendar year 2024.
+- 14,749 rows with completed-like status and numeric scores.
+- 14,749 rows with fixture ID and both team IDs.
+- 13,526 rows with all 20 currently required research features.
+- 2024 rows in the current primary evaluation window: 0, because the window is fixed to 2025-03-20 through 2026-09-20.
+- Archive observations are not proof of complete provider coverage, official settlement truth, or point-in-time feature provenance.
 
-| Calendar year (UTC) | Selected groups | Groups with observed rows | Archive fixture rows | Completed-like rows with numeric score | Rows with all 20 research features |
-|---|---:|---:|---:|---:|---:|
-| 2024 | 50 | 50 | 14,761 | 14,749 | 13,526 |
-| 2025 | 50 | 50 | 15,029 | 14,987 | 14,165 |
-| 2026 | 50 | 50 | 14,605 | 12,045 | 13,645 |
+## What the current research code actually does
+File: `scripts/build_selected50_research_runtime.py`.
+1. It maps archive season files to the selected league grouping and deduplicates records.
+2. It builds team-form histories and head-to-head histories from explicitly finished matches with numeric scores.
+3. For each target fixture, historical matches are cut off strictly before the target kickoff using `bisect_left`. Same-timestamp matches are excluded, which is conservative.
+4. H2H is keyed by the normalized competition group plus the sorted pair of provider team IDs. This allows cross-season H2H only where the archive mapping and provider team IDs remain stable across seasons.
+5. It calculates `h2h_prior_n`, last-five H2H result string from the target home team's perspective, last-five H2H BTTS rate, last-five average total goals, and the last prior H2H date.
+6. **Important gap:** the active `FEATURES` list contains 20 team-form/score/shot features and does **not** include any H2H field. H2H is calculated and exported for diagnostics, but it does not currently affect fitted research probabilities. It is therefore not yet being used for prediction in the way intended.
+7. The current backtest's training rows are restricted by the existing primary window/training cutoff. 2024 is not part of the reported primary holdout; earlier rows can still contribute to prior-history features for later fixtures if they pass data and chronology rules. The current report does not establish that 2024 was used as training labels for the reported model.
+8. Current table position is explicitly marked as a current provider snapshot and is display-only; it must not be used as historical training data.
 
-These are observed archive counts only. They do not prove that the provider dataset is complete or unbiased, that numeric scores are official settled truth, or that all feature values are point-in-time safe.
+## H2H risks to resolve before relying on it
+- Team IDs must be verified as stable across seasons and competition mappings. Team IDs that change or are reused can break H2H joins.
+- H2H is currently restricted to the mapped competition group. Cross-competition meetings (e.g., cups) are excluded. This is acceptable if explicitly intended, but must be a documented policy.
+- The current implementation includes prior records marked finished with numeric scores, but does not yet visibly enforce a minimum H2H sample, recency decay, or an explicit H2H reliability/confidence gate.
+- The current H2H features are exported but not included in model input features.
+- Duplicate fixture IDs and same-kickoff duplicates must be audited after normalization; simple timestamp cutoff alone does not resolve duplicate source records.
+- Provider status/score fields are not official settlement truth. H2H result features must use only validated completed records.
+- Point-in-time provenance for all other features remains a separate gate; current archive coverage does not prove that every input was available before kickoff.
 
-## Important validation-window distinction
+## Safe implementation plan
+1. Keep production untouched. Create a research-only H2H feature experiment behind an explicit experiment flag or separate feature set.
+2. Add audit outputs per target fixture: number of valid prior H2H meetings; dates and age of the last five; same-team-ID and competition mapping status; duplicate/invalid-score exclusions; feature availability; H2H reliability tier. Do not silently impute missing H2H.
+3. Validate H2H history chronologically: only prior kickoff times; finished status plus valid integer scores; no target fixture/self-match; deduplication; consistent home-team perspective; no future information.
+4. Build a 2024-inclusive rolling-origin evaluation. Keep 2024 as historical training/context only where its records are eligible and strictly before each test kickoff. Compare (a) existing 20-feature baseline vs (b) H2H-augmented research model, using identical chronological folds and the same fixture set where possible.
+5. Report sample counts, Brier score, log loss, calibration error, discrimination, market prevalence/baseline, league-by-league stability and confidence intervals. No claim of improvement unless the H2H version beats the baseline consistently out of sample.
+6. Separately validate official settlement definitions and point-in-time data lineage before any release review.
 
-The existing primary historical validation window remains 20 March 2025–20 September 2026. The presence of 2024 rows in the archive does not mean the reported model performance metrics have already been validated on 2024. Expanding the evaluation window must be a separate, research-only step after checking timestamped feature provenance and chronological split logic.
+## Configuration answer
+Accessing the existing 2024 archive is operationally straightforward: the runtime already reads the multi-season archive. The current evaluation cutoff is a configuration boundary, but widening it blindly would change the experiment and could introduce leakage or non-comparable results. The safe change is a separate research-only 2024-inclusive rolling-origin evaluation, not a production cutoff change. Enabling H2H in the prediction model is also technically small, but it changes model inputs and must be treated as a new research experiment, evaluated against the frozen baseline before any production consideration.
 
-## Head-to-head (H2H) logic
-
-The inspected runtime implementation constructs H2H histories from prior matches grouped by competition and unordered pair of team IDs, sorts each history by kickoff time, and cuts history at the target fixture kickoff before using prior meetings. This is the correct basic temporal direction.
-
-Remaining H2H QA:
-- verify exact competition/team identity and home/away perspective;
-- report H2H sample-size distribution and fixtures with zero, 1–2, 3–5 or more than 5 prior meetings;
-- verify every included historical meeting finished before the target kickoff and has valid settlement status/source;
-- detect duplicate fixtures and team-ID collisions;
-- compare H2H feature coverage by league and season;
-- ensure H2H-derived features do not include current or future match outcomes.
-
-The current prediction report does not export enough H2H diagnostics to certify all of these items, so a dedicated audit output is required before claiming H2H completeness.
-
-## Decision and next steps
-
-1. Use the existing archive; do not repeat provider API calls simply to rediscover the same 2024 rows.
-2. Build a research-only per-league/per-season inventory for 2024, 2025 and 2026, including earliest/latest kickoff, fixture counts, duplicates, valid settled labels, feature coverage and source timestamp evidence.
-3. Add an explicit H2H QA report with prior-match counts, last prior H2H date, exact team/competition identity status, temporal eligibility and exclusion reasons.
-4. Only after the PIT gate passes, extend walk-forward validation to include eligible 2024 records. Keep train/test splits chronological.
-5. Continue to exclude any feature whose pre-kickoff availability cannot be proven; do not impute or fabricate.
-
-## Governance
-Research only. No production model logic, frozen probabilities, thresholds, calibration or production ledgers changed. Production/betting eligibility remains NOT_GRANTED.
+## Status
+- FootyStats archive accessible in research runtime: **YES**
+- 2024 rows present for all selected 50 groups: **YES**
+- 2024 included in current primary holdout: **NO**
+- H2H features calculated and exported: **YES**
+- H2H features included in current model's 20 inputs: **NO**
+- Production changes made: **NO**
+- Production/betting eligibility: **NOT GRANTED**
