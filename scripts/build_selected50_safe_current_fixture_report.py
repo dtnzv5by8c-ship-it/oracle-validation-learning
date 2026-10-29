@@ -468,7 +468,7 @@ def main():
         row["classification"].startswith("OUTSIDE_") for row in runtime_snapshot_gap_rows
     )
     qa = {
-        "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) else "PASS_REPORT_ONLY",
+        "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) or any(row["classification"].startswith("BLOCKED_") for row in runtime_snapshot_gap_rows) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
         "snapshot_retrieved_utc": retrieved.isoformat(),
         "snapshot_window_start_utc": snapshot_window_start.isoformat() if snapshot_window_start else None,
