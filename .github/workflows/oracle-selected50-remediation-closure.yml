@@ -1,0 +1,35 @@
+name: Oracle Selected-50 Remediation Gate Closure
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/close_selected50_remediation_gates.py"
+      - "reports/oracle-selected50-footystats-identity-crosswalk-probe-2026-10-29.csv"
+      - ".github/workflows/oracle-selected50-remediation-closure.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  close-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile and run research-only gate closure
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/close_selected50_remediation_gates.py
+          python scripts/close_selected50_remediation_gates.py
+      - name: Upload closure outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-remediation-closure
+          path: audit-output/selected50_*
+          if-no-files-found: error
+          retention-days: 14
