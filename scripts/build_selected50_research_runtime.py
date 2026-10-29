@@ -822,7 +822,7 @@ def main():
         h2h_expanding_path.write_text(json.dumps({"status":"RESEARCH_ONLY_CHRONOLOGICAL_FOLDS_NOT_CALIBRATED",
             "fold_policy":"Expanding history strictly before each fold start; H2H and baseline trained on the same H2H-eligible training rows.",
             "feature_set":"EXISTING_20_PLUS_4_H2H_FEATURES_FOR_CANDIDATE",
-            "folds":h2h_expanding_rows},indent=2)+"\\n",encoding="utf-8")
+            "folds":h2h_expanding_rows},indent=2)+"\n",encoding="utf-8")
         h2h_json_path=OUT/"oracle_selected50_h2h_ablation_metrics.json"
         h2h_json_path.write_text(json.dumps({"status":"RESEARCH_ONLY_ABLATION_NOT_CALIBRATED",
             "primary_window":"2025-03-20 through 2026-09-20",
