@@ -102,17 +102,25 @@ def as_list(v):
     return []
 
 def stamp(m):
+    """Parse fixture kickoff timestamps, normalizing epoch milliseconds and rejecting non-finite values."""
     for k in ("date_unix","kickoff_unix","timestamp","kickoff","date","datetime","match_date"):
         v=m.get(k) if isinstance(m,dict) else None
         if v in (None,""): continue
         try:
             n=float(v)
-            if n > 1_000_000_000: return n
-        except (TypeError,ValueError): pass
+            if math.isfinite(n) and n > 1_000_000_000:
+                # Current epoch milliseconds are ~1e12; treating them as seconds
+                # creates far-future dates and can corrupt chronological features.
+                if n >= 1_000_000_000_000:
+                    n /= 1000.0
+                if math.isfinite(n):
+                    return n
+        except (TypeError,ValueError,OverflowError): pass
         try:
             x=dt.datetime.fromisoformat(str(v).replace("Z","+00:00"))
             if x.tzinfo is None: x=x.replace(tzinfo=dt.timezone.utc)
-            return x.timestamp()
+            timestamp=x.timestamp()
+            return timestamp if math.isfinite(timestamp) else None
         except Exception: pass
     return None
 
