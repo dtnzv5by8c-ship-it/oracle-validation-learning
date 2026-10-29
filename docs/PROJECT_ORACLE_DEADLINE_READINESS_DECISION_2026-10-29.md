@@ -53,3 +53,30 @@ The probe verifies selected season IDs and captures provider comp_master_id valu
 - No production model or probability changes.
 - No fabricated mappings, settlement outcomes, feature provenance, odds or performance claims.
 - A successful API probe or green workflow is not production approval.
+
+
+## Addendum — snapshot/runtime bridge verified and 25 fixtures deferred (2026-10-29)
+
+### Verified bridge milestone
+- Research runtime run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40870100742
+- Snapshot run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40867886151
+- Successful snapshot/runtime bridge audit run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40884431781
+- Bridge artifact: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40884431781/artifacts/12902485332
+- Exact fixture/team ID matches in the seven-day horizon: 353 of 354 = 99.72%; one unmatched fixture is listed in the bridge QA.
+- All snapshot/runtime provenance checks passed, including snapshot run ID, runtime run ID, snapshot artifact digest, metadata, snapshot SHA-256, runtime report SHA-256, selected archive hash and actual archive-open receipt.
+- Runtime report rows: 436; raw research-only prediction rows: 411; missing-required-feature rows: 25. Prediction availability is 411/436 = 94.27%, and must not be rounded or described as 95%. Identity bridge coverage is 99.72%.
+- Of the 50 selected groups, 47 have fixtures represented in this seven-day report; all 47 groups with report fixtures have more than 50% of their listed fixtures carrying raw research predictions. Three selected groups have no fixture in this seven-day horizon: Canadian Premier League (16741), Chinese Super League (16789), K League 1 (16627). This is a schedule-horizon observation, not proof that the leagues are unsupported.
+- Production eligibility and betting eligibility remain false. This milestone verifies the research input bridge only.
+
+### Deferred feature blockers
+Issue #32 records all 25 fixtures blocked for missing required features: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/issues/32
+- Keep those fixtures blocked and listed for future remediation.
+- Do not impute or fabricate features.
+- Do not block other fixtures with complete required features because of these 25.
+- Re-evaluate them on later research runs; clear a fixture only when the required features genuinely exist and pass validation.
+- Continue to mask Combo probabilities pending approved market definition and official settlement truth.
+
+### Updated operating decision
+Proceed with research-only predictions for fixtures whose required features and source-safety checks pass. Use >=95% as the exact identity-bridge coverage target; report prediction availability separately. A majority-coverage policy may keep the broader research build moving, but it does not waive feature validation, point-in-time integrity, canonical identity approval, official settlement truth, calibration, or production/betting release gates.
+
+No production model logic, frozen probabilities, thresholds, calibration or production ledgers were changed.
