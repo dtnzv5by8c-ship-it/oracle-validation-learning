@@ -1,0 +1,40 @@
+{
+  "status": "RESEARCH_ONLY_MARKET_SCREEN_UNCERTAINTY_AUDIT",
+  "source": "Run #168 aggregate league walk-forward metrics and readiness table",
+  "locked_h2h_paired_holdout_loaded": false,
+  "total_league_market_pairs": 150,
+  "selection_bias": "150 hypotheses (50 league groups x 3 markets); no Brier-skill confidence intervals or multiplicity-adjusted inference in source artifact.",
+  "interpretation": "Candidate means positive Brier skill versus league prevalence in all three folds with the existing sample gate. It does not mean calibrated, profitable, canonical-identity verified or approved for betting.",
+  "markets": {
+    "BTTS": {
+      "league_market_pairs": 50,
+      "three_fold_sample_gate_pass": 30,
+      "positive_brier_skill_all_three_folds": 3,
+      "candidate_max_ece_ge_0_10": 1,
+      "candidate_max_ece_0_05_to_below_0_10": 1,
+      "candidate_max_ece_below_0_05": 1,
+      "median_candidate_min_fold_brier_skill": 0.00563,
+      "median_candidate_accuracy_ci_width": 0.15727
+    },
+    "DC_AWAY": {
+      "league_market_pairs": 50,
+      "three_fold_sample_gate_pass": 30,
+      "positive_brier_skill_all_three_folds": 19,
+      "candidate_max_ece_ge_0_10": 6,
+      "candidate_max_ece_0_05_to_below_0_10": 13,
+      "candidate_max_ece_below_0_05": 0,
+      "median_candidate_min_fold_brier_skill": 0.04199,
+      "median_candidate_accuracy_ci_width": 0.15961
+    },
+    "DC_HOME": {
+      "league_market_pairs": 50,
+      "three_fold_sample_gate_pass": 30,
+      "positive_brier_skill_all_three_folds": 17,
+      "candidate_max_ece_ge_0_10": 6,
+      "candidate_max_ece_0_05_to_below_0_10": 11,
+      "candidate_max_ece_below_0_05": 0,
+      "median_candidate_min_fold_brier_skill": 0.03688,
+      "median_candidate_accuracy_ci_width": 0.15232
+    }
+  }
+}
