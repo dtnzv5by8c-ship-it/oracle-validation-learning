@@ -14,6 +14,7 @@ from scripts.build_selected50_research_runtime import (
     team_ids,
     provider_fixture_id_collision_diagnostics,
     match_score,
+    stamp,
 )
 
 
@@ -168,6 +169,11 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
     def test_boolean_source_scores_are_rejected_before_numeric_coercion(self):
         self.assertEqual(match_score({"homeGoalCount": True, "awayGoalCount": 1}), (None, 1.0))
         self.assertEqual(match_score({"homeGoalCount": 0, "awayGoalCount": False}), (0.0, None))
+
+    def test_stamp_normalizes_epoch_milliseconds_and_rejects_nonfinite_values(self):
+        self.assertAlmostEqual(stamp({"date_unix": 1_761_000_000_000}), 1_761_000_000.0)
+        self.assertIsNone(stamp({"date_unix": float("inf")}))
+        self.assertIsNone(stamp({"date_unix": float("nan")}))
 
     def test_provider_team_ids_are_trimmed_before_identity_checks(self):
         home_id, away_id = team_ids({"homeID": " 123 ", "awayID": "123"})
