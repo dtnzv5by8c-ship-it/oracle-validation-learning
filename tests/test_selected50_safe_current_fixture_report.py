@@ -136,6 +136,7 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(qa["duplicate_runtime_exact_keys"], 1)
             self.assertEqual(qa["ambiguous_runtime_exact_key_count"], 1)
             self.assertEqual(qa["source_candidates_blocked_by_duplicate_runtime_exact_key"], 1)
+            self.assertEqual(qa["runtime_rows_blocked_by_duplicate_runtime_key"], 2)
             self.assertEqual(qa["reason_counts"]["BLOCKED_DUPLICATE_RUNTIME_EXACT_KEY"], 1)
             self.assertEqual(qa["safe_exact_join_rows"], 0)
             with (out / "oracle_selected50_safe_current_fixture_report.csv").open(newline="", encoding="utf-8") as h:
