@@ -14,14 +14,14 @@ on:
         default: "research-selected50-footystats-history-40447419806"
         type: string
       include_current_snapshot:
-        description: "Stage clean fixtures from a successful fresh FootyStats snapshot into an isolated research archive copy"
+        description: "Opt in only after verifying a fresh successful snapshot run and its artifact provenance; historical-only validation should leave this disabled."
         required: true
-        default: true
+        default: false
         type: boolean
       snapshot_run_id:
-        description: "Successful current-fixture snapshot workflow run ID (used only when include_current_snapshot=true)"
+        description: "Replace 0 with a verified fresh snapshot run ID only when include_current_snapshot=true; 0 is an intentional fail-closed sentinel."
         required: true
-        default: "40867886151"
+        default: "0"
         type: string
 
 permissions:
