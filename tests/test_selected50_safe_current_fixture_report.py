@@ -237,6 +237,19 @@ class SafeCurrentReportContractTests(unittest.TestCase):
             self.assertEqual(by_id["D"]["classification"], "QUARANTINE_NONSTANDARD_STATUS")
             self.assertEqual(by_id["E"]["classification"], "BLOCKED_NO_EXACT_RUNTIME_ROW")
             self.assertEqual(by_id["F"]["classification"], "OUTSIDE_MINIMUM_LEAD_WINDOW_NOT_MISSING_JOIN")
+            # Every exclusion must carry the exact source snapshot and horizon boundary
+            # so out-of-window, quarantine, and missing-join classifications remain auditable.
+            self.assertEqual(by_id["B"]["snapshot_retrieved_utc"], "2026-10-28T00:00:00+00:00")
+            self.assertEqual(by_id["B"]["snapshot_file_sha256"], hashlib.sha256(snap.read_bytes()).hexdigest())
+            self.assertEqual(by_id["B"]["snapshot_window_start_utc"], "2026-09-28T10:00:00+00:00")
+            self.assertEqual(by_id["B"]["snapshot_window_end_utc"], "2026-11-11T10:00:00+00:00")
+            self.assertEqual(by_id["B"]["runtime_started_utc"], "2026-10-28T10:00:00+00:00")
+            self.assertEqual(by_id["B"]["runtime_generation_end_utc"], "2026-11-04T10:00:00+00:00")
+            self.assertEqual(by_id["B"]["requested_report_end_utc"], "2026-11-11T10:00:00+00:00")
+            self.assertEqual(by_id["B"]["snapshot_window_covers_runtime_start"], "True")
+            self.assertEqual(by_id["B"]["snapshot_window_covers_requested_report_horizon"], "True")
+            self.assertEqual(by_id["B"]["reporting_horizon_coverage_status"], "PASS_DECLARED_SNAPSHOT_WINDOW_COVERS_REQUESTED_HORIZON")
+            self.assertEqual(by_id["B"]["market_gate_status"], "NOT_EVALUATED_OUTSIDE_RUNTIME_GENERATION_WINDOW")
             for row in excluded:
                 self.assertEqual(row["production_eligible"], "NO")
                 self.assertEqual(row["betting_eligible"], "NO")
