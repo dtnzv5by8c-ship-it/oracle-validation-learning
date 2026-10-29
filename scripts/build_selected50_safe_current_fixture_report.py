@@ -356,37 +356,92 @@ def main():
         row["betting_eligible"] = "NO"
         out_rows.append(row)
         reason_counts["PASS_SAFE_EXACT_JOIN"] = reason_counts.get("PASS_SAFE_EXACT_JOIN", 0) + 1
-    # Reverse audit of runtime rows that have no matching snapshot season/fixture key.
-    # Source quarantines remain represented in the per-snapshot exclusion CSV above;
-    # only rows absent from that source key are classified here.
-    runtime_snapshot_gap_rows = []
+    # Reverse audit of runtime rows that are not represented by an exact, clean
+    # snapshot source. A matching ID alone is insufficient: quarantine takes
+    # precedence over team/kickoff comparisons, and out-of-window rows are not
+    # misreported as missing snapshot joins.
+    def source_quarantine_reasons(source_row):
+        reasons = []
+        flag_raw = text(source_row.get("no_home_away")).lower()
+        if flag_raw in {"1", "1.0", "true", "yes"}:
+            reasons.append("QUARANTINE_NO_HOME_AWAY_TRUE")
+        elif flag_raw not in {"0", "0.0", "false", "no"}:
+            reasons.append("QUARANTINE_NO_HOME_AWAY_UNKNOWN")
+        source_status = text(source_row.get("status")).lower()
+        if not source_status:
+            reasons.append("QUARANTINE_MISSING_STATUS")
+        elif any(part in source_status for part in BAD_STATUS_PARTS):
+            reasons.append("QUARANTINE_NONSTANDARD_STATUS")
+        source_kickoff = parse_utc(source_row.get("kickoff_utc"))
+        if source_kickoff is None:
+            reasons.append("QUARANTINE_INVALID_KICKOFF")
+        elif source_kickoff > now and source_status in FINISHED:
+            reasons.append("QUARANTINE_STATUS_INCONSISTENT_WITH_FUTURE_KICKOFF")
+        elif source_kickoff > now and source_status != "incomplete":
+            reasons.append("QUARANTINE_UNKNOWN_OR_UNSUPPORTED_FUTURE_STATUS")
+        elif source_kickoff <= now and source_status not in FINISHED:
+            reasons.append("QUARANTINE_NONFUTURE_UNSETTLED")
+        if not text(source_row.get("homeID")) or not text(source_row.get("awayID")):
+            reasons.append("QUARANTINE_MISSING_ORDERED_TEAM_IDS")
+        return reasons
+
+    runtime_snapshot_reconciliation_rows = []
     for runtime_row in runtime:
         runtime_season = text(runtime_row.get("provider_season_id"))
         runtime_fixture = text(runtime_row.get("fixture_id"))
+        runtime_kickoff = parse_utc(runtime_row.get("date_utc"))
+        source_rows = snapshot_rows_by_key.get((runtime_season, runtime_fixture), []) if runtime_season and runtime_fixture else []
+        source_quarantine = []
+        if len(source_rows) == 1:
+            source_quarantine = source_quarantine_reasons(source_rows[0])
         if not runtime_season or not runtime_fixture:
             classification = "BLOCKED_INVALID_RUNTIME_IDENTITY"
-        elif (runtime_season, runtime_fixture) in snapshot_rows_by_key:
-            continue
+        elif len(source_rows) > 1:
+            classification = "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY"
+        elif source_rows and source_quarantine:
+            classification = "BLOCKED_SOURCE_QUARANTINE"
+        elif runtime_kickoff is None:
+            classification = "BLOCKED_RUNTIME_KICKOFF_INVALID"
+        elif runtime_kickoff <= now:
+            classification = "NOT_FUTURE_RUNTIME_ROW_NOT_SNAPSHOT_GAP"
+        elif runtime_kickoff > report_end:
+            classification = f"OUTSIDE_{report_horizon_days}_DAY_REPORT_WINDOW_NOT_SNAPSHOT_GAP"
+        elif runtime_kickoff > runtime_end:
+            classification = "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_SNAPSHOT_JOIN"
+        elif not source_rows and runtime_fixture in snapshot_seasons_by_fixture_id:
+            classification = "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"
+        elif not source_rows:
+            classification = "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW"
         else:
-            runtime_kickoff = parse_utc(runtime_row.get("date_utc"))
-            if runtime_kickoff is None:
-                classification = "BLOCKED_RUNTIME_KICKOFF_INVALID"
-            elif runtime_kickoff <= now:
-                classification = "NOT_FUTURE_RUNTIME_ROW_NOT_SNAPSHOT_GAP"
-            elif runtime_kickoff > report_end:
-                classification = f"OUTSIDE_{report_horizon_days}_DAY_REPORT_WINDOW_NOT_SNAPSHOT_GAP"
-            elif runtime_kickoff > runtime_end:
-                classification = "OUTSIDE_RUNTIME_GENERATION_WINDOW_NOT_MISSING_SNAPSHOT_JOIN"
-            elif runtime_fixture in snapshot_seasons_by_fixture_id:
-                classification = "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"
+            source_row = source_rows[0]
+            if text(source_row.get("homeID")) != text(runtime_row.get("home_team_provider_id")) or text(source_row.get("awayID")) != text(runtime_row.get("away_team_provider_id")):
+                classification = "BLOCKED_ORDERED_TEAM_ID_MISMATCH"
             else:
-                classification = "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW"
-        if classification == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW":
+                source_kickoff = parse_utc(source_row.get("kickoff_utc"))
+                if source_kickoff is None or source_kickoff != runtime_kickoff:
+                    classification = "BLOCKED_KICKOFF_MISMATCH"
+                else:
+                    # Exact, clean source matches are already represented in the
+                    # safe report; the reverse audit only records exceptions.
+                    continue
+        if classification == "BLOCKED_SOURCE_QUARANTINE":
+            market_gate = "BLOCKED_SOURCE_QUARANTINE"
+            feature_gate = "NOT_EVALUATED_SOURCE_QUARANTINE"
+        elif classification == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW":
             market_gate = "BLOCKED_NO_EXACT_SNAPSHOT_SOURCE"
             feature_gate = "NOT_EVALUATED_NO_SNAPSHOT_SOURCE"
         elif classification == "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH":
             market_gate = "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"
             feature_gate = "NOT_EVALUATED_SNAPSHOT_IDENTITY_BLOCKED"
+        elif classification == "BLOCKED_ORDERED_TEAM_ID_MISMATCH":
+            market_gate = "BLOCKED_ORDERED_TEAM_ID_MISMATCH"
+            feature_gate = "NOT_EVALUATED_IDENTITY_BLOCKED"
+        elif classification == "BLOCKED_KICKOFF_MISMATCH":
+            market_gate = "BLOCKED_KICKOFF_MISMATCH"
+            feature_gate = "NOT_EVALUATED_TEMPORAL_IDENTITY_BLOCKED"
+        elif classification == "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY":
+            market_gate = "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY"
+            feature_gate = "NOT_EVALUATED_AMBIGUOUS_SNAPSHOT_KEY"
         elif classification.startswith("OUTSIDE_"):
             market_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
             feature_gate = "NOT_EVALUATED_OUTSIDE_REPORTING_OR_RUNTIME_WINDOW"
@@ -396,7 +451,7 @@ def main():
         else:
             market_gate = "BLOCKED_RUNTIME_SOURCE_OR_IDENTITY_REVIEW"
             feature_gate = "NOT_EVALUATED_RUNTIME_SOURCE_OR_IDENTITY_REVIEW"
-        runtime_snapshot_gap_rows.append({
+        runtime_snapshot_reconciliation_rows.append({
             "provider_season_id": runtime_season,
             "fixture_id": runtime_fixture,
             "runtime_kickoff_utc": text(runtime_row.get("date_utc")),
@@ -405,6 +460,9 @@ def main():
             "runtime_prediction_status": text(runtime_row.get("prediction_status")),
             "runtime_feature_support_status": text(runtime_row.get("feature_support_status")),
             "classification": classification,
+            "source_quarantine_reasons": ";".join(source_quarantine),
+            "source_snapshot_kickoff_utc": text(source_rows[0].get("kickoff_utc")) if source_rows else "",
+            "source_snapshot_no_home_away": text(source_rows[0].get("no_home_away")) if source_rows else "",
             "market_gate_status": market_gate,
             "feature_gate_status": feature_gate,
             "canonical_fixture_join_status": "NOT_VERIFIED",
@@ -445,28 +503,42 @@ def main():
         w = csv.DictWriter(h, fieldnames=exclusion_fields)
         w.writeheader()
         w.writerows(exclusion_rows)
-    runtime_gap_path = a.out_dir / "oracle_selected50_runtime_snapshot_coverage_gaps.csv"
-    runtime_gap_fields = [
+    runtime_reconciliation_path = a.out_dir / "oracle_selected50_runtime_snapshot_reconciliation.csv"
+    runtime_reconciliation_fields = [
         "provider_season_id", "fixture_id", "runtime_kickoff_utc",
         "runtime_home_team_provider_id", "runtime_away_team_provider_id",
         "runtime_prediction_status", "runtime_feature_support_status", "classification",
+        "source_quarantine_reasons", "source_snapshot_kickoff_utc", "source_snapshot_no_home_away",
         "market_gate_status", "feature_gate_status", "canonical_fixture_join_status",
         "canonical_team_join_status", "official_settlement_truth_status", "combo_masked",
         "combo_probability_emitted", "prediction_created", "production_eligible", "betting_eligible"
     ]
-    with runtime_gap_path.open("w", encoding="utf-8", newline="") as h:
-        w = csv.DictWriter(h, fieldnames=runtime_gap_fields)
+    with runtime_reconciliation_path.open("w", encoding="utf-8", newline="") as h:
+        w = csv.DictWriter(h, fieldnames=runtime_reconciliation_fields)
         w.writeheader()
-        w.writerows(runtime_snapshot_gap_rows)
+        w.writerows(runtime_snapshot_reconciliation_rows)
     runtime_snapshot_missing_count = sum(
-        row["classification"] == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW" for row in runtime_snapshot_gap_rows
+        row["classification"] == "BLOCKED_NO_SNAPSHOT_FIXTURE_ROW" for row in runtime_snapshot_reconciliation_rows
     )
     runtime_snapshot_season_mismatch_count = sum(
-        row["classification"] == "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH" for row in runtime_snapshot_gap_rows
+        row["classification"] == "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH" for row in runtime_snapshot_reconciliation_rows
+    )
+    runtime_source_quarantine_count = sum(
+        row["classification"] == "BLOCKED_SOURCE_QUARANTINE" for row in runtime_snapshot_reconciliation_rows
+    )
+    runtime_ordered_team_mismatch_count = sum(
+        row["classification"] == "BLOCKED_ORDERED_TEAM_ID_MISMATCH" for row in runtime_snapshot_reconciliation_rows
+    )
+    runtime_kickoff_mismatch_count = sum(
+        row["classification"] == "BLOCKED_KICKOFF_MISMATCH" for row in runtime_snapshot_reconciliation_rows
+    )
+    runtime_duplicate_snapshot_key_count = sum(
+        row["classification"] == "BLOCKED_DUPLICATE_SNAPSHOT_SOURCE_KEY" for row in runtime_snapshot_reconciliation_rows
     )
     runtime_snapshot_out_of_window_count = sum(
-        row["classification"].startswith("OUTSIDE_") for row in runtime_snapshot_gap_rows
+        row["classification"].startswith("OUTSIDE_") for row in runtime_snapshot_reconciliation_rows
     )
+    runtime_exact_clean_snapshot_matches = len(runtime) - len(runtime_snapshot_reconciliation_rows)
     qa = {
         "status": "PASS_REPORT_ONLY_WITH_BLOCKERS" if report_horizon_days > runtime_horizon_days or any(k.startswith("BLOCKED_") or k.startswith("QUARANTINE_") for k in reason_counts) or any(row["classification"].startswith("BLOCKED_") for row in runtime_snapshot_gap_rows) else "PASS_REPORT_ONLY",
         "generated_utc": now.isoformat(),
@@ -485,12 +557,21 @@ def main():
         "selected_seasons": len(seasons),
         "snapshot_fixture_rows": len(fixture_rows),
         "runtime_report_rows": len(runtime),
-        "runtime_rows_without_exact_snapshot_key": len(runtime_snapshot_gap_rows),
+        "runtime_rows_without_exact_snapshot_key": sum(
+            row["classification"] in {"BLOCKED_NO_SNAPSHOT_FIXTURE_ROW", "BLOCKED_SNAPSHOT_SEASON_ID_MISMATCH"}
+            for row in runtime_snapshot_reconciliation_rows
+        ),
         "runtime_rows_missing_snapshot_fixture_row": runtime_snapshot_missing_count,
         "runtime_rows_with_snapshot_season_mismatch": runtime_snapshot_season_mismatch_count,
+        "runtime_rows_blocked_by_source_quarantine": runtime_source_quarantine_count,
+        "runtime_rows_blocked_by_ordered_team_id_mismatch": runtime_ordered_team_mismatch_count,
+        "runtime_rows_blocked_by_kickoff_mismatch": runtime_kickoff_mismatch_count,
+        "runtime_rows_blocked_by_duplicate_snapshot_key": runtime_duplicate_snapshot_key_count,
         "runtime_rows_outside_window_not_snapshot_gaps": runtime_snapshot_out_of_window_count,
-        "runtime_snapshot_coverage_gap_report": runtime_gap_path.name,
-        "runtime_snapshot_coverage_gap_rows": len(runtime_snapshot_gap_rows),
+        "runtime_rows_exact_clean_snapshot_matches": runtime_exact_clean_snapshot_matches,
+        "runtime_rows_not_exact_clean_snapshot_matches": len(runtime_snapshot_reconciliation_rows),
+        "runtime_snapshot_reconciliation_report": runtime_reconciliation_path.name,
+        "runtime_snapshot_reconciliation_rows": len(runtime_snapshot_reconciliation_rows),
         "duplicate_runtime_exact_keys": duplicate_runtime_key_occurrences,
         "ambiguous_runtime_exact_key_count": len(duplicate_runtime_key_set),
         "combo_probability_columns_checked": combo_probability_columns,
