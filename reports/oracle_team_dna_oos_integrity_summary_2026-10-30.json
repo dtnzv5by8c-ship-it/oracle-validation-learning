@@ -1,0 +1,384 @@
+{
+  "audit_id": "ORACLE_TEAM_DNA_OOS_INTEGRITY_AUDIT_2026-10-30",
+  "as_of": "2026-10-30T09:15:15Z",
+  "status": "RESEARCH_ONLY_COMPLETE; TEAM_LEVEL_PROFILE_RUN_PENDING_MANUAL_WORKFLOW",
+  "source_repository": "dtnzv5by8c-ship-it/oracle-football-data",
+  "source_commit": "cb89e5bd1c24810fe821a6b2c3c2c1c19272b381",
+  "scope": {
+    "historical_window": "2025-03-21 to 2026-09-20",
+    "league_count": 27,
+    "canonical_fixtures": 12836,
+    "team_fixture_rows": 25672,
+    "team_dna_v2_teams": 651,
+    "team_venue_profiles": 1302,
+    "team_dna_score": "0-150 evidence index; 75 neutral; not a probability",
+    "recent_window_matches": 8,
+    "recent_weight": 0.3,
+    "point_in_time": true,
+    "target_fixture_excluded": true,
+    "same_fixture_learning_blocked": true,
+    "future_leakage_blocked": true,
+    "four_model_oos_generated_utc": "2026-10-06T06:46:39Z",
+    "team_dna_v2_generated_utc": "2026-10-06T04:09:53Z",
+    "team_fixture_intelligence_generated_utc": "2026-10-04T13:01:41Z",
+    "oos_window_end": "2026-09-20",
+    "freshness_note": "Artifacts are approximately 24-26 days old at the audit time; no per-feature retrieval timestamps."
+  },
+  "team_sample_adequacy": {
+    "all_scope_teams": 651,
+    "home_profiles": 651,
+    "away_profiles": 650,
+    "report_pack_rows": 1952,
+    "sample_min": 2,
+    "p10": 7,
+    "p25": 17,
+    "median": 48,
+    "p75": 53,
+    "p90": 57,
+    "max": 67,
+    "below_8": 73,
+    "below_30": 169,
+    "evidence_status": {
+      "established": 482,
+      "developing": 96,
+      "insufficient": 73
+    },
+    "missing_away_profile": "Inhulets Petrove (UKR)",
+    "team_count_metadata_mismatch": {
+      "team_fixture_intelligence_manifest": 562,
+      "team_summary_unique_labels": 651,
+      "team_dna_v2_manifest": 651
+    },
+    "legacy_m1up_rate": {
+      "zero_rows": 1952,
+      "nonzero_rows": 0,
+      "interpretation": "UNPOPULATED_OR_UNAVAILABLE_NOT_ZERO_PERFORMANCE"
+    }
+  },
+  "team_dna_incremental_value": [
+    {
+      "market": "DC_HOME",
+      "n": 10139,
+      "brier_raw": 0.206553,
+      "brier_combined": 0.20444,
+      "brier_improvement": 0.002112,
+      "ci95": [
+        0.001355,
+        0.00287
+      ],
+      "logloss_improvement": 0.004924,
+      "auc_raw": 0.607135,
+      "auc_combined": 0.619911,
+      "ece_raw": 0.007441,
+      "ece_combined": 0.008211,
+      "league_brier_positive": 23,
+      "league_logloss_positive": 24,
+      "league_ece_better": 13,
+      "folds": 42
+    },
+    {
+      "market": "DC_AWAY",
+      "n": 10139,
+      "brier_raw": 0.235921,
+      "brier_combined": 0.233789,
+      "brier_improvement": 0.002131,
+      "ci95": [
+        0.001433,
+        0.00283
+      ],
+      "logloss_improvement": 0.004688,
+      "auc_raw": 0.610538,
+      "auc_combined": 0.620599,
+      "ece_raw": 0.009032,
+      "ece_combined": 0.00775,
+      "league_brier_positive": 20,
+      "league_logloss_positive": 20,
+      "league_ece_better": 14,
+      "folds": 42
+    },
+    {
+      "market": "COMBO_HOME",
+      "n": 10139,
+      "brier_raw": 0.235874,
+      "brier_combined": 0.23513,
+      "brier_improvement": 0.000744,
+      "ci95": [
+        0.000186,
+        0.001302
+      ],
+      "logloss_improvement": 0.001531,
+      "auc_raw": 0.566767,
+      "auc_combined": 0.572541,
+      "ece_raw": 0.005759,
+      "ece_combined": 0.005332,
+      "league_brier_positive": 17,
+      "league_logloss_positive": 19,
+      "league_ece_better": 16,
+      "folds": 42
+    },
+    {
+      "market": "BTTS",
+      "n": 10139,
+      "brier_raw": 0.247686,
+      "brier_combined": 0.247202,
+      "brier_improvement": 0.000485,
+      "ci95": [
+        -0.000038,
+        0.001007
+      ],
+      "logloss_improvement": 0.000972,
+      "auc_raw": 0.528834,
+      "auc_combined": 0.5376,
+      "ece_raw": 0.005978,
+      "ece_combined": 0.007433,
+      "league_brier_positive": 19,
+      "league_logloss_positive": 19,
+      "league_ece_better": 20,
+      "folds": 42
+    },
+    {
+      "market": "COMBO_AWAY",
+      "n": 10139,
+      "brier_raw": 0.243539,
+      "brier_combined": 0.243076,
+      "brier_improvement": 0.000463,
+      "ci95": [
+        -0.000053,
+        0.00098
+      ],
+      "logloss_improvement": 0.000964,
+      "auc_raw": 0.589763,
+      "auc_combined": 0.592762,
+      "ece_raw": 0.001211,
+      "ece_combined": 0.006809,
+      "league_brier_positive": 15,
+      "league_logloss_positive": 16,
+      "league_ece_better": 13,
+      "folds": 42
+    },
+    {
+      "market": "M1UP_HOME",
+      "n": 58,
+      "brier_raw": 0.242101,
+      "brier_combined": 0.225052,
+      "brier_improvement": 0.017049,
+      "ci95": [
+        -0.000917,
+        0.035015
+      ],
+      "logloss_improvement": 0.036389,
+      "auc_raw": 0.546584,
+      "auc_combined": 0.648447,
+      "ece_raw": 0.147915,
+      "ece_combined": 0.068372,
+      "league_count": 5,
+      "folds": 1,
+      "status": "INSUFFICIENT"
+    },
+    {
+      "market": "M1UP_AWAY",
+      "n": 58,
+      "brier_raw": 0.254767,
+      "brier_combined": 0.247454,
+      "brier_improvement": 0.007312,
+      "ci95": [
+        -0.008153,
+        0.022778
+      ],
+      "logloss_improvement": 0.013598,
+      "auc_raw": 0.508918,
+      "auc_combined": 0.592152,
+      "ece_raw": 0.075326,
+      "ece_combined": 0.058876,
+      "league_count": 5,
+      "folds": 1,
+      "status": "INSUFFICIENT"
+    }
+  ],
+  "incremental_feature_coverage": {
+    "principal_markets": {
+      "oos_rows_including_warmup": 11362,
+      "post_warmup_test_fixtures": 10362,
+      "complete_dna_rows": 10139,
+      "incomplete_dna_rows": 223,
+      "post_warmup_coverage": 0.97848
+    },
+    "m1up": {
+      "oos_rows_including_warmup": 1058,
+      "post_warmup_test_fixtures": 58,
+      "complete_dna_rows": 58,
+      "folds": 1,
+      "controlled_leagues": 5,
+      "interpretation": "100% of the 58 scored rows have DNA; sample is insufficient, not 94.5% missing."
+    },
+    "note": "The coverage file's 100% is match-ID join coverage, not complete feature availability."
+  },
+  "btts_chronological_oos": {
+    "n": 10364,
+    "unique_match_ids": 10364,
+    "date_min": "2025-04-20",
+    "date_max": "2026-09-20",
+    "outcome_rate": 0.552103,
+    "brier": 0.246261,
+    "log_loss": 0.685231,
+    "auc": 0.52997,
+    "ece_10bin": 0.00358,
+    "prevalence_baseline_brier": 0.247292,
+    "label_status": "SCORE_DERIVED_FROM_CONTROLLED_MATCH_SPINE_NOT_OFFICIAL_SETTLEMENT"
+  },
+  "m1up_event_truth_oos": {
+    "source": "Understat-derived event truth plus FotMob additions",
+    "source_matches": 2319,
+    "controlled_leagues": [
+      "D1",
+      "E0",
+      "F1",
+      "I1",
+      "SP1"
+    ],
+    "clean_w250_team_target_rows": 1650,
+    "unique_fixtures": 825,
+    "date_min": "2025-11-03",
+    "date_max": "2026-09-20",
+    "raw": {
+      "brier": 0.239101,
+      "log_loss": 0.670816,
+      "auc": 0.616586,
+      "ece_10bin": 0.01986
+    },
+    "sigmoid": {
+      "brier": 0.243291,
+      "log_loss": 0.681054,
+      "auc": 0.605538,
+      "ece_10bin": 0.02151
+    },
+    "isotonic": {
+      "brier": 0.246737,
+      "log_loss": 0.696815,
+      "auc": 0.588096,
+      "ece_10bin": 0.03962
+    },
+    "label_status": "CONTROLLED_EVENT_TRUTH_NOT_OFFICIAL_BOOKMAKER_SETTLEMENT",
+    "venue_team_split": "UNAVAILABLE_EXPORT_HAS_NO_VENUE_OR_TEAM_IDENTITY"
+  },
+  "m1up_export_integrity": {
+    "defective_export_rows": 3300,
+    "unique_fixtures": 825,
+    "rows_per_fixture": 4,
+    "unique_match_venue_keys": 1650,
+    "duplicate_match_venue_rows": 1650,
+    "clean_calibration_rows": 1650,
+    "clean_calibration_unique_fixtures": 825,
+    "clean_rows_per_fixture": 2,
+    "defect": "Many-to-many merge on match_id only; venue-specific base probabilities cross-paired.",
+    "consequence": "Reported n and threshold counts doubled; do not use export for venue splits or baseline comparison."
+  },
+  "calibration": {
+    "btts_raw_brier_by_window": {
+      "w250": 0.24626,
+      "w500": 0.24626,
+      "w1000": 0.24617
+    },
+    "btts_sigmoid_brier_by_window": {
+      "w250": 0.24872,
+      "w500": 0.24767,
+      "w1000": 0.24723
+    },
+    "btts_isotonic_brier_by_window": {
+      "w250": 0.25361,
+      "w500": 0.2501,
+      "w1000": 0.24869
+    },
+    "m1up_raw_brier_by_window": {
+      "w250": 0.2391,
+      "w500": 0.2391,
+      "w1000": 0.23894
+    },
+    "m1up_sigmoid_brier_by_window": {
+      "w250": 0.24329,
+      "w500": 0.24024,
+      "w1000": 0.23934
+    },
+    "m1up_isotonic_brier_by_window": {
+      "w250": 0.24674,
+      "w500": 0.2423,
+      "w1000": 0.2416
+    },
+    "conclusion": "Raw has the lowest Brier in all displayed windows; no calibration change."
+  },
+  "league_descriptive_outcomes": {
+    "btts_low": {
+      "league": "RSA",
+      "n": 357,
+      "rate": 0.403,
+      "ci95": [
+        0.354,
+        0.455
+      ]
+    },
+    "btts_high": {
+      "league": "SWZ",
+      "n": 343,
+      "rate": 0.659,
+      "ci95": [
+        0.607,
+        0.707
+      ]
+    },
+    "under45_low": {
+      "league": "SWZ",
+      "n": 343,
+      "rate": 0.749,
+      "ci95": [
+        0.701,
+        0.792
+      ]
+    },
+    "under45_high": {
+      "league": "RSA",
+      "n": 357,
+      "rate": 0.941,
+      "ci95": [
+        0.912,
+        0.961
+      ]
+    },
+    "status": "DESCRIPTIVE_SCORE_DERIVED_RATES_NOT_PREDICTED_MARKET_EDGE"
+  },
+  "team_level_oos_profiles": {
+    "status": "MANUAL_WORKFLOW_REQUIRED",
+    "method": "Exact match_id join; market-to-home/away team attribution; Wilson 95% intervals; Beta(1,1) shrinkage; candidate discordance only at n>=30 and CI exclusion; chronological split if both halves >=8."
+  },
+  "selected50_open_flags": {
+    "prematch_xg": "Prior archive analysis found elevated current-season zero rates across 48 represented league groups; zero semantics and source timestamps remain unverified.",
+    "belgium_odds": "Prior current-scope BTTS and DC 1X/X2 zero rate 85.71%; market-specific source/ingestion cause remains unverified.",
+    "archive_lineage": "Selected-50 FootyStats archive is separate from the 27-league controlled spine; release/ZIP lineage and point-in-time provenance not reconciled."
+  },
+  "prospective_predictions": {
+    "canonical_pre_kickoff_predictions": 210,
+    "settlement_rows": 0,
+    "feature_snapshot_manifest_rows": 0,
+    "separate_live_settlement_rows": 75,
+    "settled_rows": 0,
+    "unsettled_rows": 75
+  },
+  "blockers": [
+    "Manual run of the new team-market OOS workflow is required to generate named team profiles.",
+    "Team Fixture Intelligence manifest team_count 562 conflicts with 651 distinct team labels in the summary and Team DNA V2 manifest.",
+    "Older report pack has one missing AWAY profile (Inhulets Petrove, UKR).",
+    "M1UP export join must be corrected in a research-only source adapter before venue splits.",
+    "No row-level Team DNA combined OOS predictions or per-fold performance metrics are persisted; cluster-robust uncertainty cannot be recomputed.",
+    "Selected-50 xG and Belgium odds source timestamps/zero semantics and archive lineage remain unresolved.",
+    "No official settlement rows or feature snapshot manifests for the prospective 210-prediction archive."
+  ],
+  "governance": {
+    "provider_calls": 0,
+    "provider_credits": 0,
+    "h2h_inputs_read": false,
+    "production_logic_changed": false,
+    "frozen_probabilities_changed": false,
+    "calibration_changed": false,
+    "governance_changed": false,
+    "production_or_betting_eligibility_granted": false
+  }
+}
