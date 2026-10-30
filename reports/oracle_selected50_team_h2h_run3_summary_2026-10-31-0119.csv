@@ -1,1 +1,25 @@
-<RUN3_SUMMARY_CONTENT>
+metric,value,status,notes
+profiled_selected_groups,31,VERIFIED,31 of 50 groups have accessible exact-ID raw JSON.
+unprofiled_selected_groups,19,UNAVAILABLE,Full archive ledger counts exist; raw JSON not accessible; no zero-fill.
+complete_scored_fixtures,23328,VERIFIED,"Complete status, numeric scores and UTC kickoff through 2026-09-20."
+unique_fixture_ids,23328,VERIFIED,Duplicate fixture rows=0.
+team_profiles,732,VERIFIED,Composite key selected_id + provider team_id.
+provider_team_ids_reused_across_groups,58,KEYING_WARNING,Provider team_id alone is unsafe.
+team_profiles_with_multiple_name_variants,0,VERIFIED,No within-composite-key variants observed.
+h2h_pair_profiles,7188,VERIFIED,Exact selected_id + ordered provider team IDs.
+h2h_meetings,23328,VERIFIED,UTC chronological ledger; exact fixture IDs.
+h2h_pairs_8_plus,159,REPEATED_SAMPLE,"Minimum descriptive split screen, not predictive proof."
+h2h_pairs_lt8,7029,LOW_SAMPLE,Small H2H histories not reliable.
+no_home_away_matches,2603,HANDLED,Excluded from venue splits; retained for overall team outcomes.
+venue_valid_matches,20725,VERIFIED,no_home_away=0.
+record_hash_coverage_pct,100.0,VERIFIED,Both record hashes present.
+team_high_scoring_three_window,13,DESCRIPTIVE_ONLY,Overlapping windows.
+team_low_scoring_three_window,7,DESCRIPTIVE_ONLY,Overlapping windows.
+h2h_high_scoring_persistent,9,DESCRIPTIVE_ONLY,Exact pairs with temporal screen.
+h2h_low_scoring_persistent,6,DESCRIPTIVE_ONLY,Exact pairs with temporal screen.
+team_market_tendency_rows,2120,RESEARCH_ONLY,All-scope team rows across 10 markets and three windows; home-away deltas included. HOME/AWAY rates remain in Team Venue DNA.
+h2h_market_reliability_rows,7188,RESEARCH_ONLY,One exact pair row with Wilson intervals for 5 markets.
+h2h_recency_rows,7188,RESEARCH_ONLY,One exact pair row with meeting gaps and recent drift.
+rankable_candidates_per_market_0108,319,RESEARCH_ONLY,01:08 currentness QA; row-level refreshed Top 50 absent.
+production_eligible,False,BLOCKED,Research only.
+betting_eligible,False,BLOCKED,Research only.
