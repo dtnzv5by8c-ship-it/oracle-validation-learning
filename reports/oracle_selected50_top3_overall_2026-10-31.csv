@@ -1,0 +1,10 @@
+market,rank,date_utc,fixture_id,league,home_team,away_team,raw_probability_pct
+BTTS,1,2026-11-01T13:30:00Z,8411774,Eliteserien,Brann,Molde,68.94
+BTTS,2,2026-11-05T00:00:00Z,8620625,Professional League,Al Ittifaq,Al Hilal,67.60
+BTTS,3,2026-10-31T20:00:00Z,8547842,Eredivisie,Cambuur,Go Ahead Eagles,66.61
+DC_HOME,1,2026-11-01T15:30:00Z,8579426,Liga I,CS U Craiova,Botoşani,91.83
+DC_HOME,2,2026-11-06T18:30:00Z,8565837,Bundesliga,Rapid Wien,Wolfsberger AC,91.61
+DC_HOME,3,2026-11-01T10:30:00Z,8583512,Süper Lig,Amed,Eyüpspor,91.55
+DC_AWAY,1,2026-11-05T00:00:00Z,8620625,Professional League,Al Ittifaq,Al Hilal,88.91
+DC_AWAY,2,2026-10-31T17:00:00Z,8546253,Prva HNL,Rudeš,Dinamo Zagreb,83.54
+DC_AWAY,3,2026-10-31T05:00:00Z,8553116,J1 League,Mito Hollyhock,Sanfrecce Hiroshima,82.50
