@@ -1,0 +1,106 @@
+name: Oracle Selected-50 League Scoring DNA (Research Only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_private_archive_read:
+        description: "Confirm read-only access to the existing pinned private archive; no provider API calls"
+        type: boolean
+        required: true
+        default: false
+      private_archive_release_tag:
+        description: "Pinned existing archive release tag"
+        type: string
+        required: true
+        default: research-selected50-footystats-history-40375285207
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  scoring-dna:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: \${{ github.ref }}
+
+      - name: Guard read-only archive access
+        env:
+          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PRIVATE_ARCHIVE_READ: \${{ inputs.confirm_private_archive_read }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: \${{ inputs.private_archive_release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit private archive read confirmation is required."; exit 1; }
+          [[ -n "\${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          [[ "$PRIVATE_ARCHIVE_RELEASE_TAG" == "research-selected50-footystats-history-40375285207" ]] || { echo "::error::Only the pinned archive release is permitted."; exit 1; }
+
+      - name: Download existing pinned archive and verify SHA-256
+        env:
+          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: \${{ inputs.private_archive_release_tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p private-download
+          gh release download "$PRIVATE_ARCHIVE_RELEASE_TAG" \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern oracle-selected50-footystats-private-ingestion.zip \
+            --dir private-download
+          printf '%s  %s\n' \
+            "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f" \
+            "private-download/oracle-selected50-footystats-private-ingestion.zip" | sha256sum -c -
+
+      - name: Verify and download existing archive QA and runtime artifacts
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess
+          repo=os.environ["GITHUB_REPOSITORY"]
+          checks=[
+            (41115501513,13004648723,"oracle-selected50-private-archive-qa"),
+            (41119141526,13006609602,"oracle-selected50-research-runtime-report"),
+          ]
+          for run_id, artifact_id, name in checks:
+            raw=subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{run_id}/artifacts"],text=True)
+            artifacts=json.loads(raw)["artifacts"]
+            found=[a for a in artifacts if a["id"]==artifact_id and a["name"]==name and not a["expired"]]
+            if len(found)!=1 or int(found[0]["workflow_run"]["id"])!=run_id:
+              raise SystemExit(f"Verified existing artifact not found: run={run_id} artifact={artifact_id}")
+          PY
+          mkdir -p archive-qa runtime
+          gh run download 41115501513 --repo "$GITHUB_REPOSITORY" \
+            --name oracle-selected50-private-archive-qa --dir archive-qa
+          gh run download 41119141526 --repo "$GITHUB_REPOSITORY" \
+            --name oracle-selected50-research-runtime-report --dir runtime
+          test -s archive-qa/selected50_primary_window_coverage.csv
+          test -s archive-qa/calendar_year_coverage/selected50_calendar_year_coverage_by_league.csv
+          test -s runtime/oracle_selected50_league_walk_forward_metrics.csv
+
+      - name: Run offline tests
+        run: python -m unittest discover -s tests -p 'test_selected50_league_scoring_dna.py' -v
+
+      - name: Derive 50-league scoring DNA and join walk-forward metrics
+        run: |
+          set -euo pipefail
+          python scripts/derive_selected50_league_scoring_dna.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
+            --runtime-dir runtime \
+            --coverage-dir archive-qa \
+            --out-dir scoring-dna-output \
+            --audit-date 2026-10-30
+          cat scoring-dna-output/oracle_selected50_scoring_dna_summary_2026-10-31.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload aggregate research outputs only
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-league-scoring-dna
+          path: scoring-dna-output/
+          if-no-files-found: error
+          retention-days: 30
