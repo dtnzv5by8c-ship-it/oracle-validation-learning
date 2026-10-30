@@ -26,7 +26,7 @@ class Selected50CalendarYearCoverageTests(unittest.TestCase):
             {"id": "same", "status": "complete", "date": "2024-02-01"},
             {"status": "complete", "date": "2024-03-01"},
         ]
-        result = summarize(rows)
+        result = summarize(rows, date(2026, 10, 30))
         self.assertEqual(result["match_rows"], 3)
         self.assertEqual(result["unique_provider_match_ids"], 1)
         self.assertEqual(result["duplicate_provider_match_id_rows"], 1)
