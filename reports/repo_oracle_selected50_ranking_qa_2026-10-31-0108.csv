@@ -1,0 +1,4 @@
+market,runtime_rows,exact_fixture_team_id_joins,source_quarantined_runtime_rows,feature_blocked_runtime_rows,pre_kickoff_equality_gate_candidates,exact_kickoff_candidates,kickoff_mismatch_new_exclusions,elapsed_at_0108_sast_exclusions,current_rankable_candidates,selected_groups_with_rankable_candidates,distinct_league_labels_with_rankable_candidates,top50_rows,top50_unique_fixture_ids,top50_quarantined,top50_kickoff_mismatches,all_raw_uncalibrated,production_eligible,betting_eligible
+BTTS,426,426,79,23,325,322,3,3,319,37,37,50,50,0,0,True,NO,NO
+DC_HOME,426,426,79,23,325,322,3,3,319,37,37,50,50,0,0,True,NO,NO
+DC_AWAY,426,426,79,23,325,322,3,3,319,37,37,50,50,0,0,True,NO,NO
