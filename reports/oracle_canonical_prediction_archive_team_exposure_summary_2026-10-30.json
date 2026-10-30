@@ -1,0 +1,211 @@
+{
+  "audit_date": "2026-10-30T10:22:42+02:00",
+  "status": "CANONICAL_ARCHIVE_EXPOSURE_AUDIT_COMPLETE",
+  "scope": {
+    "source_repository": "dtnzv5by8c-ship-it/oracle-football-data",
+    "archive_run": "ORC-20261004T170125Z-793FC7",
+    "model_version": "FOUR_MODEL_PREDICTION_ENGINE_V1.2",
+    "model_status": "CHALLENGER",
+    "competition_count": 9,
+    "selected50_universe_coverage": false,
+    "oracle_v16_production_evidence": false
+  },
+  "prediction_archive": {
+    "rows": 210,
+    "unique_prediction_ids": 210,
+    "duplicate_prediction_ids": 0,
+    "duplicate_fixture_model_version_observations": 0,
+    "unique_runs": 1,
+    "fixtures": 42,
+    "fixtures_with_all_five_expected_markets": 42,
+    "unique_team_labels": 84,
+    "team_fixture_sample_distribution": {
+      "1": 84
+    },
+    "teams_with_two_or_more_fixtures": 0,
+    "team_market_exposure_observations": 252,
+    "team_market_exposure_sample_distribution": {
+      "1": 252
+    },
+    "market_rows": {
+      "BTTS_YES": 42,
+      "HOME_1X": 42,
+      "AWAY_X2": 42,
+      "HOME_1X_U45": 42,
+      "AWAY_X2_U45": 42
+    },
+    "competition_coverage": [
+      {
+        "competition": "CRO",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "D1",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "D2",
+        "fixtures": 2,
+        "prediction_rows": 10
+      },
+      {
+        "competition": "F1",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "I1",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "NED2",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "RSA",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "SWZ",
+        "fixtures": 5,
+        "prediction_rows": 25
+      },
+      {
+        "competition": "UKR",
+        "fixtures": 5,
+        "prediction_rows": 25
+      }
+    ],
+    "valid_raw_probability_rows": 210,
+    "strictly_pre_kickoff_rows": 210,
+    "post_or_equal_kickoff_rows": 0,
+    "timestamp_unverifiable_rows": 0,
+    "prediction_timestamp_utc": "2026-10-04T17:01:24.696000+00:00",
+    "fixture_date_range": [
+      "2026-10-09",
+      "2026-10-17"
+    ],
+    "prediction_to_kickoff_lead_hours": {
+      "min": 115.48,
+      "median": 142.6,
+      "max": 308.48
+    },
+    "data_cutoff_date": "2026-09-20",
+    "event_truth_cutoff_date": "2026-09-20",
+    "calendar_days_cutoff_before_prediction": 14,
+    "calendar_days_cutoff_before_kickoff": {
+      "min": 19,
+      "max": 27
+    },
+    "decision_statuses": {
+      "CHALLENGER_OUTPUT": 110,
+      "NO_BET": 100
+    },
+    "data_quality_statuses": {
+      "PASS": 110,
+      "WATCH_PARTIAL_LEAGUE": 100
+    },
+    "model_statuses": {
+      "CHALLENGER": 210
+    },
+    "calibrated_probability_missing_rows": 210,
+    "market_odds_missing_rows": 210,
+    "market_implied_probability_missing_rows": 210,
+    "model_edge_missing_rows": 210,
+    "market_line_missing_rows": 210,
+    "unique_source_manifest_hashes": 1,
+    "unique_pre_match_state_hashes": 1,
+    "unique_feature_snapshot_ids": 210,
+    "unique_model_code_shas": 1,
+    "unique_calibration_ids": 1,
+    "calibration_id_value": "RAW_INCUMBENT"
+  },
+  "canonical_archive_evidence": {
+    "settlement_ledger_rows": 0,
+    "settlement_rows_matching_prediction_ids": 0,
+    "official_truth_verified_rows": 0,
+    "feature_snapshot_manifest_rows": 0,
+    "feature_snapshot_ids_resolved": 0,
+    "run_registry_rows": 1,
+    "run_artifacts_rows": 0,
+    "team_profile_ledger_rows": 0,
+    "fixture_dynamics_ledger_rows": 0,
+    "model_scorecard_rows": 0,
+    "postmortem_ledger_rows": 0,
+    "team_behaviour_ledger_rows": 0,
+    "miss_dna_summary_rows": 0,
+    "learning_ledger_rows": 13,
+    "database_matches_rows": 0,
+    "database_prematch_team_state_rows": 0,
+    "current_fixture_manifest_generated_utc": "2026-10-08T04:30:39.615849+00:00",
+    "current_fixture_manifest_generated_after_prediction_run": true,
+    "original_source_manifest_retained": false,
+    "original_prematch_state_snapshot_retained": false
+  },
+  "interpretation": {
+    "timestamp_integrity": "PASS_FOR_210_ROWS",
+    "feature_snapshot_retrievability": "BLOCKED",
+    "official_settlement_truth": "UNAVAILABLE",
+    "canonical_team_identity": "UNVERIFIED",
+    "canonical_fixture_identity": "UNVERIFIED",
+    "team_market_performance": "NOT_MEASURABLE",
+    "market_suitability": "NOT_MEASURABLE",
+    "calibration": "RAW_ONLY_UNVALIDATED",
+    "no_team_or_league_exclusions": true
+  },
+  "separate_oos_evidence_lineage": {
+    "four_model_production_report_n": 5847,
+    "four_model_production_report_folds": 12,
+    "validation_v02_report_n": 6244,
+    "validation_v02_report_folds": 13,
+    "current_evidence_gate_n": 10535,
+    "current_evidence_gate_folds": 12,
+    "current_row_level_oos_predictions_rows": 0,
+    "imported_into_selected50_team_dna": false
+  },
+  "selected50_prior_findings": {
+    "prematch_xg_zero_rate_deterioration_status": "OPEN_EXPLORATORY",
+    "belgium_btts_dc_odds_gap_status": "OPEN_EXPLORATORY",
+    "reprocessed_in_this_cycle": false,
+    "provider_calls": 0
+  },
+  "latest_selected50_runtime": {
+    "run_id": 41025566727,
+    "status": "FAILED_FINAL_VALIDATOR",
+    "failure": "Malformed H2H chronology JSON: JSONDecodeError Extra data at line 39 column 2",
+    "artifact_upload_completed": false,
+    "used_as_verified_performance_evidence": false,
+    "left_to_primary_h2h_lane": true
+  },
+  "source_blob_shas": {
+    "prediction_ledger": "10a2e8ea40d8bc7cd8eecb30fb6933f6548572b1",
+    "settlement_ledger": "4a1d743ecaefbe7c68ec15e8637857d33e46aa16",
+    "feature_snapshot_manifest": "203f134fa4f4fcd55228ef4a8afec7adf03e0edf",
+    "run_registry": "43c32eb8355cb05e42558161d86d112156c29fc6",
+    "team_profile_ledger": "ef2647ed7e286091a970a291962cc7c134847e64",
+    "fixture_dynamics_ledger": "0b96a946d1c8c094730dccf9fa6bb42f9065e7f2",
+    "model_scorecard": "9a546ac82613fb5dbc5ef8df0a21e1a746347849",
+    "postmortem_ledger": "f04fe5bde9128f426b48c12903dacbc494251930",
+    "team_behaviour_ledger": "d0312379f23f45a3d0ea96dfc463b9e2f93a3f38",
+    "run_artifacts": "218535f254a6132bc501e8da093e9f0f6aff2cad",
+    "learning_ledger": "829fde382a6b75fc1f6975294f1e018a07dcd997",
+    "database_matches": "002abc9cea35ec75af39bd25a131559d029a861b",
+    "database_prematch_team_state": "b02954e6dd0fff05fdad13778dd8d99891d4b7a3"
+  },
+  "governance": {
+    "research_only": true,
+    "provider_api_calls": 0,
+    "provider_credits": 0,
+    "h2h_holdout_accessed": false,
+    "production_code_changed": false,
+    "production_logic_changed": false,
+    "frozen_probabilities_changed": false,
+    "calibration_changed": false,
+    "governance_changed": false
+  }
+}
