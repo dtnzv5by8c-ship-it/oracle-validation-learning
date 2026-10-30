@@ -243,11 +243,52 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
             "INSUFFICIENT_PAIRED_TEST_PREDICTIONS",
         }
 
+    # Reconcile the complete chronology QA summary to the paired CSV. A PASS
+    # status alone is insufficient: every reported failure counter, market
+    # count, and composite fixture count must agree with the independently
+    # parsed rows. Require JSON integers (not booleans, which subclass int).
     assert chronology_qa.get("status") == "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY"
-    assert int(chronology_qa.get("row_count") or 0) == len(paired_rows)
-    assert int(chronology_qa.get("duplicate_fixture_market_rows") or 0) == 0
-    assert int(chronology_qa.get("non_strict_prior_rows") or 0) == 0
-    assert int(chronology_qa.get("days_since_last_mismatch_rows") or 0) == 0
+    chronology_row_count = chronology_qa.get("row_count")
+    assert type(chronology_row_count) is int and chronology_row_count == len(paired_rows)
+    composite_fixture_count = len({(key[0], key[1]) for key in seen_pairs})
+    chronology_fixture_count = chronology_qa.get("unique_fixture_count")
+    assert type(chronology_fixture_count) is int and chronology_fixture_count == composite_fixture_count
+
+    expected_market_list = chronology_qa.get("expected_markets")
+    assert isinstance(expected_market_list, list)
+    assert len(expected_market_list) == len(MARKETS) and set(expected_market_list) == MARKETS
+    chronology_market_counts = chronology_qa.get("market_row_counts")
+    assert isinstance(chronology_market_counts, dict)
+    assert set(chronology_market_counts) == MARKETS
+    for market in MARKETS:
+        reported_count = chronology_market_counts.get(market)
+        assert type(reported_count) is int and reported_count == paired_counts[market], (
+            market, reported_count, paired_counts[market]
+        )
+
+    chronology_failure_counters = (
+        "missing_fixture_market_keys",
+        "duplicate_fixture_market_rows",
+        "unexpected_market_rows",
+        "incomplete_fixture_market_sets",
+        "missing_kickoff_rows",
+        "invalid_kickoff_rows",
+        "missing_h2h_date_rows",
+        "invalid_h2h_date_rows",
+        "non_strict_prior_rows",
+        "invalid_days_since_last_rows",
+        "days_since_last_mismatch_rows",
+        "invalid_prior_count_rows",
+        "invalid_h2h_rate_rows",
+        "invalid_h2h_average_goals_rows",
+        "fixture_metadata_conflict_count",
+        "invalid_probability_rows",
+        "invalid_actual_rows",
+    )
+    for counter in chronology_failure_counters:
+        value = chronology_qa.get(counter)
+        assert type(value) is int and value == 0, (counter, value)
+
     assert chronology_qa.get("production_eligible") is False
     assert chronology_qa.get("betting_eligible") is False
     return {
