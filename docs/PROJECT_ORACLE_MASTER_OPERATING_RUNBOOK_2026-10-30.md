@@ -84,7 +84,7 @@ Workflow: [Oracle Selected-50 Safe Current Fixture Report](https://github.com/dt
 - Never promote to production merely because GitHub Actions is green.
 
 ## 6. Current technical configuration correction
-The research runtime workflow previously defaulted to stale archive tag `research-selected50-footystats-history-40447419806` and stale pinned SHA. On 30 October, the workflow was corrected on the research branch to default to the verified 200-season archive release `research-selected50-footystats-history-40375285207` and SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`. The workflow must pass its checksum guard before use.
+The research runtime and private-archive-QA workflows previously defaulted to stale archive tag `research-selected50-footystats-history-40447419806` and stale pinned SHA. On 30 October, both were corrected on the research branch to default to the verified 200-season archive release `research-selected50-footystats-history-40375285207` and SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`. The xG temporal-shift audit's internal archive SHA guard was also updated to this verified package checksum and covered by a regression test. The safety contract tests and dry-run planner passed on commit `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68` (runs `41112970222` and `41112970242`). Private Archive QA run `41112970245` was still running when this runbook revision was prepared; check its final conclusion before treating the latest QA as passed. The workflows must pass their checksum guards before use.
 
 ## 7. What is not yet seamless / gates still open
 The following are not yet certified complete:
