@@ -55,7 +55,7 @@
     "high_goal_avg_total_goals_min": 3.2
   },
   "latest_dry_run": {
-    "run_id": "40974225892",
+    "run_id": "40980198388",
     "conclusion": "success",
     "network_calls": 0,
     "paid_provider_calls": 0,
@@ -70,12 +70,14 @@
     "governed_fixture_rows_emitted": 0,
     "schedule_last_fixture_date": "2026-10-17",
     "schedule_manifest_window_end": "2026-10-22",
-    "production_eligible": false
+    "production_eligible": false,
+    "artifact_id": "12943244744"
   },
   "latest_safety_contract": {
-    "run_id": "40974272830",
+    "run_id": "40980198406",
     "conclusion": "success",
-    "tests_passed": 19
+    "tests_passed": 19,
+    "new_fixture_context_tests_passed": 7
   },
   "locked_h2h_holdout_read": false,
   "provider_api_calls_made": 0,
@@ -83,5 +85,6 @@
   "frozen_probabilities_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
-  "next_action": "Dispatch a fresh historical-only Selected-50 research runtime manually with current snapshot overlay disabled and no provider refresh; then rerun context analysis and build the prospective prediction/settlement ledger."
+  "next_action": "Dispatch a fresh historical-only Selected-50 research runtime manually with current snapshot overlay disabled and no provider refresh; then rerun context analysis and build the prospective prediction/settlement ledger.",
+  "ci_test_path_fix_commit": "ed12fc187abaf38e8d5319095085aa799453281b"
 }
