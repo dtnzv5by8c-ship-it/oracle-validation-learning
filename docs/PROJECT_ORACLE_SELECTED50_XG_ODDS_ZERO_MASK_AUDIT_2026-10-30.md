@@ -1,11 +1,11 @@
 # Project Oracle — Selected-50 Prematch xG and Belgium Odds Zero-Mask Audit
 
 **Audit date:** 30 October 2026  
-**Research branch:** \`research/oracle-50-league-readiness-audit\`  
-**Source archive:** \`research-selected50-footystats-history-40447419806\`  
-**Archive SHA-256:** \`af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875\`  
+**Research branch:** `research/oracle-50-league-readiness-audit`  
+**Source archive:** `research-selected50-footystats-history-40447419806`  
+**Archive SHA-256:** `af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875`  
 **Private archive QA:** run #35 / 41005221567; artifact 12955356908  
-**Research commit:** \`e5bdce094c639e320ef3c38a244106ce39109ae8\`
+**Research commit:** `e5bdce094c639e320ef3c38a244106ce39109ae8`
 
 ## Executive finding
 
@@ -34,7 +34,7 @@ The pinned private archive QA confirms:
 | Non-complete primary-window records with 0–0 score pairs | 35 |
 | Current-season scopes with primary-window rows | 48 of 50 |
 
-The 35 non-complete records are not promoted to settled outcomes. Provider status \`complete\` is not independent official settlement truth.
+The 35 non-complete records are not promoted to settled outcomes. Provider status `complete` is not independent official settlement truth.
 
 The zero-mask QA now covers 20 numeric fields, 190 pair combinations per season and 130 season scopes with completed primary-window rows (24,700 aggregate pair rows). It exports season-level pair counts only; no fixture IDs, team IDs or raw provider values are included.
 
@@ -107,14 +107,14 @@ This is strong evidence of market-specific field coverage behaviour in the archi
 1. Numeric zero is preserved as observed. No zero was converted to null, imputed or silently removed.
 2. A field being present and numeric does not make it a valid prematch feature or a usable bookmaker price.
 3. The archive QA date is 30 October 2026, while the locked primary window ends 20 September 2026. Per-field source timestamps and quote timestamps are absent; freshness and point-in-time availability are therefore unverified.
-4. Provider status \`complete\` is not official settlement truth. No outcome, accuracy, calibration, ROI or team-market suitability conclusion is drawn here.
+4. Provider status `complete` is not official settlement truth. No outcome, accuracy, calibration, ROI or team-market suitability conclusion is drawn here.
 5. The xG and odds mask audit is separate from the primary H2H integrity work; no H2H paired-prediction file or locked holdout was used.
 6. Production logic, frozen probabilities, calibration and governance were not changed. Production and betting eligibility remain false.
 
 ## 5. Manual blockers and next actions
 
 1. Inspect existing private archive ingestion metadata/logs for the affected fields: source timestamp, source/update time, bookmaker/source identifier, market identifier and quote time. Do not make a provider/API call for this review.
-2. Obtain confirmation from the archive owner or existing provider contract on whether numeric zero in \`*_xg_prematch\`, BTTS and DC odds fields means unavailable, unsupported, unpriced or a genuine value.
+2. Obtain confirmation from the archive owner or existing provider contract on whether numeric zero in `*_xg_prematch`, BTTS and DC odds fields means unavailable, unsupported, unpriced or a genuine value.
 3. If the existing metadata does not contain those semantics/timestamps, record that as a manual data dependency. Do not infer the answer from aggregate zero counts.
 4. Until semantics and point-in-time provenance are verified, keep the affected prematch-xG zero values and zero odds out of research claims about valid feature/price coverage. Do not alter production inputs in this lane.
 5. Team-market performance remains a separate blocked deliverable requiring an immutable pre-kickoff prediction ledger and independently verified settlement truth.
@@ -123,10 +123,10 @@ This is strong evidence of market-specific field coverage behaviour in the archi
 
 Research code and tests:
 
-- \`scripts/qa_selected50_private_archive.py\` — exports sanitized pairwise zero-mask counts, including prematch and postmatch xG plus the relevant odds fields.
-- \`scripts/analyze_selected50_xg_odds_mask_audit.py\` — produces the xG zero-rate, postmatch comparison and Belgium odds chronology outputs.
-- \`tests/test_selected50_private_archive_feature_coverage.py\`
-- \`tests/test_selected50_xg_odds_mask_audit.py\`
+- `scripts/qa_selected50_private_archive.py` — exports sanitized pairwise zero-mask counts, including prematch and postmatch xG plus the relevant odds fields.
+- `scripts/analyze_selected50_xg_odds_mask_audit.py` — produces the xG zero-rate, postmatch comparison and Belgium odds chronology outputs.
+- `tests/test_selected50_private_archive_feature_coverage.py`
+- `tests/test_selected50_xg_odds_mask_audit.py`
 
 Validation on the latest research commit:
 

@@ -1,15 +1,15 @@
 # Oracle Data & Team DNA — Checkpoint: xG / Belgium Odds Mask Audit
 
 **Date:** 30 October 2026  
-**Branch:** \`research/oracle-50-league-readiness-audit\`  
-**Latest research commit:** \`e5bdce094c639e320ef3c38a244106ce39109ae8\`
+**Branch:** `research/oracle-50-league-readiness-audit`  
+**Latest research commit:** `e5bdce094c639e320ef3c38a244106ce39109ae8`
 
 ## Completed and verified
 
 - Private Archive QA #35 (41005221567) passed; artifact 12955356908.
 - Safety Contract Tests #427 (41005221636) passed.
 - Selected-50 Dry-Run Planner #714 (41005221637) passed.
-- Source archive is pinned to \`research-selected50-footystats-history-40447419806\`, SHA-256 \`af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875\`.
+- Source archive is pinned to `research-selected50-footystats-history-40447419806`, SHA-256 `af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875`.
 - Added postmatch xG and Double Chance 12 to the sanitized zero-mask matrix: 20 fields, 190 pairs per season, 24,700 pair rows across 130 season scopes.
 - Added reproducible xG/odds audit script, regression tests and a detailed report.
 
