@@ -3,10 +3,14 @@ import unittest
 from scripts.audit_selected50_xg_odds_temporal_shift import (
     aggregate_period, build_xg_shift_rows, select_current_xg_outliers,
     wilson_interval, build_summary, as_int, validate_numeric_quality_rows,
+    EXPECTED_ARCHIVE_SHA256,
 )
 
 
 class Selected50XgOddsTemporalShiftTests(unittest.TestCase):
+    def test_archive_checksum_pin_matches_current_verified_archive(self):
+        self.assertEqual(EXPECTED_ARCHIVE_SHA256, "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f")
+
     def test_wilson_interval_known_values(self):
         self.assertEqual(wilson_interval(20, 50), (27.61, 53.82))
         self.assertEqual(wilson_interval(0, 0), (None, None))
