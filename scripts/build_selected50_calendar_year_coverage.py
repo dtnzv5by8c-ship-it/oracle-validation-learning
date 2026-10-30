@@ -68,6 +68,8 @@ def run(archive, manifest, out):
     groups = load_selected(manifest)
     group_rows = defaultdict(list)
     season_rows = defaultdict(list)
+    group_undated = Counter()
+    season_undated = Counter()
     season_meta = {}
     unmatched = []
     with zipfile.ZipFile(archive) as z:
@@ -95,7 +97,10 @@ def run(archive, manifest, out):
             for row in matches:
                 if not isinstance(row, dict): continue
                 day = date_value(row)
-                if not day: continue
+                if not day:
+                    group_undated[group] += 1
+                    season_undated[sid] += 1
+                    continue
                 year = int(day[:4])
                 if year in YEARS:
                     group_rows[(group[0], group[1], year)].append(row)
@@ -110,7 +115,8 @@ def run(archive, manifest, out):
                 "country": country, "competition_name": competition, "selected_current_season_id": selected_sid,
                 "calendar_year": year, "archive_season_folders_for_group": len(seasons_for_group),
                 "season_ids_in_archive": ";".join(sorted(seasons_for_group)),
-                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows","undated_rows")},
+                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows")},
+                "undated_rows_in_group_across_archive_seasons": group_undated[(country, competition)],
                 "status_counts_json": json.dumps(s["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
                 "official_settlement_truth_verified": "NO", "canonical_fixture_team_joins_verified": "NO",
@@ -122,7 +128,8 @@ def run(archive, manifest, out):
             s = summarize(rows)
             season_out.append({
                 "season_id": sid, **meta, "calendar_year": year,
-                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows","undated_rows")},
+                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows")},
+                "undated_rows_in_season": season_undated[sid],
                 "status_counts_json": json.dumps(s["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
             })
@@ -138,6 +145,7 @@ def run(archive, manifest, out):
         "selected_league_groups": len(groups), "league_year_rows": len(group_out),
         "archive_season_folders_matched_exactly": len(season_meta),
         "season_year_rows": len(season_out), "unmatched_or_missing_season_folders": len(unmatched),
+        "undated_match_rows": sum(group_undated.values()),
         "calendar_years": list(YEARS),
         "total_rows_by_year": {str(y): sum(r["match_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
         "limitations": [
