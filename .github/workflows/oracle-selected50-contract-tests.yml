@@ -56,3 +56,8 @@ jobs:
         run: python -m py_compile scripts/audit_selected50_snapshot_runtime_bridge.py
       - name: Run snapshot-runtime bridge provenance tests
         run: python -m unittest discover -s tests -p "test_selected50_snapshot_runtime_bridge_provenance.py" -v
+
+      - name: Compile fixture context discordance research script
+        run: python -m py_compile scripts/analyze_selected50_fixture_context_discordance.py
+      - name: Run fixture context discordance research tests
+        run: python -m unittest discover -s tests -p "test_selected50_fixture_context_discordance.py" -v
