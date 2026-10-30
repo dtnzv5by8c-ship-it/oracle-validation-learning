@@ -12,8 +12,10 @@
 - Current runtime #176 (run 41119141526) used snapshot 41117910952 / artifact 13005239530. Bridge audit #12 passed with release blockers: 426 exact source-to-runtime fixture/team-ID matches, 347 future research candidates, 79 source-quarantined. The runtime has 403 raw predictions and 23 feature-blocked rows across 46/50 leagues.
 - Top-50 raw rankings were added for BTTS, DC_HOME and DC_AWAY. Source-quarantined rows retained for visibility: BTTS 3/50, DC_HOME 2/50, DC_AWAY 9/50. All probabilities remain `RAW_ONLY_UNCALIBRATED`; canonical fixture/team joins and official settlement truth remain unverified.
 
-## Repository-side summary workbook
-[Oracle_Selected50_League_Market_DNA_Summary_2026-10-30.xlsx](Oracle_Selected50_League_Market_DNA_Summary_2026-10-30.xlsx)
+## Repository-side 50-league summary
+[oracle-selected50-league-market-dna-summary-2026-10-30.csv](oracle-selected50-league-market-dna-summary-2026-10-30.csv)
+
+The consolidated Excel workbook with detailed year profiles, market suitability and three top-50 ranking tabs is provided as the run attachment.
 
 ## Next evidence required
 Read-only raw match rows for the 19 unmatched leagues and missing early-2024 season segments; full 2026 score rows after 20 September; verified canonical competition/fixture/team identity; point-in-time xG/odds provenance; and authoritative market settlement definitions.
