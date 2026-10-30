@@ -97,3 +97,8 @@ Latest runbook commit after recovery-branch record: `a4d7a79f536aa686182ead10607
 - Detailed annual coverage and complete-status field quality: `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
 
 Latest runbook pointer update commit: `3ab7558b28e34bbae3b62419f5d7652efde2af0a`.
+
+## Latest Library backup
+- Recovery Pack v4 saved at `/Project Oracle/2026-10-30 Recovery Pack/Project_Oracle_Recovery_Pack_2026-10-30_v4.zip`.
+- Recovery Pack v4 SHA-256: `02ac0e814edd481c20c853e88fbe47ee680df24b718087cd84bbfd0edd371c87`.
+- Added human-readable workbook `Oracle_Selected50_2024-2027_Coverage_and_Feature_Audit_30Oct2026.xlsx` (200 league-year rows, 800 season-year rows, quality watchlist and definitions).
