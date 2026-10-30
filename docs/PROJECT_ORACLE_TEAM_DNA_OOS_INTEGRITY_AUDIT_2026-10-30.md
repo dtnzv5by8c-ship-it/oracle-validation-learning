@@ -186,9 +186,9 @@ The summary metadata explicitly reports zero official settlement rows and classi
 
 The former `candidate_discordant_for_review` field has been replaced by `exploratory_discordance_flag`. This is only a review-screening signal. It must not be described as verified model failure, team unsuitability, or a basis for permanent exclusion. Wilson intervals and Beta(1,1) shrinkage remain descriptive safeguards; intervals are not clustered by team, opponent, league or time.
 
-### 9.2 Workflow artifact contract corrected
+### 9.2 Reproducibility metadata artifact added
 
-The manual audit workflow expected `oracle_team_market_oos_summary.csv`, but the original builder did not emit that file. The builder now writes a one-row run-metadata CSV at `oracle_team_market_oos_run_metadata.csv` and continues to write the team, chronology, league and JSON summary artifacts. The workflow upload list already names the metadata CSV; the script and test now satisfy that contract.
+The original builder already emitted the team summary CSV expected by the manual workflow. The follow-up adds a separate one-row `oracle_team_market_oos_run_metadata.csv` containing run-level provenance and governance fields. The manual workflow upload list now includes this additional file alongside the team, chronology, league and JSON summary artifacts. A regression test verifies that the metadata CSV is written and that it retains the non-settlement label classification.
 
 ### 9.3 Input lineage strengthened
 
