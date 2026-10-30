@@ -206,6 +206,67 @@ def nested_dict_rows(value):
         return result
     return []
 
+def update_numeric_field_stats(target, rows):
+    """Accumulate numeric QA for xG/odds/price fields without retaining raw values."""
+    tokens = ("xg", "expected_goal", "odds", "price")
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key, value in row.items():
+            if not any(token in str(key).lower() for token in tokens):
+                continue
+            if value is None or value == "":
+                continue
+            stats = target.setdefault(str(key), {
+                "nonempty": 0, "numeric": 0, "non_numeric": 0,
+                "zero": 0, "positive": 0, "negative": 0,
+                "sum": 0.0, "sum_sq": 0.0, "min": None, "max": None
+            })
+            stats["nonempty"] += 1
+            try:
+                number = float(value)
+            except (TypeError, ValueError, OverflowError):
+                stats["non_numeric"] += 1
+                continue
+            if not math.isfinite(number):
+                stats["non_numeric"] += 1
+                continue
+            stats["numeric"] += 1
+            stats["sum"] += number
+            stats["sum_sq"] += number * number
+            stats["min"] = number if stats["min"] is None else min(stats["min"], number)
+            stats["max"] = number if stats["max"] is None else max(stats["max"], number)
+            if number == 0:
+                stats["zero"] += 1
+            elif number > 0:
+                stats["positive"] += 1
+            else:
+                stats["negative"] += 1
+
+def summarize_numeric_field_stats(stats_by_field, total_rows):
+    result = {}
+    for field_name, stats in sorted(stats_by_field.items()):
+        n = stats["numeric"]
+        mean = stats["sum"] / n if n else None
+        variance = max(0.0, stats["sum_sq"] / n - mean * mean) if n else None
+        result[field_name] = {
+            "total_rows": total_rows,
+            "nonempty_rows": stats["nonempty"],
+            "numeric_rows": n,
+            "non_numeric_rows": stats["non_numeric"],
+            "zero_rows": stats["zero"],
+            "positive_rows": stats["positive"],
+            "negative_rows": stats["negative"],
+            "nonempty_pct_of_rows": round(100 * stats["nonempty"] / total_rows, 3) if total_rows else 0.0,
+            "numeric_pct_of_rows": round(100 * n / total_rows, 3) if total_rows else 0.0,
+            "numeric_pct_of_nonempty": round(100 * n / stats["nonempty"], 3) if stats["nonempty"] else 0.0,
+            "zero_pct_of_numeric": round(100 * stats["zero"] / n, 3) if n else 0.0,
+            "min": stats["min"], "max": stats["max"],
+            "mean": round(mean, 6) if mean is not None else None,
+            "population_stddev": round(math.sqrt(variance), 6) if variance is not None else None
+        }
+    return result
+
 def main():
     if not ARCHIVE.exists(): raise SystemExit("Private archive missing.")
     selected = list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig", newline="")))
@@ -231,6 +292,9 @@ def main():
         primary_window_field_presence = Counter()
         primary_window_field_nonempty = Counter()
         total_table_rows = total_season_stats_rows = 0
+        numeric_stats_all = {}
+        numeric_stats_primary = {}
+        numeric_stats_primary_complete = {}
         total_matches = total_teams = 0
         complete_scores = score_home_present = score_away_present = dates_present = id_present = 0
         total_duplicate_within_season = 0
@@ -269,6 +333,7 @@ def main():
             total_duplicate_within_season += duplicate_count
             all_match_ids.update(nonempty_ids)
             total_matches += len(matches); total_teams += len(teams)
+            update_numeric_field_stats(numeric_stats_all, matches)
             global_schema["match_keys"].update(shape(matches))
             global_schema["team_keys"].update(shape(teams))
             global_schema["table_keys"].update(shape(table_rows))
@@ -287,6 +352,12 @@ def main():
                 m for m in matches if within_date_range(m, PRIMARY_WINDOW_START, PRIMARY_WINDOW_END)
             ]
             primary_window_audit = audit_matches(primary_window_matches, audit_date)
+            update_numeric_field_stats(numeric_stats_primary, primary_window_matches)
+            complete_primary_window_matches = [
+                m for m in primary_window_matches
+                if isinstance(m, dict) and str(m.get("status", "")).strip().lower() == "complete"
+            ]
+            update_numeric_field_stats(numeric_stats_primary_complete, complete_primary_window_matches)
             pw_present_counts, pw_nonempty_counts = field_counts(primary_window_matches)
             primary_window_field_presence.update(pw_present_counts)
             primary_window_field_nonempty.update(pw_nonempty_counts)
@@ -473,6 +544,18 @@ def main():
     xg_fields = [k for k in match_field_names if "xg" in k.lower() or "expected_goal" in k.lower()]
     odds_fields = [k for k in match_field_names if "odds" in k.lower() or "price" in k.lower()]
 
+    numeric_subsets = (
+        ("all_archive", numeric_stats_all, total_matches),
+        ("primary_window", numeric_stats_primary, primary_window_record_count),
+        ("primary_window_provider_complete", numeric_stats_primary_complete, primary_window_status_counts.get("complete", 0)),
+    )
+    numeric_feature_summaries = {}
+    numeric_feature_rows = []
+    for subset_name, subset_stats, subset_total in numeric_subsets:
+        subset_summary = summarize_numeric_field_stats(subset_stats, subset_total)
+        numeric_feature_summaries[subset_name] = subset_summary
+        for field_name, values in subset_summary.items():
+            numeric_feature_rows.append({"subset": subset_name, "field_name": field_name, **values})
     report = {
         "status": "QA_COMPLETE_REVIEW_REQUIRED",
         "scope": "private FootyStats archive; no raw payload exported",
@@ -553,6 +636,7 @@ def main():
             "odds_or_price_match_fields_detected": odds_fields,
             "table_fields_detected": [name for name, _ in global_schema["table_keys"].most_common(40)],
             "season_stats_fields_detected": [name for name, _ in global_schema["season_stats_keys"].most_common(40)],
+            "numeric_field_quality": numeric_feature_summaries,
         },
         "season_summary": season_summaries,
         "limitations": [
@@ -574,6 +658,9 @@ def main():
     with (OUT / "selected50_feature_coverage.csv").open("w", newline="", encoding="utf-8") as f:
         fields = list(feature_coverage_rows[0]) if feature_coverage_rows else ["field_type", "field_name"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(feature_coverage_rows)
+    with (OUT / "selected50_numeric_feature_quality.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(numeric_feature_rows[0]) if numeric_feature_rows else ["subset", "field_name"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(numeric_feature_rows)
     print(json.dumps({k: report[k] for k in (
         "status","archive_release_tag","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",

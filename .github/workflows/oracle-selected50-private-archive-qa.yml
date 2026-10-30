@@ -143,5 +143,6 @@ jobs:
             selected50_archive_qa/selected50_season_qa.csv
             selected50_archive_qa/selected50_primary_window_coverage.csv
             selected50_archive_qa/selected50_feature_coverage.csv
+            selected50_archive_qa/selected50_numeric_feature_quality.csv
           if-no-files-found: error
           retention-days: 14
