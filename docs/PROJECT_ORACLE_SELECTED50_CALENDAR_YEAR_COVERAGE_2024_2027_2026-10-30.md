@@ -64,6 +64,20 @@ Interpretation:
 - This annual roll-up does not establish per-feature retrieval timestamps, source update timestamps, bookmaker identity, quote timestamps, or the precise pre-kickoff availability of every value.
 - These values must not be treated as calibration-ready or betting-grade features until those provenance gates pass.
 
+## 4. League-level data-quality watchlist
+Complete-status annual rows expose three priority patterns that should be investigated before using these fields in a market model:
+
+| League / year | Feature | Zero observations | Interpretation |
+|---|---|---:|---|
+| Belgium Pro League 2026 | BTTS Yes/No odds | 89/233 (38.20%) each | Abrupt deterioration: 0/313 BTTS zeros in 2024 and 0/312 in 2025 |
+| Belgium Pro League 2026 | Double Chance 1X/X2 odds | 89/233 (38.20%) each | Same abrupt 2026 mask as BTTS; 4/313 zeros in 2024 and 6/312 in 2025 |
+| India Indian Super League 2026 | Home/away prematch xG | 23/107 (21.50%) each | Higher than 13/155 (8.39%) in 2024 and 0/79 in 2025 |
+| India Indian Super League 2026 | Total prematch xG | 15/107 (14.02%) | Higher than 10/155 (6.45%) in 2024 and 0/79 in 2025 |
+| Japan J1 League 2026 | Home/away prematch xG | 20/120 (16.67%) each | Higher than 20/380 (5.26%) in both 2024 and 2025 |
+| Japan J1 League 2026 | Total prematch xG | 16/120 (13.33%) | Higher than 18/380 (4.74%) in 2024 and 16/380 (4.21%) in 2025 |
+
+The 2026 Belgium odds anomaly is a P0 market-data quarantine candidate for BTTS and Double Chance odds-derived features in that league/season until provider field semantics, endpoint behavior and source completeness are confirmed. The India and Japan xG changes are P1 xG-source investigations. These are research data-quality findings, not permission to alter model logic or probabilities.
+
 ## 4. Data and identity reconciliation
 
 | Gate | Result |
@@ -84,14 +98,14 @@ Interpretation:
 
 The identity probe has a separate evidence register for the 50 returned comp_master_id values. Those are provider-returned fields only; their semantics are not approved as Oracle canonical IDs. The existing crosswalk remains 22 candidate mappings requiring human review and 28 unresolved.
 
-## 5. Reproducibility and safeguards
+## 6. Reproducibility and safeguards
 - The workflow verified the private archive SHA-256 before reading it.
 - It reused the existing private archive; no FootyStats provider API calls or credits were consumed by this audit.
 - Raw provider payloads were not exported to the public repository. The artifact contains sanitized aggregate CSV/JSON outputs.
 - The audit does not change production model logic, probabilities, calibration, thresholds, production ledgers or betting eligibility.
 - Calendar-year assignment uses each fixture's parsed kickoff date in UTC where the source date is a Unix timestamp.
 
-## 6. Required next work
+## 7. Required next work
 1. Resolve the provider complete status against independent official outcome/settlement sources for each governed market.
 2. Establish feature-level point-in-time provenance for xG, odds and standings; do not infer timestamps from the archive extraction date.
 3. Investigate zero-coded xG/odds semantics by league and season; do not impute or recode without provider evidence.
