@@ -1,0 +1,130 @@
+{
+  "generated_sast": "2026-10-31T00:21:03+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "previous_checkpoint": "reports/oracle_selected50_team_h2h_dna_checkpoint_2026-10-30.json",
+  "correction": "Full archive ledger confirms exact selected-ID mapping for all 50 groups. The 19-group limitation is missing raw JSON in the accessible Run64 extract, not an ID bridge failure.",
+  "sources": {
+    "full_archive_release_tag": "research-selected50-footystats-history-40375285207",
+    "full_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+    "full_archive_groups": 50,
+    "full_archive_seasons": 200,
+    "full_archive_raw_match_rows": 59049,
+    "full_archive_exact_selected_id_matches": 50,
+    "full_archive_raw_provider_payload_saved_publicly": false,
+    "run64_archive_file": "Oracle_FootyStats_Archive_Feature_Audit_Run64.zip",
+    "run64_archive_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+    "run64_exact_selected_groups": 31,
+    "run64_matched_season_folders": 93,
+    "run64_matched_raw_rows": 30257,
+    "runtime_run_id": "41119141526",
+    "runtime_run_number": 176,
+    "runtime_artifact_id": "13006609602",
+    "runtime_artifact_sha256": "bf09cf2bee12f1b4522185d08efdc8fe413880f608ffd1fcbcc468df57c346ce",
+    "runtime_commit_sha": "5aef886e2c34a2e930937830f77a8fb444eba4fa",
+    "runtime_report_sha256": "086af446dee2e73f5a2da00fcca11cd6ef0b431a96a22f411dd4bae1d98a5e23",
+    "snapshot_artifact_id": "13005239530",
+    "snapshot_file_sha256": "b30ec294734c287fef9d713b19adbd55e16e77400a7c17a7e03fab24e1b0d7ff"
+  },
+  "coverage": {
+    "profiled_groups": 31,
+    "unprofiled_raw_json_groups": 19,
+    "completed_score_matches": 23328,
+    "primary_window_matches": 15003,
+    "calendar_2024_matches": 5715,
+    "calendar_2025_matches": 10307,
+    "calendar_2026_through_2026_09_20_matches": 7306,
+    "no_home_away_matches": 2603,
+    "venue_valid_matches": 20725,
+    "unique_fixture_ids": 23328,
+    "duplicate_fixture_ids": 0,
+    "exact_prior_workbook_fixture_kickoff_score_reconciliation": "23328/23328"
+  },
+  "team_h2h": {
+    "team_profiles": 732,
+    "team_observations": 46656,
+    "provider_team_ids_reused_across_groups": 58,
+    "h2h_pair_profiles": 7188,
+    "h2h_meetings": 23328,
+    "h2h_meetings_1_2": 3273,
+    "h2h_meetings_3_4": 2513,
+    "h2h_meetings_5_7": 1243,
+    "h2h_meetings_8_plus": 159,
+    "team_high_3_window": 13,
+    "team_low_3_window": 7,
+    "team_prior_2_window_not_confirmed_recent365": 7,
+    "team_insufficient_recent_or_primary_sample": 162,
+    "team_no_three_window_deviation": 543,
+    "h2h_high_persistent": 9,
+    "h2h_low_persistent": 6,
+    "h2h_whole_sample_deviation_not_stable": 37,
+    "h2h_no_clear_deviation": 107,
+    "h2h_insufficient_sample_lt_8": 7029
+  },
+  "rankings": {
+    "runtime_rows": 426,
+    "raw_predictions": 403,
+    "feature_blocked": 23,
+    "future_exact_candidates": 347,
+    "source_quarantined": 79,
+    "rankable_candidates_per_market": 325,
+    "league_names": 33,
+    "country_league_groups": 37,
+    "top3_per_country_league_rows_per_market": 111,
+    "top50_quarantined": {
+      "BTTS": 3,
+      "DC_HOME": 2,
+      "DC_AWAY": 9
+    }
+  },
+  "feature_edge": {
+    "overall_repeatable_candidates": [
+      {
+        "market": "DC_HOME",
+        "feature_set": "RECENT_GOALS_STRENGTH",
+        "brier_improved_folds": 3,
+        "log_loss_improved_folds": 3,
+        "auc_improved_folds": 3,
+        "ece_improved_folds": 2
+      },
+      {
+        "market": "DC_HOME",
+        "feature_set": "VENUE_SPLITS",
+        "brier_improved_folds": 3,
+        "log_loss_improved_folds": 3,
+        "auc_improved_folds": 3,
+        "ece_improved_folds": 2
+      }
+    ],
+    "h2h_fold_summary": {
+      "BTTS": {
+        "brier_improved": 2,
+        "folds": 5
+      },
+      "DC_HOME": {
+        "brier_improved": 3,
+        "folds": 5
+      },
+      "DC_AWAY": {
+        "brier_improved": 1,
+        "folds": 5
+      }
+    },
+    "decision": "Do not increase H2H weighting; retain as low-weight context."
+  },
+  "outputs": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v6_Team_H2H_Stability.xlsx",
+    "workbook_sha256": "caf389b64f8713d77b36c95da7ab4215358c6949238e4a47027d00b2f134ce13",
+    "workbook_size_bytes": 10211909,
+    "sheet_count": 39,
+    "research_note": "PROJECT_ORACLE_TEAM_H2H_DNA_STABILITY_RESEARCH_2026-10-31-0021-SAST.md"
+  },
+  "governance": {
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false,
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false
+  },
+  "next_step": "Obtain read-only access to raw match JSON for the remaining 19 selected groups from the existing private archive; do not spend provider credits."
+}
