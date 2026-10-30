@@ -1,3 +1,5 @@
+> **Superseded source pin:** This historical QA #35 report is retained for audit history only. For the current verified archive, use `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md` and the later exact calendar-year coverage audit. The source archive tag and SHA below are not the current archive pin.
+
 # Project Oracle — Selected-50 Prematch xG and Belgium Odds Zero-Mask Audit
 
 **Audit date:** 30 October 2026  
