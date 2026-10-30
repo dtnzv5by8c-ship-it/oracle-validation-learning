@@ -1,6 +1,6 @@
 # Project Oracle — Paired H2H Metric Reconciliation Contract
 
-**Evidence cutoff:** 2026-10-30 08:16 SAST  
+**Evidence cutoff:** 2026-10-30 08:18 SAST  
 **Research branch:** `research/oracle-50-league-readiness-audit`  
 **Starting branch head:** `9b7d7195f4c74c9c2317531db4948271d25d6b84`  
 **Decision:** Research-only artifact validation; no production or betting promotion.
@@ -34,6 +34,11 @@ The focused H2H output-contract suite now checks:
 - exact McNemar values and paired discordance counts reconcile;
 - existing chronology, duplicate-row, training-population and fold contracts remain enforced.
 
-## 4. Validation required
+## 4. Automated validation
 
-The changes are committed on the research branch after Safety Contract Tests #442. The new focused tests must pass on the resulting commit before the full historical runtime is considered ready.
+The metric-reconciliation implementation was committed as `64f1b869edef341f2300aed2ce0d16a6707bb979`. The resulting checks completed successfully:
+
+- [Safety Contract Tests #443](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012649069) — PASS. The H2H chronology suite passed 6 tests and the H2H output-contract suite passed 8 tests, including metric-to-CSV reconciliation, correctness-flag checks, and exact paired McNemar diagnostics.
+- [Dry-Run Planner #730](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012649035) — PASS. This is an offline readiness check, not current-fixture or betting approval.
+
+The full Selected-50 runtime has not yet been rerun with this validator. It must still regenerate the paired H2H CSV and chronology QA from the pinned archive, then emit the new metric-reconciliation and paired-discordance sections in `oracle_selected50_runtime_validation.json`.
