@@ -1,0 +1,35 @@
+{
+  "artifact": "PROJECT_ORACLE_CONSOLIDATED_WORKBOOK_MANIFEST",
+  "generated_sast": "2026-10-31T00:12:00+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v5_Feature_Edge.xlsx",
+  "sha256": "92c4945c6ab2348f00937c5f9244fb8a71432512f6af03c1f3e9b14fbe6d5e93",
+  "size_bytes": 6664882,
+  "sheet_count": 37,
+  "new_tabs": [
+    "Feature Edge Summary",
+    "Feature Fold Metrics",
+    "Feature by League",
+    "Feature Data Gates",
+    "H2H Fold Summary",
+    "Ranking Coverage",
+    "Top 3 Per League BTTS",
+    "Top 3 Overall BTTS",
+    "Top 3 Per League DC Home",
+    "Top 3 Overall DC Home",
+    "Top 3 Per League DC Away",
+    "Top 3 Overall DC Away"
+  ],
+  "existing_top50_tabs_retained": [
+    "Top 50 BTTS",
+    "Top 50 DC Home",
+    "Top 50 DC Away"
+  ],
+  "distribution": "The full binary workbook is supplied as the conversation artifact; this repository manifest records its exact SHA-256 and sheet inventory. No partial or placeholder workbook was committed.",
+  "governance": {
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
