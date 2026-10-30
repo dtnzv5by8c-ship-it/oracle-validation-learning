@@ -12,8 +12,11 @@ def _utc_timestamp(value):
         return None
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+        # The paired artifact contract is explicitly UTC. Do not silently
+        # interpret a timezone-naive timestamp as UTC: its source timezone is
+        # unknown, so chronology cannot be independently verified.
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            return None
         return parsed.astimezone(timezone.utc).timestamp()
     except (TypeError, ValueError, OverflowError, OSError):
         return None
