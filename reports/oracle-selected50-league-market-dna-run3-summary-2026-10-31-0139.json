@@ -1,0 +1,106 @@
+{
+  "archive_artifact_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8c4e20211a",
+  "archive_artifact_id": 12997699044,
+  "source_workflow_run_id": 41101695515,
+  "source_workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_League_Market_DNA_Chronology.xlsx",
+  "exact_selected_id_groups": 31,
+  "governed_selected_groups": 50,
+  "supplementary_raw_match_rows_exact_id_subset": 30257,
+  "completed_dated_numeric_score_rows_exact_id_subset": 23328,
+  "all_season_complete_numeric_rows_in_exact_id_subset": 24003,
+  "noncomplete_status_numeric_score_rows_excluded_exact_id_subset": 6254,
+  "undated_rows_exact_id_subset": 0,
+  "duplicate_fixture_ids_exact_id_subset": 0,
+  "calendar_coverage_status_counts": {
+    "2024_CALENDAR": {
+      "PARTIAL_SUPPLEMENTARY_EXTRACT_COVERAGE": 27,
+      "UNAVAILABLE_NO_EXACT_SELECTED_ID_MATCH": 19,
+      "FULL_EXACT_COMPLETED_SCORE_COVERAGE": 4
+    },
+    "2025_CALENDAR": {
+      "FULL_EXACT_COMPLETED_SCORE_COVERAGE": 31,
+      "UNAVAILABLE_NO_EXACT_SELECTED_ID_MATCH": 19
+    },
+    "2026_YTD_TO_2026-09-20": {
+      "FULL_EXACT_COMPLETED_SCORE_COVERAGE": 31,
+      "UNAVAILABLE_NO_EXACT_SELECTED_ID_MATCH": 19
+    }
+  },
+  "market_suitability_status_counts": {
+    "INSUFFICIENT_SAMPLE_OR_METRIC": 60,
+    "MIXED_BRIER_SKILL": 47,
+    "REPEATABLE_POSITIVE_SKILL_DIAGNOSTIC_ONLY": 26,
+    "POSITIVE_SKILL_CALIBRATION_WARNING": 13,
+    "NO_POSITIVE_BRIER_SKILL": 4
+  },
+  "strict_repeatable_market_combinations": 26,
+  "leagues_with_at_least_one_strict_market": 17,
+  "top50_refresh_cutoff_utc": "2026-10-30T23:39:18Z",
+  "production_eligible": false,
+  "betting_eligible": false,
+  "run_asof_sast": "2026-10-31T01:39:18+02:00",
+  "run_asof_utc": "2026-10-30T23:39:18Z",
+  "calendar_period_coverage": {
+    "2024": {"full": 4, "partial": 27, "unavailable": 19},
+    "2025": {"full": 31, "partial": 0, "unavailable": 19},
+    "2026_to_2026-09-20": {"full": 31, "partial": 0, "unavailable": 19},
+    "primary_validation_window": {"full": 31, "partial": 0, "unavailable": 19}
+  },
+  "league_market_decision_counts": {
+    "INSUFFICIENT_OR_NO_POSITIVE_SKILL": 20,
+    "REPEATABLE_DIAGNOSTIC_CANDIDATE_ONLY": 17,
+    "MIXED_EVIDENCE_NO_STRICT_MARKET": 13
+  },
+  "ranking_summary": [
+    {
+      "market": "BTTS",
+      "candidate_pool": 319,
+      "top50_rows": 50,
+      "unique_leagues": 23,
+      "quarantined_rows": 0,
+      "kickoff_mismatches": 0,
+      "top_probability_pct": 68.94,
+      "rank50_probability_pct": 60.73,
+      "top_fixture_id": "8411774",
+      "top_fixture": "Brann vs Molde",
+      "top_league": "Norway — Eliteserien",
+      "top_kickoff_utc": "2026-11-01T13:30:00+00:00"
+    },
+    {
+      "market": "DC_HOME",
+      "candidate_pool": 319,
+      "top50_rows": 50,
+      "unique_leagues": 27,
+      "quarantined_rows": 0,
+      "kickoff_mismatches": 0,
+      "top_probability_pct": 91.83,
+      "rank50_probability_pct": 81.28,
+      "top_fixture_id": "8579426",
+      "top_fixture": "CS U Craiova vs Botoşani",
+      "top_league": "Romania — Liga I",
+      "top_kickoff_utc": "2026-11-01T15:30:00+00:00"
+    },
+    {
+      "market": "DC_AWAY",
+      "candidate_pool": 319,
+      "top50_rows": 50,
+      "unique_leagues": 28,
+      "quarantined_rows": 0,
+      "kickoff_mismatches": 0,
+      "top_probability_pct": 83.54,
+      "rank50_probability_pct": 68.24,
+      "top_fixture_id": "8546253",
+      "top_fixture": "Rudeš vs Dinamo Zagreb",
+      "top_league": "Croatia — Prva HNL",
+      "top_kickoff_utc": "2026-10-31T17:00:00+00:00"
+    }
+  ],
+  "runtime_exclusion_counts": {
+    "SOURCE_OR_FIXTURE_QUARANTINE": 79,
+    "REQUIRED_FEATURES_BLOCKED": 22,
+    "ALREADY_STARTED_BY_ASOF": 3,
+    "KICKOFF_MISMATCH": 3
+  },
+  "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942+00:00",
+  "snapshot_age_hours": 3.877
+}
