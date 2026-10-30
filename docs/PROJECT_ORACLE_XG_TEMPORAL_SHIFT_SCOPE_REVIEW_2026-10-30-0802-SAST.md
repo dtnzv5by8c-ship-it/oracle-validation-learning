@@ -1,6 +1,6 @@
 # Project Oracle — xG Temporal-Shift Scope Correction and QA #36 Review
 
-**Evidence cutoff:** 2026-10-30 08:02 SAST  
+**Evidence cutoff:** 2026-10-30 08:08 SAST  
 **Research branch:** `research/oracle-50-league-readiness-audit`  
 **Starting branch head:** `23a4a31543157398519ed90f59254bdef3fbb9f0`  
 **Decision:** Research-only data-quality evidence; production and betting release remain **NOT APPROVED**.
@@ -79,14 +79,27 @@ The temporal-shift audit is hardened to:
 
 The change only affects sanitized research QA summaries. It does not alter raw xG values, H2H features, production model logic, frozen probabilities, calibration or governance.
 
-## 4. Automated evidence
+## 4. Automated evidence and post-commit verification
 
-Before this change:
-- Safety Contract Tests #440 passed the H2H paired-output and xG/odds temporal-shift tests.
-- Dry-Run Planner #727 passed offline planner/readiness checks.
-- Private Archive QA #36 passed and produced the temporal-shift artifact.
+The scope correction and strict-count implementation were committed as `cba6c3b89fbfb849446e9a3450e002d63e95cef5`. All three automated workflows triggered from that commit and completed successfully:
 
-This new scope correction and strict-count implementation is committed after those runs. Its new regression tests and updated offline QA must pass on the resulting commit before the corrected summary is treated as validated.
+| Workflow | Run | Result | Artifact |
+|---|---:|---|---|
+| Safety Contract Tests | [#441](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012121879) | PASS | `12958311313`; digest `90bac49c2b773bd645aa99f16e5e4a9013c16a001a80bc26f6629ecf3f16b106` |
+| Private Archive QA | [#37](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012121829) | PASS | `12957738691`; digest `0d05ba352295eba9fa5fc5bd12ead84e2ddb7165d85deaaa77b686b87d900b9f` |
+| Dry-Run Planner | [#728](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012121841) | PASS | `12957579196`; digest `96d00ea0d8140a027567e0f8add822a01679848fc22f148081221563d881f081` |
+
+Safety Contract Tests #441 passed:
+- 6 paired-H2H chronology tests;
+- 4 H2H output-contract tests;
+- 9 xG/odds temporal-shift tests, including strict count parsing, zero-count bounds, duplicate scope/field rejection, and separation of all-group versus outlier-selected pooling;
+- the remaining offline safety, settlement, identity, provenance and research contract steps.
+
+Private Archive QA #37 reran the pinned archive workflow and confirmed the temporal-shift audit executed and the sanitized QA artifact uploaded. The corrected output contains 144 league-field rows across 48 current-xG groups, 11 league groups flagged, and 30 individual field-level flags. The all-group and flagged-subset pooled summaries are now separate. The QA artifact continues to identify the exact 404474 archive tag and SHA-256.
+
+Dry-Run Planner #728 passed. Its artifact reports zero network calls and zero paid-provider calls. Its operational readiness remains blocked; the pass is not a current-fixture or betting-readiness approval.
+
+No provider/API calls or credits were made. These workflow passes validate the research-only QA and test changes; they do not replace the required full Selected-50 runtime.
 
 ## 5. Remaining blockers and next action
 
