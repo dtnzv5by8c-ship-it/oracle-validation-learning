@@ -133,8 +133,10 @@ def run(archive, manifest, out):
             s = summarize(rows, audit_date)
             rows_asof = [row for row in rows if date_value(row) and dt.date.fromisoformat(date_value(row)) <= audit_date]
             rows_future = [row for row in rows if date_value(row) and dt.date.fromisoformat(date_value(row)) > audit_date]
+            rows_complete_asof = [row for row in rows_asof if str(row.get("status", "")).strip().lower() == "complete"]
             asof_summary = summarize(rows_asof, audit_date)
             future_summary = summarize(rows_future, audit_date)
+            complete_asof_summary = summarize(rows_complete_asof, audit_date)
             group_out.append({
                 "country": country, "competition_name": competition, "selected_current_season_id": selected_sid,
                 "calendar_year": year, "archive_season_folders_for_group": len(seasons_for_group),
@@ -149,6 +151,10 @@ def run(archive, manifest, out):
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
                 "field_quality_on_or_before_audit_date_json": json.dumps(asof_summary["field_quality"], sort_keys=True),
                 "field_quality_after_audit_date_json": json.dumps(future_summary["field_quality"], sort_keys=True),
+                "complete_status_rows_on_or_before_audit_date": len(rows_complete_asof),
+                "field_quality_complete_status_on_or_before_audit_date_json": json.dumps(complete_asof_summary["field_quality"], sort_keys=True),
+                "complete_status_rows_on_or_before_audit_date": len(rows_complete_asof),
+                "field_quality_complete_status_on_or_before_audit_date_json": json.dumps(complete_asof_summary["field_quality"], sort_keys=True),
                 "official_settlement_truth_verified": "NO", "canonical_fixture_team_joins_verified": "NO",
                 "production_eligible": "NO",
             })
@@ -158,8 +164,10 @@ def run(archive, manifest, out):
             s = summarize(rows, audit_date)
             rows_asof = [row for row in rows if date_value(row) and dt.date.fromisoformat(date_value(row)) <= audit_date]
             rows_future = [row for row in rows if date_value(row) and dt.date.fromisoformat(date_value(row)) > audit_date]
+            rows_complete_asof = [row for row in rows_asof if str(row.get("status", "")).strip().lower() == "complete"]
             asof_summary = summarize(rows_asof, audit_date)
             future_summary = summarize(rows_future, audit_date)
+            complete_asof_summary = summarize(rows_complete_asof, audit_date)
             season_out.append({
                 "season_id": sid, **meta, "calendar_year": year,
                 **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows","kickoff_date_min","kickoff_date_max","kickoff_on_or_before_audit_date_rows","kickoff_after_audit_date_rows")},
