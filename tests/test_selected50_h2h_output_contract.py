@@ -1,6 +1,7 @@
 import unittest
 
-from scripts.validate_selected50_runtime_outputs import MARKETS, binary_auc, exact_mcnemar_two_sided_p, validate_h2h_comparison_outputs
+from scripts.validate_selected50_runtime_outputs import (MARKETS, binary_auc, binary_probability_metrics,
+    exact_mcnemar_two_sided_p, validate_h2h_comparison_outputs)
 
 
 FOLD_STARTS = {
@@ -39,7 +40,7 @@ def valid_inputs():
         })
         paired_rows.extend([
             {
-                "fixture_id": "F1",
+                "competition_id": "C1", "fixture_id": "F1",
                 "market": market,
                 "actual": "1",
                 "baseline_probability": "0.60",
@@ -48,7 +49,7 @@ def valid_inputs():
                 "h2h_candidate_correct": "1",
             },
             {
-                "fixture_id": "F2",
+                "competition_id": "C1", "fixture_id": "F2",
                 "market": market,
                 "actual": "0",
                 "baseline_probability": "0.40",
@@ -118,6 +119,39 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
 
 
 
+    def test_same_fixture_id_in_different_competitions_is_not_a_duplicate(self):
+        inputs = list(valid_inputs())
+        cross_competition_rows = []
+        for row in inputs[2]:
+            if row["fixture_id"] == "F1":
+                copied = dict(row)
+                copied["competition_id"] = "C2"
+                cross_competition_rows.append(copied)
+        inputs[2].extend(cross_competition_rows)
+        inputs[3]["row_count"] = len(inputs[2])
+        inputs[3]["unique_fixture_count"] = 3
+
+        for metric_row in inputs[0]["markets"]:
+            market = metric_row["market"]
+            market_rows = [row for row in inputs[2] if row["market"] == market]
+            labels = [int(row["actual"]) for row in market_rows]
+            metric_row["paired_test_n"] = len(market_rows)
+            for prefix, probability_key in (
+                ("baseline", "baseline_probability"),
+                ("candidate", "h2h_candidate_probability"),
+            ):
+                calculated = binary_probability_metrics(
+                    labels, [float(row[probability_key]) for row in market_rows]
+                )
+                metric_row[f"{prefix}_accuracy_at_0_5"] = calculated["accuracy_at_0_5"]
+                metric_row[f"{prefix}_brier"] = calculated["brier"]
+                metric_row[f"{prefix}_log_loss"] = calculated["log_loss"]
+                metric_row[f"{prefix}_auc"] = calculated["auc"]
+
+        result = validate_h2h_comparison_outputs(*inputs)
+        self.assertEqual(result["paired_prediction_rows"], 15)
+        self.assertEqual(result["paired_fixture_count"], 3)
+
     def test_correctness_flags_must_reconcile_to_probabilities(self):
         inputs = list(valid_inputs())
         inputs[2][0]["baseline_correct"] = "0"
@@ -139,23 +173,23 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
         for market in sorted(MARKETS):
             for index in range(4):
                 paired.append({
-                    "fixture_id": f"C{index}", "market": market, "actual": "1",
+                    "competition_id": "C1", "fixture_id": f"C{index}", "market": market, "actual": "1",
                     "baseline_probability": "0.40", "h2h_candidate_probability": "0.60",
                     "baseline_correct": "0", "h2h_candidate_correct": "1",
                 })
             paired.extend([
                 {
-                    "fixture_id": "B", "market": market, "actual": "1",
+                    "competition_id": "C1", "fixture_id": "B", "market": market, "actual": "1",
                     "baseline_probability": "0.60", "h2h_candidate_probability": "0.40",
                     "baseline_correct": "1", "h2h_candidate_correct": "0",
                 },
                 {
-                    "fixture_id": "BC", "market": market, "actual": "0",
+                    "competition_id": "C1", "fixture_id": "BC", "market": market, "actual": "0",
                     "baseline_probability": "0.40", "h2h_candidate_probability": "0.39",
                     "baseline_correct": "1", "h2h_candidate_correct": "1",
                 },
                 {
-                    "fixture_id": "BW", "market": market, "actual": "0",
+                    "competition_id": "C1", "fixture_id": "BW", "market": market, "actual": "0",
                     "baseline_probability": "0.60", "h2h_candidate_probability": "0.61",
                     "baseline_correct": "0", "h2h_candidate_correct": "0",
                 },
