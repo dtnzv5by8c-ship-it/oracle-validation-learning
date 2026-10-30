@@ -117,5 +117,64 @@
     },
     "canonical_identity_verified": false,
     "official_settlement_truth_verified": false
+  },
+  "team_h2h_evidence": {
+    "exact_id_matched_groups": "31/50",
+    "team_profiles": 732,
+    "h2h_pair_profiles": 7188,
+    "completed_h2h_meetings": 23328,
+    "primary_holdout_paired_fixtures": 19991,
+    "primary_holdout_h2h_coverage_pct": 95.75,
+    "chronological_qa": {
+      "market_rows": 99955,
+      "fixtures": 19991,
+      "integrity_failures": 0,
+      "status": "PASS"
+    },
+    "primary_holdout_accuracy_delta_pp": {
+      "BTTS": 0.12,
+      "DC_HOME": 0.095,
+      "DC_AWAY": -0.03,
+      "COMBO_HOME": -0.03,
+      "COMBO_AWAY": 0.01
+    },
+    "effect_interpretation": "Marginal; not evidence of a dominant H2H edge",
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "league_market_diagnostic_counts": {
+    "repeatable_positive_skill": {
+      "total": 26,
+      "BTTS": 2,
+      "DC_HOME": 11,
+      "DC_AWAY": 13,
+      "leagues_with_at_least_one": 17
+    },
+    "positive_skill_calibration_warning": 13,
+    "mixed_brier_skill": 47,
+    "insufficient_sample_or_metric": 60,
+    "no_positive_brier_skill": 4,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "top50_rankings": {
+    "rows_per_market": 50,
+    "model_input_coverage_pct": "100% for all 150 rows",
+    "source_quarantined": {
+      "BTTS": 3,
+      "DC_HOME": 2,
+      "DC_AWAY": 9
+    },
+    "leagues_represented": {
+      "BTTS": 24,
+      "DC_HOME": 29,
+      "DC_AWAY": 30
+    },
+    "fixture_date_range_utc": "2026-10-30 through 2026-11-06",
+    "calibration_status": "RAW_ONLY_UNCALIBRATED",
+    "confidence_score": "NOT_CALCULATED",
+    "data_risk_pct": "NOT_QUANTIFIED",
+    "production_eligible": false,
+    "betting_eligible": false
   }
 }
