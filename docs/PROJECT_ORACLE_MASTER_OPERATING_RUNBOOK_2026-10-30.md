@@ -2,7 +2,7 @@
 **Reviewed:** 30 October 2026 (SAST)  
 **Scope:** Selected-50 research lane; Oracle production logic remains protected.  
 **Canonical branch:** `research/oracle-50-league-readiness-audit`  
-**Recovery branch:** `backup/oracle-50-readiness-2026-10-30-98af1f7` (snapshot of commit `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`)
+**Recovery branches:** initial baseline `backup/oracle-50-readiness-2026-10-30-98af1f7`; latest validated `backup/oracle-50-qa58-final-2026-10-30`
 
 ## 1. Operating objective
 Make Project Oracle repeatable: preserve the existing model and archive, refresh the fixture feed, run the governed research runtime, produce the safe fixture report, validate evidence and export the report. Do not restart prior work, rebuild the model, or relax release gates to obtain a prediction.
@@ -23,6 +23,9 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 - Initial recovery branch: `backup/oracle-50-readiness-2026-10-30-98af1f7` (pre-improvement baseline).
 - QA #58 recovery branch: `backup/oracle-50-qa58-2026-10-30` (snapshot before final watchlist documentation).
 - Latest final recovery branch: `backup/oracle-50-qa58-final-2026-10-30` (full research branch snapshot including the annual league-level quality watchlist; commit `77c9d84800e4c3e4b6655d455cdf55d387537a9b`).
+- Recovery Pack v4 and the human-readable 2024–2027 coverage workbook are saved in the persistent ChatGPT Library folder `/Project Oracle/2026-10-30 Recovery Pack/`.
+- Workbook: `Oracle_Selected50_2024-2027_Coverage_and_Feature_Audit_30Oct2026.xlsx`; five tabs: Executive Summary, League-Year Coverage (200 rows), Season-Year Coverage (800 rows), Quality Watchlist, Definitions & Controls.
+- Recovery Pack v4 SHA-256: `02ac0e814edd481c20c853e88fbe47ee680df24b718087cd84bbfd0edd371c87`.
 - Backup commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Current follow-up commit after archive pin correction: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
 - Open research PR: [#31 — Research-only: FootyStats-first dynamic identity resolver for selected 50](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/31). It is a draft; do not merge to production without governance approval.
