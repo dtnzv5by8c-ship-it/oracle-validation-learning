@@ -1,6 +1,6 @@
 # Project Oracle — Paired H2H Correctness Discordance Review
 
-**Evidence cutoff:** 2026-10-30 08:10 SAST  
+**Evidence cutoff:** 2026-10-30 08:14 SAST  
 **Research branch:** `research/oracle-50-league-readiness-audit`  
 **Starting branch head:** `8f1e7c0c62c376c0a49291441c8a6afa2f2e464c`  
 **Decision:** Research-only paired-comparison diagnostic; no H2H promotion or betting approval.
@@ -35,7 +35,17 @@ The Selected-50 runtime output validator now:
 
 Focused tests cover known exact p-values, invalid discordance counts, correctness-flag reconciliation and per-market discordance totals. This is reporting/validation only: no model fit, probability, threshold, calibration, feature, market target or governance logic is changed.
 
-## 4. Validation required
+## 4. Automated validation
+
+The implementation was committed as `918549ca77493e906b071e1940aff73fe7081203`. The resulting GitHub Actions checks completed successfully:
+
+- [Safety Contract Tests #442](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012430578) — PASS. The H2H chronology suite passed 6 tests; the H2H output-contract suite passed 7 tests, including correctness-flag reconciliation, known exact McNemar values and per-market discordance reconciliation.
+- [Dry-Run Planner #729](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41012430541) — PASS. This remains an offline readiness check, not a current fixture or betting approval.
+
+The new comparison output is part of the runtime validator and will be emitted in the next full Selected-50 runtime artifact. It has not yet been exercised on the full archive.
+
+## 5. Remaining validation required
+
 
 The changes are committed on the research branch after the prior Safety Contract Tests #441. The new focused tests must pass on the resulting commit. The next full Selected-50 runtime must then regenerate the paired CSV with `h2h_last_date_utc`, pass the chronology audit, and include the new paired correctness summary in `oracle_selected50_runtime_validation.json`.
 
