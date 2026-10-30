@@ -49,18 +49,20 @@ def audit_h2h_paired_predictions(rows, expected_markets):
 
     for row in rows:
         fixture_id = str(row.get("fixture_id") or "").strip()
+        competition_id = str(row.get("competition_id") or "").strip()
         market = str(row.get("market") or "").strip()
-        if not fixture_id or not market:
+        if not fixture_id or not competition_id or not market:
             missing_fixture_market_keys += 1
-        key = (fixture_id, market)
+        fixture_key = (competition_id, fixture_id)
+        key = (competition_id, fixture_id, market)
         if key in seen_keys:
             duplicate_fixture_market_rows += 1
         seen_keys.add(key)
         market_counts[market] += 1
         if market not in expected:
             unexpected_market_rows += 1
-        if fixture_id:
-            markets_by_fixture[fixture_id].add(market)
+        if fixture_id and competition_id:
+            markets_by_fixture[fixture_key].add(market)
 
         kickoff = _utc_timestamp(row.get("date_utc"))
         prior = _utc_timestamp(row.get("h2h_last_date_utc"))
@@ -113,8 +115,8 @@ def audit_h2h_paired_predictions(rows, expected_markets):
         if str(row.get("actual")) not in {"0", "1"}:
             invalid_actual_rows += 1
 
-        if fixture_id:
-            metadata_by_fixture[fixture_id].add(tuple(
+        if fixture_id and competition_id:
+            metadata_by_fixture[fixture_key].add(tuple(
                 str(row.get(name) or "")
                 for name in (
                     "date_utc", "h2h_last_date_utc", "competition_id", "league",
