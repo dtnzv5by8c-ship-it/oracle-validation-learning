@@ -28,21 +28,33 @@ def numeric(v):
     except (TypeError, ValueError, OverflowError): return None
     return x if x == x and abs(x) != float("inf") else None
 
-def summarize(rows):
+def summarize(rows, audit_date):
     out = {"match_rows": len(rows), "unique_provider_match_ids": 0, "duplicate_provider_match_id_rows": 0,
-           "undated_rows": 0, "status_counts": {}, "field_quality": {}}
+           "undated_rows": 0, "kickoff_date_min": "", "kickoff_date_max": "",
+           "kickoff_on_or_before_audit_date_rows": 0, "kickoff_after_audit_date_rows": 0,
+           "status_counts": {}, "field_quality": {}}
     ids = []
     statuses = Counter()
+    dates = []
     for row in rows:
         rid = row.get("id", row.get("match_id", row.get("fixture_id", row.get("game_id", ""))))
         if rid not in (None, ""): ids.append(str(rid).strip())
         status = str(row.get("status", "")).strip().lower() or "MISSING"
         statuses[status] += 1
-        if not date_value(row): out["undated_rows"] += 1
+        day = date_value(row)
+        if not day:
+            out["undated_rows"] += 1
+        else:
+            parsed = dt.date.fromisoformat(day)
+            dates.append(day)
+            if parsed <= audit_date: out["kickoff_on_or_before_audit_date_rows"] += 1
+            else: out["kickoff_after_audit_date_rows"] += 1
     id_counts = Counter(ids)
     out["unique_provider_match_ids"] = len(id_counts)
     out["duplicate_provider_match_id_rows"] = sum(n - 1 for n in id_counts.values() if n > 1)
     out["status_counts"] = dict(sorted(statuses.items()))
+    out["kickoff_date_min"] = min(dates) if dates else ""
+    out["kickoff_date_max"] = max(dates) if dates else ""
     for field in FIELDS:
         values = [numeric(row.get(field)) for row in rows]
         numeric_values = [v for v in values if v is not None]
@@ -69,6 +81,7 @@ def load_selected(path):
 
 def run(archive, manifest, out):
     groups = load_selected(manifest)
+    audit_date = dt.datetime.now(dt.timezone.utc).date()
     group_rows = defaultdict(list)
     season_rows = defaultdict(list)
     group_undated = Counter()
@@ -117,12 +130,12 @@ def run(archive, manifest, out):
         seasons_for_group = [sid for sid, m in season_meta.items() if (m["country"], m["competition_name"]) == (country, competition)]
         for year in YEARS:
             rows = group_rows[(country, competition, year)]
-            s = summarize(rows)
+            s = summarize(rows, audit_date)
             group_out.append({
                 "country": country, "competition_name": competition, "selected_current_season_id": selected_sid,
                 "calendar_year": year, "archive_season_folders_for_group": len(seasons_for_group),
                 "season_ids_in_archive": ";".join(sorted(seasons_for_group)),
-                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows")},
+                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows","kickoff_date_min","kickoff_date_max","kickoff_on_or_before_audit_date_rows","kickoff_after_audit_date_rows")},
                 "undated_rows_in_group_across_archive_seasons": group_undated[(country, competition)],
                 "status_counts_json": json.dumps(s["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
@@ -132,10 +145,10 @@ def run(archive, manifest, out):
     for sid, meta in sorted(season_meta.items()):
         for year in YEARS:
             rows = season_rows[(sid, year)]
-            s = summarize(rows)
+            s = summarize(rows, audit_date)
             season_out.append({
                 "season_id": sid, **meta, "calendar_year": year,
-                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows")},
+                **{k: s[k] for k in ("match_rows","unique_provider_match_ids","duplicate_provider_match_id_rows","kickoff_date_min","kickoff_date_max","kickoff_on_or_before_audit_date_rows","kickoff_after_audit_date_rows")},
                 "undated_rows_in_season": season_undated[sid],
                 "status_counts_json": json.dumps(s["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
@@ -151,6 +164,7 @@ def run(archive, manifest, out):
     all_groups_have_four_seasons = all(count == 4 for count in season_counts_by_group.values())
     summary = {
         "status": "RESEARCH_ONLY_CALENDAR_YEAR_COVERAGE_COMPLETE" if len(group_out) == 200 and len(groups) == 50 and len(season_meta) == 200 and all_groups_have_four_seasons else "REVIEW_REQUIRED",
+        "audit_date_utc": audit_date.isoformat(),
         "selected_league_groups": len(groups), "league_year_rows": len(group_out),
         "archive_season_folders_matched_exactly": len(season_meta),
         "league_groups_with_exactly_four_archive_seasons": sum(count == 4 for count in season_counts_by_group.values()),
@@ -159,6 +173,8 @@ def run(archive, manifest, out):
         "undated_match_rows": sum(group_undated.values()),
         "calendar_years": list(YEARS),
         "total_rows_by_year": {str(y): sum(r["match_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
+        "kickoff_rows_on_or_before_audit_date_by_year": {str(y): sum(r["kickoff_on_or_before_audit_date_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
+        "kickoff_rows_after_audit_date_by_year": {str(y): sum(r["kickoff_after_audit_date_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
         "limitations": [
             "Calendar-year counts are provider archive rows grouped by exact selected country and competition labels; they are not canonical fixture counts.",
             "Provider status is reported, not converted into official settlement truth.",
