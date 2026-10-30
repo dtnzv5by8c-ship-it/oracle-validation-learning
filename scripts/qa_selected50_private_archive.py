@@ -179,6 +179,33 @@ def shape(rows):
         if isinstance(row, dict): keys.update(row.keys())
     return [k for k, _ in keys.most_common(40)]
 
+def field_counts(rows):
+    present, nonempty = Counter(), Counter()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key, value in row.items():
+            present[key] += 1
+            if value is not None and value != "" and value != [] and value != {}:
+                nonempty[key] += 1
+    return present, nonempty
+
+def nested_dict_rows(value):
+    """Flatten dict/list table payloads into scalar-field records for schema QA."""
+    if isinstance(value, list):
+        result = []
+        for item in value:
+            result.extend(nested_dict_rows(item))
+        return result
+    if isinstance(value, dict):
+        nested = [v for v in value.values() if isinstance(v, (dict, list))]
+        scalar = {k: v for k, v in value.items() if not isinstance(v, (dict, list))}
+        result = [scalar] if scalar else []
+        for item in nested:
+            result.extend(nested_dict_rows(item))
+        return result
+    return []
+
 def main():
     if not ARCHIVE.exists(): raise SystemExit("Private archive missing.")
     selected = list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig", newline="")))
@@ -199,6 +226,11 @@ def main():
         season_summaries = []
         all_match_ids = Counter()
         global_schema = {"match_keys": Counter(), "team_keys": Counter(), "table_keys": Counter(), "season_stats_keys": Counter()}
+        global_field_presence = {k: Counter() for k in ("match", "team", "table", "season_stats")}
+        global_field_nonempty = {k: Counter() for k in ("match", "team", "table", "season_stats")}
+        primary_window_field_presence = Counter()
+        primary_window_field_nonempty = Counter()
+        total_table_rows = total_season_stats_rows = 0
         total_matches = total_teams = 0
         complete_scores = score_home_present = score_away_present = dates_present = id_present = 0
         total_duplicate_within_season = 0
@@ -227,6 +259,10 @@ def main():
             teams = as_list(read_json(z, teams_name)) if teams_name else []
             tables = read_json(z, tables_name) if tables_name else None
             stats = read_json(z, stats_name) if stats_name else None
+            table_rows = nested_dict_rows(tables)
+            stats_rows = nested_dict_rows(stats)
+            total_table_rows += len(table_rows)
+            total_season_stats_rows += len(stats_rows)
             ids = [row_id(m) for m in matches]
             nonempty_ids = [i for i in ids if i]
             duplicate_count = len(nonempty_ids) - len(set(nonempty_ids))
@@ -235,8 +271,12 @@ def main():
             total_matches += len(matches); total_teams += len(teams)
             global_schema["match_keys"].update(shape(matches))
             global_schema["team_keys"].update(shape(teams))
-            global_schema["table_keys"].update(shape(as_list(tables)))
-            global_schema["season_stats_keys"].update(shape(as_list(stats)))
+            global_schema["table_keys"].update(shape(table_rows))
+            global_schema["season_stats_keys"].update(shape(stats_rows))
+            for field_type, field_rows in (("match", matches), ("team", teams), ("table", table_rows), ("season_stats", stats_rows)):
+                present_counts, nonempty_counts = field_counts(field_rows)
+                global_field_presence[field_type].update(present_counts)
+                global_field_nonempty[field_type].update(nonempty_counts)
             date_values = [date_value(m) for m in matches]
             dates_present += sum(bool(v) for v in date_values)
             id_present += len(nonempty_ids)
@@ -247,6 +287,9 @@ def main():
                 m for m in matches if within_date_range(m, PRIMARY_WINDOW_START, PRIMARY_WINDOW_END)
             ]
             primary_window_audit = audit_matches(primary_window_matches, audit_date)
+            pw_present_counts, pw_nonempty_counts = field_counts(primary_window_matches)
+            primary_window_field_presence.update(pw_present_counts)
+            primary_window_field_nonempty.update(pw_nonempty_counts)
             primary_window_ids_for_season = [row_id(m) for m in primary_window_matches if row_id(m)]
             calendar_2025_matches = [
                 m for m in matches if within_date_range(m, PRIMARY_2025_START, PRIMARY_2025_END)
@@ -290,11 +333,15 @@ def main():
                 "primary_window_calendar_2026_ids": Counter(),
                 "primary_window_calendar_2026_status_counts": Counter(),
                 "primary_window_dates": [],
+                "primary_window_field_presence": Counter(),
+                "primary_window_field_nonempty": Counter(),
             })
             group["season_ids"].append(sid)
             if sid in selected_ids:
                 group["selected_current_season_ids"].append(sid)
             group["primary_window_match_records"] += len(primary_window_matches)
+            group["primary_window_field_presence"].update(pw_present_counts)
+            group["primary_window_field_nonempty"].update(pw_nonempty_counts)
             group["primary_window_ids"].update(primary_window_ids_for_season)
             group["primary_window_status_counts"].update(primary_window_audit["status_counts"])
             group["primary_window_noncomplete_score_pair_rows"] += primary_window_audit["metrics"].get("noncomplete_status_records_with_parseable_score_pair", 0)
@@ -373,6 +420,8 @@ def main():
             "primary_window_start": PRIMARY_WINDOW_START.isoformat(),
             "primary_window_end": PRIMARY_WINDOW_END.isoformat(),
             "primary_window_match_records": group["primary_window_match_records"],
+            "primary_window_match_field_presence_json": json.dumps(dict(sorted(group["primary_window_field_presence"].items())), sort_keys=True),
+            "primary_window_match_field_nonempty_json": json.dumps(dict(sorted(group["primary_window_field_nonempty"].items())), sort_keys=True),
             "primary_window_unique_provider_match_ids": len(group["primary_window_ids"]),
             "primary_window_complete_status_records": group["primary_window_status_counts"].get("complete", 0),
             "primary_window_noncomplete_status_records": group["primary_window_match_records"] - group["primary_window_status_counts"].get("complete", 0),
@@ -393,6 +442,37 @@ def main():
             "official_settlement_truth_verified": "NO",
             "production_eligible": "NO",
         })
+    feature_coverage_rows = []
+    field_order = ("match", "team", "table", "season_stats")
+    for field_type in field_order:
+        total_rows = {
+            "match": total_matches,
+            "team": total_teams,
+            "table": total_table_rows,
+            "season_stats": total_season_stats_rows,
+        }[field_type]
+        field_names = sorted(set(global_field_presence[field_type]) | set(global_field_nonempty[field_type]))
+        for field_name in field_names:
+            present_n = global_field_presence[field_type].get(field_name, 0)
+            nonempty_n = global_field_nonempty[field_type].get(field_name, 0)
+            primary_present_n = primary_window_field_presence.get(field_name, 0) if field_type == "match" else 0
+            primary_nonempty_n = primary_window_field_nonempty.get(field_name, 0) if field_type == "match" else 0
+            feature_coverage_rows.append({
+                "field_type": field_type,
+                "field_name": field_name,
+                "all_archive_rows": total_rows,
+                "all_archive_key_present_rows": present_n,
+                "all_archive_nonempty_rows": nonempty_n,
+                "all_archive_nonempty_pct": round(100 * nonempty_n / total_rows, 3) if total_rows else 0.0,
+                "primary_window_rows": primary_window_record_count if field_type == "match" else 0,
+                "primary_window_key_present_rows": primary_present_n,
+                "primary_window_nonempty_rows": primary_nonempty_n,
+                "primary_window_nonempty_pct": round(100 * primary_nonempty_n / primary_window_record_count, 3) if field_type == "match" and primary_window_record_count else 0.0,
+            })
+    match_field_names = sorted(global_field_presence["match"])
+    xg_fields = [k for k in match_field_names if "xg" in k.lower() or "expected_goal" in k.lower()]
+    odds_fields = [k for k in match_field_names if "odds" in k.lower() or "price" in k.lower()]
+
     report = {
         "status": "QA_COMPLETE_REVIEW_REQUIRED",
         "scope": "private FootyStats archive; no raw payload exported",
@@ -464,6 +544,16 @@ def main():
         "duplicate_match_ids_within_season": total_duplicate_within_season,
         "match_ids_appearing_in_multiple_season_rows": cross_season_duplicate_ids,
         "key_inventory": {k: [name for name, _ in v.most_common(40)] for k, v in global_schema.items()},
+        "feature_coverage": {
+            "all_archive_match_rows": total_matches,
+            "primary_window_match_rows": primary_window_record_count,
+            "table_rows_scanned": total_table_rows,
+            "season_stats_rows_scanned": total_season_stats_rows,
+            "xg_match_fields_detected": xg_fields,
+            "odds_or_price_match_fields_detected": odds_fields,
+            "table_fields_detected": [name for name, _ in global_schema["table_keys"].most_common(40)],
+            "season_stats_fields_detected": [name for name, _ in global_schema["season_stats_keys"].most_common(40)],
+        },
         "season_summary": season_summaries,
         "limitations": [
             "Provider field presence does not establish canonical fixture/team joins.",
@@ -481,6 +571,9 @@ def main():
     with (OUT / "selected50_primary_window_coverage.csv").open("w", newline="", encoding="utf-8") as f:
         fields = list(group_coverage_rows[0]) if group_coverage_rows else ["country", "competition_name"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(group_coverage_rows)
+    with (OUT / "selected50_feature_coverage.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(feature_coverage_rows[0]) if feature_coverage_rows else ["field_type", "field_name"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(feature_coverage_rows)
     print(json.dumps({k: report[k] for k in (
         "status","archive_release_tag","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",
@@ -490,6 +583,7 @@ def main():
         "primary_window_archive_duplicate_provider_match_id_rows_across_seasons",
         "selected_group_primary_window_coverage_rows","selected_group_labels_unique",
         "selected_groups_with_exactly_one_selected_current_season","selected_group_primary_window_records_sum",
-        "total_team_records","duplicate_match_ids_within_season","match_ids_appearing_in_multiple_season_rows"
+        "total_team_records","duplicate_match_ids_within_season","match_ids_appearing_in_multiple_season_rows",
+        "feature_coverage"
     )}, sort_keys=True))
 if __name__ == "__main__": main()

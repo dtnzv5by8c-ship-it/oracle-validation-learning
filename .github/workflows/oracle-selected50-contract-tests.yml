@@ -84,3 +84,6 @@ jobs:
             $RUNNER_TEMP/oracle-selected50-200-season-rollup.csv
           if-no-files-found: error
           retention-days: 14
+
+      - name: Run private archive feature coverage helper tests
+        run: python -m unittest discover -s tests -p "test_selected50_private_archive_feature_coverage.py" -v
