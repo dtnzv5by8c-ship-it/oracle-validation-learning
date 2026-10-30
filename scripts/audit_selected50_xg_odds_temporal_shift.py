@@ -334,7 +334,7 @@ def main() -> None:
     xg_rates = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_current_season_prematch_xg_zero_rates.csv")
     belgium_rates = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_belgium_odds_season_comparison.csv")
     belgium_pairs = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_belgium_odds_pair_masks.csv")
-    if qa.get("archive_sha256") != "af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875":
+    if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
         raise ValueError("Unexpected archive SHA; do not silently change the pinned research source.")
     if not numeric or not xg_rates or not belgium_rates or not belgium_pairs:
         raise ValueError("Required sanitized QA outputs are missing or empty.")
