@@ -20,7 +20,8 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 ### Public research repository
 - Repository: `dtnzv5by8c-ship-it/oracle-validation-learning`
 - Active branch: `research/oracle-50-league-readiness-audit`
-- Backup branch: `backup/oracle-50-readiness-2026-10-30-98af1f7`
+- Initial recovery branch: `backup/oracle-50-readiness-2026-10-30-98af1f7` (pre-improvement baseline).
+- Latest validated recovery branch: `backup/oracle-50-qa58-2026-10-30` (full research branch snapshot after QA #58, calendar-year coverage audit, identity evidence register and documentation updates; commit `ed46c93043591944d1901c83f040f879fe9f786b`).
 - Backup commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Current follow-up commit after archive pin correction: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
 - Open research PR: [#31 — Research-only: FootyStats-first dynamic identity resolver for selected 50](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/31). It is a draft; do not merge to production without governance approval.
