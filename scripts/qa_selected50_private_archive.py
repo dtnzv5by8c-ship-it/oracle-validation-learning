@@ -267,6 +267,24 @@ def summarize_numeric_field_stats(stats_by_field, total_rows):
         }
     return result
 
+def numeric_quality_rows(scope_type, scope_id, country, competition_name, selected_current_season, subset, stats_by_field, total_rows):
+    """Flatten numeric field statistics for one season or league research group."""
+    rows = []
+    summary = summarize_numeric_field_stats(stats_by_field, total_rows)
+    for field_name, values in summary.items():
+        rows.append({
+            "scope_type": scope_type,
+            "scope_id": scope_id,
+            "country": country,
+            "competition_name": competition_name,
+            "selected_current_season": selected_current_season,
+            "subset": subset,
+            "field_name": field_name,
+            **values,
+        })
+    return rows
+
+
 def main():
     if not ARCHIVE.exists(): raise SystemExit("Private archive missing.")
     selected = list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig", newline="")))
@@ -312,6 +330,7 @@ def main():
         primary_window_calendar_ids = {"2025": Counter(), "2026": Counter()}
         primary_window_calendar_status_counts = {"2025": Counter(), "2026": Counter()}
         group_coverage = {}
+        season_numeric_feature_rows = []
         all_kickoff_dates = []
         for sid, meta in sorted(season_rows.items(), key=lambda x: (int(x[0]) if x[0].isdigit() else 0)):
             base = f"seasons/{sid}/"
@@ -358,6 +377,20 @@ def main():
                 if isinstance(m, dict) and str(m.get("status", "")).strip().lower() == "complete"
             ]
             update_numeric_field_stats(numeric_stats_primary_complete, complete_primary_window_matches)
+            season_country = str(meta.get("selected_country", "") or "").strip()
+            season_competition = str(meta.get("selected_competition_name", "") or "").strip()
+            season_primary_numeric_stats = {}
+            season_complete_numeric_stats = {}
+            update_numeric_field_stats(season_primary_numeric_stats, primary_window_matches)
+            update_numeric_field_stats(season_complete_numeric_stats, complete_primary_window_matches)
+            season_numeric_feature_rows.extend(numeric_quality_rows(
+                "SEASON", sid, season_country, season_competition, sid in selected_ids,
+                "primary_window", season_primary_numeric_stats, len(primary_window_matches)
+            ))
+            season_numeric_feature_rows.extend(numeric_quality_rows(
+                "SEASON", sid, season_country, season_competition, sid in selected_ids,
+                "primary_window_provider_complete", season_complete_numeric_stats, len(complete_primary_window_matches)
+            ))
             pw_present_counts, pw_nonempty_counts = field_counts(primary_window_matches)
             primary_window_field_presence.update(pw_present_counts)
             primary_window_field_nonempty.update(pw_nonempty_counts)
@@ -406,11 +439,15 @@ def main():
                 "primary_window_dates": [],
                 "primary_window_field_presence": Counter(),
                 "primary_window_field_nonempty": Counter(),
+                "numeric_stats_primary": {},
+                "numeric_stats_primary_complete": {},
             })
             group["season_ids"].append(sid)
             if sid in selected_ids:
                 group["selected_current_season_ids"].append(sid)
             group["primary_window_match_records"] += len(primary_window_matches)
+            update_numeric_field_stats(group["numeric_stats_primary"], primary_window_matches)
+            update_numeric_field_stats(group["numeric_stats_primary_complete"], complete_primary_window_matches)
             group["primary_window_field_presence"].update(pw_present_counts)
             group["primary_window_field_nonempty"].update(pw_nonempty_counts)
             group["primary_window_ids"].update(primary_window_ids_for_season)
@@ -513,6 +550,18 @@ def main():
             "official_settlement_truth_verified": "NO",
             "production_eligible": "NO",
         })
+    group_numeric_feature_rows = []
+    for (country, competition_name), group in sorted(group_coverage.items()):
+        group_id = f"{country}::{competition_name}"
+        group_numeric_feature_rows.extend(numeric_quality_rows(
+            "LEAGUE_GROUP", group_id, country, competition_name, False,
+            "primary_window", group["numeric_stats_primary"], group["primary_window_match_records"]
+        ))
+        group_numeric_feature_rows.extend(numeric_quality_rows(
+            "LEAGUE_GROUP", group_id, country, competition_name, False,
+            "primary_window_provider_complete", group["numeric_stats_primary_complete"],
+            group["primary_window_status_counts"].get("complete", 0)
+        ))
     feature_coverage_rows = []
     field_order = ("match", "team", "table", "season_stats")
     for field_type in field_order:
@@ -637,6 +686,8 @@ def main():
             "table_fields_detected": [name for name, _ in global_schema["table_keys"].most_common(40)],
             "season_stats_fields_detected": [name for name, _ in global_schema["season_stats_keys"].most_common(40)],
             "numeric_field_quality": numeric_feature_summaries,
+            "numeric_field_quality_by_season_rows": len(season_numeric_feature_rows),
+            "numeric_field_quality_by_league_rows": len(group_numeric_feature_rows),
         },
         "season_summary": season_summaries,
         "limitations": [
@@ -661,6 +712,12 @@ def main():
     with (OUT / "selected50_numeric_feature_quality.csv").open("w", newline="", encoding="utf-8") as f:
         fields = list(numeric_feature_rows[0]) if numeric_feature_rows else ["subset", "field_name"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(numeric_feature_rows)
+    with (OUT / "selected50_numeric_feature_quality_by_season.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(season_numeric_feature_rows[0]) if season_numeric_feature_rows else ["scope_type", "scope_id", "subset", "field_name"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(season_numeric_feature_rows)
+    with (OUT / "selected50_numeric_feature_quality_by_league.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(group_numeric_feature_rows[0]) if group_numeric_feature_rows else ["scope_type", "scope_id", "subset", "field_name"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(group_numeric_feature_rows)
     print(json.dumps({k: report[k] for k in (
         "status","archive_release_tag","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",

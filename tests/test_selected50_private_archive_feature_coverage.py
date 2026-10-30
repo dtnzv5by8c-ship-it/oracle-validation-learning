@@ -1,5 +1,5 @@
 import unittest
-from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats
+from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats, numeric_quality_rows
 
 class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
     def test_field_presence_and_nonempty_counts_are_distinct(self):
@@ -30,6 +30,17 @@ class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
         self.assertEqual(nested_dict_rows(None), [])
         self.assertEqual(nested_dict_rows([]), [])
         self.assertEqual(nested_dict_rows("no-table"), [])
+
+    def test_numeric_quality_rows_preserve_scope_and_zero_denominator(self):
+        stats = {}
+        update_numeric_field_stats(stats, [{"team_a_xg_prematch": 0}, {"team_a_xg_prematch": "1.1"}])
+        rows = numeric_quality_rows("LEAGUE_GROUP", "India::Indian Super League", "India", "Indian Super League", False, "primary_window", stats, 2)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["scope_type"], "LEAGUE_GROUP")
+        self.assertEqual(rows[0]["scope_id"], "India::Indian Super League")
+        self.assertEqual(rows[0]["numeric_rows"], 2)
+        self.assertEqual(rows[0]["zero_rows"], 1)
+        self.assertEqual(rows[0]["total_rows"], 2)
 
     def test_numeric_feature_quality_counts_zero_and_invalid_values(self):
         stats = {}

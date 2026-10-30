@@ -1,0 +1,68 @@
+{
+  "status": "RESEARCH_ONLY_NUMERIC_QUALITY_AUDIT_COMPLETE",
+  "source_archive_release_tag": "research-selected50-footystats-history-40375285207",
+  "source_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+  "selected_league_groups": 50,
+  "historical_season_rows": 200,
+  "ingested_season_rows": 200,
+  "archive_match_records": 59049,
+  "archive_team_records_non_unique_across_seasons": 3366,
+  "primary_window": {
+    "start": "2025-03-20",
+    "end": "2026-09-20",
+    "records": 22291,
+    "complete_status_records": 22256,
+    "noncomplete_status_records": 35,
+    "calendar_2025_records": 11648,
+    "calendar_2026_records": 10643,
+    "duplicate_rows_across_seasons": 0
+  },
+  "status_integrity": {
+    "archive_complete": 51983,
+    "archive_incomplete": 6962,
+    "archive_suspended": 57,
+    "archive_canceled": 47,
+    "noncomplete_records_with_parseable_scores": 7066,
+    "all_noncomplete_score_pairs_zero_zero": true,
+    "incomplete_past_kickoff_records": 116,
+    "suspended_with_scores": 57
+  },
+  "numeric_quality": {
+    "prematch_xg_zero_pct": {
+      "team_a_xg_prematch": 6.066,
+      "team_b_xg_prematch": 6.066,
+      "total_xg_prematch": 5.423
+    },
+    "actual_xg_zero_pct": {
+      "team_a_xg": 0.696,
+      "team_b_xg": 0.701,
+      "total_xg": 0.696
+    },
+    "odds_zero_pct": {
+      "full_time_1x2": 0.431,
+      "full_time_btts": 1.092,
+      "double_chance_1x_x2": 2.7,
+      "full_time_over_under_25": 0.274,
+      "double_chance_12": 61.035,
+      "draw_no_bet": 76.321,
+      "half_specific_btts": 100
+    }
+  },
+  "lowest_sample_league": {
+    "country": "India",
+    "competition": "Indian Super League",
+    "complete_primary_window_records": 98
+  },
+  "current_governed_fixture_rows": 0,
+  "canonical_fixture_joins": 0,
+  "canonical_team_joins": 0,
+  "official_settlement_truth_verified": 0,
+  "point_in_time_xg_odds_verified": 0,
+  "governance": {
+    "provider_api_calls_made": false,
+    "raw_provider_payload_exported": false,
+    "locked_holdout_used": false,
+    "production_model_changed": false,
+    "betting_eligible": false
+  }
+}

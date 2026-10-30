@@ -19,6 +19,7 @@ on:
     paths:
       - ".github/workflows/oracle-selected50-private-archive-qa.yml"
       - "scripts/qa_selected50_private_archive.py"
+      - "tests/test_selected50_private_archive_feature_coverage.py"
 
 permissions:
   contents: read
@@ -144,5 +145,7 @@ jobs:
             selected50_archive_qa/selected50_primary_window_coverage.csv
             selected50_archive_qa/selected50_feature_coverage.csv
             selected50_archive_qa/selected50_numeric_feature_quality.csv
+            selected50_archive_qa/selected50_numeric_feature_quality_by_season.csv
+            selected50_archive_qa/selected50_numeric_feature_quality_by_league.csv
           if-no-files-found: error
           retention-days: 14
