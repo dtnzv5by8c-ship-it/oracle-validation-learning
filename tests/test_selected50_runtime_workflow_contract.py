@@ -57,5 +57,21 @@ class Selected50RuntimeWorkflowContractTests(unittest.TestCase):
         self.assertIn("fail-closed sentinel", run_id.group("body"))
 
 
+    def test_runtime_pins_the_intended_archive_release_and_asset_digest(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        expected_tag = "research-selected50-footystats-history-40447419806"
+        expected_sha256 = "af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875"
+        self.assertIn(f'default: "{expected_tag}"', text)
+        self.assertIn(f"inputs.private_archive_release_tag || '{expected_tag}'", text)
+        self.assertIn(f"EXPECTED_PRIVATE_ARCHIVE_SHA256: {expected_sha256}", text)
+        self.assertIn(
+            '[[ "${ACTUAL_PRIVATE_ARCHIVE_SHA256}" == "${EXPECTED_PRIVATE_ARCHIVE_SHA256}" ]]',
+            text,
+        )
+        self.assertIn("Downloaded archive SHA-256 does not match the pinned Selected-50 research archive", text)
+        self.assertNotIn("research-selected50-footystats-history-40375285207", text)
+
+
+
 if __name__ == "__main__":
     unittest.main()
