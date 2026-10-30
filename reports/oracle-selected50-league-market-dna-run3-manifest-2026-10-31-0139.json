@@ -1,0 +1,121 @@
+{
+  "title": "Project Oracle Selected-50 League Scoring DNA and Market Decision Run 3",
+  "asof_sast": "2026-10-31T01:39:18+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "branch_head_before_manifest_commit": "f99d8a0e46c87c4e1dbffcf6cd4a53024b6fb5db",
+  "governance": {
+    "production_eligible": false,
+    "betting_eligible": false,
+    "production_logic_changed": false,
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false
+  },
+  "source_artifacts": {
+    "supplementary_scoring_archive": {
+      "workflow_run_id": 41101695515,
+      "artifact_id": 12997699044,
+      "sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8c4e20211a"
+    },
+    "snapshot": {
+      "workflow_run_id": 41117910952,
+      "artifact_id": 13005239530,
+      "retrieved_utc": "2026-10-30T19:46:39.708942+00:00"
+    },
+    "runtime": {
+      "workflow_run_id": 41119141526,
+      "artifact_id": 13006609602
+    },
+    "bridge_audit": {
+      "workflow_run_id": 41121900062,
+      "artifact_id": 13009350718
+    }
+  },
+  "binary_workbook_delivery": {
+    "name": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v8_League_Scoring_DNA_and_Rankings.xlsx",
+    "sha256": "8b864832893d4446eefdffedc565432c9bc8f393f314fe97b4a73c2e54e473d5",
+    "size_bytes": 436526,
+    "delivery": "attached in this conversation; repository text-file write used for note and machine-readable CSV evidence"
+  },
+  "research_pack": {
+    "name": "Oracle_Selected50_League_Market_DNA_Run3_Research_Pack_31Oct2026_0139SAST.zip",
+    "sha256": "af524e6a7f16381f350e3d26f8f518d07a9c219d6c35fe2c2e33276ebbe8b15c",
+    "size_bytes": 509854
+  },
+  "workbook_sheet_count": 28,
+  "workbook_sheets": [
+    "Executive Summary",
+    "Market Backtest",
+    "Walk Forward Folds",
+    "League Market Readiness",
+    "Schedule Coverage",
+    "Calendar Year Coverage",
+    "Fixture Intelligence",
+    "Exceptions & Gates",
+    "Definitions",
+    "League DNA",
+    "Market Feature Strategy",
+    "League Market Summary",
+    "League Year Coverage",
+    "League Market Suitability",
+    "Current Ranking QA",
+    "Top 50 BTTS",
+    "Top 50 DC Home",
+    "Top 50 DC Away",
+    "League Scoring DNA Availability",
+    "Kickoff Chronology Exceptions",
+    "Feature Lag Sensitivity",
+    "Top 3 Raw Probabilities",
+    "Research Evidence Register",
+    "Team & H2H Evidence",
+    "League Scoring DNA Rates",
+    "League DNA Market Decision",
+    "League Market Scoring Join",
+    "Ranking Exclusions"
+  ],
+  "repository_committed_files": [
+    {"path":"reports/ORACLE_SELECTED50_LEAGUE_MARKET_DNA_UPDATE_2026-10-31-0139-SAST.md","size_bytes":5805,"sha256":"345f7750380f61c730ba54d0e224a7a35df3c8ccd54818622ad4621830cd4c2f"},
+    {"path":"reports/oracle-selected50-league-market-dna-run3-summary-2026-10-31-0139.json","size_bytes":3928,"sha256":"d380dd20d862da450b0db7a699c6b5c835f6fed1a0015796d4428299d43ec427"},
+    {"path":"reports/oracle-selected50-current-ranking-qa-2026-10-31-0139.csv","size_bytes":1368,"sha256":"8518ca3d333b54713767a28a1d1dc1fe91f9a95589f4a36688c5b59d829d7fb2"},
+    {"path":"reports/oracle-selected50-league-dna-market-decision-2026-10-31-0139.csv","size_bytes":15080,"sha256":"8310ce45105ecc9ff78abc1fcbf929c6f8d755831fec3aeabdced417f9d3dfcb"},
+    {"path":"reports/oracle-selected50-scoring-dna-2024-2026-10-31-0139.csv","size_bytes":12069,"sha256":"97475eeb6768175dccd9d081ff49329b270e46b1dd2c6453f79ab97c7fd25b10"},
+    {"path":"reports/oracle-selected50-scoring-dna-2025-2026-10-31-0139.csv","size_bytes":11891,"sha256":"6b69346b2222280386140dd63c73db9c0830adba377fd976fd20889dab4d22b0"},
+    {"path":"reports/oracle-selected50-scoring-dna-2026-ytd-to-2026-09-20-2026-10-31-0139.csv","size_bytes":12255,"sha256":"04c4904a4b3ae1ccc4b9c04a245ef2a3b8d5c18a040e04e1e131d78e114fc41f"},
+    {"path":"reports/oracle-selected50-scoring-dna-primary-validation-window-2026-10-31-0139.csv","size_bytes":12514,"sha256":"020c8f72ab71a9da44c12a8457d2afc23534d14f587599529b34980c1fc00c07"},
+    {"path":"reports/oracle-selected50-top50-btts-2026-10-31-0139.csv","size_bytes":13290,"sha256":"3bcb2c49ef12c451ccaf4f126bb2a701b074f31d33bfc39b2e2c0cf75d427683"},
+    {"path":"reports/oracle-selected50-top50-double-chance-home-2026-10-31-0139.csv","size_bytes":13537,"sha256":"622b35cf754c4cd29333d1b171efd9c9b2ac7f3586c6431d79c43bec8073d469"},
+    {"path":"reports/oracle-selected50-top50-double-chance-away-2026-10-31-0139.csv","size_bytes":13550,"sha256":"14dab118d139cd287633d32f8066a095c5a9b3a2981eab8286c0b72e71d78cb3"},
+    {"path":"reports/oracle-selected50-market-scoring-join-btts-2026-10-31-0139.csv","size_bytes":11701,"sha256":"5cf3970ef5124c42e9c9c21a1a46984ba59923828a6235d75c771c2854f0fff0"},
+    {"path":"reports/oracle-selected50-market-scoring-join-double-chance-home-2026-10-31-0139.csv","size_bytes":12135,"sha256":"afed46ed90151610f428a33b2191a39f922f871aef659d50fd48d76622cd3770"},
+    {"path":"reports/oracle-selected50-market-scoring-join-double-chance-away-2026-10-31-0139.csv","size_bytes":12148,"sha256":"17da208b7b5988031c279716e7b4cc81ec2bfb9382dc3bf0e88d315bdff9b686"},
+    {"path":"reports/oracle-selected50-ranking-exclusions-2026-10-31-0139.csv","size_bytes":18524,"sha256":"2b6804e01dd7d67a7432154e1330d1ca757590d82309ff24f82e03d2c331079d"}
+  ],
+  "coverage_summary": {
+    "governed_leagues": 50,
+    "exact_id_scoring_groups": 31,
+    "scoring_groups_unavailable": 19,
+    "calendar_2024": {"full":4,"partial":27,"unavailable":19},
+    "calendar_2025": {"full":31,"partial":0,"unavailable":19},
+    "calendar_2026_to_2026-09-20": {"full":31,"partial":0,"unavailable":19},
+    "primary_validation_window": {"full":31,"partial":0,"unavailable":19}
+  },
+  "market_suitability": {
+    "combinations":150,
+    "repeatable_positive_skill_diagnostic":26,
+    "positive_skill_calibration_warning":13,
+    "mixed_brier_skill":47,
+    "insufficient_sample_or_metric":60,
+    "no_positive_brier_skill":4,
+    "leagues_with_strict_candidate":17,
+    "leagues_mixed":13,
+    "leagues_insufficient_or_no_positive":20
+  },
+  "ranking_summary": {
+    "candidate_pool_per_market":319,
+    "top50_rows_per_market":50,
+    "quarantined_in_top50_per_market":0,
+    "markets":["BTTS","DC_HOME","DC_AWAY"],
+    "ranking_asof_sast":"2026-10-31T01:39:18+02:00",
+    "snapshot_age_hours":3.877
+  },
+  "no_repeat_checkpoint": "Do not repeat scoring DNA derivation, 150-row market join or Run #176/Bridge Audit #12 ranking reconciliation without new verified archive rows, settlement/identity bridge, refreshed snapshot/runtime or governance change."
+}
