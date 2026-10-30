@@ -1,0 +1,33 @@
+metric,value,status,notes
+full_archive_groups,50,VERIFIED,Exact selected-ID mapping 50/50
+full_archive_seasons,200,VERIFIED,Four provider seasons per governed group
+full_archive_match_rows,59049,VERIFIED,Raw payload not publicly saved in ledger
+run64_raw_extract_groups,31,VERIFIED,Exact selected ID matches only
+run64_raw_extract_season_folders,93,VERIFIED,Three season folders per matched group
+run64_raw_extract_rows,30257,VERIFIED,Before complete-score filtering
+complete_score_matches,23328,VERIFIED,Complete status numeric scores UTC kickoff <= 2026-09-20
+primary_window_matches,15003,VERIFIED,2025-03-20 through 2026-09-20 inclusive
+team_profiles,732,VERIFIED,selected_id + provider team_id
+provider_team_ids_reused_across_groups,58,KEYING_WARNING,Do not key team profiles by provider team_id alone
+h2h_pair_profiles,7188,VERIFIED,Exact selected_id + ordered provider team IDs
+h2h_meetings,23328,VERIFIED,Exact fixture IDs and UTC chronology
+h2h_pairs_1_2_meetings,3273,LOW_SAMPLE,Very limited H2H history
+h2h_pairs_8_plus_meetings,159,REPEATED_SAMPLE,Still descriptive not predictive proof
+no_home_away_matches,2603,HANDLED,Excluded from venue splits and league 1X2 rates
+venue_valid_matches,20725,VERIFIED,no_home_away=0
+team_high_scoring_persistent_3_windows,13,DESCRIPTIVE_ONLY,Overlapping all/primary/recent365 windows
+team_low_scoring_persistent_3_windows,7,DESCRIPTIVE_ONLY,Overlapping all/primary/recent365 windows
+team_prior_two_window_not_confirmed_recent365,7,CAUTION,Do not call repeatable
+h2h_high_scoring_persistent,9,DESCRIPTIVE_ONLY,At least 8 meetings; whole/halves/last5
+h2h_low_scoring_persistent,6,DESCRIPTIVE_ONLY,At least 8 meetings; whole/halves/last5
+runtime_fixture_rows,426,VERIFIED,Existing runtime #176
+runtime_raw_predictions,403,VERIFIED,23 feature-blocked
+rankable_candidates_per_market,325,RESEARCH_ONLY,Across 33 league names / 37 country-league groups
+top3_per_country_league_group_per_market,111,RESEARCH_ONLY,Raw probability ranking
+top50_quarantined_btts,3,QUARANTINE,Retain quarantine flags
+top50_quarantined_dc_home,2,QUARANTINE,Retain quarantine flags
+top50_quarantined_dc_away,9,QUARANTINE,Retain quarantine flags
+provider_api_credits_used_this_run,0,PASS,No provider/API calls
+workflows_rerun,False,PASS,No ingestion/snapshot/runtime/bridge reruns
+production_eligible,False,BLOCKED,Research only
+betting_eligible,False,BLOCKED,Research only
