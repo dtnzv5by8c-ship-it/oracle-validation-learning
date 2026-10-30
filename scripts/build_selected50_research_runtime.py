@@ -169,9 +169,12 @@ def completed_fixture_signature_key(row):
     # competition scope, finite kickoff and two distinct provider team IDs.
     if not competition_id or not home_id or not away_id or home_id == away_id:
         return None
+    raw_kickoff = row.get("kickoff_unix")
+    if isinstance(raw_kickoff, bool):
+        return None
     try:
-        kickoff = float(row["kickoff_unix"])
-    except (KeyError, TypeError, ValueError, OverflowError):
+        kickoff = float(raw_kickoff)
+    except (TypeError, ValueError, OverflowError):
         return None
     if not math.isfinite(kickoff):
         return None
