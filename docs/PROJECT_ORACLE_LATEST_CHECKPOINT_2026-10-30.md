@@ -4,6 +4,10 @@
 **Purpose:** Fast recovery and continuation pointer. Read this first, then the Master Operating Runbook.
 
 ## Current recovery point
+- Latest verified code/test commit: `d2aea39813d23215beb32ac39163066e259fcec0`.
+- Latest Safety Contract Tests run #484: PASS (run `41112680671`).
+- Latest Dry-Run Planner run #764: PASS (run `41112680715`).
+- Private Archive QA run #41 (`41112672026`) was still in progress at the time of this checkpoint; its result must be checked before using it as a current QA pass.
 - Backup branch created: `backup/oracle-50-readiness-2026-10-30-98af1f7`
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
@@ -56,3 +60,6 @@ The research runtime's stale default private archive tag and SHA were corrected 
 - Detailed historical decisions and workflow log: `PROJECT_ORACLE_CANONICAL_HANDOVER.md`
 
 **Rule:** continue from this checkpoint and the active research branch. Do not recreate prior audits or re-run completed provider probes unless a specific evidence gap requires it.
+
+## Durable ChatGPT Library recovery copy
+The following run outputs and workbook were copied into the persistent ChatGPT Library folder `/Project Oracle/2026-10-30 Recovery Pack/`: Probe #6 artifact, Visual Intelligence workbook v2, safe current report #5, research runtime #174, current fixture snapshot, private archive QA #40, identity probe #3, dry-run planner #760, cross-provider join audit #18, and FootyStats archive feature audit #64. These are copies of the artifacts available in this session; the canonical private historical archive remains in the private GitHub release listed above.
