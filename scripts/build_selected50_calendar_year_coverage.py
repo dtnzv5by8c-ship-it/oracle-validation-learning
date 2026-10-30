@@ -84,10 +84,6 @@ def run(archive, manifest, out):
     audit_date = dt.datetime.now(dt.timezone.utc).date()
     group_rows = defaultdict(list)
     season_rows = defaultdict(list)
-    group_past_rows = defaultdict(list)
-    group_future_rows = defaultdict(list)
-    season_past_rows = defaultdict(list)
-    season_future_rows = defaultdict(list)
     group_undated = Counter()
     season_undated = Counter()
     season_meta = {}
@@ -131,12 +127,6 @@ def run(archive, manifest, out):
                     season_key = (sid, year)
                     group_rows[group_key].append(row)
                     season_rows[season_key].append(row)
-                    if parsed <= audit_date:
-                        group_past_rows[group_key].append(row)
-                        season_past_rows[season_key].append(row)
-                    else:
-                        group_future_rows[group_key].append(row)
-                        season_future_rows[season_key].append(row)
     group_out, season_out = [], []
     for (country, competition), selected_sid in sorted(groups.items()):
         seasons_for_group = [sid for sid, m in season_meta.items() if (m["country"], m["competition_name"]) == (country, competition)]
@@ -161,12 +151,8 @@ def run(archive, manifest, out):
                 "status_counts_on_or_before_audit_date_json": json.dumps(asof_summary["status_counts"], sort_keys=True),
                 "status_counts_after_audit_date_json": json.dumps(future_summary["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
-                "field_quality_on_or_before_audit_date_json": json.dumps(summarize(group_past_rows[(country, competition, year)], audit_date)["field_quality"], sort_keys=True),
-                "field_quality_after_audit_date_json": json.dumps(summarize(group_future_rows[(country, competition, year)], audit_date)["field_quality"], sort_keys=True),
                 "field_quality_on_or_before_audit_date_json": json.dumps(asof_summary["field_quality"], sort_keys=True),
                 "field_quality_after_audit_date_json": json.dumps(future_summary["field_quality"], sort_keys=True),
-                "complete_status_rows_on_or_before_audit_date": len(rows_complete_asof),
-                "field_quality_complete_status_on_or_before_audit_date_json": json.dumps(complete_asof_summary["field_quality"], sort_keys=True),
                 "complete_status_rows_on_or_before_audit_date": len(rows_complete_asof),
                 "field_quality_complete_status_on_or_before_audit_date_json": json.dumps(complete_asof_summary["field_quality"], sort_keys=True),
                 "official_settlement_truth_verified": "NO", "canonical_fixture_team_joins_verified": "NO",
