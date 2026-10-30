@@ -59,5 +59,6 @@ jobs:
             ${{ runner.temp }}/oracle-team-dna-oos/oracle_team_market_oos_summary.csv
             ${{ runner.temp }}/oracle-team-dna-oos/oracle_team_market_oos_chronology.csv
             ${{ runner.temp }}/oracle-team-dna-oos/oracle_league_market_oos_summary.csv
+            ${{ runner.temp }}/oracle-team-dna-oos/oracle_team_market_oos_run_metadata.csv
           if-no-files-found: error
           retention-days: 14
