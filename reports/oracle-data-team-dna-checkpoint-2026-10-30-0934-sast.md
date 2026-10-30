@@ -25,9 +25,10 @@
 - tests/test_selected50_xg_heterogeneity_team_sample_adequacy.py — seven tests pass locally.
 - docs/PROJECT_ORACLE_XG_LEAGUE_HETEROGENEITY_TEAM_SAMPLE_ADEQUACY_2026-10-30.md
 - reports/oracle_selected50_xg_league_heterogeneity_summary.json
-- reports/oracle_selected50_xg_league_paired_deltas.csv
-- reports/oracle_selected50_belgium_season_scope_market_quality.csv
-- reports/oracle_selected50_team_sample_adequacy_by_league.csv
+- reports/oracle_selected50_xg_league_heterogeneity_summary_2026-10-30.json
+- reports/oracle_selected50_xg_league_delta_rollup_2026-10-30.csv
+- reports/oracle_selected50_belgium_season_scope_market_quality_2026-10-30.csv
+- reports/oracle_selected50_team_sample_adequacy_by_league_2026-10-30.csv
 
 ## Next action
 1. Reconcile archive release/tag/checksum lineage and run comparable QA against the selected pinned release using existing archives only.
@@ -36,3 +37,11 @@
 
 ## Governance
 Research-only. No provider/API calls or credits; no H2H holdout access; no production logic, frozen probabilities, calibration or governance changes. No team or league exclusions recommended.
+
+
+## Repository validation record
+- Research script commit: ad41e1b299c5e067dc9e57aca34be1079645c87d.
+- Regression tests commit: 1bbef251a2969bb2df3e67bdbced981a140756d6.
+- Report/checkpoint and generated-output commits: 8672aa8be00062445f626f4fbbb9e70c5bda3cd8, 61e0707f9bc18312c773f860d94cf241e72542ac, f42c9d8e32e5f99ff0ba635cd9edceeea93bb33e, fd2c34f5b8a4ad8af9945fd79c068e6f60cf7b42, 1e23e7e4ea404bc60ed340cdab399875722ee2be, 2c14dc2f342c5afd4cf51ee9a46ebee050d96797.
+- Safety-contract workflow was extended to compile the new script and run its seven tests in commit ab11b03c1b627fb52cfaecaf26500fe5d625bcbe.
+- Local py_compile and all seven regression tests passed. The connected GitHub status endpoint returned no status records for the workflow commit at the time of this checkpoint; remote CI is therefore not claimed as passed.
