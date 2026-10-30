@@ -102,5 +102,20 @@
       "Top 50 DC Away"
     ]
   },
-  "next_run_instruction": "Extend only from this checkpoint. Do not repeat archive coverage, year-profile or three-fold market-suitability calculations unless new verified raw score rows or revised governance arrive."
+  "next_run_instruction": "Extend only from this checkpoint. Do not repeat archive coverage, year-profile or three-fold market-suitability calculations unless new verified raw score rows or revised governance arrive.",
+  "repository_summary_csv": "reports/oracle-selected50-league-market-dna-summary-2026-10-30.csv",
+  "bridge_audit": {
+    "audit_number": 12,
+    "status": "PASS_WITH_RELEASE_BLOCKERS",
+    "exact_snapshot_to_runtime_fixture_team_id_matches": 426,
+    "future_research_candidates": 347,
+    "source_quarantined": 79,
+    "quarantine_breakdown": {
+      "no_home_away": 71,
+      "nonstandard_status": 7,
+      "nonfuture_unsettled": 1
+    },
+    "canonical_identity_verified": false,
+    "official_settlement_truth_verified": false
+  }
 }
