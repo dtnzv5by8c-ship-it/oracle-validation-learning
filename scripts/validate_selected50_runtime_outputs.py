@@ -89,9 +89,12 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         assert row.get("betting_eligible") == "NO"
         assert row.get("status") == "PAIRED_RESEARCH_ONLY_NOT_CALIBRATED"
         for field in ("baseline_accuracy_at_0_5", "candidate_accuracy_at_0_5",
-                      "baseline_brier", "candidate_brier", "baseline_log_loss",
-                      "candidate_log_loss", "baseline_auc", "candidate_auc"):
+                      "baseline_brier", "candidate_brier"):
             number(row, field, low=0, high=1)
+        for field in ("baseline_log_loss", "candidate_log_loss"):
+            number(row, field, low=0)
+        for field in ("baseline_auc", "candidate_auc"):
+            number(row, field, low=0, high=1, allow_none=True)
 
     folds = expanding.get("folds", [])
     expected_fold_names = {
