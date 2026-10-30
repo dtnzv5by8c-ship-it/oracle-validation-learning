@@ -11,7 +11,7 @@
 - Unmatched or missing season folders: 0.
 - Undated match rows: 0.
 - Provider archive rows by calendar year: 2024 = 14,761; 2025 = 15,029; 2026 = 14,605; 2027 = 4,452.
-- As of 30 October 2026, rows with kickoff on/before audit date: 2024 = 14,761; 2025 = 15,029; 2026 = 12,222. Total historical-date rows across 2024–30 October 2026 = 42,012.
+- As of 30 October 2026, rows with kickoff on/before audit date: 2024 = 14,761; 2025 = 15,029; 2026 = 12,222. Total historical-date rows across 2024–30 October 2026 = 42,012. Of these, 41,781 have provider status `complete`; 231 are non-complete and must be excluded from completed-match outcome validation.
 - Future-dated rows: 2,383 in the remainder of 2026 and 4,452 in 2027 (6,835 total). These must not enter historical training, calibration or backtesting.
 
 ## Feature quality interpretation
@@ -20,7 +20,7 @@ The provider archive stores numeric fields for all rows, but numeric presence is
 - 2025 prematch xG zero rates: home 5.14%, away 5.21%, total 4.60%; BTTS odds zero 1.04%; DC odds zero 3.60%.
 - 2026 calendar-year aggregate is mixed historical and future data. After restricting to 12,222 rows with kickoff on/before 30 October 2026, prematch xG zero rates are home 6.41%, away 6.40%, total 5.67%; BTTS odds zero 1.19%; DC odds zero 1.24%. The 2,383 future-dated 2026 rows are excluded from these historical rates.
 - 2027 is future schedule data only at the audit date (4,452 rows). It has no historical feature rows as of the audit date. Its raw all-row odds zero rate is 99.93%; these are not historical bookmaker prices and must not enter odds training or backtesting.
-- A separate as-of-kickoff feature quality split is now included in the audit output to separate rows with kickoff on/before audit date from future-dated rows. Only the on/before subset is eligible for further historical feature validation, and only after point-in-time provenance is independently established.
+- A separate as-of-kickoff feature quality split is included in the audit output. On the stricter subset of `status=complete` and kickoff on/before the audit date, row counts are 2024 = 14,749; 2025 = 14,987; 2026 = 12,045. The corresponding zero rates are: 2024 xG home/away/total 5.44%/5.45%/4.85%, BTTS odds 0.45%, DC odds 1.39–1.40%; 2025 xG 5.15%/5.16%/4.62%, BTTS odds 0.87%, DC odds 3.44%; 2026 xG 6.48%/6.48%/5.75%, BTTS odds 1.06%, DC odds 1.11%. Numeric presence still does not prove point-in-time capture. Only the complete/on-or-before subset is suitable for further historical feature validation, subject to PIT provenance.
 
 ## Identity and external join status
 - FootyStats selected-season identity probe #3: 50/50 exact season IDs returned a `comp_master_id`; 50 unique values. This remains provider parent-field evidence only. Semantic definition and stability are not sufficiently established to promote it into Oracle's canonical competition registry.
@@ -28,6 +28,7 @@ The provider archive stores numeric fields for all rows, but numeric presence is
 - Cross-provider fixture audit #18: 10 exact fixture joins across 2 selected seasons; 577 historical-ledger date-only candidates across 24 seasons; zero exact kickoff joins to the historical ledger; zero approved canonical bridges; zero strong canonical code candidates. No production eligibility.
 
 ## Data and governance controls
+- The archive inventory now covers 2024 onward, but this does not automatically expand the governed primary model-validation window. The existing primary validation window remains 20 March 2025–20 September 2026 unless a separate governance decision explicitly changes it. The 2024 rows are archived coverage evidence, not an automatic authorization to retrain or recalibrate on an expanded period.
 - Preserve provider zeros and raw source status. No imputation, fuzzy team mapping, or fabricated fixture joins.
 - Keep future-dated rows out of historical model evaluation.
 - Do not treat provider `complete` status or score values as official settlement truth without a reconciled market settlement specification.
