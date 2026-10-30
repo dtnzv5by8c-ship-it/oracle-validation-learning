@@ -1,3 +1,5 @@
+> **Superseded:** This 27 October matrix contains season-date overlap only, not annual match counts. Exact calendar-year fixture-row counts were subsequently generated against the pinned 200-season private archive by QA workflow run #55 (and later revalidated). Use the latest runbook/checkpoint and the `selected50_calendar_year_coverage` QA artifact; do not use this provisional matrix as the current annual coverage result.
+
 # Selected-50 Calendar-Year Coverage Matrix — 2024 to 2027-to-date
 Audit date: 2026-10-27 (UTC)
 Scope: research-only reconciliation of the exact selected 50 FootyStats league scope against the available private-archive QA export.
