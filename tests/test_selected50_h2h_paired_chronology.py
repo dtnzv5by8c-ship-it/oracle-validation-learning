@@ -1,6 +1,12 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
-from scripts.audit_selected50_h2h_paired_chronology import audit_h2h_paired_predictions
+from scripts.audit_selected50_h2h_paired_chronology import (
+    audit_h2h_paired_predictions,
+    write_h2h_paired_chronology_qa,
+)
 
 
 class Selected50H2HPairedChronologyTests(unittest.TestCase):
@@ -74,6 +80,18 @@ class Selected50H2HPairedChronologyTests(unittest.TestCase):
     def test_empty_output_is_blocked_not_reported_as_pass(self):
         qa = audit_h2h_paired_predictions([], {"BTTS"})
         self.assertEqual(qa["status"], "BLOCKED_NO_PAIRED_ROWS")
+
+    def test_chronology_qa_writer_emits_one_parseable_json_document(self):
+        qa = audit_h2h_paired_predictions(
+            [self.row("BTTS"), self.row("DC_HOME")],
+            {"BTTS", "DC_HOME"},
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "nested" / "chronology.json"
+            write_h2h_paired_chronology_qa(target, qa)
+            raw = target.read_text(encoding="utf-8")
+            self.assertTrue(raw.endswith("\n"))
+            self.assertEqual(json.loads(raw), qa)
 
 
 if __name__ == "__main__":
