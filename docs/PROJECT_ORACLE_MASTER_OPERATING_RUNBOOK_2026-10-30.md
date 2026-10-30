@@ -89,7 +89,11 @@ Workflow: [Oracle Selected-50 Safe Current Fixture Report](https://github.com/dt
 ## 6. Current technical configuration correction
 Private Archive QA #44 [run 41112970245](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41112970245) completed successfully against the refreshed archive. It produced artifact 13003309729 (SHA-256 `6dc7288826bcd384b469ea9ed53b46c66221f85a4292d2c52f9f5ca3f7be7ea9`) and is documented in `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md`. The research runtime and private-archive-QA workflows previously defaulted to stale archive tag `research-selected50-footystats-history-40447419806` and stale pinned SHA. On 30 October, both were corrected on the research branch to default to the verified 200-season archive release `research-selected50-footystats-history-40375285207` and SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`. The xG temporal-shift audit's internal archive SHA guard was also updated to this verified package checksum and covered by a regression test. The safety contract tests and dry-run planner passed on commit `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68` (runs `41112970222` and `41112970242`). Private Archive QA run `41112970245` was still running when this runbook revision was prepared; check its final conclusion before treating the latest QA as passed. The workflows must pass their checksum guards before use.
 
-## 7. What is not yet seamless / gates still open
+## 7. Provider field semantics now verified
+- FootyStats Match Details documentation defines `no_home_away=1` as a fixture with no home/away distinction (neutral/no standard home-away assignment). The snapshot overlay already records this documented semantic and keeps flagged rows quarantined from standard home/away-dependent markets. Do not clear the flag merely because both team IDs are present. The current safe policy remains conservative until a neutral-fixture feature/market contract is tested; BTTS eligibility is not automatically granted by this clarification. Source: [FootyStats Match Details API documentation](https://footystats.org/api/documentations/match-details).
+- The same documentation defines match `competition_id` as the league season ID, not the parent competition ID. The separate `comp_master_id` field was returned in the identity probe for 50/50 season IDs, but the public material reviewed does not define its semantics or stability. Preserve it as provider evidence only; do not promote it to Oracle canonical competition ID. See `docs/PROJECT_ORACLE_SELECTED50_COMPMaster_ID_EVIDENCE_2026-10-30.md`.
+
+## 8. What is not yet seamless / gates still open
 The following are not yet certified complete:
 1. End-to-end weekly snapshot → runtime → safe-report cycle on the latest archive pin.
 2. Secret availability and permission scope at the time of each run (never inspect secret values).
@@ -103,7 +107,7 @@ The following are not yet certified complete:
 
 The 201-call probe validates endpoint access and sampled response schemas. It is not the historical archive ingestion workflow. The legacy `oracle-selected50-footystats-live-ingestion.yml` workflow is intentionally disabled because its old raw-data write path is prohibited. Do not reactivate it. A separate, reviewed, credit-bounded, private-destination ingestion path is required if additional history is missing.
 
-## 8. Stop conditions
+## 9. Stop conditions
 Stop and report the exact blocker if:
 - archive tag or SHA verification fails;
 - private archive token/permission is missing;
@@ -117,20 +121,21 @@ Stop and report the exact blocker if:
 
 Never work around a failed gate by guessing, fuzzy matching, imputing, disabling validation or creating a second competing model.
 
-## 9. Backup and recovery procedure
+## 10. Backup and recovery procedure
 - Restore the research code baseline from branch `backup/oracle-50-readiness-2026-10-30-98af1f7` if the active research branch is damaged. Inspect/compare first; do not force-reset or merge blindly.
 - Restore historical data only from the private release above after verifying its package checksum against the matching `private-package.sha256` file.
 - Keep all new research commits on the research branch and preserve the backup branch. Create a new dated backup branch before material refactors.
 - Retain workflow artifacts externally before their expiry; GitHub Actions artifacts are temporary and are not a substitute for a durable archive.
 - Keep a dated checkpoint and update this runbook after every material milestone. Record run IDs, artifact IDs, digests, code SHA, archive tag/SHA, data window, API request count and outstanding gates.
 
-## 10. User action / automation limitation
+## 11. User action / automation limitation
 The connected GitHub capability can inspect repository files, branches, pull requests, runs and artifacts, but cannot dispatch the workflows in this setup. The operator must start the manual workflow in GitHub Actions when a new weekly cycle is due. The weekly cycle is therefore documented and repeatable, but it is **not yet a proven unattended scheduled automation**. Do not promise that no future difficulties can occur; the safeguards are designed to fail closed and surface issues early.
 
-## 11. Authoritative companion records
+## 12. Authoritative companion records
 - `PROJECT_ORACLE_CANONICAL_HANDOVER.md` — detailed historical decision and run log.
 - `docs/PROJECT_ORACLE_SELECTED50_200_SEASON_INGESTION_RECONCILIATION_2026-10-30.md` — 200-season ingestion evidence and reconciliation.
 - `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md` — latest private archive QA, xG/odds quality and event-status findings.
+- `docs/PROJECT_ORACLE_SELECTED50_COMPMaster_ID_EVIDENCE_2026-10-30.md` — exact 50/50 provider `comp_master_id` field observations, held unapproved pending semantic confirmation.
 - `docs/PROJECT_ORACLE_CANONICAL_PREDICTION_ARCHIVE_TEAM_EXPOSURE_AUDIT_2026-10-30.md` — canonical prediction archive exposure limitations.
 - `reports/oracle-selected50-integration-release-gate-register-2026-10-30-1237-sast.md` — release gate checkpoint.
 - This runbook is the operating entry point; update it rather than starting another handover from scratch.
