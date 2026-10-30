@@ -44,7 +44,10 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 - Artifact expiry: 6 November 2026. Its results are recorded here; keep the artifact downloaded separately if a long-term copy is needed.
 
 ## 4. Current known data position
-- Selected-50 historical archive ledger: 200 seasons / 59,049 match rows.
+- Selected-50 historical archive ledger: 200 seasons / 59,049 match rows; latest Private Archive QA #44 passed checksum and structural checks.
+- Primary validation window 2025-03-20 to 2026-09-20 contains 22,291 unique provider match IDs (11,648 in 2025 and 10,643 in 2026); no duplicates detected within the primary window.
+- QA #44 flagged 116 past-kickoff rows still marked incomplete, 7,066 parseable score pairs on non-complete rows (all 0-0), and 4,006 complete-status 0-0 rows. Preserve status-based quarantine; official settlement truth remains unverified.
+- Prematch xG zero rates are elevated in current-season scopes versus historical scopes (home 13.26% vs 3.54%; away 13.30% vs 3.52%; total 11.91% vs 3.16%); 11 league groups crossed the 30% descriptive screen. Odds fields also show market/league-specific zero anomalies, including Belgium BTTS/DC fields. See the Run #44 QA report; do not recode zeros or assume semantics.
 - Current fixture snapshot and safe report artifacts exist from earlier runs, but each new weekly cycle must use a fresh snapshot and a runtime built against the correct archive release.
 - The earlier safe report was research-only: 344 clean exact-join rows, 320 raw uncalibrated research probability rows and 24 feature-blocked rows. It must not be presented as a current prediction slate.
 - Canonical competition/team/fixture identity, official settlement truth, point-in-time xG/odds provenance and market-specific calibration remain open gates.
@@ -84,7 +87,7 @@ Workflow: [Oracle Selected-50 Safe Current Fixture Report](https://github.com/dt
 - Never promote to production merely because GitHub Actions is green.
 
 ## 6. Current technical configuration correction
-The research runtime and private-archive-QA workflows previously defaulted to stale archive tag `research-selected50-footystats-history-40447419806` and stale pinned SHA. On 30 October, both were corrected on the research branch to default to the verified 200-season archive release `research-selected50-footystats-history-40375285207` and SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`. The xG temporal-shift audit's internal archive SHA guard was also updated to this verified package checksum and covered by a regression test. The safety contract tests and dry-run planner passed on commit `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68` (runs `41112970222` and `41112970242`). Private Archive QA run `41112970245` was still running when this runbook revision was prepared; check its final conclusion before treating the latest QA as passed. The workflows must pass their checksum guards before use.
+Private Archive QA #44 [run 41112970245](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41112970245) completed successfully against the refreshed archive. It produced artifact 13003309729 (SHA-256 `6dc7288826bcd384b469ea9ed53b46c66221f85a4292d2c52f9f5ca3f7be7ea9`) and is documented in `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md`. The research runtime and private-archive-QA workflows previously defaulted to stale archive tag `research-selected50-footystats-history-40447419806` and stale pinned SHA. On 30 October, both were corrected on the research branch to default to the verified 200-season archive release `research-selected50-footystats-history-40375285207` and SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`. The xG temporal-shift audit's internal archive SHA guard was also updated to this verified package checksum and covered by a regression test. The safety contract tests and dry-run planner passed on commit `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68` (runs `41112970222` and `41112970242`). Private Archive QA run `41112970245` was still running when this runbook revision was prepared; check its final conclusion before treating the latest QA as passed. The workflows must pass their checksum guards before use.
 
 ## 7. What is not yet seamless / gates still open
 The following are not yet certified complete:
@@ -127,6 +130,7 @@ The connected GitHub capability can inspect repository files, branches, pull req
 ## 11. Authoritative companion records
 - `PROJECT_ORACLE_CANONICAL_HANDOVER.md` — detailed historical decision and run log.
 - `docs/PROJECT_ORACLE_SELECTED50_200_SEASON_INGESTION_RECONCILIATION_2026-10-30.md` — 200-season ingestion evidence and reconciliation.
+- `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md` — latest private archive QA, xG/odds quality and event-status findings.
 - `docs/PROJECT_ORACLE_CANONICAL_PREDICTION_ARCHIVE_TEAM_EXPOSURE_AUDIT_2026-10-30.md` — canonical prediction archive exposure limitations.
 - `reports/oracle-selected50-integration-release-gate-register-2026-10-30-1237-sast.md` — release gate checkpoint.
 - This runbook is the operating entry point; update it rather than starting another handover from scratch.
