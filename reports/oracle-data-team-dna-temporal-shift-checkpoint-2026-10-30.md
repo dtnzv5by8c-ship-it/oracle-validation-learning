@@ -23,6 +23,11 @@
 - `scripts/audit_selected50_xg_odds_temporal_shift.py`
 - `tests/test_selected50_xg_odds_temporal_shift.py`
 - `docs/PROJECT_ORACLE_XG_ODDS_TEMPORAL_SHIFT_AUDIT_2026-10-30.md`
+- QA #35-derived outputs were regenerated locally from artifact `12955356908`; five new unittest cases passed.
+- Updated `.github/workflows/oracle-selected50-private-archive-qa.yml` to regenerate and upload the temporal-shift JSON/CSV offline on the next QA run.
+- Updated `.github/workflows/oracle-selected50-contract-tests.yml` to compile and run the new regression tests.
+- Code/test/report commits: `17d6209d31843a4062e3ea73e1e1ec7c73abb131`, `7ba098d9c316adb3137252ce2aee36aa1f3ec43c`, `fb08a65cb9ad6fe764e60592263ce1031b91aa1c`; workflow commits: `cbc9b7375dc3a2255a656d56da0a1622ef3db7a5`, `2dbfb6fa380afbf8d90da340826d2eeac234dd90`.
+- GitHub combined-status query returned no status records for the latest workflow-configuration commit at checkpoint time; remote CI completion is not claimed.
 
 ## Limits and blockers
 
