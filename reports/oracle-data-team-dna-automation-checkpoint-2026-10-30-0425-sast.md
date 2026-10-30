@@ -1,44 +1,30 @@
-# Oracle Data & Team DNA — Research Checkpoint
+# Oracle Data & Team DNA — 200-Season Archive Checkpoint
 
 **Checkpoint:** 30 October 2026, 04:25 SAST  
-**Repository:** dtnzv5by8c-ship-it/oracle-validation-learning  
-**Branch:** research/oracle-50-league-readiness-audit  
-**Lane:** Global market/fold stability; separate from the primary H2H integrity task.
+**Branch:** research/oracle-50-league-readiness-audit
 
-## Completed this pass
+## Completed
 
-- Audited the sanitized Selected-50 aggregate walk-forward metrics: 15 market-fold rows covering five markets and three chronological folds.
-- Added a reproducible standard-library analysis script with strict source, fold chronology, sample-partition, Brier arithmetic and governance checks.
-- Added nine offline regression tests.
-- Extended the existing research safety-contract workflow to compile and execute this audit.
-- Committed a market-level summary and detailed report. No fixture-level or team-level outcomes were reconstructed.
+- Retrieved the existing sanitized ingestion ledger from run 40375285207 / artifact 12674706565.
+- Validated 50 selected groups, 200 season rows, exactly four seasons per group, 200/200 ingested, zero failed, zero unmatched and zero ambiguous selected IDs.
+- Reconciled 59,049 match rows and 3,366 team-season roster memberships.
+- Generated a 50-row league rollup and added reproducible analysis plus seven offline regression tests.
+- Updated the private archive QA workflow to use the verified existing release tag 40375285207 by default and to record the source tag in the QA output. This is a private archive read only; no provider API call is made.
 
-## Verified aggregate findings
+## Key finding
 
-Each market has 20,878 test observations across three disjoint windows. Test sizes are 6,611 / 7,600 / 6,667; training sizes expand 22,427 / 29,038 / 36,638.
+The dry-run planner's 14,051-row private QA snapshot is explicitly pre-batch-5 and superseded by the 200-season ingestion run. The identity reconciliation still points to older ingestion/QA run IDs. The new private archive QA workflow should now refresh feature coverage against the latest existing private release.
 
-| Market | Aggregate Brier skill | Positive folds | Research interpretation |
-|---|---:|---:|---|
-| DC_AWAY | +0.05400 | 3/3 | Strongest global baseline signal |
-| DC_HOME | +0.04943 | 3/3 | Positive probability-score signal; threshold accuracy is 0.29pp below majority-class baseline |
-| BTTS | +0.00536 | 3/3 | Small positive signal; materially weaker than Double Chance |
-| COMBO_AWAY | +0.01871 | 3/3 | Blocked; predictor/settlement semantics unresolved |
-| COMBO_HOME | +0.01478 | 3/3 | Blocked; predictor/settlement semantics unresolved |
+## Current blockers
 
-All outputs remain raw and uncalibrated. No profitability, team suitability or betting eligibility conclusion is supported.
-
-## Related identity-lane evidence
-
-Open draft PR #31 documents an offline FootyStats-first adapter/resolver smoke test: 50/50 selected seasons passed the source-success guard; 1,744 source rows were adapted with no duplicate season/match keys; 681 future fixtures remained after status/home-away quarantine; exact season-ID + match-ID joins found 370 runtime matches (345 raw research-only and 25 feature-blocked), with three additional candidates lacking runtime output. Zero production-eligible predictions remain. PR #31 is still draft; its body does not claim the isolated resolver CI has passed.
-
-## Outstanding blockers
-
-1. Canonical team/fixture identity is not approved merely by source-native FootyStats IDs.
-2. Official settlement truth and market definitions remain incomplete.
-3. There is no immutable team-attributed chronological prediction/outcome ledger to calculate team-specific accuracy, Brier, calibration, draw/upset/low-scoring risk or market suitability.
-4. The current artifact is aggregate-only; exact fixture-level uncertainty intervals and team-level profiles cannot be recovered from it.
-5. No Brier-skill confidence intervals or multiplicity-adjusted inference are supplied for the 150 non-Combo league-market screen.
+- Provider catalogue does not expose parent competition IDs.
+- Current-feed identity is stale and unresolved: 22 human-review candidates, 28 unresolved, zero approved.
+- Canonical fixture/team joins and official settlement truth remain zero.
+- Current fixture schedule is stale; zero governed fixtures and zero predictions are emitted.
+- No immutable team-attributed pre-kickoff prediction/verified-outcome ledger exists.
 
 ## Next action
 
-Keep DC_AWAY, DC_HOME and BTTS as research priorities only. Continue the source-neutral identity/settlement reconciliation in the existing draft research PR, then require a fresh untouched chronological prediction/settlement ledger before team-market suitability analysis. Do not access the locked H2H paired holdout, change production logic, calibrate, tune or approve betting eligibility.
+Inspect the new private archive QA run and artifact. Then update the identity snapshot reconciliation to use that exact QA run/artifact, replacing the stale 14,051-row reference. Only after that should feature completeness and team-history sample sizes be refreshed. Keep team-market performance unvalidated until canonical identity, point-in-time provenance and settlement truth are verified.
+
+**Governance:** no new provider calls or credits; no H2H paired holdout access; no production logic, frozen probabilities, calibration or governance changed.

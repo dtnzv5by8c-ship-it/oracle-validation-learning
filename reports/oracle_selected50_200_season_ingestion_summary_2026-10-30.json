@@ -1,0 +1,128 @@
+{
+  "status": "PASS_SELECTED50_SANITIZED_INGESTION_LEDGER_RECONCILIATION_RESEARCH_ONLY",
+  "source_run_id": 40375285207,
+  "source_artifact_id": 12674706565,
+  "source_private_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+  "private_archive_release_tag": "research-selected50-footystats-history-40375285207",
+  "selected_leagues": 50,
+  "historical_season_rows": 200,
+  "seasons_per_selected_group": 4,
+  "exact_selected_season_id_matches": 50,
+  "unmatched_selected_ids": 0,
+  "ambiguous_selected_ids": 0,
+  "seasons_ingested": 200,
+  "seasons_failed": 0,
+  "total_match_rows_across_seasons": 59049,
+  "mean_matches_per_season": 295.245,
+  "median_matches_per_season": 303,
+  "min_matches_per_season": 78,
+  "max_matches_per_season": 582,
+  "total_team_season_memberships": 3366,
+  "median_teams_per_season": 16,
+  "min_teams_per_season": 8,
+  "max_teams_per_season": 30,
+  "provider_season_year_token_counts": {
+    "2023": 18,
+    "2024": 18,
+    "2025": 18,
+    "2026": 17,
+    "20232024": 32,
+    "20242025": 32,
+    "20252026": 32,
+    "20262027": 33
+  },
+  "seasons_with_single_matches_page": 200,
+  "provider_parent_competition_ids_exposed": 0,
+  "provider_api_requests_in_source_ingestion_run": 57,
+  "provider_api_calls_made_by_this_audit": 0,
+  "provider_request_window_remaining_last_observed": 1743,
+  "provider_request_window_is_not_monthly_credit_proof": true,
+  "production_readiness": "NOT_GRANTED",
+  "production_model_logic_changed": false,
+  "production_probabilities_changed": false,
+  "current_private_qa_snapshot": {
+    "status": "PRE_BATCH5_QA_SNAPSHOT_SUPERSEDED_FOR_CURRENT_ARCHIVE_COVERAGE",
+    "created_at_utc": "2026-10-25T10:07:11Z",
+    "old_qa_run_id": 40183451811,
+    "old_qa_artifact_id": 12594568810,
+    "old_fixture_rows": 14051,
+    "superseding_ingestion_run_id": 40375285207,
+    "superseding_ingestion_created_at_utc": "2026-10-26T18:09:53Z"
+  },
+  "current_identity_and_fixture_gates": {
+    "crosswalk_candidate_requires_human_review": 22,
+    "crosswalk_unresolved": 28,
+    "approved_mappings": 0,
+    "canonical_fixture_joins_verified": 0,
+    "canonical_team_joins_verified": 0,
+    "official_settlement_truth_verified": 0,
+    "current_governed_fixture_rows": 0,
+    "current_prediction_rows": 0,
+    "schedule_last_fixture_date": "2026-10-17",
+    "schedule_manifest_window_end": "2026-10-22",
+    "xg_point_in_time_provenance_verified": 0,
+    "odds_point_in_time_provenance_verified": 0
+  },
+  "lowest_coverage_leagues": [
+    {
+      "country": "Canada",
+      "competition": "Canadian Premier League",
+      "match_rows": 463
+    },
+    {
+      "country": "India",
+      "competition": "Indian Super League",
+      "match_rows": 471
+    },
+    {
+      "country": "Australia",
+      "competition": "A-League",
+      "match_rows": 664
+    },
+    {
+      "country": "Finland",
+      "competition": "Veikkausliiga",
+      "match_rows": 688
+    },
+    {
+      "country": "Denmark",
+      "competition": "Superliga",
+      "match_rows": 711
+    }
+  ],
+  "highest_coverage_leagues": [
+    {
+      "country": "England",
+      "competition": "Championship",
+      "match_rows": 2224
+    },
+    {
+      "country": "England",
+      "competition": "EFL League One",
+      "match_rows": 2223
+    },
+    {
+      "country": "USA",
+      "competition": "MLS",
+      "match_rows": 2093
+    },
+    {
+      "country": "Argentina",
+      "competition": "Primera División",
+      "match_rows": 1965
+    },
+    {
+      "country": "Spain",
+      "competition": "Segunda División",
+      "match_rows": 1866
+    }
+  ],
+  "governance": {
+    "provider_api_calls_made_by_this_audit": 0,
+    "locked_h2h_paired_holdout_read": false,
+    "production_logic_changed": false,
+    "frozen_probabilities_changed": false,
+    "calibration_changed": false,
+    "betting_eligibility_approved": false
+  }
+}

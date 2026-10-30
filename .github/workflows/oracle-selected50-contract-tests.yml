@@ -68,3 +68,19 @@ jobs:
         run: python -m unittest discover -s tests -p "test_selected50_global_market_fold_stability.py" -v
       - name: Generate global market fold-stability summary
         run: python scripts/audit_selected50_global_market_fold_stability.py --root . --output "$RUNNER_TEMP/oracle-global-market-fold-summary.json"
+
+      - name: Compile 200-season ingestion ledger audit
+        run: python -m py_compile scripts/audit_selected50_ingestion_ledger_reconciliation.py
+      - name: Run 200-season ingestion ledger regression tests
+        run: python -m unittest discover -s tests -p "test_selected50_ingestion_ledger_reconciliation.py" -v
+      - name: Reconcile sanitized 200-season ingestion ledger
+        run: python scripts/audit_selected50_ingestion_ledger_reconciliation.py --ledger data/oracle_selected50_sanitized_ingestion_ledger_40375285207.json.gz --summary "$RUNNER_TEMP/oracle-selected50-200-season-summary.json" --rollup "$RUNNER_TEMP/oracle-selected50-200-season-rollup.csv"
+      - name: Upload sanitized 200-season archive rollup
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-200-season-ingestion-audit
+          path: |
+            $RUNNER_TEMP/oracle-selected50-200-season-summary.json
+            $RUNNER_TEMP/oracle-selected50-200-season-rollup.csv
+          if-no-files-found: error
+          retention-days: 14

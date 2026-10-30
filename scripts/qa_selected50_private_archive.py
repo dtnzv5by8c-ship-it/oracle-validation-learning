@@ -7,6 +7,7 @@ from pathlib import Path
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
 OUT = Path(os.environ.get("ORACLE_QA_OUT", "selected50_archive_qa"))
+SOURCE_TAG = os.environ.get("ORACLE_ARCHIVE_SOURCE_TAG", "UNSPECIFIED")
 
 def read_json(z, name):
     try:
@@ -395,6 +396,7 @@ def main():
     report = {
         "status": "QA_COMPLETE_REVIEW_REQUIRED",
         "scope": "private FootyStats archive; no raw payload exported",
+        "archive_release_tag": SOURCE_TAG,
         "audit_date_utc": audit_date.isoformat(),
         "archive_sha256": hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(),
         "selected_leagues_in_manifest": len(selected),
@@ -480,7 +482,7 @@ def main():
         fields = list(group_coverage_rows[0]) if group_coverage_rows else ["country", "competition_name"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(group_coverage_rows)
     print(json.dumps({k: report[k] for k in (
-        "status","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
+        "status","archive_release_tag","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",
         "season_rows_with_ingested_status","season_rows_not_ingested","total_match_records",
         "match_records_with_id","match_records_with_date","match_records_with_both_parseable_scores",
