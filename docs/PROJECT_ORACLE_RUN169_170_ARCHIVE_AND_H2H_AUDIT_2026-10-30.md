@@ -154,3 +154,18 @@ Additional commits:
 - Report committed: `bde748f4fda9211d66ab1cdce0457412b68f6976`; row-count clarification: `025a061547294595380526dfd6df605a42942ca0`.
 
 The full historical runtime has not yet been rerun against archive 40447419806. The next required manual action remains dispatching the Selected-50 Research Runtime with snapshot overlay disabled and verifying the output provenance tag and SHA before reading refreshed metrics.
+
+
+### Completed pinned-archive QA evidence
+
+Private Archive QA #32 completed successfully on 2026-10-30. The uploaded artifact's `selected50_archive_qa.json` records:
+- `archive_release_tag=research-selected50-footystats-history-40447419806`;
+- `archive_sha256=af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875`;
+- 50 selected league groups and 200/200 ingested season rows;
+- 59,049 total match records;
+- 22,291 primary-window records (20 March 2025–20 September 2026);
+- 22,256 explicitly complete primary-window records;
+- 35 non-complete primary-window records with 0-0 score pairs;
+- zero duplicate provider match IDs across season rows.
+
+Run #32 is archive-level QA only. It does not produce the updated H2H paired model comparison or establish official settlement truth.
