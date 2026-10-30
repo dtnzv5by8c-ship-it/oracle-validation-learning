@@ -25,6 +25,8 @@ on:
       - "tests/test_selected50_xg_odds_mask_audit.py"
       - "scripts/audit_selected50_xg_odds_temporal_shift.py"
       - "tests/test_selected50_xg_odds_temporal_shift.py"
+      - "scripts/audit_selected50_xg_odds_crossscope_reconciliation.py"
+      - "tests/test_selected50_xg_odds_crossscope_reconciliation.py"
 
 permissions:
   contents: read
@@ -158,6 +160,11 @@ jobs:
           set -euo pipefail
           python scripts/audit_selected50_xg_odds_temporal_shift.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_temporal_shift
 
+      - name: Build cross-scope xG and odds reconciliation (offline)
+        run: |
+          set -euo pipefail
+          python scripts/audit_selected50_xg_odds_crossscope_reconciliation.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_crossscope
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -180,6 +187,10 @@ jobs:
             selected50_archive_qa/xg_odds_audit/oracle_selected50_belgium_odds_pair_masks.csv
             selected50_archive_qa/xg_temporal_shift/oracle_selected50_xg_temporal_shift_summary.json
             selected50_archive_qa/xg_temporal_shift/oracle_selected50_xg_current_vs_historical_by_league.csv
+            selected50_archive_qa/xg_crossscope/oracle_selected50_xg_odds_crossscope_summary.json
+            selected50_archive_qa/xg_crossscope/oracle_selected50_xg_current_vs_noncurrent_all_groups.csv
+            selected50_archive_qa/xg_crossscope/oracle_selected50_current_season_market_field_zero_rates.csv
+            selected50_archive_qa/xg_crossscope/oracle_selected50_belgium_vs_rest_market_zero_rates.csv
             selected50_archive_qa/selected50_zero_cooccurrence_by_season.csv
           if-no-files-found: error
           retention-days: 14
