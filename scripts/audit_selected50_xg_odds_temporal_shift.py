@@ -20,6 +20,7 @@ from pathlib import Path
 XG_FIELDS = ("team_a_xg_prematch", "team_b_xg_prematch", "total_xg_prematch")
 MIN_SAMPLE = 30
 ZERO_THRESHOLD_PCT = 30.0
+EXPECTED_ARCHIVE_SHA256 = "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f"
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -334,7 +335,7 @@ def main() -> None:
     xg_rates = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_current_season_prematch_xg_zero_rates.csv")
     belgium_rates = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_belgium_odds_season_comparison.csv")
     belgium_pairs = read_csv(args.input_dir / "xg_odds_audit/oracle_selected50_belgium_odds_pair_masks.csv")
-    if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+    if qa.get("archive_sha256") != EXPECTED_ARCHIVE_SHA256:
         raise ValueError("Unexpected archive SHA; do not silently change the pinned research source.")
     if not numeric or not xg_rates or not belgium_rates or not belgium_pairs:
         raise ValueError("Required sanitized QA outputs are missing or empty.")
