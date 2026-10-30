@@ -1,1 +1,83 @@
-<RUN3_CHECKPOINT_CONTENT>
+{
+  "generated_sast": "2026-10-31T01:19:17+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "previous_checkpoint": "reports/oracle_selected50_team_h2h_dna_stability_checkpoint_2026-10-31.json",
+  "incremental_scope": "TEAM_H2H_MARKET_RELIABILITY_WILSON_INTERVALS_AND_RECENCY",
+  "sources": {
+    "run64_archive_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+    "full_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+    "runtime_run_id": "41119141526",
+    "runtime_artifact_id": "13006609602",
+    "snapshot_run_id": "41117910952",
+    "snapshot_artifact_id": "13005239530",
+    "bridge_audit_run_id": "41121900062",
+    "bridge_audit_artifact_id": "13009350718",
+    "ranking_qa": "reports/repo_oracle_selected50_ranking_qa_2026-10-31-0108.csv",
+    "ranking_qa_blob_sha": "2632c37d751964e68bb54c5063d9ef28412eeee7"
+  },
+  "coverage": {
+    "profiled_groups": 31,
+    "governed_groups": 50,
+    "unprofiled_groups": 19,
+    "fixtures": 23328,
+    "unique_fixture_ids": 23328,
+    "duplicate_fixture_rows": 0,
+    "no_home_away": 2603,
+    "venue_valid": 20725,
+    "hash_coverage_pct": 100
+  },
+  "team_h2h": {
+    "team_profiles": 732,
+    "provider_team_ids_reused_across_groups": 58,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "h2h_pairs_8_plus": 159,
+    "h2h_pairs_lt8": 7029,
+    "team_high_three_window": 13,
+    "team_low_three_window": 7,
+    "h2h_high_persistent": 9,
+    "h2h_low_persistent": 6,
+    "team_market_rows": 2120,
+    "h2h_market_rows": 7188,
+    "h2h_recency_rows": 7188
+  },
+  "ranking_currentness": {
+    "candidates_per_market": 319,
+    "top50_quarantined": 0,
+    "top50_kickoff_mismatches": 0,
+    "row_level_top50_export_available": false,
+    "elapsed_excluded_fixture_ids": [
+      8409576,
+      8432243,
+      8432245
+    ],
+    "kickoff_mismatch_fixture_ids": [
+      8620566,
+      8620618,
+      8620625
+    ]
+  },
+  "outputs": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_Team_H2H_Market_Reliability.xlsx",
+    "workbook_sha256": "75774dcf45d8228d4a3f403a2b6a7c6200631603830a4420897dd236be808df9",
+    "workbook_size_bytes": 11671405,
+    "sheet_count": 55,
+    "note": "PROJECT_ORACLE_TEAM_H2H_DNA_RUN3_MARKET_RELIABILITY_2026-10-31-0119-SAST.md",
+    "summary_csv": "oracle_selected50_team_h2h_run3_summary_2026-10-31-0119.csv",
+    "candidate_exports": [
+      "reports/oracle_selected50_team_scoring_candidates_run3_2026-10-31.csv",
+      "reports/oracle_selected50_h2h_scoring_candidates_run3_2026-10-31.csv"
+    ]
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "next_step": "Read-only recovery of raw JSON for remaining 19 groups; attach row-level 01:08 Top 50 export before replacing superseded ranking tabs.",
+  "summary_note_correction": "Team Market Tendencies contains ALL-scope team/window rows; HOME/AWAY rates remain in Team Venue DNA and home-away deltas are included in the tendencies tab."
+}
