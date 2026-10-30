@@ -84,6 +84,10 @@ def run(archive, manifest, out):
     audit_date = dt.datetime.now(dt.timezone.utc).date()
     group_rows = defaultdict(list)
     season_rows = defaultdict(list)
+    group_past_rows = defaultdict(list)
+    group_future_rows = defaultdict(list)
+    season_past_rows = defaultdict(list)
+    season_future_rows = defaultdict(list)
     group_undated = Counter()
     season_undated = Counter()
     season_meta = {}
@@ -123,8 +127,16 @@ def run(archive, manifest, out):
                     continue
                 year = int(day[:4])
                 if year in YEARS:
-                    group_rows[(group[0], group[1], year)].append(row)
-                    season_rows[(sid, year)].append(row)
+                    group_key = (group[0], group[1], year)
+                    season_key = (sid, year)
+                    group_rows[group_key].append(row)
+                    season_rows[season_key].append(row)
+                    if parsed <= audit_date:
+                        group_past_rows[group_key].append(row)
+                        season_past_rows[season_key].append(row)
+                    else:
+                        group_future_rows[group_key].append(row)
+                        season_future_rows[season_key].append(row)
     group_out, season_out = [], []
     for (country, competition), selected_sid in sorted(groups.items()):
         seasons_for_group = [sid for sid, m in season_meta.items() if (m["country"], m["competition_name"]) == (country, competition)]
@@ -149,6 +161,8 @@ def run(archive, manifest, out):
                 "status_counts_on_or_before_audit_date_json": json.dumps(asof_summary["status_counts"], sort_keys=True),
                 "status_counts_after_audit_date_json": json.dumps(future_summary["status_counts"], sort_keys=True),
                 "field_quality_json": json.dumps(s["field_quality"], sort_keys=True),
+                "field_quality_on_or_before_audit_date_json": json.dumps(summarize(group_past_rows[(country, competition, year)], audit_date)["field_quality"], sort_keys=True),
+                "field_quality_after_audit_date_json": json.dumps(summarize(group_future_rows[(country, competition, year)], audit_date)["field_quality"], sort_keys=True),
                 "field_quality_on_or_before_audit_date_json": json.dumps(asof_summary["field_quality"], sort_keys=True),
                 "field_quality_after_audit_date_json": json.dumps(future_summary["field_quality"], sort_keys=True),
                 "complete_status_rows_on_or_before_audit_date": len(rows_complete_asof),
@@ -203,6 +217,7 @@ def run(archive, manifest, out):
         "total_rows_by_year": {str(y): sum(r["match_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
         "kickoff_rows_on_or_before_audit_date_by_year": {str(y): sum(r["kickoff_on_or_before_audit_date_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
         "kickoff_rows_after_audit_date_by_year": {str(y): sum(r["kickoff_after_audit_date_rows"] for r in group_out if r["calendar_year"] == y) for y in YEARS},
+        "field_quality_temporal_split": "Each league-year and season-year row now carries separate numeric field-quality masks for kickoff on/before the audit date and kickoff after the audit date.",
         "limitations": [
             "Calendar-year counts are provider archive rows grouped by exact selected country and competition labels; they are not canonical fixture counts.",
             "Provider status is reported, not converted into official settlement truth.",
