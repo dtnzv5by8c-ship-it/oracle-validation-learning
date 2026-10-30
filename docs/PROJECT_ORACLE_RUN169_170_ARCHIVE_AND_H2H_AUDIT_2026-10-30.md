@@ -115,7 +115,7 @@ Run #170 output contract:
 - 426 future fixture candidates;
 - 401 research predictions;
 - 25 fixtures blocked for missing required features;
-- 2,130 prediction rows (401 × 5 markets plus the report's market structure);
+- 2,130 report rows across 426 fixture candidates × 5 markets; 401 fixtures had research predictions available and 25 were blocked;
 - Combo probabilities fully masked;
 - production eligibility false;
 - betting eligibility false.
