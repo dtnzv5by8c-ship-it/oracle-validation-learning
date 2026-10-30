@@ -1,0 +1,230 @@
+{
+  "generated_at_sast": "2026-10-31T01:08:58+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_League_Market_DNA_Chronology.xlsx",
+  "workbook_sha256": "49ef465fc2d13e92e327dfe85c30af6cc02416cb5961729a86e9c1cb8b83e337",
+  "workbook_size_bytes": 274339,
+  "sheet_count": 24,
+  "sheets": [
+    "Executive Summary",
+    "Market Backtest",
+    "Walk Forward Folds",
+    "League Market Readiness",
+    "Schedule Coverage",
+    "Calendar Year Coverage",
+    "Fixture Intelligence",
+    "Exceptions & Gates",
+    "Definitions",
+    "League DNA",
+    "Market Feature Strategy",
+    "League Market Summary",
+    "League Year Coverage",
+    "League Market Suitability",
+    "Current Ranking QA",
+    "Top 50 BTTS",
+    "Top 50 DC Home",
+    "Top 50 DC Away",
+    "League Scoring DNA Availability",
+    "Kickoff Chronology Exceptions",
+    "Feature Lag Sensitivity",
+    "Top 3 Raw Probabilities",
+    "Research Evidence Register",
+    "Team & H2H Evidence"
+  ],
+  "sources": {
+    "archive": {
+      "release": "research-selected50-footystats-history-40375285207",
+      "sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+      "groups": 50,
+      "season_folders": 200,
+      "rows": 59049
+    },
+    "snapshot": {
+      "run_id": 41117910952,
+      "artifact_id": 13005239530,
+      "retrieved_utc": "2026-10-30T19:46:39.708942+00:00"
+    },
+    "runtime": {
+      "run_id": 41119141526,
+      "run_number": 176,
+      "artifact_id": 13006609602,
+      "rows": 426,
+      "raw_predictions": 403,
+      "feature_blocked": 23
+    },
+    "bridge": {
+      "run_id": 41121900062,
+      "audit_number": 12,
+      "artifact_id": 13009350718,
+      "exact_runtime_rows": 426,
+      "seven_day_matches": 344,
+      "seven_day_candidates": 347,
+      "unmatched": 3
+    }
+  },
+  "league_dna": {
+    "selected_groups": 50,
+    "league_year_rows": 150,
+    "supplementary_score_groups": 31,
+    "supplementary_score_groups_unavailable": 19,
+    "supplementary_completed_dated_score_rows": 23328,
+    "calendar_2024": {
+      "full": 4,
+      "partial": 27,
+      "unavailable": 19
+    },
+    "calendar_2025": {
+      "full": 31,
+      "unavailable": 19
+    },
+    "calendar_2026_through_2026_09_20": {
+      "full": 31,
+      "unavailable": 19
+    },
+    "numeric_per_league_rate_table_retrieved": false,
+    "rate_fields": [
+      "mean_total_goals",
+      "home_win_rate",
+      "draw_rate",
+      "away_win_rate",
+      "btts_rate",
+      "over_1_5_rate",
+      "over_2_5_rate",
+      "over_3_5_rate",
+      "clean_sheet_rate",
+      "home_failed_to_score_rate",
+      "away_failed_to_score_rate"
+    ]
+  },
+  "market_suitability": {
+    "league_market_rows": 150,
+    "repeatable_positive_skill": 26,
+    "leagues_with_repeatable_market": 17,
+    "positive_skill_calibration_warning": 13,
+    "mixed_brier_skill": 47,
+    "insufficient_sample_or_metric": 60,
+    "no_positive_brier_skill": 4,
+    "repeatable_by_market": {
+      "BTTS": 2,
+      "DC_HOME": 11,
+      "DC_AWAY": 13
+    }
+  },
+  "rankings": {
+    "asof_sast": "2026-10-31T01:08:58+02:00",
+    "current_rankable_candidates_per_market": 319,
+    "rankable_selected_groups": 37,
+    "top50_rows_per_market": 50,
+    "top50_distinct_leagues": {
+      "BTTS": 23,
+      "DC_HOME": 27,
+      "DC_AWAY": 28
+    },
+    "top50_quarantined": {
+      "BTTS": 0,
+      "DC_HOME": 0,
+      "DC_AWAY": 0
+    },
+    "top50_kickoff_mismatches": {
+      "BTTS": 0,
+      "DC_HOME": 0,
+      "DC_AWAY": 0
+    },
+    "raw_uncalibrated": true,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "chronology": {
+    "snapshot_runtime_kickoff_mismatches": 21,
+    "previously_quarantined_or_blocked": 18,
+    "new_rankable_mismatch_exclusions": 3,
+    "already_started_by_0108_sast": 3,
+    "new_mismatch_fixture_ids": [
+      "8620566",
+      "8620618",
+      "8620625"
+    ],
+    "elapsed_fixture_ids": [
+      "8409576",
+      "8432243",
+      "8432245"
+    ]
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "ingestion_snapshot_runtime_bridge_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "repository_csvs": {
+    "top50_btts": {
+      "file": "repo_oracle_selected50_top50_btts_2026-10-31-0108.csv",
+      "sha256": "84cbad5beb47f3e122b6b9c1371bb9c8c070fc9e04a107373c6aa0a35bcafa88",
+      "bytes": 10161
+    },
+    "top50_dc_home": {
+      "file": "repo_oracle_selected50_top50_dc_home_2026-10-31-0108.csv",
+      "sha256": "9b3ab9d0507588265ec1a6b391e0ce9e3cfe26f2a7dd772f2eafd0ed03eea7e5",
+      "bytes": 10408
+    },
+    "top50_dc_away": {
+      "file": "repo_oracle_selected50_top50_dc_away_2026-10-31-0108.csv",
+      "sha256": "1a0c4908be8f210944b60434981e478db8222b502fde28f5875e7e5421737eaf",
+      "bytes": 10421
+    },
+    "score_coverage": {
+      "file": "repo_oracle_selected50_score_coverage_2026-10-31-0108.csv",
+      "sha256": "58f7f146d54d0bd7b278ef1e5adbea90ab445a8195fbf18c11f4c2862afd8f3c",
+      "bytes": 19182
+    },
+    "market_suitability": {
+      "file": "repo_oracle_selected50_market_suitability_2026-10-31-0108.csv",
+      "sha256": "7725cb834c55cc22750a7c3753c8c62af2ee62c8a01b93d89eaceb439bdb9ccd",
+      "bytes": 18179
+    },
+    "chronology_exceptions": {
+      "file": "repo_oracle_selected50_kickoff_exceptions_2026-10-31-0108.csv",
+      "sha256": "08d8560c78cba86ccbf6b6ff479b43ee267c70662251ec6c6752681dc3179501",
+      "bytes": 8134
+    },
+    "lag_sensitivity": {
+      "file": "repo_oracle_selected50_feature_lag_sensitivity_2026-10-31-0108.csv",
+      "sha256": "7f7a2606c753a4399d30b3dabc1c794b8f6b8106be042ec5108c648ae9c27e60",
+      "bytes": 3587
+    },
+    "ranking_qa": {
+      "file": "repo_oracle_selected50_ranking_qa_2026-10-31-0108.csv",
+      "sha256": "f27cde99785b18f1614c419e05a5f0abf6bcfa15b392f5bc3a716bd98d5df01d",
+      "bytes": 681
+    },
+    "top3": {
+      "file": "repo_oracle_selected50_top3_raw_2026-10-31-0108.csv",
+      "sha256": "4f3a9d00629fee3f1c4f6acb0ab37b5fbdc7501002e1ede112cf819de0ff35b7",
+      "bytes": 1770
+    }
+  },
+  "note": "ORACLE_SELECTED50_LEAGUE_MARKET_DNA_UPDATE_2026-10-31-0108-SAST.md",
+  "team_h2h_evidence": {
+    "team_profiles": 732,
+    "exact_id_groups": 31,
+    "unavailable_groups": 19,
+    "h2h_pair_profiles": 7188,
+    "completed_h2h_meetings": 23328,
+    "primary_holdout_paired_fixtures": 19991,
+    "primary_holdout_h2h_coverage_pct": 95.75,
+    "chronological_qa_market_rows": 99955,
+    "integrity_failures": 0,
+    "accuracy_delta_pp": {
+      "BTTS": 0.12,
+      "DC_HOME": 0.095,
+      "DC_AWAY": -0.03,
+      "COMBO_HOME": -0.03,
+      "COMBO_AWAY": 0.01
+    },
+    "team_market_edge_approved": false
+  },
+  "note_sha256": "a6fe9a5a62ed3742daa3ee8bb4edfc38f47ab6ecd743622f98da8fefd1f82271"
+}
