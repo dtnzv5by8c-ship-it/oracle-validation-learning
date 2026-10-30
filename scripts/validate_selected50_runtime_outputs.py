@@ -10,6 +10,7 @@ import csv
 import json
 import math
 from collections import Counter
+from fractions import Fraction
 from pathlib import Path
 
 OUT = Path("selected50_runtime_output")
@@ -52,6 +53,18 @@ def number(row, key, *, low=None, high=None, allow_none=False):
     return result
 
 
+def exact_mcnemar_two_sided_p(candidate_only_correct: int, baseline_only_correct: int) -> float:
+    """Exact two-sided McNemar/binomial p-value for paired 0.5-threshold correctness."""
+    if candidate_only_correct < 0 or baseline_only_correct < 0:
+        raise ValueError("discordant counts must be non-negative")
+    discordant = candidate_only_correct + baseline_only_correct
+    if discordant == 0:
+        return 1.0
+    tail_count = min(candidate_only_correct, baseline_only_correct)
+    tail = sum(math.comb(discordant, i) for i in range(tail_count + 1))
+    return min(1.0, float(Fraction(2 * tail, 2 ** discordant)))
+
+
 
 def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_qa):
     """Fail closed on paired H2H evidence, chronology, fold and governance contracts."""
@@ -62,6 +75,7 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
     assert len({row.get("market") for row in market_rows}) == len(MARKETS)
 
     paired_counts = Counter()
+    correctness_counts = {market: Counter() for market in MARKETS}
     seen_pairs = set()
     for row in paired_rows:
         fixture_id = str(row.get("fixture_id") or "").strip()
@@ -72,8 +86,27 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         seen_pairs.add(key)
         paired_counts[market] += 1
         assert str(row.get("actual")) in {"0", "1"}
-        number(row, "baseline_probability", low=0, high=1)
-        number(row, "h2h_candidate_probability", low=0, high=1)
+        actual = int(row["actual"])
+        baseline_probability = number(row, "baseline_probability", low=0, high=1)
+        candidate_probability = number(row, "h2h_candidate_probability", low=0, high=1)
+        try:
+            baseline_correct = int(row.get("baseline_correct"))
+            candidate_correct = int(row.get("h2h_candidate_correct"))
+        except (TypeError, ValueError, OverflowError):
+            raise AssertionError("paired correctness flags must be integer 0/1 values") from None
+        assert baseline_correct in {0, 1} and candidate_correct in {0, 1}
+        expected_baseline_correct = int((baseline_probability >= 0.5) == bool(actual))
+        expected_candidate_correct = int((candidate_probability >= 0.5) == bool(actual))
+        assert baseline_correct == expected_baseline_correct, "baseline_correct does not reconcile to actual/probability"
+        assert candidate_correct == expected_candidate_correct, "h2h_candidate_correct does not reconcile to actual/probability"
+        if baseline_correct and candidate_correct:
+            correctness_counts[market]["both_correct"] += 1
+        elif not baseline_correct and not candidate_correct:
+            correctness_counts[market]["both_wrong"] += 1
+        elif candidate_correct:
+            correctness_counts[market]["candidate_only_correct"] += 1
+        else:
+            correctness_counts[market]["baseline_only_correct"] += 1
 
     for row in market_rows:
         market = row["market"]
@@ -95,6 +128,25 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
             number(row, field, low=0)
         for field in ("baseline_auc", "candidate_auc"):
             number(row, field, low=0, high=1, allow_none=True)
+
+    paired_correctness_comparison = {}
+    for market in sorted(MARKETS):
+        counts = correctness_counts[market]
+        candidate_only = counts["candidate_only_correct"]
+        baseline_only = counts["baseline_only_correct"]
+        paired_n = paired_counts[market]
+        assert sum(counts.values()) == paired_n, (market, counts, paired_n)
+        discordant = candidate_only + baseline_only
+        paired_correctness_comparison[market] = {
+            "paired_n": paired_n,
+            "both_correct": counts["both_correct"],
+            "both_wrong": counts["both_wrong"],
+            "candidate_only_correct": candidate_only,
+            "baseline_only_correct": baseline_only,
+            "discordant_pairs": discordant,
+            "exact_mcnemar_p_two_sided": round(exact_mcnemar_two_sided_p(candidate_only, baseline_only), 10),
+            "test": "EXACT_TWO_SIDED_MCNEMAR_AT_FIXED_0_5_THRESHOLD_UNADJUSTED",
+        }
 
     folds = expanding.get("folds", [])
     expected_fold_names = {
@@ -130,6 +182,8 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         "paired_fixture_count": int(chronology_qa.get("unique_fixture_count") or 0),
         "market_count": len(market_rows),
         "expanding_window_rows": len(folds),
+        "paired_correctness_comparison": paired_correctness_comparison,
+        "paired_correctness_interpretation": "Unadjusted exact paired test of 0.5-threshold correctness only; not a probability-quality, calibration, ROI, or betting-edge test.",
         "production_eligible": False,
         "betting_eligible": False,
     }

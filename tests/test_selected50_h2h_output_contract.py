@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.validate_selected50_runtime_outputs import MARKETS, validate_h2h_comparison_outputs
+from scripts.validate_selected50_runtime_outputs import MARKETS, exact_mcnemar_two_sided_p, validate_h2h_comparison_outputs
 
 
 FOLD_STARTS = {
@@ -43,6 +43,8 @@ def valid_inputs():
             "actual": "1",
             "baseline_probability": "0.60",
             "h2h_candidate_probability": "0.61",
+            "baseline_correct": "1",
+            "h2h_candidate_correct": "1",
         })
         for fold, (start, end) in FOLD_STARTS.items():
             expanding_rows.append({
@@ -101,6 +103,50 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             validate_h2h_comparison_outputs(*inputs)
 
+
+
+    def test_correctness_flags_must_reconcile_to_probabilities(self):
+        inputs = list(valid_inputs())
+        inputs[2][0]["baseline_correct"] = "0"
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_exact_mcnemar_p_value_known_counts(self):
+        self.assertAlmostEqual(exact_mcnemar_two_sided_p(4, 1), 0.375, places=12)
+        self.assertAlmostEqual(exact_mcnemar_two_sided_p(68, 49), 0.0956727150, places=9)
+        self.assertEqual(exact_mcnemar_two_sided_p(0, 0), 1.0)
+        with self.assertRaises(ValueError):
+            exact_mcnemar_two_sided_p(-1, 2)
+
+    def test_paired_discordance_summary_reconciles_and_is_unadjusted(self):
+        inputs = list(valid_inputs())
+        for row in inputs[0]["markets"]:
+            row["paired_test_n"] = 5
+        paired = []
+        for market in sorted(MARKETS):
+            for index in range(4):
+                paired.append({
+                    "fixture_id": f"C{index}", "market": market, "actual": "1",
+                    "baseline_probability": "0.40", "h2h_candidate_probability": "0.60",
+                    "baseline_correct": "0", "h2h_candidate_correct": "1",
+                })
+            paired.append({
+                "fixture_id": "B", "market": market, "actual": "1",
+                "baseline_probability": "0.60", "h2h_candidate_probability": "0.40",
+                "baseline_correct": "1", "h2h_candidate_correct": "0",
+            })
+        inputs[2] = paired
+        inputs[3]["row_count"] = 25
+        inputs[3]["unique_fixture_count"] = 5
+        result = validate_h2h_comparison_outputs(*inputs)
+        for market in MARKETS:
+            comparison = result["paired_correctness_comparison"][market]
+            self.assertEqual(comparison["candidate_only_correct"], 4)
+            self.assertEqual(comparison["baseline_only_correct"], 1)
+            self.assertEqual(comparison["discordant_pairs"], 5)
+            self.assertEqual(comparison["exact_mcnemar_p_two_sided"], 0.375)
+            self.assertIn("UNADJUSTED", comparison["test"])
+        self.assertIn("not a probability-quality", result["paired_correctness_interpretation"])
 
 if __name__ == "__main__":
     unittest.main()
