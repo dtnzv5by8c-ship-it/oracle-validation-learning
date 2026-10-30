@@ -13,17 +13,17 @@ on:
       snapshot_run_id:
         description: "Successful existing current-fixture snapshot workflow run ID"
         required: true
-        default: "40734991542"
+        default: "41047637730"
         type: string
       runtime_run_id:
         description: "Successful existing Selected-50 runtime/backtest workflow run ID"
         required: true
-        default: "40816899941"
+        default: "41048461091"
         type: string
       report_horizon_days:
         description: "Report-only horizon; runtime generation remains capped at seven days"
         required: true
-        default: "13"
+        default: "7"
         type: choice
         options:
           - "7"
@@ -62,8 +62,8 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          SNAPSHOT_RUN_ID: ${{ github.event.inputs.snapshot_run_id || '40734991542' }}
-          RUNTIME_RUN_ID: ${{ github.event.inputs.runtime_run_id || '40816899941' }}
+          SNAPSHOT_RUN_ID: ${{ github.event.inputs.snapshot_run_id || '41047637730' }}
+          RUNTIME_RUN_ID: ${{ github.event.inputs.runtime_run_id || '41048461091' }}
         run: |
           set -euo pipefail
           [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" ]] || { echo "::error::Research branch only."; exit 1; }
@@ -159,7 +159,7 @@ jobs:
       - name: Build 13-day reporting assessment without extending runtime generation
         shell: bash
         env:
-          REPORT_HORIZON_DAYS: ${{ github.event.inputs.report_horizon_days || '13' }}
+          REPORT_HORIZON_DAYS: ${{ github.event.inputs.report_horizon_days || '7' }}
           AS_OF_UTC: ${{ github.event.inputs.as_of_utc || '' }}
           MINIMUM_LEAD_MINUTES: ${{ github.event.inputs.minimum_lead_minutes || '15' }}
         run: |
