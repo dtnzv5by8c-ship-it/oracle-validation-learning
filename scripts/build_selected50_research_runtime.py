@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import brier_score_loss, log_loss, accuracy_score, roc_auc_score
 
 from record_selected50_archive_consumption import write_archive_consumption_receipt
+from audit_selected50_h2h_paired_chronology import audit_h2h_paired_predictions
 
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
@@ -957,6 +958,7 @@ def main():
                         "h2h_candidate_probability":round(cprob,8),"h2h_prior_n":r.get("h2h_prior_n"),
                         "h2h_btts_rate_last5":r.get("h2h_btts_rate_last5"),
                         "h2h_avg_total_goals_last5":r.get("h2h_avg_total_goals_last5"),
+                        "h2h_last_date_utc":r.get("h2h_last_date_utc",""),
                         "h2h_days_since_last":r.get("h2h_days_since_last"),
                         "baseline_correct":int((bprob>=0.5)==bool(label)),
                         "h2h_candidate_correct":int((cprob>=0.5)==bool(label))})
@@ -1052,9 +1054,15 @@ def main():
         h2h_csv_path=OUT/"oracle_selected50_h2h_paired_predictions.csv"
         h2h_columns=["fixture_id","date_utc","competition_id","league","home_team","away_team","market","actual",
             "baseline_probability","h2h_candidate_probability","h2h_prior_n","h2h_btts_rate_last5",
-            "h2h_avg_total_goals_last5","h2h_days_since_last","baseline_correct","h2h_candidate_correct"]
+            "h2h_avg_total_goals_last5","h2h_last_date_utc","h2h_days_since_last","baseline_correct","h2h_candidate_correct"]
         with h2h_csv_path.open("w",newline="",encoding="utf-8") as h2h_file:
             writer=csv.DictWriter(h2h_file,fieldnames=h2h_columns);writer.writeheader();writer.writerows(h2h_fixture_rows)
+        h2h_paired_chronology_qa = audit_h2h_paired_predictions(h2h_fixture_rows, MARKETS.keys())
+        (OUT/"oracle_selected50_h2h_paired_chronology_qa.json").write_text(
+            json.dumps(h2h_paired_chronology_qa, indent=2) + "\\n", encoding="utf-8"
+        )
+        if h2h_paired_chronology_qa["status"] != "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY":
+            raise SystemExit("H2H paired prediction chronology/integrity audit failed; fail closed.")
         # Decision report horizon: next seven days only. Exclude fixtures with less than 15 minutes of lead time.
         report_start=NOW+15*60
         report_end=NOW+7*24*60*60
@@ -1575,7 +1583,7 @@ def main():
             "limitations":["This is an isolated research/challenger runtime, not the production engine.",
              "Recent form is computed from the last five completed home matches for the home team and away matches for the away team, strictly before kickoff.",
              "Historical validation includes a locked primary temporal holdout and additional expanding-window walk-forward folds; no hyperparameter selection or calibration is applied.",
-             "H2H is descriptive only and not a model feature. Current team table positions are display-only snapshots, not historical standings.",
+             "H2H is excluded from the baseline and production model; four H2H features are evaluated only in the isolated paired research ablation. Current team table positions are display-only snapshots, not historical standings.",
              "xG and odds are not used as model features because their semantic and point-in-time provenance is not verified.",
              "Official FootyStats API docs define the match-record competition_id field as the league season ID and the league-list endpoint documents a unique ID per season. The 50/50 live match-record equality therefore confirms a season-ID relationship, not a parent competition ID or Oracle canonical league/fixture/team join.",
              "The 14,051-row first-page audit measures provider fixture-ID uniqueness and status/field presence only; score fields on incomplete/suspended rows are not settlement truth.",
