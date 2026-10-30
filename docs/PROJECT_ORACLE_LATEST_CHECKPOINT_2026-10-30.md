@@ -11,7 +11,8 @@
 - Safety Contract Tests run #487: PASS (run `41112970222`).
 - Dry-Run Planner run #767: PASS (run `41112970242`).
 - The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 passed against the corrected checksum.
-- Backup branch created: `backup/oracle-50-readiness-2026-10-30-98af1f7`
+- Initial backup branch: `backup/oracle-50-readiness-2026-10-30-98af1f7`.
+- Latest validated recovery branch: `backup/oracle-50-qa58-2026-10-30`, snapshot commit `ed46c93043591944d1901c83f040f879fe9f786b` (taken after QA #58 and exact 2024 onward coverage report).
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
 - Runbook commit: `23fa143407cb746f17be18f568f4f99abb0de677`
@@ -86,3 +87,5 @@ Latest runbook refresh commit: `25d3272a93fa32f8f9b70c2a05c1c3c919ca7fe3`.
 
 Latest exact annual coverage report commit: `b2b7c09418c685d2fc00a20447a3fcaf6a9e4d64`.
 Latest runbook refresh commit: `f59af9fad3b11e49895298f560cb6d5547986b57`.
+
+Latest runbook commit after recovery-branch record: `a4d7a79f536aa686182ead10607f3927b795b1f6`.
