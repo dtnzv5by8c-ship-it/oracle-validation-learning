@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Build research-only team/league DNA from existing chronological OOS outputs.
 
-Reads an existing oracle-football-data checkout. No network/provider calls,
-H2H inputs, production writes, probability changes, or governance changes.
+The pinned source OOS target is a score-derived research label, not official
+bookmaker settlement truth. Outputs are exploratory and cannot certify
+production/team-market suitability. No provider calls, H2H inputs, production
+writes, probability changes, or governance changes are performed.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -13,6 +16,8 @@ import numpy as np
 import pandas as pd
 
 ALLOWED_MARKETS = {"BTTS", "DC_HOME", "DC_AWAY", "COMBO_HOME", "COMBO_AWAY", "M1UP_HOME", "M1UP_AWAY"}
+LABEL_PROVENANCE = "SCORE_DERIVED_RESEARCH_LABEL_NOT_OFFICIAL_SETTLEMENT"
+OFFICIAL_SETTLEMENT_VERIFIED = False
 
 
 def wilson(hits: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -23,6 +28,14 @@ def wilson(hits: int, n: int, z: float = 1.96) -> tuple[float, float]:
     c = (p + z*z/(2*n)) / d
     w = z * math.sqrt(p*(1-p)/n + z*z/(4*n*n)) / d
     return max(0.0, c-w), min(1.0, c+w)
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def build_profiles(oos: pd.DataFrame, matches: pd.DataFrame, min_sample: int = 30):
@@ -87,7 +100,10 @@ def build_profiles(oos: pd.DataFrame, matches: pd.DataFrame, min_sample: int = 3
             "brier": float(np.mean((p-y)**2)),
             "log_loss": float(-np.mean(y*np.log(p)+(1-y)*np.log(1-p))),
             "sample_status": "INSUFFICIENT" if n < 8 else "DEVELOPING" if n < min_sample else "SCREENING_SAMPLE",
-            "candidate_discordant_for_review": bool(n >= min_sample and not (lo <= mean_p <= hi)),
+            "label_provenance": LABEL_PROVENANCE,
+            "official_settlement_verified": OFFICIAL_SETTLEMENT_VERIFIED,
+            "exploratory_discordance_flag": bool(n >= min_sample and not (lo <= mean_p <= hi)),
+            "discordance_status": "EXPLORATORY_ONLY_NOT_SETTLEMENT_VALIDATED",
         })
         cut = len(g) // 2
         earlier, later = g.iloc[:cut], g.iloc[cut:]
@@ -101,19 +117,28 @@ def build_profiles(oos: pd.DataFrame, matches: pd.DataFrame, min_sample: int = 3
                     "date_max": str(part.date.max().date()), "outcome_rate": pr,
                     "wilson_95_low": plo, "wilson_95_high": phi,
                     "mean_probability": float(part.probability.mean()),
-                    "calibration_gap": pr-float(part.probability.mean())})
+                    "calibration_gap": pr-float(part.probability.mean()),
+                    "label_provenance": LABEL_PROVENANCE,
+                    "official_settlement_verified": OFFICIAL_SETTLEMENT_VERIFIED})
     team_df, time_df = pd.DataFrame(team_rows), pd.DataFrame(time_rows)
     league_df = team_df.groupby(["league_code", "market", "venue"], as_index=False).agg(
         team_profiles=("team", "nunique"), team_exposure_n=("n", "sum"),
-        median_team_n=("n", "median"), candidate_discordant_profiles=("candidate_discordant_for_review", "sum"))
+        median_team_n=("n", "median"), exploratory_discordant_profiles=("exploratory_discordance_flag", "sum"))
+    league_df["label_provenance"] = LABEL_PROVENANCE
+    league_df["official_settlement_verified"] = OFFICIAL_SETTLEMENT_VERIFIED
     meta = {"oos_prediction_rows": int(len(oos)), "joined_rows_before_label_filter": int(joined_rows),
         "valid_joined_rows": int(len(joined)), "match_join_coverage": float(joined_rows / len(oos)) if len(oos) else 0.0,
         "team_market_exposure_rows": int(len(e)), "team_market_profiles": int(len(team_df)),
         "chronology_profiles": int(time_df.groupby(["league_code", "team", "market", "venue"]).ngroups) if len(time_df) else 0,
-        "candidate_discordant_profiles": int(team_df.candidate_discordant_for_review.sum()),
-        "min_sample_for_candidate_flag": min_sample,
-        "shrinkage": "Beta(1,1); no evaluation outcomes used to set prior",
-        "btts_label_unit": "shared fixture outcome duplicated across home/away team exposures; not independent team trials"}
+        "exploratory_discordant_profiles": int(team_df.exploratory_discordance_flag.sum()),
+        "min_sample_for_exploratory_discordance": min_sample,
+        "shrinkage": "Beta(1,1); descriptive stabilisation only, not a calibrated prior",
+        "label_provenance": LABEL_PROVENANCE,
+        "official_settlement_verified": OFFICIAL_SETTLEMENT_VERIFIED,
+        "official_settlement_rows": 0,
+        "evaluation_classification": "EXPLORATORY_SCORE_DERIVED_LABELS_NOT_OFFICIAL_SETTLEMENT",
+        "btts_label_unit": "shared fixture outcome duplicated across home/away team exposures; do not pool as independent team trials",
+        "uncertainty_caveat": "Wilson intervals are per-profile screening intervals; not clustered by opponent, team, league or time."}
     return team_df, time_df, league_df, meta
 
 
@@ -133,29 +158,40 @@ def audit_m1up_export(root: Path) -> dict:
         "calibration_status": "AGGREGATE_ONLY_NO_VENUE_OR_TEAM_ATTRIBUTION"}
 
 
+def write_outputs(team: pd.DataFrame, chronology: pd.DataFrame, league: pd.DataFrame,
+                  summary: dict, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    team.to_csv(output_dir / "oracle_team_market_oos_summary.csv", index=False)
+    chronology.to_csv(output_dir / "oracle_team_market_oos_chronology.csv", index=False)
+    league.to_csv(output_dir / "oracle_league_market_oos_summary.csv", index=False)
+    pd.DataFrame([summary]).to_csv(output_dir / "oracle_team_market_oos_run_metadata.csv", index=False)
+    (output_dir / "oracle_team_market_oos_summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--source-root", type=Path, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
     args = ap.parse_args()
     root, out = args.source_root, args.output_dir
-    oos = pd.read_csv(root / "research/four_model/outputs/four_model_oos_predictions.csv", dtype={"match_id": str})
-    matches = pd.read_csv(root / "database/matches.csv", dtype={"match_id": str},
+    oos_path = root / "research/four_model/outputs/four_model_oos_predictions.csv"
+    matches_path = root / "database/matches.csv"
+    oos = pd.read_csv(oos_path, dtype={"match_id": str})
+    matches = pd.read_csv(matches_path, dtype={"match_id": str},
         usecols=["match_id", "date", "league_code", "home_team", "away_team"])
     team, chronology, league, meta = build_profiles(oos, matches)
-    out.mkdir(parents=True, exist_ok=True)
-    team.to_csv(out / "oracle_team_market_oos_summary.csv", index=False)
-    chronology.to_csv(out / "oracle_team_market_oos_chronology.csv", index=False)
-    league.to_csv(out / "oracle_league_market_oos_summary.csv", index=False)
-    summary = {"status": "COMPLETE_RESEARCH_ONLY", "source_repository": "dtnzv5by8c-ship-it/oracle-football-data",
-        "source_commit": "cb89e5bd1c24810fe821a6b2c3c2c1c19272b381", "team_market_oos": meta,
+    meta.update({"source_repository": "dtnzv5by8c-ship-it/oracle-football-data",
+        "source_commit": "cb89e5bd1c24810fe821a6b2c3c2c1c19272b381",
+        "input_artifacts": {
+            "oos_predictions": {"path": str(oos_path), "rows": int(len(oos)), "sha256": sha256_file(oos_path)},
+            "canonical_match_spine": {"path": str(matches_path), "rows": int(len(matches)), "sha256": sha256_file(matches_path)}} ,
         "m1up_export_integrity": audit_m1up_export(root),
         "governance": {"provider_calls": 0, "provider_credits": 0, "h2h_inputs_read": False,
             "production_logic_changed": False, "frozen_probabilities_changed": False,
-            "calibration_changed": False, "governance_changed": False}}
-    (out / "oracle_team_market_oos_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True)+"\n", encoding="utf-8")
-    print(json.dumps({"status": summary["status"], **meta,
-        "m1up_export_status": summary["m1up_export_integrity"]["export_status"]}, sort_keys=True))
+            "calibration_changed": False, "governance_changed": False}})
+    write_outputs(team, chronology, league, meta, out)
+    print(json.dumps({"status": "COMPLETE_RESEARCH_ONLY", **{k:v for k,v in meta.items() if k not in ("input_artifacts","governance","m1up_export_integrity")}}, sort_keys=True))
 
 
 if __name__ == "__main__":
