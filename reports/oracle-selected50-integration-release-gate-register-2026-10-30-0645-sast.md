@@ -1,129 +1,129 @@
 # Project Oracle — Selected-50 Integration & Release-Gate Register
 
-**Evidence cutoff:** 2026-10-30 06:45 SAST  
+**Evidence cutoff:** 2026-10-30 07:36 SAST  
 **Research branch:** `research/oracle-50-league-readiness-audit`  
-**Branch head at cutoff:** `60f242dfff43acab56b08d9c6bc4a6af066d9362`  
-**Decision:** Research baseline validated; production and betting release remain **NOT APPROVED**.
+**Branch head reviewed:** `c884c6237e27feaa0b282466d6287809c2cfe13a`  
+**Decision:** Historical research baseline verified; production and betting release remain **NOT APPROVED**.
 
 ## Executive decision
 
-The intended private FootyStats archive `research-selected50-footystats-history-40447419806` is now independently verified by both the full research runtime (Run #171) and private archive QA (Run #33). The runtime output contract passed and the archive QA confirms 50/50 selected groups and 200/200 ingested seasons.
+The exact private archive `research-selected50-footystats-history-40447419806` remains the controlled historical research source. Runtime #171 consumed its exact SHA-256 and passed its output contract. New QA #36 adds reproducible xG/odds temporal-shift diagnostics; Safety Contract Tests #440 passed the new temporal-shift and H2H paired-output contract tests; Dry-Run Planner #727 passed its offline planner and readiness checks.
 
-This closes the archive-selection/provenance issue. It does **not** close canonical identity, official settlement, point-in-time feature, current-slate, calibration, market-value or team-suitability gates.
+These are research/test passes only. They do not close identity, settlement, current-feed, point-in-time, calibration, market-value or team-suitability gates.
 
-## Verified evidence inventory
+## Verified workflow evidence
 
-| Evidence | Run / artifact | Result | Scope and limitation |
+| Evidence | Run / artifact | Result | Scope |
 |---|---|---|---|
-| Selected-50 runtime | [Run #171](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41001723054), artifact 12954131277 | PASS | Consumed exact 404474 archive; research output contract only |
-| Private archive QA | [Run #33](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41003950016), artifact 12954144653 | PASS / REVIEW REQUIRED | 50 groups, 200 seasons, 59,049 archive rows; official settlement truth not verified |
-| Dry-run planner | [Run #712](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41003949993), artifact 12954307363 | PASS | Zero network/paid-provider calls; identity/current-feed gates remain blocked |
-| Safety contract tests | [Run #425](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41003950160), artifact 12954552514 | PASS | Offline contracts passed; its 200-season rollup references the older 40375285207 archive and is not current 404474 evidence |
+| Selected-50 runtime baseline | [#171](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41001723054), artifact `12954131277` | PASS | Exact 404474 archive consumed; runtime predates latest H2H paired-chronology additions |
+| Private archive QA + temporal shift | [#36](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41008363529), artifact `12956506568` | PASS / REVIEW REQUIRED | Exact 404474 archive; 50 groups, 200 seasons, 59,049 rows; sanitized QA only |
+| Safety contract tests | [#440](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41008369534), artifact `12955952884` | PASS | Includes xG/odds temporal-shift regression tests and H2H chronology/output-contract tests |
+| Dry-run planner | [#727](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41008369517), artifact `12955524632` | PASS | Offline only; zero network and paid-provider calls; readiness gates remain blocked |
 
-### Archive provenance and coverage
-
-Run #171 provenance records:
-
-- Archive tag: `research-selected50-footystats-history-40447419806`
+Run #171 archive provenance:
+- Tag: `research-selected50-footystats-history-40447419806`
 - SHA-256: `af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875`
-- Asset size: 66,452,206 bytes; 802 archive members
-- Runtime opened and consumed the exact selected archive hash; pre-runtime and at-open hashes match.
-- Current-snapshot overlay was disabled and snapshot run ID was `0`.
-- Runtime output contract: `PASS_RESEARCH_RUNTIME_OUTPUT_CONTRACT`; 50 selected groups; 420 report fixture candidates; 395 with at least one supported research prediction; 25 blocked for missing required features; Combo probability fields remaining: 0.
-- Production and betting eligibility are both false.
+- 66,452,206 bytes; 802 archive members.
+- Snapshot overlay disabled; snapshot run ID `0`.
+- Runtime: 50 groups, 200 seasons, 59,049 normalized records; 420 report-horizon candidates; 395 with at least one supported research prediction; 25 feature-blocked; 2,100 raw prediction rows across five markets.
+- Production and betting eligibility false.
 
-Private Archive QA #33 independently confirms:
+QA #36 independently confirms:
+- 50/50 selected season IDs present; 200/200 season rows ingested.
+- 22,291 records in the primary window (2025-03-20 to 2026-09-20); 22,256 provider-status `complete`; 35 non-complete rows with 0–0 score pairs.
+- Across the archive, 7,066 non-complete rows carry 0–0 scores; 4,006 `complete` rows also carry 0–0.
+- Provider status is not official settlement truth. The 0–0 patterns must not be promoted into labels without independent settlement reconciliation.
 
-- 50/50 selected IDs present in the archive manifest; 200/200 historical seasons marked ingested.
-- 59,049 match records; 51,983 provider-status `complete` rows.
-- Primary window 2025-03-20 through 2026-09-20: 22,291 records, including 22,256 provider-status `complete` and 35 non-complete rows carrying 0–0 score pairs.
-- Across the full archive, all 7,066 non-complete rows carry 0–0 scores; 4,006 `complete` rows also carry 0–0. A status/score pair is still not independent official settlement proof.
-- No duplicate provider match IDs were detected within or across season rows.
-- 3,366 team records are team-season records, not 3,366 unique canonical clubs.
-- Parent competition IDs are not exposed in the archive manifest.
+## Reconciled H2H evidence
 
-### New per-season zero co-occurrence diagnostics
+Run #170 used the older 403752 archive; Run #171 used the intended 404474 archive. The paired H2H CSV and ablation JSON were byte-identical between those two runs, so #171 is a corrected archive-provenance baseline, not an H2H performance uplift.
 
-The new QA output contains 15,600 season/field-pair diagnostic rows. On the 48 selected current-season groups with primary-window provider-complete records, it confirms that zero values co-occur on the same fixtures in important cases:
+Paired H2H population: 19,991 fixtures, 99,955 rows (five markets per fixture), 95.75% of the baseline test population. Candidate adds four H2H features to the same 20-feature baseline and uses the same paired train/test population.
 
-| Selected current season | Prematch xG both zero | BTTS Yes/No odds both zero | DC 1X/X2 odds both zero |
+| Market | Accuracy delta (H2H minus baseline) | Brier delta | Log-loss delta |
 |---|---:|---:|---:|
-| Germany — Bundesliga | 18/36 (50.0%) | 0/36 | 0/36 |
-| England — Premier League | 20/50 (40.0%) | 0/50 | 0/50 |
-| Italy — Serie A | 18/50 (36.0%) | 0/50 | 0/50 |
-| France — Ligue 1 | 16/45 (35.6%) | 0/45 | 0/45 |
-| Italy — Serie B | 17/50 (34.0%) | 0/50 | 0/50 |
-| Greece — Super League | 11/35 (31.4%) | 0/35 | 0/35 |
-| Belgium — Pro League | 18/63 (28.6%) | 54/63 (85.7%) | 54/63 (85.7%) |
+| BTTS | +0.120 pp | -0.00011 | -0.00022 |
+| DC Home | +0.095 pp | -0.00002 | +0.00007 |
+| DC Away | -0.030 pp | -0.00006 | -0.00013 |
+| Combo Home | -0.030 pp | +0.00003 | +0.00006 |
+| Combo Away | +0.010 pp | +0.00011 | +0.00029 |
 
-Belgium's full-time 1X and X odds were both zero on only 1/63 rows, indicating a market-specific BTTS/DC coverage issue rather than a blanket absence of odds. France, Greece and Italy also have some one-sided xG-zero rows; those must remain visible as separate missingness cases.
+Across five expanding folds, DC Home accuracy improved 5/5 but Brier/log-loss improved only 3/5; BTTS improved 2/5 on all three metrics. Effects are small; no H2H candidate is approved.
 
-These are data-quality diagnostics only. They do not prove whether zero means unavailable, nor do they establish the source timestamp or pre-kickoff semantics. Do not exclude teams or leagues solely from these rates.
+New research-only changes add `h2h_last_date_utc`, an independent paired-output chronology audit, fail-closed QA, and stricter market/fold/training-population validation. The related contract tests passed in Safety Contract Tests #440. **A full Selected-50 runtime has not yet exercised these latest H2H artifact changes.** No production model includes these H2H candidate features.
 
-## H2H and raw market evidence from Run #171
+## Data quality and temporal-shift findings
 
-H2H comparison: 19,991 paired fixtures, 95.75% of the 20,878 baseline test fixtures. Baseline and candidate used the same H2H-eligible training rows. Candidate features were the existing 20 features plus four H2H features.
+QA #36's new current-versus-noncurrent-season pooled xG comparison is a material warning:
+- Team A prematch xG zeros: 201/545 (36.88%) current vs 202/4,527 (4.46%) historical; +32.42 pp.
+- Team B prematch xG zeros: 203/545 (37.25%) vs 202/4,527 (4.46%); +32.79 pp.
+- Total prematch xG zeros: 182/545 (33.39%) vs 181/4,527 (4.00%); +29.39 pp.
+- Eleven current-season league groups cross the exploratory 30% zero-rate screen.
 
-| Market | Baseline accuracy | H2H accuracy | Accuracy delta | Brier delta (lower is better) | Log-loss delta (lower is better) |
-|---|---:|---:|---:|---:|---:|
-| BTTS | 53.649% | 53.769% | +0.120 pp | -0.00011 | -0.00022 |
-| DC Home | 69.986% | 70.082% | +0.095 pp | -0.00002 | +0.00007 |
-| DC Away | 60.382% | 60.352% | -0.030 pp | -0.00006 | -0.00013 |
-| Combo Home | 57.401% | 57.371% | -0.030 pp | +0.00003 | +0.00006 |
-| Combo Away | 64.939% | 64.949% | +0.010 pp | +0.00011 | +0.00029 |
+This supports a cross-league current-season data-quality/ingestion-regression hypothesis, but does not prove cause. The current-season sample is partial, historical seasons are pooled, and field semantics/source timestamps are absent. Numeric zero remains unchanged; do not impute it or infer provider fault.
 
-Across five chronological H2H folds, DC Home accuracy improved 5/5, but Brier and log loss improved only 3/5. BTTS improved 2/5 on all three metrics. No H2H candidate is approved.
+Belgium Pro League 2026/27 sample:
+- BTTS Yes/No and Double Chance 1X/X2 each share a 54/63 (85.71%) zero mask.
+- Full-time 1X2 has only 1/63 zero; Over/Under 2.5 has no zeros.
+- Double Chance 12 is a distinct market field and must not be used as a 1X/X2 proxy.
+- This is market-specific archive-field evidence only; bookmaker identity and quote times are unverified.
 
-Raw full holdout metrics versus majority accuracy baseline:
+The 40-day gap between the 20 September event-window end and 30 October audit date is an event-time coverage gap, **not** a provider freshness timestamp.
 
-| Market | Accuracy | Majority baseline | Difference | Interpretation |
-|---|---:|---:|---:|---|
-| BTTS | 53.588% | 54.143% | -0.555 pp | Does not beat majority accuracy |
-| DC Home | 70.126% | 69.786% | +0.340 pp | Modest raw signal; calibration still absent |
-| DC Away | 60.422% | 56.275% | +4.147 pp | Strongest raw accuracy difference; needs truth, stability and calibration checks |
-| Combo Home/Away | 57.400% / 64.934% | 56.945% / 64.896% | +0.455 / +0.038 pp | Keep masked: target/settlement contract unresolved |
+## Team / league DNA reconciliation
 
-All raw probabilities are uncalibrated. No verified point-in-time bookmaker odds or ROI benchmark exists. The raw accuracy differences must not be interpreted as betting edge.
+The latest available Team & Market Exposure analysis is an exposure map, not a validated team-performance study:
+- 779 provider team IDs; 859 team-role profiles; 1,718 team/market exposure records.
+- 47 league groups and 41 countries represented in the current fixture horizon.
+- Recent-form sample: 833 profiles with five matches, 21 with four, five with three; 26 profiles below five matches.
+- 50 profiles had at least one incomplete-feature appearance.
+- The exposure counts are not team-market accuracy or betting edge. There is no immutable, canonical team-attributed prediction-to-official-settlement ledger, so no team ranking or exclusion decision is justified.
 
-## Current blocker and release-gate register
+## Current Selected-50 readiness and blockers
 
-| Gate | Evidence at cutoff | Status | Closure requirement |
-|---|---|---|---|
-| Selected-50 archive integrity | Correct 404474 tag/hash; 50/50 IDs; 200/200 seasons | **PASS — research archive only** | Preserve immutable archive/hash provenance |
-| Runtime reproducibility/output contract | Run #171 success; snapshot overlay off; 25 feature-blocked fixtures | **PASS — research contract only** | Keep research and governed outputs distinct |
-| Canonical league identity | 22 candidate mappings require human review; 28 unresolved; 0 approved; parent competition IDs 0 | **BLOCKED** | Authoritative competition crosswalk and human approval; never infer parent IDs from season IDs |
-| Canonical team/fixture joins | 0 verified canonical team joins; 0 verified canonical fixture joins | **BLOCKED** | Exact, league-aware source-ID joins; collision/duplicate/quarantine evidence and sign-off |
-| Current feed identity/freshness | Current feed has no country field; 5 groups have multiple league-ID collisions, 7 single-ID labels, 38 no label rows; source manifest 2026-10-08, reconciliation 2026-10-07, schedule ends 2026-10-17/22; 0 current governed rows | **BLOCKED** | Fresh, source-stamped current fixture snapshot and exact selected-50 bridge |
-| Official settlement truth | Provider status/score diagnostics only; official settlement truth verified 0 | **BLOCKED** | Independent official final-status/result reconciliation by canonical fixture |
-| Point-in-time xG/odds | Odds timestamp rows 0; verified point-in-time xG/odds rows 0; current-season zero co-occurrence outliers identified | **BLOCKED** | Field semantics, source timestamps and as-of-kickoff provenance |
-| BTTS / Double Chance market readiness | All selected-50 market gates remain NOT_VERIFIED | **BLOCKED** | Exact fixture/team joins, settlement truth, feature provenance and market-specific evaluation |
-| Combo markets | Predictor target is DC AND 2–4 total goals; settlement helper is DC AND total goals <5; disagreement at 0–0 and 1–0 / 0–1; Combo outputs masked | **BLOCKED** | Governed market definition and aligned target/settlement tests |
-| M-1UP | Event-truth/current fixture gates remain stale/unverified | **BLOCKED** | Fresh chronological goal-event truth and exact fixture joins |
-| Team-market suitability / exclusions | No validated immutable team-attributed prediction-to-settlement ledger | **BLOCKED** | Exact team/fixture mapping and verified chronological prediction/settlement pairs; use shrinkage/uncertainty and minimum samples |
-| Calibration / betting value | Raw uncalibrated probabilities; odds provenance unverified; ROI benchmark not run | **BLOCKED** | Separate calibration holdout, timestamped odds, vig handling and predeclared value/ROI evaluation |
-| Production governance | No production logic/probability/calibration changes; no release approval | **PASS — controls preserved** | Keep production and betting eligibility false until all gates and explicit approval pass |
+Latest dry-run #727 confirms a research-only pass, not current operational readiness:
+- Legacy Run 56 / crosswalk r17 evidence still appears in some planner outputs: 31 exact selected-season manifest matches and 19 without a record in that old snapshot. This is not evidence that 19 folders are absent from the latest 404474 archive; QA #36 confirms 50/50 archive season folders.
+- The planner's current-feed identity quarantine shows 22 candidate mappings requiring human review and 28 unresolved; 0 approved.
+- 5 current-feed groups have multiple league-ID collisions; 7 have a single display-label ID; 38 have no matching label rows. Country is not retained in the feed identity layer.
+- 0 canonical team joins, 0 canonical fixture joins, 0 verified parent competition IDs, 0 official settlement truth, 0 point-in-time xG/odds provenance.
+- Current schedule evidence remains stale: last fixture date 2026-10-17; manifest window ends 2026-10-22; 0 governed current fixture rows emitted.
+- BTTS and Double Chance remain NOT VERIFIED; Combo remains blocked by target/settlement mismatch; M-1UP remains blocked by stale event truth.
+- Calibration and odds/ROI benchmarking remain unapproved because labels, as-of features and bookmaker quote timestamps are not verified.
 
-## Identity resolver integration status
+Do not merge counts from Run 56/r17 with the 404474 200-season archive as though they were the same identity population. Preserve the legacy evidence labels until the planner is rebuilt against the pinned 404474 QA manifest.
 
-Draft PR #31 proposes a FootyStats-first adapter and candidate resolver with exact team/kickoff matching, fuzzy-name leads only, and quarantine for score conflicts or nonstandard home/away assignments. Its PR description reports a local smoke test (50/50 source-success seasons; 1,744 adapted rows; 681 future candidates; 370 exact season/match runtime joins; 345 raw research outputs; 25 feature-blocked; 3 with no runtime output) and 12 local unit tests. These figures are PR-description/local-smoke evidence, not a GitHub Actions CI result.
+## Release-gate register
 
-At the current branch head, the visible completed checks are contract-tests #425, private-archive QA #33 and dry-run #712. No completed dedicated identity-resolver workflow check is present on the current head. PR #31 remains draft and must not be merged into production as-is. The resolver can generate candidates, not approved canonical mappings; its source-neutral adapter also does not satisfy the production staging workflow's separate FotMob/event-truth contract.
+| Gate | Status | Required closure evidence |
+|---|---|---|
+| 404474 archive integrity and runtime provenance | **PASS — research baseline only** | Preserve pinned tag/hash and artifact provenance |
+| Research runtime contract | **PASS — Run #171 only** | Re-run on latest branch to exercise new H2H output contract |
+| H2H chronology/output contract | **TESTS PASS; runtime pending** | Full runtime artifact with last-H2H timestamp and fail-closed chronology QA |
+| Selected-50 canonical competition identity | **BLOCKED** | Authoritative parent competition mapping; no inference from season IDs |
+| Canonical team and fixture joins | **BLOCKED — 0 verified** | Exact league-aware IDs, collision quarantine, source evidence and human sign-off |
+| Official settlement truth | **BLOCKED — 0 verified** | Independent final status/result reconciliation per canonical fixture |
+| Current fixture freshness | **BLOCKED** | Fresh snapshot, source manifest and exact Selected-50 bridge |
+| Point-in-time xG/odds/standings | **BLOCKED — 0 verified** | Field semantics, source/update/quote timestamps and as-of-kickoff evidence |
+| BTTS / Double Chance readiness | **NOT VERIFIED** | Identity, settlement, freshness, PIT provenance, calibration and market evaluation |
+| Combo | **BLOCKED** | Authoritative market definition; align prediction target and settlement contract |
+| M-1UP | **BLOCKED** | Fresh chronological goal-event truth and exact fixture joins |
+| Team-market suitability / exclusions | **BLOCKED** | Immutable canonical team/fixture prediction ledger plus official settlements and minimum-sample uncertainty controls |
+| Calibration / bookmaker value / ROI | **BLOCKED** | Separate chronological calibration design and timestamped odds with vig-aware evaluation |
+| Production governance | **PRESERVED** | No production changes; all release gates and explicit approval required |
 
-## Evidence reconciliation warnings
+## PR #31 — identity resolver
 
-1. The new 404474 QA is 50/50 and 200 seasons. The dry-run planner's legacy crosswalk/readiness summary still cites crosswalk snapshot r17 and Run 56's 14,051-row archive (31 exact season-ID matches / 19 without that old manifest record). This is a different, older evidence layer, not a contradiction to the new 404474 archive QA. Planner outputs must label that legacy source explicitly and be refreshed from the 404474 QA/crosswalk before being used as a current readiness register.
-2. The Safety Contract Tests #425 artifact includes a 200-season rollup whose source run/archive hash is 40375285207 / `7c60a239...`. Do not treat that rollup as current 404474 coverage. Its contract-test success is valid; its source archive is not the current runtime baseline.
-3. Run #171's 420 archive-derived fixture candidates are not the same thing as a fresh, governed current-feed slate. The dry-run's current-feed gate still emits zero governed current fixture rows.
+[PR #31](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/pull/31) remains **draft** and not mergeable. Its FootyStats-first resolver/adapter is research-only and reports 12 local smoke tests in the PR description; that is not a GitHub CI pass. The dedicated workflow `oracle_identity_resolver_tests.yml` exists with `workflow_dispatch`, but no completed run for that workflow was found in the reviewed Actions history. The resolver may create candidates; it does not approve canonical mappings and does not satisfy the protected production FotMob/event-truth contract.
 
 ## Safe research-only improvements
 
-- Make the dry-run planner consume the pinned 404474 QA manifest/hash as its archive evidence source, or label its Run-56/r17 coverage as legacy and stale. Add a regression test that fails if a stale archive/crosswalk is presented as latest.
-- Run the dedicated identity-resolver CI workflow against the current PR head and attach its actual GitHub result; do not infer CI success from local tests or unrelated contract workflows.
-- Extend the per-season zero-co-occurrence report with explicit per-field semantics and source-timestamp availability columns, preserving row-level counts and no imputation.
-- Build the next team-market analysis only from an immutable, exact-fixture, exact-team, chronological prediction/settlement ledger; do not reuse post-match features or unverified labels.
+1. Refresh the planner's legacy Run 56/r17 identity/readiness evidence from the pinned 404474 QA artifact, or explicitly quarantine it as historical. Add a regression that fails if a superseded snapshot is labelled current.
+2. Execute dedicated identity-resolver CI and preserve its actual artifact/test result before accepting PR #31 as a research integration.
+3. Run the Selected-50 runtime once on the current branch to exercise the newly added H2H last-date and chronology artifact contract.
+4. Keep team-market analysis exposure-only until canonical prediction/settlement pairs and point-in-time features exist.
+
+No provider/API calls or credits were used in these checks. No raw provider payload was exported. No production logic, frozen probabilities, calibration, thresholds, registry or governance were changed.
 
 ## Single highest-value next action
 
-**Refresh the Selected-50 identity/readiness bridge from the verified 404474 archive and run the dedicated identity-resolver CI against the current research head.** First manually dispatch the existing workflow **Oracle Identity & Settlement Evidence Tests** (`.github/workflows/oracle_identity_resolver_tests.yml`) on branch `research/oracle-50-league-readiness-audit`; confirm all resolver, adapter and settlement-evidence tests pass. Then use its validated adapter/resolver to produce a new 50-row season/team/fixture candidate register, retaining every candidate as `NOT_APPROVED` until exact crosswalk evidence and human review exist. The available GitHub connection is read-only for workflow dispatch, so this dispatch requires Nolan's manual action.
-
-No provider/API calls or credits were used for this integration pass. No production code, model logic, frozen probabilities, calibration, thresholds, registry or governance were changed.
+**Manually dispatch “Oracle Identity & Settlement Evidence Tests” on branch `research/oracle-50-league-readiness-audit`.** Open [the workflow](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/.github/workflows/oracle_identity_resolver_tests.yml), select the research branch and tap **Run workflow**. It has no required inputs. This is an offline test workflow; it makes no provider/API calls. The available GitHub connection can inspect runs and artifacts but cannot dispatch Actions, so Nolan must perform this one manual click. If it passes, use the tested resolver to produce a fresh 50-row candidate register, retaining every mapping as `NOT_APPROVED` pending authoritative evidence and human review.
