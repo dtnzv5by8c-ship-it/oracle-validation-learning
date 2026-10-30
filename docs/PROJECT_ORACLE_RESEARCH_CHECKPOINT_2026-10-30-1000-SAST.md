@@ -148,3 +148,29 @@ Dispatch on branch `research/oracle-50-league-readiness-audit` with:
 This uses the existing pinned private archive only. The available GitHub connection can inspect workflow runs/artifacts and commit research files, but does not expose workflow_dispatch. No provider API calls or credits are required.
 
 After completion, verify the archive tag/SHA, zero ineligible fixture rows admitted to target/history, paired H2H chronology timestamps, five-market metric reconciliation, paired correctness and five chronological folds. Keep production and betting eligibility unapproved until all identity, settlement, point-in-time provenance, calibration and betting-value gates pass.
+
+
+## 8. Post-change CI result and test-fixture correction
+
+The first push-triggered checks for the new guard failed for one existing test-contract reason:
+- Safety #459 and #460 failed in `test_footystats_selected50_bounded_probe_contract.py`.
+- Dry-Run #741 and #742 failed in the same bounded-probe contract step.
+- The synthetic “valid completed fixture” in that AST-based contract test omitted `competition_id` and `kickoff_unix`. Under the new strict signature rule, the fixture correctly produced no labels; the old test fixture was stale.
+
+The contract test was corrected to supply a valid competition scope and finite kickoff, and to assert that missing competition/kickoff produces no labels. It also now checks that the runtime's history loop rejects a null signature before adding a match to form/H2H history.
+
+The correction is commit `e961f518508e341caa8793d641e482f93ffeaca5`.
+
+Post-correction verification:
+- [Safety Contract Tests #461](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024070235): PASS.
+  - Bounded-probe contract: 16 tests passed, including the corrected completed-fixture eligibility test.
+  - H2H paired chronology: 7 tests passed.
+  - H2H output contract: 9 tests passed.
+  - Remaining offline identity, provenance, xG, event-time and research contract steps passed.
+- [Dry-Run Planner #743](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024070243): PASS. Its plan steps are explicitly marked no network calls.
+
+The dedicated `test_selected50_h2h_research.py` suite is included in the manual full-runtime workflow; the push safety workflow's current H2H steps cover the paired chronology and output contracts, while the bounded-probe AST contract now covers the strict fixture-signature/label guard. The full runtime is still required to exercise the actual archive history builder and produce the updated paired CSV.
+
+## 9. Current release decision
+
+The new fixture-identity guard and its offline contract tests are now validated by the post-correction safety/dry-run workflows. The latest full Selected-50 runtime remains #171; no new full runtime has been completed on the updated code. Do not infer changed H2H metrics from the unit-test passes.
