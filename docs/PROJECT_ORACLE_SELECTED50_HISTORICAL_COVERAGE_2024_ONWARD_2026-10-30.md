@@ -18,8 +18,8 @@
 The provider archive stores numeric fields for all rows, but numeric presence is not the same as a valid or point-in-time value. Zeros are preserved as observed and not imputed or recoded. The raw calendar-year quality rollup shows:
 - 2024 prematch xG zero rates: home 5.47%, away 5.50%, total 4.87%; BTTS odds zero 0.45%; DC odds zero about 1.4%.
 - 2025 prematch xG zero rates: home 5.14%, away 5.21%, total 4.60%; BTTS odds zero 1.04%; DC odds zero 3.60%.
-- 2026 calendar-year aggregate is mixed historical and future data. Its 17.2% odds zero rate is not a historical rate and must not be interpreted without the kickoff-date split.
-- 2027 is future schedule data only at the audit date. Its odds are 99.93% zero; these are not historical bookmaker prices and must not enter odds training or backtesting.
+- 2026 calendar-year aggregate is mixed historical and future data. After restricting to 12,222 rows with kickoff on/before 30 October 2026, prematch xG zero rates are home 6.41%, away 6.40%, total 5.67%; BTTS odds zero 1.19%; DC odds zero 1.24%. The 2,383 future-dated 2026 rows are excluded from these historical rates.
+- 2027 is future schedule data only at the audit date (4,452 rows). It has no historical feature rows as of the audit date. Its raw all-row odds zero rate is 99.93%; these are not historical bookmaker prices and must not enter odds training or backtesting.
 - A separate as-of-kickoff feature quality split is now included in the audit output to separate rows with kickoff on/before audit date from future-dated rows. Only the on/before subset is eligible for further historical feature validation, and only after point-in-time provenance is independently established.
 
 ## Identity and external join status
@@ -43,7 +43,7 @@ The provider archive stores numeric fields for all rows, but numeric presence is
 6. Re-run the safe current fixture pipeline after the release gates; do not promote research-only raw probabilities as production predictions.
 
 ## Verified workflow evidence
-- Private archive QA run #57: success; artifact ID `13004783495`; SHA-256 `860e0ff98376057b886897619f1401776f1d82c88b0c3e1f2eb588d027ea49f5`.
-- Safety contract tests run #502: success.
-- Dry-run planner run #782: success.
+- Private archive QA run #60: success; artifact ID `13006650629`; SHA-256 `e430347585949815bd3f99d4493fbd6935638ae89d5158e081adde483398b340`.
+- Safety contract tests run #505: success.
+- Dry-run planner run #785: success.
 - All of these are research branch runs; no production model logic was changed.
