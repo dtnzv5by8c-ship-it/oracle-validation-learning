@@ -27,6 +27,8 @@ on:
       - "tests/test_selected50_xg_odds_temporal_shift.py"
       - "scripts/audit_selected50_xg_odds_crossscope_reconciliation.py"
       - "tests/test_selected50_xg_odds_crossscope_reconciliation.py"
+      - "scripts/audit_selected50_season_event_time_readiness.py"
+      - "tests/test_selected50_season_event_time_readiness.py"
 
 permissions:
   contents: read
@@ -165,6 +167,11 @@ jobs:
           set -euo pipefail
           python scripts/audit_selected50_xg_odds_crossscope_reconciliation.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_crossscope
 
+      - name: Build season event-time and status audit (offline)
+        run: |
+          set -euo pipefail
+          python scripts/audit_selected50_season_event_time_readiness.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/season_event_time
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -192,5 +199,8 @@ jobs:
             selected50_archive_qa/xg_crossscope/oracle_selected50_current_season_market_field_zero_rates.csv
             selected50_archive_qa/xg_crossscope/oracle_selected50_belgium_vs_rest_market_zero_rates.csv
             selected50_archive_qa/selected50_zero_cooccurrence_by_season.csv
+            selected50_archive_qa/season_event_time/oracle_selected50_season_event_time_summary.json
+            selected50_archive_qa/season_event_time/oracle_selected50_current_season_event_time_coverage.csv
+            selected50_archive_qa/season_event_time/oracle_selected50_season_status_anomaly_rollup.csv
           if-no-files-found: error
           retention-days: 14

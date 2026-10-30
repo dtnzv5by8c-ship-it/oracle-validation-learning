@@ -95,6 +95,11 @@ jobs:
         run: python -m py_compile scripts/audit_selected50_xg_odds_crossscope_reconciliation.py
       - name: Run xG and odds cross-scope reconciliation tests
         run: python -m unittest discover -s tests -p "test_selected50_xg_odds_crossscope_reconciliation.py" -v
+      - name: Compile season event-time readiness audit
+        run: python -m py_compile scripts/audit_selected50_season_event_time_readiness.py
+      - name: Run season event-time readiness regression tests
+        run: python -m unittest discover -s tests -p "test_selected50_season_event_time_readiness.py" -v
+
       - name: Upload sanitized 200-season archive rollup
         uses: actions/upload-artifact@v4
         with:
