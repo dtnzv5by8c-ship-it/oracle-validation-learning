@@ -30,3 +30,13 @@
 ## Governance
 
 Research-only. No H2H holdout access, provider/API calls, production logic, frozen probability, calibration or governance changes. Keep all 50 leagues in the research universe; no exclusions from descriptive rates.
+
+
+## Post-commit validation addendum
+
+- Research commit: 560c0bfe89b00667175d8a1c262f7326e18be8ea.
+- Six cross-scope regression tests passed in GitHub Actions: safety contract run 41014563362.
+- Selected-50 dry-run planner passed: run 41014563326.
+- Private Archive QA run 38 passed: run 41014563323; sanitized artifact 12959146668.
+- QA #38 re-read the same pinned archive checksum and regenerated the cross-scope JSON/CSV outputs. The all-group results matched the local QA #35 re-analysis: 48 current groups; Team A prematch xG zero rate 13.26% current vs 3.54% non-current; 11 threshold-selected groups; Belgium BTTS Yes zero rate 85.71%.
+- The archive QA still reports official settlement truth unverified and production eligibility false. This is a successful research QA run, not a production-readiness approval.
