@@ -113,10 +113,13 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
     seen_pairs = set()
     for row in paired_rows:
         fixture_id = str(row.get("fixture_id") or "").strip()
+        competition_id = str(row.get("competition_id") or "").strip()
         market = str(row.get("market") or "").strip()
-        assert fixture_id and market in MARKETS
-        key = (fixture_id, market)
-        assert key not in seen_pairs, f"Duplicate H2H fixture/market row: {key}"
+        assert fixture_id and competition_id and market in MARKETS
+        # Provider fixture IDs are scoped by competition in the chronology
+        # audit. Keep this validator on the same composite identity contract.
+        key = (competition_id, fixture_id, market)
+        assert key not in seen_pairs, f"Duplicate H2H competition/fixture/market row: {key}"
         seen_pairs.add(key)
         paired_counts[market] += 1
         assert str(row.get("actual")) in {"0", "1"}
