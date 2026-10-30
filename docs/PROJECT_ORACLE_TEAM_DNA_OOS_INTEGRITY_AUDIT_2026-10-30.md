@@ -9,9 +9,9 @@ This cycle advanced the separate team/league DNA lane by reconciling existing ch
 
 The strongest existing research signal is that point-in-time Team DNA features improve the development model's Double Chance Home and Away OOS Brier scores across the 27-league controlled spine. Combo Home also shows a smaller positive signal. BTTS and Combo Away remain inconclusive under the available paired intervals. M1UP Team DNA incremental-value evidence is too small for a conclusion.
 
-A new research-only builder is committed to create team-by-market OOS profiles from the existing row-level four-model predictions and the canonical match spine. It joins strictly on match_id, assigns home/away team roles from the market, uses Wilson intervals and Beta(1,1) shrinkage, and only flags potential discordance when n is at least 30 and the mean prediction falls outside the outcome-rate interval. A first/second chronological split is emitted only when both halves contain at least eight observations.
+A research-only builder creates team-by-market OOS profiles from existing row-level four-model predictions and the canonical match spine. It joins strictly on match_id, assigns home/away team roles from the market, uses Wilson intervals and Beta(1,1) shrinkage, and emits chronological halves only when both contain at least eight observations. The target labels are score-derived from the historical match spine, not official bookmaker settlement. Therefore every team/league metric and discordance flag from this builder is exploratory only.
 
-The builder passed five local synthetic tests and GitHub Actions test run #41034396710. The existing Selected-50 safety contract (#41034397564) and dry-run planner (#41034396741) also passed on the same research commit. A manually dispatched, read-only source checkout workflow has been committed but not yet dispatched, so no new named-team rankings are claimed.
+The original five synthetic tests and prior GitHub checks passed. A follow-up code review identified and corrected the builder's missing run-metadata CSV, which the manual workflow already expected. The builder now records source input SHA-256 values and explicitly marks all labels as non-settlement-verified. The updated six-test workflow is triggered by the research-branch push; its final remote result must be checked before claiming CI success. The manually dispatched, read-only source checkout workflow remains undispatched, so no newly generated named-team matrix is claimed.
 
 ## 1. Scope and provenance
 
@@ -139,7 +139,7 @@ The 27-league historical league report shows meaningful scoring variation. Examp
 | Descriptive rate | Lower example | Higher example |
 |---|---|---|
 | BTTS | RSA: 40.3% (n=357; Wilson 35.4–45.5%) | SWZ: 65.9% (n=343; 60.7–70.7%) |
-| Under 4.5 | SWZ: 74.9% (n=343; 70.1–79.2%) | RSA: 94.1% (n=357; 91.2–96.1%) |
+| Under 4.5 | SWZ: 74.9% (n=343; Wilson 70.1–79.2%) | RSA: 94.1% (n=357; Wilson 91.2–96.1%) |
 
 These are score-derived outcome frequencies, not predicted market performance or betting recommendations. The current OOS artifacts do not contain a draw-only probability or an explicit upset probability. Double Chance is an avoid-defeat market and must not be interpreted as draw prediction accuracy.
 
@@ -149,24 +149,56 @@ The prior Selected-50 archive analysis found elevated prematch-xG zero rates acr
 
 The populated prematch xG/odds fields cannot be certified as valid point-in-time inputs until their source timestamps and zero-value semantics are recovered.
 
-## 7. New research deliverables
+## 7. Research deliverables
 
-- scripts/build_oracle_team_market_oos_profiles.py — exact match-ID join, team-role attribution, Wilson intervals, Beta(1,1) shrinkage, sample safeguards and chronological halves.
-- tests/test_build_oracle_team_market_oos_profiles.py — five synthetic integrity tests.
-- .github/workflows/oracle-team-dna-oos-integrity-tests.yml — offline test workflow on research-branch changes.
-- .github/workflows/oracle-team-dna-oos-integrity-audit.yml — manual, read-only checkout of the pinned existing source snapshot; uploads only aggregate team/league outputs.
+- `scripts/build_oracle_team_market_oos_profiles.py` — exact match-ID join, team-role attribution, Wilson intervals, Beta(1,1) shrinkage, sample safeguards, chronological halves, source-input SHA-256 and explicit label provenance.
+- `tests/test_build_oracle_team_market_oos_profiles.py` — six synthetic integrity tests, including label-status and artifact-contract checks.
+- `.github/workflows/oracle-team-dna-oos-integrity-tests.yml` — offline test workflow on research-branch changes.
+- `.github/workflows/oracle-team-dna-oos-integrity-audit.yml` — manual, read-only checkout of the pinned existing source snapshot; uploads aggregate team/league outputs and a one-row run-metadata CSV.
 
-The new builder reads only four-model OOS predictions and the canonical match spine. BTTS is explicitly marked as a shared fixture outcome when attached to both team exposures. Candidate discordance requires n≥30 and is only a review flag; no team is excluded or labelled as unreliable from raw rates alone.
+The builder reads only four-model OOS predictions and the canonical match spine. BTTS is explicitly marked as a shared fixture outcome when attached to both team exposures. Any discordance signal is named `exploratory_discordance_flag`, requires n≥30, and is explicitly not settlement-validated. No team is excluded or labelled as unreliable from raw rates alone.
 
 ## 8. Blockers and next actions
 
-1. Manually dispatch the new read-only audit workflow with confirm_private_source_read=true. It is pinned to the existing source commit and makes no provider calls.
-2. Review the generated team-market OOS summaries and chronological halves. Keep candidate flags exploratory and retain uncertainty/sample counts.
+1. Manually dispatch the read-only audit workflow with `confirm_private_source_read=true`. It is pinned to the existing source commit and makes no provider calls.
+2. Review generated team-market OOS summaries and chronological halves. All outcome metrics remain exploratory score-derived replay until official settlement evidence is available.
 3. Reconcile the 562-versus-651 team-count metadata discrepancy and the missing AWAY row in the older report pack.
 4. Correct the M1UP research export join in a future research-only source change by joining on (match_id, venue); do not use the defective export for venue splits.
 5. Persist fold-level predictions/metrics and calculate team/league/time-clustered uncertainty before making stronger team suitability claims.
 6. Recover point-in-time xG/odds provenance and reconcile the separate Selected-50 archive lineage before revisiting the xG/Belgium root-cause questions.
 7. Obtain official settlement records and feature snapshot manifests for the prospective prediction archive. The 210-record pre-kickoff prediction ledger still has no settlement rows or feature snapshot manifest; the separate live-settlement output has 75 unsettled and zero settled rows.
+
+## 9. Follow-up provenance and workflow-contract correction (12:15 SAST)
+
+A follow-up review of the builder identified and corrected two issues.
+
+### 9.1 Target-label status is explicitly exploratory
+
+The source `four_model_oos_predictions.csv` target is derived from the historical score spine. It is not a row from the official bookmaker settlement ledger. The canonical settlement ledger inspected in the earlier archive audit contained zero records.
+
+The builder now stamps every team, chronology and league output with:
+
+- `label_provenance=SCORE_DERIVED_RESEARCH_LABEL_NOT_OFFICIAL_SETTLEMENT`
+- `official_settlement_verified=false`
+- `discordance_status=EXPLORATORY_ONLY_NOT_SETTLEMENT_VALIDATED`
+
+The summary metadata explicitly reports zero official settlement rows and classifies the evaluation as `EXPLORATORY_SCORE_DERIVED_LABELS_NOT_OFFICIAL_SETTLEMENT`.
+
+The former `candidate_discordant_for_review` field has been replaced by `exploratory_discordance_flag`. This is only a review-screening signal. It must not be described as verified model failure, team unsuitability, or a basis for permanent exclusion. Wilson intervals and Beta(1,1) shrinkage remain descriptive safeguards; intervals are not clustered by team, opponent, league or time.
+
+### 9.2 Workflow artifact contract corrected
+
+The manual audit workflow expected `oracle_team_market_oos_summary.csv`, but the original builder did not emit that file. The builder now writes a one-row run-metadata CSV at `oracle_team_market_oos_run_metadata.csv` and continues to write the team, chronology, league and JSON summary artifacts. The workflow upload list already names the metadata CSV; the script and test now satisfy that contract.
+
+### 9.3 Input lineage strengthened
+
+The run summary now records SHA-256 hashes and row counts for the pinned OOS prediction file and canonical match spine. This makes the resulting aggregate outputs reproducible against the pinned source commit without exporting raw fixture-level records.
+
+### 9.4 Follow-up tests
+
+The regression suite now includes a sixth test for the workflow artifact contract and asserts that score-derived labels cannot be represented as official settlement truth. The remote test workflow is triggered by the research-branch push; its final status must be checked before treating CI as passed.
+
+No source repository, production model, frozen probability, calibration, governance, H2H data or provider/API endpoint was modified or accessed.
 
 ## Governance
 
