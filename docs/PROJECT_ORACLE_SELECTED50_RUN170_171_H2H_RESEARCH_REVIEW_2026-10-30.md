@@ -70,6 +70,7 @@ The downloaded Run #171 paired CSV was independently inspected:
 - 0 missing H2H feature values.
 - 0 invalid prior counts, out-of-range BTTS rates, negative average goals, negative elapsed days or non-finite H2H values.
 - Test fixture dates span 20 March 2025 through 20 September 2026.
+- Accuracy, Brier score, log loss and AUC were independently recomputed from the paired CSV for all five markets; every result matched the published H2H ablation JSON to five decimal places.
 
 The paired CSV did not include `h2h_last_date_utc`, so this independent file-level check could not recompute elapsed days from the source last-meeting timestamp. The embedded runtime feature QA did separately report zero strict cutoff violations. The new research changes close this observability gap for the next runtime.
 
@@ -171,7 +172,7 @@ Commits:
 - `0bfa815d2fe7a7603d35033b1102f343561d7c52` — run new H2H tests in push-triggered safety workflow.
 - `6cb00aeaf54bb520dab4efc67800569e65cc58d4` — scope paired artifact keys by competition and fixture ID.
 
-These commits are research-only. At the time this report was written, the final safety run on the latest commit was still in progress; the new H2H runtime artifact contract has not yet been validated by a complete Selected-50 runtime.
+These commits are research-only. Post-commit verification completed: Safety Contract Tests #436 passed on code commit `6cb00aeaf54bb520dab4efc67800569e65cc58d4`, including the new paired-chronology and output-contract unit tests; the workflow also compiled the research runtime. Dry-Run Planner #723 passed on the same code commit. The new H2H runtime artifact contract has **not** yet been exercised by a complete Selected-50 runtime.
 
 ## 8. Next action
 
