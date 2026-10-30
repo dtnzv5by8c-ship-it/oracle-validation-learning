@@ -20,6 +20,8 @@ on:
       - ".github/workflows/oracle-selected50-private-archive-qa.yml"
       - "scripts/qa_selected50_private_archive.py"
       - "tests/test_selected50_private_archive_feature_coverage.py"
+      - "scripts/build_selected50_calendar_year_coverage.py"
+      - "tests/test_selected50_calendar_year_coverage.py"
       - "scripts/analyze_selected50_league_numeric_missingness.py"
       - "scripts/analyze_selected50_xg_odds_mask_audit.py"
       - "tests/test_selected50_xg_odds_mask_audit.py"
@@ -172,6 +174,11 @@ jobs:
           set -euo pipefail
           python scripts/audit_selected50_season_event_time_readiness.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/season_event_time
 
+      - name: Build exact calendar-year archive coverage from 2024 onward (offline)
+        run: |
+          set -euo pipefail
+          python scripts/build_selected50_calendar_year_coverage.py --archive private-download/oracle-selected50-footystats-private-ingestion.zip --out-dir selected50_archive_qa/calendar_year_coverage
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -202,5 +209,9 @@ jobs:
             selected50_archive_qa/season_event_time/oracle_selected50_season_event_time_summary.json
             selected50_archive_qa/season_event_time/oracle_selected50_current_season_event_time_coverage.csv
             selected50_archive_qa/season_event_time/oracle_selected50_season_status_anomaly_rollup.csv
+            selected50_archive_qa/calendar_year_coverage/selected50_calendar_year_coverage_summary.json
+            selected50_archive_qa/calendar_year_coverage/selected50_calendar_year_coverage_by_league.csv
+            selected50_archive_qa/calendar_year_coverage/selected50_calendar_year_coverage_by_season.csv
+            selected50_archive_qa/calendar_year_coverage/selected50_calendar_year_unmatched_seasons.csv
           if-no-files-found: error
           retention-days: 14
