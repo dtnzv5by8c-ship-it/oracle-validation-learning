@@ -77,9 +77,25 @@ def valid_inputs():
         "status": "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY",
         "row_count": len(paired_rows),
         "unique_fixture_count": 2,
+        "expected_markets": sorted(MARKETS),
+        "market_row_counts": {market: 2 for market in sorted(MARKETS)},
+        "missing_fixture_market_keys": 0,
         "duplicate_fixture_market_rows": 0,
+        "unexpected_market_rows": 0,
+        "incomplete_fixture_market_sets": 0,
+        "missing_kickoff_rows": 0,
+        "invalid_kickoff_rows": 0,
+        "missing_h2h_date_rows": 0,
+        "invalid_h2h_date_rows": 0,
         "non_strict_prior_rows": 0,
+        "invalid_days_since_last_rows": 0,
         "days_since_last_mismatch_rows": 0,
+        "invalid_prior_count_rows": 0,
+        "invalid_h2h_rate_rows": 0,
+        "invalid_h2h_average_goals_rows": 0,
+        "fixture_metadata_conflict_count": 0,
+        "invalid_probability_rows": 0,
+        "invalid_actual_rows": 0,
         "production_eligible": False,
         "betting_eligible": False,
     }
@@ -101,6 +117,36 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
     def test_baseline_and_candidate_must_use_same_training_rows(self):
         inputs = list(valid_inputs())
         inputs[0]["markets"][0]["candidate_train_n"] = 299
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_chronology_failure_counters_must_all_be_zero(self):
+        inputs = list(valid_inputs())
+        inputs[3]["invalid_h2h_date_rows"] = 1
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_chronology_market_counts_must_reconcile_to_paired_csv(self):
+        inputs = list(valid_inputs())
+        inputs[3]["market_row_counts"]["BTTS"] = 1
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_chronology_expected_market_set_must_match_contract(self):
+        inputs = list(valid_inputs())
+        inputs[3]["expected_markets"] = sorted(MARKETS - {"COMBO_AWAY"})
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_chronology_unique_fixture_count_must_reconcile_to_composite_keys(self):
+        inputs = list(valid_inputs())
+        inputs[3]["unique_fixture_count"] = 3
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
+
+    def test_boolean_failure_counter_is_not_accepted_as_integer_zero(self):
+        inputs = list(valid_inputs())
+        inputs[3]["invalid_h2h_date_rows"] = False
         with self.assertRaises(AssertionError):
             validate_h2h_comparison_outputs(*inputs)
 
@@ -130,6 +176,7 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
         inputs[2].extend(cross_competition_rows)
         inputs[3]["row_count"] = len(inputs[2])
         inputs[3]["unique_fixture_count"] = 3
+        inputs[3]["market_row_counts"] = {market: 3 for market in sorted(MARKETS)}
 
         for metric_row in inputs[0]["markets"]:
             market = metric_row["market"]
@@ -197,6 +244,7 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
         inputs[2] = paired
         inputs[3]["row_count"] = 35
         inputs[3]["unique_fixture_count"] = 7
+        inputs[3]["market_row_counts"] = {market: 7 for market in sorted(MARKETS)}
         for row in inputs[0]["markets"]:
             rs = [x for x in paired if x["market"] == row["market"]]
             labels = [int(x["actual"]) for x in rs]
