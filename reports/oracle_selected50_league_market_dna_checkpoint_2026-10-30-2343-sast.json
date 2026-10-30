@@ -1,0 +1,106 @@
+{
+  "generated_at_sast": "2026-10-30T23:43:09+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "scope": "RESEARCH_ONLY_50_LEAGUE_DNA_AND_MARKET_SUITABILITY",
+  "sources": {
+    "selected50_archive": {
+      "run_id": "40375285207",
+      "groups": 50,
+      "season_folders": 200,
+      "match_rows": 59049,
+      "sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f"
+    },
+    "supplementary_extract": {
+      "file": "oracle-footystats-archive-feature-audit-64.zip",
+      "sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8c4e20211a",
+      "source_groups": 42,
+      "season_folders": 126,
+      "exact_selected_id_groups": 31,
+      "unavailable_groups": 19,
+      "completed_dated_numeric_score_rows": 23328
+    },
+    "runtime": {
+      "run_id": "41119141526",
+      "run_number": 176,
+      "artifact_id": "13006609602",
+      "snapshot_run_id": "41117910952",
+      "snapshot_artifact_id": "13005239530"
+    },
+    "bridge_audit": "12_PASS_WITH_RELEASE_BLOCKERS"
+  },
+  "calendar_year_coverage": {
+    "2024": {
+      "full_calendar_groups": 4,
+      "partial_groups": 27,
+      "unavailable_groups": 19
+    },
+    "2025": {
+      "full_calendar_groups": 31,
+      "unavailable_groups": 19
+    },
+    "2026": {
+      "primary_window_through_2026_09_20_groups": 31,
+      "unavailable_groups": 19
+    }
+  },
+  "market_suitability": {
+    "league_market_rows": 150,
+    "repeatable_positive_skill_diagnostic_only": 26,
+    "positive_skill_calibration_warning": 13,
+    "mixed_brier_skill": 47,
+    "insufficient_sample_or_metric": 60,
+    "no_positive_brier_skill": 4,
+    "leagues_with_at_least_one_repeatable_market": 17,
+    "candidate_counts_by_market": {
+      "BTTS": 2,
+      "DC_HOME": 11,
+      "DC_AWAY": 13
+    }
+  },
+  "current_fixtures": {
+    "fixture_rows": 426,
+    "leagues_represented": 46,
+    "probabilities_available": 403,
+    "feature_blocked": 23,
+    "future_research_candidates": 347,
+    "source_quarantined": 79,
+    "source_quarantine_breakdown": {
+      "no_home_away": 71,
+      "nonstandard_status": 7,
+      "nonfuture_unsettled": 1
+    },
+    "top50_quarantined": {
+      "BTTS": 3,
+      "DC_HOME": 2,
+      "DC_AWAY": 9
+    },
+    "missing_current_fixture_leagues": [
+      "Canada — Canadian Premier League",
+      "China — Chinese Super League",
+      "Republic of Ireland — Premier Division",
+      "South Korea — K League 1"
+    ]
+  },
+  "governance": {
+    "provider_api_calls": 0,
+    "workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "local_full_workbook": {
+    "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_30Oct2026_v4_League_Market_DNA.xlsx",
+    "sha256": "15bf63383660aa1c3853d8bba1a3c16cff00cc24990f6b7f793f8e1dc996ecb4",
+    "sheets_added": [
+      "League DNA Summary",
+      "League Year DNA",
+      "League Market Suitability",
+      "Top 50 BTTS",
+      "Top 50 DC Home",
+      "Top 50 DC Away"
+    ]
+  },
+  "next_run_instruction": "Extend only from this checkpoint. Do not repeat archive coverage, year-profile or three-fold market-suitability calculations unless new verified raw score rows or revised governance arrive."
+}
