@@ -11,7 +11,7 @@ on:
       private_archive_release_tag:
         description: "Exact private research archive release tag to read"
         required: true
-        default: "research-selected50-footystats-history-40447419806"
+        default: "research-selected50-footystats-history-40375285207"
         type: string
       include_current_snapshot:
         description: "Opt in only after verifying a fresh successful snapshot run and its artifact provenance; historical-only validation should leave this disabled."
@@ -55,7 +55,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag || 'research-selected50-footystats-history-40447419806' }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag || 'research-selected50-footystats-history-40375285207' }}
         run: |
           set -euo pipefail
           [[ "${PRIVATE_ARCHIVE_RELEASE_TAG}" =~ ^research-selected50-footystats-history-[0-9]+$ ]] || { echo "::error::Invalid private archive release tag format."; exit 1; }

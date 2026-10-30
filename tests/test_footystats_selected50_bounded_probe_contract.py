@@ -50,7 +50,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("\n  push:", trigger)
         self.assertIn("confirm_private_archive_read:", trigger)
         self.assertIn("default: false", trigger)
-        self.assertIn('default: "research-selected50-footystats-history-40447419806"', trigger)
+        self.assertIn('default: "research-selected50-footystats-history-40375285207"', trigger)
         self.assertNotIn("paths:", trigger)
         self.assertIn('gh release download "${PRIVATE_ARCHIVE_RELEASE_TAG}"', runtime)
         self.assertIn("Invalid private archive release tag format.", runtime)
@@ -104,8 +104,10 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
     def test_private_archive_qa_uses_the_same_current_archive_as_runtime(self):
         qa = (ROOT / ".github" / "workflows" / "oracle-selected50-private-archive-qa.yml").read_text(encoding="utf-8")
         runtime = (ROOT / ".github" / "workflows" / "oracle-selected50-research-runtime.yml").read_text(encoding="utf-8")
-        current_tag = "research-selected50-footystats-history-40447419806"
-        self.assertIn(f"gh release download {current_tag}", qa)
+        current_tag = "research-selected50-footystats-history-40375285207"
+        self.assertIn(current_tag, qa)
+        self.assertIn(f'TAG="${{PRIVATE_ARCHIVE_RELEASE_TAG:-{current_tag}}}"', qa)
+        self.assertIn('gh release download "$TAG"', qa)
         self.assertIn(current_tag, runtime)
         self.assertNotIn("research-selected50-footystats-history-20261025", qa)
         self.assertIn("sha256sum -c private-package.sha256", qa)
