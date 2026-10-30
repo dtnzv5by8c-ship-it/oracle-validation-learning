@@ -46,6 +46,7 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 
 ## 4. Current known data position
 - Exact 2024–2026 calendar-year coverage is now complete for the pinned 200-season archive: 50/50 groups have provider rows in each of 2024, 2025 and 2026 through 30 Oct 2026; 42,012 rows have kickoff dates on/before the audit date. A further 2,383 rows in 2026 and 4,452 rows in 2027 are future fixtures and are excluded from historical backtests. See `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
+- The annual complete-status audit flags Belgium Pro League 2026 BTTS and Double Chance odds: 89/233 zero rows (38.20%) in each field, versus zero BTTS zeros in 2024/2025. India 2026 home/away prematch xG zeros are 23/107 (21.50%); Japan 2026 home/away prematch xG zeros are 20/120 (16.67%). Treat Belgium as a P0 odds-market quarantine candidate and India/Japan as P1 xG investigations. See the annual coverage report's league-level watchlist.
 - QA #58: run `41115501513`, artifact `13004648723`, SHA-256 `b10eefaca601782e1083374d7f9836926a953f35f039274806149bac83cd9fc0`. It verified 200/200 season folders, 800 league/season-year output rows, zero undated rows and zero unmatched/missing season folders. No provider API calls were made.
 
 - Selected-50 historical archive ledger: 200 seasons / 59,049 match rows; latest Private Archive QA #44 passed checksum and structural checks.
