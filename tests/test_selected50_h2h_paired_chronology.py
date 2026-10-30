@@ -41,6 +41,16 @@ class Selected50H2HPairedChronologyTests(unittest.TestCase):
         self.assertEqual(qa["non_strict_prior_rows"], 2)
         self.assertEqual(qa["status"], "BLOCKED_H2H_PAIRED_OUTPUT_INTEGRITY")
 
+    def test_timezone_naive_utc_fields_are_rejected(self):
+        rows = [
+            self.row("BTTS", date_utc="2025-03-22T18:30:00"),
+            self.row("DC_HOME", h2h_last_date_utc="2024-09-01T18:30:00"),
+        ]
+        qa = audit_h2h_paired_predictions(rows, {"BTTS", "DC_HOME"})
+        self.assertEqual(qa["invalid_kickoff_rows"], 1)
+        self.assertEqual(qa["invalid_h2h_date_rows"], 1)
+        self.assertEqual(qa["status"], "BLOCKED_H2H_PAIRED_OUTPUT_INTEGRITY")
+
     def test_elapsed_days_must_match_published_prior_date(self):
         qa = audit_h2h_paired_predictions(
             [self.row("BTTS", h2h_days_since_last="1")],
