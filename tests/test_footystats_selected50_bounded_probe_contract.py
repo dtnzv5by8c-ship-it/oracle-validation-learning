@@ -273,6 +273,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
 
         valid = {
             "finished": True, "home_goals": 2, "away_goals": 1,
+            "competition_id": "competition-a", "kickoff_unix": 1_761_000_000,
             "home_id": "team-a", "away_id": "team-b",
         }
         self.assertEqual(build_targets(valid), {
@@ -284,8 +285,10 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             {**valid, "finished": False},  # numeric placeholder on a non-final row
             {**valid, "home_goals": 1.5},  # non-integer score
             {**valid, "home_goals": -1},   # impossible negative score
-            {**valid, "home_id": ""},      # missing identity
+            {**valid, "home_id": ""},      # missing team identity
             {**valid, "away_id": "team-a"},# self-fixture
+            {**valid, "competition_id": ""},# missing competition scope
+            {**valid, "kickoff_unix": None}, # missing event time
         ]
         for row in invalid_rows:
             with self.subTest(row=row):
@@ -295,7 +298,8 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         # targets are constructed through the tested helper, and training requires
         # a non-null target plus complete model features.
         self.assertIn("f.update(market_targets_for_match(r, duplicate_signature_keys))", source)
-        self.assertIn("if completed_fixture_signature_key(r) in duplicate_signature_keys: continue", source)
+        self.assertIn("signature = completed_fixture_signature_key(r)", source)
+        self.assertIn("if signature is None or signature in duplicate_signature_keys:", source)
         self.assertIn(
             'valid=[r for r in rows if r["target_"+market] is not None and all(r.get(f) is not None for f in FEATURES)]',
             source,
