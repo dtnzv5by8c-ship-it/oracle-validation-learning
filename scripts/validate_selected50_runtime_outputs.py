@@ -52,6 +52,86 @@ def number(row, key, *, low=None, high=None, allow_none=False):
     return result
 
 
+
+def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_qa):
+    """Fail closed on paired H2H evidence, chronology, fold and governance contracts."""
+    assert metrics.get("status") == "RESEARCH_ONLY_ABLATION_NOT_CALIBRATED"
+    market_rows = metrics.get("markets", [])
+    assert len(market_rows) == len(MARKETS)
+    assert {row.get("market") for row in market_rows} == MARKETS
+    assert len({row.get("market") for row in market_rows}) == len(MARKETS)
+
+    paired_counts = Counter()
+    seen_pairs = set()
+    for row in paired_rows:
+        fixture_id = str(row.get("fixture_id") or "").strip()
+        market = str(row.get("market") or "").strip()
+        assert fixture_id and market in MARKETS
+        key = (fixture_id, market)
+        assert key not in seen_pairs, f"Duplicate H2H fixture/market row: {key}"
+        seen_pairs.add(key)
+        paired_counts[market] += 1
+        assert str(row.get("actual")) in {"0", "1"}
+        number(row, "baseline_probability", low=0, high=1)
+        number(row, "h2h_candidate_probability", low=0, high=1)
+
+    for row in market_rows:
+        market = row["market"]
+        paired_n = int(row.get("paired_test_n") or 0)
+        baseline_test_n = int(row.get("baseline_test_n") or 0)
+        h2h_available_n = int(row.get("h2h_available_test_n") or 0)
+        assert paired_n == paired_counts[market], (market, paired_n, paired_counts[market])
+        assert 0 < paired_n <= h2h_available_n <= baseline_test_n
+        assert int(row.get("baseline_train_n") or 0) == int(row.get("candidate_train_n") or 0)
+        expected_coverage = 100 * h2h_available_n / baseline_test_n
+        assert abs(float(row.get("h2h_test_coverage_pct")) - expected_coverage) <= 0.02
+        assert row.get("production_eligible") == "NO"
+        assert row.get("betting_eligible") == "NO"
+        assert row.get("status") == "PAIRED_RESEARCH_ONLY_NOT_CALIBRATED"
+        for field in ("baseline_accuracy_at_0_5", "candidate_accuracy_at_0_5",
+                      "baseline_brier", "candidate_brier", "baseline_log_loss",
+                      "candidate_log_loss", "baseline_auc", "candidate_auc"):
+            number(row, field, low=0, high=1)
+
+    folds = expanding.get("folds", [])
+    expected_fold_names = {
+        "H2H_WF1_2024H1", "H2H_WF2_2024H2", "H2H_WF3_2025H1",
+        "H2H_WF4_2025H2", "H2H_WF5_2026H1",
+    }
+    assert len(folds) == len(MARKETS) * len(expected_fold_names)
+    assert {row.get("market") for row in folds} == MARKETS
+    assert {row.get("fold") for row in folds} == expected_fold_names
+    assert len({(row.get("market"), row.get("fold")) for row in folds}) == len(folds)
+    for row in folds:
+        assert row.get("training_cutoff_exclusive_utc") == row.get("test_start_utc")
+        assert row.get("test_start_utc") < row.get("test_end_exclusive_utc")
+        assert int(row.get("baseline_train_n") or 0) == int(row.get("candidate_train_n") or 0)
+        assert 0 <= int(row.get("paired_test_n") or 0) <= int(row.get("test_n_h2h_available") or 0)
+        assert row.get("production_eligible") == "NO"
+        assert row.get("betting_eligible") == "NO"
+        assert row.get("status") in {
+            "EXPANDING_WINDOW_RESEARCH_ONLY_NOT_CALIBRATED",
+            "INSUFFICIENT_PAIRED_TEST_PREDICTIONS",
+        }
+
+    assert chronology_qa.get("status") == "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY"
+    assert int(chronology_qa.get("row_count") or 0) == len(paired_rows)
+    assert int(chronology_qa.get("duplicate_fixture_market_rows") or 0) == 0
+    assert int(chronology_qa.get("non_strict_prior_rows") or 0) == 0
+    assert int(chronology_qa.get("days_since_last_mismatch_rows") or 0) == 0
+    assert chronology_qa.get("production_eligible") is False
+    assert chronology_qa.get("betting_eligible") is False
+    return {
+        "status": "PASS_H2H_COMPARISON_AND_CHRONOLOGY_CONTRACT",
+        "paired_prediction_rows": len(paired_rows),
+        "paired_fixture_count": int(chronology_qa.get("unique_fixture_count") or 0),
+        "market_count": len(market_rows),
+        "expanding_window_rows": len(folds),
+        "production_eligible": False,
+        "betting_eligible": False,
+    }
+
+
 def main():
     wf = load_json("oracle_selected50_walk_forward_metrics.json")
     feature_qa = load_json("oracle_selected50_feature_qa.json")
@@ -64,6 +144,11 @@ def main():
     calendar = load_csv("oracle_selected50_calendar_year_coverage.csv")
     season_year = load_csv("oracle_selected50_provider_season_year_coverage.csv")
     settlement = load_csv("oracle_selected50_settlement_truth_qa.csv")
+    h2h_metrics = load_json("oracle_selected50_h2h_ablation_metrics.json")
+    h2h_expanding = load_json("oracle_selected50_h2h_expanding_window_metrics.json")
+    h2h_paired = load_csv("oracle_selected50_h2h_paired_predictions.csv")
+    h2h_chronology = load_json("oracle_selected50_h2h_paired_chronology_qa.json")
+    h2h_contract = validate_h2h_comparison_outputs(h2h_metrics, h2h_expanding, h2h_paired, h2h_chronology)
 
     folds = wf.get("folds", [])
     assert len(folds) == 15, f"Expected 15 market/fold rows, got {len(folds)}"
@@ -235,6 +320,7 @@ def main():
         "prediction_block_reason_counts": dict(sorted(Counter(r["prediction_block_reason"] for r in prediction_report).items())),
         "combo_home_probabilities_remaining": governed_qa["combo_home_probabilities_remaining"],
         "combo_away_probabilities_remaining": governed_qa["combo_away_probabilities_remaining"],
+        "h2h_paired_output_contract": h2h_contract,
         "limitations": [
             "Contract validation does not verify canonical provider IDs, official settlement truth, or point-in-time provenance.",
             "Walk-forward scores are raw and uncalibrated; no odds/ROI benchmark is approved without verified odds provenance.",
