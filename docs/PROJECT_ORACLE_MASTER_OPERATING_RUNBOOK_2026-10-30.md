@@ -44,6 +44,9 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 - Artifact expiry: 6 November 2026. Its results are recorded here; keep the artifact downloaded separately if a long-term copy is needed.
 
 ## 4. Current known data position
+- Exact 2024–2026 calendar-year coverage is now complete for the pinned 200-season archive: 50/50 groups have provider rows in each of 2024, 2025 and 2026 through 30 Oct 2026; 42,012 rows have kickoff dates on/before the audit date. A further 2,383 rows in 2026 and 4,452 rows in 2027 are future fixtures and are excluded from historical backtests. See `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
+- QA #58: run `41115501513`, artifact `13004648723`, SHA-256 `b10eefaca601782e1083374d7f9836926a953f35f039274806149bac83cd9fc0`. It verified 200/200 season folders, 800 league/season-year output rows, zero undated rows and zero unmatched/missing season folders. No provider API calls were made.
+
 - Selected-50 historical archive ledger: 200 seasons / 59,049 match rows; latest Private Archive QA #44 passed checksum and structural checks.
 - Primary validation window 2025-03-20 to 2026-09-20 contains 22,291 unique provider match IDs (11,648 in 2025 and 10,643 in 2026); no duplicates detected within the primary window.
 - QA #44 flagged 116 past-kickoff rows still marked incomplete, 7,066 parseable score pairs on non-complete rows (all 0-0), and 4,006 complete-status 0-0 rows. Preserve status-based quarantine; official settlement truth remains unverified.
@@ -134,6 +137,7 @@ The connected GitHub capability can inspect repository files, branches, pull req
 ## 12. Authoritative companion records
 - `PROJECT_ORACLE_CANONICAL_HANDOVER.md` — detailed historical decision and run log.
 - `docs/PROJECT_ORACLE_SELECTED50_200_SEASON_INGESTION_RECONCILIATION_2026-10-30.md` — 200-season ingestion evidence and reconciliation.
+- `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md` — exact 2024–2027 provider-row coverage and feature-quality roll-up.
 - `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md` — latest private archive QA, xG/odds quality and event-status findings.
 - `docs/PROJECT_ORACLE_SELECTED50_COMPMaster_ID_EVIDENCE_2026-10-30.md` — exact 50/50 provider `comp_master_id` field observations, held unapproved pending semantic confirmation.
 - `docs/PROJECT_ORACLE_CANONICAL_PREDICTION_ARCHIVE_TEAM_EXPOSURE_AUDIT_2026-10-30.md` — canonical prediction archive exposure limitations.
