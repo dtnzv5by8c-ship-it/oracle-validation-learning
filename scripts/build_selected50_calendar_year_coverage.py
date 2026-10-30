@@ -81,6 +81,10 @@ def run(archive, manifest, out):
         season_ids = [str(m.get("season_id", "")).strip() for m in raw]
         if len(season_ids) != len(set(season_ids)) or "" in season_ids:
             raise ValueError("Archive season manifest has blank/duplicate IDs")
+        selected_ids = set(groups.values())
+        missing_selected_ids = sorted(selected_ids - set(season_ids))
+        if missing_selected_ids:
+            raise ValueError("Selected season IDs missing from archive manifest: " + ",".join(missing_selected_ids))
         for meta in raw:
             sid = str(meta["season_id"]).strip()
             group = (str(meta.get("selected_country", "")).strip(), str(meta.get("selected_competition_name", "")).strip())
@@ -140,10 +144,14 @@ def run(archive, manifest, out):
         with (out/name).open("w", newline="", encoding="utf-8") as f:
             fields = list(rows[0]) if rows else ["season_id", "reason"]
             w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
+    season_counts_by_group = {key: sum(1 for m in season_meta.values() if (m["country"], m["competition_name"]) == key) for key in groups}
+    all_groups_have_four_seasons = all(count == 4 for count in season_counts_by_group.values())
     summary = {
-        "status": "RESEARCH_ONLY_CALENDAR_YEAR_COVERAGE_COMPLETE" if len(group_out) == 200 and len(groups) == 50 else "REVIEW_REQUIRED",
+        "status": "RESEARCH_ONLY_CALENDAR_YEAR_COVERAGE_COMPLETE" if len(group_out) == 200 and len(groups) == 50 and len(season_meta) == 200 and all_groups_have_four_seasons else "REVIEW_REQUIRED",
         "selected_league_groups": len(groups), "league_year_rows": len(group_out),
         "archive_season_folders_matched_exactly": len(season_meta),
+        "league_groups_with_exactly_four_archive_seasons": sum(count == 4 for count in season_counts_by_group.values()),
+        "archive_season_folder_counts_by_group": {f"{k[0]}::{k[1]}": v for k, v in sorted(season_counts_by_group.items())},
         "season_year_rows": len(season_out), "unmatched_or_missing_season_folders": len(unmatched),
         "undated_match_rows": sum(group_undated.values()),
         "calendar_years": list(YEARS),
