@@ -17,7 +17,7 @@ class Selected50CalendarYearCoverageTests(unittest.TestCase):
         self.assertEqual(result["field_quality"]["team_a_xg_prematch"]["zero_rows"], 1)
         self.assertEqual(result["kickoff_on_or_before_audit_date_rows"], 3)
         self.assertEqual(result["kickoff_after_audit_date_rows"], 1)
-        self.assertEqual(result["field_quality"]["team_a_xg_prematch"]["positive_rows"], 1)
+        self.assertEqual(result["field_quality"]["team_a_xg_prematch"]["positive_rows"], 2)
         self.assertEqual(result["field_quality"]["odds_btts_yes"]["zero_rows"], 1)
         self.assertEqual(result["field_quality"]["odds_btts_yes"]["missing_or_nonnumeric_rows"], 1)
 
