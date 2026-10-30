@@ -11,7 +11,7 @@ on:
       private_archive_release_tag:
         description: "Existing private archive release tag to audit"
         required: false
-        default: research-selected50-footystats-history-40375285207
+        default: research-selected50-footystats-history-40447419806
         type: string
   push:
     branches:
@@ -53,9 +53,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
           PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag }}
+          EXPECTED_PRIVATE_ARCHIVE_SHA256: af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875
         run: |
           set -euo pipefail
-          TAG="${PRIVATE_ARCHIVE_RELEASE_TAG:-research-selected50-footystats-history-40375285207}"
+          TAG="${PRIVATE_ARCHIVE_RELEASE_TAG:-research-selected50-footystats-history-40447419806}"
           [[ "$TAG" =~ ^research-selected50-footystats-history-[0-9]+$ ]] || { echo "::error::Invalid private archive tag."; exit 1; }
           echo "Reading existing private archive tag: $TAG"
           mkdir -p private-download
@@ -66,6 +67,8 @@ jobs:
             --dir private-download
           cd private-download
           sha256sum -c private-package.sha256
+          ACTUAL_PRIVATE_ARCHIVE_SHA256="$(sha256sum oracle-selected50-footystats-private-ingestion.zip | awk '{print $1}')"
+          [[ "${ACTUAL_PRIVATE_ARCHIVE_SHA256}" == "${EXPECTED_PRIVATE_ARCHIVE_SHA256}" ]] || { echo "::error::Downloaded archive SHA-256 does not match the pinned Selected-50 research archive."; exit 1; }
           test -s oracle-selected50-footystats-private-ingestion.zip
           echo "ORACLE_ARCHIVE_SOURCE_TAG=$TAG" >> "$GITHUB_ENV"
 
