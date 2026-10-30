@@ -3,7 +3,7 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).with_name("analyze_selected50_fixture_context_discordance.py")
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "analyze_selected50_fixture_context_discordance.py"
 spec = importlib.util.spec_from_file_location("fixture_context_discordance", SCRIPT)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
