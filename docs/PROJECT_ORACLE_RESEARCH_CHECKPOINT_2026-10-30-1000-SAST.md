@@ -174,3 +174,44 @@ The dedicated `test_selected50_h2h_research.py` suite is included in the manual 
 ## 9. Current release decision
 
 The new fixture-identity guard and its offline contract tests are now validated by the post-correction safety/dry-run workflows. The latest full Selected-50 runtime remains #171; no new full runtime has been completed on the updated code. Do not infer changed H2H metrics from the unit-test passes.
+
+
+## 10. Boolean kickoff hardening and final post-change CI
+
+A final edge case was identified in the same fixture-signature gate: Python converts `True` to `1.0`, so a direct boolean `kickoff_unix` value could otherwise be accepted as a finite numeric timestamp by the signature helper. The archive normalizer rejects invalid timestamp sources, but the helper now independently rejects boolean epoch values as well.
+
+Focused regression coverage was added to both:
+- `tests/test_selected50_h2h_research.py`
+- `tests/test_footystats_selected50_bounded_probe_contract.py`
+
+The final relevant commits are:
+- `746110a0622d66ce1a2f135f0589b1a5463842de` — reject boolean kickoff values in completed fixture keys.
+- `e4489d46528daea4163f2b63bd06aeb8b2e5af51` — direct H2H regression test for boolean kickoff.
+- `5323391d3d70eb3be1090ca7427d1f4a9c411114` — bounded research contract regression test for boolean kickoff.
+
+Post-change validation:
+- [Safety Contract Tests #463](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024258756): PASS.
+- [Safety Contract Tests #464](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024268241): PASS on the final boolean-kickoff test commit.
+- [Dry-Run Planner #745](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024258744): PASS.
+- [Dry-Run Planner #746](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41024267897): PASS on the final test commit.
+
+Safety #464 logs confirm:
+- 16 bounded-probe contract tests passed, including the strict fixture-identity target-label guard and boolean-kickoff rejection.
+- 7 H2H paired chronology tests passed.
+- 9 H2H paired output-contract tests passed.
+- Remaining offline contract/test steps passed.
+
+The earlier #459/#460 and #741/#742 failures were limited to the stale synthetic fixture described in Section 8. The test fixture was corrected; no production or model logic was changed to make the tests pass.
+
+Dry-Run #746 artifact ID `12962243426` was downloaded and inspected. It reports:
+- 50 selected groups.
+- 22 identity candidates requiring human review; 28 unresolved; 0 approved.
+- 0 canonical fixture joins; 0 canonical team joins.
+- 0 official settlement truth and 0 point-in-time xG/odds provenance.
+- 0 governed current-fixture rows.
+- Current schedule evidence still ends 22 October 2026; last fixture date 17 October 2026.
+- `network_calls_made=0` and `paid_provider_calls_made=0`.
+
+The 31/19 season-ID split in the dry-run artifact belongs to legacy Run 56/crosswalk r17 evidence. It does not contradict QA #39's 50/50 selected season-folder presence in the pinned 404474 archive.
+
+The final boolean-kickoff changes have passed push-triggered safety/dry-run checks. They have **not** yet been exercised by a new full Selected-50 historical runtime.
