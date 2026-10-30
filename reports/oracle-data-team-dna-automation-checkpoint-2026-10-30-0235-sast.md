@@ -23,6 +23,7 @@
 
 - Safety Contract Tests [run 40980198406](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40980198406): success; new script compiled and all 7 new tests passed.
 - Dry-Run Planner [run 40980198388](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40980198388): success; no network or paid-provider calls.
+- Follow-up Safety Contract Tests [run 40980272890](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40980272890): success; the new script compiled and all 7 fixture-context tests passed again.
 - Latest dry-run still reports zero current governed fixture rows, zero canonical fixture/team joins, zero official settlement truth, 22 candidate crosswalks requiring human review and 28 unresolved. Current schedule is stale (last fixture date 2026-10-17; manifest window ended 2026-10-22).
 - The 14,051-row private QA snapshot is explicitly pre-batch-5 and superseded by later historical ingestion. Do not present it as current 200-season coverage. Run #168's 59,049-row runtime archive is a different population.
 
