@@ -1,0 +1,82 @@
+{
+  "analysis_asof_utc": "2026-10-30T01:25:16+00:00",
+  "fixture_context": {
+    "countries": 41,
+    "country_league_groups": 47,
+    "distinct_provider_team_ids": 779,
+    "fixture_rows": 436,
+    "league_rollup_rows": 47,
+    "provider_team_id_multiple_name_collisions": 0,
+    "selected_season_surrogates": 47,
+    "team_market_exposure_rows": 1718,
+    "team_role_fixture_appearance_distribution": {
+      "1": 846,
+      "2": 13
+    },
+    "team_role_profiles": 859,
+    "unique_fixture_ids": 436
+  },
+  "interpretation": {
+    "betting_eligible": false,
+    "btts_probability_is_fixture_level_and_shared_by_both_teams": true,
+    "canonical_identity_verified": false,
+    "double_chance_team_side_probability_includes_draw": true,
+    "frozen_probabilities_changed": false,
+    "locked_h2h_holdout_read": false,
+    "performance_metrics_computed": false,
+    "probabilities_calibrated": false,
+    "production_eligible": false,
+    "production_model_changed": false,
+    "provider_api_calls": 0,
+    "reason": "No verified team-attributed chronological prediction/settlement pairs are present in this fixture report.",
+    "settlement_truth_verified": false,
+    "team_market_rows_are_exposure_not_accuracy": true
+  },
+  "next_action": "Use this exposure map only as a descriptive index. Build and validate a separate chronological team-attributed prediction/settlement ledger before calculating team-market performance or exclusions.",
+  "prediction_and_market_coverage": {
+    "canonical_fixture_join_status_counts": {
+      "NOT_VERIFIED": 436
+    },
+    "canonical_team_join_status_counts": {
+      "NOT_VERIFIED": 436
+    },
+    "invalid_numeric_probability_counts_by_market": {
+      "BTTS": 0,
+      "COMBO_AWAY": 0,
+      "COMBO_HOME": 0,
+      "DC_AWAY": 0,
+      "DC_HOME": 0
+    },
+    "prediction_status_counts": {
+      "BLOCKED_MISSING_REQUIRED_FEATURES": 25,
+      "RAW_RESEARCH_ONLY": 411
+    },
+    "settlement_truth_status_counts": {
+      "NOT_VERIFIED_AGAINST_PRODUCTION_MARKET_SPEC": 436
+    },
+    "valid_probability_observation_counts_by_market": {
+      "BTTS": 411,
+      "COMBO_AWAY": 0,
+      "COMBO_HOME": 0,
+      "DC_AWAY": 411,
+      "DC_HOME": 411
+    }
+  },
+  "source_runtime": {
+    "archive_consumption_verified": true,
+    "runtime_age_hours_at_analysis": 8.26,
+    "runtime_archive_sha256": "e6fe86d636402e1078cdca5ae88ed211e49e78123916d3995cac4200d511d5ed",
+    "runtime_generated_utc": "2026-10-29T17:09:30.571094+00:00",
+    "runtime_run_id": "40917698925",
+    "runtime_run_number": "168",
+    "snapshot_age_hours_at_analysis": 13.65,
+    "snapshot_retrieved_utc": "2026-10-29T11:46:20.656086+00:00"
+  },
+  "status": "RESEARCH_ONLY_TEAM_MARKET_EXPOSURE_MAP_COMPLETE",
+  "team_context": {
+    "profiles_with_at_least_one_feature_incomplete_appearance": 50,
+    "profiles_with_latest_form_n_below_5": 26,
+    "profiles_with_latest_form_n_mismatch": 0,
+    "profiles_with_multiple_distinct_form_sequences": 0
+  }
+}
