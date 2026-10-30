@@ -70,6 +70,11 @@ The following run outputs and workbook were copied into the persistent ChatGPT L
 Latest documentation refresh commit: `92188350b8bd5a0841063a2e03271a17c5db34cd`.
 
 ## Latest archive QA findings
+- Exact 2024–2026 calendar-year coverage audit: QA #58, run `41115501513`, artifact `13004648723`, SHA-256 `b10eefaca601782e1083374d7f9836926a953f35f039274806149bac83cd9fc0`.
+- 200/200 archive season folders exact, 50/50 selected groups, 800 season-year output rows, zero undated rows and zero missing/unmatched season folders.
+- Provider match rows: 2024 14,761 (50/50 groups); 2025 15,029 (50/50); 2026 14,605 total, of which 12,222 are on/before 30 Oct and 2,383 are future; 2027 4,452 future-only (32/50 groups).
+- Historical rows on/before 30 Oct: 42,012, including 41,781 provider-complete and 231 non-complete rows. Provider-complete status is not independent official settlement truth.
+- Full coverage and complete-status xG/odds field-zero rates: `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
 - 200/200 season folders present; 59,049 match rows; 3,366 team-season roster memberships; 22,291 unique provider match IDs in the primary validation window; no duplicate IDs in that window.
 - 116 past-kickoff rows remain `incomplete`; 7,066 non-complete rows have parseable 0-0 score pairs; official settlement truth remains unverified.
 - Current vs historical prematch-xG zero rates: home 13.26% vs 3.54%; away 13.30% vs 3.52%; total 11.91% vs 3.16%. Eleven groups cross the descriptive 30% zero-rate screen. Odds zero-mask anomalies remain under investigation.
@@ -78,3 +83,6 @@ Latest documentation refresh commit: `92188350b8bd5a0841063a2e03271a17c5db34cd`.
 
 Latest QA report commit: `711045e3f8620c72ce01b87e67c4711995dd2fc3`.
 Latest runbook refresh commit: `25d3272a93fa32f8f9b70c2a05c1c3c919ca7fe3`.
+
+Latest exact annual coverage report commit: `b2b7c09418c685d2fc00a20447a3fcaf6a9e4d64`.
+Latest runbook refresh commit: `f59af9fad3b11e49895298f560cb6d5547986b57`.
