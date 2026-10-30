@@ -22,7 +22,7 @@ Make Project Oracle repeatable: preserve the existing model and archive, refresh
 - Active branch: `research/oracle-50-league-readiness-audit`
 - Initial recovery branch: `backup/oracle-50-readiness-2026-10-30-98af1f7` (pre-improvement baseline).
 - QA #58 recovery branch: `backup/oracle-50-qa58-2026-10-30` (snapshot before final watchlist documentation).
-- Latest final recovery branch: `backup/oracle-50-qa58-final-2026-10-30` (full research branch snapshot including the annual league-level quality watchlist; commit `77c9d84800e4c3e4b6655d455cdf55d387537a9b`).
+- Latest final recovery branch: `backup/oracle-50-qa58-v4-2026-10-30` (full research branch snapshot including the exact calendar-year audit, league-level quality watchlist, workbook references and Recovery Pack v4; commit `055133ef322a5b7aec3f28c362a3da7246fe94da`).
 - Recovery Pack v4 and the human-readable 2024–2027 coverage workbook are saved in the persistent ChatGPT Library folder `/Project Oracle/2026-10-30 Recovery Pack/`.
 - Workbook: `Oracle_Selected50_2024-2027_Coverage_and_Feature_Audit_30Oct2026.xlsx`; five tabs: Executive Summary, League-Year Coverage (200 rows), Season-Year Coverage (800 rows), Quality Watchlist, Definitions & Controls.
 - Recovery Pack v4 SHA-256: `02ac0e814edd481c20c853e88fbe47ee680df24b718087cd84bbfd0edd371c87`.
