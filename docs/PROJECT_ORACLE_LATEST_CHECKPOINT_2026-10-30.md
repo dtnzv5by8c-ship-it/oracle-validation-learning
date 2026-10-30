@@ -7,8 +7,10 @@
 - Latest verified code/test commit: `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68`.
 - Safety Contract Tests run #487: PASS (run `41112970222`).
 - Dry-Run Planner run #767: PASS (run `41112970242`).
-- Private Archive QA run #44 (`41112970245`) was still in progress at the time of this checkpoint; its result must be checked before using it as a current QA pass.
-- The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 is the revalidation.
+- Private Archive QA run #44 (`41112970245`): PASS; artifact `13003309729`, SHA-256 `6dc7288826bcd384b469ea9ed53b46c66221f85a4292d2c52f9f5ca3f7be7ea9`.
+- Safety Contract Tests run #487: PASS (run `41112970222`).
+- Dry-Run Planner run #767: PASS (run `41112970242`).
+- The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 passed against the corrected checksum.
 - Backup branch created: `backup/oracle-50-readiness-2026-10-30-98af1f7`
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
@@ -66,3 +68,13 @@ The research runtime's stale default private archive tag and SHA were corrected 
 The following run outputs and workbook were copied into the persistent ChatGPT Library folder `/Project Oracle/2026-10-30 Recovery Pack/`: Probe #6 artifact, Visual Intelligence workbook v2, safe current report #5, research runtime #174, current fixture snapshot, private archive QA #40, identity probe #3, dry-run planner #760, cross-provider join audit #18, and FootyStats archive feature audit #64. These are copies of the artifacts available in this session; the canonical private historical archive remains in the private GitHub release listed above.
 
 Latest documentation refresh commit: `92188350b8bd5a0841063a2e03271a17c5db34cd`.
+
+## Latest archive QA findings
+- 200/200 season folders present; 59,049 match rows; 3,366 team-season roster memberships; 22,291 unique provider match IDs in the primary validation window; no duplicate IDs in that window.
+- 116 past-kickoff rows remain `incomplete`; 7,066 non-complete rows have parseable 0-0 score pairs; official settlement truth remains unverified.
+- Current vs historical prematch-xG zero rates: home 13.26% vs 3.54%; away 13.30% vs 3.52%; total 11.91% vs 3.16%. Eleven groups cross the descriptive 30% zero-rate screen. Odds zero-mask anomalies remain under investigation.
+- Full findings: `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md`.
+- Recovery bundle v2 and individual QA #44 artifact are saved in ChatGPT Library at `/Project Oracle/2026-10-30 Recovery Pack/`.
+
+Latest QA report commit: `711045e3f8620c72ce01b87e67c4711995dd2fc3`.
+Latest runbook refresh commit: `25d3272a93fa32f8f9b70c2a05c1c3c919ca7fe3`.
