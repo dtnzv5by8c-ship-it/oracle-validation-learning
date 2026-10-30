@@ -1,0 +1,6 @@
+market,feature_set,leagues,selected_group_count,fold_rule
+BTTS,RECENT_GOALS_STRENGTH,England Championship; Netherlands Eredivisie; Norway Eliteserien; Spain Segunda División,4,3 folds; Brier/log-loss/AUC/ECE repeatable
+BTTS,RECENT_SCORING_PROFILE,Czech Republic First League; Netherlands Eredivisie,2,3 folds; Brier/log-loss/AUC/ECE repeatable
+BTTS,VENUE_SPLITS,Croatia Prva HNL; Italy Serie A; Netherlands Eredivisie; Switzerland Super League,4,3 folds; Brier/log-loss/AUC/ECE repeatable
+DC_AWAY,VENUE_SPLITS,Romania Liga I,1,3 folds; Brier/log-loss/AUC/ECE repeatable
+DC_HOME,none,,0,no per-league feature family passed the stricter gate
