@@ -160,48 +160,13 @@
     "betting_eligible": false
   },
   "repository_csvs": {
-    "top50_btts": {
-      "file": "repo_oracle_selected50_top50_btts_2026-10-31-0108.csv",
-      "sha256": "84cbad5beb47f3e122b6b9c1371bb9c8c070fc9e04a107373c6aa0a35bcafa88",
-      "bytes": 10161
-    },
-    "top50_dc_home": {
-      "file": "repo_oracle_selected50_top50_dc_home_2026-10-31-0108.csv",
-      "sha256": "9b3ab9d0507588265ec1a6b391e0ce9e3cfe26f2a7dd772f2eafd0ed03eea7e5",
-      "bytes": 10408
-    },
-    "top50_dc_away": {
-      "file": "repo_oracle_selected50_top50_dc_away_2026-10-31-0108.csv",
-      "sha256": "1a0c4908be8f210944b60434981e478db8222b502fde28f5875e7e5421737eaf",
-      "bytes": 10421
-    },
-    "score_coverage": {
-      "file": "repo_oracle_selected50_score_coverage_2026-10-31-0108.csv",
-      "sha256": "58f7f146d54d0bd7b278ef1e5adbea90ab445a8195fbf18c11f4c2862afd8f3c",
-      "bytes": 19182
-    },
-    "market_suitability": {
-      "file": "repo_oracle_selected50_market_suitability_2026-10-31-0108.csv",
-      "sha256": "7725cb834c55cc22750a7c3753c8c62af2ee62c8a01b93d89eaceb439bdb9ccd",
-      "bytes": 18179
-    },
-    "chronology_exceptions": {
-      "file": "repo_oracle_selected50_kickoff_exceptions_2026-10-31-0108.csv",
-      "sha256": "08d8560c78cba86ccbf6b6ff479b43ee267c70662251ec6c6752681dc3179501",
-      "bytes": 8134
-    },
-    "lag_sensitivity": {
-      "file": "repo_oracle_selected50_feature_lag_sensitivity_2026-10-31-0108.csv",
-      "sha256": "7f7a2606c753a4399d30b3dabc1c794b8f6b8106be042ec5108c648ae9c27e60",
-      "bytes": 3587
-    },
     "ranking_qa": {
-      "file": "repo_oracle_selected50_ranking_qa_2026-10-31-0108.csv",
+      "path": "reports/repo_oracle_selected50_ranking_qa_2026-10-31-0108.csv",
       "sha256": "f27cde99785b18f1614c419e05a5f0abf6bcfa15b392f5bc3a716bd98d5df01d",
       "bytes": 681
     },
     "top3": {
-      "file": "repo_oracle_selected50_top3_raw_2026-10-31-0108.csv",
+      "path": "reports/repo_oracle_selected50_top3_raw_2026-10-31-0108.csv",
       "sha256": "4f3a9d00629fee3f1c4f6acb0ab37b5fbdc7501002e1ede112cf819de0ff35b7",
       "bytes": 1770
     }
@@ -226,5 +191,10 @@
     },
     "team_market_edge_approved": false
   },
-  "note_sha256": "a6fe9a5a62ed3742daa3ee8bb4edfc38f47ab6ecd743622f98da8fefd1f82271"
+  "note_sha256": "da8ceee9a9b5f16e9f9023b2934c57631ddca3fc43abc806ffa651f2efc68b2c",
+  "workbook_delivery": {
+    "binary_workbook_committed_to_git": false,
+    "binary_workbook_delivered_as_conversation_attachment": true,
+    "full_top50_and_150_row_tables_in_workbook": true
+  }
 }
