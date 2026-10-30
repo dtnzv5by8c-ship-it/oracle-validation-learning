@@ -166,6 +166,7 @@ def main():
         "xg_league_heterogeneity":xs,"belgium_market_by_scope":bes,"team_sample_adequacy":ts,
         "limits":["Current and pooled non-current seasons are not matched cohorts.","Bootstrap resamples league groups, not matches; 48 clusters only.","Jeffreys shrinkage is descriptive, not feature validation.","Belgium season scope IDs are not chronologically ordered because dates are absent.","Numeric zero and positive odds are not proven valid point-in-time values.","Team fixture exposures are not historical outcome samples; canonical joins and settlement truth are unverified.","No H2H, market scoring, accuracy, calibration, ROI or betting suitability is inferred."],
         "governance":{"research_only":True,"provider_calls":0,"provider_credits":0,"h2h_holdout_accessed":False,"production_logic_changed":False,"frozen_probabilities_changed":False,"calibration_changed":False,"governance_changed":False}}
+    summary["analysis_parameters"]={"bootstrap_reps":a.bootstrap_reps,"seed":a.seed,"shrinkage_prior":"Jeffreys Beta(0.5, 0.5)"}
     out=Path(a.output_dir); out.mkdir(parents=True,exist_ok=True)
     (out/"oracle_selected50_xg_league_heterogeneity_summary.json").write_text(json.dumps(summary,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     write_csv(out/"oracle_selected50_xg_league_paired_deltas.csv",xd); write_csv(out/"oracle_selected50_belgium_season_scope_market_quality.csv",be); write_csv(out/"oracle_selected50_team_sample_adequacy_by_league.csv",tl)
