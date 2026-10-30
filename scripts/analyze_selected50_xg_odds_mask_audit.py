@@ -123,6 +123,14 @@ def pair_row(pair, meta, sid, a, b, family):
         "pair_status":"AVAILABLE_AGGREGATE_MASK_COUNTS",
     }
 
+def identify_xg_outlier_seasons(rate_rows, min_sample=MIN_XG_SAMPLE, threshold_pct=XG_ZERO_RATE_THRESHOLD_PCT):
+    return {
+        str(row["season_id"]) for row in rate_rows
+        if to_int(row.get("numeric_rows")) >= min_sample
+        and row.get("zero_pct") is not None
+        and float(row["zero_pct"]) >= threshold_pct
+    }
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input-dir", required=True, type=Path)
@@ -143,9 +151,7 @@ def main():
     for (sid, field), row in fi.items():
         if field in PREMATCH_XG and as_bool(row.get("selected_current_season")):
             xg_rates.append(rate_row(row, meta.get(sid,{}), field))
-    outlier_ids = {r["season_id"] for r in xg_rates
-                   if r["numeric_rows"] >= MIN_XG_SAMPLE and r["zero_pct"] is not None
-                   and r["zero_pct"] >= XG_ZERO_RATE_THRESHOLD_PCT}
+    outlier_ids = identify_xg_outlier_seasons(xg_rates)
     xg_pairs = []
     for sid in sorted(outlier_ids):
         for fa,fb in XG_MATCH_PAIRS:
