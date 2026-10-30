@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse, csv, datetime as dt, json, os, zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
-from scripts.qa_selected50_private_archive import read_json, as_list, date_value
+try:\n    from scripts.qa_selected50_private_archive import read_json, as_list, date_value\nexcept ModuleNotFoundError:\n    from qa_selected50_private_archive import read_json, as_list, date_value
 
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
