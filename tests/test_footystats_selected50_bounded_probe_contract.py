@@ -289,6 +289,7 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             {**valid, "away_id": "team-a"},# self-fixture
             {**valid, "competition_id": ""},# missing competition scope
             {**valid, "kickoff_unix": None}, # missing event time
+            {**valid, "kickoff_unix": True}, # boolean is not an epoch timestamp
         ]
         for row in invalid_rows:
             with self.subTest(row=row):
