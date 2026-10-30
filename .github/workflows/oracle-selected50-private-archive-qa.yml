@@ -23,6 +23,8 @@ on:
       - "scripts/analyze_selected50_league_numeric_missingness.py"
       - "scripts/analyze_selected50_xg_odds_mask_audit.py"
       - "tests/test_selected50_xg_odds_mask_audit.py"
+      - "scripts/audit_selected50_xg_odds_temporal_shift.py"
+      - "tests/test_selected50_xg_odds_temporal_shift.py"
 
 permissions:
   contents: read
@@ -151,6 +153,11 @@ jobs:
           set -euo pipefail
           python scripts/analyze_selected50_xg_odds_mask_audit.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_odds_audit
 
+      - name: Build current-versus-historical xG and odds temporal shift audit (offline)
+        run: |
+          set -euo pipefail
+          python scripts/audit_selected50_xg_odds_temporal_shift.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_temporal_shift
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -171,6 +178,8 @@ jobs:
             selected50_archive_qa/xg_odds_audit/oracle_selected50_current_season_xg_zero_mask_pairs.csv
             selected50_archive_qa/xg_odds_audit/oracle_selected50_belgium_odds_season_comparison.csv
             selected50_archive_qa/xg_odds_audit/oracle_selected50_belgium_odds_pair_masks.csv
+            selected50_archive_qa/xg_temporal_shift/oracle_selected50_xg_temporal_shift_summary.json
+            selected50_archive_qa/xg_temporal_shift/oracle_selected50_xg_current_vs_historical_by_league.csv
             selected50_archive_qa/selected50_zero_cooccurrence_by_season.csv
           if-no-files-found: error
           retention-days: 14
