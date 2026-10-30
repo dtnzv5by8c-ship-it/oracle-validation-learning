@@ -143,3 +143,15 @@ The next required dataset is a separate, immutable team-attributed chronological
 A complete 50-league team census also requires a named team roster or team-by-match archive export; the current sanitized runtime provides only per-season team counts for the three groups absent from the fixture horizon.
 
 **Governance:** no provider API calls or credits used; no H2H holdout read; no production model logic, frozen probabilities, calibration or governance changed. Production and betting eligibility remain unapproved.
+
+## 8. Repository commits and row-level outputs
+
+Committed to the research branch:
+- `scripts/analyze_selected50_team_market_exposure.py`
+- `tests/test_selected50_team_market_exposure.py`
+- this audit report
+- `reports/oracle_selected50_team_market_exposure_summary_2026-10-30.json`
+- `reports/oracle_selected50_league_team_exposure_rollup_2026-10-30.csv`
+- `reports/oracle-data-team-dna-automation-checkpoint-2026-10-30-0325-sast.md`
+
+The full 859-row team context CSV and 1,718-row team/market exposure CSV are included in the accompanying downloadable research bundle. The committed script regenerates both from the same two approved Run #168 inputs.
