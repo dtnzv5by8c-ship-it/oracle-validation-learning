@@ -175,6 +175,7 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         self.assertIsNotNone(completed_fixture_signature_key(valid))
         self.assertIsNone(completed_fixture_signature_key({**valid, "competition_id": "  "}))
         self.assertIsNone(completed_fixture_signature_key({**valid, "kickoff_unix": None}))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "kickoff_unix": True}))
         self.assertIsNone(completed_fixture_signature_key({**valid, "kickoff_unix": float("inf")}))
 
     def test_market_targets_require_complete_fixture_identity_and_event_time(self):
