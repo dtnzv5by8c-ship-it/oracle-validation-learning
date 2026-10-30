@@ -89,3 +89,8 @@ Latest exact annual coverage report commit: `b2b7c09418c685d2fc00a20447a3fcaf6a9
 Latest runbook refresh commit: `f59af9fad3b11e49895298f560cb6d5547986b57`.
 
 Latest runbook commit after recovery-branch record: `a4d7a79f536aa686182ead10607f3927b795b1f6`.
+
+## Latest annual quality exceptions
+- Belgium Pro League 2026: BTTS Yes/No and Double Chance 1X/X2 odds each have 89/233 zero values (38.20%), compared with no BTTS zero values in 2024 and 2025. P0 odds-market quarantine candidate pending provider confirmation.
+- India 2026 prematch home/away xG zeros: 23/107 (21.50%); Japan 2026: 20/120 (16.67%). P1 xG source investigations.
+- Detailed annual coverage and complete-status field quality: `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
