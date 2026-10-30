@@ -2,7 +2,7 @@ import unittest
 
 from scripts.audit_selected50_xg_odds_temporal_shift import (
     aggregate_period, build_xg_shift_rows, select_current_xg_outliers,
-    wilson_interval, build_summary,
+    wilson_interval, build_summary, as_int, validate_numeric_quality_rows,
 )
 
 
@@ -71,6 +71,60 @@ class Selected50XgOddsTemporalShiftTests(unittest.TestCase):
         self.assertFalse(result["production_eligible"])
         self.assertFalse(result["betting_eligible"])
 
+
+
+    def test_count_parser_rejects_silent_truncation_and_invalid_values(self):
+        self.assertEqual(as_int("3.0"), 3)
+        for value in (True, False, "", "NaN", "inf", "-1", "2.5", "not-a-count"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    as_int(value)
+
+    def test_zero_count_cannot_exceed_numeric_population(self):
+        row = {
+            "subset": "primary_window_provider_complete", "selected_current_season": "True",
+            "scope_id": "C1", "country": "A", "competition_name": "L",
+            "field_name": "team_a_xg_prematch", "numeric_rows": "5", "zero_rows": "6",
+        }
+        with self.assertRaises(ValueError):
+            select_current_xg_outliers([row])
+
+    def test_duplicate_scope_field_rows_fail_closed(self):
+        row = {
+            "subset": "primary_window_provider_complete", "selected_current_season": "True",
+            "scope_id": "C1", "country": "A", "competition_name": "L",
+            "field_name": "team_a_xg_prematch", "numeric_rows": "50", "zero_rows": "10",
+        }
+        with self.assertRaises(ValueError):
+            validate_numeric_quality_rows([row, dict(row)])
+
+    def test_all_group_pool_is_separate_from_outlier_selected_pool(self):
+        rows = []
+        for field in ("team_a_xg_prematch", "team_b_xg_prematch", "total_xg_prematch"):
+            for country, current_zeros, historical_zeros in (("A", 20, 5), ("B", 5, 2)):
+                rows.extend([
+                    {"subset": "primary_window_provider_complete", "selected_current_season": "True",
+                     "scope_id": f"{country}C", "country": country, "competition_name": "L",
+                     "field_name": field, "numeric_rows": "50", "zero_rows": str(current_zeros)},
+                    {"subset": "primary_window_provider_complete", "selected_current_season": "False",
+                     "scope_id": f"{country}H", "country": country, "competition_name": "L",
+                     "field_name": field, "numeric_rows": "100", "zero_rows": str(historical_zeros)},
+                ])
+        validate_numeric_quality_rows(rows)
+        shift_rows = build_xg_shift_rows(rows)
+        self.assertEqual(len(shift_rows), 6)
+        summary = build_summary({"selected_leagues_in_manifest": 3}, shift_rows, {})
+        all_groups = summary["pooled_xg_current_vs_historical"]["team_a_xg_prematch"]
+        flagged = summary["pooled_xg_current_vs_historical_flagged_leagues"]["team_a_xg_prematch"]
+        self.assertEqual((all_groups["current_n"], all_groups["current_zero"]), (100, 25))
+        self.assertEqual((all_groups["historical_n"], all_groups["historical_zero"]), (200, 7))
+        self.assertEqual((flagged["current_n"], flagged["current_zero"]), (50, 20))
+        self.assertEqual((flagged["historical_n"], flagged["historical_zero"]), (100, 5))
+        self.assertEqual(summary["xg_outlier_screen"]["current_selected_groups_with_xg_qa_rows"], 2)
+        self.assertEqual(summary["xg_outlier_screen"]["selected_groups_without_current_xg_qa_rows"], 1)
+        self.assertEqual(summary["xg_outlier_screen"]["flagged_league_count"], 1)
+        self.assertFalse(summary["production_eligible"])
+        self.assertFalse(summary["betting_eligible"])
 
 if __name__ == "__main__":
     unittest.main()
