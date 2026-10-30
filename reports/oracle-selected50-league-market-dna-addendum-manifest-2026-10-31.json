@@ -1,0 +1,40 @@
+{
+  "generated_at_sast": "2026-10-31T00:10:00+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "workbook": "Oracle_Selected50_League_Market_DNA_QA_Addendum_31Oct2026.xlsx",
+  "workbook_sha256": "92519e3e776a39b52a343846c8c54b94a4332dd6b8713391ee8054aa9332ea4d",
+  "sheets": [
+    "Executive Summary",
+    "League Market Summary",
+    "League Year Coverage",
+    "League Market Suitability",
+    "Current Ranking QA",
+    "Top 50 BTTS",
+    "Top 50 DC Home",
+    "Top 50 DC Away"
+  ],
+  "league_rows": 50,
+  "league_year_rows": 150,
+  "league_market_rows": 150,
+  "top50_rows_per_market": 50,
+  "repeatable_diagnostic_combinations": 26,
+  "leagues_with_candidate": 17,
+  "status_counts": {
+    "repeatable": 26,
+    "calibration_warning": 13,
+    "mixed": 47,
+    "insufficient": 60,
+    "no_positive_skill": 4
+  },
+  "top50_quarantine_counts": {
+    "BTTS": 3,
+    "DC_HOME": 2,
+    "DC_AWAY": 9
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "workflows_rerun": 0,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
