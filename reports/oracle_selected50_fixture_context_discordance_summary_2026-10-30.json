@@ -1,0 +1,87 @@
+{
+  "status": "RESEARCH_ONLY_FIXTURE_CONTEXT_DISCORDANCE_SCREEN_COMPLETE",
+  "audit_timestamp_sast": "2026-10-30T02:26:32+02:00",
+  "source_runtime": {
+    "run_id": "40917698925",
+    "run_number": 168,
+    "generated_utc": "2026-10-29T17:09:30.571094+00:00",
+    "snapshot_retrieved_utc": "2026-10-29T11:46:20.656086+00:00",
+    "runtime_archive_sha256": "e6fe86d636402e1078cdca5ae88ed211e49e78123916d3995cac4200d511d5ed"
+  },
+  "fixture_context": {
+    "fixture_rows": 436,
+    "raw_research_predictions": 411,
+    "blocked_missing_required_features": 25,
+    "country_league_groups": 47,
+    "countries": 41,
+    "team_slots": 872,
+    "unique_provider_team_ids": 779,
+    "provider_team_ids_with_multiple_names": 0,
+    "competition_team_name_pairs_with_multiple_provider_ids": 0
+  },
+  "recent_form": {
+    "home_samples_below_5": 17,
+    "away_samples_below_5": 9,
+    "both_sides_below_5": 1,
+    "blocked_rows_with_one_or_both_sides_below_5": 25
+  },
+  "h2h": {
+    "displayed_wdl_sequence_length_distribution": {
+      "0": 65,
+      "1": 18,
+      "2": 61,
+      "3": 19,
+      "4": 49,
+      "5": 224
+    },
+    "btts_rate_available_rows": 371,
+    "rows_with_btts_rate_but_missing_last_meeting_date": 0,
+    "last_meeting_date_at_or_after_fixture_violations": 0,
+    "denominator_caveat": "Displayed WDL sequence length is only a proxy for the H2H BTTS-rate denominator; no H2H rate confidence interval is claimed."
+  },
+  "nonexclusive_context_flags": {
+    "dc_preference_vs_recent_form_disagreement": 9,
+    "btts_probability_vs_h2h_rate_gap_abs_ge_30pp_with_displayed_n_proxy_ge_3": 58,
+    "low_goal_h2h_average_total_goals_le_1_8_with_displayed_n_proxy_ge_3": 64,
+    "high_goal_h2h_average_total_goals_ge_3_2_with_displayed_n_proxy_ge_3": 67,
+    "unique_fixture_rows_with_at_least_one_flag": 157
+  },
+  "heuristics_not_validated": {
+    "dc_preference_margin_abs_min_pp": 10,
+    "opposing_recent_form_points_margin_min": 3,
+    "btts_h2h_gap_abs_min_pp": 30,
+    "minimum_displayed_h2h_wdl_length_proxy": 3,
+    "low_goal_avg_total_goals_max": 1.8,
+    "high_goal_avg_total_goals_min": 3.2
+  },
+  "latest_dry_run": {
+    "run_id": "40974225892",
+    "conclusion": "success",
+    "network_calls": 0,
+    "paid_provider_calls": 0,
+    "selected_season_ids": 50,
+    "run56_exact_manifest_matches": 31,
+    "selected_ids_without_run56_manifest_row": 19,
+    "candidate_crosswalks_requiring_human_review": 22,
+    "unresolved_crosswalks": 28,
+    "canonical_fixture_joins_verified": 0,
+    "canonical_team_joins_verified": 0,
+    "official_settlement_truth_verified": 0,
+    "governed_fixture_rows_emitted": 0,
+    "schedule_last_fixture_date": "2026-10-17",
+    "schedule_manifest_window_end": "2026-10-22",
+    "production_eligible": false
+  },
+  "latest_safety_contract": {
+    "run_id": "40974272830",
+    "conclusion": "success",
+    "tests_passed": 19
+  },
+  "locked_h2h_holdout_read": false,
+  "provider_api_calls_made": 0,
+  "production_model_logic_changed": false,
+  "frozen_probabilities_changed": false,
+  "production_eligible": false,
+  "betting_eligible": false,
+  "next_action": "Dispatch a fresh historical-only Selected-50 research runtime manually with current snapshot overlay disabled and no provider refresh; then rerun context analysis and build the prospective prediction/settlement ledger."
+}
