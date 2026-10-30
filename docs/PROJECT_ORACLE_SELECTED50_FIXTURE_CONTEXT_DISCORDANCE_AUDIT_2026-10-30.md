@@ -112,7 +112,7 @@ These flags can be used to prioritise BTTS and goal-market review. They do not e
 
 ## 6. Latest independent readiness check
 
-The latest observed dry-run planner on the branch was [Run 40974225892](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40974225892). It completed successfully; all listed steps passed, and the logs explicitly state that zero network calls and zero paid-provider calls were made. The associated safety-contract run [40974272830](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40974272830) also passed (19 tests).
+The latest post-change dry-run planner was [Run 40980198388](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40980198388). It completed successfully; all listed steps passed, and its artifact still reports zero network calls and zero paid-provider calls. The latest safety-contract run [40980198406](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/40980198406) also passed. It compiled the new research script and ran all seven new fixture-context discordance tests successfully. The first CI attempt exposed an incorrect test import path (the test file is under tests/ while the script is under scripts/); the path was corrected in commit ed12fc187abaf38e8d5319095085aa799453281b before the passing rerun.
 
 A successful dry-run is not a readiness approval. Its artifact reports:
 - 50 selected season IDs;
