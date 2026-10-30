@@ -71,6 +71,13 @@ The inspected dry-run artifact still reports:
 
 No provider/API calls or credits were used in these checks.
 
+
+### Artifact-lineage caution
+
+Safety #472 also uploaded `oracle-selected50-200-season-summary.json` (artifact ID `12964068161`). I downloaded and inspected it. Its own metadata identifies source ingestion run `40375285207` and source private archive SHA-256 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`, not the pinned 404474 asset. The artifact is useful as a passing offline ingestion-ledger reconciliation, but it is **not** evidence that the 404474 archive asset has the same bytes or lineage. Keep it separate from Run #171/#172's 404474 runtime evidence. The latest Dry-Run #751 artifact likewise labels its 14,051-row/Run-56 coverage snapshot as superseded; its 31/19 crosswalk split must not be presented as current 200-season archive coverage.
+
+The current research branch head after this checkpoint is `229d71cf0fa78e7767b58e591b5e21e479ffd0c0`. The added commit changes documentation only.
+
 ## H2H comparison status
 
 Run #171 remains the latest completed full-runtime H2H comparison with retained artifacts. Run #172 did not produce a retained paired prediction artifact because the final validator failed. Therefore:
