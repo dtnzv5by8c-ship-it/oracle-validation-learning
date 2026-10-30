@@ -1,3 +1,5 @@
+> **Superseded source pin:** This historical QA #35 reconciliation is retained for audit history only. For current xG/odds findings, use `docs/PROJECT_ORACLE_SELECTED50_ARCHIVE_QA_RUN44_2026-10-30.md`; its archive tag/checksum supersede the older source pin below.
+
 # Project Oracle — Selected-50 xG/Odds Cross-Scope Reconciliation
 
 **Date:** 30 October 2026  
