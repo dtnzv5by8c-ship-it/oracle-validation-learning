@@ -1,0 +1,195 @@
+{
+  "status": "RESEARCH_ONLY_GLOBAL_MARKET_FOLD_STABILITY_AUDIT",
+  "source_file": "data/selected50_walk_forward_snapshot/aggregate_folds.csv",
+  "source_snapshot_type": "SANITIZED_AGGREGATE_WALK_FORWARD_METRICS_ONLY_NO_RAW_PROVIDER_ROWS",
+  "source_provenance": {
+    "repository": "dtnzv5by8c-ship-it/oracle-validation-learning",
+    "branch": "research/oracle-50-league-readiness-audit",
+    "runtime_run_id": 40238357851,
+    "artifact_id": 12615034595,
+    "runtime_commit": "73fa4cbd459e6220b88d2fa4dbbc815b37b548de",
+    "artifact_sha256": "a7d17ff2e058bcf2a8a70f7f280c8ed821f11aa8ca7d8262b45e9f74a25b877d",
+    "artifact_expiry": "2026-11-08T22:05:41Z"
+  },
+  "source_reported_counts": {
+    "league_market_rows": 250,
+    "league_market_fold_rows": 750,
+    "primary_sample_gate_failures": 5,
+    "readiness_status_counts": {
+      "INSUFFICIENT_FOLD_SAMPLE_OR_METRIC": 100,
+      "MIXED_BRIER_SKILL_ACROSS_FOLDS": 75,
+      "NO_POSITIVE_BRIER_SKILL_ALL_FOLDS": 4,
+      "POSITIVE_BRIER_SKILL_ALL_FOLDS_DIAGNOSTIC_ONLY": 71
+    }
+  },
+  "selected_league_groups": 50,
+  "fold_design": "Expanding-window rolling-origin; each fold trains strictly before test interval; fixed features and model; no calibration or tuning.",
+  "fold_test_n": [
+    6611,
+    7600,
+    6667
+  ],
+  "fold_train_n": [
+    22427,
+    29038,
+    36638
+  ],
+  "per_market": {
+    "DC_AWAY": {
+      "test_n_across_disjoint_folds": 20878,
+      "weighted_accuracy_from_rounded_fold_rates": 0.606334,
+      "weighted_training_prevalence": 0.560847,
+      "majority_class_accuracy_baseline": 0.560847,
+      "accuracy_minus_majority_baseline_pp": 4.5486,
+      "weighted_brier": 0.232779,
+      "weighted_prevalence_baseline_brier": 0.246067,
+      "aggregate_brier_skill": 0.054001,
+      "weighted_log_loss": 0.657482,
+      "positive_skill_folds": 3,
+      "fold_brier_skill": [
+        0.05062,
+        0.05788,
+        0.05297
+      ],
+      "fold_ece_not_pooled": [
+        0.01511,
+        0.0059,
+        0.01603
+      ],
+      "probabilities_raw_uncalibrated": true,
+      "calibration_approved": false,
+      "production_eligible": false,
+      "betting_eligible": false,
+      "research_disposition": "GLOBAL_BASELINE_COMPARISON_ONLY"
+    },
+    "DC_HOME": {
+      "test_n_across_disjoint_folds": 20878,
+      "weighted_accuracy_from_rounded_fold_rates": 0.701983,
+      "weighted_training_prevalence": 0.704932,
+      "majority_class_accuracy_baseline": 0.704932,
+      "accuracy_minus_majority_baseline_pp": -0.2949,
+      "weighted_brier": 0.200494,
+      "weighted_prevalence_baseline_brier": 0.21092,
+      "aggregate_brier_skill": 0.049434,
+      "weighted_log_loss": 0.587785,
+      "positive_skill_folds": 3,
+      "fold_brier_skill": [
+        0.0469,
+        0.05224,
+        0.0488
+      ],
+      "fold_ece_not_pooled": [
+        0.02609,
+        0.00763,
+        0.01317
+      ],
+      "probabilities_raw_uncalibrated": true,
+      "calibration_approved": false,
+      "production_eligible": false,
+      "betting_eligible": false,
+      "research_disposition": "GLOBAL_BASELINE_COMPARISON_ONLY"
+    },
+    "BTTS": {
+      "test_n_across_disjoint_folds": 20878,
+      "weighted_accuracy_from_rounded_fold_rates": 0.53956,
+      "weighted_training_prevalence": 0.524163,
+      "majority_class_accuracy_baseline": 0.524163,
+      "accuracy_minus_majority_baseline_pp": 1.5398,
+      "weighted_brier": 0.247242,
+      "weighted_prevalence_baseline_brier": 0.248573,
+      "aggregate_brier_skill": 0.005357,
+      "weighted_log_loss": 0.687594,
+      "positive_skill_folds": 3,
+      "fold_brier_skill": [
+        0.00409,
+        0.00596,
+        0.00595
+      ],
+      "fold_ece_not_pooled": [
+        0.0185,
+        0.01222,
+        0.02326
+      ],
+      "probabilities_raw_uncalibrated": true,
+      "calibration_approved": false,
+      "production_eligible": false,
+      "betting_eligible": false,
+      "research_disposition": "GLOBAL_BASELINE_COMPARISON_ONLY"
+    },
+    "COMBO_AWAY": {
+      "test_n_across_disjoint_folds": 20878,
+      "weighted_accuracy_from_rounded_fold_rates": 0.649104,
+      "weighted_training_prevalence": 0.344555,
+      "majority_class_accuracy_baseline": 0.655445,
+      "accuracy_minus_majority_baseline_pp": -0.6341,
+      "weighted_brier": 0.223583,
+      "weighted_prevalence_baseline_brier": 0.227846,
+      "aggregate_brier_skill": 0.01871,
+      "weighted_log_loss": 0.638557,
+      "positive_skill_folds": 3,
+      "fold_brier_skill": [
+        0.01429,
+        0.02219,
+        0.01911
+      ],
+      "fold_ece_not_pooled": [
+        0.02187,
+        0.01045,
+        0.01725
+      ],
+      "probabilities_raw_uncalibrated": true,
+      "calibration_approved": false,
+      "production_eligible": false,
+      "betting_eligible": false,
+      "research_disposition": "COMBO_BLOCKED_SEMANTIC_MISMATCH"
+    },
+    "COMBO_HOME": {
+      "test_n_across_disjoint_folds": 20878,
+      "weighted_accuracy_from_rounded_fold_rates": 0.575388,
+      "weighted_training_prevalence": 0.4338,
+      "majority_class_accuracy_baseline": 0.5662,
+      "accuracy_minus_majority_baseline_pp": 0.9187,
+      "weighted_brier": 0.241586,
+      "weighted_prevalence_baseline_brier": 0.245211,
+      "aggregate_brier_skill": 0.014785,
+      "weighted_log_loss": 0.676043,
+      "positive_skill_folds": 3,
+      "fold_brier_skill": [
+        0.0124,
+        0.01822,
+        0.0132
+      ],
+      "fold_ece_not_pooled": [
+        0.02976,
+        0.00693,
+        0.01208
+      ],
+      "probabilities_raw_uncalibrated": true,
+      "calibration_approved": false,
+      "production_eligible": false,
+      "betting_eligible": false,
+      "research_disposition": "COMBO_BLOCKED_SEMANTIC_MISMATCH"
+    }
+  },
+  "non_combo_research_order_by_aggregate_brier_skill": [
+    "DC_AWAY",
+    "DC_HOME",
+    "BTTS"
+  ],
+  "limitations": [
+    "Metrics are test-size-weighted aggregates of rounded fold summaries, not exact fixture-level pooled metrics.",
+    "Accuracy is reconstructed from rounded fold rates; AUC and ECE are not pooled.",
+    "Raw probabilities are uncalibrated; low ECE does not approve calibration.",
+    "No Brier-skill confidence intervals or multiplicity-adjusted inference are available.",
+    "Global league aggregates do not establish team-level suitability, profitability, or betting eligibility.",
+    "Combo remains blocked because predictor and settlement definitions disagree."
+  ],
+  "governance": {
+    "locked_h2h_paired_holdout_read": false,
+    "provider_api_calls": 0,
+    "production_logic_changed": false,
+    "frozen_probabilities_changed": false,
+    "calibration_changed": false,
+    "betting_eligibility_approved": false
+  }
+}

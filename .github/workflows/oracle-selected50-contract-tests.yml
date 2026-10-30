@@ -61,3 +61,10 @@ jobs:
         run: python -m py_compile scripts/analyze_selected50_fixture_context_discordance.py
       - name: Run fixture context discordance research tests
         run: python -m unittest discover -s tests -p "test_selected50_fixture_context_discordance.py" -v
+
+      - name: Compile global market fold-stability audit
+        run: python -m py_compile scripts/audit_selected50_global_market_fold_stability.py
+      - name: Run global market fold-stability regression tests
+        run: python -m unittest discover -s tests -p "test_selected50_global_market_fold_stability.py" -v
+      - name: Generate global market fold-stability summary
+        run: python scripts/audit_selected50_global_market_fold_stability.py --root . --output "$RUNNER_TEMP/oracle-global-market-fold-summary.json"
