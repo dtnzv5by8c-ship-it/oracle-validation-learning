@@ -1,0 +1,48 @@
+country,league,team_role_profiles,distinct_provider_team_ids,fixture_exposures,raw_prediction_exposures,blocked_exposures,profiles_with_form_below5,profiles_with_ge3_fixture_exposures
+Argentina,Primera División,30,30,30,30,0,0,0
+Australia,A-League,12,12,12,12,0,0,0
+Austria,Bundesliga,12,12,12,12,0,0,0
+Belgium,Pro League,20,18,20,16,4,2,0
+Brazil,Serie A,23,16,24,24,0,0,0
+Chile,Primera División,16,16,16,16,0,0,0
+Colombia,Categoria Primera A,18,18,20,20,0,0,0
+Croatia,Prva HNL,10,10,10,10,0,0,0
+Czech Republic,First League,16,16,16,16,0,0,0
+Denmark,Superliga,12,12,12,12,0,0,0
+Ecuador,Primera Categoría Serie A,16,16,16,16,0,0,0
+England,Championship,48,24,48,48,0,0,0
+England,EFL League One,26,24,28,28,0,0,0
+England,Premier League,20,20,20,16,4,2,0
+Finland,Veikkausliiga,6,6,6,6,0,0,0
+France,Ligue 1,18,18,18,16,2,2,0
+France,Ligue 2,18,18,18,18,0,0,0
+Germany,2. Bundesliga,18,18,18,12,6,3,0
+Germany,Bundesliga,18,18,18,12,6,3,0
+Greece,Super League,14,14,14,12,2,1,0
+India,Indian Super League,13,12,14,12,2,1,0
+Italy,Serie A,23,20,24,24,0,0,0
+Italy,Serie B,20,20,20,16,4,2,0
+Japan,J1 League,20,20,20,20,0,0,0
+Mexico,Liga MX,18,18,18,18,0,0,0
+Netherlands,Eredivisie,18,18,18,18,0,0,0
+Norway,Eliteserien,16,16,16,16,0,0,0
+Paraguay,Division Profesional,21,12,22,22,0,0,0
+Peru,Primera División,23,18,24,24,0,0,0
+Poland,Ekstraklasa,18,18,18,16,2,1,0
+Portugal,LigaPro,18,18,18,14,4,2,0
+Republic of Ireland,Premier Division,10,10,10,10,0,0,0
+Romania,Liga I,16,16,16,16,0,0,0
+Russia,Russian Premier League,16,16,16,16,0,0,0
+Saudi Arabia,Professional League,19,17,20,18,2,1,0
+Scotland,Premiership,6,6,6,6,0,0,0
+Serbia,SuperLiga,14,14,14,14,0,0,0
+South Africa,Premier Soccer League,27,16,30,24,6,3,0
+Spain,La Liga,20,20,20,20,0,0,0
+Spain,Segunda División,22,22,22,20,2,1,0
+Sweden,Allsvenskan,22,16,22,22,0,0,0
+Switzerland,Super League,12,12,12,12,0,0,0
+Turkey,Süper Lig,18,18,18,16,2,1,0
+USA,MLS,30,30,30,30,0,0,0
+Ukraine,Ukrainian Premier League,16,16,16,14,2,1,0
+Uruguay,Primera División,16,16,16,16,0,0,0
+Venezuela,Primera División,16,8,16,16,0,0,0
