@@ -13,7 +13,7 @@
 - The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 passed against the corrected checksum.
 - Initial backup branch: `backup/oracle-50-readiness-2026-10-30-98af1f7`.
 - QA #58 recovery branch: `backup/oracle-50-qa58-2026-10-30`.
-- Latest final recovery branch: `backup/oracle-50-qa58-final-2026-10-30`, snapshot commit `77c9d84800e4c3e4b6655d455cdf55d387537a9b` (includes annual league-level quality watchlist).
+- Latest final recovery branch: `backup/oracle-50-qa58-v4-2026-10-30`, snapshot commit `055133ef322a5b7aec3f28c362a3da7246fe94da` (includes exact calendar-year audit, league-level quality watchlist and Recovery Pack v4 references).
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
 - Runbook commit: `23fa143407cb746f17be18f568f4f99abb0de677`
@@ -102,3 +102,5 @@ Latest runbook pointer update commit: `3ab7558b28e34bbae3b62419f5d7652efde2af0a`
 - Recovery Pack v4 saved at `/Project Oracle/2026-10-30 Recovery Pack/Project_Oracle_Recovery_Pack_2026-10-30_v4.zip`.
 - Recovery Pack v4 SHA-256: `02ac0e814edd481c20c853e88fbe47ee680df24b718087cd84bbfd0edd371c87`.
 - Added human-readable workbook `Oracle_Selected50_2024-2027_Coverage_and_Feature_Audit_30Oct2026.xlsx` (200 league-year rows, 800 season-year rows, quality watchlist and definitions).
+
+Latest runbook recovery-branch pointer commit: `cbb850d61c125975dbe4d7b8e64750937551c80a`.
