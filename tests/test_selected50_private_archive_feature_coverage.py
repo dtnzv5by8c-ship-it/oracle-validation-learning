@@ -1,5 +1,5 @@
 import unittest
-from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats, numeric_quality_rows, zero_cooccurrence_rows
+from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats, numeric_quality_rows, zero_cooccurrence_rows, ZERO_CO_OCCURRENCE_FIELDS
 
 class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
     def test_field_presence_and_nonempty_counts_are_distinct(self):
@@ -76,6 +76,13 @@ class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
         self.assertNotIn("fixture_id", pair)
         self.assertNotIn("home_team", pair)
         self.assertNotIn("raw_value", pair)
+
+    def test_zero_cooccurrence_contract_includes_postmatch_xg_and_dc12(self):
+        self.assertEqual(len(ZERO_CO_OCCURRENCE_FIELDS), 20)
+        self.assertIn("team_a_xg", ZERO_CO_OCCURRENCE_FIELDS)
+        self.assertIn("team_b_xg", ZERO_CO_OCCURRENCE_FIELDS)
+        self.assertIn("total_xg", ZERO_CO_OCCURRENCE_FIELDS)
+        self.assertIn("odds_doublechance_12", ZERO_CO_OCCURRENCE_FIELDS)
 
 if __name__ == "__main__":
     unittest.main()

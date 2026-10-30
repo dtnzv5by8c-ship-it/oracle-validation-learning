@@ -21,6 +21,8 @@ on:
       - "scripts/qa_selected50_private_archive.py"
       - "tests/test_selected50_private_archive_feature_coverage.py"
       - "scripts/analyze_selected50_league_numeric_missingness.py"
+      - "scripts/analyze_selected50_xg_odds_mask_audit.py"
+      - "tests/test_selected50_xg_odds_mask_audit.py"
 
 permissions:
   contents: read
@@ -144,6 +146,11 @@ jobs:
           set -euo pipefail
           python scripts/analyze_selected50_league_numeric_missingness.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/numeric_missingness
 
+      - name: Build prematch xG and market-odds zero-mask investigation (offline)
+        run: |
+          set -euo pipefail
+          python scripts/analyze_selected50_xg_odds_mask_audit.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/xg_odds_audit
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -159,6 +166,11 @@ jobs:
             selected50_archive_qa/numeric_missingness/oracle_selected50_league_numeric_missingness_summary.json
             selected50_archive_qa/numeric_missingness/oracle_selected50_league_core_numeric_quality.csv
             selected50_archive_qa/numeric_missingness/oracle_selected50_season_core_numeric_quality.csv
+            selected50_archive_qa/xg_odds_audit/oracle_selected50_xg_odds_mask_audit_summary.json
+            selected50_archive_qa/xg_odds_audit/oracle_selected50_current_season_prematch_xg_zero_rates.csv
+            selected50_archive_qa/xg_odds_audit/oracle_selected50_current_season_xg_zero_mask_pairs.csv
+            selected50_archive_qa/xg_odds_audit/oracle_selected50_belgium_odds_season_comparison.csv
+            selected50_archive_qa/xg_odds_audit/oracle_selected50_belgium_odds_pair_masks.csv
             selected50_archive_qa/selected50_zero_cooccurrence_by_season.csv
           if-no-files-found: error
           retention-days: 14

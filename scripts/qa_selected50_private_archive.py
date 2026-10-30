@@ -56,8 +56,9 @@ PRIMARY_2026_END = dt.date(2026, 9, 20)
 
 ZERO_CO_OCCURRENCE_FIELDS = (
     "team_a_xg_prematch", "team_b_xg_prematch", "total_xg_prematch",
+    "team_a_xg", "team_b_xg", "total_xg",
     "odds_btts_yes", "odds_btts_no",
-    "odds_doublechance_1x", "odds_doublechance_x2",
+    "odds_doublechance_1x", "odds_doublechance_x2", "odds_doublechance_12",
     "odds_ft_1", "odds_ft_x", "odds_ft_2",
     "odds_ft_over25", "odds_ft_under25",
     "odds_btts_1st_half_yes", "odds_btts_1st_half_no",
