@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
+import json
 import math
+from pathlib import Path
+
+
+def write_h2h_paired_chronology_qa(path, summary):
+    """Write exactly one parseable JSON document for the paired chronology QA."""
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
 
 def _utc_timestamp(value):
