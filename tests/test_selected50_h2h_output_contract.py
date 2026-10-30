@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.validate_selected50_runtime_outputs import MARKETS, exact_mcnemar_two_sided_p, validate_h2h_comparison_outputs
+from scripts.validate_selected50_runtime_outputs import MARKETS, binary_auc, exact_mcnemar_two_sided_p, validate_h2h_comparison_outputs
 
 
 FOLD_STARTS = {
@@ -19,33 +19,44 @@ def valid_inputs():
     for market in sorted(MARKETS):
         market_rows.append({
             "market": market,
-            "paired_test_n": 1,
+            "paired_test_n": 2,
             "baseline_test_n": 10,
             "h2h_available_test_n": 8,
             "h2h_test_coverage_pct": 80.0,
             "baseline_train_n": 300,
             "candidate_train_n": 300,
-            "baseline_accuracy_at_0_5": 0.60,
-            "candidate_accuracy_at_0_5": 0.61,
-            "baseline_brier": 0.24,
-            "candidate_brier": 0.23,
-            "baseline_log_loss": 1.2,
-            "candidate_log_loss": 0.9,
-            "baseline_auc": 0.60,
-            "candidate_auc": 0.61,
+            "baseline_accuracy_at_0_5": 1.0,
+            "candidate_accuracy_at_0_5": 1.0,
+            "baseline_brier": 0.16,
+            "candidate_brier": 0.1521,
+            "baseline_log_loss": 0.51083,
+            "candidate_log_loss": 0.49430,
+            "baseline_auc": 1.0,
+            "candidate_auc": 1.0,
             "production_eligible": "NO",
             "betting_eligible": "NO",
             "status": "PAIRED_RESEARCH_ONLY_NOT_CALIBRATED",
         })
-        paired_rows.append({
-            "fixture_id": "F1",
-            "market": market,
-            "actual": "1",
-            "baseline_probability": "0.60",
-            "h2h_candidate_probability": "0.61",
-            "baseline_correct": "1",
-            "h2h_candidate_correct": "1",
-        })
+        paired_rows.extend([
+            {
+                "fixture_id": "F1",
+                "market": market,
+                "actual": "1",
+                "baseline_probability": "0.60",
+                "h2h_candidate_probability": "0.61",
+                "baseline_correct": "1",
+                "h2h_candidate_correct": "1",
+            },
+            {
+                "fixture_id": "F2",
+                "market": market,
+                "actual": "0",
+                "baseline_probability": "0.40",
+                "h2h_candidate_probability": "0.39",
+                "baseline_correct": "1",
+                "h2h_candidate_correct": "1",
+            },
+        ])
         for fold, (start, end) in FOLD_STARTS.items():
             expanding_rows.append({
                 "market": market,
@@ -64,7 +75,7 @@ def valid_inputs():
     chronology = {
         "status": "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY",
         "row_count": len(paired_rows),
-        "unique_fixture_count": 1,
+        "unique_fixture_count": 2,
         "duplicate_fixture_market_rows": 0,
         "non_strict_prior_rows": 0,
         "days_since_last_mismatch_rows": 0,
@@ -81,7 +92,9 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
         inputs = valid_inputs()
         result = validate_h2h_comparison_outputs(*inputs)
         self.assertEqual(result["status"], "PASS_H2H_COMPARISON_AND_CHRONOLOGY_CONTRACT")
-        self.assertEqual(result["paired_prediction_rows"], 5)
+        self.assertEqual(result["paired_prediction_rows"], 10)
+        self.assertTrue(all(x["status"] == "PASS_PAIRED_METRICS_RECONCILED"
+                            for x in result["paired_metric_reconciliation"].values()))
         self.assertFalse(result["betting_eligible"])
 
     def test_baseline_and_candidate_must_use_same_training_rows(self):
@@ -121,7 +134,7 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
     def test_paired_discordance_summary_reconciles_and_is_unadjusted(self):
         inputs = list(valid_inputs())
         for row in inputs[0]["markets"]:
-            row["paired_test_n"] = 5
+            row["paired_test_n"] = 7
         paired = []
         for market in sorted(MARKETS):
             for index in range(4):
@@ -130,14 +143,41 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
                     "baseline_probability": "0.40", "h2h_candidate_probability": "0.60",
                     "baseline_correct": "0", "h2h_candidate_correct": "1",
                 })
-            paired.append({
-                "fixture_id": "B", "market": market, "actual": "1",
-                "baseline_probability": "0.60", "h2h_candidate_probability": "0.40",
-                "baseline_correct": "1", "h2h_candidate_correct": "0",
-            })
+            paired.extend([
+                {
+                    "fixture_id": "B", "market": market, "actual": "1",
+                    "baseline_probability": "0.60", "h2h_candidate_probability": "0.40",
+                    "baseline_correct": "1", "h2h_candidate_correct": "0",
+                },
+                {
+                    "fixture_id": "BC", "market": market, "actual": "0",
+                    "baseline_probability": "0.40", "h2h_candidate_probability": "0.39",
+                    "baseline_correct": "1", "h2h_candidate_correct": "1",
+                },
+                {
+                    "fixture_id": "BW", "market": market, "actual": "0",
+                    "baseline_probability": "0.60", "h2h_candidate_probability": "0.61",
+                    "baseline_correct": "0", "h2h_candidate_correct": "0",
+                },
+            ])
         inputs[2] = paired
-        inputs[3]["row_count"] = 25
-        inputs[3]["unique_fixture_count"] = 5
+        inputs[3]["row_count"] = 35
+        inputs[3]["unique_fixture_count"] = 7
+        for row in inputs[0]["markets"]:
+            rs = [x for x in paired if x["market"] == row["market"]]
+            labels = [int(x["actual"]) for x in rs]
+            for prefix, probability_key in (("baseline", "baseline_probability"),
+                                            ("candidate", "h2h_candidate_probability")):
+                probabilities = [float(x[probability_key]) for x in rs]
+                row[f"{prefix}_accuracy_at_0_5"] = sum(
+                    (p >= 0.5) == bool(y) for y, p in zip(labels, probabilities)
+                ) / len(labels)
+                row[f"{prefix}_brier"] = sum((p-y)**2 for y,p in zip(labels,probabilities)) / len(labels)
+                import math
+                row[f"{prefix}_log_loss"] = -sum(
+                    y*math.log(p)+(1-y)*math.log(1-p) for y,p in zip(labels,probabilities)
+                ) / len(labels)
+                row[f"{prefix}_auc"] = binary_auc(labels, probabilities)
         result = validate_h2h_comparison_outputs(*inputs)
         for market in MARKETS:
             comparison = result["paired_correctness_comparison"][market]
@@ -147,6 +187,12 @@ class Selected50H2HOutputContractTests(unittest.TestCase):
             self.assertEqual(comparison["exact_mcnemar_p_two_sided"], 0.375)
             self.assertIn("UNADJUSTED", comparison["test"])
         self.assertIn("not a probability-quality", result["paired_correctness_interpretation"])
+
+    def test_published_paired_metrics_must_reconcile_to_csv(self):
+        inputs = list(valid_inputs())
+        inputs[0]["markets"][0]["baseline_brier"] = 0.25
+        with self.assertRaises(AssertionError):
+            validate_h2h_comparison_outputs(*inputs)
 
 if __name__ == "__main__":
     unittest.main()

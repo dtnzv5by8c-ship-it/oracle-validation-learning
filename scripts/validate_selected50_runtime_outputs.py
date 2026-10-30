@@ -65,6 +65,39 @@ def exact_mcnemar_two_sided_p(candidate_only_correct: int, baseline_only_correct
     return min(1.0, float(Fraction(2 * tail, 2 ** discordant)))
 
 
+def binary_auc(labels: list[int], probabilities: list[float]) -> float | None:
+    """Rank-based binary AUC with average ranks for ties; None if one class is absent."""
+    positives = sum(labels)
+    negatives = len(labels) - positives
+    if positives == 0 or negatives == 0:
+        return None
+    ordered = sorted(zip(probabilities, labels), key=lambda item: item[0])
+    positive_rank_sum = 0.0
+    index = 0
+    while index < len(ordered):
+        end = index + 1
+        while end < len(ordered) and ordered[end][0] == ordered[index][0]:
+            end += 1
+        average_rank = ((index + 1) + end) / 2.0
+        positive_rank_sum += average_rank * sum(label for _, label in ordered[index:end])
+        index = end
+    return (positive_rank_sum - positives * (positives + 1) / 2.0) / (positives * negatives)
+
+
+def binary_probability_metrics(labels: list[int], probabilities: list[float]) -> dict[str, float | None]:
+    """Recompute fixed-threshold accuracy, Brier, log loss and AUC from paired rows."""
+    if not labels or len(labels) != len(probabilities):
+        raise ValueError("labels and probabilities must be non-empty and equal length")
+    clipped = [max(1e-15, min(1.0 - 1e-15, p)) for p in probabilities]
+    return {
+        "accuracy_at_0_5": sum((p >= 0.5) == bool(y) for y, p in zip(labels, probabilities)) / len(labels),
+        "brier": sum((p - y) ** 2 for y, p in zip(labels, probabilities)) / len(labels),
+        "log_loss": -sum(y * math.log(p) + (1 - y) * math.log(1 - p)
+                         for y, p in zip(labels, clipped)) / len(labels),
+        "auc": binary_auc(labels, probabilities),
+    }
+
+
 
 def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_qa):
     """Fail closed on paired H2H evidence, chronology, fold and governance contracts."""
@@ -76,6 +109,7 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
 
     paired_counts = Counter()
     correctness_counts = {market: Counter() for market in MARKETS}
+    paired_values = {market: {"actual": [], "baseline": [], "candidate": []} for market in MARKETS}
     seen_pairs = set()
     for row in paired_rows:
         fixture_id = str(row.get("fixture_id") or "").strip()
@@ -97,6 +131,9 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         assert baseline_correct in {0, 1} and candidate_correct in {0, 1}
         expected_baseline_correct = int((baseline_probability >= 0.5) == bool(actual))
         expected_candidate_correct = int((candidate_probability >= 0.5) == bool(actual))
+        paired_values[market]["actual"].append(actual)
+        paired_values[market]["baseline"].append(baseline_probability)
+        paired_values[market]["candidate"].append(candidate_probability)
         assert baseline_correct == expected_baseline_correct, "baseline_correct does not reconcile to actual/probability"
         assert candidate_correct == expected_candidate_correct, "h2h_candidate_correct does not reconcile to actual/probability"
         if baseline_correct and candidate_correct:
@@ -121,13 +158,47 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         assert row.get("production_eligible") == "NO"
         assert row.get("betting_eligible") == "NO"
         assert row.get("status") == "PAIRED_RESEARCH_ONLY_NOT_CALIBRATED"
-        for field in ("baseline_accuracy_at_0_5", "candidate_accuracy_at_0_5",
-                      "baseline_brier", "candidate_brier"):
-            number(row, field, low=0, high=1)
-        for field in ("baseline_log_loss", "candidate_log_loss"):
-            number(row, field, low=0)
-        for field in ("baseline_auc", "candidate_auc"):
-            number(row, field, low=0, high=1, allow_none=True)
+        values = paired_values[market]
+        baseline_metrics = binary_probability_metrics(values["actual"], values["baseline"])
+        candidate_metrics = binary_probability_metrics(values["actual"], values["candidate"])
+        metric_pairs = (
+            ("baseline_accuracy_at_0_5", baseline_metrics["accuracy_at_0_5"]),
+            ("candidate_accuracy_at_0_5", candidate_metrics["accuracy_at_0_5"]),
+            ("baseline_brier", baseline_metrics["brier"]),
+            ("candidate_brier", candidate_metrics["brier"]),
+            ("baseline_log_loss", baseline_metrics["log_loss"]),
+            ("candidate_log_loss", candidate_metrics["log_loss"]),
+        )
+        for field, expected_value in metric_pairs:
+            published = number(row, field, low=0)
+            assert abs(published - expected_value) <= 0.000011, (
+                market, field, published, expected_value
+            )
+        for field, expected_value in (
+            ("baseline_auc", baseline_metrics["auc"]),
+            ("candidate_auc", candidate_metrics["auc"]),
+        ):
+            published = row.get(field)
+            if expected_value is None:
+                assert published in (None, ""), (market, field, published)
+            else:
+                published_value = number(row, field, low=0, high=1)
+                assert abs(published_value - expected_value) <= 0.000011, (
+                    market, field, published_value, expected_value
+                )
+
+    paired_metric_reconciliation = {}
+    for market in sorted(MARKETS):
+        values = paired_values[market]
+        base_metrics = binary_probability_metrics(values["actual"], values["baseline"])
+        candidate_metrics = binary_probability_metrics(values["actual"], values["candidate"])
+        paired_metric_reconciliation[market] = {
+            "status": "PASS_PAIRED_METRICS_RECONCILED",
+            "paired_n": paired_counts[market],
+            "baseline": base_metrics,
+            "candidate": candidate_metrics,
+            "rounding_tolerance": 0.000011,
+        }
 
     paired_correctness_comparison = {}
     for market in sorted(MARKETS):
@@ -182,6 +253,8 @@ def validate_h2h_comparison_outputs(metrics, expanding, paired_rows, chronology_
         "paired_fixture_count": int(chronology_qa.get("unique_fixture_count") or 0),
         "market_count": len(market_rows),
         "expanding_window_rows": len(folds),
+        "paired_metric_reconciliation": paired_metric_reconciliation,
+        "paired_metric_interpretation": "Accuracy, Brier, log loss and AUC independently recomputed from paired CSV rows and reconciled to published metrics.",
         "paired_correctness_comparison": paired_correctness_comparison,
         "paired_correctness_interpretation": "Unadjusted exact paired test of 0.5-threshold correctness only; not a probability-quality, calibration, ROI, or betting-edge test.",
         "production_eligible": False,
