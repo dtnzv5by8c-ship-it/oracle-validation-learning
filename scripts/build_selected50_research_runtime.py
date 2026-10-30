@@ -162,9 +162,12 @@ def completed_fixture_signature_key(row):
     """Canonical research signature for a completed score row; None if identity is incomplete."""
     if not row.get("finished") or not valid_completed_score(row.get("home_goals"), row.get("away_goals")):
         return None
+    competition_id = str(row.get("competition_id") or "").strip()
     home_id = str(row.get("home_id") or "").strip()
     away_id = str(row.get("away_id") or "").strip()
-    if not home_id or not away_id or home_id == away_id:
+    # A completed score is not a research-eligible fixture without a known
+    # competition scope, finite kickoff and two distinct provider team IDs.
+    if not competition_id or not home_id or not away_id or home_id == away_id:
         return None
     try:
         kickoff = float(row["kickoff_unix"])
@@ -172,7 +175,7 @@ def completed_fixture_signature_key(row):
         return None
     if not math.isfinite(kickoff):
         return None
-    return (str(row.get("competition_id") or ""), kickoff, tuple(sorted((home_id, away_id))))
+    return (competition_id, kickoff, tuple(sorted((home_id, away_id))))
 
 
 def market_targets_for_match(match, excluded_signatures=None):
@@ -181,10 +184,9 @@ def market_targets_for_match(match, excluded_signatures=None):
     signature = completed_fixture_signature_key(match)
     home_id = str(match.get("home_id") or "").strip()
     away_id = str(match.get("away_id") or "").strip()
-    if not (match.get("finished")
-            and valid_completed_score(match.get("home_goals"), match.get("away_goals"))
-            and home_id and away_id and home_id != away_id
-            and not (signature is not None and signature in (excluded_signatures or set()))):
+    # Fail closed when fixture identity/time is incomplete. A valid score alone
+    # must not create a training label that cannot be scoped or placed in time.
+    if signature is None or signature in (excluded_signatures or set()):
         return {f"target_{market}": None for market in markets}
     home_goals = int(float(match["home_goals"]))
     away_goals = int(float(match["away_goals"]))
@@ -742,11 +744,11 @@ def main():
         # Histories otherwise contain only explicit completed matches with valid integer scores and distinct team IDs.
         home_history=defaultdict(list); away_history=defaultdict(list); h2h_history=defaultdict(list)
         for r in matches:
-            if completed_fixture_signature_key(r) in duplicate_signature_keys: continue
-            if not r["finished"]: continue
-            if not valid_completed_score(r.get("home_goals"),r.get("away_goals")): continue
-            if not str(r.get("home_id") or "").strip() or not str(r.get("away_id") or "").strip(): continue
-            if str(r.get("home_id")) == str(r.get("away_id")): continue
+            signature = completed_fixture_signature_key(r)
+            # Use the same strict fixture eligibility contract for historical
+            # form/H2H inputs as for target labels and duplicate diagnostics.
+            if signature is None or signature in duplicate_signature_keys:
+                continue
             comp=r["competition_id"]; hkey=(comp,r["home_id"]); akey=(comp,r["away_id"])
             home_history[hkey].append((r["kickoff_unix"],r["raw_match"],True))
             away_history[akey].append((r["kickoff_unix"],r["raw_match"],False))
