@@ -54,6 +54,16 @@ PRIMARY_2025_END = dt.date(2025, 12, 31)
 PRIMARY_2026_START = dt.date(2026, 1, 1)
 PRIMARY_2026_END = dt.date(2026, 9, 20)
 
+ZERO_CO_OCCURRENCE_FIELDS = (
+    "team_a_xg_prematch", "team_b_xg_prematch", "total_xg_prematch",
+    "odds_btts_yes", "odds_btts_no",
+    "odds_doublechance_1x", "odds_doublechance_x2",
+    "odds_ft_1", "odds_ft_x", "odds_ft_2",
+    "odds_ft_over25", "odds_ft_under25",
+    "odds_btts_1st_half_yes", "odds_btts_1st_half_no",
+    "odds_btts_2nd_half_yes", "odds_btts_2nd_half_no",
+)
+
 
 def within_date_range(row, start, end):
     """Return true only when a parseable kickoff date falls in the inclusive range."""
@@ -285,6 +295,65 @@ def numeric_quality_rows(scope_type, scope_id, country, competition_name, select
     return rows
 
 
+
+def numeric_feature_value(value):
+    """Parse a finite numeric feature value; preserve zero as a numeric zero."""
+    if value is None or value == "":
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def zero_cooccurrence_rows(season_id, country, competition_name, selected_current_season, rows):
+    """Emit sanitized pairwise zero co-occurrence counts, never fixture-level rows."""
+    pairs = [(a, b) for i, a in enumerate(ZERO_CO_OCCURRENCE_FIELDS) for b in ZERO_CO_OCCURRENCE_FIELDS[i + 1:]]
+    counters = {pair: Counter() for pair in pairs}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        values = {field: numeric_feature_value(row.get(field)) for field in ZERO_CO_OCCURRENCE_FIELDS}
+        for (field_a, field_b), counts in counters.items():
+            value_a, value_b = values[field_a], values[field_b]
+            if value_a is None or value_b is None:
+                continue
+            counts["both_numeric_rows"] += 1
+            if value_a == 0:
+                counts["field_a_zero_rows_on_pair_complete_rows"] += 1
+            if value_b == 0:
+                counts["field_b_zero_rows_on_pair_complete_rows"] += 1
+            if value_a == 0 and value_b == 0:
+                counts["both_zero_rows"] += 1
+            elif value_a == 0 and value_b != 0:
+                counts["field_a_zero_field_b_nonzero_rows"] += 1
+            elif value_a != 0 and value_b == 0:
+                counts["field_a_nonzero_field_b_zero_rows"] += 1
+            else:
+                counts["both_nonzero_rows"] += 1
+    output = []
+    for (field_a, field_b), counts in counters.items():
+        output.append({
+            "scope_type": "SEASON",
+            "scope_id": str(season_id),
+            "country": country,
+            "competition_name": competition_name,
+            "selected_current_season": bool(selected_current_season),
+            "subset": "primary_window_provider_complete",
+            "field_a": field_a,
+            "field_b": field_b,
+            "both_numeric_rows": counts["both_numeric_rows"],
+            "field_a_zero_rows_on_pair_complete_rows": counts["field_a_zero_rows_on_pair_complete_rows"],
+            "field_b_zero_rows_on_pair_complete_rows": counts["field_b_zero_rows_on_pair_complete_rows"],
+            "both_zero_rows": counts["both_zero_rows"],
+            "field_a_zero_field_b_nonzero_rows": counts["field_a_zero_field_b_nonzero_rows"],
+            "field_a_nonzero_field_b_zero_rows": counts["field_a_nonzero_field_b_zero_rows"],
+            "both_nonzero_rows": counts["both_nonzero_rows"],
+        })
+    return output
+
+
 def main():
     if not ARCHIVE.exists(): raise SystemExit("Private archive missing.")
     selected = list(csv.DictReader(MANIFEST.open(encoding="utf-8-sig", newline="")))
@@ -331,6 +400,7 @@ def main():
         primary_window_calendar_status_counts = {"2025": Counter(), "2026": Counter()}
         group_coverage = {}
         season_numeric_feature_rows = []
+        season_zero_cooccurrence_rows = []
         all_kickoff_dates = []
         for sid, meta in sorted(season_rows.items(), key=lambda x: (int(x[0]) if x[0].isdigit() else 0)):
             base = f"seasons/{sid}/"
@@ -383,6 +453,10 @@ def main():
             season_complete_numeric_stats = {}
             update_numeric_field_stats(season_primary_numeric_stats, primary_window_matches)
             update_numeric_field_stats(season_complete_numeric_stats, complete_primary_window_matches)
+            if complete_primary_window_matches:
+                season_zero_cooccurrence_rows.extend(zero_cooccurrence_rows(
+                    sid, season_country, season_competition, sid in selected_ids, complete_primary_window_matches
+                ))
             season_numeric_feature_rows.extend(numeric_quality_rows(
                 "SEASON", sid, season_country, season_competition, sid in selected_ids,
                 "primary_window", season_primary_numeric_stats, len(primary_window_matches)
@@ -688,6 +762,8 @@ def main():
             "numeric_field_quality": numeric_feature_summaries,
             "numeric_field_quality_by_season_rows": len(season_numeric_feature_rows),
             "numeric_field_quality_by_league_rows": len(group_numeric_feature_rows),
+            "zero_cooccurrence_by_season_rows": len(season_zero_cooccurrence_rows),
+            "zero_cooccurrence_fields": list(ZERO_CO_OCCURRENCE_FIELDS),
         },
         "season_summary": season_summaries,
         "limitations": [
@@ -718,6 +794,9 @@ def main():
     with (OUT / "selected50_numeric_feature_quality_by_league.csv").open("w", newline="", encoding="utf-8") as f:
         fields = list(group_numeric_feature_rows[0]) if group_numeric_feature_rows else ["scope_type", "scope_id", "subset", "field_name"]
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(group_numeric_feature_rows)
+    with (OUT / "selected50_zero_cooccurrence_by_season.csv").open("w", newline="", encoding="utf-8") as f:
+        fields = list(season_zero_cooccurrence_rows[0]) if season_zero_cooccurrence_rows else ["scope_type", "scope_id", "field_a", "field_b"]
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(season_zero_cooccurrence_rows)
     print(json.dumps({k: report[k] for k in (
         "status","archive_release_tag","archive_sha256","selected_leagues_in_manifest","selected_ids_in_archive_manifest",
         "selected_ids_missing_from_archive_manifest","historical_season_manifest_rows",

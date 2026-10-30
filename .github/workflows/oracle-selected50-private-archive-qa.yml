@@ -159,5 +159,6 @@ jobs:
             selected50_archive_qa/numeric_missingness/oracle_selected50_league_numeric_missingness_summary.json
             selected50_archive_qa/numeric_missingness/oracle_selected50_league_core_numeric_quality.csv
             selected50_archive_qa/numeric_missingness/oracle_selected50_season_core_numeric_quality.csv
+            selected50_archive_qa/selected50_zero_cooccurrence_by_season.csv
           if-no-files-found: error
           retention-days: 14

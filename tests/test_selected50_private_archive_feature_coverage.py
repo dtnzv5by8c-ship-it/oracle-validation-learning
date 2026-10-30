@@ -1,5 +1,5 @@
 import unittest
-from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats, numeric_quality_rows
+from scripts.qa_selected50_private_archive import field_counts, nested_dict_rows, update_numeric_field_stats, summarize_numeric_field_stats, numeric_quality_rows, zero_cooccurrence_rows
 
 class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
     def test_field_presence_and_nonempty_counts_are_distinct(self):
@@ -57,6 +57,25 @@ class PrivateArchiveFeatureCoverageTests(unittest.TestCase):
         self.assertEqual(summary["odds_ft_1"]["numeric_rows"], 2)
         self.assertEqual(summary["odds_ft_1"]["negative_rows"], 1)
         self.assertEqual(summary["odds_ft_1"]["nonempty_rows"], 2)
+
+
+    def test_zero_cooccurrence_exports_pair_counts_only(self):
+        rows = [
+            {"team_a_xg_prematch": 0, "odds_btts_yes": 0},
+            {"team_a_xg_prematch": 0, "odds_btts_yes": 1.8},
+            {"team_a_xg_prematch": 1.2, "odds_btts_yes": 0},
+            {"team_a_xg_prematch": 1.1, "odds_btts_yes": 1.9},
+        ]
+        result = zero_cooccurrence_rows("17171", "Belgium", "Pro League", True, rows)
+        pair = next(r for r in result if r["field_a"] == "team_a_xg_prematch" and r["field_b"] == "odds_btts_yes")
+        self.assertEqual(pair["both_numeric_rows"], 4)
+        self.assertEqual(pair["both_zero_rows"], 1)
+        self.assertEqual(pair["field_a_zero_field_b_nonzero_rows"], 1)
+        self.assertEqual(pair["field_a_nonzero_field_b_zero_rows"], 1)
+        self.assertEqual(pair["both_nonzero_rows"], 1)
+        self.assertNotIn("fixture_id", pair)
+        self.assertNotIn("home_team", pair)
+        self.assertNotIn("raw_value", pair)
 
 if __name__ == "__main__":
     unittest.main()
