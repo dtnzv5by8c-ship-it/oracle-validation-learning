@@ -12,7 +12,8 @@
 - Dry-Run Planner run #767: PASS (run `41112970242`).
 - The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 passed against the corrected checksum.
 - Initial backup branch: `backup/oracle-50-readiness-2026-10-30-98af1f7`.
-- Latest validated recovery branch: `backup/oracle-50-qa58-2026-10-30`, snapshot commit `ed46c93043591944d1901c83f040f879fe9f786b` (taken after QA #58 and exact 2024 onward coverage report).
+- QA #58 recovery branch: `backup/oracle-50-qa58-2026-10-30`.
+- Latest final recovery branch: `backup/oracle-50-qa58-final-2026-10-30`, snapshot commit `77c9d84800e4c3e4b6655d455cdf55d387537a9b` (includes annual league-level quality watchlist).
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
 - Runbook commit: `23fa143407cb746f17be18f568f4f99abb0de677`
@@ -94,3 +95,5 @@ Latest runbook commit after recovery-branch record: `a4d7a79f536aa686182ead10607
 - Belgium Pro League 2026: BTTS Yes/No and Double Chance 1X/X2 odds each have 89/233 zero values (38.20%), compared with no BTTS zero values in 2024 and 2025. P0 odds-market quarantine candidate pending provider confirmation.
 - India 2026 prematch home/away xG zeros: 23/107 (21.50%); Japan 2026: 20/120 (16.67%). P1 xG source investigations.
 - Detailed annual coverage and complete-status field quality: `docs/PROJECT_ORACLE_SELECTED50_CALENDAR_YEAR_COVERAGE_2024_2027_2026-10-30.md`.
+
+Latest runbook pointer update commit: `3ab7558b28e34bbae3b62419f5d7652efde2af0a`.
