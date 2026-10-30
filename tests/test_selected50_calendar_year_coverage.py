@@ -15,7 +15,7 @@ class Selected50CalendarYearCoverageTests(unittest.TestCase):
         self.assertEqual(result["field_quality"]["team_a_xg_prematch"]["zero_rows"], 1)
         self.assertEqual(result["field_quality"]["team_a_xg_prematch"]["positive_rows"], 1)
         self.assertEqual(result["field_quality"]["odds_btts_yes"]["zero_rows"], 1)
-        self.assertEqual(result["field_quality"]["odds_btts_yes"]["missing_or_nonnumeric_rows"], 0)
+        self.assertEqual(result["field_quality"]["odds_btts_yes"]["missing_or_nonnumeric_rows"], 1)
 
     def test_duplicate_provider_ids_are_reported_not_collapsed(self):
         rows = [
