@@ -1,0 +1,165 @@
+{
+  "status": "RESEARCH_ONLY_XG_HETEROGENEITY_AND_TEAM_SAMPLE_ADEQUACY_COMPLETE",
+  "source_provenance": {
+    "xg_qa38": {
+      "run_id": 41014563323,
+      "artifact_id": 12959146668,
+      "archive_tag": "research-selected50-footystats-history-40447419806",
+      "archive_sha256": "af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875"
+    },
+    "season_quality_qa31": {
+      "run_id": 40995121333,
+      "artifact_id": 12951360252,
+      "archive_tag": "research-selected50-footystats-history-40375285207",
+      "archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f"
+    },
+    "team_runtime168": {
+      "run_id": 40917698925,
+      "artifact_id": 12915559785,
+      "runtime_archive_sha256": "e6fe86d636402e1078cdca5ae88ed211e49e78123916d3995cac4200d511d5ed"
+    },
+    "lineage_warning": "Distinct receipts; no fixture-level cross-join or archive-equivalence assumption."
+  },
+  "xg_league_heterogeneity": {
+    "team_a_xg_prematch": {
+      "league_groups": 48,
+      "positive_raw_delta_groups": 48,
+      "positive_shrunk_delta_groups": 48,
+      "median_league_delta_pp": 17.9765,
+      "mean_unweighted_delta_pp": 17.519,
+      "mean_cluster_bootstrap95_pp": [14.3139, 20.8465],
+      "median_cluster_bootstrap95_pp": [9.5865, 23.7668],
+      "mean_jeffreys_shrunk_delta_pp": 17.6658,
+      "match_weighted_pooled_delta_pp": 9.7252,
+      "leave_one_league_out_mean_range_pp": [16.9292, 17.8657],
+      "current_groups_n_below_50": 6,
+      "bootstrap_unit": "league group, not match rows"
+    },
+    "team_b_xg_prematch": {
+      "league_groups": 48,
+      "positive_raw_delta_groups": 48,
+      "positive_shrunk_delta_groups": 48,
+      "median_league_delta_pp": 17.9765,
+      "mean_unweighted_delta_pp": 17.6171,
+      "mean_cluster_bootstrap95_pp": [14.3929, 20.9526],
+      "median_cluster_bootstrap95_pp": [9.5865, 23.9082],
+      "mean_jeffreys_shrunk_delta_pp": 17.7624,
+      "match_weighted_pooled_delta_pp": 9.7729,
+      "leave_one_league_out_mean_range_pp": [17.0295, 17.966],
+      "current_groups_n_below_50": 6,
+      "bootstrap_unit": "league group, not match rows"
+    },
+    "total_xg_prematch": {
+      "league_groups": 48,
+      "positive_raw_delta_groups": 48,
+      "positive_shrunk_delta_groups": 48,
+      "median_league_delta_pp": 17.0409,
+      "mean_unweighted_delta_pp": 15.9876,
+      "mean_cluster_bootstrap95_pp": [12.8562, 19.128],
+      "median_cluster_bootstrap95_pp": [9.8371, 20.3943],
+      "mean_jeffreys_shrunk_delta_pp": 16.1648,
+      "match_weighted_pooled_delta_pp": 8.7498,
+      "leave_one_league_out_mean_range_pp": [15.3653, 16.3174],
+      "current_groups_n_below_50": 6,
+      "bootstrap_unit": "league group, not match rows"
+    }
+  },
+  "belgium_market_by_scope": {
+    "odds_btts_yes_no": {
+      "current_n": 63,
+      "current_zero_n": 54,
+      "current_zero_pct": 85.7143,
+      "current_wilson95": [75.0254, 92.2981],
+      "noncurrent_n": 385,
+      "noncurrent_zero_n": 35,
+      "noncurrent_zero_pct": 9.0909,
+      "noncurrent_wilson95": [6.6092, 12.3809],
+      "change_pp": 76.6234,
+      "current_scope_ids": ["17171"],
+      "noncurrent_scope_ids": ["12137", "14937"]
+    },
+    "odds_doublechance_1x_x2": {
+      "current_n": 63,
+      "current_zero_n": 54,
+      "current_zero_pct": 85.7143,
+      "current_wilson95": [75.0254, 92.2981],
+      "noncurrent_n": 385,
+      "noncurrent_zero_n": 41,
+      "noncurrent_zero_pct": 10.6494,
+      "noncurrent_wilson95": [7.9476, 14.1287],
+      "change_pp": 75.0649,
+      "current_scope_ids": ["17171"],
+      "noncurrent_scope_ids": ["12137", "14937"]
+    },
+    "odds_doublechance_12": {
+      "current_n": 63,
+      "current_zero_n": 63,
+      "current_zero_pct": 100.0,
+      "noncurrent_n": 385,
+      "noncurrent_zero_n": 154,
+      "noncurrent_zero_pct": 40.0,
+      "change_pp": 60.0,
+      "current_scope_ids": ["17171"],
+      "noncurrent_scope_ids": ["12137", "14937"]
+    },
+    "odds_ft_1x2_each": {
+      "current_n": 63,
+      "current_zero_n": 1,
+      "current_zero_pct": 1.5873,
+      "noncurrent_n": 385,
+      "noncurrent_zero_n": 0,
+      "noncurrent_zero_pct": 0.0
+    },
+    "odds_ft_over_under_25": {
+      "current_n": 63,
+      "current_zero_n": 0,
+      "current_zero_pct": 0.0,
+      "noncurrent_n": 385,
+      "noncurrent_zero_n": 0,
+      "noncurrent_zero_pct": 0.0
+    },
+    "season_order": "NOT_INFERRED; season dates absent from sanitized input"
+  },
+  "team_sample_adequacy": {
+    "team_role_profiles": 859,
+    "distinct_provider_team_ids": 779,
+    "league_groups": 47,
+    "fixture_exposures": 872,
+    "raw_prediction_exposures": 822,
+    "blocked_exposures": 50,
+    "feature_complete_exposures": 822,
+    "feature_incomplete_exposures": 50,
+    "profiles_one_fixture": 846,
+    "profiles_two_fixtures": 13,
+    "profiles_ge3_fixtures": 0,
+    "profiles_zero_raw_predictions": 48,
+    "form_n5_profiles": 833,
+    "form_below5_profiles": 26,
+    "form_size_mismatches": 0,
+    "btts_probability_exposures": 822,
+    "dc_probability_exposures": 822,
+    "canonical_join_status_counts": {"NOT_VERIFIED": 859},
+    "settlement_truth_status_counts": {"NOT_VERIFIED_AGAINST_PRODUCTION_MARKET_SPEC": 859},
+    "calibration_status_counts": {"RAW_ONLY_UNCALIBRATED": 859},
+    "interpretation": "Exposures are not historical outcome samples or team-market performance samples."
+  },
+  "limits": [
+    "Current and pooled non-current seasons are not matched cohorts.",
+    "Bootstrap resamples league groups, not matches; 48 clusters only.",
+    "Jeffreys shrinkage is descriptive, not feature validation.",
+    "Belgium season scope IDs are not chronologically ordered because dates are absent.",
+    "Numeric zero and positive odds are not proven valid point-in-time values.",
+    "Team fixture exposures are not historical outcome samples; canonical joins and settlement truth are unverified.",
+    "No H2H, market scoring, accuracy, calibration, ROI or betting suitability is inferred."
+  ],
+  "governance": {
+    "research_only": true,
+    "provider_calls": 0,
+    "provider_credits": 0,
+    "h2h_holdout_accessed": false,
+    "production_logic_changed": false,
+    "frozen_probabilities_changed": false,
+    "calibration_changed": false,
+    "governance_changed": false
+  }
+}
