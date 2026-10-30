@@ -1,0 +1,283 @@
+{
+  "artifact": "PROJECT_ORACLE_FEATURE_EDGE_CHECKPOINT",
+  "generated_sast": "2026-10-31T00:12:00+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "scope": "RESEARCH_ONLY_FEATURE_EDGE_AND_FIXTURE_RANKINGS",
+  "source": {
+    "supplementary_archive": {
+      "file": "oracle-footystats-archive-feature-audit-64.zip",
+      "sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+      "exact_selected_id_groups": 31,
+      "governed_groups": 50,
+      "unavailable_groups": 19,
+      "complete_matches_through_2026_09_20": 23328,
+      "no_home_away_rows_excluded": 2603,
+      "experiment_rows": 20725
+    },
+    "runtime_run_id": "41119141526",
+    "runtime_run_number": 176,
+    "snapshot_run_id": "41117910952",
+    "bridge_audit_run_id": "41121900062",
+    "bridge_audit": "PASS_WITH_RELEASE_BLOCKERS"
+  },
+  "experiment": {
+    "primary_validation_window": "2025-03-20 through 2026-09-20",
+    "folds": [
+      {
+        "name": "WF1",
+        "start": "2025-03-20",
+        "end_exclusive": "2025-09-20"
+      },
+      {
+        "name": "WF2",
+        "start": "2025-09-20",
+        "end_exclusive": "2026-03-20"
+      },
+      {
+        "name": "WF3",
+        "start": "2026-03-20",
+        "end_exclusive": "2026-09-21"
+      }
+    ],
+    "history_lag_hours": 24,
+    "history_rule": "Completed no_home_away=0 results only, with kickoff at least 24h before target; no same-day results.",
+    "model": "Fixed L2 logistic regression C=0.3; standardised numeric features; exact league one-hot; no test tuning/calibration.",
+    "baseline": "Per-league training prevalence shrunk to global training prevalence (alpha=20).",
+    "accepted_overall": [
+      {
+        "market": "DC_HOME",
+        "feature_set": "RECENT_GOALS_STRENGTH",
+        "folds": 3,
+        "brier_improved": 3,
+        "log_loss_improved": 3,
+        "auc_improved": 3,
+        "ece_improved": 2,
+        "mean_brier_delta": -0.011789,
+        "mean_log_loss_delta": -0.027996,
+        "mean_auc_delta": 0.122482,
+        "mean_ece10_delta": -0.005702,
+        "coverage_pct": 96.4945,
+        "test_n": 12739
+      },
+      {
+        "market": "DC_HOME",
+        "feature_set": "VENUE_SPLITS",
+        "folds": 3,
+        "brier_improved": 3,
+        "log_loss_improved": 3,
+        "auc_improved": 3,
+        "ece_improved": 2,
+        "mean_brier_delta": -0.007439,
+        "mean_log_loss_delta": -0.017719,
+        "mean_auc_delta": 0.094108,
+        "mean_ece10_delta": 0.000709,
+        "coverage_pct": 92.9999,
+        "test_n": 12268
+      }
+    ],
+    "rejected_market_decisions": {
+      "BTTS": "No overall feature family passed repeatability gate.",
+      "DC_AWAY": "Brier/log-loss/AUC improved, but ECE worsened in most folds; rejected.",
+      "REST": "Sensitivity only; no match-end or data-availability timestamps."
+    },
+    "per_league_repeatable_candidates": [
+      {
+        "market": "BTTS",
+        "feature_set": "RECENT_GOALS_STRENGTH",
+        "leagues": [
+          "England Championship",
+          "Netherlands Eredivisie",
+          "Norway Eliteserien",
+          "Spain Segunda División"
+        ]
+      },
+      {
+        "market": "BTTS",
+        "feature_set": "RECENT_SCORING_PROFILE",
+        "leagues": [
+          "Czech Republic First League",
+          "Netherlands Eredivisie"
+        ]
+      },
+      {
+        "market": "BTTS",
+        "feature_set": "VENUE_SPLITS",
+        "leagues": [
+          "Croatia Prva HNL",
+          "Italy Serie A",
+          "Netherlands Eredivisie",
+          "Switzerland Super League"
+        ]
+      },
+      {
+        "market": "DC_AWAY",
+        "feature_set": "VENUE_SPLITS",
+        "leagues": [
+          "Romania Liga I"
+        ]
+      }
+    ],
+    "feature_source_gates": {
+      "xg": "EXCLUDED — prematch semantics/zero behaviour and PIT capture unverified",
+      "shots": "EXCLUDED — post-match stats without immutable publication timestamps",
+      "standings": "EXCLUDED — no historical point-in-time table",
+      "odds": "EXCLUDED — no bookmaker/source ID, quote timestamp, selection mapping or immutable capture",
+      "travel": "NOT_TESTED — no verified geocodes/routes"
+    }
+  },
+  "h2h": {
+    "paired_holdout_n": 19991,
+    "coverage_pct": 95.75,
+    "chronology_qa": "PASS",
+    "fold_summary": [
+      {
+        "market": "BTTS",
+        "brier_improved": 2,
+        "log_loss_improved": 2,
+        "auc_improved": 3,
+        "folds": 5,
+        "mean_brier_delta": 0.000048,
+        "mean_log_loss_delta": 0.000092,
+        "mean_auc_delta": 0.001432
+      },
+      {
+        "market": "DC_HOME",
+        "brier_improved": 3,
+        "log_loss_improved": 3,
+        "auc_improved": 2,
+        "folds": 5,
+        "mean_brier_delta": -0.000056,
+        "mean_log_loss_delta": -0.000094,
+        "mean_auc_delta": -0.000086
+      },
+      {
+        "market": "DC_AWAY",
+        "brier_improved": 1,
+        "log_loss_improved": 1,
+        "auc_improved": 1,
+        "folds": 5,
+        "mean_brier_delta": 0.000142,
+        "mean_log_loss_delta": 0.000264,
+        "mean_auc_delta": -0.001018
+      }
+    ],
+    "decision": "Do not increase H2H weight; retain as low-weight context."
+  },
+  "rankings": {
+    "runtime_rows": 426,
+    "future_exact_matches": 347,
+    "source_quarantined": 79,
+    "feature_blocked_rows": 23,
+    "rankable_candidates_per_market": 325,
+    "leagues_with_rankable_candidates": 33,
+    "top3_per_league_rows_per_market": 111,
+    "top50_quarantined": {
+      "BTTS": 3,
+      "DC_HOME": 2,
+      "DC_AWAY": 9
+    },
+    "top3_overall": {
+      "BTTS": [
+        {
+          "fixture_id": 8411774,
+          "league": "Eliteserien",
+          "home": "Brann",
+          "away": "Molde",
+          "date_utc": "2026-11-01T13:30:00Z",
+          "raw_probability_pct": 68.94
+        },
+        {
+          "fixture_id": 8620625,
+          "league": "Professional League",
+          "home": "Al Ittifaq",
+          "away": "Al Hilal",
+          "date_utc": "2026-11-05T00:00:00Z",
+          "raw_probability_pct": 67.6
+        },
+        {
+          "fixture_id": 8547842,
+          "league": "Eredivisie",
+          "home": "Cambuur",
+          "away": "Go Ahead Eagles",
+          "date_utc": "2026-10-31T20:00:00Z",
+          "raw_probability_pct": 66.61
+        }
+      ],
+      "DC_HOME": [
+        {
+          "fixture_id": 8579426,
+          "league": "Liga I",
+          "home": "CS U Craiova",
+          "away": "Botoşani",
+          "date_utc": "2026-11-01T15:30:00Z",
+          "raw_probability_pct": 91.83
+        },
+        {
+          "fixture_id": 8565837,
+          "league": "Bundesliga",
+          "home": "Rapid Wien",
+          "away": "Wolfsberger AC",
+          "date_utc": "2026-11-06T18:30:00Z",
+          "raw_probability_pct": 91.61
+        },
+        {
+          "fixture_id": 8583512,
+          "league": "Süper Lig",
+          "home": "Amed",
+          "away": "Eyüpspor",
+          "date_utc": "2026-11-01T10:30:00Z",
+          "raw_probability_pct": 91.55
+        }
+      ],
+      "DC_AWAY": [
+        {
+          "fixture_id": 8620625,
+          "league": "Professional League",
+          "home": "Al Ittifaq",
+          "away": "Al Hilal",
+          "date_utc": "2026-11-05T00:00:00Z",
+          "raw_probability_pct": 88.91
+        },
+        {
+          "fixture_id": 8546253,
+          "league": "Prva HNL",
+          "home": "Rudeš",
+          "away": "Dinamo Zagreb",
+          "date_utc": "2026-10-31T17:00:00Z",
+          "raw_probability_pct": 83.54
+        },
+        {
+          "fixture_id": 8553116,
+          "league": "J1 League",
+          "home": "Mito Hollyhock",
+          "away": "Sanfrecce Hiroshima",
+          "date_utc": "2026-10-31T05:00:00Z",
+          "raw_probability_pct": 82.5
+        }
+      ]
+    }
+  },
+  "workbook": {
+    "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v5_Feature_Edge.xlsx",
+    "sha256": "92c4945c6ab2348f00937c5f9244fb8a71432512f6af03c1f3e9b14fbe6d5e93",
+    "size_bytes": 6664882,
+    "sheets": 37,
+    "note": "Full workbook supplied as companion artifact; repository stores this checkpoint and research note."
+  },
+  "governance": {
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "provider_api_credits_used": 0,
+    "ingestion_snapshot_runtime_bridge_workflows_rerun": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "limitations": [
+    "Only 31/50 exact-ID matched groups in supplementary feature extract; 19 unavailable.",
+    "24h event-time lag is not immutable provider publication timestamp or PIT snapshot.",
+    "Offline challenger is not Oracle V1.6 and compares feature families with a smoothed league-prevalence baseline, not Oracle baseline probabilities.",
+    "No candidate is production-approved; all predictions are uncalibrated research-only.",
+    "All rankable current fixtures still lack approved canonical cross-provider identity and official settlement truth."
+  ]
+}
