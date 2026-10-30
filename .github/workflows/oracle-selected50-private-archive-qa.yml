@@ -11,7 +11,7 @@ on:
       private_archive_release_tag:
         description: "Existing private archive release tag to audit"
         required: false
-        default: research-selected50-footystats-history-40447419806
+        default: research-selected50-footystats-history-40375285207
         type: string
   push:
     branches:
@@ -61,10 +61,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
           PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag }}
-          EXPECTED_PRIVATE_ARCHIVE_SHA256: af1d88a79f3af8019938b979bcf74869730a07bbef19a2b86df276d42226a875
+          EXPECTED_PRIVATE_ARCHIVE_SHA256: 7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f
         run: |
           set -euo pipefail
-          TAG="${PRIVATE_ARCHIVE_RELEASE_TAG:-research-selected50-footystats-history-40447419806}"
+          TAG="${PRIVATE_ARCHIVE_RELEASE_TAG:-research-selected50-footystats-history-40375285207}"
           [[ "$TAG" =~ ^research-selected50-footystats-history-[0-9]+$ ]] || { echo "::error::Invalid private archive tag."; exit 1; }
           echo "Reading existing private archive tag: $TAG"
           mkdir -p private-download
