@@ -137,3 +137,20 @@ No new provider API calls or provider credits were used for this audit or workfl
 ## Governance
 
 Research-only work. Production model logic, frozen probabilities, calibration and governance are unchanged. Production and betting eligibility remain NOT APPROVED.
+
+
+## Follow-up validation of the archive pin (2026-10-30 06:07 SAST)
+
+The initial CI runs after changing the archive default failed because an existing bounded-probe contract test still asserted the retired 40375285207 tag. This was a stale test expectation, not a runtime/archive failure. The test was updated to require the 40447419806 tag and pinned digest in both the runtime and private-archive QA workflows.
+
+Current verification:
+- Safety Contract Tests #424 (run 41001077839): PASS on commit `fcbcfe390390c9df3e026ffe86a90d58505d1151`.
+- Dry-Run Planner #711 (run 41001077841): PASS on the same commit.
+- Private Archive QA #32 (run 41001068261): archive download/checksum step PASS using the updated QA workflow; archive audit and downstream QA steps were still in progress at this checkpoint.
+
+Additional commits:
+- Private Archive QA workflow aligned to the pinned release and digest: `41ba436f1eee9b3408466081c7b20a60ec7c0cc6`.
+- Contract tests updated to require the same pinned archive in both workflows: `fcbcfe390390c9df3e026ffe86a90d58505d1151`.
+- Report committed: `bde748f4fda9211d66ab1cdce0457412b68f6976`; row-count clarification: `025a061547294595380526dfd6df605a42942ca0`.
+
+The full historical runtime has not yet been rerun against archive 40447419806. The next required manual action remains dispatching the Selected-50 Research Runtime with snapshot overlay disabled and verifying the output provenance tag and SHA before reading refreshed metrics.
