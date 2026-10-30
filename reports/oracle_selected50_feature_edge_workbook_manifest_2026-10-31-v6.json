@@ -1,0 +1,33 @@
+{
+  "artifact": "PROJECT_ORACLE_CONSOLIDATED_WORKBOOK_MANIFEST",
+  "generated_sast": "2026-10-31 00:56 SAST",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v6_Ranking_QA_Lag_Sensitivity.xlsx",
+  "sha256": "e7471a7f7a82658d90aa293b27513383f72a18b6db1f01fb3c56cc3b117b7802",
+  "size_bytes": 6815449,
+  "sheet_count": 40,
+  "updated_tabs": [
+    "Top 50 BTTS", "Top 50 DC Home", "Top 50 DC Away",
+    "Top 3 Per League BTTS", "Top 3 Overall BTTS",
+    "Top 3 Per League DC Home", "Top 3 Overall DC Home",
+    "Top 3 Per League DC Away", "Top 3 Overall DC Away",
+    "Ranking Coverage", "Feature Data Gates", "Executive Summary"
+  ],
+  "new_tabs": ["Lag Sensitivity", "Per-League Lag Stability", "Kickoff Alignment QA"],
+  "ranking_gate": "Exact selected-season/fixture/ordered-team IDs; exact UTC kickoff match; FUTURE_RESEARCH_CANDIDATE; source_no_home_away=0; RAW_RESEARCH_ONLY; PASS_ALL_20_REQUIRED_FEATURES.",
+  "ranking_counts": {
+    "candidates_per_market": 322,
+    "rankable_groups": 37,
+    "governed_groups": 50,
+    "top50_rows_per_market": 50,
+    "top3_per_group_rows_per_market": 111
+  },
+  "distribution": "The 40-tab binary workbook is delivered as the conversation run artifact. The governed research branch stores the dated note, workbook SHA/tab manifest, checkpoint and supporting machine-readable CSV evidence.",
+  "governance": {
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}

@@ -1,0 +1,4 @@
+market,runtime_rows,exact_fixture_team_id_joins,source_quarantined_rows,feature_blocked_rows,future_exact_candidate_rows_before_kickoff_gate,kickoff_mismatch_new_exclusions,rankable_after_all_gates,rankable_selected_country_league_groups,distinct_display_league_labels,top50_rows,top3_per_group_rows,production_eligible,betting_eligible
+BTTS,426,426,79,22,325,3,322,37,33,50,111,NO,NO
+DC_HOME,426,426,79,22,325,3,322,37,33,50,111,NO,NO
+DC_AWAY,426,426,79,22,325,3,322,37,33,50,111,NO,NO

@@ -1,0 +1,62 @@
+{
+  "artifact": "PROJECT_ORACLE_FEATURE_EDGE_RUN2_CHECKPOINT",
+  "generated_sast": "2026-10-31 00:56 SAST",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "scope": "RESEARCH_ONLY_LAG_SENSITIVITY_AND_RANKING_CHRONOLOGY_QA",
+  "source_artifacts": {
+    "runtime_run_id": "41119141526",
+    "runtime_run_number": 176,
+    "snapshot_run_id": "41117910952",
+    "bridge_audit_run_id": "41121900062",
+    "bridge_audit_status": "PASS_WITH_RELEASE_BLOCKERS",
+    "runtime_report_sha256": "086af446dee2e73f5a2da00fcca11cd6ef0b431a96a22f411dd4bae1d98a5e23",
+    "snapshot_file_sha256": "b30ec294734c287fef9d713b19adbd55e16e77400a7c17a7e03fab24e1b0d7ff"
+  },
+  "ranking_reconciliation": {
+    "runtime_rows": 426,
+    "exact_fixture_team_id_joins": 426,
+    "kickoff_mismatch_rows": 21,
+    "already_excluded_mismatch_rows": 18,
+    "newly_excluded_future_rankable_mismatch_rows": 3,
+    "new_excluded_fixture_ids": [8620566, 8620618, 8620625],
+    "pre_kickoff_gate_candidates_per_market": 325,
+    "final_rankable_candidates_per_market": 322,
+    "rankable_selected_country_league_groups": 37,
+    "governed_groups": 50,
+    "distinct_display_league_labels": 33,
+    "top50_rows_per_market": 50,
+    "top3_per_group_rows_per_market": 111,
+    "quarantine_and_kickoff_mismatch_excluded_from_all_ranking_tabs": true
+  },
+  "lag_sensitivity": {
+    "lags_hours": [24, 48, 72],
+    "same_archive_exact_groups": 31,
+    "governed_groups": 50,
+    "validation_folds": 3,
+    "overall_repeatable_by_lag": {
+      "24": [["DC_HOME", "RECENT_GOALS_STRENGTH"], ["DC_HOME", "VENUE_SPLITS"]],
+      "48": [["DC_HOME", "RECENT_GOALS_STRENGTH"], ["DC_HOME", "VENUE_SPLITS"]],
+      "72": [["DC_HOME", "RECENT_GOALS_STRENGTH"], ["DC_HOME", "VENUE_SPLITS"]]
+    },
+    "stable_per_league_candidates_all_3_lags": 10,
+    "per_league_candidates_only_at_72h": 5,
+    "per_league_candidates_lost_by_72h": 1,
+    "interpretation": "DC_HOME recent-goals/strength and venue-split overall candidates remain repeatable at all three lags. BTTS and DC_AWAY have no overall passing feature family at any lag."
+  },
+  "limitations": [
+    "24h/48h/72h cutoffs are event-time safeguards, not immutable provider publication-time proof.",
+    "The supplementary archive is exact-ID-matched to 31 of 50 governed league groups only.",
+    "Feature challenger is not Oracle V1.6; no direct production uplift is established.",
+    "xG, odds, shots, standings and travel remain excluded or untested pending point-in-time provenance.",
+    "Canonical cross-provider fixture/team identity and official settlement truth remain unverified."
+  ],
+  "governance": {
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false,
+    "provider_api_credits_used": 0,
+    "ingestion_snapshot_runtime_bridge_workflows_rerun": false
+  }
+}
