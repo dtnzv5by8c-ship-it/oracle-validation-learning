@@ -162,6 +162,39 @@ class H2HResearchFeatureContractTests(unittest.TestCase):
         self.assertIsNone(completed_fixture_signature_key({**valid, "finished": False}))
         self.assertIsNone(completed_fixture_signature_key({**valid, "home_id": "A", "away_id": "A"}))
 
+    def test_completed_fixture_signature_requires_competition_and_kickoff(self):
+        valid = {
+            "competition_id": "C",
+            "kickoff_unix": 1000,
+            "home_id": "A",
+            "away_id": "B",
+            "home_goals": 1,
+            "away_goals": 0,
+            "finished": True,
+        }
+        self.assertIsNotNone(completed_fixture_signature_key(valid))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "competition_id": "  "}))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "kickoff_unix": None}))
+        self.assertIsNone(completed_fixture_signature_key({**valid, "kickoff_unix": float("inf")}))
+
+    def test_market_targets_require_complete_fixture_identity_and_event_time(self):
+        valid = {
+            "competition_id": "C",
+            "kickoff_unix": 1000,
+            "home_id": "A",
+            "away_id": "B",
+            "home_goals": 1,
+            "away_goals": 0,
+            "finished": True,
+        }
+        self.assertEqual(market_targets_for_match(valid)["target_BTTS"], 0)
+        for invalid in (
+            {**valid, "competition_id": ""},
+            {**valid, "kickoff_unix": None},
+        ):
+            with self.subTest(invalid=invalid):
+                self.assertTrue(all(value is None for value in market_targets_for_match(invalid).values()))
+
     def test_boolean_values_are_not_accepted_as_goal_counts(self):
         self.assertFalse(valid_completed_score(True, 1))
         self.assertFalse(valid_completed_score(0, False))
