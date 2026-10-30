@@ -4,10 +4,11 @@
 **Purpose:** Fast recovery and continuation pointer. Read this first, then the Master Operating Runbook.
 
 ## Current recovery point
-- Latest verified code/test commit: `d2aea39813d23215beb32ac39163066e259fcec0`.
-- Latest Safety Contract Tests run #484: PASS (run `41112680671`).
-- Latest Dry-Run Planner run #764: PASS (run `41112680715`).
-- Private Archive QA run #41 (`41112672026`) was still in progress at the time of this checkpoint; its result must be checked before using it as a current QA pass.
+- Latest verified code/test commit: `2c489d5c9c0aa0be3f6e0e297b7074d4c2be8f68`.
+- Safety Contract Tests run #487: PASS (run `41112970222`).
+- Dry-Run Planner run #767: PASS (run `41112970242`).
+- Private Archive QA run #44 (`41112970245`) was still in progress at the time of this checkpoint; its result must be checked before using it as a current QA pass.
+- The QA workflow's first attempt against the refreshed archive failed on a stale hard-coded SHA in the xG temporal-shift audit. That pin and a regression test were updated to the verified current archive checksum; run #44 is the revalidation.
 - Backup branch created: `backup/oracle-50-readiness-2026-10-30-98af1f7`
 - Backup points to pre-documentation commit: `98af1f79d3e79b4d9b7e177d21eb778233cf3bcd`
 - Runtime archive pin correction commit: `0d4135bdbde6558ce9237e6cce8f5f6510f5970b`
@@ -63,3 +64,5 @@ The research runtime's stale default private archive tag and SHA were corrected 
 
 ## Durable ChatGPT Library recovery copy
 The following run outputs and workbook were copied into the persistent ChatGPT Library folder `/Project Oracle/2026-10-30 Recovery Pack/`: Probe #6 artifact, Visual Intelligence workbook v2, safe current report #5, research runtime #174, current fixture snapshot, private archive QA #40, identity probe #3, dry-run planner #760, cross-provider join audit #18, and FootyStats archive feature audit #64. These are copies of the artifacts available in this session; the canonical private historical archive remains in the private GitHub release listed above.
+
+Latest documentation refresh commit: `92188350b8bd5a0841063a2e03271a17c5db34cd`.
