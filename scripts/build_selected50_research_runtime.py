@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import brier_score_loss, log_loss, accuracy_score, roc_auc_score
 
 from record_selected50_archive_consumption import write_archive_consumption_receipt
-from audit_selected50_h2h_paired_chronology import audit_h2h_paired_predictions
+from audit_selected50_h2h_paired_chronology import audit_h2h_paired_predictions, write_h2h_paired_chronology_qa
 
 ARCHIVE = Path(os.environ.get("ORACLE_ARCHIVE", "private-download/oracle-selected50-footystats-private-ingestion.zip"))
 MANIFEST = Path("data/oracle-footystats-selected-50-season-id-manifest.csv")
@@ -1063,8 +1063,8 @@ def main():
         with h2h_csv_path.open("w",newline="",encoding="utf-8") as h2h_file:
             writer=csv.DictWriter(h2h_file,fieldnames=h2h_columns);writer.writeheader();writer.writerows(h2h_fixture_rows)
         h2h_paired_chronology_qa = audit_h2h_paired_predictions(h2h_fixture_rows, MARKETS.keys())
-        (OUT/"oracle_selected50_h2h_paired_chronology_qa.json").write_text(
-            json.dumps(h2h_paired_chronology_qa, indent=2) + "\\n", encoding="utf-8"
+        write_h2h_paired_chronology_qa(
+            OUT/"oracle_selected50_h2h_paired_chronology_qa.json", h2h_paired_chronology_qa
         )
         if h2h_paired_chronology_qa["status"] != "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY":
             raise SystemExit("H2H paired prediction chronology/integrity audit failed; fail closed.")
