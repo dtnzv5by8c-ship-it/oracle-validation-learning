@@ -45,3 +45,5 @@ Research-only. No provider/API calls or credits; no H2H holdout access; no produ
 - Report/checkpoint and generated-output commits: 8672aa8be00062445f626f4fbbb9e70c5bda3cd8, 61e0707f9bc18312c773f860d94cf241e72542ac, f42c9d8e32e5f99ff0ba635cd9edceeea93bb33e, fd2c34f5b8a4ad8af9945fd79c068e6f60cf7b42, 1e23e7e4ea404bc60ed340cdab399875722ee2be, 2c14dc2f342c5afd4cf51ee9a46ebee050d96797.
 - Safety-contract workflow was extended to compile the new script and run its seven tests in commit ab11b03c1b627fb52cfaecaf26500fe5d625bcbe.
 - Local py_compile and all seven regression tests passed. The connected GitHub status endpoint returned no status records for the workflow commit at the time of this checkpoint; remote CI is therefore not claimed as passed.
+
+- Follow-up reproducibility commits: `303ff316f8e5c6cce46d185100b244b5953ff79b` (bootstrap parameters in output), `df0f34779cf82d02971cb69f0d5e939509cc064f` (report method and Markdown formatting), `1f95bc8f15b760308a76ccc4a006197c376d3069` (summary parameter metadata).
