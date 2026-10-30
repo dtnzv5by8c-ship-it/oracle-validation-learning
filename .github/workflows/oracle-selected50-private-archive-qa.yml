@@ -20,6 +20,7 @@ on:
       - ".github/workflows/oracle-selected50-private-archive-qa.yml"
       - "scripts/qa_selected50_private_archive.py"
       - "tests/test_selected50_private_archive_feature_coverage.py"
+      - "scripts/analyze_selected50_league_numeric_missingness.py"
 
 permissions:
   contents: read
@@ -135,6 +136,11 @@ jobs:
           }, sort_keys=True))
           PY
 
+      - name: Build per-league and per-season numeric missingness audit (offline)
+        run: |
+          set -euo pipefail
+          python scripts/analyze_selected50_league_numeric_missingness.py --input-dir selected50_archive_qa --output-dir selected50_archive_qa/numeric_missingness
+
       - name: Upload sanitized QA only
         uses: actions/upload-artifact@v4
         with:
@@ -147,5 +153,8 @@ jobs:
             selected50_archive_qa/selected50_numeric_feature_quality.csv
             selected50_archive_qa/selected50_numeric_feature_quality_by_season.csv
             selected50_archive_qa/selected50_numeric_feature_quality_by_league.csv
+            selected50_archive_qa/numeric_missingness/oracle_selected50_league_numeric_missingness_summary.json
+            selected50_archive_qa/numeric_missingness/oracle_selected50_league_core_numeric_quality.csv
+            selected50_archive_qa/numeric_missingness/oracle_selected50_season_core_numeric_quality.csv
           if-no-files-found: error
           retention-days: 14

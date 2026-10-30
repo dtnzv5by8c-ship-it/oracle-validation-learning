@@ -77,6 +77,10 @@ jobs:
         run: python scripts/audit_selected50_ingestion_ledger_reconciliation.py --ledger data/oracle_selected50_sanitized_ingestion_ledger_40375285207.json.gz --summary "$RUNNER_TEMP/oracle-selected50-200-season-summary.json" --rollup "$RUNNER_TEMP/oracle-selected50-200-season-rollup.csv"
       - name: Run private archive feature coverage helper tests
         run: python -m unittest discover -s tests -p "test_selected50_private_archive_feature_coverage.py" -v
+      - name: Compile per-league numeric missingness audit
+        run: python -m py_compile scripts/analyze_selected50_league_numeric_missingness.py
+      - name: Run per-league numeric missingness regression tests
+        run: python -m unittest discover -s tests -p "test_selected50_league_numeric_missingness.py" -v
       - name: Upload sanitized 200-season archive rollup
         uses: actions/upload-artifact@v4
         with:

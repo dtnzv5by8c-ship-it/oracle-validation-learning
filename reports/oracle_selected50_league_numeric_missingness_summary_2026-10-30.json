@@ -1,0 +1,88 @@
+{
+  "status": "RESEARCH_ONLY_LEAGUE_NUMERIC_MISSINGNESS_AUDIT_COMPLETE",
+  "source_run_id": 40994720108,
+  "source_artifact_id": 12950667181,
+  "archive_release_tag": "research-selected50-footystats-history-40375285207",
+  "archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+  "league_groups": 50,
+  "league_numeric_rows": 7400,
+  "season_numeric_rows": 19240,
+  "selected_current_seasons_with_primary_window_rows": 48,
+  "selected_current_seasons_outside_window": 2,
+  "current_season_prematch_xg_weighted_zero_pct": {
+    "team_a": 13.261,
+    "team_b": 13.297,
+    "total": 11.912
+  },
+  "current_season_odds_weighted_zero_pct": {
+    "btts": 1.473,
+    "double_chance_1x_x2": 1.527,
+    "full_time_1x2": 0.462,
+    "over_under_2_5": 0.018
+  },
+  "top_current_season_outliers": [
+    {
+      "league": "Germany Bundesliga",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 18,
+      "sample": 36,
+      "zero_pct": 50
+    },
+    {
+      "league": "England Premier League",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 20,
+      "sample": 50,
+      "zero_pct": 40
+    },
+    {
+      "league": "France Ligue 1",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 18,
+      "sample": 45,
+      "zero_pct": 40
+    },
+    {
+      "league": "Greece Super League",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 14,
+      "sample": 35,
+      "zero_pct": 40
+    },
+    {
+      "league": "Italy Serie A",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 20,
+      "sample": 50,
+      "zero_pct": 40
+    },
+    {
+      "league": "Italy Serie B",
+      "field": "team_a_xg_prematch",
+      "zero_rows": 20,
+      "sample": 50,
+      "zero_pct": 40
+    },
+    {
+      "league": "Belgium Pro League",
+      "field": "odds_btts_yes/no and odds_doublechance_1x/x2",
+      "zero_rows": 54,
+      "sample": 63,
+      "zero_pct": 85.714
+    }
+  ],
+  "all_half_specific_btts_odds_zero_in_all_50_groups": true,
+  "zero_count_parity": {
+    "btts_yes_no": "50/50",
+    "dc_1x_x2": "50/50",
+    "ft_1x2": "50/50",
+    "prematch_xg_team_a_b": "47/50"
+  },
+  "governance": {
+    "provider_api_calls_made": false,
+    "raw_payload_exported": false,
+    "locked_holdout_used": false,
+    "production_model_changed": false,
+    "betting_eligible": false
+  }
+}
