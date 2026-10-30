@@ -9,3 +9,6 @@
 - Selected-50 xG/Belgium odds issues remain separate and exploratory pending archive lineage and source timestamp resolution. No H2H data was read. No provider calls/credits or production changes.
 
 Next action: manually dispatch the Oracle Team DNA OOS Integrity Audit workflow with confirm_private_source_read=true, then review team-market summaries and chronological halves with n>=30 safeguards. Reconcile team-count metadata and the M1UP export join before using venue-specific evidence.
+
+
+CI checkpoint: Team DNA OOS Integrity Tests #41034396710 PASS; Selected-50 Safety Contract Tests #41034397564 PASS; Selected-50 Dry-Run Planner #41034396741 PASS. The manual audit workflow runner-temp path was corrected in commit eb5a18f942c6c4e54ebfd829927794b98dbbd984. The read-only audit workflow remains undispatched.

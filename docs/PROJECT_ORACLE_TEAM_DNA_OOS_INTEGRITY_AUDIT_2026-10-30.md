@@ -11,7 +11,7 @@ The strongest existing research signal is that point-in-time Team DNA features i
 
 A new research-only builder is committed to create team-by-market OOS profiles from the existing row-level four-model predictions and the canonical match spine. It joins strictly on match_id, assigns home/away team roles from the market, uses Wilson intervals and Beta(1,1) shrinkage, and only flags potential discordance when n is at least 30 and the mean prediction falls outside the outcome-rate interval. A first/second chronological split is emitted only when both halves contain at least eight observations.
 
-The builder has passed five local synthetic tests. A separate GitHub Actions test workflow and a manually dispatched, read-only source checkout workflow have been committed. The source-data audit workflow has not yet been dispatched, so no new named-team rankings are claimed.
+The builder passed five local synthetic tests and GitHub Actions test run #41034396710. The existing Selected-50 safety contract (#41034397564) and dry-run planner (#41034396741) also passed on the same research commit. A manually dispatched, read-only source checkout workflow has been committed but not yet dispatched, so no new named-team rankings are claimed.
 
 ## 1. Scope and provenance
 
