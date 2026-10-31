@@ -40,3 +40,22 @@ F. Refresh the report only after the above QA passes; publish run IDs, archive S
 
 ## Non-goals
 No new model, no production V1.6 changes, no new provider API calls, no guessed probabilities, no fabricated standings, no unverified settlement truth, and no automatic bet recommendation from raw probabilities.
+
+## 2026-10-31 implementation clarification — evidence expansion vs prediction outputs
+
+The report builder now uses explicit FootyStats `provider_league_id` as the cross-season competition key for team form and H2H, while retaining stable exact team IDs and strict pre-kickoff chronology. When the competition ID is missing, the lookup falls back to the exact provider season ID. No name-based or fuzzy matching is permitted. Standings and league scoring baselines remain scoped to the exact provider season.
+
+The XLSX retains the locked 38-column `Market Intelligence` summary and adds:
+- `H2H Intelligence`: individual verified prior meetings, source fixture IDs, dates, season IDs, scores and current-home-team-perspective outcomes.
+- `Team Form Evidence`: overall and venue-split form, sample sizes, goals for/against, points and source fixture IDs.
+- `Goal Intelligence`: empirical historical BTTS, Over 1.5/2.5, Under 4.5, team Over 1.5, clean-sheet and failed-to-score frequencies from each team's recent sample. Every row is labelled `HISTORICAL_EMPIRICAL_RATE_NOT_PREDICTION_PROBABILITY`.
+- `Market Data Coverage`: field-level availability across report fixtures.
+- `Archive Field Coverage`: raw archive field presence counts; presence alone does not establish valid semantics or pre-kickoff availability.
+- `Data Quality & Risk` and `Definitions & Governance`.
+
+The supported raw Oracle runtime probabilities are still copied unchanged. The additional empirical frequencies are descriptive historical evidence only. They must not be represented as Oracle forecast probabilities or used to fill unsupported prediction columns. Unsupported forecast markets remain unavailable until approved market-specific model/runtime outputs exist. Historical accuracy and A+ grading remain unavailable pending verified pre-match prediction, settlement and odds joins.
+
+Validation on 2026-10-31:
+- Commit `807b0d4c4fd30c75285cdcf14cf00a77215e501a` passed all 13 targeted Market Intelligence tests in GitHub Actions run `41184361994`.
+- Full archive rebuild against the new multi-tab workbook is still pending a manually dispatched workflow run with explicit private archive consent.
+- The 19 schedule discrepancies remain review-required and the report must remain partial/research-only until independently reconciled.
