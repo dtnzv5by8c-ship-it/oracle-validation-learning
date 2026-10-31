@@ -56,19 +56,54 @@ def avg(xs):
 def poisson(lam, k):
     return math.exp(-lam)*lam**k/math.factorial(k)
 
+def blocked(status, reason, **details):
+    """Return a fully explicit, non-eligible row for every blocked fixture."""
+    result = {
+        "status": status,
+        "blocked_reason": reason,
+        "model_id": "GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY",
+        "production_eligible": "NO",
+        "betting_eligible": "NO",
+        "forecast_label": "BLOCKED_NO_RESEARCH_ESTIMATE",
+        "required_league_prior_n": 20,
+        "additional_league_matches_required": None,
+        "required_team_prior_n": 3,
+    }
+    result.update(details)
+    if "league_prior_n" in result and result["league_prior_n"] is not None:
+        result["additional_league_matches_required"] = max(
+            0, 20 - int(result["league_prior_n"])
+        )
+    return result
+
+
 def forecast(target, teams, leagues, cutoff):
     season=str(target.get("provider_season_id","")).strip()
     h=str(target.get("home_team_provider_id") or target.get("home_team_id") or "").strip()
     a=str(target.get("away_team_provider_id") or target.get("away_team_id") or "").strip()
     fid=str(target.get("fixture_id",""))
     if not season or not h or not a or h==a or not cutoff:
-        return {"status":"BLOCKED_MISSING_EXACT_IDENTITY_OR_KICKOFF"}
+        return blocked(
+            "BLOCKED_MISSING_EXACT_IDENTITY_OR_KICKOFF",
+            "Missing or invalid exact season/team identity or kickoff timestamp; no estimate produced."
+        )
     league=prior(leagues.get(season,[]),cutoff,fid)
-    if len(league)<20: return {"status":"BLOCKED_LEAGUE_BASELINE_LT20","league_prior_n":len(league)}
+    if len(league)<20:
+        return blocked(
+            "BLOCKED_LEAGUE_BASELINE_LT20",
+            f"Only {len(league)} prior settled league matches; 20 are required.",
+            league_prior_n=len(league)
+        )
     home=prior(teams.get((season,h),[]),cutoff,fid)
     away=prior(teams.get((season,a),[]),cutoff,fid)
     if len(home)<3 or len(away)<3:
-        return {"status":"BLOCKED_TEAM_HISTORY_LT3","home_prior_n":len(home),"away_prior_n":len(away),"league_prior_n":len(league)}
+        return blocked(
+            "BLOCKED_TEAM_HISTORY_LT3",
+            "Insufficient prior settled team history; each team requires at least 3 matches.",
+            home_prior_n=len(home), away_prior_n=len(away), league_prior_n=len(league),
+            additional_home_matches_required=max(0,3-len(home)),
+            additional_away_matches_required=max(0,3-len(away))
+        )
     home5=home[-5:]; away5=away[-5:]
     home_venue=[x for x in home if x["_home"]==h][-5:]
     away_venue=[x for x in away if x["_away"]==a][-5:]
@@ -76,7 +111,12 @@ def forecast(target, teams, leagues, cutoff):
     hsrc=home_venue if len(home_venue)>=3 else home5
     asrc=away_venue if len(away_venue)>=3 else away5
     league_h=avg([x["_hg"] for x in league]); league_a=avg([x["_ag"] for x in league])
-    if not league_h or not league_a: return {"status":"BLOCKED_INVALID_LEAGUE_BASELINE","league_prior_n":len(league)}
+    if not league_h or not league_a:
+        return blocked(
+            "BLOCKED_INVALID_LEAGUE_BASELINE",
+            "Prior league home/away goal baseline is zero or invalid; no estimate produced.",
+            league_prior_n=len(league)
+        )
     # Empirical-Bayes shrinkage (five pseudo-matches) stabilises small venue samples.
     def shrunk(sample, own, opp, baseline):
         n=len(sample)
@@ -113,7 +153,9 @@ def forecast(target, teams, leagues, cutoff):
       "away_lambda_source":"VENUE" if len(away_venue)>=3 else "OVERALL_FALLBACK",
       **{k+"_probability_pct":round(v*100,2) for k,v in probs.items()},
       **{"league_baseline_"+k+"_probability_pct":round(v*100,2) for k,v in baselines.items()},
-      "model_id":"GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY","production_eligible":"NO","betting_eligible":"NO"}
+      "model_id":"GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY","production_eligible":"NO","betting_eligible":"NO",
+      "blocked_reason":"","forecast_label":"RESEARCH_ESTIMATE_NOT_ORACLE_PRODUCTION_PROBABILITY",
+      "required_league_prior_n":20,"additional_league_matches_required":0,"required_team_prior_n":3}
 
 def outcomes(r):
     h=int(num(r["home_goals"])); a=int(num(r["away_goals"]))
@@ -132,7 +174,7 @@ def main():
         output.append({"fixture_id":r.get("fixture_id",""),"provider_season_id":r.get("provider_season_id",""),
           "home_team_id":r.get("home_team_provider_id",""),"away_team_id":r.get("away_team_provider_id",""),
           "fixture":f'{r.get("home_team","")} vs {r.get("away_team","")}',"kickoff_utc":r.get("date_utc",""),
-          **pred,"forecast_label":"RESEARCH_ESTIMATE_NOT_ORACLE_PRODUCTION_PROBABILITY"})
+          **pred,"forecast_label":pred.get("forecast_label","RESEARCH_ESTIMATE_NOT_ORACLE_PRODUCTION_PROBABILITY")})
     fields=list(dict.fromkeys(k for x in output for k in x))
     with open(out/"goal_market_research.csv","w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(output)
@@ -170,9 +212,27 @@ def main():
           "brier_improvement_vs_league_baseline":round((z["baseline_brier_sum"]-z["brier_sum"])/n,5) if n else None,
           "logloss_improvement_vs_league_baseline":round((z["baseline_logloss_sum"]-z["logloss_sum"])/n,5) if n else None,
           "calibration_status":"UNCALIBRATED_RESEARCH_ONLY"}
-    blocked=sum(x.get("status")!="EXPERIMENTAL_UNCALIBRATED" for x in output)
+    blocked_rows=[x for x in output if x.get("status")!="EXPERIMENTAL_UNCALIBRATED"]
+    blocked_count=len(blocked_rows)
+    missing_block_reasons=[x.get("fixture_id","") for x in blocked_rows if not x.get("blocked_reason")]
+    missing_eligibility=[x.get("fixture_id","") for x in blocked_rows
+                         if x.get("production_eligible")!="NO" or x.get("betting_eligible")!="NO"]
+    blocked_reason_counts={}
+    for row in blocked_rows:
+        reason=row.get("status","UNKNOWN")
+        blocked_reason_counts[reason]=blocked_reason_counts.get(reason,0)+1
+    if missing_block_reasons or missing_eligibility:
+        raise SystemExit(
+            f"Blocked-row QA failed: missing_reasons={missing_block_reasons[:10]}, "
+            f"missing_eligibility={missing_eligibility[:10]}"
+        )
     report={"engine":"GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY","forecast_rows":len(output),
-      "forecastable_rows":len(output)-blocked,"blocked_rows":blocked,"backtest":summary,
+      "forecastable_rows":len(output)-blocked_count,"blocked_rows":blocked_count,
+      "blocked_reason_counts":blocked_reason_counts,
+      "blocked_rows_have_explicit_reasons":True,
+      "blocked_rows_have_false_eligibility_flags":True,
+      "blocked_fixture_ids":[x.get("fixture_id","") for x in blocked_rows],
+      "backtest":summary,
       "method":"Independent Poisson score grid; five-match empirical-Bayes shrinkage; venue sample used when >=3 else overall fallback; exact season/team IDs; strict pre-kickoff; target fixture excluded.",
       "limitations":["No odds/value assessment.","No calibration fitted on a held-out calibration set.","No xG input because prematch xG temporal provenance is not verified.","Not Oracle V1.6; no production or betting eligibility.","No guarantee of accuracy; benchmark against league-rate baseline before any promotion."]}
     (out/"goal_market_research_qa.json").write_text(json.dumps(report,indent=2)+"\n")
