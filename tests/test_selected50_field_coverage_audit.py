@@ -39,6 +39,15 @@ class FieldCoverageAuditTests(unittest.TestCase):
             for i in range(49):
                 quality.append([f"S{i+1:02d}", f"League {i+1}", "MATCH", None, "2026-10-31T12:00:00Z", "2026-10-31T12:00:00Z", None])
             quality.append(["S50", "League 50", "REVIEW_REQUIRED", "KICKOFF_MISMATCH", "2026-10-31T12:00:00Z", "2026-10-31T12:05:00Z", 5])
+            for sheet_name, key_name in (
+                ("Goal Intelligence", "selected_id"),
+                ("H2H Intelligence", "selected_id"),
+                ("Team Form Evidence", "selected_id"),
+            ):
+                ws = wb.create_sheet(sheet_name)
+                ws.append([key_name, "League", "evidence_status"])
+                for i in range(50):
+                    ws.append([f"S{i+1:02d}", f"League {i+1}", "PRESENT"])
             wb.save(book)
 
             subprocess.run([sys.executable, str(SCRIPT), "--workbook", str(book), "--out-dir", str(out)], check=True, capture_output=True, text=True)
@@ -46,13 +55,14 @@ class FieldCoverageAuditTests(unittest.TestCase):
             qa = json.loads((out / "oracle_selected50_field_coverage_qa.json").read_text())
             self.assertEqual(qa["selected_league_groups"], 50)
             self.assertEqual(qa["status"], "PASS_FIELD_BY_FIELD_SELECTED50_REPORT_AUDIT")
+            self.assertEqual(qa["required_source_sheet_gate"], "PASS_ALL_REQUIRED_SOURCE_SHEETS_PRESENT")
             self.assertEqual(qa["unmapped_rows_by_sheet"], {})
             self.assertEqual(qa["report_only_status_normalizations"]["goal_market_nonblocked_reason_filled"], 50)
             self.assertEqual(qa["report_only_status_normalizations"]["schedule_no_mismatch_reason_filled"], 49)
             self.assertEqual(qa["report_only_status_normalizations"]["schedule_exact_match_zero_delta_filled"], 49)
             with (out / "oracle_selected50_field_coverage_by_league.csv").open(encoding="utf-8-sig", newline="") as f:
                 matrix = list(csv.DictReader(f))
-            self.assertEqual(len(matrix), 50 * (3 + 3 + 4 + 3 + 4 + 7))
+            self.assertEqual(len(matrix), 50 * (3 + 3 + 4 + 3 + 4 + 7 + 3 + 3 + 3))
             xg_capture = [r for r in matrix if r["Source Sheet"] == "xG Evidence Audit" and r["Field"] == "capture_time_utc"]
             self.assertEqual(len(xg_capture), 50)
             self.assertTrue(all(r["Coverage State"] == "NO_USABLE_VALUES" for r in xg_capture))
@@ -88,10 +98,45 @@ class FieldCoverageAuditTests(unittest.TestCase):
             mi = wb.create_sheet("Market Intelligence")
             mi.append(["Provider Season ID", "League", "BTTS Yes"])
             mi.append(["UNMAPPED", "Out of scope", 50.0])
+            for sheet_name, key_name in (
+                ("xG Evidence Audit", "selected_id"),
+                ("Goal Intelligence", "selected_id"),
+                ("H2H Intelligence", "selected_id"),
+                ("Team Form Evidence", "selected_id"),
+                ("Data Quality & Risk", "selected_id"),
+                ("Schedule Reconciliation", "selected_id"),
+                ("Goal Market Research", "provider_season_id"),
+            ):
+                ws = wb.create_sheet(sheet_name)
+                ws.append([key_name, "League", "evidence_status"])
+                for i in range(50):
+                    ws.append([f"S{i+1:02d}", f"League {i+1}", "PRESENT"])
             wb.save(book)
             result = subprocess.run([sys.executable, str(SCRIPT), "--workbook", str(book), "--out-dir", str(out)], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("could not be assigned to a governed Selected-50 season ID", result.stderr + result.stdout)
+
+    def test_fails_closed_when_required_source_sheet_is_missing(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            book = root / "source.xlsx"
+            out = root / "out"
+            wb = Workbook()
+            cov = wb.active
+            cov.title = "50-League Coverage"
+            cov.append(["Selected Season ID", "Country", "League"])
+            for i in range(50):
+                cov.append([f"S{i+1:02d}", "Testland", f"League {i+1}"])
+            mi = wb.create_sheet("Market Intelligence")
+            mi.append(["Provider Season ID", "League", "BTTS Yes"])
+            mi.append(["S01", "League 1", 55.0])
+            wb.save(book)
+
+            result = subprocess.run([sys.executable, str(SCRIPT), "--workbook", str(book), "--out-dir", str(out)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("required Selected-50 source sheets are missing", result.stderr + result.stdout)
+            self.assertIn("Team Form Evidence", result.stderr + result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
