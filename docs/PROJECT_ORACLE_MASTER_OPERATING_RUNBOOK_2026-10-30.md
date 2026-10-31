@@ -202,3 +202,60 @@ The connected GitHub capability can inspect repository files, branches, pull req
 4. Keep the snapshot-runtime bridge provenance test failures open until their evidence/branch mismatch is corrected and regression-tested.
 
 No Oracle V1.6 production logic, model probabilities, calibration, thresholds or production eligibility flags were changed.
+
+
+## 14. Market Intelligence report generator hardening — 31 October 2026
+
+### Current implementation
+The governed branch now carries the persistent report-template correction. Fixture Date, League and Fixture are the first three columns on every fixture-level supporting tab:
+- xG Evidence Audit
+- H2H Intelligence
+- Team Form Evidence
+- Data Quality & Risk
+- Goal Intelligence
+- Goal Market Research
+
+A new Schedule Reconciliation tab and companion CSV are generated. Each conflict is explicitly marked REVIEW_REQUIRED and exposes:
+- exact provider season ID, fixture ID and ordered home/away team IDs, plus a readable composite fixture identity;
+- league and Home vs Away fixture label;
+- runtime kickoff and archive kickoff;
+- signed archive-minus-runtime delta in minutes;
+- archive source file and source row;
+- exact join status and manual authoritative-time review instruction.
+
+Data Quality & Risk repeats the schedule status, both kickoff timestamps and the signed delta. The aggregate Market Data Coverage and Archive Field Coverage tabs are unchanged and do not receive fixture-context fields.
+
+The canonical report contract is now template v1.2 with 12 tabs. Oracle V1.6 Output remains exactly 38 columns and Market Intelligence remains exactly 83 columns. All new work is report-only: production model logic/probabilities are unchanged, production_eligible=false and betting_eligible=false remain enforced, exact identity and strict pre-kickoff chronology gates remain in place, and no schedule value is auto-corrected.
+
+### Governed branch commits
+- bd32ca3d430364d91bcfd5286cfd41838154f277 — report generator fixture context, exact trace/goal research mapping and schedule queue.
+- f4f5235fa4dcb0497f786aa4739e44e4f5d1c826 — retain Goal Market Research headers when the research input has zero rows.
+- e8b3ac86f4eed6d8094c0262a54d6183ea366672 — focused workbook-context, exact-identity and schedule-queue tests.
+- 0fa0293644489c30f62e8c4d9ba3077e47ceee28 — lock Market Intelligence template v1.2 and 12-tab contract.
+- 056ffd29c898c60ef24cb6e15275ed8ffce0fe84 — include the queue CSV in successful and blocked workflow artifacts.
+- 0297ecb3ea226792bdb20922d549b5877bdd789d — align the template's tab order with the generator.
+- e6c1e42a841d1ab36b08463427e82f40e35314b1 — record this hardening checkpoint in the execution protocol.
+
+### Test evidence and limits
+- The report regression file now contains 20 test methods. Two new focused tests verify that the schedule queue exposes all required conflict fields and that Goal Market Research context is attached only through the exact four-part composite identity. The workbook test checks all six fixture-level supporting tabs, context values, unchanged aggregate coverage headers and exact 38/83-column schemas.
+- The Goal Market Research engine test file remains at 6 test methods.
+- The governed push workflow contains the two test commands:
+  - python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+  - python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
+- The source and test commits are on the governed branch, but their new CI pass/fail result has not been independently confirmed in this checkpoint. The available connected status/run results did not expose the push-triggered run. Do not record the new suites as passed until the corresponding GitHub Actions result is inspected.
+
+### Full workbook and reconciliation status
+- The last full report run remains 41205672854, artifact 13044203808, with 434 runtime fixtures, 50 governed league groups, 19 schedule discordances and PARTIAL_RESEARCH_ONLY status. It predates the v1.2 generator changes and must not be cited as verification of the new layout.
+- No new full 434-fixture workbook or artifact was generated in this checkpoint. The full Market Intelligence workflow still requires manual workflow_dispatch on the governed branch; the connected GitHub workflow interface here cannot dispatch it.
+- The next full report run must verify: 12 workbook tabs; 38-column Oracle V1.6 Output; 83-column Market Intelligence; context fields on the six fixture-level supporting tabs; aggregate coverage tabs without context columns; and exactly the currently known 19 conflicts in the Schedule Reconciliation tab/CSV, each REVIEW_REQUIRED with complete provenance.
+- The 19 schedule conflicts remain open. No timestamp is selected or corrected by this implementation. Require authoritative fixture-time evidence and retain REVIEW_REQUIRED until resolved.
+
+### Remaining blockers
+1. Inspect the push-triggered report and goal-engine regression workflow results; test status is not yet verified.
+2. Run the full manual report workflow and inspect the new workbook/CSV artifacts against the checks above.
+3. Resolve the 19 schedule conflicts from authoritative event-time evidence.
+4. Keep xG quarantined until capture time and revision provenance are established; last verified evidence was 0/434 verified capture timestamps.
+5. Obtain contemporaneous odds and verified settlement/outcome data before calibration or performance claims.
+6. Complete the separate FootyStats plan/credit and snapshot-runtime bridge provenance gates recorded in Section 13 and the companion readiness audit.
+
+No FootyStats provider requests, credits, subscriptions, archive writes, Oracle V1.6 production logic changes or probability changes were made during this report-hardening work.
