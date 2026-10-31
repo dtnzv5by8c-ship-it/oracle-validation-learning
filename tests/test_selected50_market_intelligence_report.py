@@ -165,7 +165,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             path = Path(directory) / "report.xlsx"
             market_report.write_xlsx(path, report)
             workbook = load_workbook(path, read_only=True, data_only=True)
-            sheet = workbook["Market Intelligence"]
+            sheet = workbook["Oracle V1.6 Output"]
             self.assertEqual([cell.value for cell in sheet[1]], market_report.HEADERS)
             self.assertEqual(sheet.max_column, 38)
             workbook.close()
@@ -211,7 +211,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(decision_values["Goal Research Status"], "EXPERIMENTAL_UNCALIBRATED")
             self.assertEqual(decision_values["Production Eligible"], "NO")
             self.assertEqual(decision_values["Betting Eligible"], "NO")
-            self.assertEqual(decision_values["Home Last-5 Form"], "WDWW")
+            self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
                           "Market Data Coverage", "Archive Field Coverage",
                           "Data Quality & Risk", "Definitions & Governance"):
