@@ -67,3 +67,13 @@ Continue the field-level audit against the dictionary and implementation. Inspec
 - Static review identified three resolver gaps requiring correction before further integration: no approved competition-bridge gate; no explicit quarantine for multiple reference candidates; and timezone-naive ISO kickoff values are currently interpreted as UTC.
 - Keep the resolver research-only, all mappings NOT_APPROVED, no API calls/credits, no production writes and no Oracle V1.6 changes. Correct these gaps with regression tests in a narrowly scoped research-only change and verify the exact commit before integration.
 - Continue weekly Market Intelligence reports from the locked v1.2 template and existing generator. Identity resolver work must not alter report schemas or production probabilities.
+
+
+## Weekly report release verification — run #124
+
+- Verified 2026-10-31 GitHub Actions workflow_dispatch run: `41229773531`, conclusion `success`, governed source commit `ba483e7db1b6c25255b1b6dc21d866e41438cb60`.
+- Report artifact: `13053167426`, name `oracle-selected50-market-intelligence-repair`, size 1,106,692 bytes, SHA-256 `429019182bc4f522ff7035f5dd574814325d1431ef67388a8588d817f455c396`.
+- Run and artifact are retained by GitHub Actions at: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41229773531
+- This confirms the report workflow and artifact upload succeeded for the v1.2 generator/template state at that source commit. The report is still governed by its QA status; a successful workflow execution is not equivalent to production or betting eligibility.
+- The later documentation-only commits `61b2d3d5e574847d5b29f1368db24e9ed2362146` and `18d5eebcdaebb31a2263f3c6e06fd01a29948d35` do not alter report generator code, workbook schema or production model logic. The template blob remains `799cf25154ea8030d1d729b53e5dd0e7ad50cc06`.
+- For the next weekly cycle, use the existing report workflow and template. Preserve the pinned archive, runtime run ID, governed branch SHA, workflow run ID, artifact ID/digest and QA outputs. Do not manually reconstruct the workbook.
