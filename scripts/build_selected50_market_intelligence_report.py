@@ -110,6 +110,8 @@ def build_indexes(matches):
         season_id = str(row.get("provider_season_id") or "").strip()
         league = season_id
         season = season_id
+        # Cross-season H2H requires a stable provider competition ID; otherwise use exact season only.
+        competition = str(row.get("provider_league_id") or "").strip() or season_id
         h, a = str(row["home_team_id"]), str(row["away_team_id"])
         if not league or not season or h == a:
             continue
@@ -122,12 +124,13 @@ def build_indexes(matches):
         item["_dt"] = dt
         item["_league"] = league
         item["_season"] = season
+        item["_competition"] = competition
         item["_home"] = h
         item["_away"] = a
         by_team[(league, h)].append(item)
         by_team[(league, a)].append(item)
         by_season[(league, season)].append(item)
-        by_pair[(league, tuple(sorted((h, a))))].append(item)
+        by_pair[(competition, tuple(sorted((h, a))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
@@ -302,7 +305,9 @@ def build_report(runtime_rows, archive_rows):
                                            hf["ga"] if hf["n"] >= 3 else None, league_goals_per_team)
         a_attack, a_defence = index_value(af["gf"] if af["n"] >= 3 else None,
                                            af["ga"] if af["n"] >= 3 else None, league_goals_per_team)
-        pair_rows = before(by_pair[(league, tuple(sorted((home, away))))], cutoff)
+        competition_id = str(target.get("provider_league_id") or "").strip()
+        h2h_scope = competition_id or season
+        pair_rows = before(by_pair[(h2h_scope, tuple(sorted((home, away))))], cutoff)
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
@@ -381,6 +386,16 @@ def build_report(runtime_rows, archive_rows):
             "history_cutoff_rule": "STRICTLY_BEFORE_FIXTURE_KICKOFF",
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
             "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
+            "archive_provider_competition_id": target.get("provider_league_id", ""),
+            "h2h_scope": "VERIFIED_PROVIDER_COMPETITION_CROSS_SEASON" if competition_id else "EXACT_SEASON_FALLBACK",
+            "h2h_meetings_detail": json.dumps([{
+                "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
+                "provider_season_id": r.get("provider_season_id", ""),
+                "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
+                "home_goals": r.get("home_goals", ""), "away_goals": r.get("away_goals", ""),
+                "result_current_home_perspective": h2h_results[i],
+                "total_goals": int(float(r["home_goals"])) + int(float(r["away_goals"]))
+            } for i, r in enumerate(h2h)], ensure_ascii=False),
             "archive_fixture_id": key[1], "archive_home_team_id": key[2], "archive_away_team_id": key[3],
             "archive_source_file": target.get("source_file", ""), "archive_source_row": target.get("source_row", ""),
             "archive_raw_record_sha256": target.get("raw_record_sha256", ""),
