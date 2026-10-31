@@ -1,0 +1,7 @@
+market,comparator,n,brier,log_loss,auc,ece10,brier_delta_vs_league_prior,logloss_delta_vs_league_prior,auc_delta_vs_league_prior,ece10_delta_vs_league_prior,interpretation
+BTTS,730d league prior,15003,0.246222,0.685552,0.551670,0.013222,0,0,0,0,Reference comparator
+BTTS,Last-10 team form,15003,0.248002,0.689257,0.547366,0.029603,0.001780,0.003705,-0.004304,0.016381,Weaker than league prior
+BTTS,Team form + 30% H2H,15003,0.247217,0.687614,0.548799,0.019608,0.000995,0.002062,-0.002871,0.006386,Worse than league prior; better than team-form baseline
+OVER25_DIAGNOSTIC,730d league prior,15003,0.245587,0.684236,0.569847,0.016288,0,0,0,0,Reference comparator; diagnostic market only
+OVER25_DIAGNOSTIC,Last-10 team form,15003,0.246498,0.686171,0.570253,0.025953,0.000911,0.001935,0.000406,0.009665,Weaker calibration and slightly worse losses than league prior
+OVER25_DIAGNOSTIC,Team form + 30% H2H,15003,0.245535,0.684136,0.574442,0.020175,-0.000052,-0.000101,0.004595,0.003887,Marginally lower loss; bootstrap vs league prior crosses zero
