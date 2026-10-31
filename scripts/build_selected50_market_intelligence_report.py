@@ -564,6 +564,8 @@ def write_xlsx(path, rows, trace=None):
         except (TypeError, ValueError):
             meetings = []
         for rank, meeting in enumerate(meetings, 1):
+            meeting = dict(meeting)
+            meeting["meeting_fixture_id"] = meeting.pop("fixture_id", "")
             h2h_rows.append({**base, "meeting_rank_latest_first": rank, **meeting})
         for side in ("home", "away"):
             venue = "home_at_home" if side == "home" else "away_away"
@@ -602,7 +604,7 @@ def write_xlsx(path, rows, trace=None):
         })
     add_sheet("H2H Intelligence",
         ["fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
-         "meeting_rank_latest_first", "fixture_id", "kickoff_utc", "provider_season_id",
+         "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
          "home_team_id", "away_team_id", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
