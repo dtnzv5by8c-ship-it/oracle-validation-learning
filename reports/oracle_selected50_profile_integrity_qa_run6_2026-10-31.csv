@@ -1,0 +1,27 @@
+check,observed,expected_or_rule,status,interpretation
+Team shrinkage rows,1464,"1,464 = 732 teams × 2 half-lives",PASS,365d and 730d records are retained separately.
+Unique team profiles,732,732 exact selected_id:team_id keys,PASS,Composite key is required because provider team IDs are reused across selected groups.
+Team key exactness,1464,all rows match selected_id:team_id,PASS,No approximate name-based join was used in the profile key.
+Team rows per profile,"min=2, max=2",exactly 2 rows per team key,PASS,Each key has one 365-day and one 730-day half-life record.
+Team raw sample consistency,0,0 profile keys differ across half-lives,PASS,Raw sample count must be invariant to decay half-life.
+Team fixture hash consistency,0,0 profile keys differ across half-lives,PASS,The source fixture set must be identical across half-life settings.
+Team effective sample monotonicity,True,ESS(730d) >= ESS(365d) for every team,PASS,Longer half-life should not reduce Kish effective sample for the same positive time weights.
+H2H shrinkage rows,14376,"14,376 = 7,188 pairs × 2 half-lives",PASS,Exact H2H pair profiles are retained separately for each half-life.
+Unique H2H pair profiles,7188,"7,188 exact selected_id:team_a_id:team_b_id keys",PASS,Pair key is scoped to selected_id and ordered provider team IDs.
+H2H key exactness,14376,all rows match selected_id:team_a_id:team_b_id,PASS,No approximate name matching was used.
+H2H team-ID order,14376,all rows have team_a_id < team_b_id,PASS,Team A/B order is deterministic and is not a home/away designation.
+H2H rows per pair,"min=2, max=2",exactly 2 rows per pair key,PASS,Each pair has one row per half-life.
+H2H raw sample consistency,0,0 pair keys differ across half-lives,PASS,Raw meeting count must be invariant to half-life.
+H2H fixture hash consistency,0,0 pair keys differ across half-lives,PASS,Fixture ID-set hash must be identical across half-life settings.
+H2H effective sample monotonicity,True,ESS(730d) >= ESS(365d) for every pair,PASS,Longer half-life should not reduce Kish effective sample.
+H2H pair effective n >=8 at both half-lives,1,recomputed from exact rows; checkpoint expected 1,PASS,This is the most stringent current H2H recency sample tier.
+H2H pair effective n >=8 at 730d only,67,recomputed from exact rows; checkpoint expected 67,PASS,These pairs do not clear the 365d >=8 threshold.
+H2H pair effective n >=5 at both half-lives,386,386 total = 318 both 5–<8 + 67 730d-only >=8 + 1 both >=8,PASS,Run5 summary row label “BOTH >=5” counted only the 5–<8 band; this run recomputes the inclusive threshold from exact ESS values.
+Governed league profile coverage,31,31/50 raw JSON groups available in Run64,PASS,19 groups have archive ledger rows but no raw match JSON in the accessible Run64 extract.
+Unprofiled groups not zero-filled,19,19 groups explicitly unavailable,PASS,The workbook preserves the raw JSON access gap.
+Run5 addendum appended to exact v11,8,8 Run5 shrinkage tabs,PASS,v11 binary SHA matches the Run5 checkpoint v11 SHA exactly.
+H2H both half-lives 5<=ESS<8 band,318,recomputed from exact 365d and 730d ESS,PASS,This is the 318-row Run5 “BOTH >=5” category; it excludes the 67 730d-only >=8 and the one both >=8 pair.
+H2H ESS >=5 at 730d but <5 at 365d,174,recomputed from exact ESS values,PASS,Longer decay window increases effective sample for these pairs, but the 365d threshold is not met.
+Team ESS >=30 at 365d,648,computed from 732 exact team keys,PASS,Team effective samples are substantially larger than H2H effective samples.
+Team ESS >=30 at 730d,650,computed from 732 exact team keys,PASS,Longer half-life modestly increases the number of teams above 30 effective observations.
+Team scoring candidates stable in all four settings,13,13 prior candidates; 365/730 × k=10/20,PASS,Descriptive shrinkage-parameter stability only; no independent OOS validation.
