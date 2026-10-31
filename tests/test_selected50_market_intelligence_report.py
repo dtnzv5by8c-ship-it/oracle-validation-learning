@@ -212,6 +212,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(decision_values["Production Eligible"], "NO")
             self.assertEqual(decision_values["Betting Eligible"], "NO")
             self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
+            self.assertEqual(decision_values["H2H Avg Total Goals"], "2.00")
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
                           "Market Data Coverage", "Archive Field Coverage",
                           "Data Quality & Risk", "Definitions & Governance"):
