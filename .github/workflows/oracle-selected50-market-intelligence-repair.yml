@@ -1,0 +1,183 @@
+name: Oracle Selected-50 Market Intelligence Report Repair
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_private_archive_read:
+        description: "Confirm read-only use of the existing pinned private archive; no provider API calls"
+        required: true
+        default: false
+        type: boolean
+      private_archive_release_tag:
+        description: "Pinned private archive release tag"
+        required: true
+        default: "research-selected50-footystats-history-40375285207"
+        type: string
+      runtime_run_id:
+        description: "Verified successful Selected-50 runtime run containing the source prediction report"
+        required: true
+        default: "41175230838"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  market-intelligence-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout governed research branch only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Enforce branch, explicit archive consent and existing private token
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" == "research/oracle-50-league-readiness-audit" ]] || { echo "::error::Run this workflow from the governed research branch only."; exit 1; }
+          [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit read-only archive confirmation required."; exit 1; }
+          [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          gh auth status
+
+      - name: Download pinned private archive and verify SHA-256
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          PRIVATE_ARCHIVE_RELEASE_TAG: ${{ inputs.private_archive_release_tag }}
+          EXPECTED_ARCHIVE_SHA256: 7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f
+        run: |
+          set -euo pipefail
+          [[ "$PRIVATE_ARCHIVE_RELEASE_TAG" == "research-selected50-footystats-history-40375285207" ]] || { echo "::error::Only the pinned Selected-50 archive release is permitted."; exit 1; }
+          mkdir -p private-download
+          gh release download "$PRIVATE_ARCHIVE_RELEASE_TAG" \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern 'oracle-selected50-footystats-private-ingestion.zip' \
+            --pattern 'private-package.sha256' \
+            --dir private-download
+          cd private-download
+          sha256sum -c private-package.sha256
+          ACTUAL="$(sha256sum oracle-selected50-footystats-private-ingestion.zip | awk '{print $1}')"
+          [[ "$ACTUAL" == "$EXPECTED_ARCHIVE_SHA256" ]] || { echo "::error::Pinned archive SHA-256 mismatch."; exit 1; }
+          echo "PINNED_ARCHIVE_SHA256_VERIFIED=$ACTUAL" >> "$GITHUB_ENV"
+
+      - name: Download exact runtime artifact and verify run, branch, commit and digest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$RUNTIME_RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::Runtime run ID must be numeric."; exit 1; }
+          mkdir -p runtime-artifact
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUNTIME_RUN_ID" > runtime-artifact/run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUNTIME_RUN_ID/artifacts" > runtime-artifact/artifacts.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          run_id = str(os.environ["RUNTIME_RUN_ID"])
+          run = json.loads(Path("runtime-artifact/run.json").read_text())
+          if str(run.get("id")) != run_id:
+              raise SystemExit("FAIL: runtime run ID mismatch")
+          if run.get("status") != "completed" or run.get("conclusion") != "success":
+              raise SystemExit("FAIL: source runtime run is not completed successfully")
+          if run.get("head_branch") != "research/oracle-50-league-readiness-audit":
+              raise SystemExit("FAIL: source runtime did not run on the governed research branch")
+          data = json.loads(Path("runtime-artifact/artifacts.json").read_text())
+          matches = [a for a in data.get("artifacts", []) if a.get("name") == "oracle-selected50-research-runtime-report"]
+          if len(matches) != 1:
+              raise SystemExit(f"FAIL: expected one runtime report artifact, found {len(matches)}")
+          artifact = matches[0]
+          workflow_run = artifact.get("workflow_run") or {}
+          if str(workflow_run.get("id")) != run_id or workflow_run.get("head_branch") != run.get("head_branch"):
+              raise SystemExit("FAIL: runtime artifact provenance does not match requested run")
+          if artifact.get("expired") is not False or not artifact.get("digest", "").startswith("sha256:"):
+              raise SystemExit("FAIL: runtime artifact is expired or has no SHA-256 digest")
+          Path("runtime-artifact/artifact-metadata.json").write_text(json.dumps({
+              "artifact_id": str(artifact["id"]),
+              "artifact_name": artifact["name"],
+              "artifact_digest": artifact["digest"],
+              "run_id": run_id,
+              "head_branch": run["head_branch"],
+              "head_sha": run["head_sha"],
+          }, indent=2) + "\n")
+          PY
+          ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
+          EXPECTED="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1].lower())')"
+          curl --fail --location --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o runtime-artifact/runtime-report.zip
+          ACTUAL="$(sha256sum runtime-artifact/runtime-report.zip | awk '{print $1}')"
+          [[ "$ACTUAL" == "$EXPECTED" ]] || { echo "::error::Runtime artifact ZIP digest mismatch."; exit 1; }
+          mkdir -p runtime-artifact/extracted
+          unzip -q runtime-artifact/runtime-report.zip -d runtime-artifact/extracted
+          test -s runtime-artifact/extracted/oracle_selected50_prediction_report.csv
+          test -s runtime-artifact/extracted/oracle_selected50_runtime_provenance.json
+          python - <<'PY'
+          import csv, hashlib, json, os
+          from pathlib import Path
+          root = Path("runtime-artifact/extracted")
+          report = root / "oracle_selected50_prediction_report.csv"
+          provenance = json.loads((root / "oracle_selected50_runtime_provenance.json").read_text())
+          run_id = str(os.environ["RUNTIME_RUN_ID"])
+          metadata = json.loads(Path("runtime-artifact/artifact-metadata.json").read_text())
+          actual_report_sha = hashlib.sha256(report.read_bytes()).hexdigest()
+          if str(provenance.get("runtime_run_id")) != run_id:
+              raise SystemExit("FAIL: runtime provenance run ID mismatch")
+          if provenance.get("runtime_commit_sha") != metadata.get("head_sha"):
+              raise SystemExit("FAIL: runtime provenance commit SHA mismatch")
+          if provenance.get("runtime_ref") != "refs/heads/research/oracle-50-league-readiness-audit":
+              raise SystemExit("FAIL: runtime provenance branch mismatch")
+          if provenance.get("source_archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+              raise SystemExit("FAIL: runtime source archive SHA does not match pinned archive")
+          if provenance.get("runtime_report_sha256") != actual_report_sha:
+              raise SystemExit("FAIL: runtime report content SHA mismatch")
+          with report.open(encoding="utf-8-sig", newline="") as f:
+              rows = list(csv.DictReader(f))
+          groups = {r.get("selected_id", "") for r in rows if r.get("selected_id")}
+          if len(rows) != 434 or len(groups) != 50:
+              raise SystemExit(f"FAIL: expected 434 runtime rows and 50 selected groups, got {len(rows)} and {len(groups)}")
+          print(f"Runtime artifact verified: run={run_id}; rows={len(rows)}; selected_groups={len(groups)}")
+          PY
+
+      - name: Install report-only dependencies
+        run: python -m pip install --disable-pip-version-check openpyxl
+
+      - name: Test exact joins, chronology, duplicate guards and market masking
+        run: python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+
+      - name: Build archive-wide pre-kickoff evidence from the pinned archive
+        run: |
+          set -euo pipefail
+          python scripts/build_footystats_archive_features.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --out archive-audit
+
+      - name: Rebuild 38-column Market Intelligence report and enforce QA gates
+        run: |
+          set -euo pipefail
+          python scripts/build_selected50_market_intelligence_report.py \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --archive-audit archive-audit \
+            --out-dir market-intelligence-output \
+            --expected-league-groups 50
+
+      - name: Upload rebuilt report, evidence trace and QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-market-intelligence-repair
+          path: |
+            market-intelligence-output/oracle_selected50_market_intelligence.xlsx
+            market-intelligence-output/oracle_selected50_market_intelligence.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
+            archive-audit/summary.json
+          if-no-files-found: error
+          retention-days: 14
