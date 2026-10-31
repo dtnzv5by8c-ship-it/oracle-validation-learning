@@ -767,11 +767,16 @@ def build_50_league_coverage_rows(schedule_rows, runtime_rows, report_rows, trac
         )
 
         if fixture_count == 0:
-            fixture_status = "NO_FIXTURES_IN_7D_HORIZON"
-            prediction_status = "NO_FIXTURES_IN_7D_HORIZON"
+            fixture_status = "NO_FIXTURE_IN_7D_HORIZON"
+            prediction_status = "NO_FIXTURES_TO_SCORE"
         else:
             fixture_status = str(schedule.get("schedule_coverage_status") or "FIXTURES_FOUND")
-            prediction_status = "RAW_RESEARCH_PREDICTIONS_PRESENT" if (btts + home_1x + away_x2) else "NO_RAW_MARKET_OUTPUTS"
+            if not (btts + home_1x + away_x2):
+                prediction_status = "NO_RAW_MARKET_OUTPUTS"
+            elif min(btts, home_1x, away_x2) < fixture_count:
+                prediction_status = "PARTIAL_PREDICTIONS_WITH_FEATURE_BLOCKS"
+            else:
+                prediction_status = "RAW_RESEARCH_PREDICTIONS_PRESENT"
         eligibility_status = "ELIGIBILITY_REVIEW_REQUIRED" if production_yes or betting_yes else "NOT_ELIGIBLE"
 
         row = {
