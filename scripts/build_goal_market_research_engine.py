@@ -236,5 +236,5 @@ def main():
       "method":"Independent Poisson score grid; five-match empirical-Bayes shrinkage; venue sample used when >=3 else overall fallback; exact season/team IDs; strict pre-kickoff; target fixture excluded.",
       "limitations":["No odds/value assessment.","No calibration fitted on a held-out calibration set.","No xG input because prematch xG temporal provenance is not verified.","Not Oracle V1.6; no production or betting eligibility.","No guarantee of accuracy; benchmark against league-rate baseline before any promotion."]}
     (out/"goal_market_research_qa.json").write_text(json.dumps(report,indent=2)+"\n")
-    print(json.dumps({"forecast_rows":len(output),"forecastable_rows":len(output)-blocked,"blocked_rows":blocked,"backtest":summary},indent=2))
+    print(json.dumps({"forecast_rows":len(output),"forecastable_rows":len(output)-blocked_count,"blocked_rows":blocked_count,"blocked_reason_counts":blocked_reason_counts,"blocked_rows_have_explicit_reasons":True,"blocked_rows_have_false_eligibility_flags":True,"backtest":summary},indent=2))
 if __name__=="__main__": main()
