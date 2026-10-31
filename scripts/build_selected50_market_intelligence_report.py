@@ -106,8 +106,9 @@ def build_indexes(matches):
         dt = parse_dt(row.get("kickoff_utc"))
         if not dt or not row.get("home_team_id") or not row.get("away_team_id"):
             continue
-        league = str(row.get("league_folder") or "")
-        season = str(row.get("season_folder") or "")
+        season_id = str(row.get("provider_season_id") or "").strip()
+        league = season_id
+        season = season_id
         h, a = str(row["home_team_id"]), str(row["away_team_id"])
         if not league or not season or h == a:
             continue
@@ -238,8 +239,8 @@ def build_report(runtime_rows, archive_rows):
                           "home_table_status": "UNAVAILABLE", "away_table_status": "UNAVAILABLE",
                           "history_cutoff_utc": runtime.get("date_utc", "")})
             continue
-        league = str(target.get("league_folder") or "")
-        season = str(target.get("season_folder") or "")
+        league = key[0]
+        season = key[0]
         home, away = key[2], key[3]
         home_rows = before(by_team[(league, home)], cutoff)
         away_rows = before(by_team[(league, away)], cutoff)
