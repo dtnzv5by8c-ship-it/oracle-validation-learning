@@ -1,0 +1,12 @@
+suitability_status,combination_count,interpretation
+REPEATABLE_POSITIVE_SKILL_DIAGNOSTIC_ONLY,26,17 leagues; diagnostic only
+POSITIVE_SKILL_CALIBRATION_WARNING,13,Positive Brier skill but calibration warning; no strict recommendation
+MIXED_BRIER_SKILL,47,Mixed chronological fold evidence
+INSUFFICIENT_SAMPLE_OR_METRIC,60,Insufficient sample or metric
+NO_POSITIVE_BRIER_SKILL,4,No positive Brier skill
+STRICT_BTTS,2,Strict candidate combinations
+STRICT_DC_HOME,11,Strict candidate combinations
+STRICT_DC_AWAY,13,Strict candidate combinations
+LEAGUES_WITH_STRICT_CANDIDATE,17,At least one strict market
+LEAGUES_MIXED_NO_STRICT,13,Mixed evidence; no strict market
+LEAGUES_INSUFFICIENT_OR_NO_POSITIVE,20,Insufficient/no positive skill
