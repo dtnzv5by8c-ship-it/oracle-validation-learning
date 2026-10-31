@@ -817,29 +817,116 @@ def build_50_league_coverage_rows(schedule_rows, runtime_rows, report_rows, trac
     return output
 
 
-def build_coverage_summary_rows(coverage_rows):
+def build_coverage_summary_rows(coverage_rows, runtime_rows=None, report_rows=None,
+                               trace_rows=None, runtime_provenance=None,
+                               archive_summary=None, report_summary=None,
+                               xg_audit_rows=None, runtime_artifact_id=""):
+    """Create a provenance-led summary with the same field-level gates as the 50-row matrix."""
+    runtime_rows = runtime_rows or []
+    report_rows = report_rows or []
+    trace_rows = trace_rows or []
+    runtime_provenance = runtime_provenance or {}
+    archive_summary = archive_summary or {}
+    report_summary = report_summary or {}
+    xg_audit_rows = xg_audit_rows or []
     total = lambda field: sum(_coverage_int(item.get(field)) for item in coverage_rows)
     fixture_groups = sum(_coverage_int(item.get("Upcoming Fixtures (7d)")) > 0 for item in coverage_rows)
     no_fixture_groups = len(coverage_rows) - fixture_groups
+    blocked_runtime = [
+        item for item in runtime_rows
+        if str(item.get("feature_support_status") or item.get("prediction_status") or "").startswith("BLOCKED")
+    ]
+    blocked_four = sum(_coverage_int(item.get("home_recent5_n")) == 4 for item in blocked_runtime)
+    blocked_four += sum(_coverage_int(item.get("away_recent5_n")) == 4 for item in blocked_runtime)
+    blocked_three = sum(_coverage_int(item.get("home_recent5_n")) == 3 for item in blocked_runtime)
+    blocked_three += sum(_coverage_int(item.get("away_recent5_n")) == 3 for item in blocked_runtime)
+
+    def verified(value):
+        return str(value or "").upper().startswith(("PASS", "VERIFIED"))
+
+    provider_parent_ids = {
+        str(item.get("selected_id") or "").strip()
+        for item in runtime_rows
+        if str(item.get("provider_competition_id_status") or "").upper().startswith("VERIFIED_PARENT")
+        and str(item.get("selected_id") or "").strip()
+    }
+    canonical_fixture_rows = sum(verified(item.get("canonical_fixture_join_status")) for item in runtime_rows)
+    canonical_team_rows = sum(verified(item.get("canonical_team_join_status")) for item in runtime_rows)
+    canonical_bridges = {
+        str(item.get("selected_id") or "").strip()
+        for item in runtime_rows
+        if verified(item.get("canonical_fixture_join_status"))
+        and verified(item.get("canonical_team_join_status"))
+        and str(item.get("selected_id") or "").strip()
+    }
+    accuracy_graded = sum(
+        _coverage_available(item.get("Historical Accuracy Status"))
+        and not str(item.get("Historical Accuracy Status") or "").startswith(("NOT_VALIDATED", "NOT_GRADED"))
+        for item in report_rows
+    )
+    aplus_graded = sum(
+        _coverage_available(item.get("A+ Setup Status"))
+        and not str(item.get("A+ Setup Status") or "").startswith("NOT_GRADED")
+        for item in report_rows
+    )
+    xg_prediction_eligible = sum(str(item.get("prediction_eligible") or "").upper() == "YES"
+                                 for item in xg_audit_rows)
+    evidence_date = str(runtime_provenance.get("generated_utc") or "UNKNOWN").split("T")[0]
+    run_number = runtime_provenance.get("runtime_run_number")
+    evidence_label = f"{evidence_date}; Selected-50 Run #{run_number}" if run_number else evidence_date
+
     metrics = [
-        ("Selected league-season groups", len(coverage_rows), "Governed Selected-50 universe; each selected season ID appears once."),
-        ("Groups with fixtures in seven-day horizon", fixture_groups, "Groups with one or more upcoming fixture rows."),
-        ("Groups without fixtures in seven-day horizon", no_fixture_groups, "Retained in the report; not silently omitted."),
-        ("Upcoming fixture rows", total("Upcoming Fixtures (7d)"), "Fixture-level reporting horizon, not total historical coverage."),
-        ("Exact archive joins", total("Exact Archive Joins"), "Exact provider season, fixture ID and ordered team IDs."),
-        ("Kickoff matches", total("Kickoff Matches"), "Runtime kickoff agrees with archive kickoff."),
-        ("Kickoff mismatches requiring review", total("Kickoff Mismatches Requiring Review"), "Manual authoritative event-time review; no automatic correction."),
-        ("BTTS raw research predictions", total("BTTS Raw Research Predictions"), "Copied unchanged from the isolated research runtime."),
-        ("Home 1X raw research predictions", total("Home 1X Raw Research Predictions"), "Copied unchanged from the isolated research runtime."),
-        ("Away X2 raw research predictions", total("Away X2 Raw Research Predictions"), "Copied unchanged from the isolated research runtime."),
-        ("Feature-blocked fixtures", total("Feature-blocked Fixtures"), "Required-feature gate retained; no imputation or threshold relaxation."),
-        ("Experimental goal forecasts", total("Experimental Goal Forecasts"), "Uncalibrated research estimates only."),
-        ("Experimental goal forecasts blocked", total("Experimental Goal Forecasts Blocked"), "Blocked by insufficient league baseline."),
-        ("Pre-match-labelled xG candidate rows", total("Pre-match-labelled xG Rows"), "Field presence only; not evidence of point-in-time availability."),
-        ("Verified xG capture timestamps", total("Verified xG Capture Timestamps"), "Only explicitly VERIFIED provenance with a nonblank capture timestamp counts."),
-        ("Historical accuracy graded", total("Historical Accuracy Graded"), "Requires exact pre-match prediction ledger and official settlement join."),
-        ("Production eligible YES", total("Production Eligible YES"), "No production eligibility is granted by this report."),
-        ("Betting eligible YES", total("Betting Eligible YES"), "No betting eligibility is granted by this report."),
+        ("Evidence cutoff", evidence_label, None),
+        ("Runtime run ID", runtime_provenance.get("runtime_run_id", "NOT_RECORDED"), None),
+        ("Runtime artifact ID", runtime_artifact_id or runtime_provenance.get("runtime_artifact_id") or "NOT_PROVIDED_TO_REPORT_BUILDER", None),
+        ("Runtime commit", runtime_provenance.get("runtime_commit_sha", "NOT_RECORDED"), None),
+        ("Runtime prediction report SHA-256", runtime_provenance.get("runtime_report_sha256", "NOT_RECORDED"), None),
+        ("Pinned archive SHA-256", archive_summary.get("archive_sha256", "NOT_RECORDED"), None),
+        ("Pinned archive match records", archive_summary.get("archive_match_records", 0), None),
+        ("Pinned archive season folders", archive_summary.get("season_folders", 0), None),
+        ("Pinned archive completed match records", archive_summary.get("settled_status_and_score_complete_records", 0), None),
+        ("Provider API calls for archive analysis", archive_summary.get("provider_api_calls", 0), None),
+        ("Selected league-season groups", len(coverage_rows), "Governed selected season IDs; each appears once."),
+        ("Groups with 7-day fixtures", fixture_groups, None),
+        ("Groups with no 7-day fixtures", no_fixture_groups, "Not necessarily data failure; no fixture rows in the seven-day report horizon."),
+        ("Upcoming fixture rows", total("Upcoming Fixtures (7d)"), None),
+        ("Exact archive fixture joins", total("Exact Archive Joins"), None),
+        ("Kickoff matches", total("Kickoff Matches"), None),
+        ("Kickoff mismatches requiring manual review", total("Kickoff Mismatches Requiring Review"), "Manual authoritative event-time review; no automatic correction."),
+        ("League groups with kickoff mismatches", sum(_coverage_int(item.get("Kickoff Mismatches Requiring Review")) > 0 for item in coverage_rows), None),
+        ("Raw Oracle BTTS predictions", total("BTTS Raw Research Predictions"), None),
+        ("Raw Oracle DC_HOME predictions", total("Home 1X Raw Research Predictions"), None),
+        ("Raw Oracle DC_AWAY predictions", total("Away X2 Raw Research Predictions"), None),
+        ("Feature-blocked Oracle research fixtures", total("Feature-blocked Fixtures"), "Required-feature gate retained; no imputation or threshold relaxation."),
+        ("Feature-blocked team-side histories", total("Blocked Team-side Histories"), None),
+        ("Feature-blocked sides with 4 prior oriented matches", blocked_four, None),
+        ("Feature-blocked sides with 3 prior oriented matches", blocked_three, None),
+        ("Experimental goal-market forecasts", total("Experimental Goal Forecasts"), "Uncalibrated research estimates only."),
+        ("Experimental goal-market blocked fixtures", total("Experimental Goal Forecasts Blocked"), "Blocked by insufficient league baseline."),
+        ("Fixtures with at least one prior meeting", total("Fixtures with Prior H2H"), None),
+        ("Individual H2H meeting rows", total("Individual H2H Meeting Rows"), None),
+        ("H2H cross-season meetings verified", report_summary.get("h2h_cross_season_meetings_verified", 0), None),
+        ("Team form sides with full 5 overall matches", total("Overall Form Full-5 Samples"), None),
+        ("Team form sides with >=3 overall matches", total("Overall Form >=3 Samples"), None),
+        ("Venue-split sides with full 5 matches", total("Venue Form Full-5 Samples"), None),
+        ("Venue-split sides with >=3 matches", total("Venue Form >=3 Samples"), None),
+        ("Provisional league table rows", total("Provisional Table Rows"), "Reconstructed conventional table; not independently verified historical official standings."),
+        ("Historical accuracy graded fixtures", accuracy_graded, "Requires exact pre-match prediction ledger and official settlement join."),
+        ("A+ setup graded fixtures", aplus_graded, "Calibration, settlement and contemporaneous odds gates have not passed."),
+        ("Prematch-labelled xG candidate rows", total("Pre-match-labelled xG Rows"), "Field presence only; not proof of point-in-time availability."),
+        ("Prematch-labelled xG rows with capture timestamp", total("Verified xG Capture Timestamps"), "Unverified xG remains quarantined research audit only."),
+        ("Prematch-labelled xG prediction eligible rows", xg_prediction_eligible, None),
+        ("Production eligible fixtures", total("Production Eligible YES"), "No production eligibility is granted by this report."),
+        ("Betting eligible fixtures", total("Betting Eligible YES"), "No betting eligibility is granted by this report."),
+        ("Provider parent competition IDs verified", len(provider_parent_ids), "Provider season IDs are not automatically promoted to parent competition IDs."),
+        ("Provider-to-canonical bridges verified", len(canonical_bridges), "Canonical cross-provider identity requires explicit approved bridges."),
+        ("Canonical fixture joins verified", canonical_fixture_rows, None),
+        ("Canonical team joins verified", canonical_team_rows, None),
+        ("Overall report status", report_summary.get("report_status", "PARTIAL_RESEARCH_ONLY"), "Research-only; not production-ready or betting-ready."),
+        ("League group gate", report_summary.get("league_group_gate", "NOT_VERIFIED"), None),
+        ("Required exact join gate", report_summary.get("required_join_gate", "NOT_VERIFIED"), None),
+        ("Schedule reconciliation gate", report_summary.get("schedule_reconciliation_gate", "NOT_VERIFIED"), None),
+        ("Production readiness", archive_summary.get("production_readiness", "NOT_GRANTED"), None),
     ]
     return [{"Metric": metric, "Value": value, "Interpretation": interpretation}
             for metric, value, interpretation in metrics]
@@ -1339,6 +1426,7 @@ def main():
     ap.add_argument("--archive-summary", required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--expected-league-groups", type=int, default=50)
+    ap.add_argument("--runtime-artifact-id", default="", help="Verified GitHub Actions artifact ID for the runtime report")
     ap.add_argument("--goal-market-research", required=False, help="Experimental goal-market research CSV; never production probabilities")
     args = ap.parse_args()
     out_dir = Path(args.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
@@ -1468,7 +1556,10 @@ def main():
     coverage_ids = {str(item["Selected Season ID"]) for item in coverage_rows}
     if len(coverage_ids) != args.expected_league_groups:
         raise SystemExit("FAIL: 50-league coverage sheet has duplicate selected season IDs")
-    coverage_summary_rows = build_coverage_summary_rows(coverage_rows)
+    coverage_summary_rows = build_coverage_summary_rows(
+        coverage_rows, runtime_rows, report, trace, runtime_provenance,
+        archive_summary, summary, xg_audit_rows, args.runtime_artifact_id
+    )
     xg_provenance_rows = build_xg_provenance_rows(coverage_rows)
     summary["coverage_sheet_rows"] = len(coverage_rows)
     summary["coverage_sheet_unique_selected_ids"] = len(coverage_ids)
