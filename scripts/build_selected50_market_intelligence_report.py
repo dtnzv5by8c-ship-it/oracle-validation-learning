@@ -625,7 +625,7 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None):
+def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Oracle V1.6 Output"
@@ -813,6 +813,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "production_eligible": item.get("production_eligible", ""),
             "betting_eligible": item.get("betting_eligible", "")
         })
+    add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
         ["fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
@@ -964,6 +965,18 @@ def main():
     if not report_ids.issubset(governed_ids):
         raise SystemExit("FAIL: runtime report contains selected IDs outside the governed 50-league schedule")
     report, trace, summary = build_report(runtime_rows, archive_rows)
+    xg_audit_rows = build_xg_audit(runtime_rows, archive_rows, trace)
+    xg_audit_counts = {
+        "fixture_rows": len(xg_audit_rows),
+        "exact_identity_rows": sum(r["join_status"] == "PASS_EXACT_COMPOSITE_IDENTITY" for r in xg_audit_rows),
+        "blocked_or_quarantined_identity_rows": sum(r["join_status"] != "PASS_EXACT_COMPOSITE_IDENTITY" for r in xg_audit_rows),
+        "rows_with_home_xg_numeric": sum(r["home_xg_numeric"] not in ("", "NOT_AVAILABLE", None) for r in xg_audit_rows),
+        "rows_with_away_xg_numeric": sum(r["away_xg_numeric"] not in ("", "NOT_AVAILABLE", None) for r in xg_audit_rows),
+        "rows_with_total_xg_numeric": sum(r["total_xg_numeric"] not in ("", "NOT_AVAILABLE", None) for r in xg_audit_rows),
+        "rows_with_verified_capture_time": sum(bool(r["capture_time_utc"]) and r["capture_time_utc"] != "NOT_AVAILABLE" for r in xg_audit_rows),
+        "prediction_eligible_rows": sum(r["prediction_eligible"] == "YES" for r in xg_audit_rows),
+        "policy": "AUDIT_ONLY_UNTIL_POINT_IN_TIME_CAPTURE_AND_REVISION_PROVENANCE_VERIFIED"
+    }
     fixture_league_groups = summary["selected_league_groups"]
     summary["fixture_league_groups"] = fixture_league_groups
     summary["selected_league_groups"] = len(governed_ids)
@@ -1045,13 +1058,18 @@ def main():
     summary["h2h_cross_season_meetings_verified"] = h2h_cross_season_meetings
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
     summary["h2h_scope_policy"] = "Explicit provider competition ID; cross-season coverage only where source meeting season differs from target season."
+    summary["xg_audit"] = xg_audit_counts
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
               list(dict.fromkeys(k for r in trace for k in r)))
     quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
-    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary, goal_market_rows)
+    write_csv(out_dir / "oracle_selected50_xg_evidence_audit.csv", xg_audit_rows, XG_AUDIT_HEADERS)
+    (out_dir / "oracle_selected50_xg_evidence_audit_qa.json").write_text(
+        json.dumps(xg_audit_counts, indent=2) + "\\n", encoding="utf-8"
+    )
+    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary, goal_market_rows, xg_audit_rows)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
