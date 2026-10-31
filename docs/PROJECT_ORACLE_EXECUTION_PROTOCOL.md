@@ -149,3 +149,34 @@ At the start of a continuation session, recover the live GitHub branch head and 
 - The wider repository `contract-tests` job in run `41182626465` failed two existing snapshot-runtime-bridge provenance tests (`test_exact_hashes_and_run_ids_verify`, `test_snapshot_artifact_branch_must_match_snapshot_workflow_branch`). These are outside the Market Intelligence repair files and were not changed in this work. Keep them visible as a separate repository-level issue; do not modify unrelated runtime bridge logic as part of this repair.
 - The manual full archive repair has not yet been rerun against the enriched diagnostics. The previous run `41182327428` used the earlier commit and therefore did not contain archive-side kickoff values.
 - Next action: user manually dispatches the full workflow on `research/oracle-50-league-readiness-audit` using the same pinned archive tag and runtime run ID. Inspect new diagnostic artifact to compare runtime vs archive kickoff for each of the 19 fixture keys. Do not relax kickoff equality or use schedule-mismatched target rows as historical evidence.
+
+
+## 8. Third full run and schedule-discordance resolution design — 2026-10-31
+
+### Run 41182724380 (manual full repair)
+- Head commit used: `280e1b129c50f007c008856d33a73cbb9864c51a`.
+- Archive SHA, runtime artifact provenance, all 8 then-current targeted tests, archive extraction and archive coverage verification passed.
+- Full report builder: exact key matches existed for all 434 fixtures except the identity-mismatch/duplicate gates were not the issue; 415 initially passed strict kickoff equality and 19 were rejected solely due timestamp mismatches.
+- Diagnostic artifact: `oracle-selected50-join-diagnostics`, artifact ID `13035428426`.
+- Confirmed 19 schedule conflicts, with exact season/fixture/ordered home-away IDs matching. Runtime and archive kickoff values differ; examples range from small minute differences to date shifts of 1–3 days. This is schedule metadata discordance, not a missing fixture identity.
+- Archive-side timestamps are not assumed authoritative for upcoming runtime schedule. Do not silently normalize timezones, accept a tolerance window, or force timestamp equality.
+
+### New reporting behavior committed
+- Commit `63799a69e5b3bdecc4f893c19bf86928f63ca2c2`: split exact identity join from schedule reconciliation.
+  - A unique exact season + fixture + ordered home/away team ID match is retained even when archive kickoff differs.
+  - Runtime kickoff remains the feature as-of cutoff.
+  - Schedule mismatch is explicitly recorded with runtime/archive kickoff and signed minute difference.
+  - All fixtures with schedule-discordant target IDs are excluded from every historical feature index (team form, standings/table, league baseline and H2H) to prevent a stale target row from entering history for any fixture.
+  - QA records `schedule_discordance_rows`, fixture IDs and `schedule_reconciliation_gate=REVIEW_REQUIRED`.
+  - Report stays `PARTIAL_RESEARCH_ONLY` while any schedule discordance remains; it is not declared complete.
+- Commit `2def15cb1fbcc660e3717d8325c718f7a0ab2fab`: adds regression coverage for schedule mismatch identity retention and exclusion of discordant records from historical feature pools.
+- Commit `2cdc503bca49ec56c174949b2972675e2ef1e827`: workflow artifact includes the quarantine CSV; schedule review evidence is available in normal partial-report artifacts.
+- Targeted Selected-50 workflow run `41182874365` completed successfully with 9/9 report tests passed.
+- Wider repository contract test run `41182874298` continues to fail two unrelated pre-existing snapshot-runtime-bridge provenance assertions. Do not alter unrelated bridge logic as part of this Market Intelligence repair.
+
+### Immediate next action
+- Manually dispatch the full repair workflow using the current research branch head (currently `2cdc503bca49ec56c174949b2972675e2ef1e827`), pinned archive release and runtime run ID `41175230838`.
+- Expected identity join count should now include the 19 exact-ID matches, while the separate schedule reconciliation count should expose those 19 as review-required.
+- Expected report status remains `PARTIAL_RESEARCH_ONLY` until schedule discrepancies are reconciled. The workflow should upload the report, QA, evidence trace and join quarantine artifact for inspection.
+- Independently verify no schedule-discordant fixture ID appears in any historical source fixture list, and no frozen Oracle probability was changed.
+- Do not promote to complete, production-eligible or betting-eligible until all required gates are met.
