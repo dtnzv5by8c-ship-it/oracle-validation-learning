@@ -1,0 +1,20 @@
+selected_id,country,league,private_release_seasons_n,private_release_season_ids,private_release_match_rows,private_release_team_season_observations,all_reconciliation_checks_pass
+16533,Paraguay,Division Profesional,4,8783 ; 11141 ; 16333 ; 16533,1056,48,True
+16537,Republic of Ireland,Premier Division,4,8741 ; 10946 ; 13952 ; 16537,721,41,True
+16572,Finland,Veikkausliiga,4,8935 ; 11120 ; 14089 ; 16572,688,48,True
+16576,Sweden,Allsvenskan,4,8737 ; 16263 ; 16576 ; 17350,960,64,True
+16614,Colombia,Categoria Primera A,4,8936 ; 10997 ; 14086 ; 16614,1730,80,True
+16615,Chile,Primera División,4,8833 ; 11103 ; 14116 ; 16615,960,64,True
+16617,Venezuela,Primera División,4,8952 ; 11063 ; 15850 ; 16617,922,57,True
+16627,South Korea,K League 1,4,8899 ; 11102 ; 16243 ; 16627,882,48,True
+16708,Uruguay,Primera División,4,8937 ; 11209 ; 14626 ; 16708,1178,64,True
+16714,Ecuador,Primera Categoría Serie A,4,8934 ; 11157 ; 15842 ; 16714,1108,64,True
+16741,Canada,Canadian Premier League,4,8946 ; 11121 ; 14236 ; 16741,463,32,True
+16789,China,Chinese Super League,4,9186 ; 11217 ; 14153 ; 16789,960,64,True
+16905,Peru,Primera División,4,8837 ; 11062 ; 14912 ; 16905,1302,74,True
+17091,Denmark,Superliga,4,9545 ; 12132 ; 15055 ; 17091,711,48,True
+17115,Japan,J1 League,4,8810 ; 10994 ; 16242 ; 17115,1446,78,True
+17119,Serbia,SuperLiga,4,10070 ; 12138 ; 15065 ; 17119,1070,62,True
+17178,Russia,Russian Premier League,4,9664 ; 12335 ; 14893 ; 17178,960,64,True
+17326,Australia,A-League,4,10505 ; 13703 ; 16036 ; 17326,664,49,True
+17964,India,Indian Super League,4,10625 ; 13386 ; 16812 ; 17964,471,52,True
