@@ -261,3 +261,30 @@ The canonical report contract is now template v1.2 with 12 tabs. Oracle V1.6 Out
 6. Complete the separate FootyStats plan/credit and snapshot-runtime bridge provenance gates recorded in Section 13 and the companion readiness audit.
 
 No FootyStats provider requests, credits, subscriptions, archive writes, Oracle V1.6 production logic changes or probability changes were made during this report-hardening work.
+
+
+## 15. Bounded endpoint probe dispatch safety clarification — 31 October 2026
+
+A static comparison of the default-branch and governed-branch workflow files found a material pacing difference that must be respected before any future manual dispatch:
+
+- Default-branch workflow file: `.github/workflows/footystats-selected50-bounded-endpoint-probe.yml`, blob SHA `1c6948771af5e9dd198478a646d3c0ff3c03cff0`. Its inline request loop contains `time.sleep(0.35)` after endpoint requests. This is approximately 171 requests/minute (about 10,286/hour), above the documented general 60–90 requests/minute guidance and above the 1,800/hour Hobby allowance.
+- Governed research-branch workflow file: same path, blob SHA `d51fa47be8f58cbf4f3a4109b38f0db18f4fb652`. It defines `REQUEST_INTERVAL_SECONDS = 2.1`, records that value in its sanitized summary and sleeps at that interval between requests (approximately 28.6/minute or 1,714/hour). It also retains the 201-call hard cap and zero automatic retries.
+- Therefore, if the bounded endpoint probe is ever needed again, select `research/oracle-50-league-readiness-audit` in the GitHub Actions branch selector. Do not dispatch the `main` copy. This is a dispatch instruction, not approval to run the probe; it remains unnecessary unless the endpoint contract or selected-league configuration changes.
+- The default-branch current-fixture snapshot workflow is a separate implementation: its YAML checks out the governed branch into `research-source` and runs `scripts/oracle_selected50_current_fixture_probe.py`. That branch script defines the 2.1-second interval, stops on the first provider failure, records Retry-After for HTTP 429 and performs no retries. The script blob inspected was `55efcfbe97cdad84d9fe4fd1e21a87f73e39d86d`.
+- No provider API requests were made during this static comparison. No credits were consumed and no production code, probabilities or default-branch files were changed.
+
+### Verification record
+- Repository: `dtnzv5by8c-ship-it/oracle-validation-learning`.
+- Governed branch head inspected before this documentation update: `38aea5b38ec023c47a8f4791c174b3eeaf96e40d`.
+- Current-fixture snapshot branch script: 2.1-second interval; HTTP 429 capture; no retries; fail-fast; pagination validation remains fail-closed.
+- Existing contract run `41208617886` remains overall failed because two of 19 snapshot-runtime bridge provenance tests failed. The FootyStats offline safety contract suite passed 16/16 and current snapshot validator suite passed 22/22. The two bridge failures remain open and must not be bypassed.
+- This checkpoint changes documentation only. No new code tests were required or claimed as run for this update.
+
+### Operator gates unchanged
+1. Nolan must confirm the FootyStats subscription tier supports all 50 selected leagues and check the actual monthly credit balance.
+2. Nolan must explicitly authorise up to 50 requests before the next current-fixture snapshot; both workflow confirmation inputs must remain false until that approval and budget check are complete.
+3. The separate Safe Current Fixture Report workflow remains on the research branch only; registering it on `main` requires separate approval if it is still needed.
+4. Resolve the two snapshot-runtime bridge provenance test failures before treating the runtime/snapshot bridge as validated.
+5. Preserve the existing 22 human-review candidate and 28 unresolved competition crosswalk classifications; no canonical mappings are approved by this audit.
+
+Oracle V1.6 production logic and probabilities remain unchanged. Research outputs remain `production_eligible=false` and `betting_eligible=false`.
