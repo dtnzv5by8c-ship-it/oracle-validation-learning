@@ -1,0 +1,105 @@
+{
+  "generated_sast": "2026-10-31T05:00:33+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "run": 6,
+  "scope": "FEATURE_EDGE_TEAM_H2H_INTEGRATION_AND_RANKING_CURRENTNESS",
+  "base_checkpoint": "reports/oracle_selected50_feature_edge_run5_checkpoint_2026-10-31-0404-sast.json",
+  "integrated_checkpoint": "reports/oracle_selected50_team_h2h_run6_checkpoint_2026-10-31-0423-sast.json",
+  "integrated_team_h2h_run6": {
+    "checkpoint_blob_sha": "9bac5920c1cc0c5effa997e1b967a9052518631e",
+    "manifest_blob_sha": "4b9736c43cd5bed4436f373380940bc3b11826ab",
+    "team_profiles": 732,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "team_ess_ge30_365": 648,
+    "team_ess_ge30_730": 650,
+    "team_candidates": 13,
+    "team_candidates_pass_four_scenarios": 13,
+    "h2h_ess_tiers": {
+      "BOTH_ESS_GE8": 1,
+      "ESS365_5_TO_LT8_ESS730_GE8": 67,
+      "BOTH_ESS_5_TO_LT8": 318,
+      "ESS365_LT5_ESS730_GE5": 174,
+      "BOTH_ESS_LT5": 6628
+    },
+    "h2h_inclusive_ess_ge5_both": 386,
+    "h2h_ess_lt3_730": 3882,
+    "sole_pair": {
+      "pair_key": "17181:595:599",
+      "selected_id": 17181,
+      "team_a_id": 595,
+      "team_a": "LASK Linz",
+      "team_b_id": 599,
+      "team_b": "Hartberg",
+      "raw_meetings": 10,
+      "ess365": 8.3826,
+      "ess730": 9.5365,
+      "meetings_trailing_365d": 5,
+      "fixture_ids_sha256": "ee0caf57cddc938f7eeb060d811572d70e4febf67128c7c398b3d9c6f0b1d111",
+      "canonical_cross_provider_identity": "NOT_VERIFIED"
+    },
+    "integrity": {
+      "team_rows": 1464,
+      "team_key_exact": true,
+      "team_raw_sample_invariant": true,
+      "team_fixture_hash_invariant": true,
+      "team_ess_730_ge_365": true,
+      "h2h_rows": 14376,
+      "h2h_key_exact": true,
+      "h2h_ids_ascending": true,
+      "h2h_raw_sample_invariant": true,
+      "h2h_fixture_hash_invariant": true,
+      "h2h_ess_730_ge_365": true,
+      "qa_rows": 26,
+      "qa_failures": 0
+    }
+  },
+  "archive_coverage": {
+    "selected_groups": 50,
+    "full_archive_exact_selected_ids": 50,
+    "seasons": 200,
+    "full_archive_raw_match_rows": 59049,
+    "run64_raw_season_folders": 93,
+    "run64_raw_match_rows": 30257,
+    "run64_completed_scored_matches": 23328,
+    "raw_payload_groups_available": 31,
+    "raw_payload_groups_unavailable": 19
+  },
+  "feature_edge": {
+    "new_feature_ablation_run": false,
+    "reason": "No new point-in-time provenance source became available. Existing Run 4 feature ablations carried forward unchanged.",
+    "direct_incremental_v1_6_test": "NOT_PERFORMED"
+  },
+  "ranking": {
+    "ranking_asof_sast": "2026-10-31T03:02:03+02:00",
+    "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942Z",
+    "snapshot_age_hours_at_0500": 7.2315,
+    "rankable_candidates": 319,
+    "groups": 37,
+    "top50_per_market": 50,
+    "exact_runtime_bridge_matches_per_market": 50,
+    "quarantined_rows_per_top50": 0,
+    "kickoff_mismatch_rows_per_top50": 0,
+    "top3_per_league_rows_per_market": 111,
+    "top3_overall_per_market": 3,
+    "refreshed": false,
+    "earliest_top50_kickoff_sast": "2026-10-31T07:00:00+02:00"
+  },
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v13_Run6_Feature_Edge_Team_H2H_0500SAST.xlsx",
+    "sha256": "3417db1d5fb4c823a19ce31e9807d5b4a0baa136afb848b2234846a65d3b5721",
+    "bytes": 16960802,
+    "sheets": 106,
+    "base_sheets": 95,
+    "base_sheet_xml_parts_byte_identical": 95
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "workflow_reruns": 0,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
