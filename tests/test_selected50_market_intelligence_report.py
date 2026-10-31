@@ -107,6 +107,14 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertIn("F100", trace[1]["home_form_source_fixture_ids"])
         self.assertEqual(trace[1]["home_at_home_form_n"], 0)
 
+    def test_h2h_average_uses_only_verified_pre_cutoff_meetings(self):
+        _, trace, _ = market_report.build_report([runtime_row()], self.archive)
+        self.assertEqual(market_report.h2h_average_total_goals(trace[0]), 4.0)
+
+    def test_h2h_average_is_explicit_when_no_verified_meetings_exist(self):
+        self.assertEqual(market_report.h2h_average_total_goals({"h2h_meetings_detail": "[]"}),
+                         "NO_VERIFIED_PRIOR_H2H")
+
     def test_h2h_uses_verified_provider_competition_across_seasons(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
                             season="S1", league="L1")
@@ -212,7 +220,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(decision_values["Production Eligible"], "NO")
             self.assertEqual(decision_values["Betting Eligible"], "NO")
             self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
-            self.assertEqual(decision_values["H2H Avg Total Goals"], "3.50")
+            self.assertEqual(decision_values["H2H Avg Total Goals"], 4.0)
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
                           "Market Data Coverage", "Archive Field Coverage",
                           "Data Quality & Risk", "Definitions & Governance"):
