@@ -235,6 +235,8 @@ The canonical report contract is now template v1.2 with 12 tabs. Oracle V1.6 Out
 - 056ffd29c898c60ef24cb6e15275ed8ffce0fe84 — include the queue CSV in successful and blocked workflow artifacts.
 - 0297ecb3ea226792bdb20922d549b5877bdd789d — align the template's tab order with the generator.
 - e6c1e42a841d1ab36b08463427e82f40e35314b1 — record this hardening checkpoint in the execution protocol.
+- 9a778d46dbf6addb3aaa6aa22ab392ed956a83f5 — include the v1.2 template contract in the report regression workflow's push path filter.
+- 5f99de18751f0a25271fd080a8f984d0598a706d — assert the empty Goal Market Research tab retains its context and base headers.
 
 ### Test evidence and limits
 - The report regression file now contains 20 test methods. Two new focused tests verify that the schedule queue exposes all required conflict fields and that Goal Market Research context is attached only through the exact four-part composite identity. The workbook test checks all six fixture-level supporting tabs, context values, unchanged aggregate coverage headers and exact 38/83-column schemas.
