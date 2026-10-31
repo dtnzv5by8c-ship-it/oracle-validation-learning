@@ -1,0 +1,4 @@
+market,top50_rows,exact_runtime_bridge_matches,quarantined_rows,kickoff_mismatch_rows,rankable_candidate_pool,groups_represented,top3_per_league_rows,top3_overall_rows,ranking_cut_sast,snapshot_retrieved_utc,snapshot_age_hours_at_0500,earliest_top50_kickoff_sast,decision
+BTTS,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,7.2315,2026-10-31 09:00,CARRIED FORWARD; no new snapshot/runtime/bridge artifact; raw uncalibrated probabilities unchanged.
+DC_HOME,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,7.2315,2026-10-31 16:00,CARRIED FORWARD; no new snapshot/runtime/bridge artifact; raw uncalibrated probabilities unchanged.
+DC_AWAY,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,7.2315,2026-10-31 07:00,CARRIED FORWARD; no new snapshot/runtime/bridge artifact; raw uncalibrated probabilities unchanged.
