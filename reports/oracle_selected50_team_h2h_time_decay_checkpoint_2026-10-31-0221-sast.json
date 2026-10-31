@@ -1,0 +1,127 @@
+{
+  "generated_sast": "2026-10-31T02:21:39+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "previous_checkpoint": "reports/oracle_selected50_team_h2h_dna_run3_checkpoint_2026-10-31-0119-sast.json",
+  "incremental_scope": "TEAM_H2H_EXPONENTIAL_TIME_DECAY_365D_730D_EFFECTIVE_SAMPLE_SIZE",
+  "sources": {
+    "base_workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_Team_H2H_Market_Reliability.xlsx",
+    "base_workbook_sha256": "75774dcf45d8228d4a3f403a2b6a7c6200631603830a4420897dd236be808df9",
+    "run3_checkpoint_path": "reports/oracle_selected50_team_h2h_dna_run3_checkpoint_2026-10-31-0119-sast.json",
+    "run3_checkpoint_blob_sha": "ff4fb3a11f128057b7762a932ba2018e486a1436",
+    "run64_archive_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+    "full_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+    "runtime_run_id": "41119141526",
+    "runtime_artifact_id": "13006609602",
+    "snapshot_run_id": "41117910952",
+    "snapshot_artifact_id": "13005239530",
+    "bridge_audit_run_id": "41121900062",
+    "bridge_audit_artifact_id": "13009350718"
+  },
+  "coverage": {
+    "profiled_groups": 31,
+    "governed_groups": 50,
+    "unprofiled_groups": 19,
+    "team_profiles": 732,
+    "team_observations": 46656,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "unique_fixture_ids": 23328,
+    "duplicate_fixture_rows": 0,
+    "raw_record_hash_coverage_pct": 100,
+    "archive_cutoff_utc": "2026-09-20T23:59:59Z"
+  },
+  "method": {
+    "weight_formula": "0.5 ** (age_days / half_life_days)",
+    "half_lives_days": [
+      365,
+      730
+    ],
+    "effective_sample_size": "Kish n_eff = (sum(w)^2)/(sum(w^2))",
+    "team_key": "selected_id + provider team_id",
+    "h2h_key": "selected_id + ordered provider team IDs",
+    "venue_decay": "NOT_CALCULATED — explicit no_home_away flag absent from H2H Meetings ledger; venue not inferred"
+  },
+  "results": {
+    "team_median_effective_n": {
+      "365": 62.54291388537641,
+      "730": 70.73281297809187
+    },
+    "team_effective_n_ge30": {
+      "365": 648,
+      "730": 650
+    },
+    "h2h_median_effective_n": {
+      "365": 2.8017847282539137,
+      "730": 2.9469621173218457
+    },
+    "h2h_effective_n_ge8": {
+      "365": 1,
+      "730": 68
+    },
+    "h2h_pairs_730d_effective_n_ge8": 68,
+    "team_over25_half_life_sensitivity": {
+      "median_abs_delta_pp": 0.6873541292561403,
+      "p90_abs_delta_pp": 2.02625882293778,
+      "profiles_abs_delta_gt5pp": 0,
+      "profiles_abs_delta_gt10pp": 0,
+      "profiles_abs_delta_gt20pp": 0
+    },
+    "h2h_over25_half_life_sensitivity": {
+      "median_abs_delta_pp": 2.128317326053533,
+      "p90_abs_delta_pp": 6.605994265238261,
+      "profiles_abs_delta_gt5pp": 1300,
+      "profiles_abs_delta_gt10pp": 88,
+      "profiles_abs_delta_gt20pp": 0
+    },
+    "h2h_btts_half_life_sensitivity": {
+      "median_abs_delta_pp": 2.224976759360681,
+      "p90_abs_delta_pp": 6.582461655193498,
+      "profiles_abs_delta_gt5pp": 1307,
+      "profiles_abs_delta_gt10pp": 87,
+      "profiles_abs_delta_gt20pp": 0
+    }
+  },
+  "outputs": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx",
+    "workbook_sha256": "2c9712bad565475eed726bb173d18bdf775eeed451fbfe039d5d4ed5e6bf8ba7",
+    "workbook_size_bytes": 15742981,
+    "sheet_count": 61,
+    "new_tabs": [
+      "Team Time-Decay DNA",
+      "H2H Time-Decay DNA",
+      "DNA Decay Sensitivity",
+      "H2H Decay Watch",
+      "H2H Recency-Effective Leaders",
+      "Decay Methodology"
+    ],
+    "note": "PROJECT_ORACLE_TEAM_H2H_DNA_TIME_DECAY_RESEARCH_2026-10-31-0221-SAST.md",
+    "summary_csv": "oracle_selected50_team_h2h_time_decay_summary_2026-10-31-0221.csv",
+    "manifest": "oracle_selected50_v9_time_decay_workbook_manifest_2026-10-31.json"
+  },
+  "validation": {
+    "base_sheet_count": 55,
+    "output_sheet_count": 61,
+    "base_sheets_missing": [],
+    "team_dna_rows": 732,
+    "h2h_dna_rows": 7188,
+    "h2h_meetings_rows": 23328,
+    "fixture_intelligence_rows": 426,
+    "team_market_tendency_rows": 2120,
+    "h2h_market_reliability_rows": 7188,
+    "team_time_decay_rows": 732,
+    "h2h_time_decay_rows": 7188,
+    "decay_sensitivity_rows": 14,
+    "h2h_decay_watch_rows": 100,
+    "h2h_recency_effective_leader_rows": 68,
+    "decay_methodology_rows": 10
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
