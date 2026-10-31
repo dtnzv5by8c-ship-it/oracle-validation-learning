@@ -31,6 +31,8 @@ class GoalMarketResearchEngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "EXPERIMENTAL_UNCALIBRATED")
         self.assertGreaterEqual(result["over15_probability_pct"], result["over25_probability_pct"])
         self.assertGreaterEqual(result["under45_probability_pct"], result["under15_probability_pct"] if "under15_probability_pct" in result else 0)
+        self.assertIn("league_baseline_over15_probability_pct", result)
+        self.assertGreaterEqual(result["league_baseline_over15_probability_pct"], 0)
         self.assertEqual(result["production_eligible"], "NO")
         self.assertEqual(result["betting_eligible"], "NO")
 
