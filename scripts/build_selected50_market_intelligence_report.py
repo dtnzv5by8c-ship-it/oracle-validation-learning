@@ -214,7 +214,13 @@ def exact_join(runtime_rows, archive_rows):
         elif len(index.get(key, [])) != 1:
             missing.append((row, "NO_EXACT_ARCHIVE_MATCH" if not index.get(key) else "DUPLICATE_ARCHIVE_MATCH"))
         else:
-            joined[key] = index[key][0]
+            archive_row = index[key][0]
+            runtime_kickoff = parse_dt(row.get("date_utc"))
+            archive_kickoff = parse_dt(archive_row.get("kickoff_utc"))
+            if runtime_kickoff is None or archive_kickoff is None or runtime_kickoff != archive_kickoff:
+                missing.append((row, "KICKOFF_MISMATCH_OR_UNPARSEABLE"))
+            else:
+                joined[key] = archive_row
     return joined, missing, duplicates
 
 
@@ -318,8 +324,17 @@ def build_report(runtime_rows, archive_rows):
             "history_cutoff_utc": cutoff.isoformat(),
             "history_cutoff_rule": "STRICTLY_BEFORE_FIXTURE_KICKOFF",
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
-            "archive_provider_season_id": key[0], "archive_fixture_id": key[1],
-            "archive_home_team_id": key[2], "archive_away_team_id": key[3],
+            "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
+            "archive_fixture_id": key[1], "archive_home_team_id": key[2], "archive_away_team_id": key[3],
+            "archive_source_file": target.get("source_file", ""), "archive_source_row": target.get("source_row", ""),
+            "archive_raw_record_sha256": target.get("raw_record_sha256", ""),
+            "home_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in hf["sample"]),
+            "away_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in af["sample"]),
+            "h2h_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in h2h),
+            "home_table_sample_n": len([r for r in league_completed if home in (str(r.get("home_team_id")), str(r.get("away_team_id")))]),
+            "away_table_sample_n": len([r for r in league_completed if away in (str(r.get("home_team_id")), str(r.get("away_team_id")))]),
+            "league_baseline_match_n": len(league_completed),
+            "production_eligible": "NO", "betting_eligible": "NO",
         })
     if len(output) != len(runtime_rows):
         raise AssertionError("Output row count does not reconcile to runtime fixture rows")
