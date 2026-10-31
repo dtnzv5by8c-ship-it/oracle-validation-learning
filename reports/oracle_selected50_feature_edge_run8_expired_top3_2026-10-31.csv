@@ -1,0 +1,2 @@
+market,rank,rank_in_league,selected_id,fixture_id,country,league,home_team,away_team,kickoff_sast,raw_probability_pct,reason
+DC_HOME,105,3,17326,8597540,Australia,A-League,Newcastle Jets FC,Wellington Phoenix,2026-10-31 06:00,76.01,ELAPSED_AS_OF_2026-10-31_065923_SAST; no exact audited rank-4 replacement available

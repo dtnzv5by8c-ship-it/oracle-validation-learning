@@ -1,0 +1,107 @@
+{
+  "generated_sast": "2026-10-31T06:59:23+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "parent_commit": "aa0c9121a0cf6e33ae18e79ad8c58b2acb952df9",
+  "note_path": "docs/PROJECT_ORACLE_FEATURE_EDGE_RUN8_EVENT_TIME_ABLATIONS_2026-10-31-0659-SAST.md",
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v18_Run8_Feature_Edge_EventTime_0659SAST.xlsx",
+    "sha256": "66077dddbb3fd7857edc151c38dc626e3c1c73f58177e138553149c6f0224aa7",
+    "bytes": 17301081,
+    "sheets": 134,
+    "new_tabs": 18,
+    "base_sheets": 116,
+    "base_sheet_xml_byte_identical": true
+  },
+  "companion_bundle": {
+    "filename": "Project_Oracle_Feature_Edge_Run8_EventTime_Ablations_Bundle_2026-10-31-0659SAST.zip",
+    "sha256": "b44e99c3ee9b1e1e4515739d810ec10b0bab1c8c718ef2918ec3f1bf78a08e2f",
+    "bytes": 29242558
+  },
+  "experiment": {
+    "source_rows": 23328,
+    "primary_rows": 15003,
+    "groups": 31,
+    "unavailable_groups": 19,
+    "folds": [
+      {
+        "fold": "FOLD_1",
+        "train_n": 8325,
+        "test_n": 4876
+      },
+      {
+        "fold": "FOLD_2",
+        "train_n": 13201,
+        "test_n": 5828
+      },
+      {
+        "fold": "FOLD_3",
+        "train_n": 19029,
+        "test_n": 4299
+      }
+    ],
+    "model": "LogisticRegression C=0.1 lbfgs; selected_id one-hot baseline; training-fold-only median imputation/scaling; no tuning or post-hoc calibration.",
+    "form_complete_n": 14105,
+    "form_complete_pct": 94.01453,
+    "regime_complete_n": 8378,
+    "regime_complete_pct": 55.842165,
+    "h2h_5plus_n": 1048,
+    "h2h_5plus_pct": 6.98527,
+    "rest_proxy_complete_n": 14849,
+    "rest_proxy_pct": 98.973539,
+    "per_league_rows": 434,
+    "per_league_fold_rows": 1302,
+    "strict_per_league_passes": 25,
+    "publication_timestamps_available": false,
+    "same_kickoff_team_ties": 0
+  },
+  "team_h2h_run8": {
+    "team_profiles": 732,
+    "profiles_gt30d_stale": 732,
+    "higher_shift_candidates": 9,
+    "lower_shift_candidates": 4,
+    "h2h_pairs": 7188,
+    "meetings": 23328,
+    "h2h_pairs_10plus": 1,
+    "h2h_pairs_ess_ge5_both": 386,
+    "h2h_pairs_ess_ge8_both": 1
+  },
+  "archive_asset": {
+    "release_id": 423439954,
+    "tag": "research-selected50-footystats-history-20261025",
+    "zip_asset_id": 675196963,
+    "size_bytes": 66416916,
+    "declared_sha256": "bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261",
+    "bytes_downloaded": false
+  },
+  "rankings": {
+    "ranking_cut_sast": "2026-10-31T03:02:03+02:00",
+    "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942Z",
+    "snapshot_age_hours": 9.212025,
+    "candidate_pool_at_cut": 319,
+    "groups": 37,
+    "top50_per_market": 50,
+    "top50_exact_joins_per_market": 50,
+    "top50_quarantined_per_market": 0,
+    "top50_kickoff_mismatches_per_market": 0,
+    "top3_per_league_original_per_market": 111,
+    "top3_current_future_rows": {
+      "BTTS": 111,
+      "DC_HOME": 110,
+      "DC_AWAY": 111
+    },
+    "expired_fixture_id": "8597540",
+    "expired_selected_id": 17326,
+    "dc_away_earliest": "2026-10-31 07:00 SAST",
+    "seconds_to_earliest": 37
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": 0,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "limitation": "This 134-sheet workbook is a v14-based Feature Edge extension; the separate 148-sheet v17 Team/H2H integration binary was not available in this runtime."
+}

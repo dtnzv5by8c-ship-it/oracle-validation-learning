@@ -1,0 +1,47 @@
+{
+  "generated_sast": "2026-10-31T06:59:23+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "parent_commit": "aa0c9121a0cf6e33ae18e79ad8c58b2acb952df9",
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v18_Run8_Feature_Edge_EventTime_0659SAST.xlsx",
+    "sha256": "66077dddbb3fd7857edc151c38dc626e3c1c73f58177e138553149c6f0224aa7",
+    "bytes": 17301081,
+    "sheets": 134,
+    "new_tabs": 18,
+    "base_sheets": 116,
+    "base_sheet_xml_byte_identical": true
+  },
+  "companion_bundle": {
+    "filename": "Project_Oracle_Feature_Edge_Run8_EventTime_Ablations_Bundle_2026-10-31-0659SAST.zip",
+    "sha256": "b44e99c3ee9b1e1e4515739d810ec10b0bab1c8c718ef2918ec3f1bf78a08e2f",
+    "bytes": 29242558
+  },
+  "note": {
+    "path": "docs/PROJECT_ORACLE_FEATURE_EDGE_RUN8_EVENT_TIME_ABLATIONS_2026-10-31-0659-SAST.md",
+    "sha256": "1d5f332fb247b0bad9e8e7d64df211ec217ac6faa0c72f4ef0c28c251bffeddd"
+  },
+  "sources": {
+    "v14_base_sha256": "93d49d26f636a625987c2096637ad3d667992cf6ce4bf32512e20ab8e04df5fe",
+    "v17_broader_integration_sha256": "8a6b111c4d2076819a247a87b6b8980ef18d4622407a875aaa3ee62b12de2e1e",
+    "run8_team_h2h_note": "docs/PROJECT_ORACLE_TEAM_H2H_RUN8_REGIME_AND_BRANCH_CONSOLIDATION_2026-10-31-0616-SAST.md",
+    "run8_team_h2h_checkpoint": "reports/oracle_selected50_team_h2h_run8_checkpoint_2026-10-31-0616-sast.json"
+  },
+  "evidence_rows": {
+    "pooled_market_feature_rows": 14,
+    "fold_gate_rows": 14,
+    "per_league_pooled_rows": 434,
+    "per_league_fold_rows": 1302,
+    "ranking_currentness_rows": 9,
+    "expired_top3_rows": 1,
+    "coverage_rows": 9
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": 0,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}

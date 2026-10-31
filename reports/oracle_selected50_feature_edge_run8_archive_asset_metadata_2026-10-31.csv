@@ -1,0 +1,8 @@
+evidence_item,observed_value,verification,limitation_or_decision
+Private release tag,research-selected50-footystats-history-20261025,Git ref resolves,Published 2026-10-25T14:03:14Z
+Release ID,423439954,Private release metadata,Exact selected-50 package
+ZIP asset name,oracle-selected50-footystats-private-ingestion.zip,Asset ID 675196963,"66,416,916 bytes; declared SHA-256 bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261"
+Checksum asset name,private-package.sha256,Asset ID 675196962,117 bytes; asset bytes not retrieved
+Binary access,NOT RETRIEVED,GitHub connector is UTF-8 text only,Declared digest not independently verified against local bytes
+Provider/API credits,0,No provider calls,No ingestion/snapshot/runtime/bridge workflow rerun
+Recovery decision,HOLD FOR AUTHORIZED MATERIALIZATION,Private release page,Do not dispatch the separate 27-league workflow
