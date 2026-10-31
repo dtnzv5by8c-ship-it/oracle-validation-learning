@@ -180,3 +180,38 @@ At the start of a continuation session, recover the live GitHub branch head and 
 - Expected report status remains `PARTIAL_RESEARCH_ONLY` until schedule discrepancies are reconciled. The workflow should upload the report, QA, evidence trace and join quarantine artifact for inspection.
 - Independently verify no schedule-discordant fixture ID appears in any historical source fixture list, and no frozen Oracle probability was changed.
 - Do not promote to complete, production-eligible or betting-eligible until all required gates are met.
+
+
+## 9. Fourth full repair run — first successful partial report — 2026-10-31
+
+### Run verification
+- Run: `41182992935` (manual workflow run #30).
+- Branch: `research/oracle-50-league-readiness-audit`.
+- Commit used: `5e768f2daace2fc8f03a1aabdd1c3b3491713592`.
+- Workflow conclusion: SUCCESS.
+- Passed: branch guard, private archive consent/token, pinned archive SHA, runtime artifact run/branch/commit/digest/provenance, nine targeted tests, archive feature audit, archive count/digest verification, report generation and artifact upload.
+- Pinned archive: SHA `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`; 59,049 records; 200 season folders; zero parse errors; zero provider API calls.
+
+### Report QA findings
+- Artifact: `oracle-selected50-market-intelligence-repair`, artifact ID `13035797497`.
+- Artifact ZIP digest: `sha256:225a2d77c54cfda9f7d622a8b87c02aedfe308d32667beb8b35513a1773806b8`.
+- 434 runtime rows and 434 report rows.
+- 434 exact fixture identity joins; zero unmatched identity rows; zero duplicate archive composite keys; zero duplicate history rows; zero duplicate runtime keys.
+- Exactly 50 governed schedule coverage IDs were enumerated. 46 have runtime fixtures in the seven-day horizon (434 fixtures); four had no fixture rows: `16537`, `16627`, `16741`, `16789`. These are explicitly documented in QA, not treated as absent configuration.
+- 19 schedule discordances remain: `8390931`, `8432236`, `8432240`, `8548602`, `8548603`, `8551236`, `8551239`, `8568431`, `8573971`, `8574019`, `8579504`, `8579523`, `8604046`, `8620553`, `8620554`, `8620606`, `8620610`, `8620615`, `8620666`.
+- Schedule gate: `REVIEW_REQUIRED`; report status: `PARTIAL_RESEARCH_ONLY`. Required exact identity join gate PASS. This is the expected governed status while schedules disagree; do not upgrade to COMPLETE.
+- Independent artifact QA confirmed none of the 19 schedule-discordant fixture IDs appears in any fixture's home-form, away-form or H2H historical source fixture IDs. Schedule-conflict target rows are excluded from history. Runtime kickoff remains the strict pre-match feature cutoff.
+- Workbook verified at 435 rows including header and exactly 38 columns. CSV verified at 434 rows and 38 columns.
+- BTTS, Home 1X and Away X2 are copied from runtime; unsupported markets remain `NOT_AVAILABLE_FROM_ORACLE_OUTPUT`; combo fields remain masked.
+- `production_eligible=false`, `betting_eligible=false`, `production_model_logic_changed=false`, and `production_probabilities_changed=false`.
+- Historical accuracy remains `NOT_VALIDATED`; standings are conventional 3-1-0 provisional within exact provider season ID; risk scores are evidence coverage only.
+
+### Remaining work / executive decision
+1. Obtain authoritative schedule reconciliation for the 19 discrepant fixtures from a trusted existing source/artifact. Do not spend provider API credits unless the user explicitly authorizes them. Current archive alone does not establish which kickoff is authoritative.
+2. Confirm four no-fixture leagues against an independently refreshed schedule source/horizon before claiming live fixture coverage. Do not assume no fixture means missing league support.
+3. Audit the report feature calculation and source traces for all 434 rows, especially provisional standings, home/away splits, and the 3-match minimum. Competition-specific tie-break rules remain unverified.
+4. Report remains partial and research-only. Do not change production or betting eligibility.
+
+### Downloadable deliverables
+- Workflow artifact URL: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41182992935/artifacts/13035797497
+- Artifact contents: XLSX, CSV, QA JSON, evidence trace CSV, join quarantine CSV, archive audit summary.
