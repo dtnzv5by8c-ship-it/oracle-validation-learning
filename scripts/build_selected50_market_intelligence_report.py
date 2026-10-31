@@ -431,13 +431,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runtime-report", required=True)
     ap.add_argument("--archive-audit", required=True, help="Directory containing match_field_audit.csv")
+    ap.add_argument("--schedule-coverage", required=True, help="Runtime schedule coverage CSV proving the full governed league universe")
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--expected-league-groups", type=int, default=50)
     args = ap.parse_args()
     out_dir = Path(args.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     runtime_rows = read_csv(args.runtime_report)
     archive_rows = read_csv(Path(args.archive_audit) / "match_field_audit.csv")
+    schedule_rows = read_csv(args.schedule_coverage)
+    governed_ids = {str(r.get("selected_id") or "").strip() for r in schedule_rows if str(r.get("selected_id") or "").strip()}
+    report_ids = {str(r.get("selected_id") or "").strip() for r in runtime_rows if str(r.get("selected_id") or "").strip()}
+    if len(schedule_rows) != args.expected_league_groups or len(governed_ids) != args.expected_league_groups:
+        raise SystemExit(f"FAIL: governed schedule coverage must contain exactly {args.expected_league_groups} unique selected IDs")
+    if not report_ids.issubset(governed_ids):
+        raise SystemExit("FAIL: runtime report contains selected IDs outside the governed 50-league schedule")
     report, trace, summary = build_report(runtime_rows, archive_rows)
+    fixture_league_groups = summary["selected_league_groups"]
+    summary["fixture_league_groups"] = fixture_league_groups
+    summary["selected_league_groups"] = len(governed_ids)
+    summary["selected_ids_without_fixture_rows_in_runtime_horizon"] = sorted(governed_ids - report_ids)
+    summary["selected_ids_with_fixture_rows_in_runtime_horizon"] = sorted(report_ids)
     summary.update({
         "schema_status": "PASS_38_COLUMNS" if len(HEADERS) == 38 else "FAIL_SCHEMA",
         "headers": HEADERS,
@@ -450,11 +463,11 @@ def main():
         "history_scope": "Team form, H2H and table evidence are restricted to the exact provider season ID because a verified parent competition ID is unavailable; no cross-season or fuzzy competition joins are attempted.",
         "risk_policy": "Evidence coverage gap score only; not outcome risk or probability of losing.",
         "minimum_expected_league_groups": args.expected_league_groups,
-        "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups else "FAIL",
+        "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "FAIL",
         "column_nonempty_counts": {h: sum(1 for r in report if r.get(h) not in ("", None)) for h in HEADERS},
         "required_join_gate": "PASS" if summary["unmatched_or_quarantined_rows"] == 0 and summary["duplicate_archive_composite_keys"] == 0 else "BLOCKED",
         "all_rows_research_only": True,
-        "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups else "PARTIAL_RESEARCH_ONLY",
+        "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "PARTIAL_RESEARCH_ONLY",
     })
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
