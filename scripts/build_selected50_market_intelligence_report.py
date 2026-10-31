@@ -247,7 +247,7 @@ def build_report(runtime_rows, archive_rows):
             trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
                           "join_status": reason, "home_form_n": 0, "away_form_n": 0,
                           "home_table_status": "UNAVAILABLE", "away_table_status": "UNAVAILABLE",
-                          "history_cutoff_utc": runtime.get("date_utc", "")})
+                          "history_cutoff_utc": runtime.get("date_utc", ""), "production_eligible": "NO", "betting_eligible": "NO"})
             continue
         league = key[0]
         season = key[0]
