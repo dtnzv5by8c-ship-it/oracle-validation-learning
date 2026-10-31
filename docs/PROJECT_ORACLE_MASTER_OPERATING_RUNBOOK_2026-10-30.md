@@ -244,7 +244,7 @@ The canonical report contract is now template v1.2 with 12 tabs. Oracle V1.6 Out
 - The governed push workflow contains the two test commands:
   - python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
   - python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
-- The source and test commits are on the governed branch, but their new CI pass/fail result has not been independently confirmed in this checkpoint. The available connected status/run results did not expose the push-triggered run. Do not record the new suites as passed until the corresponding GitHub Actions result is inspected.
+- The source and test commits are on the governed branch. CI was subsequently verified: report workflow run [41211050502](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41211050502) completed successfully on commit `f5eb67788c9cae27781ba0f12d28362c70df166c`; the `market-intelligence-repair` job ran the report regression suite (20/20 passed) and Goal Market Research engine suite (6/6 passed). This was a push-triggered test run only; the archive/runtime download, full workbook rebuild and artifact upload steps were correctly skipped because no `workflow_dispatch` inputs were supplied.
 
 ### Full workbook and reconciliation status
 - The last full report run remains 41205672854, artifact 13044203808, with 434 runtime fixtures, 50 governed league groups, 19 schedule discordances and PARTIAL_RESEARCH_ONLY status. It predates the v1.2 generator changes and must not be cited as verification of the new layout.
@@ -289,3 +289,42 @@ A static comparison of the default-branch and governed-branch workflow files fou
 5. Preserve the existing 22 human-review candidate and 28 unresolved competition crosswalk classifications; no canonical mappings are approved by this audit.
 
 Oracle V1.6 production logic and probabilities remain unchanged. Research outputs remain `production_eligible=false` and `betting_eligible=false`.
+
+
+## 16. Market Intelligence hardening — CI confirmation and full-data inspection checkpoint — 31 October 2026
+
+### Governed state and verified tests
+- Governed branch: `research/oracle-50-league-readiness-audit`.
+- Branch head inspected before this runbook update: `f0917fe24c0b7a8e3adf7b6842f391ff7485ceb6`. This includes the report hardening, v1.2 template contract, regression tests, artifact wiring, execution protocol update and endpoint-dispatch documentation. No code changes were necessary in this checkpoint.
+- Latest report-specific push test: [GitHub Actions run 41211050502](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41211050502), triggered by commit `f5eb67788c9cae27781ba0f12d28362c70df166c`, conclusion `success`.
+- Its `market-intelligence-repair` job passed the test step. Exact results from the job log:
+  - `test_selected50_market_intelligence_report.py`: 20 tests, all passed.
+  - `test_goal_market_research_engine.py`: 6 tests, all passed.
+  - The 20-test suite includes workbook assertions for all six fixture-level supporting tabs, first-three context fields and fixture values; the unchanged 38-column Oracle V1.6 Output; the unchanged 83-column Market Intelligence view; aggregate coverage tabs without fixture context; exact-identity Goal Market Research context; and the Schedule Reconciliation conflict fields and delta.
+- The earlier push run [41211032643](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41211032643) also passed the same report and goal-engine test step. The latest run 41211050502 is the primary evidence reference.
+- Important: these were `push` event test runs. The workflow's private archive download, runtime-artifact verification, full report generation and artifact-upload steps were skipped by design. A green push test job is not a full-data workbook certification and produced no report artifact.
+
+### Full-data baseline and 19 kickoff conflicts inspected
+- The last available full-data report remains workflow run `41205672854`, artifact `13044203808`, generated before template v1.2.
+- Its QA file confirms 434 runtime fixtures, 50 governed league groups, 434 exact archive joins, zero unmatched/quarantined identity rows, 19 schedule discordances, schedule gate `REVIEW_REQUIRED`, and both production and betting eligibility false.
+- I downloaded and inspected that artifact. It contains 11 tabs and predates the new Schedule Reconciliation tab and fixture-context additions; it must not be presented as validation of the v1.2 workbook.
+- The prior QA `join_failure_examples` contains all 19 schedule-conflict records with exact composite identity, runtime kickoff, archive kickoff, fixture names and archive source file/row. Calculated archive-minus-runtime differences range from -3,285 to +2,940 minutes: 12 archive times precede the runtime time and 7 follow it. These differences are diagnostic only. Some large offsets may reflect date-only/default-time archive values, but no cause or authoritative kickoff can be assumed from this evidence.
+- The new generator's trace/queue path now carries the runtime league and fixture context, exact identity, both timestamps, signed delta, source file/row, exact join status and `REVIEW_REQUIRED`. The focused synthetic regression test confirms the output mapping. The 19 real rows have not yet been regenerated through the v1.2 workbook; do not claim that the full-data queue has been inspected until the new manual report run completes.
+- No timestamp has been auto-corrected. All 19 conflicts remain open for authoritative event-time review.
+
+### Separate contract-test failure — not part of report generator
+- Safety Contract Tests run [41211032556](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41211032556) failed at the separate snapshot-runtime bridge provenance test step: 2 of 19 tests failed:
+  - `test_exact_hashes_and_run_ids_verify`
+  - `test_snapshot_artifact_branch_must_match_snapshot_workflow_branch`
+- The other preceding contract checks in that job passed, including FootyStats offline safety, research score/settlement, H2H chronology, current-feed identity, snapshot validator and runtime provenance tests. These bridge failures are outside the Market Intelligence report generator. They remain open and must not be bypassed or weakened by this task.
+
+### Required next action and release gates
+1. Nolan must manually dispatch [Oracle Selected-50 Market Intelligence Report Repair](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-market-intelligence-repair.yml) from the governed branch, confirming read-only private archive access and using the pinned archive release tag `research-selected50-footystats-history-40375285207` and runtime run `41175230838`. The connected GitHub interface used for this checkpoint exposes read/inspection and commit operations but no workflow-dispatch action.
+2. Inspect the resulting workbook and CSV queue: exactly 12 tabs; 38 source columns; 83 decision-view columns; context on the six fixture-level tabs and Schedule Reconciliation; no context fields on the two aggregate coverage tabs; all 19 known conflicts present with complete league/fixture/identity/timestamp/delta/source provenance and `REVIEW_REQUIRED`.
+3. Keep the 19 schedule records unresolved until authoritative kickoff evidence is obtained. Do not infer a correction from a large delta or date-only archive time.
+4. Keep xG quarantined until capture-time and revision provenance are established. The prior full report recorded 0/434 verified capture timestamps.
+5. Do not make accuracy/calibration claims until contemporaneous odds, chronological out-of-fold predictions and verified settlements are available.
+6. Resolve the two snapshot-runtime bridge provenance test failures independently; do not relax exact artifact/run/branch/hash checks.
+7. Confirm FootyStats subscription tier and remaining monthly credits, and obtain explicit approval before any live API requests or credit consumption.
+
+No live FootyStats calls, credits, subscriptions or paid services were used in this checkpoint. Oracle V1.6 production logic, probabilities and thresholds remain unchanged. All report/research outputs remain `production_eligible=false` and `betting_eligible=false`.
