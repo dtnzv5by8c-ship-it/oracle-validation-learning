@@ -1,0 +1,11 @@
+metric,matched_leagues,2025_cross_sectional_median,2026_cross_sectional_median_to_20Sep,difference_of_cross_sectional_medians,median_paired_league_delta,interpretation,record_type,rule
+Mean total goals,31,2.6346153846153846,2.753351206434316,0.11873582181893161,0.10519230769230781,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+BTTS rate (%),31,54.248366013071895,54.07407407407408,-0.17429193899781126,0.8358516483516496,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+Over 1.5 rate (%),31,74.12280701754386,77.18446601941747,3.0616590018736076,2.834163155878983,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+Over 2.5 rate (%),31,48.88392857142857,53.278688524590166,4.394759953161596,3.0406365444728607,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+Over 3.5 rate (%),31,27.7602523659306,29.508196721311474,1.7479443553808736,1.107984156764637,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+Any-team clean-sheet rate (%),31,45.751633986928105,45.92592592592592,0.17429193899781126,-0.8358516483516496,Descriptive only; 2025 is full calendar year and 2026 is Jan 1–Sep 20; unequal time exposure.,YEAR_METRIC_MEDIAN,
+Material descriptive shift,14,,,,,,SHIFT_FLAG_COUNT,|Δ mean goals| >=0.25 OR |Δ BTTS| >=5pp OR |Δ Over2.5| >=5pp
+Moderate descriptive shift,10,,,,,,SHIFT_FLAG_COUNT,|Δ mean goals| >=0.15 OR |Δ BTTS| >=3pp OR |Δ Over2.5| >=3pp
+No large shift on screened metrics,7,,,,,,SHIFT_FLAG_COUNT,Below the above descriptive thresholds; not proof of stability.
+Unavailable,19,,,,,,SHIFT_FLAG_COUNT,No exact raw-score payload in Run64 extract
