@@ -18,5 +18,7 @@ H2H,over25_abs_delta_gt10pp,88,Number of pair profiles with >10pp shift between 
 H2H,btts_abs_delta_gt10pp,87,Number of pair profiles with >10pp shift between half-lives.
 COVERAGE,profiled_groups,31,19 of 50 groups remain without accessible raw JSON; no zero-fill.
 FEATURE_EDGE,v8_binary_merged,false,Separate Feature Edge Run 3 v8 binary was not available for a verified merge in this Team/H2H run.
+ARCHIVE_RETRIEVAL,artifact_name,footystats-private-historical-ingestion,Private workflow stores raw matches.json payloads only inside this private Actions artifact; 90-day retention.
+ARCHIVE_RETRIEVAL,exact_run_artifact_id_available,false,Exact existing workflow run/artifact ID is not in governed evidence; no download or workflow dispatch was performed.
 GOVERNANCE,production_eligible,false,Research-only.
 GOVERNANCE,betting_eligible,false,Research-only.
