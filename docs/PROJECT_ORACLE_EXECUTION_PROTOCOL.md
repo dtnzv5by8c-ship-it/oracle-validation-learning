@@ -124,3 +124,14 @@ At the start of a continuation session, recover the live GitHub branch head and 
   - `19120885b022094a53fe0fb55494bdbbef7daba3`: uploads a diagnostic artifact when QA blocks the report; includes quarantine CSV in successful report artifact.
 - Next action: manually dispatch the same workflow again from `research/oracle-50-league-readiness-audit` using the same pinned archive release and runtime run ID. The new run will expose the exact mismatch categories and fixture identity samples. Inspect `oracle-selected50-join-diagnostics` if the join gate blocks again.
 - Do not treat the report as complete or publish it as a finished report until all required exact joins pass. Keep production and betting eligibility false.
+
+
+### Second repair run diagnostics — 2026-10-31 (run 41182327428)
+
+- Workflow run #19: `41182327428`; same upstream gates, archive build and eight unit tests passed. The report QA step failed closed and uploaded `oracle-selected50-join-diagnostics` (artifact ID `13035562600`).
+- Diagnostic result: 434 runtime rows; 415 exact archive joins; 19 quarantined rows; zero duplicate archive composite keys; all 19 failures were classified `KICKOFF_MISMATCH_OR_UNPARSEABLE`.
+- Importantly, these are not missing composite identities or absent fixture IDs: the builder found a unique archive row for the exact season + fixture + ordered home/away team IDs, then rejected it at kickoff timestamp equality.
+- Examples include O'Higgins vs Ñublense (fixture 8432240, season 16615), Veres vs Chornomorets (8568431, season 17191), Vancouver Whitecaps vs Seattle Sounders (8390931, season 16504), and other upcoming fixtures through 6 Nov 2026.
+- Do not relax the timestamp equality rule based solely on this evidence. The archive-side kickoff must be recorded and compared to the runtime kickoff for each quarantined fixture.
+- Follow-on diagnostic commit: `cc8b3f7b4c56e0ddeb844c9e20e92c544ffbe735`. It extends the join quarantine and QA examples with archive kickoff, source file and source row, so the next workflow run can establish whether the pinned archive contains stale schedule timestamps or parse issues.
+- Next action: rerun the workflow from the research branch using the same pinned archive and runtime run ID. Inspect the diagnostic artifact's runtime/archive kickoff pairs. Only then decide whether this is a schedule timestamp drift, parser issue, or true data integrity conflict. If schedule drift is proven, preserve the runtime kickoff as the history cutoff and record the stale archive schedule as a quarantined metadata discrepancy; do not use that archived target row as historical evidence.
