@@ -1,0 +1,87 @@
+{
+  "generated_sast": "2026-10-31T04:23:30+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "run": 6,
+  "scope": "TEAM_H2H_PROFILE_INTEGRITY_AND_SHRINKAGE_CONSOLIDATION",
+  "prior_checkpoint": "reports/oracle_selected50_team_h2h_shrinkage_checkpoint_2026-10-31-0322-sast.json",
+  "correction": "Run5 summary category BOTH >=5 (318) is the 5<=ESS<8 band under both half-lives; inclusive ESS>=5 under both is 386 (=318 + 67 730d-only >=8 + 1 both >=8).",
+  "consolidation": {
+    "base_v11_sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+    "expected_v11_sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+    "base_sheets": 85,
+    "run5_addendum_sha256": "92204d6ab7832d02caff8d87ccb63777aa782e81bed31d79b314122bed1fe10c",
+    "run5_tabs_appended": ["Team Shrinkage Sensitivity","H2H Shrinkage Sensitivity","Shrinkage Reliability Summary","Team Shrunk Scoring Screen","H2H Recency Reliability Gate","H2H Shrinkage Watch","Team Shrinkage Watch","Consolidation Lineage"],
+    "run6_tabs_added": ["Run 6 Executive Summary","Run 6 Team Effective Sample","Run 6 H2H Pair ESS Audit","Run 6 H2H ESS Leaders","Run 6 Team Robustness","Run 6 Profile QA","Run 6 50-League Coverage","Run 6 Source Lineage"],
+    "final_sheet_count": 101,
+    "original_v11_sheet_xml_parts_byte_identical": 85,
+    "original_v11_sheet_xml_mismatches": 0
+  },
+  "coverage": {
+    "selected_groups": 50,
+    "raw_profile_groups": 31,
+    "unavailable_raw_groups": 19,
+    "team_profiles": 732,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328
+  },
+  "effective_sample": {
+    "h2h_pairs_ess_ge8_both": 1,
+    "h2h_pairs_ess_ge8_730_only": 67,
+    "h2h_pairs_ess_ge5_both_inclusive": 386,
+    "h2h_pairs_ess_5_to_lt8_both": 318,
+    "h2h_pairs_ess_ge5_730_only": 174,
+    "h2h_pairs_ess_lt3_730": 3882,
+    "sole_pair": "17181:595:599 | LASK Linz vs Hartberg | raw meetings 10 | ESS365 8.3826 | ESS730 9.5365 | fixture_ids_sha256 ee0caf57cddc938f7eeb060d811572d70e4febf67128c7c398b3d9c6f0b1d111 | canonical identity not verified"
+  },
+  "team_robustness": {
+    "candidates": 13,
+    "high": 9,
+    "low": 4,
+    "pass_all_four_shrinkage_scenarios": 13,
+    "team_ess_ge30_365": 648,
+    "team_ess_ge30_730": 650
+  },
+  "integrity": {
+    "team_keys": 732,
+    "team_rows": 1464,
+    "team_key_exact": true,
+    "team_raw_sample_invariant": true,
+    "team_fixture_hash_invariant": true,
+    "team_ess_730_ge_365": true,
+    "h2h_keys": 7188,
+    "h2h_rows": 14376,
+    "h2h_key_exact": true,
+    "h2h_ids_ascending": true,
+    "h2h_raw_sample_invariant": true,
+    "h2h_fixture_hash_invariant": true,
+    "h2h_ess_730_ge_365": true,
+    "qa_rows": 26,
+    "qa_failures": 0
+  },
+  "sources": {
+    "full_archive_lineage": "research-selected50-footystats-history-40375285207",
+    "full_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+    "run64_archive_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+    "runtime_run_id": "41119141526",
+    "runtime_artifact_id": "13006609602",
+    "snapshot_artifact_id": "13005239530",
+    "bridge_run_id": "41121900062",
+    "bridge_artifact_id": "13009350718"
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "output": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Team_H2H_Consolidated.xlsx",
+    "sha256": "1e22b8765114d9beb897ac4e34a01a26ea8be91cc83818d74e349186e8519e65",
+    "size_bytes": 21844100,
+    "sheet_count": 101
+  },
+  "next_step": "Continue read-only recovery of raw private archive payload for the 19 groups; no provider/API credit spend or workflow rerun."
+}
