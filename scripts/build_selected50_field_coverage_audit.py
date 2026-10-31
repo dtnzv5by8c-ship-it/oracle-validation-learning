@@ -264,6 +264,8 @@ def main():
                     "Interpretation / Limitation": interpretation(sheet_name, field, role),
                 })
         field_counts[sheet_name] = len(headers)
+    if unmapped:
+        raise SystemExit("FAIL: source rows could not be assigned to a governed Selected-50 season ID: " + json.dumps(dict(unmapped), sort_keys=True))
     if not matrix:
         raise SystemExit("FAIL: no field coverage rows generated")
     by_field = defaultdict(list)
@@ -321,6 +323,7 @@ def main():
         "exception_rows": len(exceptions),
         "exception_states": dict(Counter(r["Coverage State"] for r in exceptions)),
         "unmapped_rows_by_sheet": dict(unmapped),
+        "source_row_assignment_gate": "PASS_NO_UNMAPPED_SOURCE_ROWS",
         "report_only_status_normalizations": normalizations,
         "skipped_non_league_sheets": EXCLUDED_SHEETS,
         "production_model_logic_changed": False,
