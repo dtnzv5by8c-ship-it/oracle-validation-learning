@@ -1,0 +1,235 @@
+{
+  "generated_sast": "2026-10-31T03:02:03+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "prior_checkpoints": [
+    "reports/oracle_selected50_feature_edge_run3_checkpoint_2026-10-31.json",
+    "reports/oracle_selected50_team_h2h_time_decay_checkpoint_2026-10-31-0221-sast.json",
+    "reports/oracle-selected50-league-market-dna-run4-manifest-2026-10-31-0235.json"
+  ],
+  "source_artifacts": {
+    "archive_lineage": "research-selected50-footystats-history-40375285207",
+    "snapshot": {
+      "run_id": "41117910952",
+      "artifact_id": "13005239530",
+      "retrieved_utc": "2026-10-30T19:46:39.708942Z"
+    },
+    "runtime": {
+      "run_id": "41119141526",
+      "run_number": 176,
+      "artifact_id": "13006609602"
+    },
+    "bridge": {
+      "run_id": "41121900062",
+      "run_number": 12,
+      "artifact_id": "13009350718"
+    }
+  },
+  "outputs": {
+    "workbook": {
+      "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v11_Feature_Edge_H2H_Recency_0302SAST.xlsx",
+      "sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+      "bytes": 15155577,
+      "sheets": 85
+    },
+    "bundle": {
+      "filename": "Project_Oracle_Feature_Edge_Run4_Research_Bundle_2026-10-31-0302SAST.zip",
+      "sha256": "86f7b3b46eb01ebd09f7907f80a8b67366d2668c386966ecd0f1a71bad99d035",
+      "bytes": 16162918
+    },
+    "note_sha256": "c1658977c6ecf1d6d08532c01c574069dd4d5745338edc7db403e10b1f756dfa"
+  },
+  "ranking": {
+    "asof_sast": "2026-10-31T03:02:03+02:00",
+    "snapshot_age_hours": 5.256469738333333,
+    "runtime_rows": 426,
+    "exact_fixture_team_joins": 426,
+    "source_quarantined": 79,
+    "future_feature_blocked": 22,
+    "kickoff_mismatches_total": 21,
+    "mismatches_already_quarantined": 18,
+    "new_future_candidate_mismatches": 3,
+    "exact_kickoff_candidates_before_elapsed": 322,
+    "elapsed_eligible_exclusions": 3,
+    "current_rankable_candidates": 319,
+    "selected_groups": 37,
+    "top50_per_market": 50,
+    "top50_exact_bridge_runtime_matches_per_market": 50,
+    "top50_quarantined": 0,
+    "top50_kickoff_mismatches": 0,
+    "top3_per_league_rows_per_market": 111,
+    "top3_per_league_groups": 37,
+    "top3_overall_per_market": 3,
+    "top50_selected_groups": {
+      "BTTS": 23,
+      "DC_HOME": 27,
+      "DC_AWAY": 28
+    },
+    "previous_0139_DC_HOME_export_matches": 4
+  },
+  "h2h_recency": {
+    "fixed_primary_holdout_fixtures": 19991,
+    "market_rows": 99955,
+    "baseline_test_n": 20878,
+    "coverage_pct": 95.75150876520739,
+    "selected_id_groups": 50,
+    "strict_prior_timestamp_violations": 0,
+    "half_lives_days": [
+      365,
+      730
+    ],
+    "metric_deltas_vs_baseline_365d": {
+      "BTTS": {
+        "brier": -0.0001404059046925,
+        "logloss": -0.0002824523597727,
+        "auc": 0.0018897334518371,
+        "ece10": -0.0006637267511636
+      },
+      "DC_HOME": {
+        "brier": -0.0000391317014993,
+        "logloss": -0.0000099072887797,
+        "auc": 0.0004875633040509,
+        "ece10": 0.0011981381800704
+      },
+      "DC_AWAY": {
+        "brier": -0.0000413246194936,
+        "logloss": -0.0000928126584495,
+        "auc": 0.0000870260277652,
+        "ece10": -0.0008493507265552
+      },
+      "COMBO_HOME": {
+        "brier": 0.000017908314403,
+        "logloss": 0.000031730852429,
+        "auc": -0.0000132013868862,
+        "ece10": 0.0006063658677148
+      },
+      "COMBO_AWAY": {
+        "brier": 0.0000659219415786,
+        "logloss": 0.0001794294167234,
+        "auc": 0.0003157068898212,
+        "ece10": 0.0016618893880552
+      }
+    },
+    "chronological_slices": 4,
+    "all_four_metrics_all_four_slices_passed": false,
+    "per_league": {
+      "groups": 50,
+      "groups_n_ge_200": 48,
+      "all_four_metrics_improved_365d": {
+        "BTTS": 16,
+        "DC_HOME": 8,
+        "DC_AWAY": 14
+      },
+      "all_four_metrics_improved_730d": {
+        "BTTS": 16,
+        "DC_HOME": 8,
+        "DC_AWAY": 14
+      },
+      "promotion": "NO_SINGLE_HOLDOUT_ONLY"
+    },
+    "bootstrap_replicates": 200,
+    "bootstrap_note": "Fixed prediction paired bootstrap; no model-refit uncertainty."
+  },
+  "existing_h2h_expanding_folds": {
+    "folds_per_market": 5,
+    "improvements": {
+      "BTTS": {
+        "brier": 2,
+        "logloss": 2,
+        "auc": 3
+      },
+      "DC_HOME": {
+        "brier": 3,
+        "logloss": 3,
+        "auc": 2
+      },
+      "DC_AWAY": {
+        "brier": 1,
+        "logloss": 1,
+        "auc": 1
+      },
+      "COMBO_HOME": {
+        "brier": 1,
+        "logloss": 1,
+        "auc": 1
+      },
+      "COMBO_AWAY": {
+        "brier": 1,
+        "logloss": 1,
+        "auc": 2
+      }
+    },
+    "ece_available": false
+  },
+  "team_h2h_decay": {
+    "team_profiles": 732,
+    "team_observations": 46656,
+    "team_median_effective_n_365d": 62.5429138854,
+    "team_median_effective_n_730d": 70.7328129781,
+    "team_effective_n_ge30": {
+      "365": 648,
+      "730": 650
+    },
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "h2h_median_effective_n_365d": 2.8017847283,
+    "h2h_median_effective_n_730d": 2.9469621173,
+    "h2h_effective_n_ge8": {
+      "365": 1,
+      "730": 68
+    },
+    "h2h_over25_abs_half_life_delta_pp": {
+      "median": 2.1283173261,
+      "p90": 6.6059942652,
+      "gt10pp": 88
+    },
+    "h2h_btts_abs_half_life_delta_pp": {
+      "median": 2.2249767594,
+      "p90": 6.5824616552,
+      "gt10pp": 87
+    }
+  },
+  "league_market_dna": {
+    "selected_groups": 50,
+    "scoring_payload_groups": 31,
+    "unavailable_payload_groups": 19,
+    "strict_league_market_diagnostics": 26,
+    "leagues_with_strict_diagnostics": 17,
+    "scoring_dna_correlations_p_lt_005": 0,
+    "correlation_tests": 19
+  },
+  "feature_decisions": {
+    "retain_for_further_research": [
+      "DC_HOME recent goals/strength",
+      "DC_HOME venue splits"
+    ],
+    "reject_or_do_not_promote": [
+      "BTTS recent-goals/venue effects",
+      "DC_AWAY recent-goals/venue effects due calibration",
+      "H2H raw/decay overlays"
+    ],
+    "blocked_or_descriptive": [
+      "xG",
+      "shots/on-target",
+      "historical standings",
+      "bookmaker odds",
+      "rest/recovery",
+      "travel",
+      "clean sheets/failed-to-score isolated ablation",
+      "Combo settlement target"
+    ]
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "next_actions": [
+    "Read-only recover exact existing private archive workflow run/artifact ID to obtain the 19 missing score payload groups; do not dispatch ingestion.",
+    "Obtain immutable pre-kickoff publication provenance for xG, odds, shots and historical standings.",
+    "Only then run direct incremental feature ablations against frozen V1.6 on the full 50-group exact-ID universe."
+  ]
+}

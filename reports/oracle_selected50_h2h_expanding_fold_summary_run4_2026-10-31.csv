@@ -1,0 +1,6 @@
+market,folds,brier_improved_folds,logloss_improved_folds,auc_improved_folds,ece_available
+BTTS,5,2,2,3,NO
+DC_HOME,5,3,3,2,NO
+DC_AWAY,5,1,1,1,NO
+COMBO_HOME,5,1,1,1,NO
+COMBO_AWAY,5,1,1,2,NO

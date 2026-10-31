@@ -1,0 +1,54 @@
+{
+  "generated_sast": "2026-10-31T03:02:03+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v11_Feature_Edge_H2H_Recency_0302SAST.xlsx",
+    "sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+    "bytes": 15155577,
+    "sheets": 85,
+    "delivery": "Binary workbook attached in conversation and included in the research bundle; not committed as an opaque binary."
+  },
+  "research_bundle": {
+    "filename": "Project_Oracle_Feature_Edge_Run4_Research_Bundle_2026-10-31-0302SAST.zip",
+    "sha256": "86f7b3b46eb01ebd09f7907f80a8b67366d2668c386966ecd0f1a71bad99d035",
+    "bytes": 16162918
+  },
+  "note_sha256": "c1658977c6ecf1d6d08532c01c574069dd4d5745338edc7db403e10b1f756dfa",
+  "base_workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v8_Feature_Edge_DNA_Rankings.xlsx",
+    "sha256": "542db4afbae5dad94d2495aad489d28d9e9fed91b3770b9bb6e9d8ae86ab6c55"
+  },
+  "source_artifacts": {
+    "archive_lineage": "research-selected50-footystats-history-40375285207",
+    "snapshot": {
+      "run_id": "41117910952",
+      "artifact_id": "13005239530"
+    },
+    "runtime": {
+      "run_id": "41119141526",
+      "run_number": 176,
+      "artifact_id": "13006609602"
+    },
+    "bridge": {
+      "run_id": "41121900062",
+      "run_number": 12,
+      "artifact_id": "13009350718"
+    }
+  },
+  "qa": {
+    "runtime_rows": 426,
+    "exact_runtime_bridge_fixture_team_joins": 426,
+    "kickoff_mismatches_total": 21,
+    "kickoff_mismatches_already_quarantined": 18,
+    "new_future_candidate_kickoff_mismatch_exclusions": 3,
+    "future_feature_blocked": 22,
+    "elapsed_eligible_exclusions": 3,
+    "rankable_candidates": 319,
+    "rankable_groups": 37,
+    "top50_exact_matches_all_markets": true,
+    "top50_quarantined": 0,
+    "top50_kickoff_mismatches": 0,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}

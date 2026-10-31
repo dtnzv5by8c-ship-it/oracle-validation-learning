@@ -1,0 +1,23 @@
+metric,value,detail
+Governed selected groups,50,"Exact selected-ID mapping 50/50; selected_id is a season surrogate for grouping, not a verified parent competition ID."
+Accessible numeric-score payload groups,31,"Run64 supplementary extract: 23,328 completed dated numeric-score rows."
+Unavailable numeric-score payload groups,19,Raw score JSON not present in accessible Run64 extract; not zero-filled.
+2024 coverage,4 full / 27 partial / 19 unavailable,Pre-primary descriptive history only.
+2025 coverage,31 full / 19 unavailable,Full calendar year.
+2026 through 20 Sep coverage,31 full / 19 unavailable,Partial calendar year.
+2025 median mean total goals,2.6346153846,31 matched groups; descriptive cross-section.
+2026-to-20-Sep median mean total goals,2.7533512064,"31 matched groups; partial year, unequal exposure."
+Paired league median change mean total goals,0.1051923077,2026-to-20-Sep vs full 2025.
+2025 median BTTS rate (%),54.2483660131,31 matched groups.
+2026-to-20-Sep median BTTS rate (%),54.0740740741,31 matched groups.
+Paired league median BTTS change (pp),0.8358516484,Cross-sectional medians differ from median paired change.
+2025 median Over 2.5 rate (%),48.8839285714,31 matched groups.
+2026-to-20-Sep median Over 2.5 rate (%),53.2786885246,31 matched groups.
+Paired league median Over 2.5 change (pp),3.0406365445,Descriptive only.
+Strict league-market diagnostics,26,"17 leagues: BTTS 2, DC_HOME 11, DC_AWAY 13."
+Calibration-warning combinations,13,Positive Brier skill but calibration warning.
+Mixed Brier-skill combinations,47,"Across 150 selected-group × market combinations."
+Insufficient sample/metric combinations,60,"Across 150 combinations."
+No positive Brier-skill combinations,4,"Across 150 combinations."
+Scoring-DNA vs market-skill correlations,0/19 p < 0.05,Exploratory Spearman tests; no multiple-testing adjustment.
+Scoring-DNA interpretation,DESCRIPTIVE_ONLY,League scoring rates alone do not establish market edge.

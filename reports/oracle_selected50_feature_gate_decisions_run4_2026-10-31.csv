@@ -1,0 +1,14 @@
+feature_family,markets,status,reason
+Recent goals scored/conceded + team strength proxy,BTTS; DC_HOME; DC_AWAY,DC_HOME_REPEATABLE_POOLED_CANDIDATE; BTTS_MARGINAL; DC_AWAY_CALIBRATION_WARNING,"Run 3 expanding-window challenger; 3 folds. Separate challenger vs smoothed league prevalence, not direct V1.6 uplift."
+Home/away venue splits,BTTS; DC_HOME; DC_AWAY,DC_HOME_REPEATABLE_POOLED_CANDIDATE; OTHERS_REJECTED,Run 3 expanding-window challenger; 3 folds; DC_HOME Brier/logloss/AUC improved all 3 folds.
+H2H unweighted,BTTS; DC_HOME; DC_AWAY; COMBO_HOME; COMBO_AWAY,MIXED,"Existing 5 expanding folds and 19,991 paired holdout; small mixed changes, no unanimous metric improvement."
+H2H recency shrinkage 365d/730d,BTTS; DC_HOME; DC_AWAY; COMBO_HOME; COMBO_AWAY,SENSITIVITY_ONLY_REJECT_FOR_PROMOTION,"Fixed holdout overlay improves some metrics, but no market passes all four chronological slices on Brier/logloss/AUC/ECE."
+xG for/against,ALL,NOT_TESTABLE,Prematch field semantics and publication timestamps unverified; zero anomalies present.
+Shots / shots on target,ALL,NOT_TESTABLE,No immutable pre-kickoff publication timestamps.
+Historical standings / strength ratings,ALL,NOT_TESTABLE_AS_HISTORICAL_FEATURE,Current table positions are display-only snapshots; no point-in-time historical standings.
+Clean sheets / failed to score,BTTS; DC_HOME; DC_AWAY,DESCRIPTIVE_ONLY,Available in score-derived team DNA; no isolated controlled ablation.
+Rest / recovery,ALL,NOT_TESTABLE,Kickoff gaps are not exact match-end or recovery intervals.
+Travel / venue distance,ALL,NOT_TESTABLE,Verified venue coordinates and travel history unavailable.
+Bookmaker odds,ALL,NOT_TESTABLE,"Bookmaker IDs, quote timestamps and selection provenance unverified."
+League scoring DNA,ALL,DESCRIPTIVE_ONLY,31/50 payload groups; 0/19 exploratory correlations p<0.05; no direct predictive edge.
+Combo settlement target,COMBO_HOME; COMBO_AWAY,BLOCKED,Existing predictor target and settlement helper differ on 0–1 total goals; authoritative target unresolved.

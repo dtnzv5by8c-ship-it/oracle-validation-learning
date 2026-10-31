@@ -1,0 +1,10 @@
+market,rank,selected_id,fixture_id,country,league,home_team,away_team,home_team_provider_id,away_team_provider_id,kickoff_utc,kickoff_sast,raw_probability_pct,production_eligible,betting_eligible
+BTTS,1,16558,8411774,Norway,Eliteserien,Brann,Molde,336,333,2026-11-01T13:30:00+00:00,2026-11-01 15:30,68.94,NO,NO
+BTTS,2,17097,8547842,Netherlands,Eredivisie,Cambuur,Go Ahead Eagles,382,366,2026-10-31T20:00:00+00:00,2026-10-31 22:00,66.61,NO,NO
+BTTS,3,16504,8390942,USA,MLS,FC Cincinnati,Philadelphia Union,8043,16,2026-10-31T18:00:00+00:00,2026-10-31 20:00,65.89,NO,NO
+DC_HOME,1,17247,8579426,Romania,Liga I,CS U Craiova,Botoşani,12956,6621,2026-11-01T15:30:00+00:00,2026-11-01 17:30,91.83,NO,NO
+DC_HOME,2,17181,8565837,Austria,Bundesliga,Rapid Wien,Wolfsberger AC,583,581,2026-11-06T18:30:00+00:00,2026-11-06 20:30,91.61,NO,NO
+DC_HOME,3,17265,8583512,Turkey,Süper Lig,Amed,Eyüpspor,10641,10639,2026-11-01T10:30:00+00:00,2026-11-01 12:30,91.55,NO,NO
+DC_AWAY,1,17087,8546253,Croatia,Prva HNL,Rudeš,Dinamo Zagreb,1858,122,2026-10-31T17:00:00+00:00,2026-10-31 19:00,83.54,NO,NO
+DC_AWAY,2,17115,8553116,Japan,J1 League,Mito Hollyhock,Sanfrecce Hiroshima,857,1007,2026-10-31T05:00:00+00:00,2026-10-31 07:00,82.50,NO,NO
+DC_AWAY,3,17115,8553096,Japan,J1 League,Fagiano Okayama,Tokyo,862,1010,2026-10-31T05:00:00+00:00,2026-10-31 07:00,81.43,NO,NO

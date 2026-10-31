@@ -1,0 +1,16 @@
+model,market,selected_groups,groups_n_ge_100,groups_n_ge_200,groups_all_four_metrics_better_n_ge_200,interpretation
+H2H_DECAY_365D,BTTS,50,49,48,16,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_365D,COMBO_AWAY,50,49,48,5,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_365D,COMBO_HOME,50,49,48,6,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_365D,DC_AWAY,50,49,48,14,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_365D,DC_HOME,50,49,48,8,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_730D,BTTS,50,49,48,16,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_730D,COMBO_AWAY,50,49,48,5,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_730D,COMBO_HOME,50,49,48,8,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_730D,DC_AWAY,50,49,48,14,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_DECAY_730D,DC_HOME,50,49,48,8,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_RAW,BTTS,50,49,48,17,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_RAW,COMBO_AWAY,50,49,48,6,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_RAW,COMBO_HOME,50,49,48,6,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_RAW,DC_AWAY,50,49,48,11,Single primary-holdout group diagnostics only; not repeated per-league folds.
+H2H_RAW,DC_HOME,50,49,48,7,Single primary-holdout group diagnostics only; not repeated per-league folds.
