@@ -167,7 +167,9 @@ jobs:
         run: python -m pip install --disable-pip-version-check openpyxl
 
       - name: Test exact joins, chronology, duplicate guards and market masking
-        run: python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
           python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
 
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
