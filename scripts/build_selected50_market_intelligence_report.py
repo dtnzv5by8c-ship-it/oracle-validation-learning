@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import hashlib
 import math
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -447,6 +448,8 @@ def main():
     ap.add_argument("--runtime-report", required=True)
     ap.add_argument("--archive-audit", required=True, help="Directory containing match_field_audit.csv")
     ap.add_argument("--schedule-coverage", required=True, help="Runtime schedule coverage CSV proving the full governed league universe")
+    ap.add_argument("--runtime-provenance", required=True)
+    ap.add_argument("--archive-summary", required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--expected-league-groups", type=int, default=50)
     args = ap.parse_args()
@@ -454,6 +457,13 @@ def main():
     runtime_rows = read_csv(args.runtime_report)
     archive_rows = read_csv(Path(args.archive_audit) / "match_field_audit.csv")
     schedule_rows = read_csv(args.schedule_coverage)
+    runtime_provenance = json.loads(Path(args.runtime_provenance).read_text(encoding="utf-8"))
+    archive_summary = json.loads(Path(args.archive_summary).read_text(encoding="utf-8"))
+    runtime_report_sha256 = hashlib.sha256(Path(args.runtime_report).read_bytes()).hexdigest()
+    if runtime_provenance.get("runtime_report_sha256") != runtime_report_sha256:
+        raise SystemExit("FAIL: runtime report does not match its provenance SHA-256")
+    if runtime_provenance.get("source_archive_sha256") != archive_summary.get("archive_sha256"):
+        raise SystemExit("FAIL: runtime provenance and archive feature audit refer to different archives")
     governed_ids = {str(r.get("selected_id") or "").strip() for r in schedule_rows if str(r.get("selected_id") or "").strip()}
     report_ids = {str(r.get("selected_id") or "").strip() for r in runtime_rows if str(r.get("selected_id") or "").strip()}
     if len(schedule_rows) != args.expected_league_groups or len(governed_ids) != args.expected_league_groups:
@@ -466,7 +476,46 @@ def main():
     summary["selected_league_groups"] = len(governed_ids)
     summary["selected_ids_without_fixture_rows_in_runtime_horizon"] = sorted(governed_ids - report_ids)
     summary["selected_ids_with_fixture_rows_in_runtime_horizon"] = sorted(report_ids)
+    trace_by_id = defaultdict(list)
+    for item in trace:
+        trace_by_id[str(item.get("selected_id") or "")].append(item)
+    league_fixture_coverage = []
+    for item in sorted(schedule_rows, key=lambda x: str(x.get("selected_id") or "")):
+        sid = str(item.get("selected_id") or "").strip()
+        league_trace = trace_by_id.get(sid, [])
+        league_fixture_coverage.append({
+            "selected_id": sid,
+            "country": item.get("country", ""),
+            "competition_name": item.get("competition_name", ""),
+            "runtime_fixture_rows": sum(1 for r in runtime_rows if str(r.get("selected_id") or "").strip() == sid),
+            "exact_archive_joins": sum(1 for r in league_trace if r.get("join_status") == "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"),
+            "quarantined_rows": sum(1 for r in league_trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"),
+            "schedule_coverage_status": item.get("schedule_coverage_status", ""),
+        })
+    column_status_counts = {}
+    for header in HEADERS:
+        values = [str(r.get(header, "")) for r in report]
+        column_status_counts[header] = {
+            "nonempty": sum(v not in ("", "None") for v in values),
+            "empty": sum(v in ("", "None") for v in values),
+            "not_available_from_oracle_output": sum(v == UNAVAILABLE for v in values),
+            "not_validated": sum(v.startswith("NOT_VALIDATED") for v in values),
+            "not_graded": sum(v.startswith("NOT_GRADED") for v in values),
+        }
+    fixture_dates = sorted(r.get("date_utc", "") for r in runtime_rows if r.get("date_utc"))
     summary.update({
+        "runtime_run_id": runtime_provenance.get("runtime_run_id"),
+        "runtime_commit_sha": runtime_provenance.get("runtime_commit_sha"),
+        "runtime_ref": runtime_provenance.get("runtime_ref"),
+        "runtime_report_sha256": runtime_report_sha256,
+        "source_archive_sha256": archive_summary.get("archive_sha256"),
+        "archive_match_records": archive_summary.get("archive_match_records"),
+        "archive_season_folders": archive_summary.get("season_folders"),
+        "provider_api_calls": archive_summary.get("provider_api_calls"),
+        "fixture_cutoff_range_utc": {"first": fixture_dates[0] if fixture_dates else None, "last": fixture_dates[-1] if fixture_dates else None},
+        "history_cutoff_rule": "STRICTLY_BEFORE_EACH_FIXTURE_KICKOFF_UTC",
+        "league_fixture_coverage": league_fixture_coverage,
+        "column_status_counts": column_status_counts,
         "schema_status": "PASS_38_COLUMNS" if len(HEADERS) == 38 else "FAIL_SCHEMA",
         "headers": HEADERS,
         "production_eligible": False, "betting_eligible": False,
