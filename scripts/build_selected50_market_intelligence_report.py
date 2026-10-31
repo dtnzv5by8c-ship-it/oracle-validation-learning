@@ -412,7 +412,7 @@ def build_report(runtime_rows, archive_rows):
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
             "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
             "archive_provider_competition_id": target.get("provider_league_id", ""),
-            "h2h_scope": "VERIFIED_PROVIDER_COMPETITION_CROSS_SEASON" if competition_id else "EXACT_SEASON_FALLBACK",
+            "h2h_scope": "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE" if competition_id else "EXACT_SEASON_FALLBACK",
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
@@ -800,7 +800,7 @@ def main():
         "combo_policy": "Combo probabilities remain masked; no combo output is synthesized.",
         "historical_accuracy_status": "NOT_VALIDATED",
         "standings_policy": "Provisional conventional 3-1-0 table within exact provider season ID; special competition tie-breaks/formats not verified.",
-        "history_scope": "Team form, H2H and table evidence are restricted to the exact provider season ID because a verified parent competition ID is unavailable; no cross-season or fuzzy competition joins are attempted.",
+        "history_scope": "Team form and H2H use explicit provider_competition_id where present with exact stable team IDs and strict pre-kickoff cutoffs; tables remain exact provider-season scoped. Provider competition IDs may themselves be season-scoped; cross-season coverage is measured from actual source and target season IDs, not inferred from the scope label.",
         "risk_policy": "Evidence coverage gap score only; not outcome risk or probability of losing.",
         "minimum_expected_league_groups": args.expected_league_groups,
         "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "FAIL",
@@ -810,6 +810,23 @@ def main():
         "all_rows_research_only": True,
         "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) and summary.get("schedule_discordance_rows", 0) == 0 else "PARTIAL_RESEARCH_ONLY",
     })
+    # Measure actual season span from H2H source records, not from the scope label.
+    h2h_meetings_total = 0
+    h2h_cross_season_meetings = 0
+    for item in trace:
+        target_season = str(item.get("archive_provider_season_id") or "")
+        try:
+            meetings = json.loads(item.get("h2h_meetings_detail") or "[]")
+        except (TypeError, ValueError):
+            meetings = []
+        for meeting in meetings:
+            h2h_meetings_total += 1
+            if str(meeting.get("provider_season_id") or "") != target_season:
+                h2h_cross_season_meetings += 1
+    summary["h2h_meetings_total"] = h2h_meetings_total
+    summary["h2h_cross_season_meetings_verified"] = h2h_cross_season_meetings
+    summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
+    summary["h2h_scope_policy"] = "Explicit provider competition ID; cross-season coverage only where source meeting season differs from target season."
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
               list(dict.fromkeys(k for r in trace for k in r)))
