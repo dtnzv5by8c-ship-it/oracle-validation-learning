@@ -172,11 +172,15 @@ def league_table(rows, cutoff):
         h, a = str(r["_home"]), str(r["_away"])
         hg, ag = int(float(r["home_goals"])), int(float(r["away_goals"]))
         for tid, gf, ga in ((h, hg, ag), (a, ag, hg)):
-            s = stats.setdefault(tid, {"played": 0, "points": 0, "gf": 0, "ga": 0})
+            team_name = str(r.get("home_team") if tid == h else r.get("away_team") or "").strip()
+            s = stats.setdefault(tid, {"played": 0, "points": 0, "gf": 0, "ga": 0, "team_name": team_name})
+            if team_name and not s.get("team_name"):
+                s["team_name"] = team_name
             s["played"] += 1; s["gf"] += gf; s["ga"] += ga
             s["points"] += 3 if gf > ga else 1 if gf == ga else 0
     ordered = sorted(stats.items(), key=lambda kv: (
-        -kv[1]["points"], -(kv[1]["gf"] - kv[1]["ga"]), -kv[1]["gf"], kv[0]
+        -kv[1]["points"], -(kv[1]["gf"] - kv[1]["ga"]), -kv[1]["gf"],
+        str(kv[1].get("team_name") or "").casefold(), kv[0]
     ))
     return {tid: {"position": i + 1, **s} for i, (tid, s) in enumerate(ordered)}
 
