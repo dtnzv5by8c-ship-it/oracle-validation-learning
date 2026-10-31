@@ -12,7 +12,7 @@ spec.loader.exec_module(market_report)
 
 def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1"):
     return {
-        "provider_season_id": season, "fixture_id": fid,
+        "provider_season_id": season, "provider_league_id": "L1", "fixture_id": fid,
         "home_team_id": home_id, "away_team_id": away_id,
         "kickoff_utc": date, "league_folder": league, "season_folder": "2026",
         "status_raw": "complete", "home_goals": str(hg), "away_goals": str(ag),
@@ -105,6 +105,20 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(summary["schedule_discordance_rows"], 1)
         self.assertIn("F100", trace[1]["home_form_source_fixture_ids"])
         self.assertEqual(trace[1]["home_at_home_form_n"], 1)
+
+    def test_h2h_uses_verified_provider_competition_across_seasons(self):
+        prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", league="L1")
+        target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                                     season="S2", league="L1")
+        target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
+        report, trace, _ = market_report.build_report(
+            [target_runtime], [prior, target_archive]
+        )
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(trace[0]["h2h_scope"], "VERIFIED_PROVIDER_COMPETITION_CROSS_SEASON")
+        self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
     def test_venue_split_form_is_exposed_in_evidence_trace(self):
         _, trace, _ = market_report.build_report([runtime_row()], self.archive)
