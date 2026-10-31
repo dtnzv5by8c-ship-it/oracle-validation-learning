@@ -56,3 +56,14 @@ A green workflow alone is not final sign-off. Inspect the workbook and QA. Faile
 ## Next operational step
 
 Continue the field-level audit against the dictionary and implementation. Inspect actual workflow runs and artifacts; do not infer run success from YAML. The full report workflow is manually dispatched by the user with the pinned archive confirmation and runtime run ID recorded in `docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md`. This integration cannot dispatch that workflow. No new manual run is claimed here.
+
+
+## FootyStats identity resolver review — 2026-10-31
+
+- Static review record: `docs/ORACLE_FOOTYSTATS_IDENTITY_RESOLVER_REVIEW_2026-10-31.md`.
+- PR #31 remains a draft and is not mergeable (1,526 commits / 608 changed files); do not merge or synchronize the accumulated research branch wholesale.
+- Identity & Settlement Evidence workflow run #20 (41222551893) passed on commit 92710c5dc2de4c022d6949d0df204cc4ad0e8a16: 7 resolver tests, 15 adapter tests, 10 identity/settlement register tests, 15 blocker-diagnostic tests, 18 snapshot/runtime coverage tests and 25 offline current-snapshot tests.
+- That run is an offline regression result on its recorded commit, not proof of production integration or approved mappings.
+- Static review identified three resolver gaps requiring correction before further integration: no approved competition-bridge gate; no explicit quarantine for multiple reference candidates; and timezone-naive ISO kickoff values are currently interpreted as UTC.
+- Keep the resolver research-only, all mappings NOT_APPROVED, no API calls/credits, no production writes and no Oracle V1.6 changes. Correct these gaps with regression tests in a narrowly scoped research-only change and verify the exact commit before integration.
+- Continue weekly Market Intelligence reports from the locked v1.2 template and existing generator. Identity resolver work must not alter report schemas or production probabilities.
