@@ -1,0 +1,96 @@
+{
+  "checkpoint": "2026-10-31 02:06:56 SAST",
+  "repository": "dtnzv5by8c-ship-it/oracle-validation-learning",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "workbook_file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_League_Scoring_DNA_0206SAST.xlsx",
+  "workbook_sha256": "6a650ca1e9f69910ff0558536788bce574787232d1ecd7d59794ea89ae28d141",
+  "workbook_bytes": 416469,
+  "workbook_sheets": 33,
+  "research_pack_file": "Oracle_Selected50_League_Market_DNA_Research_Pack_31Oct2026_0206SAST.zip",
+  "research_pack_sha256": "8df3121a6d2d39d3c2bd1cf246e047f20273deb8006e65996c51efc4634b1b82",
+  "supplementary_archive": {
+    "run_id": "41101695515",
+    "artifact_id": "12997699044",
+    "sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8c4e20211a",
+    "raw_rows": 30257,
+    "exact_groups": 31,
+    "season_ids": 93,
+    "completed_dated_numeric_scores_in_scope": 23328
+  },
+  "main_archive_scope_counts": {
+    "2024": 14749,
+    "2025": 14987,
+    "2026_through_2026_09_20": 10638,
+    "2026_through_2026_10_30": 12045,
+    "primary_window": 22256
+  },
+  "supplementary_score_counts": {
+    "2024": 5715,
+    "2025": 10307,
+    "2026_through_2026_09_20": 7306,
+    "primary_window": 15003
+  },
+  "coverage": {
+    "2024": {
+      "full": 4,
+      "partial": 27,
+      "unavailable": 19
+    },
+    "2025": {
+      "full": 31,
+      "partial": 0,
+      "unavailable": 19
+    },
+    "2026_through_2026_09_20": {
+      "full": 31,
+      "partial": 0,
+      "unavailable": 19
+    },
+    "primary_window": {
+      "full": 31,
+      "partial": 0,
+      "unavailable": 19
+    }
+  },
+  "market_suitability": {
+    "combinations": 150,
+    "repeatable_positive_skill": 26,
+    "positive_skill_calibration_warning": 13,
+    "mixed": 47,
+    "insufficient": 60,
+    "no_positive_brier_skill": 4,
+    "candidate_leagues": 17,
+    "mixed_leagues": 13,
+    "insufficient_or_no_positive_skill_leagues": 20
+  },
+  "current_rankings": {
+    "candidate_pool_per_market": 319,
+    "top50_selected_groups": {
+      "BTTS": 23,
+      "DC_HOME": 27,
+      "DC_AWAY": 28
+    },
+    "top50_quarantined": 0,
+    "top50_kickoff_mismatches": 0,
+    "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942Z",
+    "snapshot_age_hours": 4.3378586272,
+    "as_of_utc": "2026-10-31T00:06:56Z",
+    "status": "RAW_ONLY_UNCALIBRATED_RESEARCH_ONLY"
+  },
+  "exports": {
+    "scoring_dna_calendar_csv_sha256": "e617e8fc4e6962ce27403f4cb7d39085e6b953378ccda8d220d8bd5b9610b0ea",
+    "scoring_dna_primary_window_csv_sha256": "a946a9bd4a156ab6c555c156d50e6c89cce945e5a931c3353373a6727d2a6732",
+    "league_dna_decision_csv_sha256": "dd8b4b8f84644f1aafedc0f776053428a29dbf95b4b4f2c355967dc1323c3e65",
+    "top50_btts_csv_sha256": "10542ed10f2b1c96eea0bc946dd5e0f3331a375f990d5405c6f3063a0a1fd311",
+    "top50_dc_home_csv_sha256": "9915d332b91c986454955af1ca4130671a14a43f586d9ec4cca3c39d44fe1407",
+    "top50_dc_away_csv_sha256": "5a5532bf7d4c308535a86eab0222ce4a166c78d3d59747fd1ed676c621ac5dcc"
+  },
+  "governance": {
+    "provider_api_credits_used": false,
+    "workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
