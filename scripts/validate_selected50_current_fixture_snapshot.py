@@ -51,6 +51,17 @@ def validate(path):
         errors.append("one or more seasons require pagination")
     if d.get("production_eligibility") != "NOT_GRANTED" or d.get("betting_eligibility") != "NOT_GRANTED":
         errors.append("release eligibility must remain NOT_GRANTED")
+    if d.get("rate_limit_detected") is not False:
+        errors.append("provider rate limit must not have been detected")
+    if d.get("provider_retry_attempts") != 0:
+        errors.append("automatic provider retries are not permitted")
+    if d.get("requests_skipped_after_stop") != 0:
+        errors.append("one or more selected-season requests were skipped after a provider failure")
+    if d.get("stop_reason") is not None:
+        errors.append(f"snapshot stopped before full coverage: {d.get('stop_reason')}")
+    interval = d.get("request_interval_seconds")
+    if isinstance(interval, bool) or not isinstance(interval, (int, float)) or interval < 2.1:
+        errors.append("request_interval_seconds must be at least 2.1 seconds")
     if d.get("raw_provider_payload_persisted") is not False:
         errors.append("raw provider payload must not be persisted")
     if d.get("api_key_persisted") is not False:

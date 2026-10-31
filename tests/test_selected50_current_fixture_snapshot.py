@@ -40,6 +40,9 @@ class SnapshotValidatorTests(unittest.TestCase):
             "selected_leagues": 50, "requests_planned": 50, "requests_attempted": 50,
             "http_200_success": 50, "request_failures": 0, "seasons_needing_pagination": [],
             "production_eligibility": "NOT_GRANTED", "betting_eligibility": "NOT_GRANTED",
+            "rate_limit_detected": False, "provider_retry_attempts": 0,
+            "requests_skipped_after_stop": 0, "stop_reason": None,
+            "request_interval_seconds": 2.1,
             "raw_provider_payload_persisted": False, "api_key_persisted": False,
             "production_ledger_written": False, "per_season": seasons, "fixture_rows": rows,
             "future_14d_fixture_rows": 1, "recent_completed_30d_rows": 1,
@@ -150,6 +153,31 @@ class SnapshotValidatorTests(unittest.TestCase):
         row["awayGoalCount"] = 0
         row["totalGoalCount"] = 0
         self.assertEqual(self.run_validation(data)["status"], "PASS")
+
+    def test_provider_rate_limit_fails_closed(self):
+        data = self.build()
+        data["rate_limit_detected"] = True
+        data["stop_reason"] = "HTTP_429_RATE_LIMITED"
+        data["requests_attempted"] = 1
+        data["http_200_success"] = 0
+        data["request_failures"] = 1
+        data["requests_skipped_after_stop"] = 49
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_automatic_provider_retries_are_rejected(self):
+        data = self.build()
+        data["provider_retry_attempts"] = 1
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_request_interval_below_hobby_hourly_limit_is_rejected(self):
+        data = self.build()
+        data["request_interval_seconds"] = 2.0
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_skipped_season_requests_are_rejected(self):
+        data = self.build()
+        data["requests_skipped_after_stop"] = 1
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
 
 if __name__ == "__main__":

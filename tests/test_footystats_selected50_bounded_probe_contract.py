@@ -453,3 +453,55 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_provider_workflows_are_manual_budget_gated_and_reference_the_expected_secret_name(self):
+        paths = (
+            ".github/workflows/footystats-selected50-bounded-endpoint-probe.yml",
+            ".github/workflows/oracle-selected50-current-fixture-snapshot.yml",
+            ".github/workflows/oracle-selected50-provider-schema-diagnostic.yml",
+        )
+        for relative in paths:
+            workflow = (ROOT / relative).read_text(encoding="utf-8")
+            trigger = workflow.split("permissions:", 1)[0]
+            with self.subTest(workflow=relative):
+                self.assertIn("workflow_dispatch:", trigger)
+                self.assertNotIn("\n  push:", trigger)
+                self.assertNotIn("\n  schedule:", trigger)
+                self.assertIn("FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}", workflow)
+                self.assertIn("confirm_provider_credit_usage:", trigger)
+                self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
+                self.assertIn("default: false", trigger)
+                self.assertIn("contents: read", workflow)
+
+    def test_multi_request_provider_workflows_use_conservative_hobby_hourly_pacing(self):
+        probe = (ROOT / ".github" / "workflows" / "footystats-selected50-bounded-endpoint-probe.yml").read_text(encoding="utf-8")
+        snapshot = (ROOT / "scripts" / "oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
+        self.assertIn("MAX_CALLS = 201", probe)
+        self.assertIn("REQUEST_INTERVAL_SECONDS = 2.1", probe)
+        self.assertIn("time.sleep(REQUEST_INTERVAL_SECONDS)", probe)
+        self.assertIn("MAX_REQUESTS = 50", snapshot)
+        self.assertIn("REQUEST_INTERVAL_SECONDS = 2.1", snapshot)
+        self.assertIn("time.sleep(REQUEST_INTERVAL_SECONDS)", snapshot)
+
+    def test_snapshot_stops_after_provider_failure_and_records_retry_after_without_retrying(self):
+        script = (ROOT / "scripts" / "oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
+        self.assertIn("HTTP_429_RATE_LIMITED", script)
+        self.assertIn('"Retry-After"', script)
+        self.assertIn("NOT_ATTEMPTED_AFTER_STOP", script)
+        self.assertIn('"provider_retry_attempts": 0', script)
+        self.assertIn('"api_key_persisted": False', script)
+        self.assertIn('"raw_provider_payload_persisted": False', script)
+        self.assertIn("if: always()", workflow)
+        self.assertIn("if-no-files-found: warn", workflow)
+
+    def test_contract_workflow_checks_secret_presence_without_printing_values_or_calling_provider(self):
+        workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-contract-tests.yml").read_text(encoding="utf-8")
+        self.assertIn("FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}", workflow)
+        self.assertIn("ORACLE_PRIVATE_REPO_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}", workflow)
+        self.assertIn("PRESENT", workflow)
+        self.assertIn("MISSING", workflow)
+        self.assertNotIn("api.football-data-api.com", workflow)
+        self.assertNotIn('print(os.environ["FOOTYSTATS_API_KEY"])', workflow)
+        self.assertIn("python -m py_compile scripts/oracle_selected50_current_fixture_probe.py", workflow)

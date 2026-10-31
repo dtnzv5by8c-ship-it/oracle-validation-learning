@@ -53,7 +53,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run one sequential league-matches request per selected season
+      - name: Run paced sequential league-matches requests; stop after first provider failure
         working-directory: research-source
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
@@ -63,10 +63,11 @@ jobs:
         working-directory: research-source
         run: python scripts/validate_selected50_current_fixture_snapshot.py oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
 
-      - name: Upload sanitized current fixture snapshot only
+      - name: Upload sanitized current fixture snapshot or failure diagnostic
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-current-fixture-snapshot
           path: research-source/oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14

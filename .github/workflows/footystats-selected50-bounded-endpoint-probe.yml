@@ -49,6 +49,7 @@ jobs:
               raise SystemExit("STOP: FOOTYSTATS_API_KEY secret is missing; zero requests made.")
           BASE = "https://api.football-data-api.com/"
           MAX_CALLS = 201
+          REQUEST_INTERVAL_SECONDS = 2.1
           calls = 0
           endpoint_results = []
           remaining = None
@@ -114,6 +115,8 @@ jobs:
                 "monthly_credit_budget_verified_by_provider": False,
                 "actual_http_requests_started": calls,
                 "request_budget_remaining_last_observed": remaining,
+                "request_interval_seconds": REQUEST_INTERVAL_SECONDS,
+                "provider_retry_attempts": 0,
                 "raw_provider_payloads_saved": False,
                 "api_key_logged_or_saved": False,
                 "private_repo_transfer_attempted": False,
@@ -138,6 +141,7 @@ jobs:
           catalogue = catalogue_payload.get("data")
           if not isinstance(catalogue, list):
               raise SystemExit("STOP: catalogue response data is not a list.")
+          time.sleep(REQUEST_INTERVAL_SECONDS)
           seasons_by_id = {}
           for league in catalogue:
               if not isinstance(league, dict) or not isinstance(league.get("season"), list):
@@ -244,7 +248,7 @@ jobs:
                       base_row["identity_note"] = "Provider returned success=false; halted with no retries."
                       save_checkpoint()
                       raise SystemExit(f"STOP: provider success=false for {endpoint}; no retries.")
-                  time.sleep(0.35)
+                  time.sleep(REQUEST_INTERVAL_SECONDS)
               base_row["identity_note"] = "Endpoint/schema probe only; no canonical identity approval or data completeness claim."
               save_checkpoint()
 

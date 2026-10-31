@@ -26,6 +26,28 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Verify required Actions secret availability without exposing values or calling providers
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          ORACLE_PRIVATE_REPO_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os
+
+          required = ("FOOTYSTATS_API_KEY", "ORACLE_PRIVATE_REPO_TOKEN")
+          missing = []
+          for name in required:
+              present = bool(os.environ.get(name, "").strip())
+              print(f"{name}={'PRESENT' if present else 'MISSING'}")
+              if not present:
+                  missing.append(name)
+          if missing:
+              raise SystemExit(
+                  "Required Actions secret(s) are missing or unavailable to this workflow: "
+                  + ", ".join(missing)
+              )
+          PY
+
       - name: Run offline safety contract tests
         run: python -m unittest discover -s tests -p "test_footystats_selected50_bounded_probe_contract.py" -v
       - name: Run research score-settlement contract tests
@@ -36,8 +58,8 @@ jobs:
         run: python -m unittest discover -s tests -p "test_current_feed_identity_contract.py" -v
       - name: Run offline current-feed staging adapter tests (research only)
         run: python -m unittest discover -s tests -p "test_stage_current_feed_identity.py" -v
-      - name: Compile current fixture snapshot validator
-        run: python -m py_compile scripts/validate_selected50_current_fixture_snapshot.py
+      - name: Compile current fixture snapshot probe and validator
+        run: python -m py_compile scripts/oracle_selected50_current_fixture_probe.py scripts/validate_selected50_current_fixture_snapshot.py
       - name: Run current fixture snapshot validator tests
         run: python -m unittest discover -s tests -p "test_selected50_current_fixture_snapshot.py" -v
       - name: Run one-call identity workflow safety tests
