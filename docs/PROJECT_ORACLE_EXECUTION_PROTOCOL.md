@@ -387,3 +387,12 @@ The user approved Option 2: a consolidated, fixture-level analyst view in the Ma
 - First test run exposed two assertion issues; corrected. The latest push-triggered report workflow run 41200789454 completed SUCCESS on commit 38601a127ff893e17126ae01298f0b081eb63be9. This is a test-only push run: private archive, runtime download, workbook rebuild and artifact upload were skipped.
 - The separate safety-contract workflow still fails its known unrelated snapshot-runtime-bridge tests; do not conflate that with the passing Market Intelligence report suite.
 - No full workbook has yet been generated with the expanded tab. A manual workflow_dispatch is required, using the pinned archive consent, release tag and runtime run ID in Section 2.
+
+
+### Prematch xG archive evidence extraction — 2026-10-31
+
+- Legacy 27-league audit proves only that fields such as team_a_xg_prematch, team_b_xg_prematch and total_xg_prematch were non-null in archived records; it does not prove when those values were first captured or whether they were revised after the fixture. That audit explicitly stated temporal provenance was not assessed.
+- The archive feature builder now retains numeric parsed home/away/total prematch xG values, original raw field values and source field names. Invalid/negative/non-numeric values remain unavailable; no imputation.
+- Each row explicitly records xg_capture_time_utc blank, xg_temporal_provenance_status=UNVERIFIED_NO_CAPTURE_TIMESTAMP and xg_prediction_use_status=QUARANTINED_RESEARCH_AUDIT_ONLY.
+- These xG values must not enter goal-market research, Oracle V1.6 or any forecast until provider capture timestamps / historical snapshots establish pre-kickoff availability and revision policy. This is evidence extraction and an audit-quality improvement only.
+- Added unit coverage for valid numeric xG, source field retention, negative, NaN and missing values. The next push workflow must pass archive feature tests and report tests before any full archive rebuild.
