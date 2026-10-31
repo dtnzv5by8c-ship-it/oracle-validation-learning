@@ -627,7 +627,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "Home League Position": t.get("home_league_position", ""),
             "Away League Position": t.get("away_league_position", ""),
             "League Table Status": t.get("league_table_status", ""),
-            "H2H Last-5": t.get("h2h_form", t.get("h2h_results", "")),
+            "H2H Last-5": base_row_data.get("H2H Last 5 Summary", ""),
             "H2H N": t.get("h2h_n", ""),
             "H2H Avg Total Goals": t.get("h2h_avg_total_goals", ""),
             "Goal Research Status": g.get("forecast_status", g.get("status", "NOT_AVAILABLE")),
