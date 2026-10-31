@@ -396,3 +396,18 @@ The user approved Option 2: a consolidated, fixture-level analyst view in the Ma
 - Each row explicitly records xg_capture_time_utc blank, xg_temporal_provenance_status=UNVERIFIED_NO_CAPTURE_TIMESTAMP and xg_prediction_use_status=QUARANTINED_RESEARCH_AUDIT_ONLY.
 - These xG values must not enter goal-market research, Oracle V1.6 or any forecast until provider capture timestamps / historical snapshots establish pre-kickoff availability and revision policy. This is evidence extraction and an audit-quality improvement only.
 - Added unit coverage for valid numeric xG, source field retention, negative, NaN and missing values. The next push workflow must pass archive feature tests and report tests before any full archive rebuild.
+
+
+### Full expanded-report run 41201069428 — inspected artifact and follow-up — 2026-10-31
+
+- Manual full run 41201069428 completed SUCCESS on commit a74beb1be143da17553d86839730013da1031dd0. Artifact ID 13042562245, digest sha256:66180e3d19d1267e486e13318911055ecec8d195f1ff1552e929fbfb6347a9cd.
+- Full pipeline gates passed: pinned archive checksum, exact runtime provenance, 14 report tests and 6 goal-engine tests, archive feature build/audit, goal research engine, report QA and artifact upload.
+- Report QA: 434 runtime rows, 434 report rows, 434 exact archive joins, zero unmatched/quarantined identity joins, 50 governed league groups, zero duplicate archive composite keys, 19 schedule discordances still requiring review, 38-column source-output schema PASS, production/betting eligibility false.
+- Actual workbook inspected: 10 tabs. Oracle V1.6 Output = 435 rows including header x 38 columns. Market Intelligence = 435 rows including header x 83 columns. All 434 fixture IDs unique; all 434 rows have production and betting eligibility NO; 422 candidate goal estimates populated, 12 explicitly blocked.
+- Detailed workbook check found H2H Avg Total Goals was not carried across to the decision-view copy. Code fix 6d07edf4a7a1d4aca747820fccf66c1fa5de093e maps that column from the source production-summary row; test expectation corrected in bb24692440cb84cf320984cc444cf671c320d428. Push report suite run 41201387978 passed 14 report tests + 6 goal-engine tests. The earlier full artifact predates this carry-through correction; a local H2H-checked copy was prepared from exact same-row source values. Next full manual run must regenerate canonical artifact from corrected branch.
+- Prematch xG evidence extraction changes:
+  - f3021e23b1589e1b11852d120782fe2c40e92076 retains raw, numeric and source-field values for home/away/total prematch xG in the archive feature audit.
+  - Missing/invalid/negative/non-finite values remain unavailable; no imputation.
+  - xg_capture_time_utc remains blank, xg_temporal_provenance_status=UNVERIFIED_NO_CAPTURE_TIMESTAMP and xg_prediction_use_status=QUARANTINED_RESEARCH_AUDIT_ONLY.
+  - Unit tests added in 0dfaf1aecbca8f6c4d435dd1ad60e6d3e9f94561. Their archive-wide workflow run on the earlier revision was blocked by the unrelated-to-xG H2H test expectation. Subsequent correction to the expected H2H average is in bb24692440cb84cf320984cc444cf671c320d428. The new xG unit tests themselves have not yet been observed passing in a dedicated run.
+- Do not include xG in the Market Intelligence worksheet as prediction input or feed the goal engine until source capture-time provenance/revision semantics are evidenced. Next implementation task is to expose this quarantined xG evidence/completeness as an audit-only support tab and add its numeric/source-field QA. Then rerun an approved manual full report build with the updated branch and inspect the artifact. No Oracle V1.6 model logic/probabilities were changed.
