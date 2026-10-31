@@ -104,7 +104,8 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         )
         self.assertEqual(summary["schedule_discordance_rows"], 1)
         self.assertIn("F100", trace[1]["home_form_source_fixture_ids"])
-        self.assertEqual(trace[1]["home_at_home_form_n"], 1)
+        self.assertEqual(trace[1]["away_away_form_n"], 1)
+        self.assertIn("F100", trace[1]["away_away_source_fixture_ids"])
 
     def test_h2h_uses_verified_provider_competition_across_seasons(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
@@ -159,6 +160,25 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["production_eligible"], "NO")
         self.assertEqual(trace[0]["betting_eligible"], "NO")
         self.assertEqual(trace[0]["history_cutoff_rule"], "STRICTLY_BEFORE_FIXTURE_KICKOFF")
+
+    def test_workbook_includes_expanded_evidence_tabs_without_changing_main_schema(self):
+        prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", league="L1")
+        report, trace, _ = market_report.build_report(
+            [runtime_row()], self.archive + [prior]
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "expanded.xlsx"
+            market_report.write_xlsx(path, report, trace)
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            self.assertEqual(workbook["Market Intelligence"].max_column, 38)
+            for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
+                          "Market Data Coverage", "Data Quality & Risk", "Definitions & Governance"):
+                self.assertIn(sheet, workbook.sheetnames)
+            self.assertGreaterEqual(workbook["H2H Intelligence"].max_row, 2)
+            self.assertIn("HISTORICAL_EMPIRICAL_RATE_NOT_PREDICTION_PROBABILITY",
+                          [cell.value for row in workbook["Goal Intelligence"].iter_rows(min_row=2, max_row=2) for cell in row])
+            workbook.close()
 
     def test_duplicate_runtime_keys_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "Duplicate runtime exact key"):
