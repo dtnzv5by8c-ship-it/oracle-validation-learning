@@ -46,5 +46,25 @@ class FeatureBuilderUnitTests(unittest.TestCase):
     def test_missing_score_not_imputed(self):
         self.assertEqual(mod.score({}, mod.HG_KEYS, "homeGoals"), (None, "unavailable"))
 
+    def test_xg_numeric_values_preserve_source_and_quarantine_provenance(self):
+        row = {
+            "team_a_xg_prematch": "1.42",
+            "team_b_xg_prematch": "0.87",
+            "total_xg_prematch": "2.29"
+        }
+        hk, hr, hv = mod.xg_field(row, ("team_a_xg_prematch", "home_xg_prematch"))
+        ak, ar, av = mod.xg_field(row, ("team_b_xg_prematch", "away_xg_prematch"))
+        tk, tr, tv = mod.xg_field(row, ("total_xg_prematch", "total_xg"))
+        self.assertEqual((hk, hr, hv), ("team_a_xg_prematch", "1.42", 1.42))
+        self.assertEqual((ak, ar, av), ("team_b_xg_prematch", "0.87", 0.87))
+        self.assertEqual((tk, tr, tv), ("total_xg_prematch", "2.29", 2.29))
+
+    def test_xg_invalid_negative_or_missing_remains_unavailable(self):
+        self.assertEqual(mod.xg_field({"team_a_xg_prematch": "-0.2"}, ("team_a_xg_prematch",)),
+                         ("team_a_xg_prematch", "-0.2", None))
+        self.assertEqual(mod.xg_field({"team_a_xg_prematch": "NaN"}, ("team_a_xg_prematch",)),
+                         ("team_a_xg_prematch", "NaN", None))
+        self.assertEqual(mod.xg_field({}, ("team_a_xg_prematch",)), ("", None, None))
+
 if __name__ == "__main__":
     unittest.main()
