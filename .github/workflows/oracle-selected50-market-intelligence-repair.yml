@@ -232,10 +232,11 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
+            market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Upload rebuilt report, evidence trace and QA
+      - name: Upload rebuilt report, evidence trace, QA and schedule queue
         if: ${{ success() && github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v4
         with:
@@ -246,6 +247,7 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
+            market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
             market-intelligence-output/oracle_selected50_xg_evidence_audit.csv
             market-intelligence-output/oracle_selected50_xg_evidence_audit_qa.json
             archive-audit/summary.json
