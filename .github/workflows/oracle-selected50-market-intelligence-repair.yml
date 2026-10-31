@@ -29,6 +29,7 @@ on:
       - "tests/test_selected50_market_intelligence_report.py"
       - "scripts/build_goal_market_research_engine.py"
       - "tests/test_goal_market_research_engine.py"
+      - "docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md"
 
 permissions:
   actions: read
@@ -119,7 +120,7 @@ jobs:
               "run_id": run_id,
               "head_branch": run["head_branch"],
               "head_sha": run["head_sha"],
-          }, indent=2) + "\n")
+          }, indent=2) + "\\n")
           PY
           ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           EXPECTED="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1].lower())')"
@@ -217,7 +218,8 @@ jobs:
             --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \
             --runtime-provenance runtime-artifact/extracted/oracle_selected50_runtime_provenance.json \
             --archive-summary archive-audit/summary.json \
-            --goal-market-research goal-market-research/goal_market_research.csv --out-dir market-intelligence-output \\
+            --goal-market-research goal-market-research/goal_market_research.csv \
+            --out-dir market-intelligence-output \
             --expected-league-groups 50
 
       - name: Upload join diagnostics when QA blocks the report
