@@ -260,3 +260,19 @@ At the start of a continuation session, recover the live GitHub branch head and 
 4. Historical accuracy and A+ grading remain blocked pending exact pre-match prediction ledger, official settlement truth and contemporaneous odds.
 5. Standings remain provisional until competition-specific tie-break and season-format rules are independently verified.
 6. Production V1.6 and its probabilities remain frozen; all research rows remain production- and betting-ineligible.
+
+
+### Run 41184594307 — full archive rebuild and artifact inspection (2026-10-31)
+- Workflow run #45: `41184594307`; conclusion SUCCESS; governed branch head `473a61198e95de4dcb34d10eb5fba0dcf13f48fd`.
+- Pinned archive consent/token, SHA-256 verification, exact runtime artifact provenance, 13 targeted Market Intelligence tests, 200-season archive feature build, archive summary verification, report generation and artifact upload all passed.
+- Archive: 59,049 match records; 200 season folders; 51,983 settled/score-complete; zero parse errors; zero provider API calls; archive SHA remains `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`.
+- QA: 434 runtime/report rows; 434 exact joins; zero unmatched rows; zero duplicate runtime/archive keys; 50 governed league IDs; 46 fixture-bearing groups; 19 schedule discrepancies; 38-column schema PASS; report remains `PARTIAL_RESEARCH_ONLY`; production/betting eligibility false.
+- Artifact ID `13036731749`; digest `sha256:a1c2e08afc411a8c652f41c7162db5fbbef6a1f167b23a194b71070326a12858`; download: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41184594307/artifacts/13036731749
+- Inspected actual workbook: tabs = Market Intelligence (434 x 38), H2H Intelligence (188 meeting rows), Team Form Evidence (868 side rows), Data Quality & Risk (434), Goal Intelligence (434), Market Data Coverage (38 fields), Archive Field Coverage (215 raw fields), Definitions & Governance (6 definitions).
+- H2H count distribution per fixture: 290 fixtures = 0; 116 = 1; 16 = 2; 8 = 3; 4 = 4. There are 188 prior meeting rows in total.
+- Critical data finding: all 188 H2H source meeting season IDs equal their target fixture season IDs; zero cross-season meetings were evidenced. The source provider competition ID also had one unique value per selected season group in the inspected fixture scope. Therefore the string `VERIFIED_PROVIDER_COMPETITION_CROSS_SEASON` overstated the actual data benefit. The key is explicitly supplied by archive records, but appears season-scoped. Do not claim cross-season coverage until an actual source meeting season differs from the target season.
+- A follow-up code/test repair was committed:
+  - `26bb645355585e47c4d27c8ffb6cce49553fc8da`: replace misleading H2H scope label with `EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE`, revise history-scope QA wording and add measured H2H counts / verified cross-season boolean from actual source/target season IDs.
+  - `fecd2b596549753f2cb22028ad11a5b36ec7fdd0`: regression for prior meetings across actual distinct provider season IDs, including assertion that the source meeting season ID is retained. Targeted repair workflow Run `41184742991` passed.
+- Note: the full repository Safety Contract Tests workflow continues to fail at the separate snapshot-runtime-bridge provenance tests (two failures: exact hash/run IDs and snapshot artifact branch mismatch). All earlier jobs/steps pass; keep outside this report-repair branch of work.
+- Full archive re-run after the scope-label/QA correction is still required to publish updated XLSX/CSV/QA with these corrected semantics. No production logic or probabilities changed.
