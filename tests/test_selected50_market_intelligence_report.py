@@ -168,13 +168,18 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "expanded.xlsx"
-            market_report.write_xlsx(path, report, trace)
+            market_report.write_xlsx(path, report, trace, {
+                "archive_match_records": 10,
+                "field_nonempty_counts": {"homeGoalCount": 8, "awayGoalCount": 7}
+            })
             workbook = load_workbook(path, read_only=True, data_only=True)
             self.assertEqual(workbook["Market Intelligence"].max_column, 38)
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
-                          "Market Data Coverage", "Data Quality & Risk", "Definitions & Governance"):
+                          "Market Data Coverage", "Archive Field Coverage",
+                          "Data Quality & Risk", "Definitions & Governance"):
                 self.assertIn(sheet, workbook.sheetnames)
             self.assertGreaterEqual(workbook["H2H Intelligence"].max_row, 2)
+            self.assertEqual(workbook["Archive Field Coverage"].max_row, 3)
             self.assertIn("HISTORICAL_EMPIRICAL_RATE_NOT_PREDICTION_PROBABILITY",
                           [cell.value for row in workbook["Goal Intelligence"].iter_rows(min_row=2, max_row=2) for cell in row])
             workbook.close()
