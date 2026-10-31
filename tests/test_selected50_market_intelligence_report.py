@@ -58,6 +58,17 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         joined, missing, _ = market_report.exact_join([runtime_row()], self.archive[:-1] + [changed])
         self.assertEqual(joined, {})
         self.assertEqual(missing[0][1], "KICKOFF_MISMATCH_OR_UNPARSEABLE")
+        self.assertEqual(missing[0][2]["kickoff_utc"], "2026-10-31T17:59:00+00:00")
+        report, trace, summary = market_report.build_report(
+            [runtime_row()], self.archive[:-1] + [changed]
+        )
+        self.assertEqual(len(report), 1)
+        self.assertEqual(summary["join_failure_reason_counts"], {
+            "KICKOFF_MISMATCH_OR_UNPARSEABLE": 1
+        })
+        self.assertEqual(trace[0]["runtime_kickoff_utc"], "2026-10-31T18:00:00+00:00")
+        self.assertEqual(trace[0]["archive_kickoff_utc"], "2026-10-31T17:59:00+00:00")
+        self.assertEqual(trace[0]["join_status"], "KICKOFF_MISMATCH_OR_UNPARSEABLE")
 
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
