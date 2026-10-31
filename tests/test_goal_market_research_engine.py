@@ -47,6 +47,26 @@ class GoalMarketResearchEngineTests(unittest.TestCase):
         result=engine.forecast(target, teams, leagues, cutoff)
         self.assertEqual(result["status"], "BLOCKED_LEAGUE_BASELINE_LT20")
         self.assertEqual(result["league_prior_n"], 9)
+        self.assertEqual(result["production_eligible"], "NO")
+        self.assertEqual(result["betting_eligible"], "NO")
+        self.assertEqual(result["required_league_prior_n"], 20)
+        self.assertEqual(result["additional_league_matches_required"], 11)
+        self.assertTrue(result["blocked_reason"])
+        self.assertEqual(result["forecast_label"], "BLOCKED_NO_RESEARCH_ESTIMATE")
+
+    def test_team_history_block_has_explicit_reasons_and_flags(self):
+        rows=[]
+        for i in range(20):
+            rows.append(self.make_match(i+1, i, 3 if i%2==0 else 4, 4 if i%2==0 else 3, 1, 0))
+        teams, leagues=engine.build_indexes(rows)
+        target={"provider_season_id":"S1","fixture_id":"999",
+                "home_team_provider_id":"1","away_team_provider_id":"2"}
+        result=engine.forecast(target, teams, leagues, datetime(2026, 2, 1, tzinfo=timezone.utc))
+        self.assertEqual(result["status"], "BLOCKED_TEAM_HISTORY_LT3")
+        self.assertEqual(result["production_eligible"], "NO")
+        self.assertEqual(result["betting_eligible"], "NO")
+        self.assertTrue(result["blocked_reason"])
+        self.assertEqual(result["forecast_label"], "BLOCKED_NO_RESEARCH_ESTIMATE")
 
     def test_target_fixture_is_excluded_even_if_timestamp_precedes_cutoff(self):
         rows=[]
