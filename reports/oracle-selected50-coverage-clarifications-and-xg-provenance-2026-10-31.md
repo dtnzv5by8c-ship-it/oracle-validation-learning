@@ -73,3 +73,14 @@ Official references:
 6. Retain the four no-fixture groups in the 50-row coverage summary so absence from the seven-day fixture sheet is not misread as missing league data.
 
 **Governance:** No Oracle V1.6 production logic, thresholds, calibration, raw probabilities or market definitions were changed. All research outputs remain non-production and non-betting eligible.
+
+
+## 6. Corrected local audit artifacts
+
+The corrected reporting workbook and companion extracts were generated from the verified Run #124 artifacts. SHA-256 values:
+
+- `Oracle_Selected50_Market_Intelligence_Coverage_Audit_CORRECTED_2026-10-31.xlsx`: `a237f35012135271827e1d58f212612b2808aba57b1e91c036633d00695eeacd`
+- `oracle_selected50_50_league_xg_coverage_2026-10-31.csv`: `2d1b534c717873ddf3be05552f7d4d2c8885b7b638abecb3e40d20900e7cf2d8`
+- `oracle_selected50_form_scope_reconciliation_2026-10-31.csv`: `0ad83c1f43b85b3ceafd63ee3f02e02e8b4ffbcd33fbc80369176a3fe8b3a3db`
+
+The workbook contains 50 league rows in the xG detail tab (46 with fixture rows, four without), 434/434 numeric home, away and total xG values, zero capture timestamps and 434 quarantined rows. The form reconciliation tab contains all 25 runtime-blocked team-side histories. These are local report artifacts; the repository change is documentation-only.
