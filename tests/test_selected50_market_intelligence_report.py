@@ -45,6 +45,34 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0),
         ]
 
+    def test_xg_audit_exact_identity_and_quarantine(self):
+        target = dict(self.archive[-1],
+            home_xg_prematch_source_field="team_a_xg_prematch",
+            home_xg_prematch_raw="1.23", home_xg_prematch_value=1.23,
+            away_xg_prematch_source_field="team_b_xg_prematch",
+            away_xg_prematch_raw="0.87", away_xg_prematch_value=0.87,
+            total_xg_prematch_source_field="total_xg_prematch",
+            total_xg_prematch_raw="2.10", total_xg_prematch_value=2.10,
+            xg_capture_time_utc="",
+            xg_temporal_provenance_status="UNVERIFIED_NO_CAPTURE_TIMESTAMP")
+        rows = market_report.build_xg_audit([runtime_row()], self.archive[:-1] + [target])
+        self.assertEqual(rows[0]["join_status"], "PASS_EXACT_COMPOSITE_IDENTITY")
+        self.assertEqual(rows[0]["home_xg_numeric"], 1.23)
+        self.assertEqual(rows[0]["capture_time_utc"], "")
+        self.assertEqual(rows[0]["prediction_use_status"], "QUARANTINED_RESEARCH_AUDIT_ONLY")
+        self.assertEqual(rows[0]["prediction_eligible"], "NO")
+        swapped = dict(runtime_row(), home_team_provider_id="A", away_team_provider_id="H")
+        self.assertEqual(market_report.build_xg_audit([swapped], self.archive)[0]["join_status"],
+                         "BLOCKED_NO_EXACT_ARCHIVE_MATCH")
+
+    def test_xg_audit_blocks_missing_and_duplicate_identity(self):
+        missing = dict(runtime_row(), provider_season_id="")
+        self.assertEqual(market_report.build_xg_audit([missing], self.archive)[0]["join_status"],
+                         "BLOCKED_MISSING_RUNTIME_COMPOSITE_IDENTITY")
+        duplicate = dict(self.archive[-1])
+        self.assertEqual(market_report.build_xg_audit([runtime_row()], self.archive + [duplicate])[0]["join_status"],
+                         "QUARANTINED_DUPLICATE_ARCHIVE_IDENTITY")
+
     def test_exact_join_requires_season_fixture_and_ordered_team_ids(self):
         rows, missing, duplicates = market_report.exact_join([runtime_row()], self.archive)
         self.assertEqual(len(rows), 1)
