@@ -1,7 +1,7 @@
 {
   "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx",
-  "sha256": "2c9712bad565475eed726bb173d18bdf775eeed451fbfe039d5d4ed5e6bf8ba7",
-  "size_bytes": 15742981,
+  "sha256": "a89676074297dc2fe849ddf48fa1ee7e3638e5cd2e46e8d43ea70c2720f66ea1",
+  "size_bytes": 15743236,
   "generated_sast": "2026-10-31T02:21:39+02:00",
   "sheet_count": 61,
   "base_workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_Team_H2H_Market_Reliability.xlsx",
@@ -24,6 +24,7 @@
     "365d and 730d half-lives are sensitivity settings, not OOS-optimized.",
     "Separate Feature Edge Run 3 v8 binary was not available for a verified merge in this run."
   ],
+  "feature_edge_run3_v8_merged": false,
   "governance": {
     "provider_api_credits_used": 0,
     "completed_workflows_rerun": false,
