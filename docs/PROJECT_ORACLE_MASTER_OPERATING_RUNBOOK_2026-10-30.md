@@ -442,3 +442,83 @@ Until those steps are complete, both workflow confirmation inputs must remain fa
 Other blockers remain: full per-league non-null feature coverage; 22 candidate and 28 unresolved canonical-code mappings; canonical team/current-fixture joins; xG/odds pre-kickoff revision provenance; verified lineup/injury/suspension coverage; and current schedule freshness. The two snapshot-runtime bridge test failures are now resolved by the test-fixture correction and verified green run above.
 
 No live FootyStats API calls, credits, subscription changes or costs occurred in this follow-up. Oracle V1.6 production logic, probabilities, thresholds and production registry were not changed. All research outputs remain `production_eligible=false` and `betting_eligible=false`.
+
+
+## 18. Pagination fail-fast hardening and live-state recheck — 31 October 2026 (18:59 SAST)
+
+### 18.1 Governed code change
+
+The current-fixture snapshot was previously fail-closed at validation time, but the request loop could continue through the remaining leagues after the first response showed that pagination was required or pagination metadata was missing. That would consume unnecessary provider requests even though the final snapshot could not pass validation.
+
+Commit `92710c5dc2de4c022d6949d0df204cc4ad0e8a16` hardens the research-only snapshot path:
+
+- Every successful `league-matches` response must prove `pager.max_page=1` and `pager.current_page=1`.
+- Missing, malformed, non-positive or inconsistent pager values are classified `UNVERIFIED_PAGINATION`.
+- A valid `max_page>1` is classified `REQUIRES_PAGINATION`.
+- On either condition, the script stops immediately after that response, sets `UNVERIFIED_PAGINATION_METADATA` or `PAGINATION_REQUIRED_ONE_PAGE_CAP`, and marks all remaining selected seasons `NOT_ATTEMPTED_AFTER_STOP`.
+- No further provider requests are made after the first pagination blocker.
+- The offline validator independently requires `max_page=1` and `current_page=1` for each of the 50 season records.
+- The existing 50-request ceiling, 2.1-second pacing, no-retry policy, exact selected-season IDs, sanitized output, and research-only eligibility remain unchanged.
+
+This is a request-cost and data-completeness safeguard. It does not alter Oracle V1.6 logic, probabilities, calibration, thresholds or production eligibility.
+
+### 18.2 CI evidence
+
+The following runs were triggered by the governed branch commit above. They made no FootyStats requests:
+
+- [Selected-50 Safety Contract Tests — run 41222551988](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41222551988): completed successfully. The snapshot validator/workflow suite ran 25 tests; both new regression tests passed:
+  - `test_pagination_metadata_requires_page_one_of_one`
+  - `test_probe_stops_after_first_pagination_or_unverified_pager`
+  The probe and validator compilation step passed. The presence-only Actions secret availability step also passed.
+- [Identity & Settlement Evidence Tests — run 41222551893](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41222551893): completed successfully.
+- [Selected-50 Dry-Run Planner — run 41222551965](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41222551965): completed successfully.
+
+The contract workflow's secret check prints only each required variable name and PRESENT/MISSING status. Its workflow definition does not print, hash, transmit or persist either secret value. No Secrets API was queried.
+
+### 18.3 Selected-50 manifest and readiness evidence rechecked
+
+Static reads on the governed branch confirm:
+
+- Selected manifest `reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md`: 50 rows, 50 distinct provider season IDs; blob SHA `f6f9069b692b79a7595d1513a3413e8660763632`.
+- Snapshot identity crosswalk `reports/oracle-selected50-provider-identity-reconciliation-2026-10-27.csv`: 50 rows, 50 distinct selected-manifest IDs; blob SHA `f78e9f371e2f566f148497d9a12ede56ad26bff4`.
+- Canonical crosswalk readiness `reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv`: 50 rows, 50 distinct FootyStats season IDs; blob SHA `2c23ac9d42f0b8cf85111ea5e431b234cc164ab4`.
+- Per-league market readiness `reports/oracle-selected50-per-league-market-readiness-2026-10-25-run16.csv`: 50 rows, 50 distinct provider IDs; blob SHA `43826a40c53ce9bdd9257128fddf7d8dab01c02e`; evidence cutoff `2026-10-25T10:10:42Z`.
+
+The readiness matrix still records 22 candidate canonical-code mappings requiring human review and 28 unresolved mappings. All 50 have unverified xG point-in-time provenance, unverified odds point-in-time provenance, stale freshness evidence, unverified canonical team identity bridges and unverified current-fixture joins. These files are evidence of the governed 50-ID universe and its unresolved gates, not a current schedule refresh.
+
+### 18.4 Credential references and workflow wiring rechecked
+
+Static workflow references on the governed branch:
+
+- `FOOTYSTATS_API_KEY`: `footystats-selected50-bounded-endpoint-probe.yml`, `oracle-selected50-current-fixture-snapshot.yml`, and `oracle-selected50-provider-schema-diagnostic.yml`.
+- `ORACLE_PRIVATE_REPO_TOKEN`: `oracle-selected50-research-runtime.yml` and `oracle-selected50-market-intelligence-repair.yml`.
+
+The presence-only check in contract run `41222551988` succeeded. This proves non-empty values were available in that Actions job context at that time; it does not prove provider-side API-key validity, subscription tier, selected-league entitlement or monthly credits. No secret values were read or exposed in this audit.
+
+The governed research-branch current-fixture workflow retains its pre-provider branch guard, immutable `github.sha` checkout for both workflow and script, explicit credit/budget confirmations, and research-only output. The `main` copy remains unguarded and checks out a moving research branch; do not dispatch the `main` copy. The bounded endpoint probe on `main` still uses 0.35-second pacing, while the governed research-branch version uses 2.1 seconds. Do not dispatch the `main` probe.
+
+### 18.5 Provider plan, coverage and chronology assumptions
+
+The current English FootyStats API page lists Hobby at 50 selected leagues and 1,800 requests/hour; the Dutch localized page displays 40 Hobby leagues. The actual account tier and selected 50 remain unverified. Public rate guidance is 60–90 requests/minute; the governed 2.1-second interval is approximately 28.6 requests/minute (about 1,714/hour), below the published 1,800/hour Hobby ceiling. See [English plans](https://footystats.org/api) and [Dutch plans](https://footystats.org/nl/api).
+
+The prior bounded endpoint probe remains the only broad live endpoint sample: run `41106377807`, 201/201 HTTP 200, exact selected season IDs found for 50/50, and four tested endpoints successful for all 50. Its `league-matches` request sampled one match per season only. It is not full pagination, full-season ingestion, non-null feature coverage or market-readiness certification. No new probe was run.
+
+The current-fixture snapshot last succeeded on 28 October 2026 (50/50 requests; 871 future-window fixtures). It is stale for a new prediction cycle. The current snapshot field whitelist does not include xG, bookmaker odds, confirmed lineup publication times, injuries or suspensions.
+
+FootyStats documentation states that match retrieval is paginated, supports `page` and `max_per_page` up to 1,000, and accepts `max_time` for statistics as of a UNIX timestamp. The FAQ states feature coverage varies by league, post-match statistics are usually available within about 20 minutes, and historical coverage varies by competition. The match-details endpoint documents lineups, bench and odds-comparison fields, but does not establish immutable historical publication timestamps. See [Match Schedule & Stats](https://footystats.org/api/documentations/match-schedule-and-stats), [API FAQ](https://footystats.org/api/documentations/faq), and [Match Details](https://footystats.org/api/documentations/match-details).
+
+`date_unix` remains event kickoff time; `retrieved_utc` remains Oracle capture time; `max_time` is a query cutoff, not an immutable revision identifier. Mutable historical xG, odds, standings and other features remain quarantined until pre-kickoff capture and revision provenance are independently demonstrated.
+
+### 18.6 Remaining blockers and required Nolan action
+
+Before the next live current-fixture snapshot, Nolan must:
+
+1. Confirm in the FootyStats account dashboard that the actual plan tier and selected-league list cover the exact governed 50.
+2. Check the current monthly API credit balance.
+3. Explicitly approve up to 50 provider requests for one current-fixture snapshot. The workflow confirmation inputs must remain false until approval and budget confirmation.
+
+No provider calls, API credits, subscription changes or costs were incurred in this checkpoint. Do not dispatch a live provider workflow before those actions.
+
+Remaining technical blockers: per-league non-null feature coverage; 22 candidate and 28 unresolved canonical mappings; canonical team and Oracle current-fixture joins; timestamped pre-kickoff xG/odds/standings provenance; verified lineup/injury/suspension coverage; and fresh schedule evidence. The snapshot-runtime bridge provenance tests are green on the latest contract run.
+
+No production model logic, probabilities, calibration, thresholds or release flags were changed. Oracle V1.6 remains the protected production benchmark; research outputs remain `production_eligible=false` and `betting_eligible=false`.
