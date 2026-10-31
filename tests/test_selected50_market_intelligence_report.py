@@ -1,5 +1,6 @@
 import importlib.util
 import unittest
+import json
 import tempfile
 from pathlib import Path
 from openpyxl import load_workbook
@@ -116,8 +117,20 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             [target_runtime], [prior, target_archive]
         )
         self.assertEqual(trace[0]["h2h_n"], 1)
-        self.assertEqual(trace[0]["h2h_scope"], "VERIFIED_PROVIDER_COMPETITION_CROSS_SEASON")
+        self.assertEqual(trace[0]["h2h_scope"], "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE")
         self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
+    def test_same_season_competition_key_is_not_claimed_as_cross_season_coverage(self):
+        prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", league="L1")
+        target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                                     season="S2", league="L1")
+        target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
+        report, trace, _ = market_report.build_report([target_runtime], [prior, target_archive])
+        self.assertEqual(trace[0]["h2h_scope"], "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE")
+        meetings = json.loads(trace[0]["h2h_meetings_detail"])
+        self.assertEqual(meetings[0]["provider_season_id"], "S1")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
     def test_venue_split_form_is_exposed_in_evidence_trace(self):
