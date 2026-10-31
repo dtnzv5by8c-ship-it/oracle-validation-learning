@@ -533,7 +533,7 @@ def base_row(runtime, league_name, join_status):
 def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None):
     wb = Workbook()
     ws = wb.active
-    ws.title = "Market Intelligence"
+    ws.title = "Oracle V1.6 Output"
     ws.append(HEADERS)
     for row in rows:
         ws.append([row.get(h, "") for h in HEADERS])
@@ -569,6 +569,93 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             for cell in cells:
                 cell.alignment = Alignment(vertical="top", wrap_text=True)
         return sh
+
+    # Consolidated analyst view. Production output remains separately preserved.
+    trace = trace or []
+    trace_by_fixture = {str(x.get("fixture_id") or "").strip(): x for x in trace}
+    goal_by_fixture = {str(x.get("fixture_id") or "").strip(): x for x in (goal_market_rows or [])}
+    decision_headers = HEADERS + [
+        "Fixture ID", "Provider Season ID", "Home Team ID", "Away Team ID",
+        "Schedule Reconciliation", "History Cutoff UTC",
+        "Home Last-5 Form", "Home Last-5 N", "Home Goals For Avg", "Home Goals Against Avg",
+        "Home Points Per Game", "Home-at-Home N", "Home-at-Home Form",
+        "Away Last-5 Form", "Away Last-5 N", "Away Goals For Avg", "Away Goals Against Avg",
+        "Away Points Per Game", "Away-Away N", "Away-Away Form",
+        "Home League Position", "Away League Position", "League Table Status",
+        "H2H Last-5", "H2H N", "H2H Avg Total Goals",
+        "Goal Research Status", "Goal Research Model ID",
+        "Research Over 1.5 %", "Research Over 2.5 %", "Research Under 4.5 %",
+        "Research Home Over 1.5 %", "Research Away Over 1.5 %",
+        "Home Expected Goals Lambda", "Away Expected Goals Lambda",
+        "Goal Research Home/Away Sample N", "Goal Research League Prior N",
+        "Goal Research Source", "Goal Research Block Reason",
+        "Historical Accuracy Status", "A+ Setup Status",
+        "Evidence / Schedule Gate", "Production Eligible", "Betting Eligible",
+        "History Source Fixture IDs"
+    ]
+    decision_rows = []
+    for base_row_data in rows:
+        fid = str(base_row_data.get("Fixture ID") or "").strip()
+        t = trace_by_fixture.get(fid, {})
+        g = goal_by_fixture.get(fid, {})
+        extra = {
+            "Fixture ID": fid,
+            "Provider Season ID": t.get("archive_provider_season_id", g.get("provider_season_id", "")),
+            "Home Team ID": t.get("archive_home_team_id", g.get("home_team_id", "")),
+            "Away Team ID": t.get("archive_away_team_id", g.get("away_team_id", "")),
+            "Schedule Reconciliation": t.get("schedule_reconciliation_status", "UNAVAILABLE"),
+            "History Cutoff UTC": t.get("history_cutoff_utc", ""),
+            "Home Last-5 Form": t.get("home_form", ""),
+            "Home Last-5 N": t.get("home_form_n", ""),
+            "Home Goals For Avg": t.get("home_form_gf_avg", ""),
+            "Home Goals Against Avg": t.get("home_form_ga_avg", ""),
+            "Home Points Per Game": t.get("home_form_ppg", ""),
+            "Home-at-Home N": t.get("home_at_home_form_n", ""),
+            "Home-at-Home Form": t.get("home_at_home_form", ""),
+            "Away Last-5 Form": t.get("away_form", ""),
+            "Away Last-5 N": t.get("away_form_n", ""),
+            "Away Goals For Avg": t.get("away_form_gf_avg", ""),
+            "Away Goals Against Avg": t.get("away_form_ga_avg", ""),
+            "Away Points Per Game": t.get("away_form_ppg", ""),
+            "Away-Away N": t.get("away_away_form_n", ""),
+            "Away-Away Form": t.get("away_away_form", ""),
+            "Home League Position": t.get("home_league_position", ""),
+            "Away League Position": t.get("away_league_position", ""),
+            "League Table Status": t.get("league_table_status", ""),
+            "H2H Last-5": t.get("h2h_form", t.get("h2h_results", "")),
+            "H2H N": t.get("h2h_n", ""),
+            "H2H Avg Total Goals": t.get("h2h_avg_total_goals", ""),
+            "Goal Research Status": g.get("forecast_status", g.get("status", "NOT_AVAILABLE")),
+            "Goal Research Model ID": g.get("model_id", ""),
+            "Research Over 1.5 %": g.get("over15_probability_pct", "NOT_AVAILABLE"),
+            "Research Over 2.5 %": g.get("over25_probability_pct", "NOT_AVAILABLE"),
+            "Research Under 4.5 %": g.get("under45_probability_pct", "NOT_AVAILABLE"),
+            "Research Home Over 1.5 %": g.get("home_over15_probability_pct", "NOT_AVAILABLE"),
+            "Research Away Over 1.5 %": g.get("away_over15_probability_pct", "NOT_AVAILABLE"),
+            "Home Expected Goals Lambda": g.get("home_lambda", ""),
+            "Away Expected Goals Lambda": g.get("away_lambda", ""),
+            "Goal Research Home/Away Sample N": str(g.get("home_overall_n", "")) + "/" + str(g.get("away_overall_n", "")),
+            "Goal Research League Prior N": g.get("league_prior_n", ""),
+            "Goal Research Source": "Home:" + str(g.get("home_lambda_source", "")) + "; Away:" + str(g.get("away_lambda_source", "")),
+            "Goal Research Block Reason": g.get("blocked_reason", ""),
+            "Historical Accuracy Status": base_row_data.get("Historical Accuracy Status", "NOT_VALIDATED"),
+            "A+ Setup Status": base_row_data.get("A+ Setup Status", "NOT_GRADED"),
+            "Evidence / Schedule Gate": (
+                "REVIEW_REQUIRED_SCHEDULE_DISCORDANCE" if t.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"
+                else "EXACT_JOIN_EVIDENCE_AVAILABLE" if str(t.get("join_status", "")).startswith("PASS")
+                else "BLOCKED_OR_UNAVAILABLE"
+            ),
+            "Production Eligible": "NO",
+            "Betting Eligible": "NO",
+            "History Source Fixture IDs": ";".join(x for x in (
+                str(t.get("home_form_source_fixture_ids") or ""),
+                str(t.get("away_form_source_fixture_ids") or "")
+            ) if x)
+        }
+        decision_rows.append({**base_row_data, **extra})
+    decision_sheet = add_sheet("Market Intelligence", decision_headers, decision_rows)
+    decision_sheet.freeze_panes = "D2"
+    decision_sheet.row_dimensions[1].height = 54
 
     h2h_rows = []
     team_rows = []
