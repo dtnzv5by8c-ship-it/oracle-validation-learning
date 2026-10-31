@@ -185,5 +185,19 @@ class SnapshotValidatorTests(unittest.TestCase):
         self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
 
+    def test_snapshot_workflow_is_branch_guarded_and_commit_pinned(self):
+        workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
+        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" ]]'
+        self.assertIn(guard, workflow)
+        guard_position = workflow.index("Enforce governed research branch before any provider access")
+        provider_position = workflow.index("Run paced sequential league-matches requests")
+        self.assertLess(guard_position, provider_position)
+        self.assertGreaterEqual(workflow.count("ref: ${{ github.sha }}"), 2)
+        self.assertNotIn(
+            "ref: research/oracle-50-league-readiness-audit\n          path: research-source",
+            workflow,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
