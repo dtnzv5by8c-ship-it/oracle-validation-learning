@@ -329,3 +329,20 @@ Required workbook structure:
 - Candidate probabilities stay research-only and are never presented as Oracle V1.6 production predictions or betting recommendations until chronological, per-league, held-out validation, calibration and odds/value tests demonstrate a defensible edge and a separately approved promotion decision is recorded.
 
 Latest measured Run 41195852697 findings (2026-10-31): archive feature build completed with 59,049 records / 200 season folders / 51,983 score-and-settlement-complete records / zero parse errors / zero provider API calls. The goal engine emitted 434 target fixture rows: 422 forecastable and 12 blocked. Walk-forward backtest had 46,687 observations per market. Candidate vs league-baseline deltas (positive means improvement): Over 1.5 Brier -0.00019, log loss +0.00006; Over 2.5 Brier -0.00081, log loss -0.00181; Under 4.5 Brier +0.00016, log loss -0.00010; Home Over 1.5 Brier +0.00423, log loss +0.00844; Away Over 1.5 Brier +0.00253, log loss +0.00575. Results are mixed; all remain uncalibrated and research-only. The workbook rebuild failed solely because the workflow passed a stray literal backslash to argparse. Fix commit a8629d2d5a11e24083685adcbe058776939d734c corrects the line continuation. Re-run the full archive dispatch and inspect uploaded artifacts before claiming weekly deliverable completion.
+
+
+## 10. Blocked goal-research row integrity repair — 2026-10-31
+
+- Live continuation recovered the governed branch and latest successful full repair run 41196863522 before editing.
+- Identified a report integrity defect: early returns from the experimental goal engine did not consistently include production_eligible=NO, betting_eligible=NO, a human-readable block reason, required sample thresholds, or a blocked forecast label.
+- Commit 99de34ee80118cb66e21c1e2d0bbb67e99994988 updates scripts/build_goal_market_research_engine.py:
+  - central blocked() response contract for all blocked conditions;
+  - explicit block reasons and non-eligibility flags;
+  - league minimum 20 and additional league matches required;
+  - team minimum 3 and additional home/away team matches required;
+  - blocked forecast label BLOCKED_NO_RESEARCH_ESTIMATE;
+  - successful research rows remain EXPERIMENTAL_UNCALIBRATED, production/betting ineligible;
+  - QA fails closed if any blocked row lacks a reason or false eligibility flags; emits blocked reason counts and fixture IDs.
+- Commit 3fa8f778f9ac3aa983ff9b15e126b549422a7dbf adds regression tests for explicit league-baseline and team-history block outputs.
+- Next verification: inspect push-triggered GitHub Actions test runs for both goal-engine and Selected-50 report suites. Do not manually dispatch a full archive workflow until the test run passes. Then dispatch using the pinned archive tag and runtime run ID in Section 2; verify blocked-row fields in the generated workbook and QA.
+- This is a reporting/research-quality correction only. Oracle V1.6 production logic, probabilities, 38-column production schema, archive contents, and provider API usage remain unchanged.
