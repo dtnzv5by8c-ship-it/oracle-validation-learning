@@ -17,5 +17,6 @@ H2H,p90_abs_over25_delta_hl365_vs_hl730_pp,6.605994265238261,Half-life sensitivi
 H2H,over25_abs_delta_gt10pp,88,Number of pair profiles with >10pp shift between half-lives.
 H2H,btts_abs_delta_gt10pp,87,Number of pair profiles with >10pp shift between half-lives.
 COVERAGE,profiled_groups,31,19 of 50 groups remain without accessible raw JSON; no zero-fill.
+FEATURE_EDGE,v8_binary_merged,false,Separate Feature Edge Run 3 v8 binary was not available for a verified merge in this Team/H2H run.
 GOVERNANCE,production_eligible,false,Research-only.
 GOVERNANCE,betting_eligible,false,Research-only.
