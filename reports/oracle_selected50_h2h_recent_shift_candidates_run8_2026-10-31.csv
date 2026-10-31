@@ -1,0 +1,2 @@
+selected_id,team_a_id,team_a,team_b_id,team_b,meetings_n,ESS365,ESS730,last5_avg_total_goals,prior5_avg_total_goals,last5_over25,prior5_over25,CI_nonoverlap,decision
+17181,595,LASK Linz,599,Hartberg,10,8.3826,9.5365,4.4,1.6,0.8,0.2,false,Descriptive only; Wilson intervals overlap
