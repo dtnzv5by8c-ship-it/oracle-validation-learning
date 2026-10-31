@@ -1,0 +1,94 @@
+{
+  "generated_sast": "2026-10-31T04:04:09+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "parent_commit": "1777791b27d33a9f06b524b0bd6e6ae00fc30709",
+  "prior_checkpoint": "reports/oracle_selected50_feature_edge_run4_checkpoint_2026-10-31-0302-sast.json",
+  "incorporated_checkpoints": [
+    "reports/oracle_selected50_team_h2h_shrinkage_checkpoint_2026-10-31-0322-sast.json",
+    "reports/oracle_selected50_archive_recovery_manifest_2026-10-31-0335.json"
+  ],
+  "new_evidence": {
+    "team_profiles": 732,
+    "team_profile_groups_available": 31,
+    "team_profile_groups_unavailable": 19,
+    "team_median_effective_n_365d": 62.5429138854,
+    "team_median_effective_n_730d": 70.7328129781,
+    "team_effective_n_ge30_365d": 648,
+    "team_effective_n_ge30_730d": 650,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "h2h_median_effective_n_365d": 2.8017847281,
+    "h2h_median_effective_n_730d": 2.9469621173,
+    "h2h_reliability_tiers": {
+      "BOTH >=8": 1,
+      "730D >=8 ONLY": 67,
+      "BOTH >=5": 318,
+      "BELOW RECENCY RELIABILITY SCREEN": 6802
+    },
+    "team_shrunk_scoring_profiles": 13,
+    "team_shrunk_high": 9,
+    "team_shrunk_low": 4,
+    "private_archive_workflow_runs_checked": 70,
+    "private_archive_workflow_runs_failed": 70,
+    "private_archive_artifacts_returned": 0,
+    "private_archive_artifact_probes": 70,
+    "private_archive_failure_reason": "UNRESOLVED; run 40447688046 job logs_url=null, steps=null; log retrieval 404 BlobNotFound."
+  },
+  "ranking_carryforward": {
+    "ranking_asof_sast": "2026-10-31T03:02:03+02:00",
+    "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942Z",
+    "snapshot_age_hours_at_checkpoint": 6.29175,
+    "rankable_candidates": 319,
+    "groups": 37,
+    "top50_rows_per_market": 50,
+    "exact_runtime_bridge_matches_per_market": 50,
+    "top50_quarantined": 0,
+    "top50_kickoff_mismatches": 0,
+    "top3_per_league_rows_per_market": 111,
+    "top3_overall_per_market": 3,
+    "earliest_top50_kickoff_sast": "2026-10-31T07:00:00+02:00",
+    "refreshed": false
+  },
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Run5_Shrinkage_Archive_Recovery_0404SAST.xlsx",
+    "sha256": "27cba94ab2ddd7d050cfad73c7302fc92190cc380703c247193b941df2695c46",
+    "bytes": 15975546,
+    "sheets": 95,
+    "base_filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v11_Feature_Edge_H2H_Recency_0302SAST.xlsx",
+    "base_sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+    "original_sheets": 85,
+    "original_sheet_values_unchanged": true,
+    "new_sheets": [
+      "Run5 Team Reliability",
+      "Run5 Team Shrunk Scoring",
+      "Run5 H2H Reliability Gate",
+      "Run5 Shrinkage Summary",
+      "Run5 Archive Recovery",
+      "Run5 Archive Source Gate",
+      "Run5 Ranking Carryforward",
+      "Run5 Lineage",
+      "Run5 Feature Decision Update",
+      "Run5 Executive Delta"
+    ]
+  },
+  "research_bundle": {
+    "filename": "Project_Oracle_Feature_Edge_Run5_Research_Bundle_2026-10-31-0404SAST.zip",
+    "sha256": "debddc481fb39fe3df12076437bde63c6724fadc9a164c3583ac8295bf563679",
+    "bytes": 15658822
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "next_actions": [
+    "Recover a separately retained exact selected-50 raw archive copy, or request explicit authorization for new report-only ingestion; do not rerun failed workflow automatically.",
+    "Obtain immutable pre-kickoff publication provenance for xG, shots, odds and historical standings.",
+    "Only then run direct incremental chronological ablations against frozen Oracle V1.6.",
+    "Refresh fixture rankings only when a new verified snapshot/runtime/bridge artifact is available."
+  ]
+}
