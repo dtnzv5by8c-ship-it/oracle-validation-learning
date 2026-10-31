@@ -193,8 +193,18 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                 self.assertIn(sheet, workbook.sheetnames)
             self.assertGreaterEqual(workbook["H2H Intelligence"].max_row, 2)
             self.assertEqual(workbook["Archive Field Coverage"].max_row, 3)
+            goal_sheet = workbook["Goal Intelligence"]
             self.assertIn("HISTORICAL_EMPIRICAL_RATE_NOT_PREDICTION_PROBABILITY",
-                          [cell.value for row in workbook["Goal Intelligence"].iter_rows(min_row=2, max_row=2) for cell in row])
+                          [cell.value for row in goal_sheet.iter_rows(min_row=2, max_row=2) for cell in row])
+            goal_headers = [cell.value for cell in goal_sheet[1]]
+            self.assertIn("home_last5_goals_scored_avg", goal_headers)
+            self.assertIn("home_last5_goals_conceded_avg", goal_headers)
+            self.assertIn("home_at_home_goals_scored_avg", goal_headers)
+            self.assertIn("away_away_goals_conceded_avg", goal_headers)
+            goal_values = dict(zip(goal_headers, [cell.value for cell in goal_sheet[2]]))
+            self.assertEqual(goal_values["home_last5_goals_scored_avg"], "1.60")
+            self.assertEqual(goal_values["home_last5_goals_conceded_avg"], "1.40")
+            self.assertEqual(goal_values["home_at_home_goals_scored_avg"], "1.50")
             workbook.close()
 
     def test_duplicate_runtime_keys_fail_closed(self):
