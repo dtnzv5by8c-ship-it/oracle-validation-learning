@@ -47,10 +47,10 @@
   "outputs": {
     "workbook": {
       "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v10_League_Market_DNA_0235SAST.xlsx",
-      "sha256": "cf7879a5b1da254f8f92360dc5dda3679589168dbffa10b4936a8e056f0edc1b",
-      "bytes": 638132,
+      "sha256": "6f1e1d1aff0ece3e37ea55331657b6742446f0ca54dfa4ad69710323b93efa51",
+      "bytes": 638231,
       "sheets": 42,
-      "delivery": "conversation attachment and research pack; binary workbook not committed as a text file"
+      "delivery": "Final openpyxl-verified binary workbook attached in conversation and included in research pack; branch carries note, manifest and compact CSV evidence."
     },
     "research_note": {
       "path": "reports/ORACLE_SELECTED50_LEAGUE_MARKET_DNA_INCREMENTAL_RESEARCH_2026-10-31-0235-SAST.md",
@@ -58,8 +58,8 @@
     },
     "research_pack": {
       "filename": "Oracle_Selected50_League_Market_DNA_Run4_Research_Pack_31Oct2026_0235SAST.zip",
-      "sha256": "7a40a3976ff165379bf1d6a7b772a742c5672799c4f9c342322eb40ccbaa8f6f",
-      "bytes": 691154
+      "sha256": "0ea4ab73564f8994e2d08e356dd3320a5a3b3fc705ba7ea681aebe69be7f1ca4",
+      "bytes": 689884
     }
   },
   "qa": {
