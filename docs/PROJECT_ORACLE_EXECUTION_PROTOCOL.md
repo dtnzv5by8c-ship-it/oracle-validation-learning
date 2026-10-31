@@ -450,3 +450,13 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - xG is not passed to goal-market research or Oracle V1.6. No production probabilities or frozen 38-column output fields are changed. The existing 83-column analyst view is untouched.
 - Workflow artifact is extended to include xG audit CSV/QA and the archive match-field audit CSV so the source evidence can be inspected.
 - Regression tests cover exact identity, ordered-team mismatch, missing identity, duplicate archive identity and quarantine policy. Passing CI and a fresh full manual run are still required before calling the implementation verified.
+
+
+### xG audit regression and artifact-scope verification — 2026-10-31
+
+- Push-triggered Market Intelligence report regression run 41204754305 passed: 18 report tests and 6 goal-market tests. The xG tests cover exact ordered composite joins, mismatched order, missing identity and duplicate archive identities; workbook-level verification confirms the xG tab and unchanged 38-column Oracle V1.6 output.
+- Push-triggered dry-run planner run 41204761595 passed all steps.
+- The separate safety-contract run 41204761590 failed only at the existing snapshot-runtime-bridge provenance test; all earlier contract steps passed. This is outside the reporting-only change. Do not modify that runtime bridge in this task.
+- During artifact review, identified that uploading archive-audit/match_field_audit.csv would publish the full 59,049-row source-derived archive field audit from a public repository workflow. Removed that path from the workflow artifact. Keep the full source audit inside the runner only; publish the selected fixture-level xG audit (434 rows for the pinned runtime horizon), its QA, the report and the archive summary.
+- Latest implementation commits include xG builder/tab/CSV, regression tests, report template v1.1 and the public-artifact scope restriction. A new full manual report run is still required. The successful run 41204195626 predates the xG tab.
+- No full raw archive is uploaded, no provider API calls are made, no production logic or probabilities are changed, and no xG input is enabled in goal-market research.
