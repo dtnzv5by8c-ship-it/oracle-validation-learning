@@ -27,6 +27,8 @@ on:
       - "scripts/build_selected50_market_intelligence_report.py"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
+      - "scripts/build_goal_market_research_engine.py"
+      - "tests/test_goal_market_research_engine.py"
 
 permissions:
   actions: read
