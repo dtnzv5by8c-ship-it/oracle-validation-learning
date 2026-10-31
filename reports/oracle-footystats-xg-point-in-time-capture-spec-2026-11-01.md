@@ -18,7 +18,7 @@ For the current Selected-50 report, 434 upcoming fixtures have numeric pre-match
 
 ## 2. What public documentation establishes — and does not establish
 
-The public Match Details documentation shows a completed historical-match example containing actual-match xG and `team_a_xg_prematch`, `team_b_xg_prematch` and `total_xg_prematch`. Its documented request parameters are `key` and `match_id`; the example response does not expose a capture timestamp, immutable snapshot identifier or revision history.
+The public Match Details documentation shows a completed historical-match example containing actual-match xG and `team_a_xg_prematch`, `team_b_xg_prematch` and `total_xg_prematch`. However, those xG fields appear in the sample JSON but are omitted from the endpoint's published variable-name/description table. The documented request parameters are `key` and `match_id`; the example response does not expose a capture timestamp, immutable snapshot identifier or revision history. This leaves both field semantics and point-in-time lifecycle undocumented in the public endpoint reference.
 
 The League Matches documentation describes `max_time` as an as-of timestamp for league/team statistics. It does not document this parameter as an immutable per-fixture xG snapshot or historical revision endpoint.
 
