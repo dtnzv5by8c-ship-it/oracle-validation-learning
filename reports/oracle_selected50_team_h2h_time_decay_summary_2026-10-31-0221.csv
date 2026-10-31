@@ -1,0 +1,21 @@
+profile_type,metric,value,interpretation
+TEAM,profiles,732,Exact composite selected_id + provider team_id keys across 31/50 accessible selected groups.
+TEAM,median_effective_n_hl365,62.54291388537641,Kish effective sample size; not raw match count.
+TEAM,median_effective_n_hl730,70.73281297809187,Kish effective sample size; not raw match count.
+TEAM,effective_n_ge30_hl365,648,Descriptive tier; 365d half-life.
+TEAM,effective_n_ge30_hl730,650,Descriptive tier; 730d half-life.
+H2H,exact_pairs,7188,Exact selected_id + ordered provider team-ID pairs.
+H2H,chronological_meetings,23328,Unique fixture IDs; UTC chronology; 100% raw record hash coverage.
+H2H,median_effective_n_hl365,2.8017847282539137,Kish effective sample size; only one pair reaches 8.
+H2H,median_effective_n_hl730,2.9469621173218457,Kish effective sample size; 68 pairs reach 8.
+H2H,effective_n_ge8_hl365,1,8+ effective meetings; descriptive only.
+H2H,effective_n_ge8_hl730,68,8+ effective meetings; descriptive only.
+TEAM,median_abs_over25_delta_hl365_vs_hl730_pp,0.6873541292561403,Half-life sensitivity; not a model edge.
+TEAM,p90_abs_over25_delta_hl365_vs_hl730_pp,2.02625882293778,Half-life sensitivity; not a model edge.
+H2H,median_abs_over25_delta_hl365_vs_hl730_pp,2.128317326053533,Half-life sensitivity; not a model edge.
+H2H,p90_abs_over25_delta_hl365_vs_hl730_pp,6.605994265238261,Half-life sensitivity; not a model edge.
+H2H,over25_abs_delta_gt10pp,88,Number of pair profiles with >10pp shift between half-lives.
+H2H,btts_abs_delta_gt10pp,87,Number of pair profiles with >10pp shift between half-lives.
+COVERAGE,profiled_groups,31,19 of 50 groups remain without accessible raw JSON; no zero-fill.
+GOVERNANCE,production_eligible,false,Research-only.
+GOVERNANCE,betting_eligible,false,Research-only.
