@@ -218,16 +218,32 @@ def exact_join(runtime_rows, archive_rows):
             archive_row = index[key][0]
             runtime_kickoff = parse_dt(row.get("date_utc"))
             archive_kickoff = parse_dt(archive_row.get("kickoff_utc"))
-            if runtime_kickoff is None or archive_kickoff is None or runtime_kickoff != archive_kickoff:
-                missing.append((row, "KICKOFF_MISMATCH_OR_UNPARSEABLE", archive_row))
+            if runtime_kickoff is None or archive_kickoff is None:
+                missing.append((row, "KICKOFF_UNPARSEABLE", archive_row))
             else:
+                # Fixture identity is exact. A schedule discrepancy is a separate QA condition:
+                # use runtime kickoff as the pre-match cutoff, retain the archived time as evidence,
+                # and exclude this target fixture from every historical feature pool.
                 joined[key] = archive_row
+                if runtime_kickoff != archive_kickoff:
+                    missing.append((row, "SCHEDULE_KICKOFF_MISMATCH", archive_row))
     return joined, missing, duplicates
 
 
 def build_report(runtime_rows, archive_rows):
     joined, missing, duplicate_archive_keys = exact_join(runtime_rows, archive_rows)
-    by_team, by_season, by_pair, history_duplicates = build_indexes(archive_rows)
+    schedule_conflict_fixture_ids = {
+        str(row.get("fixture_id") or "").strip()
+        for row, reason, *_ in missing
+        if reason == "SCHEDULE_KICKOFF_MISMATCH"
+    }
+    # Never let schedule-discordant target records contribute to any fixture's historical
+    # form, table, scoring baseline or H2H until their event time is reconciled.
+    history_archive_rows = [
+        row for row in archive_rows
+        if str(row.get("fixture_id") or "").strip() not in schedule_conflict_fixture_ids
+    ]
+    by_team, by_season, by_pair, history_duplicates = build_indexes(history_archive_rows)
     output, trace = [], []
     leagues = set()
     seen_runtime = set()
@@ -241,6 +257,8 @@ def build_report(runtime_rows, archive_rows):
         seen_runtime.add(key)
         target = joined.get(key)
         cutoff = parse_dt(runtime.get("date_utc"))
+        schedule_entry = next((entry for entry in missing
+                               if entry[0] is runtime and entry[1] == "SCHEDULE_KICKOFF_MISMATCH"), None)
         if target is None or cutoff is None:
             failure_entry = next((entry for entry in missing if entry[0] is runtime), None)
             reason = failure_entry[1] if failure_entry else "MISSING_ARCHIVE_JOIN_OR_KICKOFF"
@@ -330,6 +348,13 @@ def build_report(runtime_rows, archive_rows):
         trace.append({
             "fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
             "join_status": "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS",
+            "schedule_reconciliation_status": "MISMATCH_REVIEW_REQUIRED" if schedule_entry else "MATCH",
+            "runtime_kickoff_utc": runtime.get("date_utc", ""),
+            "archive_kickoff_utc": target.get("kickoff_utc", ""),
+            "schedule_discordance_minutes": (
+                int((parse_dt(target.get("kickoff_utc")) - cutoff).total_seconds() / 60)
+                if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
+            ),
             "home_form_n": hf["n"], "away_form_n": af["n"], "h2h_n": len(h2h),
             "home_league_position": hpos or "", "away_league_position": apos or "",
             "league_table_status": "PROVISIONAL_CONVENTIONAL_TABLE" if hpos and apos else "TABLE_POSITION_INSUFFICIENT_OR_UNAVAILABLE",
@@ -358,6 +383,9 @@ def build_report(runtime_rows, archive_rows):
         "duplicate_archive_composite_keys": len(duplicate_archive_keys),
         "duplicate_archive_history_rows": history_duplicates,
         "duplicate_runtime_keys": len(runtime_rows) - len(seen_runtime),
+        "schedule_discordance_rows": len(schedule_conflict_fixture_ids),
+        "schedule_discordance_fixture_ids": sorted(schedule_conflict_fixture_ids),
+        "schedule_reconciliation_gate": "REVIEW_REQUIRED" if schedule_conflict_fixture_ids else "PASS",
         "join_failure_reason_counts": {reason: sum(1 for entry in missing if entry[1] == reason) for reason in sorted({entry[1] for entry in missing})},
         "join_failure_examples": [
             {"reason": reason, "runtime_key": list(runtime_key(row)),
@@ -512,7 +540,8 @@ def main():
             "competition_name": item.get("competition_name", ""),
             "runtime_fixture_rows": sum(1 for r in runtime_rows if str(r.get("selected_id") or "").strip() == sid),
             "exact_archive_joins": sum(1 for r in league_trace if r.get("join_status") == "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"),
-            "quarantined_rows": sum(1 for r in league_trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"),
+            "quarantined_rows": sum(1 for r in league_trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"),
+            "schedule_discordance_rows": sum(1 for r in league_trace if r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"),
             "schedule_coverage_status": item.get("schedule_coverage_status", ""),
         })
     column_status_counts = {}
@@ -553,13 +582,14 @@ def main():
         "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "FAIL",
         "column_nonempty_counts": {h: sum(1 for r in report if r.get(h) not in ("", None)) for h in HEADERS},
         "required_join_gate": "PASS" if summary["unmatched_or_quarantined_rows"] == 0 and summary["duplicate_archive_composite_keys"] == 0 else "BLOCKED",
+        "schedule_reconciliation_gate": "REVIEW_REQUIRED" if summary.get("schedule_discordance_rows", 0) else "PASS",
         "all_rows_research_only": True,
-        "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "PARTIAL_RESEARCH_ONLY",
+        "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) and summary.get("schedule_discordance_rows", 0) == 0 else "PARTIAL_RESEARCH_ONLY",
     })
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
               list(dict.fromkeys(k for r in trace for k in r)))
-    quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"]
+    quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
     write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report)
