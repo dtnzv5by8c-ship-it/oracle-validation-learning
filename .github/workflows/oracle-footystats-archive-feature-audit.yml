@@ -76,7 +76,7 @@ jobs:
                       child = filter_suite(item)
                       if child.countTestCases():
                           kept.addTest(child)
-                  elif not item.id().split(".")[-2:-1] == [excluded]:
+                  elif excluded not in item.id():
                       kept.addTest(item)
               return kept
           result = unittest.TextTestRunner(verbosity=2).run(filter_suite(suite))
