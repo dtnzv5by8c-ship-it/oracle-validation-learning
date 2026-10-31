@@ -346,3 +346,14 @@ Latest measured Run 41195852697 findings (2026-10-31): archive feature build com
 - Commit 3fa8f778f9ac3aa983ff9b15e126b549422a7dbf adds regression tests for explicit league-baseline and team-history block outputs.
 - Next verification: inspect push-triggered GitHub Actions test runs for both goal-engine and Selected-50 report suites. Do not manually dispatch a full archive workflow until the test run passes. Then dispatch using the pinned archive tag and runtime run ID in Section 2; verify blocked-row fields in the generated workbook and QA.
 - This is a reporting/research-quality correction only. Oracle V1.6 production logic, probabilities, 38-column production schema, archive contents, and provider API usage remain unchanged.
+
+
+## 11. Full-run follow-up and corrective counter fix — 2026-10-31
+
+- User supplied manual full workflow run 41199109853 on the governed branch and configured pinned archive/runtime inputs.
+- Full run failed at Goal Market Research output after the pinned archive SHA, runtime provenance, both targeted test suites (14 report tests + 4 goal-engine tests), archive build and archive audit passed. Exact root cause: the report summary still referenced the old local variable name `blocked` (now a helper function) when calculating `forecastable_rows`; Python raised `TypeError: unsupported operand type(s) for -: 'int' and 'function'`. The Market Intelligence build was skipped and no report artifact was produced.
+- Fix commit `581d266af5b0b1e0213542b59f8e098231ae17e2`: use `blocked_count` in the summary and print output. The push-triggered workflow at `41199223702` passed the targeted test job, but this push event intentionally skipped private archive/full-build stages; it was not a regenerated report.
+- A subsequent review found a second output-assembly defect: dictionary expansion could overwrite `forecast_label` for a successful row and blocked-row status/reason fields needed explicit serialization. Commit `b3effe4ca67bb52713d5f3600bf894f15ff7d265` adds explicit `forecast_status`, production/betting flags and block reason into every output CSV row.
+- Commit `ec832f8eb168249676e5b6957c2f73f309582589` adds tests for missing exact identity and invalid league-baseline block cases. Targeted report+engine suites passed 14/14 and 6/6 in push run `41199310569` (manual/full workflow stages skipped by design).
+- Safety Contract workflow continues to fail two historical snapshot-runtime-bridge tests unrelated to this repair. Do not change the bridge without separate scope and evidence.
+- Immediate next step: user manually reruns the full workflow with the same governed branch, private archive consent, pinned archive tag, and runtime run ID `41175230838`. Inspect the new run logs and artifacts before publishing. No provider API calls were made in the supplied failed run; no production changes were made.
