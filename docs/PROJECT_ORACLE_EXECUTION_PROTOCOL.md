@@ -215,3 +215,21 @@ At the start of a continuation session, recover the live GitHub branch head and 
 ### Downloadable deliverables
 - Workflow artifact URL: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41182992935/artifacts/13035797497
 - Artifact contents: XLSX, CSV, QA JSON, evidence trace CSV, join quarantine CSV, archive audit summary.
+
+## 10. 2026-10-31 follow-on audit and evidence hardening
+
+### Live-state recovery
+- Recovered the governed branch and re-read the live report builder, test suite, repair specification, workflow definition, Issue #34 and Run #30 job summaries.
+- Confirmed the last completed full archive/report workflow remains Run #30: `41182992935`, successful; its report remains `PARTIAL_RESEARCH_ONLY` with 19 schedule discrepancies pending independent reconciliation.
+- Confirmed Run #30 job steps passed through report generation and artifact upload. No later full repair run was dispatched.
+
+### Reporting-only changes committed
+- `825ed148bd16039fdf09963d1c2339c979fa6148`: schedule-discordant archive rows are now excluded from history by the full exact composite key (provider season ID, fixture ID, ordered home team ID, ordered away team ID), rather than fixture ID alone. The builder also records home-at-home and away-away last-five sample size, form, GF/GA, points and source fixture IDs in the supporting evidence trace. The locked 38-column report is unchanged.
+- `245cac3359c3b0d2aeeb7c4ffdc25c52adea5958` and `b2f7921bab2b76e8947a1bd191abc8cfe5079719`: regression coverage added for composite-key schedule-conflict isolation and venue-split form.
+- No production model code, model logic, probability, threshold, calibration, or eligibility setting was changed.
+
+### Validation and next action
+- The existing Selected-50 push workflow is configured to run the targeted unit suite when these script/test paths change. The GitHub connector did not expose a new Actions run listing or a combined status for the latest test commit at the time of this handover; therefore do not claim these new tests have passed yet.
+- Next: inspect the resulting push-triggered Actions run/checks for commit `b2f7921bab2b76e8947a1bd191abc8cfe5079719`; if the run is not visible, use the repository Actions UI to inspect the workflow. Do not dispatch the full archive workflow solely to test these changes.
+- Rebuild the full report only after targeted tests pass and a new full repair workflow is manually dispatched. Schedule reconciliation remains blocked absent independent authoritative schedule evidence. Do not use provider API credits without explicit authorization.
+- Keep the separate pre-existing snapshot-runtime-bridge contract-test failures isolated; do not modify unrelated runtime bridge code in this workstream.
