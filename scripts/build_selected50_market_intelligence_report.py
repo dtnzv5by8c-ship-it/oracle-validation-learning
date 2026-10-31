@@ -78,6 +78,22 @@ def valid_score(row):
         return False
 
 
+def h2h_average_total_goals(trace_row):
+    """Mean goals across exact, strictly pre-cutoff H2H meetings already in trace."""
+    try:
+        meetings = json.loads(trace_row.get("h2h_meetings_detail") or "[]")
+    except (TypeError, ValueError):
+        meetings = []
+    totals = []
+    for meeting in meetings:
+        try:
+            total = float(meeting.get("home_goals")) + float(meeting.get("away_goals"))
+            if math.isfinite(total) and total >= 0:
+                totals.append(total)
+        except (TypeError, ValueError, OverflowError):
+            continue
+    return round(sum(totals) / len(totals), 2) if totals else "NO_VERIFIED_PRIOR_H2H"
+
 def archive_key(row):
     return (
         str(row.get("provider_season_id") or "").strip(),
@@ -616,20 +632,20 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "Home Goals Against Avg": t.get("home_form_ga_avg", ""),
             "Home Points Per Game": t.get("home_form_ppg", ""),
             "Home-at-Home N": t.get("home_at_home_form_n", ""),
-            "Home-at-Home Form": t.get("home_at_home_form", ""),
+            "Home-at-Home Form": t.get("home_at_home_form") or "NOT_AVAILABLE_INSUFFICIENT_VENUE_SAMPLE",
             "Away Last-5 Form": t.get("away_form", ""),
             "Away Last-5 N": t.get("away_form_n", ""),
             "Away Goals For Avg": t.get("away_form_gf_avg", ""),
             "Away Goals Against Avg": t.get("away_form_ga_avg", ""),
             "Away Points Per Game": t.get("away_form_ppg", ""),
             "Away-Away N": t.get("away_away_form_n", ""),
-            "Away-Away Form": t.get("away_away_form", ""),
+            "Away-Away Form": t.get("away_away_form") or "NOT_AVAILABLE_INSUFFICIENT_VENUE_SAMPLE",
             "Home League Position": t.get("home_league_position", ""),
             "Away League Position": t.get("away_league_position", ""),
             "League Table Status": t.get("league_table_status", ""),
             "H2H Last-5": base_row_data.get("H2H Last 5 Summary", ""),
             "H2H N": t.get("h2h_n", ""),
-            "H2H Avg Total Goals": base_row_data.get("H2H Avg Total Goals", ""),
+            "H2H Avg Total Goals": h2h_average_total_goals(t),
             "Goal Research Status": g.get("forecast_status", g.get("status", "NOT_AVAILABLE")),
             "Goal Research Model ID": g.get("model_id", ""),
             "Research Over 1.5 %": g.get("over15_probability_pct", "NOT_AVAILABLE"),
@@ -642,7 +658,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "Goal Research Home/Away Sample N": str(g.get("home_overall_n", "")) + "/" + str(g.get("away_overall_n", "")),
             "Goal Research League Prior N": g.get("league_prior_n", ""),
             "Goal Research Source": "Home:" + str(g.get("home_lambda_source", "")) + "; Away:" + str(g.get("away_lambda_source", "")),
-            "Goal Research Block Reason": g.get("blocked_reason", ""),
+            "Goal Research Block Reason": g.get("blocked_reason") or ("NONE_FORECASTABLE_RESEARCH_ONLY" if g.get("forecast_status") == "EXPERIMENTAL_UNCALIBRATED" else "NOT_AVAILABLE_REASON_NOT_RETURNED"),
             "Historical Accuracy Status": base_row_data.get("Historical Accuracy Status", "NOT_VALIDATED"),
             "A+ Setup Status": base_row_data.get("A+ Setup Status", "NOT_GRADED"),
             "Evidence / Schedule Gate": (
