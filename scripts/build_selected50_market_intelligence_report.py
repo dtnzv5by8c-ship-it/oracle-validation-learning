@@ -367,7 +367,8 @@ def build_report(runtime_rows, archive_rows):
              "archive_source_row": archive_row.get("source_row", "") if len(entry) > 2 else "",
              "home_team": row.get("home_team", ""), "away_team": row.get("away_team", "")}
             for entry in missing[:25]
-    for row, reason, *_ in [entry]
+            for row, reason, *extras in [entry]
+            for archive_row in [extras[0] if extras else {}]
         ],
     }
 
