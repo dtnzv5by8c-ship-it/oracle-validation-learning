@@ -530,7 +530,7 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows, trace=None):
+def write_xlsx(path, rows, trace=None, archive_summary=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Market Intelligence"
@@ -694,6 +694,18 @@ def write_xlsx(path, rows, trace=None):
     add_sheet("Market Data Coverage",
         ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
          "not_validated_or_not_graded", "coverage_pct"], coverage)
+    archive_summary = archive_summary or {}
+    raw_counts = archive_summary.get("field_nonempty_counts", {})
+    archive_total = archive_summary.get("archive_match_records", 0)
+    archive_coverage = [{
+        "raw_source_field": field, "records_with_value": count,
+        "archive_match_records": archive_total,
+        "coverage_pct": round(100 * count / archive_total, 2) if archive_total else 0,
+        "interpretation": "Field presence only; not proof of pre-kickoff availability or valid semantics."
+    } for field, count in sorted(raw_counts.items(), key=lambda item: item[0].casefold())]
+    add_sheet("Archive Field Coverage",
+        ["raw_source_field", "records_with_value", "archive_match_records", "coverage_pct", "interpretation"],
+        archive_coverage)
     definitions = [
         {"term": "Market probability", "definition": "Only raw supported Oracle runtime probabilities are predictions. Unsupported markets remain unavailable; empirical rates are not forecasts."},
         {"term": "Historical H2H", "definition": "Prior completed meetings for the exact stable team-ID pair within the same explicit provider competition ID, strictly before fixture kickoff. Falls back to exact season when competition ID is absent."},
@@ -804,7 +816,7 @@ def main():
     quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
-    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace)
+    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
