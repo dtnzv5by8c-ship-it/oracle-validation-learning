@@ -1,0 +1,134 @@
+{
+  "run": "Oracle Feature Edge & Fixture Rankings Run 3",
+  "generated_sast": "2026-10-31T02:02:30+02:00",
+  "repository": "dtnzv5by8c-ship-it/oracle-validation-learning",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "parent_commit": "008817d99c9b4bef834fd17030d3e1b047ef0f59",
+  "source_workflows": {
+    "snapshot_run_id": 41117910952,
+    "snapshot_artifact_id": 13005239530,
+    "runtime_run_id": 41119141526,
+    "runtime_artifact_id": 13006609602,
+    "bridge_audit_run_id": 41121900062,
+    "bridge_artifact_id": 13009350718
+  },
+  "snapshot_retrieved_utc": "2026-10-30T19:46:39.708942+00:00",
+  "snapshot_age_hours_at_cutoff": 4.264,
+  "ranking_funnel": {
+    "runtime_rows": 426,
+    "exact_fixture_team_id_joins": 426,
+    "source_quarantined_rows": 79,
+    "future_feature_blocked_rows": 22,
+    "pre_kickoff_equality_gate_candidates": 325,
+    "kickoff_mismatches": 3,
+    "exact_kickoff_candidates": 322,
+    "elapsed_exclusions": 3,
+    "current_rankable_candidates": 319,
+    "selected_groups": 37,
+    "top50_rows_per_market": 50,
+    "top3_per_league_rows_per_market": 111,
+    "top3_overall_rows_per_market": 3,
+    "top50_source_quarantined": 0,
+    "top50_kickoff_mismatches": 0
+  },
+  "top50_export_integrity": {
+    "BTTS": {
+      "rows": 50,
+      "runtime_matches": 50,
+      "bridge_runtime_matches": 50,
+      "bridge_source_matches": 50,
+      "current_candidate_matches": 50,
+      "status": "PASS"
+    },
+    "DC_HOME": {
+      "rows": 50,
+      "runtime_matches": 4,
+      "bridge_runtime_matches": 4,
+      "bridge_source_matches": 12,
+      "current_candidate_matches": 4,
+      "status": "FAIL; reject 0139 export; use rebuilt runtime+bridge rankings"
+    },
+    "DC_AWAY": {
+      "rows": 50,
+      "runtime_matches": 50,
+      "bridge_runtime_matches": 50,
+      "bridge_source_matches": 50,
+      "current_candidate_matches": 50,
+      "status": "PASS"
+    }
+  },
+  "later_0206_aggregate_qa_summary": {
+    "candidate_pool": 319,
+    "top50_rows_per_market": 50,
+    "quarantined": 0,
+    "kickoff_mismatches": 0,
+    "fixture_id_level_reconciliation_present": false,
+    "resolves_dc_home_export_failure": false
+  },
+  "market_suitability": {
+    "strict_diagnostic_combinations": 26,
+    "counts": {
+      "BTTS": 2,
+      "DC_HOME": 11,
+      "DC_AWAY": 13
+    },
+    "other_status_counts": {
+      "calibration_warning": 13,
+      "mixed": 47,
+      "insufficient": 60,
+      "no_positive": 4
+    }
+  },
+  "feature_lag_stability": {
+    "stable_feature_family_rows": 10,
+    "stable_league_market_combinations": 8,
+    "stable_BTTS": 7,
+    "stable_DC_HOME": 0,
+    "stable_DC_AWAY": 1,
+    "only_strict_market_overlap": {
+      "selected_id": 17097,
+      "country": "Netherlands",
+      "league": "Eredivisie",
+      "market": "BTTS"
+    }
+  },
+  "team_h2h_context": {
+    "top50_market_rows": 150,
+    "both_team_profiles": 121,
+    "h2h_pair_profiles": 102,
+    "h2h_8plus_meetings": 5,
+    "persistent_team_scoring_signal_rows": 14,
+    "persistent_h2h_scoring_candidates": 0
+  },
+  "pit_timestamp_audit": {
+    "raw_match_rows": 35819,
+    "season_folders": 126,
+    "publish_update_capture_availability_timestamp_fields": 0,
+    "kickoff_field": "date_unix"
+  },
+  "scoring_dna": {
+    "exact_id_groups": 31,
+    "governed_groups": 50,
+    "unavailable_groups": 19,
+    "primary_completed_score_rows": 23328,
+    "period": "2025-03-20 to 2026-09-20"
+  },
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v8_Feature_Edge_DNA_Rankings.xlsx",
+    "sha256": "542db4afbae5dad94d2495aad489d28d9e9fed91b3770b9bb6e9d8ae86ab6c55",
+    "sheet_count": 65
+  },
+  "bundle": {
+    "filename": "Project_Oracle_Feature_Edge_Run3_Research_Bundle_2026-10-31-0202.zip",
+    "sha256": "2ae70d505023b30ad82340b7f812bdd6a39f04d49950e97d411bf1dfeb4e0d4e"
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "oracle_v1_6_logic_changed": false,
+    "oracle_v1_6_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "repository": "dtnzv5by8c-ship-it/oracle-validation-learning",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "generated_sast": "2026-10-31T02:02:30+02:00",
+  "workbook_filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v8_Feature_Edge_DNA_Rankings.xlsx",
+  "workbook_sha256": "542db4afbae5dad94d2495aad489d28d9e9fed91b3770b9bb6e9d8ae86ab6c55",
+  "workbook_bytes": 11904386,
+  "workbook_sheet_count": 65,
+  "bundle_filename": "Project_Oracle_Feature_Edge_Run3_Research_Bundle_2026-10-31-0202.zip",
+  "bundle_sha256": "2ae70d505023b30ad82340b7f812bdd6a39f04d49950e97d411bf1dfeb4e0d4e",
+  "workbook_delivery": "Conversation artifact; binary not committed to repository",
+  "tabs_added": [
+    "Top50 Export Integrity QA",
+    "DC_HOME Export Audit",
+    "League Scoring DNA Primary",
+    "League Market Decision",
+    "Feature x League Market",
+    "Feature Source Gates",
+    "Top50 Team-H2H Context",
+    "Ranking Exclusions",
+    "Scoring DNA Coverage",
+    "Run 3 Research Summary"
+  ],
+  "tabs_refreshed": [
+    "Top 50 BTTS",
+    "Top 50 DC Home",
+    "Top 50 DC Away",
+    "Top 3 Overall BTTS",
+    "Top 3 Overall DC Home",
+    "Top 3 Overall DC Away",
+    "Top 3 Per League BTTS",
+    "Top 3 Per League DC Home",
+    "Top 3 Per League DC Away",
+    "Ranking Currentness QA"
+  ],
+  "source_artifacts": {
+    "snapshot_run_id": 41117910952,
+    "snapshot_artifact_id": 13005239530,
+    "runtime_run_id": 41119141526,
+    "runtime_artifact_id": 13006609602,
+    "bridge_audit_run_id": 41121900062,
+    "bridge_artifact_id": 13009350718
+  },
+  "production_eligible": false,
+  "betting_eligible": false
+}

@@ -1,0 +1,4 @@
+market,0139_export_rows,runtime_fixture_id_matches,bridge_runtime_id_matches,bridge_source_match_id_matches,exact_current_candidate_matches,sequence_matches_rebuilt_runtime_bridge,integrity_status,action
+BTTS,50,50,50,50,50,TRUE,PASS_EXACT_RUNTIME_BRIDGE_RECONCILIATION,Use matching export as reference; workbook rebuilt from exact runtime and bridge
+DC_HOME,50,4,4,12,4,FALSE,FAIL_EXPORT_NOT_RECONCILED_TO_RUNTIME_BRIDGE,Reject 0139 export; workbook DC_HOME ranking rebuilt from exact runtime and bridge
+DC_AWAY,50,50,50,50,50,TRUE,PASS_EXACT_RUNTIME_BRIDGE_RECONCILIATION,Use matching export as reference; workbook rebuilt from exact runtime and bridge

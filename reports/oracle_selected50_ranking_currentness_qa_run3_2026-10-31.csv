@@ -1,0 +1,4 @@
+market,runtime_rows,exact_fixture_team_id_joins,source_quarantined_rows,future_feature_blocked_rows,kickoff_mismatches,exact_kickoff_candidates,elapsed_exclusions,current_rankable_candidates,selected_groups,top50_rows,top3_per_league_rows,snapshot_age_hours,latest_0139_export_integrity,latest_0139_exact_current_candidate_matches
+BTTS,426,426,79,22,3,322,3,319,37,50,111,4.264,PASS_EXACT_RUNTIME_BRIDGE_RECONCILIATION,50
+DC_HOME,426,426,79,22,3,322,3,319,37,50,111,4.264,FAIL_EXPORT_NOT_RECONCILED_TO_RUNTIME_BRIDGE,4
+DC_AWAY,426,426,79,22,3,322,3,319,37,50,111,4.264,PASS_EXACT_RUNTIME_BRIDGE_RECONCILIATION,50
