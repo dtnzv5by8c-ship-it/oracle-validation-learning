@@ -287,6 +287,7 @@ def build_report(runtime_rows, archive_rows):
         key = runtime_key(runtime)
         selected = str(runtime.get("selected_id") or "").strip()
         league_name = str(runtime.get("league") or runtime.get("provider_competition_name_source") or "")
+        fixture_text = f"{runtime.get('home_team','')} vs {runtime.get('away_team','')}"
         leagues.add(selected)
         if key in seen_runtime:
             raise ValueError(f"Duplicate runtime exact key: {key}")
@@ -304,11 +305,17 @@ def build_report(runtime_rows, archive_rows):
             trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
                           "join_status": reason, "home_form_n": 0, "away_form_n": 0,
                           "home_table_status": "UNAVAILABLE", "away_table_status": "UNAVAILABLE",
+                          "fixture_date": runtime.get("date_utc", ""),
+                          "runtime_league": league_name, "runtime_fixture": fixture_text,
+                          "fixture_identity": "|".join(key) if all(key) else "",
                           "runtime_provider_season_id": runtime.get("provider_season_id", ""),
                           "runtime_home_team_id": runtime.get("home_team_provider_id", ""),
                           "runtime_away_team_id": runtime.get("away_team_provider_id", ""),
                           "runtime_kickoff_utc": runtime.get("date_utc", ""),
                           "archive_kickoff_utc": archive_match.get("kickoff_utc", ""),
+                          "schedule_reconciliation_status": "NOT_EVALUATED",
+                          "schedule_reconciliation_reason": reason,
+                          "schedule_delta_minutes_archive_minus_runtime": "",
                           "archive_source_file": archive_match.get("source_file", ""),
                           "archive_source_row": archive_match.get("source_row", ""),
                           "runtime_home_team": runtime.get("home_team", ""),
@@ -388,11 +395,22 @@ def build_report(runtime_rows, archive_rows):
         trace.append({
             "fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
             "join_status": "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS",
-            "schedule_reconciliation_status": "MISMATCH_REVIEW_REQUIRED" if schedule_entry else "MATCH",
+            "fixture_date": runtime.get("date_utc", ""),
+            "runtime_league": league_name, "runtime_fixture": fixture_text,
+            "fixture_identity": "|".join(key) if all(key) else "",
+            "runtime_provider_season_id": runtime.get("provider_season_id", ""),
+            "runtime_home_team_id": runtime.get("home_team_provider_id", ""),
+            "runtime_away_team_id": runtime.get("away_team_provider_id", ""),
+            "schedule_reconciliation_status": "REVIEW_REQUIRED" if schedule_entry else "MATCH",
+            "schedule_reconciliation_reason": "KICKOFF_MISMATCH" if schedule_entry else "",
             "runtime_kickoff_utc": runtime.get("date_utc", ""),
             "runtime_home_team": runtime.get("home_team", ""),
             "runtime_away_team": runtime.get("away_team", ""),
             "archive_kickoff_utc": target.get("kickoff_utc", ""),
+            "schedule_delta_minutes_archive_minus_runtime": (
+                int((parse_dt(target.get("kickoff_utc")) - cutoff).total_seconds() / 60)
+                if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
+            ),
             "schedule_discordance_minutes": (
                 int((parse_dt(target.get("kickoff_utc")) - cutoff).total_seconds() / 60)
                 if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
@@ -463,11 +481,24 @@ def build_report(runtime_rows, archive_rows):
         "schedule_discordance_rows": len(schedule_conflict_keys),
         "schedule_discordance_fixture_keys": [list(k) for k in sorted(schedule_conflict_keys)],
         "schedule_reconciliation_gate": "REVIEW_REQUIRED" if schedule_conflict_keys else "PASS",
+        "schedule_reconciliation_queue": build_schedule_reconciliation_queue(trace),
+        "schedule_reconciliation_queue_rows": len(build_schedule_reconciliation_queue(trace)),
         "join_failure_reason_counts": {reason: sum(1 for entry in missing if entry[1] == reason) for reason in sorted({entry[1] for entry in missing})},
         "join_failure_examples": [
-            {"reason": reason, "runtime_key": list(runtime_key(row)),
+            {"reason": reason,
+             "status": "REVIEW_REQUIRED" if reason == "SCHEDULE_KICKOFF_MISMATCH" else "BLOCKED",
+             "schedule_reconciliation_status": "REVIEW_REQUIRED" if reason == "SCHEDULE_KICKOFF_MISMATCH" else "NOT_APPLICABLE",
+             "runtime_key": list(runtime_key(row)),
+             "fixture_identity": "|".join(runtime_key(row)) if all(runtime_key(row)) else "",
+             "fixture_date": row.get("date_utc", ""),
+             "league": row.get("league") or row.get("provider_competition_name_source") or "",
+             "fixture": f"{row.get('home_team','')} vs {row.get('away_team','')}",
              "runtime_kickoff_utc": row.get("date_utc", ""),
              "archive_kickoff_utc": archive_row.get("kickoff_utc", "") if len(entry) > 2 else "",
+             "delta_minutes_archive_minus_runtime": (
+                 int((parse_dt(archive_row.get("kickoff_utc")) - parse_dt(row.get("date_utc"))).total_seconds() / 60)
+                 if len(entry) > 2 and parse_dt(archive_row.get("kickoff_utc")) and parse_dt(row.get("date_utc")) else ""
+             ),
              "archive_source_file": archive_row.get("source_file", "") if len(entry) > 2 else "",
              "archive_source_row": archive_row.get("source_row", "") if len(entry) > 2 else "",
              "home_team": row.get("home_team", ""), "away_team": row.get("away_team", "")}
@@ -476,6 +507,50 @@ def build_report(runtime_rows, archive_rows):
             for archive_row in [extras[0] if extras else {}]
         ],
     }
+
+
+def build_schedule_reconciliation_queue(trace_rows):
+    """Return explicit manual-review records for schedule conflicts; never correct source times."""
+    queue = []
+    for item in trace_rows or []:
+        if item.get("schedule_reconciliation_status") != "REVIEW_REQUIRED":
+            continue
+        season_id = str(item.get("runtime_provider_season_id") or item.get("archive_provider_season_id") or "").strip()
+        fixture_id = str(item.get("fixture_id") or "").strip()
+        home_id = str(item.get("runtime_home_team_id") or item.get("archive_home_team_id") or "").strip()
+        away_id = str(item.get("runtime_away_team_id") or item.get("archive_away_team_id") or "").strip()
+        identity_parts = (season_id, fixture_id, home_id, away_id)
+        queue.append({
+            "status": "REVIEW_REQUIRED",
+            "schedule_reconciliation_status": "REVIEW_REQUIRED",
+            "reason": item.get("schedule_reconciliation_reason") or "KICKOFF_MISMATCH",
+            "fixture_date": item.get("fixture_date") or item.get("runtime_kickoff_utc") or "",
+            "league": item.get("runtime_league", ""),
+            "fixture": item.get("runtime_fixture", ""),
+            "fixture_id": fixture_id,
+            "selected_id": item.get("selected_id", ""),
+            "provider_season_id": season_id,
+            "home_team_id": home_id,
+            "away_team_id": away_id,
+            "fixture_identity": "|".join(identity_parts) if all(identity_parts) else "",
+            "runtime_kickoff_utc": item.get("runtime_kickoff_utc", ""),
+            "archive_kickoff_utc": item.get("archive_kickoff_utc", ""),
+            "delta_minutes_archive_minus_runtime": item.get("schedule_delta_minutes_archive_minus_runtime", ""),
+            "archive_source_file": item.get("archive_source_file", ""),
+            "archive_source_row": item.get("archive_source_row", ""),
+            "exact_join_status": item.get("join_status", ""),
+            "resolution_action": "MANUAL_AUTHORITATIVE_EVENT_TIME_REVIEW_ONLY_NO_AUTO_CORRECTION",
+        })
+    return queue
+
+
+SCHEDULE_RECONCILIATION_HEADERS = [
+    "status", "schedule_reconciliation_status", "reason", "fixture_date", "league", "fixture",
+    "fixture_id", "selected_id", "provider_season_id", "home_team_id", "away_team_id",
+    "fixture_identity", "runtime_kickoff_utc", "archive_kickoff_utc",
+    "delta_minutes_archive_minus_runtime", "archive_source_file", "archive_source_row",
+    "exact_join_status", "resolution_action"
+]
 
 
 
@@ -510,6 +585,9 @@ def build_xg_audit(runtime_rows, archive_rows, trace_rows=None):
         else:
             join_status, source = "PASS_EXACT_COMPOSITE_IDENTITY", matches[0]
         output.append({
+            "Fixture Date": runtime.get("date_utc", ""),
+            "League": runtime.get("league") or runtime.get("provider_competition_name_source") or "",
+            "Fixture": f"{runtime.get('home_team','')} vs {runtime.get('away_team','')}",
             "fixture_id": runtime.get("fixture_id", ""),
             "selected_id": runtime.get("selected_id", ""),
             "provider_season_id": key[0] if all(key) else "",
@@ -544,6 +622,7 @@ def build_xg_audit(runtime_rows, archive_rows, trace_rows=None):
 
 
 XG_AUDIT_HEADERS = [
+    "Fixture Date", "League", "Fixture",
     "fixture_id", "selected_id", "provider_season_id", "home_team_id", "away_team_id",
     "fixture", "runtime_kickoff_utc", "archive_kickoff_utc", "history_cutoff_utc",
     "join_status", "schedule_reconciliation_status",
@@ -667,11 +746,39 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
 
     # Consolidated analyst view. Production output remains separately preserved.
     trace = trace or []
-    trace_by_fixture = {
-        (str(x.get("runtime_home_team") or "").strip() + " vs " +
-         str(x.get("runtime_away_team") or "").strip()): x for x in trace
-    }
-    goal_by_fixture = {str(x.get("fixture_id") or "").strip(): x for x in (goal_market_rows or [])}
+    def trace_identity(item):
+        return (
+            str(item.get("runtime_provider_season_id") or item.get("archive_provider_season_id") or "").strip(),
+            str(item.get("fixture_id") or "").strip(),
+            str(item.get("runtime_home_team_id") or item.get("archive_home_team_id") or "").strip(),
+            str(item.get("runtime_away_team_id") or item.get("archive_away_team_id") or "").strip(),
+        )
+
+    def fixture_context(item):
+        return {
+            "Fixture Date": item.get("fixture_date") or item.get("runtime_kickoff_utc") or "",
+            "League": item.get("runtime_league", ""),
+            "Fixture": item.get("runtime_fixture") or (
+                str(item.get("runtime_home_team") or "") + " vs " + str(item.get("runtime_away_team") or "")
+            ),
+        }
+
+    trace_by_exact_key = {}
+    for item in trace:
+        key = trace_identity(item)
+        if all(key):
+            trace_by_exact_key[key] = item
+    goal_by_key_candidates = defaultdict(list)
+    for item in (goal_market_rows or []):
+        key = (
+            str(item.get("provider_season_id") or "").strip(),
+            str(item.get("fixture_id") or "").strip(),
+            str(item.get("home_team_id") or "").strip(),
+            str(item.get("away_team_id") or "").strip(),
+        )
+        if all(key):
+            goal_by_key_candidates[key].append(item)
+    goal_by_exact_key = {key: values[0] for key, values in goal_by_key_candidates.items() if len(values) == 1}
     decision_headers = HEADERS + [
         "Fixture ID", "Provider Season ID", "Home Team ID", "Away Team ID",
         "Schedule Reconciliation", "History Cutoff UTC",
@@ -692,10 +799,10 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         "History Source Fixture IDs"
     ]
     decision_rows = []
-    for base_row_data in rows:
-        t = trace_by_fixture.get(str(base_row_data.get("Fixture") or "").strip(), {})
+    for row_index, base_row_data in enumerate(rows):
+        t = trace[row_index] if row_index < len(trace) else {}
         fid = str(t.get("fixture_id") or "").strip()
-        g = goal_by_fixture.get(fid, {})
+        g = goal_by_exact_key.get(trace_identity(t), {})
         extra = {
             "Fixture ID": fid,
             "Provider Season ID": t.get("archive_provider_season_id", g.get("provider_season_id", "")),
@@ -739,7 +846,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "Historical Accuracy Status": base_row_data.get("Historical Accuracy Status", "NOT_VALIDATED"),
             "A+ Setup Status": base_row_data.get("A+ Setup Status", "NOT_GRADED"),
             "Evidence / Schedule Gate": (
-                "REVIEW_REQUIRED_SCHEDULE_DISCORDANCE" if t.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"
+                "REVIEW_REQUIRED_SCHEDULE_DISCORDANCE" if t.get("schedule_reconciliation_status") == "REVIEW_REQUIRED"
                 else "EXACT_JOIN_EVIDENCE_AVAILABLE" if str(t.get("join_status", "")).startswith("PASS")
                 else "BLOCKED_OR_UNAVAILABLE"
             ),
@@ -759,7 +866,8 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     team_rows = []
     quality_rows = []
     for item in trace:
-        base = {"fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
+        base = {**fixture_context(item),
+                "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
                 "history_cutoff_utc": item.get("history_cutoff_utc", ""),
                 "h2h_scope": item.get("h2h_scope", ""),
                 "provider_competition_id": item.get("archive_provider_competition_id", "")}
@@ -799,9 +907,16 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
                 "table_sample_n": item.get(f"{side}_table_sample_n", "")
             })
         quality_rows.append({
+            **fixture_context(item),
+            "fixture_identity": item.get("fixture_identity", ""),
             "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
             "join_status": item.get("join_status", ""),
             "schedule_status": item.get("schedule_reconciliation_status", ""),
+            "schedule_reconciliation_status": item.get("schedule_reconciliation_status", ""),
+            "schedule_reconciliation_reason": item.get("schedule_reconciliation_reason", ""),
+            "runtime_kickoff_utc": item.get("runtime_kickoff_utc", ""),
+            "archive_kickoff_utc": item.get("archive_kickoff_utc", ""),
+            "schedule_delta_minutes_archive_minus_runtime": item.get("schedule_delta_minutes_archive_minus_runtime", ""),
             "history_cutoff_utc": item.get("history_cutoff_utc", ""),
             "home_evidence_risk_pct": item.get("home_risk_pct", ""),
             "away_evidence_risk_pct": item.get("away_risk_pct", ""),
@@ -815,12 +930,12 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         })
     add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
-        ["fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
+        ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
          "home_team_id", "away_team_id", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
-        ["fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
+        ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
          "overall_last5_n", "overall_last5_form", "overall_last5_gf_avg", "overall_last5_ga_avg",
          "overall_last5_points_per_game", "historical_btts_rate_pct", "historical_over15_rate_pct",
          "historical_over25_rate_pct", "historical_under45_rate_pct", "team_over15_rate_pct",
@@ -829,10 +944,29 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
          "venue_avg_points", "venue_source_fixture_ids", "league_position", "table_status",
          "table_sample_n"], team_rows)
     add_sheet("Data Quality & Risk",
-        ["fixture_id", "selected_id", "join_status", "schedule_status", "history_cutoff_utc",
-         "home_evidence_risk_pct", "away_evidence_risk_pct", "home_form_n", "away_form_n",
-         "h2h_n", "h2h_scope", "archive_source_file", "archive_source_row",
+        ["Fixture Date", "League", "Fixture", "fixture_identity", "fixture_id", "selected_id",
+         "join_status", "schedule_status", "schedule_reconciliation_status", "schedule_reconciliation_reason",
+         "runtime_kickoff_utc", "archive_kickoff_utc", "schedule_delta_minutes_archive_minus_runtime",
+         "history_cutoff_utc", "home_evidence_risk_pct", "away_evidence_risk_pct",
+         "home_form_n", "away_form_n", "h2h_n", "h2h_scope", "archive_source_file", "archive_source_row",
          "archive_raw_record_sha256", "production_eligible", "betting_eligible"], quality_rows)
+    schedule_queue = build_schedule_reconciliation_queue(trace)
+    schedule_sheet_rows = [{
+        "Fixture Date": q["fixture_date"], "League": q["league"], "Fixture": q["fixture"],
+        "status": q["status"], "reason": q["reason"], "fixture_identity": q["fixture_identity"],
+        "fixture_id": q["fixture_id"], "selected_id": q["selected_id"],
+        "provider_season_id": q["provider_season_id"], "home_team_id": q["home_team_id"],
+        "away_team_id": q["away_team_id"], "runtime_kickoff_utc": q["runtime_kickoff_utc"],
+        "archive_kickoff_utc": q["archive_kickoff_utc"],
+        "delta_minutes_archive_minus_runtime": q["delta_minutes_archive_minus_runtime"],
+        "archive_source_file": q["archive_source_file"], "archive_source_row": q["archive_source_row"],
+        "exact_join_status": q["exact_join_status"], "resolution_action": q["resolution_action"],
+    } for q in schedule_queue]
+    add_sheet("Schedule Reconciliation",
+        ["Fixture Date", "League", "Fixture", "status", "reason", "fixture_identity", "fixture_id",
+         "selected_id", "provider_season_id", "home_team_id", "away_team_id", "runtime_kickoff_utc",
+         "archive_kickoff_utc", "delta_minutes_archive_minus_runtime", "archive_source_file",
+         "archive_source_row", "exact_join_status", "resolution_action"], schedule_sheet_rows)
     coverage = []
     for header in HEADERS:
         vals = [str(row.get(header, "")) for row in rows]
@@ -844,6 +978,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     goal_rows = []
     for item in trace:
         goal_rows.append({
+            **fixture_context(item),
             "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
             "home_team_id": item.get("archive_home_team_id", ""),
             "away_team_id": item.get("archive_away_team_id", ""),
@@ -887,7 +1022,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "history_cutoff_utc": item.get("history_cutoff_utc", "")
         })
     add_sheet("Goal Intelligence",
-        ["fixture_id", "selected_id", "home_team_id", "away_team_id", "home_last5_n", "away_last5_n",
+        ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "home_team_id", "away_team_id", "home_last5_n", "away_last5_n",
          "home_last5_form", "away_last5_form",
          "home_last5_goals_scored_avg", "home_last5_goals_conceded_avg", "home_last5_total_goals_avg",
          "away_last5_goals_scored_avg", "away_last5_goals_conceded_avg", "away_last5_total_goals_avg",
@@ -903,10 +1038,26 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
          "home_clean_sheet_rate_pct", "away_clean_sheet_rate_pct",
          "home_failed_to_score_rate_pct", "away_failed_to_score_rate_pct",
          "h2h_n", "h2h_scope", "h2h_meetings_detail", "evidence_label", "history_cutoff_utc"], goal_rows)
-    goal_market_rows = goal_market_rows or []
-    goal_market_headers = list(dict.fromkeys(k for r in goal_market_rows for k in r)) or [
-        "fixture_id", "forecast_status", "forecast_label", "model_id", "production_eligible", "betting_eligible"
-    ]
+    goal_market_rows = [dict(item) for item in (goal_market_rows or [])]
+    for item in goal_market_rows:
+        key = (
+            str(item.get("provider_season_id") or "").strip(),
+            str(item.get("fixture_id") or "").strip(),
+            str(item.get("home_team_id") or "").strip(),
+            str(item.get("away_team_id") or "").strip(),
+        )
+        context = fixture_context(trace_by_exact_key[key]) if all(key) and key in trace_by_exact_key else {
+            "Fixture Date": "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN",
+            "League": "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN",
+            "Fixture": "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN",
+        }
+        for field, value in context.items():
+            if item.get(field) in (None, ""):
+                item[field] = value
+    goal_market_headers = list(dict.fromkeys(
+        ["Fixture Date", "League", "Fixture"] + [k for r in goal_market_rows for k in r]
+    )) or ["Fixture Date", "League", "Fixture", "fixture_id", "forecast_status", "forecast_label",
+           "model_id", "production_eligible", "betting_eligible"]
     add_sheet("Goal Market Research", goal_market_headers, goal_market_rows)
     add_sheet("Market Data Coverage",
         ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
@@ -995,8 +1146,8 @@ def main():
             "competition_name": item.get("competition_name", ""),
             "runtime_fixture_rows": sum(1 for r in runtime_rows if str(r.get("selected_id") or "").strip() == sid),
             "exact_archive_joins": sum(1 for r in league_trace if r.get("join_status") == "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"),
-            "quarantined_rows": sum(1 for r in league_trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"),
-            "schedule_discordance_rows": sum(1 for r in league_trace if r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"),
+            "quarantined_rows": sum(1 for r in league_trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "REVIEW_REQUIRED"),
+            "schedule_discordance_rows": sum(1 for r in league_trace if r.get("schedule_reconciliation_status") == "REVIEW_REQUIRED"),
             "schedule_coverage_status": item.get("schedule_coverage_status", ""),
         })
     column_status_counts = {}
@@ -1059,13 +1210,18 @@ def main():
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
     summary["h2h_scope_policy"] = "Explicit provider competition ID; cross-season coverage only where source meeting season differs from target season."
     summary["xg_audit"] = xg_audit_counts
+    schedule_queue = build_schedule_reconciliation_queue(trace)
+    summary["schedule_reconciliation_queue_rows"] = len(schedule_queue)
+    summary["schedule_reconciliation_queue_status"] = "REVIEW_REQUIRED" if schedule_queue else "PASS"
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
               list(dict.fromkeys(k for r in trace for k in r)))
-    quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
+    quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
     write_csv(out_dir / "oracle_selected50_xg_evidence_audit.csv", xg_audit_rows, XG_AUDIT_HEADERS)
+    write_csv(out_dir / "oracle_selected50_schedule_reconciliation_queue.csv",
+              schedule_queue, SCHEDULE_RECONCILIATION_HEADERS)
     (out_dir / "oracle_selected50_xg_evidence_audit_qa.json").write_text(
         json.dumps(xg_audit_counts, indent=2) + "\n", encoding="utf-8"
     )
