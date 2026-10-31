@@ -219,7 +219,7 @@ def exact_join(runtime_rows, archive_rows):
             runtime_kickoff = parse_dt(row.get("date_utc"))
             archive_kickoff = parse_dt(archive_row.get("kickoff_utc"))
             if runtime_kickoff is None or archive_kickoff is None or runtime_kickoff != archive_kickoff:
-                missing.append((row, "KICKOFF_MISMATCH_OR_UNPARSEABLE"))
+                missing.append((row, "KICKOFF_MISMATCH_OR_UNPARSEABLE", archive_row))
             else:
                 joined[key] = archive_row
     return joined, missing, duplicates
@@ -252,6 +252,9 @@ def build_report(runtime_rows, archive_rows):
                           "runtime_home_team_id": runtime.get("home_team_provider_id", ""),
                           "runtime_away_team_id": runtime.get("away_team_provider_id", ""),
                           "runtime_kickoff_utc": runtime.get("date_utc", ""),
+                          "archive_kickoff_utc": next((entry[2].get("kickoff_utc", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
+                          "archive_source_file": next((entry[2].get("source_file", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
+                          "archive_source_row": next((entry[2].get("source_row", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
                           "runtime_home_team": runtime.get("home_team", ""),
                           "runtime_away_team": runtime.get("away_team", ""),
                           "history_cutoff_utc": runtime.get("date_utc", ""), "production_eligible": "NO", "betting_eligible": "NO"})
@@ -357,8 +360,12 @@ def build_report(runtime_rows, archive_rows):
         "join_failure_examples": [
             {"reason": reason, "runtime_key": list(runtime_key(row)),
              "runtime_kickoff_utc": row.get("date_utc", ""),
+             "archive_kickoff_utc": archive_row.get("kickoff_utc", "") if len(entry) > 2 else "",
+             "archive_source_file": archive_row.get("source_file", "") if len(entry) > 2 else "",
+             "archive_source_row": archive_row.get("source_row", "") if len(entry) > 2 else "",
              "home_team": row.get("home_team", ""), "away_team": row.get("away_team", "")}
-            for row, reason in missing[:25]
+            for entry in missing[:25]
+    for row, reason, *_ in [entry]
         ],
     }
 
