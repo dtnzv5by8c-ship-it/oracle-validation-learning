@@ -193,6 +193,15 @@ jobs:
           print("Pinned archive audit verified: 59,049 records; 200 season folders; zero provider API calls.")
           PY
 
+      - name: Build experimental goal-market estimates and chronological backtest (research only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/build_goal_market_research_engine.py \
+            --archive-audit archive-audit/match_field_audit.csv \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --out-dir goal-market-research
+
       - name: Rebuild 38-column Market Intelligence report and enforce QA gates
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
