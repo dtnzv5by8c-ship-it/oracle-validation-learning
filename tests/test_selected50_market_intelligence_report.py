@@ -104,8 +104,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         )
         self.assertEqual(summary["schedule_discordance_rows"], 1)
         self.assertIn("F100", trace[1]["home_form_source_fixture_ids"])
-        self.assertEqual(trace[1]["away_away_form_n"], 1)
-        self.assertIn("F100", trace[1]["away_away_source_fixture_ids"])
+        self.assertEqual(trace[1]["home_at_home_form_n"], 0)
 
     def test_h2h_uses_verified_provider_competition_across_seasons(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
