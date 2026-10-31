@@ -69,8 +69,8 @@ The `H2H Meetings` ledger does not expose the explicit `no_home_away` flag. A `t
 ## Output
 
 - Workbook: `Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx`
-- Workbook SHA-256: `2c9712bad565475eed726bb173d18bdf775eeed451fbfe039d5d4ed5e6bf8ba7`
-- Size: 15,742,981 bytes; sheets: 61.
+- Workbook SHA-256: `a89676074297dc2fe849ddf48fa1ee7e3638e5cd2e46e8d43ea70c2720f66ea1`
+- Size: 15,743,236 bytes; sheets: 61.
 - Base workbook SHA-256: `75774dcf45d8228d4a3f403a2b6a7c6200631603830a4420897dd236be808df9`.
 
 ## Next priority
