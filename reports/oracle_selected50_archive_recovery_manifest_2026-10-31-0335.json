@@ -30,13 +30,16 @@
   "production_eligible": false,
   "betting_eligible": false,
   "workbook": "Oracle_Selected50_League_Market_DNA_Recovery_Audit_31Oct2026_0335SAST.xlsx",
-  "workbook_sha256": "282d216cfa2855fdd4181bc64b2b1aeab0baea399e8fe30b4fb585aa3ff7741d",
+  "workbook_sha256": "6443942cd94bcfe7cc0c5a36c823ba8a2753e5a8a249c1841bb8c90648c6702c",
+  "workbook_bytes": 649937,
   "workbook_sheets": 45,
+  "workbook_base": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v10_League_Market_DNA_0235SAST.xlsx",
+  "latest_ranking_workbook_lineage": "Separate Feature Edge Run 4 85-tab workbook at 2026-10-31 03:02 SAST; not replaced by this recovery addendum.",
   "run_audit_csv": "oracle_selected50_private_archive_workflow_runs_2026-10-31-0335.csv",
   "run_audit_csv_sha256": "89dda51f95a5cee9ff12bf916e107251c002376cc947933787561fde9f7b8113",
   "source_gate_csv": "oracle_selected50_private_archive_source_gate_2026-10-31-0335.csv",
   "source_gate_csv_sha256": "66dee69226bf7c410f5c64ae6d8438e37acdb227a0be8a12980242625eafafd0",
   "research_note": "ORACLE_SELECTED50_ARCHIVE_RECOVERY_AUDIT_2026-10-31-0335-SAST.md",
-  "research_note_sha256": "7ca153255f0f17cb565dbb260c954020998b5501b22c033bb1592f3cd8091e86",
+  "research_note_sha256": "14e44a172229b4fd9dd755b48b4a4cecd368ba95562560497f724f71e908da45",
   "failure_reason": "UNRESOLVED; job metadata logs_url=null, steps=null; log download returned 404 BlobNotFound."
 }
