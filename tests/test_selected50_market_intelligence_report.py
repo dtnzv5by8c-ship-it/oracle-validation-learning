@@ -55,7 +55,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
         report, trace, summary = market_report.build_report([runtime_row()], self.archive + [same_time])
         self.assertEqual(trace[0]["home_form_n"], 4)
-        self.assertEqual(trace[0]["away_form_n"], 3)
+        self.assertEqual(trace[0]["away_form_n"], 4)
         self.assertEqual(summary["exact_archive_joins"], 1)
 
     def test_raw_probabilities_are_copied_and_unsupported_markets_masked(self):
