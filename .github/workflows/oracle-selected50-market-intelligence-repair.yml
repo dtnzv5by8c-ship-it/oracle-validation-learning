@@ -249,7 +249,6 @@ jobs:
             market-intelligence-output/oracle_selected50_xg_evidence_audit.csv
             market-intelligence-output/oracle_selected50_xg_evidence_audit_qa.json
             archive-audit/summary.json
-            archive-audit/match_field_audit.csv
             goal-market-research/goal_market_research.csv
             goal-market-research/goal_market_research_qa.json
           if-no-files-found: error
