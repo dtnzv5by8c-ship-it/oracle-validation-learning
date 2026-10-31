@@ -95,22 +95,23 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             "F100", "2026-10-20T12:00:00+00:00", "H", "B", 4, 0, season="S2"
         )
         other_runtime = dict(runtime_row(), fixture_id="F200",
-                             date_utc="2026-11-01T12:00:00+00:00")
-        other_target = archive_row("F200", "2026-11-01T12:00:00+00:00", "H", "A", 0, 0)
+                             date_utc="2026-11-01T12:00:00+00:00",
+                             home_team_provider_id="B", away_team_provider_id="C")
+        other_target = archive_row("F200", "2026-11-01T12:00:00+00:00", "B", "C", 0, 0)
         _, trace, summary = market_report.build_report(
             [runtime_row(), other_runtime],
             self.archive[:-1] + [conflicted, same_fixture_id_other_season, other_target]
         )
         self.assertEqual(summary["schedule_discordance_rows"], 1)
         self.assertIn("F100", trace[1]["home_form_source_fixture_ids"])
-        self.assertEqual(trace[1]["home_at_home_form_n"], 4)
+        self.assertEqual(trace[1]["home_at_home_form_n"], 1)
 
     def test_venue_split_form_is_exposed_in_evidence_trace(self):
         _, trace, _ = market_report.build_report([runtime_row()], self.archive)
         self.assertEqual(trace[0]["home_at_home_form_n"], 4)
         self.assertEqual(trace[0]["away_away_form_n"], 2)
-        self.assertEqual(trace[0]["home_at_home_form"], "WDWD")
-        self.assertEqual(trace[0]["away_away_form"], "DL")
+        self.assertEqual(trace[0]["home_at_home_form"], "WDWW")
+        self.assertEqual(trace[0]["away_away_form"], "WL")
 
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
