@@ -388,5 +388,81 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(missing[0][1], "MISSING_COMPOSITE_IDENTITY")
 
 
+    def test_50_league_coverage_sheet_includes_no_fixture_groups_and_quarantine(self):
+        target = dict(
+            self.archive[-1],
+            home_xg_prematch_source_field="team_a_xg_prematch",
+            home_xg_prematch_raw="1.23",
+            home_xg_prematch_value=1.23,
+            away_xg_prematch_source_field="team_b_xg_prematch",
+            away_xg_prematch_raw="0.87",
+            away_xg_prematch_value=0.87,
+            total_xg_prematch_source_field="total_xg_prematch",
+            total_xg_prematch_raw="2.10",
+            total_xg_prematch_value=2.10,
+            xg_capture_time_utc="",
+            xg_temporal_provenance_status="UNVERIFIED_NO_CAPTURE_TIMESTAMP",
+        )
+        runtime = dict(runtime_row(), feature_support_status="PASS_ALL_20_REQUIRED_FEATURES",
+                       home_recent5_n="5", away_recent5_n="5")
+        report, trace, _ = market_report.build_report([runtime], self.archive[:-1] + [target])
+        xg = market_report.build_xg_audit([runtime], self.archive[:-1] + [target], trace)
+        goals = [{
+            "provider_season_id": "S1", "fixture_id": "F100",
+            "home_team_id": "H", "away_team_id": "A",
+            "forecast_status": "EXPERIMENTAL_UNCALIBRATED",
+            "blocked_reason": "", "production_eligible": "NO", "betting_eligible": "NO",
+        }]
+        schedule = [
+            {"selected_id": "S1", "country": "Testland", "competition_name": "Test League",
+             "schedule_coverage_status": "FIXTURES_FOUND"},
+            {"selected_id": "S2", "country": "Elsewhere", "competition_name": "No Fixtures League",
+             "schedule_coverage_status": "NO_FIXTURES_IN_7D_HORIZON"},
+        ]
+        coverage = market_report.build_50_league_coverage_rows(
+            schedule, [runtime], report, trace, xg, goals
+        )
+        self.assertEqual(len(coverage), 2)
+        self.assertEqual(len({row["Selected Season ID"] for row in coverage}), 2)
+        populated = coverage[0]
+        empty = coverage[1]
+        self.assertEqual(populated["Selected Season ID"], "S1")
+        self.assertEqual(populated["Upcoming Fixtures (7d)"], 1)
+        self.assertEqual(populated["Exact Archive Joins"], 1)
+        self.assertEqual(populated["BTTS Raw Research Predictions"], 1)
+        self.assertEqual(populated["Experimental Goal Forecasts"], 1)
+        self.assertEqual(populated["Pre-match-labelled xG Rows"], 1)
+        self.assertEqual(populated["Verified xG Capture Timestamps"], 0)
+        self.assertEqual(populated["Production Eligible YES"], 0)
+        self.assertEqual(populated["Betting Eligible YES"], 0)
+        self.assertEqual(empty["Selected Season ID"], "S2")
+        self.assertEqual(empty["Upcoming Fixtures (7d)"], 0)
+        self.assertEqual(empty["Fixture Coverage Status"], "NO_FIXTURES_IN_7D_HORIZON")
+        self.assertEqual(empty["Raw Oracle Prediction Status"], "NO_FIXTURES_IN_7D_HORIZON")
+        summary_rows = market_report.build_coverage_summary_rows(coverage)
+        xg_rows = market_report.build_xg_provenance_rows(coverage)
+        self.assertTrue(any(row["Metric"] == "Groups without fixtures in seven-day horizon"
+                            and row["Value"] == 1 for row in summary_rows))
+        self.assertTrue(any(row["Control"] == "Point-in-time capture timestamps"
+                            and row["Finding"] == "0/1 rows have a verified capture timestamp."
+                            for row in xg_rows))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "coverage.xlsx"
+            market_report.write_xlsx(
+                path, report, trace, {}, goal_market_rows=goals, xg_audit_rows=xg,
+                league_coverage_rows=coverage, coverage_summary_rows=summary_rows,
+                xg_provenance_rows=xg_rows,
+            )
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            sheet = workbook["50-League Coverage"]
+            self.assertEqual(sheet.max_row, 3)
+            self.assertEqual(sheet.max_column, len(market_report.COVERAGE_HEADERS))
+            self.assertEqual(sheet["A3"].value, "S2")
+            self.assertEqual(workbook["Coverage Audit Summary"].max_row, len(summary_rows) + 1)
+            self.assertEqual(workbook["xG Provenance Decision"].max_row, len(xg_rows) + 1)
+            workbook.close()
+
+
 if __name__ == "__main__":
     unittest.main()
