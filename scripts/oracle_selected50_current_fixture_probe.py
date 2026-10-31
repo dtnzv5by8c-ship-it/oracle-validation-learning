@@ -156,8 +156,6 @@ for index, item in enumerate(selected):
                 max_page = int(result["max_page"] or 1)
             except (TypeError, ValueError):
                 max_page = 1
-            if max_page > 1:
-                pagination_gaps.append(season_id)
 
             for match in data:
                 if not isinstance(match, dict):
@@ -194,14 +192,17 @@ for index, item in enumerate(selected):
         if result["http_status"] == 200 and result["provider_success"] and isinstance(data, list):
             try:
                 max_page = int(result["max_page"])
-                if max_page < 1:
-                    raise ValueError("max_page must be positive")
+                current_page = int(result["current_page"])
+                if max_page < 1 or current_page < 1 or current_page > max_page:
+                    raise ValueError("pagination metadata is inconsistent")
             except (TypeError, ValueError):
                 result["schedule_status"] = "UNVERIFIED_PAGINATION"
             else:
                 result["schedule_status"] = (
                     "REQUIRES_PAGINATION" if max_page > 1 else "ONE_PAGE_RESPONSE"
                 )
+            if result["schedule_status"] != "ONE_PAGE_RESPONSE":
+                pagination_gaps.append(season_id)
         elif result["provider_success"] and not isinstance(data, list):
             result["error_class"] = "INVALID_PROVIDER_DATA_SHAPE"
 
@@ -214,6 +215,18 @@ for index, item in enumerate(selected):
         request_failures.append(season_id)
 
     results.append(result)
+
+    # This workflow is deliberately one request per season. If the response
+    # proves that more pages exist, or the pager cannot prove page 1 of 1,
+    # stop immediately rather than spending credits on the remaining seasons.
+    if request_succeeded and result["schedule_status"] != "ONE_PAGE_RESPONSE":
+        stop_reason = (
+            "PAGINATION_REQUIRED_ONE_PAGE_CAP"
+            if result["schedule_status"] == "REQUIRES_PAGINATION"
+            else "UNVERIFIED_PAGINATION_METADATA"
+        )
+        results.extend(not_attempted_row(skipped) for skipped in selected[index + 1:])
+        break
 
     if not request_succeeded:
         if result["http_status"] == 429:

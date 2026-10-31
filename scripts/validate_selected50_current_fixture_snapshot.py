@@ -111,6 +111,10 @@ def validate(path):
                 errors.append(f"provider request failed for season {item.get('selected_season_id')}")
             if item.get("schedule_status") != "ONE_PAGE_RESPONSE":
                 errors.append(f"unexpected pagination state for season {item.get('selected_season_id')}")
+            if integer_value(item.get("max_page")) != 1:
+                errors.append(f"max_page must equal 1 for one-page snapshot season {item.get('selected_season_id')}")
+            if integer_value(item.get("current_page")) != 1:
+                errors.append(f"current_page must equal 1 for one-page snapshot season {item.get('selected_season_id')}")
 
     seen = set()
     classes = Counter()

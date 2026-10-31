@@ -15,7 +15,8 @@ class SnapshotValidatorTests(unittest.TestCase):
     def build(self):
         seasons = [
             {"selected_season_id": str(i), "http_status": 200,
-             "provider_success": True, "schedule_status": "ONE_PAGE_RESPONSE"}
+             "provider_success": True, "schedule_status": "ONE_PAGE_RESPONSE",
+             "max_page": 1, "current_page": 1}
             for i in range(1, 51)
         ]
         future_kickoff = "2026-10-30T00:00:00+00:00"
@@ -184,6 +185,30 @@ class SnapshotValidatorTests(unittest.TestCase):
         data["per_season"][0]["schedule_status"] = "UNVERIFIED_PAGINATION"
         self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
+
+    def test_pagination_metadata_requires_page_one_of_one(self):
+        for field, value in (("max_page", 2), ("current_page", 2)):
+            with self.subTest(field=field, value=value):
+                data = self.build()
+                data["per_season"][0][field] = value
+                self.assertEqual(self.run_validation(data)["status"], "FAIL")
+        for field in ("max_page", "current_page"):
+            with self.subTest(field=field, value="missing"):
+                data = self.build()
+                data["per_season"][0].pop(field)
+                self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_probe_stops_after_first_pagination_or_unverified_pager(self):
+        probe = Path("scripts/oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
+        guard = probe.index('if request_succeeded and result["schedule_status"] != "ONE_PAGE_RESPONSE":')
+        reason = probe.index("PAGINATION_REQUIRED_ONE_PAGE_CAP", guard)
+        skipped = probe.index("results.extend(not_attempted_row(skipped) for skipped in selected[index + 1:])", guard)
+        stop = probe.index("break", skipped)
+        next_request_delay = probe.index("if index < len(selected) - 1:", stop)
+        self.assertLess(guard, reason)
+        self.assertLess(reason, skipped)
+        self.assertLess(skipped, stop)
+        self.assertLess(stop, next_request_delay)
 
     def test_snapshot_workflow_is_branch_guarded_and_commit_pinned(self):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
