@@ -308,8 +308,36 @@ Oracle V1.6 production logic and probabilities remain unchanged. Research output
 - The last available full-data report remains workflow run `41205672854`, artifact `13044203808`, generated before template v1.2.
 - Its QA file confirms 434 runtime fixtures, 50 governed league groups, 434 exact archive joins, zero unmatched/quarantined identity rows, 19 schedule discordances, schedule gate `REVIEW_REQUIRED`, and both production and betting eligibility false.
 - I downloaded and inspected that artifact. It contains 11 tabs and predates the new Schedule Reconciliation tab and fixture-context additions; it must not be presented as validation of the v1.2 workbook.
-- The prior QA `join_failure_examples` contains all 19 schedule-conflict records with exact composite identity, runtime kickoff, archive kickoff, fixture names and archive source file/row. Calculated archive-minus-runtime differences range from -3,285 to +2,940 minutes: 12 archive times precede the runtime time and 7 follow it. These differences are diagnostic only. Some large offsets may reflect date-only/default-time archive values, but no cause or authoritative kickoff can be assumed from this evidence.
+- The prior QA `join_failure_examples` contains all 19 schedule-conflict records with exact composite identity, runtime kickoff, archive kickoff, fixture names and archive source file/row. I independently mapped all 19 records to the successful runtime artifact from run `41175230838` using the exact four-part key, recovering the runtime league labels and confirming 19/19 identity matches. Calculated archive-minus-runtime differences range from -3,285 to +2,940 minutes: 12 archive times precede the runtime time and 7 follow it. These differences are diagnostic only. Some large offsets may reflect date-only/default-time archive values, but no cause or authoritative kickoff can be assumed from this evidence.
 - The new generator's trace/queue path now carries the runtime league and fixture context, exact identity, both timestamps, signed delta, source file/row, exact join status and `REVIEW_REQUIRED`. The focused synthetic regression test confirms the output mapping. The 19 real rows have not yet been regenerated through the v1.2 workbook; do not claim that the full-data queue has been inspected until the new manual report run completes.
+
+#### Prior-run 19-conflict inventory — diagnostic baseline only
+Source: QA examples from full report run `41205672854` / artifact `13044203808`, mapped to runtime prediction artifact from run `41175230838` by exact provider-season/fixture/ordered-team identity. Delta is archive kickoff minus runtime kickoff. This table preserves the discrepancy evidence; it is not a corrected schedule and is not a substitute for the new v1.2 generated queue.
+
+| League | Fixture | Exact fixture identity (season\|fixture\|home\|away) | Runtime kickoff UTC | Archive kickoff UTC | Delta (minutes) | Archive source file:row |
+|---|---|---|---|---|---:|---|
+| Primera División | O'Higgins vs Ñublense | 16615\|8432240\|2191\|2201 | 2026-10-31T21:00:00Z | 2026-10-31T23:00:00Z | +120 | private-package/seasons/16615/matches.json:46 |
+| Ukrainian Premier League | Veres vs Chornomorets | 17191\|8568431\|1675\|1674 | 2026-10-31T11:00:00Z | 2026-10-31T13:30:00Z | +150 | private-package/seasons/17191/matches.json:25 |
+| MLS | Vancouver Whitecaps vs Seattle Sounders | 16504\|8390931\|5\|18 | 2026-11-01T20:30:00Z | 2026-11-01T21:30:00Z | +60 | private-package/seasons/16504/matches.json:326 |
+| Ligue 1 | Olympique Lyonnais vs Angers SCO | 17102\|8548602\|57\|444 | 2026-11-01T16:15:00Z | 2026-10-31T19:45:00Z | -1230 | private-package/seasons/17102/matches.json:171 |
+| LigaPro | CD Tondela vs Felgueiras 1932 | 17215\|8573971\|169\|4821 | 2026-11-01T14:00:00Z | 2026-10-30T18:00:00Z | -2640 | private-package/seasons/17215/matches.json:175 |
+| LigaPro | Lusitania Lourosa vs Farense | 17215\|8574019\|4894\|4866 | 2026-11-01T15:30:00Z | 2026-11-01T14:00:00Z | -90 | private-package/seasons/17215/matches.json:223 |
+| Super League | Panathinaikos vs AEK Athens | 17356\|8604046\|960\|1101 | 2026-11-01T17:30:00Z | 2026-11-01T17:00:00Z | -30 | private-package/seasons/17356/matches.json:172 |
+| Ligue 1 | Lorient vs Brest | 17102\|8548603\|448\|491 | 2026-11-02T19:45:00Z | 2026-10-31T19:45:00Z | -2880 | private-package/seasons/17102/matches.json:172 |
+| Ligue 2 | Reims vs Sochaux | 17117\|8551239\|451\|454 | 2026-11-02T19:45:00Z | 2026-10-31T13:00:00Z | -3285 | private-package/seasons/17117/matches.json:28 |
+| Primera División | Univ. Concepción vs O'Higgins | 16615\|8432236\|2196\|2191 | 2026-11-05T23:00:00Z | 2026-11-08T00:00:00Z | +2940 | private-package/seasons/16615/matches.json:42 |
+| Professional League | Al Kholood vs Al Khaleej | 17426\|8620554\|5125\|5077 | 2026-11-05T13:25:00Z | 2026-11-05T00:00:00Z | -805 | private-package/seasons/17426/matches.json:65 |
+| Professional League | Abha vs Al Shabab | 17426\|8620615\|5093\|5067 | 2026-11-05T15:10:00Z | 2026-11-05T00:00:00Z | -910 | private-package/seasons/17426/matches.json:126 |
+| Professional League | Al Quadisiya vs Al Feiha | 17426\|8620606\|5068\|5071 | 2026-11-05T17:30:00Z | 2026-11-05T00:00:00Z | -1050 | private-package/seasons/17426/matches.json:117 |
+| Ligue 2 | Montpellier vs Metz | 17117\|8551236\|435\|438 | 2026-11-06T19:00:00Z | 2026-11-07T13:00:00Z | +1080 | private-package/seasons/17117/matches.json:25 |
+| Liga I | UTA Arad vs Petrolul 52 | 17247\|8579504\|6653\|10307 | 2026-11-06T15:30:00Z | 2026-11-07T00:00:00Z | +510 | private-package/seasons/17247/matches.json:116 |
+| Liga I | Argeș vs Dinamo Bucureşti | 17247\|8579523\|6644\|5400 | 2026-11-06T18:30:00Z | 2026-11-07T00:00:00Z | +330 | private-package/seasons/17247/matches.json:135 |
+| Professional League | Al Fateh vs Al Riyadh | 17426\|8620610\|5064\|5088 | 2026-11-06T14:30:00Z | 2026-11-05T00:00:00Z | -2310 | private-package/seasons/17426/matches.json:121 |
+| Professional League | Al Hazm vs Al Nassr | 17426\|8620666\|5089\|5069 | 2026-11-06T14:55:00Z | 2026-11-05T00:00:00Z | -2335 | private-package/seasons/17426/matches.json:177 |
+| Professional League | Al Ittihad vs Neom SC | 17426\|8620553\|5070\|5097 | 2026-11-06T17:30:00Z | 2026-11-05T00:00:00Z | -2490 | private-package/seasons/17426/matches.json:64 |
+
+No row in this baseline is resolved. Preserve every entry as `REVIEW_REQUIRED` in the next generated v1.2 workbook until authoritative event-time evidence supports a documented resolution.
+
 - No timestamp has been auto-corrected. All 19 conflicts remain open for authoritative event-time review.
 
 ### Separate contract-test failure — not part of report generator
