@@ -206,8 +206,20 @@ jobs:
             --out-dir market-intelligence-output \
             --expected-league-groups 50
 
+      - name: Upload join diagnostics when QA blocks the report
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-join-diagnostics
+          path: |
+            market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload rebuilt report, evidence trace and QA
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-market-intelligence-repair
@@ -216,6 +228,7 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence.csv
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             archive-audit/summary.json
           if-no-files-found: error
           retention-days: 14
