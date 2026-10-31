@@ -27,6 +27,7 @@ on:
       - "scripts/build_selected50_market_intelligence_report.py"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
+      - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1.md"
       - "scripts/build_goal_market_research_engine.py"
       - "tests/test_goal_market_research_engine.py"
       - "docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md"
