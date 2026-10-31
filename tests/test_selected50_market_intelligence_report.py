@@ -61,6 +61,16 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(rows[0]["capture_time_utc"], "")
         self.assertEqual(rows[0]["prediction_use_status"], "QUARANTINED_RESEARCH_AUDIT_ONLY")
         self.assertEqual(rows[0]["prediction_eligible"], "NO")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "xg.xlsx"
+            market_report.write_xlsx(path, [], [], {}, [], rows)
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            sheet = workbook["xG Evidence Audit"]
+            self.assertEqual(sheet.max_row, 2)
+            self.assertIn("QUARANTINED_RESEARCH_AUDIT_ONLY",
+                          [cell.value for cell in sheet[2]])
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            workbook.close()
         swapped = dict(runtime_row(), home_team_provider_id="A", away_team_provider_id="H")
         self.assertEqual(market_report.build_xg_audit([swapped], self.archive)[0]["join_status"],
                          "BLOCKED_NO_EXACT_ARCHIVE_MATCH")
