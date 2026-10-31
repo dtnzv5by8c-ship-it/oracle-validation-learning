@@ -83,16 +83,17 @@
   },
   "outputs": {
     "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx",
-    "workbook_sha256": "a89676074297dc2fe849ddf48fa1ee7e3638e5cd2e46e8d43ea70c2720f66ea1",
-    "workbook_size_bytes": 15743236,
-    "sheet_count": 61,
+    "workbook_sha256": "190d294803e479a5b97dd2c9e751153c480ac8455bf05b14d3176ff3eec0a738",
+    "workbook_size_bytes": 15745029,
+    "sheet_count": 62,
     "new_tabs": [
       "Team Time-Decay DNA",
       "H2H Time-Decay DNA",
       "DNA Decay Sensitivity",
       "H2H Decay Watch",
       "H2H Recency-Effective Leaders",
-      "Decay Methodology"
+      "Decay Methodology",
+      "Private Archive Retrieval"
     ],
     "note": "PROJECT_ORACLE_TEAM_H2H_DNA_TIME_DECAY_RESEARCH_2026-10-31-0221-SAST.md",
     "summary_csv": "oracle_selected50_team_h2h_time_decay_summary_2026-10-31-0221.csv",
@@ -100,7 +101,7 @@
   },
   "validation": {
     "base_sheet_count": 55,
-    "output_sheet_count": 61,
+    "output_sheet_count": 62,
     "base_sheets_missing": [],
     "team_dna_rows": 732,
     "h2h_dna_rows": 7188,
@@ -113,9 +114,21 @@
     "decay_sensitivity_rows": 14,
     "h2h_decay_watch_rows": 100,
     "h2h_recency_effective_leader_rows": 68,
-    "decay_methodology_rows": 10
+    "decay_methodology_rows": 10,
+    "private_archive_retrieval_rows": 10
   },
   "feature_edge_run3_v8_merged": false,
+  "private_archive_retrieval": {
+    "workflow_path": ".github/workflows/footystats-private-historical-ingestion.yml",
+    "workflow_source_commit": "cb89e5bd1c24810fe821a6b2c3c2c1c19272b381",
+    "artifact_name": "footystats-private-historical-ingestion",
+    "retention_days": 90,
+    "raw_payloads_saved_only_in_private_artifact": true,
+    "exact_run_id_available": false,
+    "exact_artifact_id_available": false,
+    "downloaded": false,
+    "workflow_dispatched": false
+  },
   "governance": {
     "provider_api_credits_used": 0,
     "completed_workflows_rerun": false,
