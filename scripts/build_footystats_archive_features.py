@@ -119,7 +119,7 @@ def main():
             rec={"league_folder":league,"season_folder":season,"season_start_year":season_year,
                  "source_file":rel,"source_row":i,"fixture_id":str(ident) if ident is not None else "",
                  "provider_league_id":str(first(d,("competition_id","league_id","leagueID")) or ""),
-                 "provider_season_id":str(season),
+                 "provider_season_id":str(season),"provider_season_id_source":"ARCHIVE_SEASON_FOLDER_ID",
                  "kickoff_utc":dt.isoformat() if dt else "",
                  "date_parse_ok":bool(dt),"home_team_id":str(hid or ""),
                  "away_team_id":str(aid or ""),"home_team":str(hn or ""),
