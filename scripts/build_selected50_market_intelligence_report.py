@@ -1067,7 +1067,7 @@ def main():
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
     write_csv(out_dir / "oracle_selected50_xg_evidence_audit.csv", xg_audit_rows, XG_AUDIT_HEADERS)
     (out_dir / "oracle_selected50_xg_evidence_audit_qa.json").write_text(
-        json.dumps(xg_audit_counts, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(xg_audit_counts, indent=2) + "\n", encoding="utf-8"
     )
     write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary, goal_market_rows, xg_audit_rows)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
