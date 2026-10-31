@@ -1,0 +1,53 @@
+{
+  "file": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx",
+  "sha256": "2c9712bad565475eed726bb173d18bdf775eeed451fbfe039d5d4ed5e6bf8ba7",
+  "size_bytes": 15742981,
+  "generated_sast": "2026-10-31T02:21:39+02:00",
+  "sheet_count": 61,
+  "base_workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v7_Team_H2H_Market_Reliability.xlsx",
+  "base_workbook_sha256": "75774dcf45d8228d4a3f403a2b6a7c6200631603830a4420897dd236be808df9",
+  "note": "PROJECT_ORACLE_TEAM_H2H_DNA_TIME_DECAY_RESEARCH_2026-10-31-0221-SAST.md",
+  "checkpoint": "oracle_selected50_team_h2h_time_decay_checkpoint_2026-10-31-0221-sast.json",
+  "summary_csv": "oracle_selected50_team_h2h_time_decay_summary_2026-10-31-0221.csv",
+  "research_branch": "research/oracle-50-league-readiness-audit",
+  "new_tabs": [
+    "Team Time-Decay DNA",
+    "H2H Time-Decay DNA",
+    "DNA Decay Sensitivity",
+    "H2H Decay Watch",
+    "H2H Recency-Effective Leaders",
+    "Decay Methodology"
+  ],
+  "limitations": [
+    "Team/H2H profiles cover 31/50 groups; raw JSON for 19 remains unavailable.",
+    "Venue time-decay splits omitted because explicit no_home_away flag is absent from H2H Meetings ledger.",
+    "365d and 730d half-lives are sensitivity settings, not OOS-optimized.",
+    "Separate Feature Edge Run 3 v8 binary was not available for a verified merge in this run."
+  ],
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "validation": {
+    "base_sheet_count": 55,
+    "output_sheet_count": 61,
+    "base_sheets_missing": [],
+    "team_dna_rows": 732,
+    "h2h_dna_rows": 7188,
+    "h2h_meetings_rows": 23328,
+    "fixture_intelligence_rows": 426,
+    "team_market_tendency_rows": 2120,
+    "h2h_market_reliability_rows": 7188,
+    "team_time_decay_rows": 732,
+    "h2h_time_decay_rows": 7188,
+    "decay_sensitivity_rows": 14,
+    "h2h_decay_watch_rows": 100,
+    "h2h_recency_effective_leader_rows": 68,
+    "decay_methodology_rows": 10
+  }
+}
