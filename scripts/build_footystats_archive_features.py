@@ -219,11 +219,60 @@ def main():
     write_csv(out/"season_coverage.csv",season_rows)
     write_csv(out/"manifest_reconciliation.csv",manifest)
     write_csv(out/"parse_errors.csv",file_errors,["file","error"])
+    # Audit explicit provider ID and archive hierarchy relationships without promoting folder names to canonical IDs.
+    folder_competition_audit = {}
+    provider_competition_to_seasons = collections.defaultdict(set)
+    provider_season_to_competitions = collections.defaultdict(set)
+    for row in records:
+        folder = str(row.get("league_folder") or "")
+        season_id = str(row.get("provider_season_id") or "")
+        competition_id = str(row.get("provider_league_id") or "")
+        if folder:
+            item = folder_competition_audit.setdefault(folder, {
+                "season_ids": set(), "provider_competition_ids": set(),
+                "record_count": 0, "records_with_competition_id": 0
+            })
+            if season_id: item["season_ids"].add(season_id)
+            if competition_id: item["provider_competition_ids"].add(competition_id)
+            item["record_count"] += 1
+            item["records_with_competition_id"] += int(bool(competition_id))
+        if competition_id and season_id:
+            provider_competition_to_seasons[competition_id].add(season_id)
+            provider_season_to_competitions[season_id].add(competition_id)
+    folder_audit_rows = []
+    for folder, item in sorted(folder_competition_audit.items()):
+        seasons = sorted(item["season_ids"])
+        competitions = sorted(item["provider_competition_ids"])
+        folder_audit_rows.append({
+            "league_folder": folder, "season_ids": ";".join(seasons), "season_count": len(seasons),
+            "provider_competition_ids": ";".join(competitions),
+            "provider_competition_id_count": len(competitions), "record_count": item["record_count"],
+            "records_with_competition_id": item["records_with_competition_id"],
+            "provider_competition_id_spans_multiple_seasons": any(
+                len(provider_competition_to_seasons[cid]) > 1 for cid in competitions
+            ),
+            "identity_policy": "RAW_ARCHIVE_HIERARCHY_ONLY_NOT_CANONICAL_CROSSWALK"
+        })
+    write_csv(out/"competition_season_identity_audit.csv", folder_audit_rows)
+    competition_identity_summary = {
+        "league_folder_count": len(folder_audit_rows),
+        "league_folders_with_multiple_seasons": sum(r["season_count"] > 1 for r in folder_audit_rows),
+        "provider_competition_ids": len(provider_competition_to_seasons),
+        "provider_competition_ids_spanning_multiple_seasons": sum(
+            len(v) > 1 for v in provider_competition_to_seasons.values()
+        ),
+        "provider_season_ids_with_multiple_competition_ids": sum(
+            len(v) > 1 for v in provider_season_to_competitions.values()
+        ),
+        "season_to_competition_mapping_ambiguous": any(len(v) > 1 for v in provider_season_to_competitions.values()),
+        "identity_policy": "Raw provider IDs and archive folder relationships are audited; not a canonical league crosswalk without owner-approved mapping."
+    }
     summary={"status":"ARCHIVE_FEATURE_AUDIT_COMPLETE","production_readiness":"NOT_ASSESSED","production_logic_changed":False,"provider_api_calls":0,
       "archive_sha256":hashlib.sha256(Path(args.archive).read_bytes()).hexdigest(),"match_files":len(files),"archive_match_records":len(records),
       "records_with_parseable_kickoff":sum(r["date_parse_ok"] for r in records),"settled_status_and_score_complete_records":sum(r["settled_status_allowed"] and r["score_available"] for r in records),
       "records_with_team_ids":sum(bool(r["home_team_id"] and r["away_team_id"]) for r in records),"feature_rows":len(feature_rows),
       "season_folders":len(season_rows),"manifest_rows":len(manifest),"parse_errors":len(file_errors),
+      "competition_season_identity_audit":competition_identity_summary,
       "field_nonempty_counts":dict(field_counts.most_common()),"xg_policy":"Actual-match xG is descriptive only; prematch-labelled fields are presence-audited but excluded from model features until point-in-time provenance is verified.",
       "market_odds_policy":"Odds field presence is audited; no odds feature is built because timestamp/provenance is unverified.",
       "historical_table_policy":"No provider final/current table is treated as historical. Historical standings remain unbuilt pending rules for season formats and a separately validated reconstruction.",
