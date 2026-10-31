@@ -43,8 +43,8 @@ Probabilities remain raw and uncalibrated. Rankings are not betting recommendati
 ## Workbook
 
 - File: `Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v13_Run6_Feature_Edge_Team_H2H_0500SAST.xlsx`
-- SHA-256: `3417db1d5fb4c823a19ce31e9807d5b4a0baa136afb848b2234846a65d3b5721`
-- 16,960,802 bytes; 106 tabs; 95 original worksheet XML parts byte-identical.
+- SHA-256: `0216ab9435190471d334cd5bf10630485e85d1a93abd7a353986b40dd0244d0c`
+- 16,926,465 bytes; 106 tabs; 95 original worksheet XML parts byte-identical.
 - Eleven new tabs: Run6 Executive Summary; Team Effective Sample; H2H Pair ESS Audit; H2H ESS Leaders; Team Robustness; Profile QA; 50-League Coverage; Source Lineage; H2H Correction; Feature Edge Update; Ranking Currentness.
 
 Source Team/H2H checkpoint: `reports/oracle_selected50_team_h2h_run6_checkpoint_2026-10-31-0423-sast.json` (blob SHA `9bac5920c1cc0c5effa997e1b967a9052518631e`).
