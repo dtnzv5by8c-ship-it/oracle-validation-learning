@@ -372,3 +372,18 @@ The user approved Option 2: a consolidated, fixture-level analyst view in the Ma
 - This reporting-layer change does not alter Oracle V1.6 logic, prediction probabilities, archive contents, data sources or API usage.
 - Accuracy improvement roadmap: prioritize trustworthy temporally available xG (home/away, opponent-adjusted), verified injuries/suspensions and confirmed lineups, rest/travel and schedule congestion, then market odds snapshots and closing-line movement. Add only fields with source timestamps and historical availability proof. Evaluate each feature with chronological out-of-fold ablation and per-league/per-market Brier, log loss, calibration slope/intercept, reliability/ECE and confidence intervals against simple league/team baselines. Do not assume more features improve accuracy; retain only reproducible out-of-sample gains. Fit calibration only on a separate chronological calibration window and evaluate on a later untouched test window. Market value requires contemporaneous odds, bookmaker margin removal, price timestamp and closing-line comparison. No bet grading until all gates pass.
 - Next full workflow run must verify the new workbook contains both tabs, original 38-column production tab is intact, expanded tab has 434 fixture rows, research values map to exact fixture IDs, blocked goal rows remain explicitly blocked, and schedule conflicts remain flagged. Existing full run 41199481742 predates this approved enhancement and is not evidence that the new layout has been built.
+
+
+### Expanded analyst-view implementation checkpoint — 2026-10-31
+
+- Implementation commits on the governed branch:
+  - 912af82d92e511e05888e86eadcaadb0e02b5997 — add consolidated Market Intelligence analyst sheet and rename preserved 38-column sheet to Oracle V1.6 Output.
+  - 923b43e983c702a1eb51a6e8ee8552545371680e — join trace by exact fixture team labels for the report row; subsequent trace identity fields were added.
+  - fec0687d65af1223d4676b773117ae77c81329cc — expose runtime home/away labels in trace.
+  - 444cecc675285929de29c843df907d73abfea345 — add workbook regression tests for research and production separation.
+  - 7484daa0702409fb4ea8d8c3c7940f398b52737f — carry verified H2H summary into the analyst view.
+  - 7acb223c49cc164fb666aed64ea2082be9b73d10 — record approved design and roadmap in this protocol.
+  - 38601a127ff893e17126ae01298f0b081eb63be9 — correct tests to target the preserved production sheet and verified last-five sample.
+- First test run exposed two assertion issues; corrected. The latest push-triggered report workflow run 41200789454 completed SUCCESS on commit 38601a127ff893e17126ae01298f0b081eb63be9. This is a test-only push run: private archive, runtime download, workbook rebuild and artifact upload were skipped.
+- The separate safety-contract workflow still fails its known unrelated snapshot-runtime-bridge tests; do not conflate that with the passing Market Intelligence report suite.
+- No full workbook has yet been generated with the expanded tab. A manual workflow_dispatch is required, using the pinned archive consent, release tag and runtime run ID in Section 2.
