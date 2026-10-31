@@ -1,0 +1,2 @@
+pair_key,selected_id,country,league,team_a_id,team_a_name_exact,team_b_id,team_b_name_exact,raw_meetings,effective_n_365d,effective_n_730d,meetings_trailing_365d,fixture_ids_sha256,identity_and_use_limit
+17181:595:599,17181,Austria,Bundesliga,595,LASK Linz,599,Hartberg,10,8.3826,9.5365,5,ee0caf57cddc938f7eeb060d811572d70e4febf67128c7c398b3d9c6f0b1d111,"Team A/B ordered by provider ID, not home/away. Exact provider IDs within selected_id; canonical cross-provider identity not verified; descriptive only."
