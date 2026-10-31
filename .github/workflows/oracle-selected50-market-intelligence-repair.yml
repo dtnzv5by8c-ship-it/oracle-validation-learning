@@ -177,6 +177,22 @@ jobs:
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
             --out archive-audit
 
+      - name: Verify archive audit digest and pinned archive coverage
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa = json.loads(Path("archive-audit/summary.json").read_text())
+          if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+              raise SystemExit("FAIL: feature audit archive digest does not match the pinned archive")
+          if qa.get("archive_match_records") != 59049 or qa.get("season_folders") != 200:
+              raise SystemExit(f"FAIL: pinned archive coverage mismatch: rows={qa.get('archive_match_records')}, seasons={qa.get('season_folders')}")
+          if qa.get("provider_api_calls") != 0:
+              raise SystemExit("FAIL: provider API calls were made; archive-only policy violated")
+          print("Pinned archive audit verified: 59,049 records; 200 season folders; zero provider API calls.")
+          PY
+
       - name: Rebuild 38-column Market Intelligence report and enforce QA gates
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
