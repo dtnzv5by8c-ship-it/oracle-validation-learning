@@ -530,7 +530,7 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows, trace=None, archive_summary=None):
+def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Market Intelligence"
@@ -717,6 +717,11 @@ def write_xlsx(path, rows, trace=None, archive_summary=None):
          "home_clean_sheet_rate_pct", "away_clean_sheet_rate_pct",
          "home_failed_to_score_rate_pct", "away_failed_to_score_rate_pct",
          "h2h_n", "h2h_scope", "h2h_meetings_detail", "evidence_label", "history_cutoff_utc"], goal_rows)
+    goal_market_rows = goal_market_rows or []
+    goal_market_headers = list(dict.fromkeys(k for r in goal_market_rows for k in r)) or [
+        "fixture_id", "forecast_status", "forecast_label", "model_id", "production_eligible", "betting_eligible"
+    ]
+    add_sheet("Goal Market Research", goal_market_headers, goal_market_rows)
     add_sheet("Market Data Coverage",
         ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
          "not_validated_or_not_graded", "coverage_pct"], coverage)
@@ -753,6 +758,7 @@ def main():
     ap.add_argument("--archive-summary", required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--expected-league-groups", type=int, default=50)
+    ap.add_argument("--goal-market-research", required=False, help="Experimental goal-market research CSV; never production probabilities")
     args = ap.parse_args()
     out_dir = Path(args.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     runtime_rows = read_csv(args.runtime_report)
@@ -760,6 +766,7 @@ def main():
     schedule_rows = read_csv(args.schedule_coverage)
     runtime_provenance = json.loads(Path(args.runtime_provenance).read_text(encoding="utf-8"))
     archive_summary = json.loads(Path(args.archive_summary).read_text(encoding="utf-8"))
+    goal_market_rows = read_csv(args.goal_market_research) if args.goal_market_research else []
     runtime_report_sha256 = hashlib.sha256(Path(args.runtime_report).read_bytes()).hexdigest()
     if runtime_provenance.get("runtime_report_sha256") != runtime_report_sha256:
         raise SystemExit("FAIL: runtime report does not match its provenance SHA-256")
@@ -859,7 +866,7 @@ def main():
     quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
-    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary)
+    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary, goal_market_rows)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
