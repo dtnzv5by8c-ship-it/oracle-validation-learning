@@ -111,7 +111,15 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["runtime_kickoff_utc"], "2026-10-31T18:00:00+00:00")
         self.assertEqual(trace[0]["archive_kickoff_utc"], "2026-10-31T17:59:00+00:00")
         self.assertEqual(trace[0]["join_status"], "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS")
-        self.assertEqual(trace[0]["schedule_reconciliation_status"], "MISMATCH_REVIEW_REQUIRED")
+        self.assertEqual(trace[0]["schedule_reconciliation_status"], "REVIEW_REQUIRED")
+        self.assertEqual(trace[0]["schedule_delta_minutes_archive_minus_runtime"], -1)
+        queue = summary["schedule_reconciliation_queue"]
+        self.assertEqual(len(queue), 1)
+        self.assertEqual(queue[0]["status"], "REVIEW_REQUIRED")
+        self.assertEqual(queue[0]["fixture_identity"], "S1|F100|H|A")
+        self.assertEqual(queue[0]["league"], "Test League")
+        self.assertEqual(queue[0]["delta_minutes_archive_minus_runtime"], -1)
+        self.assertEqual(summary["schedule_reconciliation_queue_rows"], 1)
         self.assertEqual(summary["report_rows"], 1)
 
     def test_schedule_discordant_target_is_not_used_as_historical_evidence(self):
@@ -242,10 +250,12 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                 "league_prior_n": 31, "home_lambda_source": "VENUE",
                 "away_lambda_source": "OVERALL_FALLBACK", "blocked_reason": "",
                 "production_eligible": "NO", "betting_eligible": "NO"
-            }])
+            }], xg_audit_rows=market_report.build_xg_audit(
+                [runtime_row()], self.archive + [prior], trace
+            ))
             workbook = load_workbook(path, read_only=True, data_only=True)
             self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
-            self.assertGreater(workbook["Market Intelligence"].max_column, 38)
+            self.assertEqual(workbook["Market Intelligence"].max_column, 83)
             decision = workbook["Market Intelligence"]
             decision_headers = [cell.value for cell in decision[1]]
             self.assertIn("Research Over 1.5 %", decision_headers)
@@ -260,9 +270,22 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
             self.assertEqual(decision_values["H2H Avg Total Goals"], 3.5)
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
+                          "Goal Market Research", "xG Evidence Audit", "Schedule Reconciliation",
                           "Market Data Coverage", "Archive Field Coverage",
                           "Data Quality & Risk", "Definitions & Governance"):
                 self.assertIn(sheet, workbook.sheetnames)
+            expected_context = ["Fixture Date", "League", "Fixture"]
+            for sheet in ("H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
+                          "Goal Intelligence", "Goal Market Research", "xG Evidence Audit"):
+                self.assertEqual([cell.value for cell in workbook[sheet][1][:3]], expected_context)
+                self.assertGreaterEqual(workbook[sheet].max_row, 2)
+                context_values = [cell.value for cell in workbook[sheet][2][:3]]
+                self.assertEqual(context_values, [
+                    "2026-10-31T18:00:00+00:00", "Test League", "Home FC vs Away FC"
+                ])
+            self.assertEqual(workbook["Market Data Coverage"][1][0].value, "field")
+            self.assertEqual(workbook["Archive Field Coverage"][1][0].value, "raw_source_field")
+            self.assertEqual(workbook["Schedule Reconciliation"].max_row, 1)
             self.assertGreaterEqual(workbook["H2H Intelligence"].max_row, 2)
             self.assertEqual(workbook["Archive Field Coverage"].max_row, 3)
             goal_sheet = workbook["Goal Intelligence"]
@@ -277,6 +300,68 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(goal_values["home_last5_goals_scored_avg"], "2.00")
             self.assertEqual(goal_values["home_last5_goals_conceded_avg"], trace[0]["home_form_ga_avg"])
             self.assertEqual(goal_values["home_at_home_goals_scored_avg"], trace[0]["home_at_home_avg_goals_for"])
+            workbook.close()
+
+    def test_schedule_reconciliation_queue_exposes_full_conflict_evidence(self):
+        changed = dict(self.archive[-1],
+            kickoff_utc="2026-10-31T17:59:00+00:00",
+            source_file="england/2026/matches.json", source_row="88")
+        report, trace, summary = market_report.build_report(
+            [runtime_row()], self.archive[:-1] + [changed]
+        )
+        queue = market_report.build_schedule_reconciliation_queue(trace)
+        self.assertEqual(len(queue), 1)
+        item = queue[0]
+        self.assertEqual(item["status"], "REVIEW_REQUIRED")
+        self.assertEqual(item["fixture_identity"], "S1|F100|H|A")
+        self.assertEqual(item["league"], "Test League")
+        self.assertEqual(item["fixture"], "Home FC vs Away FC")
+        self.assertEqual(item["runtime_kickoff_utc"], "2026-10-31T18:00:00+00:00")
+        self.assertEqual(item["archive_kickoff_utc"], "2026-10-31T17:59:00+00:00")
+        self.assertEqual(item["delta_minutes_archive_minus_runtime"], -1)
+        self.assertEqual(item["archive_source_file"], "england/2026/matches.json")
+        self.assertEqual(item["archive_source_row"], "88")
+        self.assertIn("NO_AUTO_CORRECTION", item["resolution_action"])
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "schedule.xlsx"
+            xg = market_report.build_xg_audit([runtime_row()], self.archive[:-1] + [changed], trace)
+            market_report.write_xlsx(path, report, trace, {}, xg_audit_rows=xg)
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            sheet = workbook["Schedule Reconciliation"]
+            headers = [cell.value for cell in sheet[1]]
+            values = dict(zip(headers, [cell.value for cell in sheet[2]]))
+            self.assertEqual(values["status"], "REVIEW_REQUIRED")
+            self.assertEqual(values["fixture_identity"], "S1|F100|H|A")
+            self.assertEqual(values["delta_minutes_archive_minus_runtime"], -1)
+            self.assertEqual(values["archive_source_file"], "england/2026/matches.json")
+            self.assertEqual(values["archive_source_row"], "88")
+            quality = workbook["Data Quality & Risk"]
+            quality_headers = [cell.value for cell in quality[1]]
+            quality_values = dict(zip(quality_headers, [cell.value for cell in quality[2]]))
+            self.assertEqual(quality_values["schedule_reconciliation_status"], "REVIEW_REQUIRED")
+            self.assertEqual(quality_values["runtime_kickoff_utc"], item["runtime_kickoff_utc"])
+            self.assertEqual(quality_values["archive_kickoff_utc"], item["archive_kickoff_utc"])
+            self.assertEqual(quality_values["schedule_delta_minutes_archive_minus_runtime"], -1)
+            workbook.close()
+
+    def test_goal_market_context_requires_exact_composite_identity(self):
+        report, trace, _ = market_report.build_report([runtime_row()], self.archive)
+        mismatched_goal = {
+            "provider_season_id": "S2", "fixture_id": "F100",
+            "home_team_id": "H", "away_team_id": "A",
+            "forecast_status": "EXPERIMENTAL_UNCALIBRATED",
+            "production_eligible": "NO", "betting_eligible": "NO"
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "goal-market.xlsx"
+            market_report.write_xlsx(path, report, trace, {}, goal_market_rows=[mismatched_goal])
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            sheet = workbook["Goal Market Research"]
+            headers = [cell.value for cell in sheet[1]]
+            values = dict(zip(headers, [cell.value for cell in sheet[2]]))
+            self.assertEqual(values["Fixture Date"], "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN")
+            self.assertEqual(values["League"], "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN")
+            self.assertEqual(values["Fixture"], "NOT_AVAILABLE_EXACT_IDENTITY_CONTEXT_JOIN")
             workbook.close()
 
     def test_duplicate_runtime_keys_fail_closed(self):
