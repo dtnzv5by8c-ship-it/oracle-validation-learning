@@ -1,0 +1,20 @@
+metric,value,interpretation
+source_fixture_rows,23328,Unique exact fixture IDs with kickoff scores and raw hashes
+primary_window_fixtures,15003,20 Mar 2025 through 20 Sep 2026 inclusive
+profiled_groups,31,Raw match JSON available in Run64 extract
+unavailable_groups,19,Archive ledger exists but raw match JSON not accessible
+team_profiles,732,Exact selected_id plus provider team_id
+h2h_pairs,7188,Exact selected_id plus ordered provider team IDs
+h2h_meetings,23328,Chronological completed score rows
+primary_h2h_prior_0,2173,No prior exact H2H at kickoff
+primary_h2h_prior_1_2,7097,One or two prior exact meetings
+primary_h2h_prior_3_4,4685,Three or four prior exact meetings
+primary_h2h_prior_5_plus,1048,Five or more prior exact meetings
+PIT_sample_validation,250/250,Independent brute-force prior-count reconciliation passed
+BTTS_league_prior_brier,0.246222,Better than team-form and H2H blends
+BTTS_team_h2h30_brier,0.247217,Worse than league prior; no incremental edge
+OVER25_league_prior_brier,0.245587,Comparable to H2H blend
+OVER25_team_h2h30_brier,0.245535,Nominally lower; paired bootstrap vs league prior crosses zero
+provider_api_credits,0,None used
+production_eligible,false,Research only
+betting_eligible,false,Research only
