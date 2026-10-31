@@ -1,0 +1,123 @@
+{
+  "title": "Project Oracle Selected-50 League & Market DNA Incremental Research Run 4",
+  "asof_sast": "2026-10-31T02:35:37+02:00",
+  "repository": "dtnzv5by8c-ship-it/oracle-validation-learning",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "parent_branch_head": "69d3f8c2cbe7f8abcf373c0a2dc2f468665b0cf1",
+  "source_artifacts": {
+    "full_archive": {
+      "lineage": "research-selected50-footystats-history-40375285207",
+      "sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+      "groups": 50,
+      "seasons": 200,
+      "rows": 59049,
+      "exact_selected_id_mapping": "50/50"
+    },
+    "run64_supplementary": {
+      "workflow_run_id": 41101695515,
+      "artifact_id": 12997699044,
+      "sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8c4e20211a",
+      "raw_rows": 30257,
+      "season_folders": 126,
+      "league_names": 42,
+      "completed_dated_numeric_scores": 23328,
+      "payload_groups": 31,
+      "unavailable_payload_groups": 19
+    },
+    "snapshot": {
+      "workflow_run_id": 41117910952,
+      "artifact_id": 13005239530,
+      "retrieved_utc": "2026-10-30T19:46:39.708942Z"
+    },
+    "runtime": {
+      "workflow_run_id": 41119141526,
+      "run_number": 176,
+      "artifact_id": 13006609602,
+      "report_sha256": "086af446dee2e73f5a2da00fcca11cd6ef0b431a96a22f411dd4bae1d98a5e23"
+    },
+    "bridge_audit": {
+      "workflow_run_id": 41121900062,
+      "run_number": 12,
+      "artifact_id": 13009350718,
+      "artifact_sha256": "afa5527e3a17e61886d9c3de4fa9b0373425ad377c56f939816ef3401fc967c6"
+    },
+    "team_h2h_decay_checkpoint": "reports/oracle_selected50_team_h2h_time_decay_checkpoint_2026-10-31-0221-sast.json",
+    "feature_edge_checkpoint": "reports/oracle_selected50_feature_edge_run3_checkpoint_2026-10-31.json"
+  },
+  "outputs": {
+    "workbook": {
+      "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v10_League_Market_DNA_0235SAST.xlsx",
+      "sha256": "cf7879a5b1da254f8f92360dc5dda3679589168dbffa10b4936a8e056f0edc1b",
+      "bytes": 638132,
+      "sheets": 42,
+      "delivery": "conversation attachment and research pack; binary workbook not committed as a text file"
+    },
+    "research_note": {
+      "path": "reports/ORACLE_SELECTED50_LEAGUE_MARKET_DNA_INCREMENTAL_RESEARCH_2026-10-31-0235-SAST.md",
+      "sha256": "a27d1c783c1924993a3dd300ae23b08a13a6f7b8b5654f7796e01b098b109e3d"
+    },
+    "research_pack": {
+      "filename": "Oracle_Selected50_League_Market_DNA_Run4_Research_Pack_31Oct2026_0235SAST.zip",
+      "sha256": "7a40a3976ff165379bf1d6a7b772a742c5672799c4f9c342322eb40ccbaa8f6f",
+      "bytes": 691154
+    }
+  },
+  "qa": {
+    "groups": 50,
+    "score_payload_groups": 31,
+    "unavailable_payload_groups": 19,
+    "calendar_2024": {
+      "full": 4,
+      "partial": 27,
+      "unavailable": 19
+    },
+    "calendar_2025": {
+      "full": 31,
+      "unavailable": 19
+    },
+    "calendar_2026_to_2026_09_20": {
+      "full": 31,
+      "unavailable": 19
+    },
+    "scoring_market_crosswalk_rows": 150,
+    "fold_detail_rows": 450,
+    "correlation_tests": 19,
+    "correlation_p_lt_005": 0,
+    "market_suitability": {
+      "strict": 26,
+      "calibration_warning": 13,
+      "mixed": 47,
+      "insufficient": 60,
+      "no_positive": 4,
+      "strict_leagues": 17
+    },
+    "rankings": {
+      "runtime_rows": 426,
+      "exact_id_joins": 426,
+      "source_quarantine": 79,
+      "future_feature_blocked": 22,
+      "kickoff_mismatches": 3,
+      "elapsed_eligible": 3,
+      "rankable_per_market": 319,
+      "top50_per_market": 50,
+      "top50_quarantine": 0,
+      "top50_kickoff_mismatch": 0,
+      "snapshot_age_hours": 4.815914
+    },
+    "governance": {
+      "provider_api_credits_used": 0,
+      "completed_workflows_rerun": false,
+      "production_logic_changed": false,
+      "production_probabilities_changed": false,
+      "production_eligible": false,
+      "betting_eligible": false
+    }
+  },
+  "repository_summary_csvs": {
+    "oracle-selected50-scoring-dna-trend-summary-2026-10-31-0235.csv": "4a7fcfe0bdaf017dc987f60d8e83bffb48bb7cf7289f49c76850863bfc668b70",
+    "oracle-selected50-market-suitability-summary-2026-10-31-0235.csv": "d62091f389a0bbb7281bf14c7ad05da73286d3f8b2845830ac72cc624b8a4ef8",
+    "oracle-selected50-ranking-qa-2026-10-31-0235.csv": "92f03d075d9acfabf682062fa1af112eea2c93729192815a72d53a42e3b2bd82",
+    "oracle-selected50-scoring-market-correlation-2026-10-31-0235.csv": "819e1dc3e842df27a56c050295d3198b278c58f2430cb7eee51a957e8d521aa7",
+    "oracle-selected50-archive-identity-correction-2026-10-31-0235.csv": "b20494ec183df4b716c87daf35a707642f56a8274fa0776c0fd578c708ab7460"
+  }
+}
