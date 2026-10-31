@@ -1,0 +1,14 @@
+selected_id,team_id,country,league,team_name_exact,regime,delta10_total_goals,delta10_over25,delta20_total_goals,delta20_over25,days_since_last_match_run_time,warning
+16544,615,Brazil,Serie A,Botafogo,LOWER,-1.20,-0.50,-0.80,-0.20,41.35,Last20 Wilson intervals overlap; descriptive only
+17097,371,Netherlands,Eredivisie,Sparta Rotterdam,HIGHER,1.20,0.40,0.70,0.25,41.48,Last20 Wilson intervals overlap; descriptive only
+17097,374,Netherlands,Eredivisie,Excelsior,HIGHER,0.80,0.30,0.50,0.15,41.43,Last20 Wilson intervals overlap; descriptive only
+17102,445,France,Ligue 1,Nice,LOWER,-1.30,-0.20,-1.10,-0.20,40.54,Last20 Wilson intervals overlap; descriptive only
+17112,802,Poland,Ekstraklasa,Rakow Częstochowa,HIGHER,0.80,0.50,0.60,0.20,41.65,Last20 Wilson intervals overlap; descriptive only
+17129,889,Switzerland,Super League,Sion,HIGHER,1.50,0.30,0.95,0.35,41.51,Last20 Wilson intervals overlap; descriptive only
+17146,143,England,Premier League,Crystal Palace,HIGHER,1.10,0.30,0.50,0.15,40.64,Last20 Wilson intervals overlap; descriptive only
+17180,206,England,EFL League One,Birmingham City,HIGHER,1.10,0.30,0.50,0.30,545.60,Very stale; last archived match 2025-05-03
+17184,108,England,Championship,Leicester City,LOWER,-0.90,-0.20,-0.55,-0.30,181.70,Stale; last archived match 2026-05-02
+17210,541,Germany,Bundesliga,Union Berlin,HIGHER,1.60,0.50,0.75,0.15,42.41,Last20 Wilson intervals overlap; descriptive only
+17212,543,Germany,2. Bundesliga,Arminia Bielefeld,HIGHER,0.80,0.20,0.50,0.20,40.70,Last20 Wilson intervals overlap; descriptive only
+17215,165,Portugal,LigaPro,GD Chaves,HIGHER,1.70,0.60,0.70,0.25,47.64,Two last10 BTTS Wilson intervals non-overlap across candidate set; still descriptive only
+17444,1264,South Africa,Premier Soccer League,Golden Arrows,LOWER,-1.20,-0.30,-1.20,-0.25,40.64,Last20 Wilson intervals overlap; descriptive only
