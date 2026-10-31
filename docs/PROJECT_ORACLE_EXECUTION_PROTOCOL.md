@@ -489,6 +489,8 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - e8b3ac86f4eed6d8094c0262a54d6183ea366672 — add focused context, exact-identity and schedule-queue regression coverage.
 - 0fa0293644489c30f62e8c4d9ba3077e47ceee28 and 0297ecb3ea226792bdb20922d549b5877bdd789d — lock and align report template v1.2, including the 12-tab order and fixture-context contract.
 - 056ffd29c898c60ef24cb6e15275ed8ffce0fe84 — include the schedule reconciliation CSV in successful and blocked workflow diagnostics artifacts.
+- 9a778d46dbf6addb3aaa6aa22ab392ed956a83f5 — add the v1.2 template contract to the report regression workflow's push path filter.
+- 5f99de18751f0a25271fd080a8f984d0598a706d — assert the empty Goal Market Research tab retains its context and base schema.
 
 ### Regression and verification state
 - Report test suite: 20 test methods in tests/test_selected50_market_intelligence_report.py. The additions explicitly test complete REVIEW_REQUIRED queue fields, workbook queue output, fixture context on all six supporting tabs, unchanged aggregate coverage headers, 38/83-column invariants and fail-closed exact identity for goal-research context.
