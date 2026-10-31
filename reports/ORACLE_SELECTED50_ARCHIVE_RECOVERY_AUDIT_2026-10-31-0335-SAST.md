@@ -27,9 +27,13 @@ The private repository's legacy `archive/` directory contains prediction, settle
 - 2025: 31 full, 19 unavailable.
 - 2026 through 20 September: 31 full, 19 unavailable.
 - League-market evidence: 150 combinations; 26 strict repeatable positive-skill diagnostics across 17 leagues; 13 positive with calibration warning; 47 mixed; 60 insufficient; 4 no positive Brier skill.
-- Top-50 rankings: existing Run 4 lists retained for BTTS, DC Home and DC Away; no current snapshot/runtime/bridge refresh was performed in this run. All probabilities remain raw, uncalibrated and research-only.
+- Top-50 lineage: the 02:35 League DNA baseline tabs are retained in this 45-tab audit workbook. The separate 03:02 Feature Edge Run 4 85-tab workbook is the newer ranking/team/H2H consolidation and remains the latest ranking cut. This recovery audit did not refresh or replace those lists; use the 03:02 workbook for the latest exact-ID Top 50. All probabilities remain raw, uncalibrated and research-only.
 
 The 19 unavailable groups remain explicitly unavailable. No values were imputed, zero-filled or inferred.
+
+## Workbook lineage
+
+The attached 45-tab recovery-audit workbook extends the locally available 02:35 League/Market v10 baseline. It is a focused recovery addendum, **not a replacement** for the separate 03:02 Feature Edge Run 4 85-tab consolidated workbook. The 03:02 workbook remains the latest ranking/team/H2H output.
 
 ## Controls
 
