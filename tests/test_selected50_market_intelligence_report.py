@@ -56,19 +56,38 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
     def test_kickoff_mismatch_is_quarantined(self):
         changed = dict(self.archive[-1], kickoff_utc="2026-10-31T17:59:00+00:00")
         joined, missing, _ = market_report.exact_join([runtime_row()], self.archive[:-1] + [changed])
-        self.assertEqual(joined, {})
-        self.assertEqual(missing[0][1], "KICKOFF_MISMATCH_OR_UNPARSEABLE")
+        self.assertEqual(len(joined), 1)
+        self.assertEqual(missing[0][1], "SCHEDULE_KICKOFF_MISMATCH")
         self.assertEqual(missing[0][2]["kickoff_utc"], "2026-10-31T17:59:00+00:00")
         report, trace, summary = market_report.build_report(
             [runtime_row()], self.archive[:-1] + [changed]
         )
         self.assertEqual(len(report), 1)
+        self.assertEqual(summary["exact_archive_joins"], 1)
+        self.assertEqual(summary["schedule_discordance_rows"], 1)
+        self.assertEqual(summary["schedule_reconciliation_gate"], "REVIEW_REQUIRED")
         self.assertEqual(summary["join_failure_reason_counts"], {
-            "KICKOFF_MISMATCH_OR_UNPARSEABLE": 1
+            "SCHEDULE_KICKOFF_MISMATCH": 1
         })
         self.assertEqual(trace[0]["runtime_kickoff_utc"], "2026-10-31T18:00:00+00:00")
         self.assertEqual(trace[0]["archive_kickoff_utc"], "2026-10-31T17:59:00+00:00")
-        self.assertEqual(trace[0]["join_status"], "KICKOFF_MISMATCH_OR_UNPARSEABLE")
+        self.assertEqual(trace[0]["join_status"], "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS")
+        self.assertEqual(trace[0]["schedule_reconciliation_status"], "MISMATCH_REVIEW_REQUIRED")
+        self.assertEqual(summary["report_rows"], 1)
+
+    def test_schedule_discordant_target_is_not_used_as_historical_evidence(self):
+        target = dict(self.archive[-1], status_raw="complete", home_goals="9", away_goals="0",
+                      kickoff_utc="2026-10-31T17:59:00+00:00")
+        other_runtime = dict(runtime_row(), fixture_id="F200",
+                             date_utc="2026-11-01T12:00:00+00:00",
+                             home_team_provider_id="H", away_team_provider_id="A")
+        other_target = archive_row("F200", "2026-11-01T12:00:00+00:00", "H", "A", 0, 0)
+        report, trace, summary = market_report.build_report(
+            [runtime_row(), other_runtime], self.archive[:-1] + [target, other_target]
+        )
+        self.assertEqual(summary["schedule_discordance_rows"], 1)
+        self.assertNotIn("F100", trace[1].get("home_form_source_fixture_ids", ""))
+        self.assertNotIn("F100", trace[1].get("away_form_source_fixture_ids", ""))
 
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
