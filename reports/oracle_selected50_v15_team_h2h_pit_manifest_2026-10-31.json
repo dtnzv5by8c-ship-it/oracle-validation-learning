@@ -1,0 +1,39 @@
+{
+  "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v15_Team_H2H_PIT_Incremental_Validated.xlsx",
+  "sha256": "948a224fa7a340ebb77a4afeef5b662d94a3764e2599f2362dab0efa78ef9fed",
+  "size_bytes": 28161534,
+  "sheet_count": 109,
+  "base_v12_sha256": "1e22b8765114d9beb897ac4e34a01a26ea8be91cc83818d74e349186e8519e65",
+  "v12_sheet_xml_parts_byte_identical": 101,
+  "new_tabs": [
+    "Run 7 PIT Executive Summary",
+    "Run 7 PIT Fixture Ledger",
+    "Run 7 PIT Model Metrics",
+    "Run 7 H2H Incremental Deltas",
+    "Run 7 H2H Coverage",
+    "Run 7 Chronological Folds",
+    "Run 7 Paired Bootstrap",
+    "Run 7 Fold vs League Prior"
+  ],
+  "note": "PROJECT_ORACLE_TEAM_H2H_PIT_INCREMENTAL_RESEARCH_2026-10-31-0517-SAST.md",
+  "checkpoint": "oracle_selected50_team_h2h_pit_incremental_checkpoint_2026-10-31-0517-sast.json",
+  "companion_bundle": "Oracle_Selected50_Team_H2H_Run7_PIT_Incremental_Research_Bundle_2026-10-31-0517-SAST.zip",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "independent_pit_sample_validation": "250/250 passed",
+  "bootstrap_replicates": 1000,
+  "limitations": [
+    "Only 31/50 groups have accessible raw match JSON.",
+    "H2H Meetings lacks explicit no_home_away flag.",
+    "Canonical cross-provider identity and official settlement truth unverified.",
+    "Fixed H2H blends are diagnostic, not tuned or production parameters."
+  ],
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
