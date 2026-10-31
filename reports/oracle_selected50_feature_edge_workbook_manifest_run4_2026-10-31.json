@@ -13,7 +13,6 @@
     "sha256": "86f7b3b46eb01ebd09f7907f80a8b67366d2668c386966ecd0f1a71bad99d035",
     "bytes": 16162918
   },
-  "note_sha256": "c1658977c6ecf1d6d08532c01c574069dd4d5745338edc7db403e10b1f756dfa",
   "base_workbook": {
     "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v8_Feature_Edge_DNA_Rankings.xlsx",
     "sha256": "542db4afbae5dad94d2495aad489d28d9e9fed91b3770b9bb6e9d8ae86ab6c55"
@@ -50,5 +49,6 @@
     "top50_kickoff_mismatches": 0,
     "production_eligible": false,
     "betting_eligible": false
-  }
+  },
+  "note_path": "docs/PROJECT_ORACLE_FEATURE_EDGE_RUN4_2026-10-31-0302-SAST.md"
 }
