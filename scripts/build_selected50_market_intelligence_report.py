@@ -172,7 +172,7 @@ def league_table(rows, cutoff):
         h, a = str(r["_home"]), str(r["_away"])
         hg, ag = int(float(r["home_goals"])), int(float(r["away_goals"]))
         for tid, gf, ga in ((h, hg, ag), (a, ag, hg)):
-            team_name = str(r.get("home_team") if tid == h else r.get("away_team") or "").strip()
+            team_name = str((r.get("home_team") if tid == h else r.get("away_team")) or "").strip()
             s = stats.setdefault(tid, {"played": 0, "points": 0, "gf": 0, "ga": 0, "team_name": team_name})
             if team_name and not s.get("team_name"):
                 s["team_name"] = team_name
