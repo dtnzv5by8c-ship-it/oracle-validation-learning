@@ -1,0 +1,26 @@
+evidence_item,selected_id,country,league,status,verified_finding
+50-league governed manifest,,All,50 selected IDs,VERIFIED,50 unique exact selected season IDs in branch manifest; exact set matches DNA Coverage.
+50-league ingestion workflow,,All,50 selected IDs,SOURCE_VERIFIED_NOT_DISPATCHED,Exact season IDs resolve parent competitions; seasons from 2023 onward; explicit credit confirmation required.
+Private release tag,,All,50 selected IDs,TAG_RESOLUTION_VERIFIED_AS_GIT_REF,Tag research-selected50-footystats-history-20261025 resolves; release asset ID and bytes not retrieved.
+Private release asset,,All,50 selected IDs,ACCESS_CAPABILITY_LIMITATION,Expected oracle-selected50-footystats-private-ingestion.zip and private-package.sha256; connector has no release-asset listing/download action.
+Separate 27-league workflow,,27 hard-coded aliases,2024-2026,REJECTED_FOR_19_GROUP_RECOVERY,Would not cover governed 50 and would consume provider credits if dispatched.
+Full archive inventory,,All,50 selected IDs,VERIFIED_LEDGER_RAW_ASSET_PENDING,50/50 IDs; 200 seasons; 59049 raw rows; raw provider payload not public.
+Unavailable raw-profile group,17326,Australia,A-League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16741,Canada,Canadian Premier League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16615,Chile,Primera División,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16789,China,Chinese Super League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16614,Colombia,Categoria Primera A,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,17091,Denmark,Superliga,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16714,Ecuador,Primera Categoría Serie A,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16572,Finland,Veikkausliiga,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,17964,India,Indian Super League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,17115,Japan,J1 League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16533,Paraguay,Division Profesional,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16905,Peru,Primera División,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16537,Republic of Ireland,Premier Division,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,17178,Russia,Russian Premier League,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,17119,Serbia,SuperLiga,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16627,South Korea,K League 1,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16576,Sweden,Allsvenskan,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16708,Uruguay,Primera División,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches.
+Unavailable raw-profile group,16617,Venezuela,Primera División,UNAVAILABLE_IN_RUN64_RAW_EXTRACT,Exact group ID absent from accessible Run64 raw extract; not zero matches
