@@ -1,0 +1,25 @@
+{
+  "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Team_H2H_Consolidated.xlsx",
+  "sha256": "1e22b8765114d9beb897ac4e34a01a26ea8be91cc83818d74e349186e8519e65",
+  "size_bytes": 21844100,
+  "sheet_count": 101,
+  "base_v11_sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+  "run5_addendum_sha256": "92204d6ab7832d02caff8d87ccb63777aa782e81bed31d79b314122bed1fe10c",
+  "original_v11_sheet_xml_parts_byte_identical": 85,
+  "original_v11_sheet_xml_mismatches": 0,
+  "run5_tabs_appended": ["Team Shrinkage Sensitivity","H2H Shrinkage Sensitivity","Shrinkage Reliability Summary","Team Shrunk Scoring Screen","H2H Recency Reliability Gate","H2H Shrinkage Watch","Team Shrinkage Watch","Consolidation Lineage"],
+  "run6_tabs_added": ["Run 6 Executive Summary","Run 6 Team Effective Sample","Run 6 H2H Pair ESS Audit","Run 6 H2H ESS Leaders","Run 6 Team Robustness","Run 6 Profile QA","Run 6 50-League Coverage","Run 6 Source Lineage"],
+  "checkpoint": "oracle_selected50_team_h2h_run6_checkpoint_2026-10-31-0423-sast.json",
+  "note": "PROJECT_ORACLE_TEAM_H2H_DNA_RUN6_CONSOLIDATION_QA_2026-10-31-0423-SAST.md",
+  "summary": "oracle_selected50_team_h2h_run6_summary_2026-10-31.csv",
+  "research_branch": "research/oracle-50-league-readiness-audit",
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
