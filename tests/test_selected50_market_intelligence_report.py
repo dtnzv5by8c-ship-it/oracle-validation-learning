@@ -1,6 +1,8 @@
 import importlib.util
 import unittest
+import tempfile
 from pathlib import Path
+from openpyxl import load_workbook
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "build_selected50_market_intelligence_report.py"
 spec = importlib.util.spec_from_file_location("market_report", SCRIPT)
@@ -75,6 +77,20 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(len(market_report.HEADERS), 38)
         self.assertFalse(any("COMBO" in h and row[h] not in ("", market_report.UNAVAILABLE)
                              for h in row))
+
+    def test_xlsx_has_exact_locked_38_column_schema_and_research_only_trace(self):
+        report, trace, _ = market_report.build_report([runtime_row()], self.archive)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.xlsx"
+            market_report.write_xlsx(path, report)
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            sheet = workbook["Market Intelligence"]
+            self.assertEqual([cell.value for cell in sheet[1]], market_report.HEADERS)
+            self.assertEqual(sheet.max_column, 38)
+            workbook.close()
+        self.assertEqual(trace[0]["production_eligible"], "NO")
+        self.assertEqual(trace[0]["betting_eligible"], "NO")
+        self.assertEqual(trace[0]["history_cutoff_rule"], "STRICTLY_BEFORE_FIXTURE_KICKOFF")
 
     def test_duplicate_runtime_keys_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "Duplicate runtime exact key"):
