@@ -1,0 +1,49 @@
+selected_id,country,league,source_group_match,full_archive_exact_selected_id_mapping_status,run64_raw_payload_status,2024_coverage_status,2025_coverage_status,2026_YTD_coverage_status
+16504,USA,MLS,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,FULL,FULL,THRU_09-20
+16533,Paraguay,Division Profesional,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16537,Republic of Ireland,Premier Division,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16544,Brazil,Serie A,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+16558,Norway,Eliteserien,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,FULL,FULL,THRU_09-20
+16571,Argentina,Primera División,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,FULL,FULL,THRU_09-20
+16572,Finland,Veikkausliiga,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16576,Sweden,Allsvenskan,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16614,Colombia,Categoria Primera A,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16615,Chile,Primera División,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16617,Venezuela,Primera División,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16627,South Korea,K League 1,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16708,Uruguay,Primera División,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16714,Ecuador,Primera Categoría Serie A,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16741,Canada,Canadian Premier League,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16789,China,Chinese Super League,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+16905,Peru,Primera División,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+17084,Italy,Serie A,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,FULL,FULL,THRU_09-20
+17087,Croatia,Prva HNL,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17091,Denmark,Superliga,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+17097,Netherlands,Eredivisie,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,FULL,FULL,THRU_09-20
+17099,Mexico,Liga MX,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17102,France,Ligue 1,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17112,Poland,Ekstraklasa,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17115,Japan,J1 League,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+17117,France,Ligue 2,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17119,Serbia,SuperLiga,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+17129,Switzerland,Super League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17146,England,Premier League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17148,Scotland,Premiership,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17157,Czech Republic,First League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17171,Belgium,Pro League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17178,Russia,Russian Premier League,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
+17180,England,EFL League One,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17181,Austria,Bundesliga,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17184,England,Championship,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17210,Germany,Bundesliga,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17212,Germany,2. Bundesliga,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17215,Portugal,LigaPro,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17247,Romania,Liga I,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17269,Spain,Segunda División,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17265,Turkey,Süper Lig,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17277,Spain,La Liga,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17356,Greece,Super League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17404,Italy,Serie B,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17426,Saudi Arabia,Professional League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17444,South Africa,Premier Soccer League,YES,VERIFIED — full archive exact selected-ID mapping 50/50,AVAILABLE — exact selected-ID subset,PARTIAL,FULL,THRU_09-20
+17964,India,Indian Super League,NO,VERIFIED — full archive exact selected-ID mapping 50/50,UNAVAILABLE — raw JSON absent from Run64 extract; not an ID mapping failure,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH,UNAVAILABLE_NO_EXACT_GROUP_MATCH
