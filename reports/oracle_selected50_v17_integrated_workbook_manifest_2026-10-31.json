@@ -1,0 +1,10 @@
+{
+  "generated_sast":"2026-10-31T06:16:48+02:00",
+  "branch":"research/oracle-50-league-readiness-audit",
+  "workbook":{"filename":"Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v17_Integrated_All_Run7_Run8_0616SAST.xlsx","sha256":"8a6b111c4d2076819a247a87b6b8980ef18d4622407a875aaa3ee62b12de2e1e","bytes":35017654,"sheet_count":148,"zip_crc":"PASS","openpyxl_validation":"PASS"},
+  "note":{"path":"docs/PROJECT_ORACLE_TEAM_H2H_RUN8_REGIME_AND_BRANCH_CONSOLIDATION_2026-10-31-0616-SAST.md","sha256":"b10636f2117e87a5fd0c7cac3e4a41b5b74c11ae5225a48453a62372e26981fb"},
+  "checkpoint":{"path":"reports/oracle_selected50_team_h2h_run8_checkpoint_2026-10-31-0616-sast.json","sha256":"2401664d451c98bda4627974260b7493f247a6be5ac4805e56a77fb3014b9db5"},
+  "source_workbooks":{"feature_edge_run6_v13":{"sha256":"0216ab9435190471d334cd5bf10630485e85d1a93abd7a353986b40dd0244d0c","sheets":106},"team_h2h_pit_v15":{"sha256":"948a224fa7a340ebb77a4afeef5b662d94a3764e2599f2362dab0efa78ef9fed","sheets":109},"run8_intermediate_v16":{"sha256":"a99a0b626be412937ab377b7a4bc7e485366e411b9687ba6c589cf2c18d2d41c","sheets":137}},
+  "merge_qa":{"common_v13_v15_sheets_value_identical":85,"v13_original_sheet_xml_byte_identical":106,"v15_unique_sheet_value_payloads_preserved":24,"v16_sheet_xml_byte_identical_in_v17":137,"run7_feature_edge_tabs_reconstructed_from_committed_evidence":10,"run8_analysis_tabs":7,"branch_integration_qa_tabs":1,"final_sheet_count":148,"original_v14_binary_available":false},
+  "governance":{"provider_api_credits_used":0,"completed_workflows_rerun":false,"production_logic_changed":false,"production_probabilities_changed":false,"calibration_changed":false,"production_eligible":false,"betting_eligible":false}
+}
