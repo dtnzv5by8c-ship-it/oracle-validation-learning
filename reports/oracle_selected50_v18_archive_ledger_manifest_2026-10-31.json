@@ -1,0 +1,50 @@
+{
+  "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v18_Full_Archive_Ledger_Reconcilation_0716SAST.xlsx",
+  "sha256": "fa9978b0a44cc0364729bf686a7c091ded6f11aa657e2e51e7b8c8cf33d23136",
+  "size_bytes": 38965984,
+  "sheet_count": 157,
+  "base_workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v17_Integrated_All_Run7_Run8_0616SAST.xlsx",
+  "base_workbook_sha256": "8a6b111c4d2076819a247a87b6b8980ef18d4622407a875aaa3ee62b12de2e1e",
+  "original_sheet_xml_parts_preserved_byte_for_byte": 148,
+  "new_sheets": [
+    "Run 9 Executive Summary",
+    "Run 9 Full Archive 50-League",
+    "Run 9 Full Archive 200-Season",
+    "Run 9 Missing 19 Season Detail",
+    "Run 9 Run64 Reconciliation",
+    "Run 9 Release Asset Provenance",
+    "Run 9 Recovery Gate",
+    "Run 9 Exact Season Reconcilation",
+    "Run 9 Missing 19 Ledger Reconcilation"
+  ],
+  "generated_sast": "2026-10-31T07:16:26+02:00",
+  "research_branch": "research/oracle-50-league-readiness-audit",
+  "note": "PROJECT_ORACLE_TEAM_H2H_RUN9_FULL_ARCHIVE_LEDGER_RECOVERY_2026-10-31-0716-SAST.md",
+  "checkpoint": "oracle_selected50_team_h2h_run9_checkpoint_2026-10-31-0716-sast.json",
+  "sanitized_ledger_artifact": {
+    "run_id": 40197946253,
+    "artifact_id": 12601278426,
+    "artifact_zip_sha256": "761e650baa0e66d398ce2d169231d3e26357e9a67896826581b959309beda28e"
+  },
+  "private_release_asset": {
+    "release_id": 423439954,
+    "asset_id": 675196963,
+    "sha256": "bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261",
+    "raw_bytes_downloaded": false
+  },
+  "limitations": [
+    "Sanitized ledger contains season counts only, not raw match, team or fixture records.",
+    "19 groups have 76 ingested seasons and 18,252 raw rows in the private archive but remain unprofiled until raw ZIP retrieval.",
+    "Raw match row counts are not settled-match or primary-window counts.",
+    "Team-season observations are not unique team counts.",
+    "Raw release asset metadata digest matches ledger sha256, but raw ZIP bytes were not retrieved in this run."
+  ],
+  "governance": {
+    "footystats_api_credits_used_this_run": 0,
+    "completed_ingestion_snapshot_runtime_backtest_bridge_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}

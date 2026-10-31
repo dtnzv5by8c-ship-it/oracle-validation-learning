@@ -1,0 +1,19 @@
+metric,value,interpretation
+selected_league_groups,50,Full private ingestion ledger
+exact_selected_ids,50,50/50; no unmatched or ambiguous IDs
+historical_seasons_selected,200,Four provider seasons per selected group
+seasons_ingested,200,All 200 status INGESTED
+seasons_failed,0,No failed seasons
+raw_match_rows_full_archive,59049,"Raw rows, not settled match count or primary-window count"
+team_season_observations,3366,Sum of season team_count; not unique teams
+run64_profiled_groups,31,Existing Team/H2H profiles
+run64_seasons,93,Existing Run64 raw extract
+run64_raw_match_rows,30257,Existing Run64 raw extract
+full_archive_rows_for_same_31_groups,40797,124 private archive seasons
+additional_rows_for_same_31_groups,10540,Private archive minus Run64
+run64_unprofiled_groups,19,Raw JSON not in Run64 extract
+private_archive_seasons_for_missing19,76,All ingested
+private_archive_raw_rows_for_missing19,18252,Counts only; no fixture rows exposed
+private_archive_team_season_observations_missing19,1101,Not unique team count
+exact_season_inventory_reconciliation,200,"200/200 match_count, team_count, provider year, status"
+missing19_group_ledger_reconciliation,19,"19/19 season IDs, years, raw rows, max/team counts match"
