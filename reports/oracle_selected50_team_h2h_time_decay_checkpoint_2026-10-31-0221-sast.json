@@ -83,8 +83,8 @@
   },
   "outputs": {
     "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx",
-    "workbook_sha256": "2c9712bad565475eed726bb173d18bdf775eeed451fbfe039d5d4ed5e6bf8ba7",
-    "workbook_size_bytes": 15742981,
+    "workbook_sha256": "a89676074297dc2fe849ddf48fa1ee7e3638e5cd2e46e8d43ea70c2720f66ea1",
+    "workbook_size_bytes": 15743236,
     "sheet_count": 61,
     "new_tabs": [
       "Team Time-Decay DNA",
@@ -115,6 +115,7 @@
     "h2h_recency_effective_leader_rows": 68,
     "decay_methodology_rows": 10
   },
+  "feature_edge_run3_v8_merged": false,
   "governance": {
     "provider_api_credits_used": 0,
     "completed_workflows_rerun": false,
