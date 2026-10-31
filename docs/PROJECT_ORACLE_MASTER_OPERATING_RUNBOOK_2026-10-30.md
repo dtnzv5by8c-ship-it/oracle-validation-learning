@@ -1,5 +1,5 @@
 # Project Oracle — Master Operating Runbook & Recovery Pack
-**Reviewed:** 30 October 2026 (SAST)  
+**Reviewed:** 31 October 2026 (SAST)  
 **Scope:** Selected-50 research lane; Oracle production logic remains protected.  
 **Canonical branch:** `research/oracle-50-league-readiness-audit`  
 **Recovery branches:** initial baseline `backup/oracle-50-readiness-2026-10-30-98af1f7`; latest validated `backup/oracle-50-qa58-final-2026-10-30`
@@ -68,8 +68,9 @@ Use the existing workflows and exact run artifacts; never manually recreate thei
 ### Step A — Fresh fixture snapshot
 Workflow: [Oracle Selected-50 Current Fixture Snapshot](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-current-fixture-snapshot.yml)
 1. Select branch `research/oracle-50-league-readiness-audit`.
-2. Check provider monthly credit allowance and current request limits before dispatch. The snapshot historically used up to 50 requests; obey its configured cap and fail-closed budget checks.
-3. Run once. Record run ID, artifact ID, artifact digest, retrieval time and coverage window.
+2. Check the current FootyStats plan tier and monthly credit allowance before dispatch. The snapshot has a 50-request hard cap and requires both provider-credit and monthly-budget confirmations.
+3. The current script uses 2.1-second request spacing, performs no retries, stops on the first failed request, records any Retry-After header and marks remaining seasons NOT_ATTEMPTED_AFTER_STOP. The validator fails closed on rate limits, incomplete pagination, missing pagination metadata or partial coverage. A sanitized diagnostic artifact is uploaded even when validation fails.
+4. Run once. Record run ID, artifact ID, artifact digest, retrieval time and coverage window. Do not repeat a successful run merely to refresh a screen.
 4. Do not repeat a successful run merely to refresh a screen or because another workflow is still running.
 
 ### Step B — Research runtime
@@ -82,7 +83,10 @@ Workflow: [Oracle Selected-50 Research Runtime and Backtest](https://github.com/
 6. Record runtime run ID, artifact ID/digest, code SHA and runtime start time.
 
 ### Step C — Safe current report
-Workflow: [Oracle Selected-50 Safe Current Fixture Report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-safe-current-report.yml)
+Workflow file: [Oracle Selected-50 Safe Current Fixture Report](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/workflows/oracle-selected50-safe-current-report.yml)
+
+**Registration warning:** this workflow file exists on the governed research branch but was not found on the default main branch during the 31 October audit. Do not assume it is available in the Actions workflow picker until it is registered on main. Registering it on main is a separate change and has not been authorised.
+
 1. Enter the successful snapshot run ID and successful runtime run ID.
 2. Use the governed 7-day report horizon and 15-minute minimum lead unless a reviewed policy change is committed.
 3. Verify both source runs are successful, on the research branch, artifacts unexpired and digests valid.
@@ -105,7 +109,7 @@ Private Archive QA #44 [run 41112970245](https://github.com/dtnzv5by8c-ship-it/o
 ## 8. What is not yet seamless / gates still open
 The following are not yet certified complete:
 1. End-to-end weekly snapshot → runtime → safe-report cycle on the latest archive pin.
-2. Secret availability and permission scope at the time of each run (never inspect secret values).
+2. Current Actions secret availability was verified on 31 October for FOOTYSTATS_API_KEY and ORACLE_PRIVATE_REPO_TOKEN without printing values. The FootyStats plan tier, monthly credit balance and actual API-key validity remain unverified.
 3. 50/50 canonical competition mappings; current crosswalk has 22 human-review candidates and 28 unresolved.
 4. Canonical team and fixture identity joins.
 5. Official outcome/settlement truth for each governed market.
@@ -113,6 +117,8 @@ The following are not yet certified complete:
 7. 2024–2026 per-league/per-season coverage and missingness reconciliation against the private archive.
 8. Leakage-safe chronological backtesting, calibration and market-level performance on held-out data.
 9. Production parity and human release approval.
+10. The Safe Current Fixture Report workflow is not registered on main; default-branch registration is still required if that separate workflow is to be dispatched.
+11. Two snapshot-runtime bridge provenance tests remain failing in the latest contract-test run; see the 31 October FootyStats readiness audit.
 
 The 201-call probe validates endpoint access and sampled response schemas. It is not the historical archive ingestion workflow. The legacy `oracle-selected50-footystats-live-ingestion.yml` workflow is intentionally disabled because its old raw-data write path is prohibited. Do not reactivate it. A separate, reviewed, credit-bounded, private-destination ingestion path is required if additional history is missing.
 
@@ -148,4 +154,51 @@ The connected GitHub capability can inspect repository files, branches, pull req
 - `docs/PROJECT_ORACLE_SELECTED50_COMPMaster_ID_EVIDENCE_2026-10-30.md` — exact 50/50 provider `comp_master_id` field observations, held unapproved pending semantic confirmation.
 - `docs/PROJECT_ORACLE_CANONICAL_PREDICTION_ARCHIVE_TEAM_EXPOSURE_AUDIT_2026-10-30.md` — canonical prediction archive exposure limitations.
 - `reports/oracle-selected50-integration-release-gate-register-2026-10-30-1237-sast.md` — release gate checkpoint.
+- docs/PROJECT_ORACLE_FOOTYSTATS_READINESS_AUDIT_2026-10-31.md — current FootyStats credential, plan, endpoint, rate-limit, chronology and workflow-wiring audit.
 - This runbook is the operating entry point; update it rather than starting another handover from scratch.
+
+
+## 13. FootyStats Selected-50 readiness checkpoint — 31 October 2026
+
+### Credential and workflow reference verification
+- The governed research branch references FOOTYSTATS_API_KEY in the bounded endpoint probe, current fixture snapshot and provider schema diagnostic workflows.
+- The contract workflow ran a no-network presence check. Run 41208617886, job 124558743771, commit 5e80999c9d9b899a20e2b7e6d1631e681ff58096: FOOTYSTATS_API_KEY=PRESENT and ORACLE_PRIVATE_REPO_TOKEN=PRESENT. Only names and presence states were logged; no secret values were read back or printed.
+- This confirms non-empty secret availability in that Actions context. It does not validate the FootyStats key with the provider, establish the subscription tier or prove the monthly credit balance.
+
+### Provider limits and request controls
+- The official plan table lists Hobby at 50 leagues and 1,800 requests/hour, Serious at 150 leagues and 3,600 requests/hour, and Everything at 1,500+ leagues and 4,500 requests/hour. A 50-league universe therefore sits exactly at the Hobby league cap. The account's current tier is not visible to this audit.
+- Official API overview material separately states a general 60–90 requests/minute rate limit. The implementation uses the stricter Hobby hourly ceiling: 2.1 seconds between requests (approximately 1,714 requests/hour), with no automatic retries.
+- The 201-call endpoint probe remains hard-capped at 201 and checks provider request_remaining before its 200 endpoint calls. That field is a request-window indicator, not monthly credit evidence.
+- The current fixture snapshot is hard-capped at 50 requests. It stops on the first failed request, records a returned Retry-After header for HTTP 429, marks remaining seasons NOT_ATTEMPTED_AFTER_STOP and uploads the sanitized diagnostic even if validation fails. The validator rejects rate limits, retries, skipped requests, early stops, insufficient pacing, incomplete 50/50 success and unverified pagination metadata.
+
+### Endpoint coverage interpretation
+- Historical Probe #6 remains the last verified broad endpoint-access result: 201/201 HTTP 200; 50/50 exact selected season IDs found in the live catalogue; all four tested endpoints succeeded for all 50 seasons. Its evidence and artifact digest are recorded in Section 3.
+- The 201 calls were one league-list?chosen_leagues_only=true request plus four endpoint checks per selected season: league-matches, league-teams?include=stats, league-tables and league-season.
+- The match endpoint sampled one row per season only. This is not full-season pagination, full historical ingestion, proof that every field is populated for all leagues or proof that a supported market is complete in every league. The current 50-call snapshot checks one league-matches page per selected season and marks pagination gaps for rejection.
+- Provider season IDs remain exact provider-native IDs. The existing 22 human-review candidates and 28 unresolved crosswalk rows remain unapproved; no canonical mapping was inferred.
+
+### Event time and source revision provenance
+- The documented date_unix field is the match kickoff timestamp. The snapshot retrieved_utc field is our capture time, not the provider's per-fixture or per-field update time.
+- The documented max_time query parameter can request statistics as of a UNIX timestamp for supported endpoints, but the reviewed schema does not provide an immutable per-fixture revision identifier or a full historical revision log. A timestamped retrieval and file hash prove which response Oracle captured, not which historical version the provider served before a past kickoff.
+- FootyStats documents a roughly 20-minute data-update cadence and post-match statistics availability around 20 minutes after full time. That cadence is not a substitute for point-in-time feature provenance.
+- xG, odds, standings and other mutable provider fields remain audit-only/quarantined until timestamped pre-kickoff capture and revision provenance are independently demonstrated.
+
+### Workflow wiring
+- Registered on main and manually dispatched: bounded Selected-50 endpoint probe, current fixture snapshot, provider schema diagnostic, research runtime and Market Intelligence repair.
+- The three provider-call workflows reference FOOTYSTATS_API_KEY and require explicit provider-credit and monthly-budget confirmations. Runtime/report archive workflows use the separate ORACLE_PRIVATE_REPO_TOKEN.
+- oracle-selected50-footystats-live-ingestion.yml remains disabled. Do not reactivate its prohibited raw-data write path.
+- oracle-selected50-safe-current-report.yml exists on the research branch but not on main; it is not a proven default-branch dispatch option. No default-branch change was made.
+
+### Code and test evidence
+- Request pacing, fail-fast handling, secret-presence verification and regression tests were committed in 834841796905e46744682bcd399628f8b43d445a.
+- Missing/invalid pagination metadata was then changed to UNVERIFIED_PAGINATION and made validator-blocking in follow-up commit 5e80999c9d9b899a20e2b7e6d1631e681ff58096.
+- On commit 5e80999c9d9b899a20e2b7e6d1631e681ff58096, the GitHub Actions contract job ran the secret-presence check successfully, passed the 16 offline FootyStats safety-contract tests, compiled the current fixture probe and validator, and passed all 22 current-fixture validator tests.
+- The overall contract job 41208617886 did not finish green: step 20, snapshot-runtime bridge provenance tests, failed 2 of 19 tests: test_exact_hashes_and_run_ids_verify and test_snapshot_artifact_branch_must_match_snapshot_workflow_branch. The first returned verified=false where the test expected true; the second returned verified=true where the test expected false. This is a separate unresolved bridge/provenance test issue; no changes were made to that subsystem in this FootyStats audit.
+
+### Nolan action required before any live provider run
+1. Confirm the current FootyStats subscription tier supports the governed 50 leagues (at least Hobby under the published plan table) and check the actual monthly credit balance in the FootyStats account.
+2. Explicitly authorise the next current-fixture snapshot, capped at 50 requests, before dispatch. Both workflow confirmation inputs must then confirm provider-credit usage and that the monthly budget was checked. No live provider calls or credits were used in this audit.
+3. If the separate Safe Current Fixture Report workflow is required in the weekly sequence, approve registering that workflow on main. This audit did not modify the default branch.
+4. Keep the snapshot-runtime bridge provenance test failures open until their evidence/branch mismatch is corrected and regression-tested.
+
+No Oracle V1.6 production logic, model probabilities, calibration, thresholds or production eligibility flags were changed.
