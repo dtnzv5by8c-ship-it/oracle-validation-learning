@@ -62,6 +62,20 @@ def settled(d):
 def nonempty(d, keys):
     return first(d,keys) is not None
 
+def nonnegative_float(value):
+    """Parse a finite nonnegative metric without imputing or coercing invalid values."""
+    try:
+        x = float(value)
+        return x if x >= 0 and x < float("inf") else None
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+def xg_field(d, keys):
+    for key in keys:
+        if d.get(key) not in (None, ""):
+            return key, d.get(key), nonnegative_float(d.get(key))
+    return "", None, None
+
 def write_csv(path, rows, fields=None):
     path.parent.mkdir(parents=True,exist_ok=True)
     if fields is None:
@@ -133,6 +147,19 @@ def main():
                  "away_xg_actual_present":any(d.get(k) not in (None,"") for k in ("team_b_xg","away_xg","awayXg")),
                  "home_xg_prematch_present":any(d.get(k) not in (None,"") for k in ("team_a_xg_prematch","home_xg_prematch")),
                  "away_xg_prematch_present":any(d.get(k) not in (None,"") for k in ("team_b_xg_prematch","away_xg_prematch")),
+                 "total_xg_prematch_present":any(d.get(k) not in (None,"") for k in ("total_xg_prematch","total_xg")),
+                 "home_xg_prematch_source_field":xg_field(d,("team_a_xg_prematch","home_xg_prematch"))[0],
+                 "home_xg_prematch_raw":xg_field(d,("team_a_xg_prematch","home_xg_prematch"))[1],
+                 "home_xg_prematch_value":xg_field(d,("team_a_xg_prematch","home_xg_prematch"))[2],
+                 "away_xg_prematch_source_field":xg_field(d,("team_b_xg_prematch","away_xg_prematch"))[0],
+                 "away_xg_prematch_raw":xg_field(d,("team_b_xg_prematch","away_xg_prematch"))[1],
+                 "away_xg_prematch_value":xg_field(d,("team_b_xg_prematch","away_xg_prematch"))[2],
+                 "total_xg_prematch_source_field":xg_field(d,("total_xg_prematch","total_xg"))[0],
+                 "total_xg_prematch_raw":xg_field(d,("total_xg_prematch","total_xg"))[1],
+                 "total_xg_prematch_value":xg_field(d,("total_xg_prematch","total_xg"))[2],
+                 "xg_capture_time_utc":"",
+                 "xg_temporal_provenance_status":"UNVERIFIED_NO_CAPTURE_TIMESTAMP",
+                 "xg_prediction_use_status":"QUARANTINED_RESEARCH_AUDIT_ONLY",
                  "odds_fields_present":";".join(k for k,v in d.items() if "odds" in k.lower() and v not in (None,"")),
                  "raw_record_sha256":hashlib.sha256(json.dumps(d,sort_keys=True,ensure_ascii=False).encode()).hexdigest()}
             records.append(rec)
