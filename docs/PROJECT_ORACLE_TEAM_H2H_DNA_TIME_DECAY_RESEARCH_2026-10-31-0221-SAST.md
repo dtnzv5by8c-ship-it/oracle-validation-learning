@@ -11,7 +11,7 @@ This incremental pass extends the verified Run 3 Team/H2H market-reliability wor
 - **Team profiles:** 732 exact composite keys (`selected_id + provider team_id`).
 - **H2H profiles:** 7,188 exact pair keys and 23,328 chronological meetings.
 - **Fixture integrity:** 23,328 unique fixture IDs, zero duplicate rows and 100% raw record-hash coverage.
-- **New workbook tabs:** Team Time-Decay DNA; H2H Time-Decay DNA; DNA Decay Sensitivity; H2H Decay Watch; H2H Recency-Effective Leaders; Decay Methodology.
+- **New workbook tabs:** Team Time-Decay DNA; H2H Time-Decay DNA; DNA Decay Sensitivity; H2H Decay Watch; H2H Recency-Effective Leaders; Decay Methodology; Private Archive Retrieval.
 
 ## Method
 
@@ -60,6 +60,17 @@ The `H2H Meetings` ledger does not expose the explicit `no_home_away` flag. A `t
 - Score-derived H2H is not official settlement truth; canonical cross-provider identity remains unverified.
 - This workbook extends the verified v7 Team/H2H workbook. The separate Feature Edge Run 3 v8 binary was not present in this run's accessible file set; this v9 file does not claim to merge that separate workbook. Keep the Feature Edge v8 deliverable separate until a verified binary is available for a merge.
 
+## Read-only archive retrieval discovery
+
+A read-only inspection of the private archive repository's workflow definition identified the storage path for the missing raw season payloads:
+
+- Workflow: `.github/workflows/footystats-private-historical-ingestion.yml` in `dtnzv5by8c-ship-it/oracle-football-data`, source commit `cb89e5bd1c24810fe821a6b2c3c2c1c19272b381` ([workflow source](https://github.com/dtnzv5by8c-ship-it/oracle-football-data/blob/cb89e5bd1c24810fe821a6b2c3c2c1c19272b381/.github/workflows/footystats-private-historical-ingestion.yml)).
+- Artifact name: `footystats-private-historical-ingestion`; configured retention: **90 days**.
+- The workflow writes per-season `matches.json`, `teams.json`, `tables.json` and `season_stats.json` into `footystats-private-historical-ingestion.zip`, and its summary explicitly says raw payloads are saved only in the private Actions artifact, not in Git.
+- The exact existing workflow run ID / artifact ID is not present in the governed research evidence available to this run. No artifact download, workflow dispatch, ingestion rerun or provider/API call was made.
+
+**Next recovery action:** obtain the exact existing run/artifact ID, download that artifact read-only, verify its archive lineage/hash, and extract only the 19 selected groups absent from the Run64 raw JSON extract. Do not rerun the ingestion workflow.
+
 ## Governance
 
 - Provider/API credits: **0**; completed workflows rerun: **none**.
@@ -69,10 +80,10 @@ The `H2H Meetings` ledger does not expose the explicit `no_home_away` flag. A `t
 ## Output
 
 - Workbook: `Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v9_Team_H2H_Time_Decay.xlsx`
-- Workbook SHA-256: `a89676074297dc2fe849ddf48fa1ee7e3638e5cd2e46e8d43ea70c2720f66ea1`
-- Size: 15,743,236 bytes; sheets: 61.
+- Workbook SHA-256: `190d294803e479a5b97dd2c9e751153c480ac8455bf05b14d3176ff3eec0a738`
+- Size: 15,745,029 bytes; sheets: 62.
 - Base workbook SHA-256: `75774dcf45d8228d4a3f403a2b6a7c6200631603830a4420897dd236be808df9`.
 
 ## Next priority
 
-Continue read-only recovery of the existing raw match JSON for the remaining 19 groups. Before selecting a half-life for predictive use, require a leakage-safe chronological out-of-sample sensitivity test with verified point-in-time feature availability; do not alter Oracle V1.6 based on these descriptive profiles.
+Obtain the exact existing private archive workflow run/artifact ID and recover the 19 missing groups read-only. Separately, before selecting a half-life for predictive use, require a leakage-safe chronological out-of-sample sensitivity test with verified point-in-time feature availability; do not alter Oracle V1.6 based on these descriptive profiles.
