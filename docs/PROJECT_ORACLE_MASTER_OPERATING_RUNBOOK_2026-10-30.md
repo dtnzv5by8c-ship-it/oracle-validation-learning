@@ -356,3 +356,89 @@ No row in this baseline is resolved. Preserve every entry as `REVIEW_REQUIRED` i
 7. Confirm FootyStats subscription tier and remaining monthly credits, and obtain explicit approval before any live API requests or credit consumption.
 
 No live FootyStats calls, credits, subscriptions or paid services were used in this checkpoint. Oracle V1.6 production logic, probabilities and thresholds remain unchanged. All report/research outputs remain `production_eligible=false` and `betting_eligible=false`.
+
+
+
+## 17. FootyStats Selected-50 follow-up — 31 October 2026
+
+### 17.1 Verified governed code state
+
+- Repository: `dtnzv5by8c-ship-it/oracle-validation-learning`.
+- Governed branch: `research/oracle-50-league-readiness-audit`.
+- Code/test head before this documentation update: `14e6152b2d9fe815a31ffbc0051fe42590f52b76`.
+- Research workflow branch guard + immutable checkout commit: `f3c8ecf2809e11f6ac4c2b07f6b56486ecb09535`.
+- Bridge provenance fixture correction: `a42d015f18d91716e85b273bf9078d27fb8a8947`.
+- Branch-guard regression test: `14e6152b2d9fe815a31ffbc0051fe42590f52b76`.
+- Companion readiness audit update: `69b19e942197e2c688091d0b70870fa2ffe3673e`.
+- PR #31 remains an open draft against `main`; it is not merged and must not be merged without governance review.
+
+### 17.2 Latest test evidence
+
+The latest full Selected-50 Safety Contract Tests run is [41217808497](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41217808497), on code/test commit `14e6152b2d9fe815a31ffbc0051fe42590f52b76`, conclusion `success`.
+
+- Presence-only secret check passed: `FOOTYSTATS_API_KEY=PRESENT`; `ORACLE_PRIVATE_REPO_TOKEN=PRESENT`. The values were not printed, hashed, transmitted to a provider or persisted.
+- FootyStats offline safety contract: 16/16 passed.
+- Current fixture snapshot validator/workflow contract: 23/23 passed, including the branch guard and immutable checkout test.
+- Snapshot-runtime bridge provenance: 19/19 passed.
+- All other steps in the contract job completed successfully.
+- Related Identity & Settlement Evidence run `41217808555` and Dry-Run Planner run `41217808488` also completed successfully.
+
+The earlier bridge failures were caused by inconsistent test fixtures: the positive fixture used a `main` snapshot artifact branch even though the bridge implementation requires the governed research branch. The positive fixture now uses the research branch; a negative test asserts that `main` is rejected. The branch requirement was not weakened.
+
+### 17.3 Secret and workflow reference inventory
+
+Static workflow inspection on the governed branch confirms:
+- `FOOTYSTATS_API_KEY` is referenced by the bounded endpoint probe, current-fixture snapshot and provider-schema diagnostic workflows.
+- `ORACLE_PRIVATE_REPO_TOKEN` is referenced by the private-archive research runtime and Market Intelligence repair workflows.
+- The presence-only contract job confirms both names are non-empty in that Actions context. This does not establish provider-side key validity, account tier or monthly credits.
+- No Secrets API was queried and no secret value was accessed or exposed.
+
+### 17.4 Current workflow dispatch safety
+
+The governed research-branch `oracle-selected50-current-fixture-snapshot.yml` now:
+1. Rejects any dispatch unless `GITHUB_REF` is exactly `refs/heads/research/oracle-50-league-readiness-audit`, before the provider request step.
+2. Checks out the workflow revision and research script using the same immutable `${{ github.sha }}`, avoiding a moving-branch race.
+3. Retains explicit provider-credit and monthly-budget confirmations, a 50-request hard cap, 2.1-second pacing, no retries, stop-on-first-failure and fail-closed pagination validation.
+
+**Do not dispatch the default-branch copy.** The `main` version has not been changed: it lacks the new branch guard and still checks out the moving research branch for its script. Use the governed research branch in the Actions branch selector.
+
+The bounded endpoint probe also differs by branch:
+- `main`: 0.35-second inline pacing; unsafe relative to the documented hourly/minute limits.
+- Governed research branch: 2.1-second pacing, 201-call hard cap and no automatic retries.
+- Do not dispatch the `main` copy. The existing 201/201 endpoint sample does not need to be repeated unless the endpoint contract or selected-league configuration changes.
+
+The Safe Current Fixture Report workflow remains research-branch-only; it is still not registered on `main`.
+
+### 17.5 Selected-50 provider and market readiness
+
+The latest inspected per-league file is `reports/oracle-selected50-per-league-market-readiness-2026-10-25-run16.csv`, blob SHA `43826a40c53ce9bdd9257128fddf7d8dab01c02e`, cutoff `2026-10-25T10:10:42Z`. It contains 50 rows and 50 distinct FootyStats provider season IDs. Its evidence is stale and must not be treated as a current refresh.
+
+The file records 22 human-review candidates and 28 unresolved canonical-code candidates; all 50 have unverified canonical team identity and unverified Oracle current-fixture joins. All 50 have unverified xG point-in-time provenance and unverified odds point-in-time provenance. All 50 are marked stale (source 8 October, reconciliation 7 October, schedule ends 17 October), and all 50 remain `production_eligibility=NOT_GRANTED`. BTTS Yes and Double Chance remain unverified/not production-ready; M-1UP remains blocked.
+
+The last inspected successful live current-fixture snapshot is from 28 October 2026 (50/50 requests successful, 871 future-window rows). No fresh snapshot was generated in this follow-up. Do not use that snapshot as a 31 October current slate.
+
+The current fixture probe retains fixture/team identity, kickoff/status, score, PPG and BTTS/over-2.5 potential fields. It does not currently retain xG, bookmaker odds, lineups, lineup publication times, injury or suspension data. The 201-call endpoint probe was a schema sample (one match per season) plus teams/tables/season endpoint access; it is not a full per-league field-completeness certification.
+
+### 17.6 Plan, freshness and historical provenance
+
+The English FootyStats API plans page currently lists Hobby at 50 selected leagues and 1,800 requests/hour. Official localized pages have conflicting Hobby capacity (40 leagues). The public API overview states 60–90 requests/minute and 20-minute result-update frequency; the FAQ says post-match stats are usually available within 20 minutes and historical coverage varies by league. These are public descriptions, not account entitlement, a freshness SLA or proof of pre-kickoff publication.
+
+The match endpoint documents:
+- `date_unix`: fixture kickoff timestamp.
+- `max_time`: request statistics as of a UNIX timestamp.
+- `page` and `max_per_page`: paginated match retrieval, with maximum page size 1,000.
+
+Oracle's `retrieved_utc` is its capture time. Neither `date_unix`, `retrieved_utc` nor `max_time` proves immutable provider revisions or the exact publication time of a historical xG/odds/standings value. Keep mutable historical features quarantined until Oracle has timestamped pre-kickoff captures and verified revision provenance. Do not infer a point-in-time backtest from a current historical response.
+
+### 17.7 Required Nolan action and stop conditions
+
+Before a live fixture snapshot, Nolan must:
+1. Check the FootyStats account dashboard and confirm the actual plan tier and the exact selected 50 leagues. The English and localized public plan pages conflict.
+2. Check the current monthly credit balance.
+3. Explicitly approve up to 50 provider requests for the next snapshot.
+
+Until those steps are complete, both workflow confirmation inputs must remain false and no provider workflow may be dispatched.
+
+Other blockers remain: full per-league non-null feature coverage; 22 candidate and 28 unresolved canonical-code mappings; canonical team/current-fixture joins; xG/odds pre-kickoff revision provenance; verified lineup/injury/suspension coverage; and current schedule freshness. The two snapshot-runtime bridge test failures are now resolved by the test-fixture correction and verified green run above.
+
+No live FootyStats API calls, credits, subscription changes or costs occurred in this follow-up. Oracle V1.6 production logic, probabilities, thresholds and production registry were not changed. All research outputs remain `production_eligible=false` and `betting_eligible=false`.
