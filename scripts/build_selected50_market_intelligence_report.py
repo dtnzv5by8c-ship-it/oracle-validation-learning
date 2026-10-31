@@ -139,9 +139,13 @@ def before(rows, cutoff):
     return rows[:bisect_left(times, cutoff)]
 
 
-def team_form(rows, team_id):
+def team_form(rows, team_id, venue=None):
+    """Latest-five completed form; venue optionally restricts the team's match role."""
     usable = [r for r in rows if str(r.get("status_raw") or "").lower() in SETTLED
-              and valid_score(r)]
+              and valid_score(r)
+              and (venue is None or
+                   (venue == "home" and str(r.get("home_team_id")) == team_id) or
+                   (venue == "away" and str(r.get("away_team_id")) == team_id))]
     sample = usable[-5:]
     results, gf, ga, pts = [], [], [], []
     for r in sample:
@@ -232,16 +236,17 @@ def exact_join(runtime_rows, archive_rows):
 
 def build_report(runtime_rows, archive_rows):
     joined, missing, duplicate_archive_keys = exact_join(runtime_rows, archive_rows)
-    schedule_conflict_fixture_ids = {
-        str(row.get("fixture_id") or "").strip()
-        for row, reason, *_ in missing
+    schedule_conflict_keys = {
+        archive_key(archive_row)
+        for row, reason, *extras in missing
         if reason == "SCHEDULE_KICKOFF_MISMATCH"
+        for archive_row in extras[:1]
     }
     # Never let schedule-discordant target records contribute to any fixture's historical
     # form, table, scoring baseline or H2H until their event time is reconciled.
     history_archive_rows = [
         row for row in archive_rows
-        if str(row.get("fixture_id") or "").strip() not in schedule_conflict_fixture_ids
+        if archive_key(row) not in schedule_conflict_keys
     ]
     by_team, by_season, by_pair, history_duplicates = build_indexes(history_archive_rows)
     output, trace = [], []
@@ -285,6 +290,8 @@ def build_report(runtime_rows, archive_rows):
         home_rows = before(by_team[(league, home)], cutoff)
         away_rows = before(by_team[(league, away)], cutoff)
         hf, af = team_form(home_rows, home), team_form(away_rows, away)
+        home_venue_form = team_form(home_rows, home, venue="home")
+        away_venue_form = team_form(away_rows, away, venue="away")
         table = league_table(by_season[(league, season)], cutoff)
         hpos, apos = table.get(home, {}).get("position"), table.get(away, {}).get("position")
         league_completed = [r for r in before(by_season[(league, season)], cutoff)
@@ -356,6 +363,18 @@ def build_report(runtime_rows, archive_rows):
                 if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
             ),
             "home_form_n": hf["n"], "away_form_n": af["n"], "h2h_n": len(h2h),
+            "home_at_home_form_n": home_venue_form["n"],
+            "home_at_home_form": home_venue_form["form"],
+            "home_at_home_avg_goals_for": fmt(home_venue_form["gf"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "home_at_home_avg_goals_against": fmt(home_venue_form["ga"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "home_at_home_avg_points": fmt(home_venue_form["ppg"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "home_at_home_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in home_venue_form["sample"]),
+            "away_away_form_n": away_venue_form["n"],
+            "away_away_form": away_venue_form["form"],
+            "away_away_avg_goals_for": fmt(away_venue_form["gf"]) if away_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "away_away_avg_goals_against": fmt(away_venue_form["ga"]) if away_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "away_away_avg_points": fmt(away_venue_form["ppg"]) if away_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
+            "away_away_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in away_venue_form["sample"]),
             "home_league_position": hpos or "", "away_league_position": apos or "",
             "league_table_status": "PROVISIONAL_CONVENTIONAL_TABLE" if hpos and apos else "TABLE_POSITION_INSUFFICIENT_OR_UNAVAILABLE",
             "history_cutoff_utc": cutoff.isoformat(),
@@ -383,9 +402,9 @@ def build_report(runtime_rows, archive_rows):
         "duplicate_archive_composite_keys": len(duplicate_archive_keys),
         "duplicate_archive_history_rows": history_duplicates,
         "duplicate_runtime_keys": len(runtime_rows) - len(seen_runtime),
-        "schedule_discordance_rows": len(schedule_conflict_fixture_ids),
-        "schedule_discordance_fixture_ids": sorted(schedule_conflict_fixture_ids),
-        "schedule_reconciliation_gate": "REVIEW_REQUIRED" if schedule_conflict_fixture_ids else "PASS",
+        "schedule_discordance_rows": len(schedule_conflict_keys),
+        "schedule_discordance_fixture_keys": [list(k) for k in sorted(schedule_conflict_keys)],
+        "schedule_reconciliation_gate": "REVIEW_REQUIRED" if schedule_conflict_keys else "PASS",
         "join_failure_reason_counts": {reason: sum(1 for entry in missing if entry[1] == reason) for reason in sorted({entry[1] for entry in missing})},
         "join_failure_examples": [
             {"reason": reason, "runtime_key": list(runtime_key(row)),
