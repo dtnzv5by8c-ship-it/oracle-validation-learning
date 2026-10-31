@@ -99,11 +99,20 @@ def forecast(target, teams, leagues, cutoff):
       "home_over15":sum(p for i,j,p in joint if i>=2),
       "away_over15":sum(p for i,j,p in joint if j>=2),
     }
+    # Season-to-date league-rate comparator, also computed strictly before kickoff.
+    base_events={"over15":0,"over25":0,"under45":0,"home_over15":0,"away_over15":0}
+    for x in league:
+        total=x["_hg"]+x["_ag"]
+        base_events["over15"] += int(total>=2); base_events["over25"] += int(total>=3)
+        base_events["under45"] += int(total<=4); base_events["home_over15"] += int(x["_hg"]>=2)
+        base_events["away_over15"] += int(x["_ag"]>=2)
+    baselines={m:(base_events[m]+1)/(len(league)+2) for m in MARKETS}
     return {"status":"EXPERIMENTAL_UNCALIBRATED","home_lambda":round(lam_h,4),"away_lambda":round(lam_a,4),
       "home_overall_n":len(home5),"away_overall_n":len(away5),"home_venue_n":len(home_venue),"away_venue_n":len(away_venue),
       "league_prior_n":len(league),"home_lambda_source":"VENUE" if len(home_venue)>=3 else "OVERALL_FALLBACK",
       "away_lambda_source":"VENUE" if len(away_venue)>=3 else "OVERALL_FALLBACK",
       **{k+"_probability_pct":round(v*100,2) for k,v in probs.items()},
+      **{"league_baseline_"+k+"_probability_pct":round(v*100,2) for k,v in baselines.items()},
       "model_id":"GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY","production_eligible":"NO","betting_eligible":"NO"}
 
 def outcomes(r):
@@ -129,7 +138,7 @@ def main():
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(output)
     # Chronological walk-forward validation against settled archive scores. Every target is scored
     # using only matches strictly before its kickoff; the target fixture ID is explicitly excluded.
-    metrics={m:{"n":0,"brier_sum":0.0,"logloss_sum":0.0,"observed_sum":0,"predicted_sum":0.0} for m in MARKETS}
+    metrics={m:{"n":0,"brier_sum":0.0,"logloss_sum":0.0,"observed_sum":0,"predicted_sum":0.0,"baseline_brier_sum":0.0,"baseline_logloss_sum":0.0,"baseline_predicted_sum":0.0} for m in MARKETS}
     for r in archive:
         if not valid(r): continue
         cutoff=dt(r.get("kickoff_utc"))
@@ -144,6 +153,10 @@ def main():
             z=metrics[m]; z["n"]+=1; z["brier_sum"]+=(q-obs)**2
             z["logloss_sum"]+=-(obs*math.log(q)+(1-obs)*math.log(1-q))
             z["observed_sum"]+=obs; z["predicted_sum"]+=q
+            bq=min(1-1e-6,max(1e-6,float(pred["league_baseline_"+m+"_probability_pct"])/100))
+            z["baseline_brier_sum"]+=(bq-obs)**2
+            z["baseline_logloss_sum"]+=-(obs*math.log(bq)+(1-obs)*math.log(1-bq))
+            z["baseline_predicted_sum"]+=bq
     summary={}
     for m,z in metrics.items():
         n=z["n"]
@@ -151,6 +164,11 @@ def main():
           "log_loss":round(z["logloss_sum"]/n,5) if n else None,
           "observed_rate_pct":round(100*z["observed_sum"]/n,2) if n else None,
           "mean_predicted_pct":round(100*z["predicted_sum"]/n,2) if n else None,
+          "league_baseline_brier_score":round(z["baseline_brier_sum"]/n,5) if n else None,
+          "league_baseline_log_loss":round(z["baseline_logloss_sum"]/n,5) if n else None,
+          "league_baseline_mean_probability_pct":round(100*z["baseline_predicted_sum"]/n,2) if n else None,
+          "brier_improvement_vs_league_baseline":round((z["baseline_brier_sum"]-z["brier_sum"])/n,5) if n else None,
+          "logloss_improvement_vs_league_baseline":round((z["baseline_logloss_sum"]-z["logloss_sum"])/n,5) if n else None,
           "calibration_status":"UNCALIBRATED_RESEARCH_ONLY"}
     blocked=sum(x.get("status")!="EXPERIMENTAL_UNCALIBRATED" for x in output)
     report={"engine":"GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY","forecast_rows":len(output),
