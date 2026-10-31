@@ -10,16 +10,16 @@ This is the canonical reporting contract for every weekly Selected-50 Market Int
 ## Workbook tabs
 1. **Oracle V1.6 Output** — frozen source output, exactly 38 columns. Preserve production values and order. Never modify Oracle V1.6 model logic or probabilities in report generation.
 2. **Market Intelligence** — executive/analyst decision view. Keep the existing 83-column layout and column order. The three context columns remain part of the frozen decision view.
-3. **H2H Intelligence** — exact prior meetings, fixture IDs, kickoff, ordered team IDs and scores.
-4. **Team Form Evidence** — overall and venue-split team form, rates, source fixture IDs and cutoff.
-5. **Data Quality & Risk** — exact join, schedule status, sample sizes, provenance and eligibility.
-6. **Goal Intelligence** — empirical form and goal evidence; do not label empirical rates as prediction probabilities.
-7. **Goal Market Research** — experimental Poisson estimates and all block reasons/eligibility flags.
-8. **Market Data Coverage** — aggregate per-field population and unavailable counts; no fixture-context columns.
-9. **Archive Field Coverage** — aggregate source-field availability and limitations; no fixture-context columns.
-10. **Definitions & Governance** — definitions, restrictions and research eligibility.
-11. **xG Evidence Audit** — exact-identity fixture-level raw/source/numeric prematch xG inventory, capture timestamp status, archive provenance and quarantine. All xG remains excluded from prediction and betting use until point-in-time capture and revision provenance are verified.
-12. **Schedule Reconciliation** — one row per kickoff discordance with exact fixture identity, league, fixture, runtime kickoff, archive kickoff, signed delta, archive source file/row and explicit REVIEW_REQUIRED status. This is a manual review queue; it never corrects or chooses a schedule time automatically.
+3. **xG Evidence Audit** — exact-identity fixture-level raw/source/numeric prematch xG inventory, capture timestamp status, archive provenance and quarantine. All xG remains excluded from prediction and betting use until point-in-time capture and revision provenance are verified.
+4. **H2H Intelligence** — exact prior meetings, fixture IDs, kickoff, ordered team IDs and scores.
+5. **Team Form Evidence** — overall and venue-split team form, rates, source fixture IDs and cutoff.
+6. **Data Quality & Risk** — exact join, schedule status, sample sizes, provenance and eligibility.
+7. **Schedule Reconciliation** — one row per kickoff discordance with exact fixture identity, league, fixture, runtime kickoff, archive kickoff, signed delta, archive source file/row and explicit REVIEW_REQUIRED status. This is a manual review queue; it never corrects or chooses a schedule time automatically.
+8. **Goal Intelligence** — empirical form and goal evidence; do not label empirical rates as prediction probabilities.
+9. **Goal Market Research** — experimental Poisson estimates and all block reasons/eligibility flags.
+10. **Market Data Coverage** — aggregate per-field population and unavailable counts; no fixture-context columns.
+11. **Archive Field Coverage** — aggregate source-field availability and limitations; no fixture-context columns.
+12. **Definitions & Governance** — definitions, restrictions and research eligibility.
 
 ### Fixture-context columns
 The fixture-level supporting tabs — H2H Intelligence, Team Form Evidence, Data Quality & Risk, Goal Intelligence, Goal Market Research and xG Evidence Audit — must begin with **Fixture Date**, **League**, and **Fixture**. Schedule Reconciliation carries the same three context fields. These are display/context fields only; they are not identity keys and must not be used for joins. Preserve all existing supporting-tab columns and evidence after the context fields. Do not add these fields to the aggregate Market Data Coverage or Archive Field Coverage tabs.
