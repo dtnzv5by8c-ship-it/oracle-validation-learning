@@ -437,8 +437,8 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(populated["Betting Eligible YES"], 0)
         self.assertEqual(empty["Selected Season ID"], "S2")
         self.assertEqual(empty["Upcoming Fixtures (7d)"], 0)
-        self.assertEqual(empty["Fixture Coverage Status"], "NO_FIXTURES_IN_7D_HORIZON")
-        self.assertEqual(empty["Raw Oracle Prediction Status"], "NO_FIXTURES_IN_7D_HORIZON")
+        self.assertEqual(empty["Fixture Coverage Status"], "NO_FIXTURE_IN_7D_HORIZON")
+        self.assertEqual(empty["Raw Oracle Prediction Status"], "NO_FIXTURES_TO_SCORE")
         summary_rows = market_report.build_coverage_summary_rows(coverage)
         xg_rows = market_report.build_xg_provenance_rows(coverage)
         self.assertTrue(any(row["Metric"] == "Groups without fixtures in seven-day horizon"
