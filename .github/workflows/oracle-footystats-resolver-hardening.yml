@@ -1,0 +1,31 @@
+name: Oracle FootyStats Resolver Hardening (Offline)
+
+on:
+  push:
+    branches:
+      - research/footystats-resolver-hardening-2026-10-31
+    paths:
+      - ".github/workflows/oracle-footystats-resolver-hardening.yml"
+      - "scripts/oracle_selected50_footystats_identity_resolver.py"
+      - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/oracle-footystats-resolver-hardening.yml"
+      - "scripts/oracle_selected50_footystats_identity_resolver.py"
+      - "tests/test_oracle_selected50_footystats_identity_resolver.py"
+
+permissions:
+  contents: read
+
+jobs:
+  resolver-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline resolver regression tests
+        run: python -m unittest discover -s tests -p 'test_oracle_selected50_footystats_identity_resolver.py' -v
