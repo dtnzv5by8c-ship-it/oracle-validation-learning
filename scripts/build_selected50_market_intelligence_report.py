@@ -127,8 +127,8 @@ def build_indexes(matches):
         item["_competition"] = competition
         item["_home"] = h
         item["_away"] = a
-        by_team[(league, h)].append(item)
-        by_team[(league, a)].append(item)
+        by_team[(competition, h)].append(item)
+        by_team[(competition, a)].append(item)
         by_season[(league, season)].append(item)
         by_pair[(competition, tuple(sorted((h, a))))].append(item)
     for index in (by_team, by_season, by_pair):
@@ -290,8 +290,9 @@ def build_report(runtime_rows, archive_rows):
         league = key[0]
         season = key[0]
         home, away = key[2], key[3]
-        home_rows = before(by_team[(league, home)], cutoff)
-        away_rows = before(by_team[(league, away)], cutoff)
+        competition_id = str(target.get("provider_league_id") or "").strip() or season
+        home_rows = before(by_team[(competition_id, home)], cutoff)
+        away_rows = before(by_team[(competition_id, away)], cutoff)
         hf, af = team_form(home_rows, home), team_form(away_rows, away)
         home_venue_form = team_form(home_rows, home, venue="home")
         away_venue_form = team_form(away_rows, away, venue="away")
@@ -305,8 +306,7 @@ def build_report(runtime_rows, archive_rows):
                                            hf["ga"] if hf["n"] >= 3 else None, league_goals_per_team)
         a_attack, a_defence = index_value(af["gf"] if af["n"] >= 3 else None,
                                            af["ga"] if af["n"] >= 3 else None, league_goals_per_team)
-        competition_id = str(target.get("provider_league_id") or "").strip()
-        h2h_scope = competition_id or season
+        h2h_scope = competition_id
         pair_rows = before(by_pair[(h2h_scope, tuple(sorted((home, away))))], cutoff)
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
@@ -368,6 +368,12 @@ def build_report(runtime_rows, archive_rows):
                 if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
             ),
             "home_form_n": hf["n"], "away_form_n": af["n"], "h2h_n": len(h2h),
+            "home_form": hf["form"], "away_form": af["form"],
+            "home_form_gf_avg": fmt(hf["gf"]), "home_form_ga_avg": fmt(hf["ga"]),
+            "home_form_ppg": fmt(hf["ppg"]), "away_form_gf_avg": fmt(af["gf"]),
+            "away_form_ga_avg": fmt(af["ga"]), "away_form_ppg": fmt(af["ppg"]),
+            "home_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in hf["sample"]),
+            "away_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in af["sample"]),
             "home_at_home_form_n": home_venue_form["n"],
             "home_at_home_form": home_venue_form["form"],
             "home_at_home_avg_goals_for": fmt(home_venue_form["gf"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
@@ -505,7 +511,7 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows):
+def write_xlsx(path, rows, trace=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Market Intelligence"
@@ -525,6 +531,112 @@ def write_xlsx(path, rows):
     for row in ws.iter_rows(min_row=2):
         for cell in row:
             cell.alignment = Alignment(vertical="top", wrap_text=True)
+    # Supporting evidence tabs expand visibility without changing the locked 38-column summary.
+    trace = trace or []
+    def add_sheet(name, headers, data):
+        sh = wb.create_sheet(name)
+        sh.append(headers)
+        for item in data:
+            sh.append([item.get(h, "") for h in headers])
+        sh.freeze_panes = "A2"
+        sh.auto_filter.ref = sh.dimensions
+        for cell in sh[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="333366")
+            cell.alignment = Alignment(wrap_text=True, vertical="center")
+        for col in range(1, len(headers) + 1):
+            sh.column_dimensions[get_column_letter(col)].width = min(42, max(14, len(str(headers[col-1])) + 3))
+        for cells in sh.iter_rows(min_row=2):
+            for cell in cells:
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+        return sh
+
+    h2h_rows = []
+    team_rows = []
+    quality_rows = []
+    for item in trace:
+        base = {"fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
+                "history_cutoff_utc": item.get("history_cutoff_utc", ""),
+                "h2h_scope": item.get("h2h_scope", ""),
+                "provider_competition_id": item.get("archive_provider_competition_id", "")}
+        try:
+            meetings = json.loads(item.get("h2h_meetings_detail") or "[]")
+        except (TypeError, ValueError):
+            meetings = []
+        for rank, meeting in enumerate(meetings, 1):
+            h2h_rows.append({**base, "meeting_rank_latest_first": rank, **meeting})
+        for side in ("home", "away"):
+            venue = "home_at_home" if side == "home" else "away_away"
+            team_rows.append({
+                **base, "side": side, "team_id": item.get(f"archive_{side}_team_id", ""),
+                "overall_last5_n": item.get(f"{side}_form_n", ""),
+                "overall_last5_form": item.get(f"{side}_form", ""),
+                "overall_last5_gf_avg": item.get(f"{side}_form_gf_avg", ""),
+                "overall_last5_ga_avg": item.get(f"{side}_form_ga_avg", ""),
+                "overall_last5_points_per_game": item.get(f"{side}_form_ppg", ""),
+                "overall_source_fixture_ids": item.get(f"{side}_form_source_fixture_ids", ""),
+                "venue_split": venue, "venue_last5_n": item.get(f"{venue}_form_n", ""),
+                "venue_last5_form": item.get(f"{venue}_form", ""),
+                "venue_avg_goals_for": item.get(f"{venue}_avg_goals_for", ""),
+                "venue_avg_goals_against": item.get(f"{venue}_avg_goals_against", ""),
+                "venue_avg_points": item.get(f"{venue}_avg_points", ""),
+                "venue_source_fixture_ids": item.get(f"{venue}_source_fixture_ids", ""),
+                "league_position": item.get(f"{side}_league_position", ""),
+                "table_status": item.get("league_table_status", ""),
+                "table_sample_n": item.get(f"{side}_table_sample_n", "")
+            })
+        quality_rows.append({
+            "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
+            "join_status": item.get("join_status", ""),
+            "schedule_status": item.get("schedule_reconciliation_status", ""),
+            "history_cutoff_utc": item.get("history_cutoff_utc", ""),
+            "home_evidence_risk_pct": item.get("home_risk_pct", ""),
+            "away_evidence_risk_pct": item.get("away_risk_pct", ""),
+            "home_form_n": item.get("home_form_n", ""), "away_form_n": item.get("away_form_n", ""),
+            "h2h_n": item.get("h2h_n", ""), "h2h_scope": item.get("h2h_scope", ""),
+            "archive_source_file": item.get("archive_source_file", ""),
+            "archive_source_row": item.get("archive_source_row", ""),
+            "archive_raw_record_sha256": item.get("archive_raw_record_sha256", ""),
+            "production_eligible": item.get("production_eligible", ""),
+            "betting_eligible": item.get("betting_eligible", "")
+        })
+    add_sheet("H2H Intelligence",
+        ["fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
+         "meeting_rank_latest_first", "fixture_id", "kickoff_utc", "provider_season_id",
+         "home_team_id", "away_team_id", "home_goals", "away_goals",
+         "result_current_home_perspective", "total_goals"], h2h_rows)
+    add_sheet("Team Form Evidence",
+        ["fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
+         "overall_last5_n", "overall_last5_form", "overall_last5_gf_avg", "overall_last5_ga_avg",
+         "overall_last5_points_per_game", "overall_source_fixture_ids", "venue_split",
+         "venue_last5_n", "venue_last5_form", "venue_avg_goals_for", "venue_avg_goals_against",
+         "venue_avg_points", "venue_source_fixture_ids", "league_position", "table_status",
+         "table_sample_n"], team_rows)
+    add_sheet("Data Quality & Risk",
+        ["fixture_id", "selected_id", "join_status", "schedule_status", "history_cutoff_utc",
+         "home_evidence_risk_pct", "away_evidence_risk_pct", "home_form_n", "away_form_n",
+         "h2h_n", "h2h_scope", "archive_source_file", "archive_source_row",
+         "archive_raw_record_sha256", "production_eligible", "betting_eligible"], quality_rows)
+    coverage = []
+    for header in HEADERS:
+        vals = [str(row.get(header, "")) for row in rows]
+        coverage.append({"field": header, "fixture_rows": len(rows),
+                         "populated_rows": sum(v not in ("", "None", UNAVAILABLE) and not v.startswith("NOT_") for v in vals),
+                         "not_available_from_oracle_output": sum(v == UNAVAILABLE for v in vals),
+                         "not_validated_or_not_graded": sum(v.startswith(("NOT_VALIDATED", "NOT_GRADED")) for v in vals),
+                         "coverage_pct": round(100 * sum(v not in ("", "None", UNAVAILABLE) and not v.startswith("NOT_") for v in vals) / len(rows), 2) if rows else 0})
+    add_sheet("Market Data Coverage",
+        ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
+         "not_validated_or_not_graded", "coverage_pct"], coverage)
+    definitions = [
+        {"term": "Market probability", "definition": "Only raw supported Oracle runtime probabilities are predictions. Unsupported markets remain unavailable; empirical rates are not forecasts."},
+        {"term": "Historical H2H", "definition": "Prior completed meetings for the exact stable team-ID pair within the same explicit provider competition ID, strictly before fixture kickoff. Falls back to exact season when competition ID is absent."},
+        {"term": "Team form", "definition": "Latest completed fixtures for the exact stable team ID within the same explicit provider competition; strict pre-kickoff cutoff. Venue splits are home-at-home and away-away."},
+        {"term": "League position", "definition": "Reconstructed within exact provider season using conventional 3-1-0 points and provisional tie-break order; not official where competition rules are unverified."},
+        {"term": "Evidence risk", "definition": "Coverage and provenance gaps only; not probability of losing or match outcome."},
+        {"term": "Eligibility", "definition": "All Selected-50 report rows remain production_eligible=false and betting_eligible=false."}
+    ]
+    add_sheet("Definitions & Governance", ["term", "definition"], definitions)
     wb.save(path)
 
 
@@ -626,7 +738,7 @@ def main():
     quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" or r.get("schedule_reconciliation_status") == "MISMATCH_REVIEW_REQUIRED"]
     write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
               list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
-    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report)
+    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
