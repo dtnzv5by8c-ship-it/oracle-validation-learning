@@ -273,7 +273,7 @@ def build_report(runtime_rows, archive_rows):
         def pairfmt(x, y):
             return f"Home {fmt(x)} | Away {fmt(y)}" if x is not None or y is not None else "INSUFFICIENT_DATA"
         form_text = f"Home {hf['form'] or 'INSUFFICIENT'} | Away {af['form'] or 'INSUFFICIENT'}"
-        points_text = f"Home {hf['points'] if hf['points'] is not None else 'N/A'}/15 | Away {af['points'] if af['points'] is not None else 'N/A'}/15"
+        points_text = (f"Home {hf['points']}/{hf['n'] * 3} (n={hf['n']})" if hf["points"] is not None else "Home N/A") + " | " + (f"Away {af['points']}/{af['n'] * 3} (n={af['n']})" if af["points"] is not None else "Away N/A")
         position_text = f"Home {hpos if hpos else 'N/A'} | Away {apos if apos else 'N/A'} (PROVISIONAL)"
         avg_gf = pairfmt(hf["gf"] if hf["n"] >= 3 else None, af["gf"] if af["n"] >= 3 else None)
         avg_ga = pairfmt(hf["ga"] if hf["n"] >= 3 else None, af["ga"] if af["n"] >= 3 else None)
@@ -442,13 +442,15 @@ def main():
         "probability_policy": "BTTS, DC_HOME and DC_AWAY copied unchanged from runtime CSV; all other probability/market fields explicitly unavailable.",
         "combo_policy": "Combo probabilities remain masked; no combo output is synthesized.",
         "historical_accuracy_status": "NOT_VALIDATED",
-        "standings_policy": "Provisional conventional 3-1-0 table within exact archive season folder; special competition tie-breaks/formats not verified.",
+        "standings_policy": "Provisional conventional 3-1-0 table within exact provider season ID; special competition tie-breaks/formats not verified.",
+        "history_scope": "Team form, H2H and table evidence are restricted to the exact provider season ID because a verified parent competition ID is unavailable; no cross-season or fuzzy competition joins are attempted.",
         "risk_policy": "Evidence coverage gap score only; not outcome risk or probability of losing.",
         "minimum_expected_league_groups": args.expected_league_groups,
         "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups else "FAIL",
         "column_nonempty_counts": {h: sum(1 for r in report if r.get(h) not in ("", None)) for h in HEADERS},
         "required_join_gate": "PASS" if summary["unmatched_or_quarantined_rows"] == 0 and summary["duplicate_archive_composite_keys"] == 0 else "BLOCKED",
         "all_rows_research_only": True,
+        "report_status": "PASS_RESEARCH_ONLY" if summary["unmatched_or_quarantined_rows"] == 0 and summary["selected_league_groups"] == args.expected_league_groups else "PARTIAL_RESEARCH_ONLY",
     })
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
