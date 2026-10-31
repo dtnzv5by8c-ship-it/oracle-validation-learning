@@ -110,3 +110,17 @@ The user must start the workflow using the exact inputs in Section 2 and send Ge
 ## 6. Handover discipline
 
 At the start of a continuation session, recover the live GitHub branch head and current workflow/file state before editing. This protocol is a durable handover aid, not a substitute for checking the live repository. If repository state differs from this document, the live repository and verified run artifacts take precedence; update this protocol after material changes.
+
+
+## 7. 2026-10-31 first repair run — exact-join gate blocked
+
+- Manual workflow run #18: `41181808159`.
+- Result: failed at report QA, not at setup, archive download, runtime verification, unit tests or archive feature generation.
+- Verified passed: pinned archive SHA, runtime artifact provenance/digest, eight unit tests, archive audit with 59,049 records / 200 season folders / zero provider API calls.
+- Report QA: 434 runtime rows, 434 report rows, 415 exact archive joins, 19 unmatched/quarantined rows, 50 governed schedule groups, zero duplicate archive composite keys, 38-column schema PASS, league group gate PASS, required join gate BLOCKED.
+- The workflow correctly failed closed. Do not relax the exact identity/kickoff gate or fabricate joins.
+- Diagnostic instrumentation committed:
+  - `198b9ff660eb5fa49f486bea19a2f3be008a4e06`: records join failure reason counts and examples in QA, adds runtime identity fields to quarantine trace, writes `oracle_selected50_market_intelligence_join_quarantine.csv`.
+  - `19120885b022094a53fe0fb55494bdbbef7daba3`: uploads a diagnostic artifact when QA blocks the report; includes quarantine CSV in successful report artifact.
+- Next action: manually dispatch the same workflow again from `research/oracle-50-league-readiness-audit` using the same pinned archive release and runtime run ID. The new run will expose the exact mismatch categories and fixture identity samples. Inspect `oracle-selected50-join-diagnostics` if the join gate blocks again.
+- Do not treat the report as complete or publish it as a finished report until all required exact joins pass. Keep production and betting eligibility false.
