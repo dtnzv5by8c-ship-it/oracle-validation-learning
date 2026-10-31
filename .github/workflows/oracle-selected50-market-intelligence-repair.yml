@@ -184,7 +184,7 @@ jobs:
           python scripts/build_selected50_market_intelligence_report.py \
             --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
             --archive-audit archive-audit \
-            --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \\
+            --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \
             --out-dir market-intelligence-output \
             --expected-league-groups 50
 
