@@ -1,0 +1,22 @@
+metric,value,interpretation
+team_profiles,732,Exact selected_id plus provider team_id profiles; 31/50 groups
+team_median_effective_n_365d,62.5429138854,Descriptive team profile effective sample
+team_median_effective_n_730d,70.7328129781,Descriptive team profile effective sample
+team_effective_n_ge30_365d,648,Threshold reliability screen
+team_effective_n_ge30_730d,650,Threshold reliability screen
+h2h_pairs,7188,Exact selected_id plus ordered provider team IDs
+h2h_meetings,23328,Chronological completed-score meetings
+h2h_median_effective_n_365d,2.8017847281,Low pair-level effective sample
+h2h_median_effective_n_730d,2.9469621173,Low pair-level effective sample
+h2h_pairs_both_ge8,1,Do not increase H2H weighting
+h2h_pairs_730d_ge8_only,67,Not robust under 365d
+h2h_pairs_both_ge5,318,Still below strict >=8 tier
+h2h_pairs_below_screen,6802,94.6 percent of H2H pairs
+team_shrunk_scoring_profiles,13,9 high and 4 low; descriptive only
+private_archive_runs_checked,70,All 70 concluded failure
+private_archive_artifacts_returned,0,No recoverable artifact IDs in checked history
+selected50_scoring_groups_available,31,19 unavailable; no imputation
+rankable_fixture_candidates,319,37 selected groups; Run 4 ranking cut carried forward
+provider_api_credits_used,0,No new API calls
+production_eligible,false,Research-only
+betting_eligible,false,Research-only
