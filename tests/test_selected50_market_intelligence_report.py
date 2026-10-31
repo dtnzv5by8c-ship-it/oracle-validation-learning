@@ -184,9 +184,34 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             market_report.write_xlsx(path, report, trace, {
                 "archive_match_records": 10,
                 "field_nonempty_counts": {"homeGoalCount": 8, "awayGoalCount": 7}
-            })
+            }, goal_market_rows=[{
+                "fixture_id": "F100", "provider_season_id": "S1",
+                "home_team_id": "H", "away_team_id": "A",
+                "forecast_status": "EXPERIMENTAL_UNCALIBRATED",
+                "model_id": "GOAL_POISSON_SHRUNK_V0.1_RESEARCH_ONLY",
+                "over15_probability_pct": 76.2, "over25_probability_pct": 54.1,
+                "under45_probability_pct": 91.0, "home_over15_probability_pct": 48.3,
+                "away_over15_probability_pct": 39.2, "home_lambda": 1.6,
+                "away_lambda": 1.2, "home_overall_n": 5, "away_overall_n": 4,
+                "league_prior_n": 31, "home_lambda_source": "VENUE",
+                "away_lambda_source": "OVERALL_FALLBACK", "blocked_reason": "",
+                "production_eligible": "NO", "betting_eligible": "NO"
+            }])
             workbook = load_workbook(path, read_only=True, data_only=True)
-            self.assertEqual(workbook["Market Intelligence"].max_column, 38)
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            self.assertGreater(workbook["Market Intelligence"].max_column, 38)
+            decision = workbook["Market Intelligence"]
+            decision_headers = [cell.value for cell in decision[1]]
+            self.assertIn("Research Over 1.5 %", decision_headers)
+            self.assertIn("Home Last-5 Form", decision_headers)
+            self.assertIn("Schedule Reconciliation", decision_headers)
+            decision_values = dict(zip(decision_headers, [cell.value for cell in decision[2]]))
+            self.assertEqual(decision_values["BTTS Yes"], "58.21")
+            self.assertEqual(decision_values["Research Over 1.5 %"], 76.2)
+            self.assertEqual(decision_values["Goal Research Status"], "EXPERIMENTAL_UNCALIBRATED")
+            self.assertEqual(decision_values["Production Eligible"], "NO")
+            self.assertEqual(decision_values["Betting Eligible"], "NO")
+            self.assertEqual(decision_values["Home Last-5 Form"], "WDWW")
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
                           "Market Data Coverage", "Archive Field Coverage",
                           "Data Quality & Risk", "Definitions & Governance"):
