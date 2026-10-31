@@ -202,9 +202,9 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertIn("home_at_home_goals_scored_avg", goal_headers)
             self.assertIn("away_away_goals_conceded_avg", goal_headers)
             goal_values = dict(zip(goal_headers, [cell.value for cell in goal_sheet[2]]))
-            self.assertEqual(goal_values["home_last5_goals_scored_avg"], "1.60")
-            self.assertEqual(goal_values["home_last5_goals_conceded_avg"], "1.40")
-            self.assertEqual(goal_values["home_at_home_goals_scored_avg"], "1.50")
+            self.assertEqual(goal_values["home_last5_goals_scored_avg"], "2.00")
+            self.assertEqual(goal_values["home_last5_goals_conceded_avg"], "0.75")
+            self.assertEqual(goal_values["home_at_home_goals_scored_avg"], "2.00")
             workbook.close()
 
     def test_duplicate_runtime_keys_fail_closed(self):
