@@ -160,12 +160,24 @@ def team_form(rows, team_id, venue=None):
         pts.append(points)
         results.append("W" if points == 3 else "D" if points == 1 else "L")
     n = len(sample)
+    btts = [int(int(float(r["home_goals"])) > 0 and int(float(r["away_goals"])) > 0) for r in sample]
+    over15 = [int(int(float(r["home_goals"])) + int(float(r["away_goals"])) > 1) for r in sample]
+    over25 = [int(int(float(r["home_goals"])) + int(float(r["away_goals"])) > 2) for r in sample]
+    under45 = [int(int(float(r["home_goals"])) + int(float(r["away_goals"])) < 5) for r in sample]
+    team_over15 = [int(x > 1) for x in gf]
+    clean_sheet = [int(x == 0) for x in ga]
+    failed_to_score = [int(x == 0) for x in gf]
+    rate = lambda values: round(sum(values) / n, 4) if n else None
     return {
         "n": n, "form": "".join(results),
         "gf": sum(gf) / n if n else None,
         "ga": sum(ga) / n if n else None,
         "ppg": sum(pts) / n if n else None,
         "points": sum(pts) if n else None,
+        "btts_rate": rate(btts), "over15_rate": rate(over15),
+        "over25_rate": rate(over25), "under45_rate": rate(under45),
+        "team_over15_rate": rate(team_over15), "clean_sheet_rate": rate(clean_sheet),
+        "failed_to_score_rate": rate(failed_to_score),
         "sample": sample,
     }
 
@@ -372,6 +384,13 @@ def build_report(runtime_rows, archive_rows):
             "home_form_gf_avg": fmt(hf["gf"]), "home_form_ga_avg": fmt(hf["ga"]),
             "home_form_ppg": fmt(hf["ppg"]), "away_form_gf_avg": fmt(af["gf"]),
             "away_form_ga_avg": fmt(af["ga"]), "away_form_ppg": fmt(af["ppg"]),
+            "home_form_btts_rate": fmt(hf["btts_rate"]), "away_form_btts_rate": fmt(af["btts_rate"]),
+            "home_form_over15_rate": fmt(hf["over15_rate"]), "away_form_over15_rate": fmt(af["over15_rate"]),
+            "home_form_over25_rate": fmt(hf["over25_rate"]), "away_form_over25_rate": fmt(af["over25_rate"]),
+            "home_form_under45_rate": fmt(hf["under45_rate"]), "away_form_under45_rate": fmt(af["under45_rate"]),
+            "home_team_over15_rate": fmt(hf["team_over15_rate"]), "away_team_over15_rate": fmt(af["team_over15_rate"]),
+            "home_clean_sheet_rate": fmt(hf["clean_sheet_rate"]), "away_clean_sheet_rate": fmt(af["clean_sheet_rate"]),
+            "home_failed_to_score_rate": fmt(hf["failed_to_score_rate"]), "away_failed_to_score_rate": fmt(af["failed_to_score_rate"]),
             "home_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in hf["sample"]),
             "away_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in af["sample"]),
             "home_at_home_form_n": home_venue_form["n"],
@@ -576,6 +595,13 @@ def write_xlsx(path, rows, trace=None):
                 "overall_last5_gf_avg": item.get(f"{side}_form_gf_avg", ""),
                 "overall_last5_ga_avg": item.get(f"{side}_form_ga_avg", ""),
                 "overall_last5_points_per_game": item.get(f"{side}_form_ppg", ""),
+                "historical_btts_rate_pct": item.get(f"{side}_form_btts_rate", ""),
+                "historical_over15_rate_pct": item.get(f"{side}_form_over15_rate", ""),
+                "historical_over25_rate_pct": item.get(f"{side}_form_over25_rate", ""),
+                "historical_under45_rate_pct": item.get(f"{side}_form_under45_rate", ""),
+                "team_over15_rate_pct": item.get(f"{side}_team_over15_rate", ""),
+                "clean_sheet_rate_pct": item.get(f"{side}_clean_sheet_rate", ""),
+                "failed_to_score_rate_pct": item.get(f"{side}_failed_to_score_rate", ""),
                 "overall_source_fixture_ids": item.get(f"{side}_form_source_fixture_ids", ""),
                 "venue_split": venue, "venue_last5_n": item.get(f"{venue}_form_n", ""),
                 "venue_last5_form": item.get(f"{venue}_form", ""),
@@ -610,7 +636,9 @@ def write_xlsx(path, rows, trace=None):
     add_sheet("Team Form Evidence",
         ["fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
          "overall_last5_n", "overall_last5_form", "overall_last5_gf_avg", "overall_last5_ga_avg",
-         "overall_last5_points_per_game", "overall_source_fixture_ids", "venue_split",
+         "overall_last5_points_per_game", "historical_btts_rate_pct", "historical_over15_rate_pct",
+         "historical_over25_rate_pct", "historical_under45_rate_pct", "team_over15_rate_pct",
+         "clean_sheet_rate_pct", "failed_to_score_rate_pct", "overall_source_fixture_ids", "venue_split",
          "venue_last5_n", "venue_last5_form", "venue_avg_goals_for", "venue_avg_goals_against",
          "venue_avg_points", "venue_source_fixture_ids", "league_position", "table_status",
          "table_sample_n"], team_rows)
@@ -627,6 +655,42 @@ def write_xlsx(path, rows, trace=None):
                          "not_available_from_oracle_output": sum(v == UNAVAILABLE for v in vals),
                          "not_validated_or_not_graded": sum(v.startswith(("NOT_VALIDATED", "NOT_GRADED")) for v in vals),
                          "coverage_pct": round(100 * sum(v not in ("", "None", UNAVAILABLE) and not v.startswith("NOT_") for v in vals) / len(rows), 2) if rows else 0})
+    goal_rows = []
+    for item in trace:
+        goal_rows.append({
+            "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
+            "home_team_id": item.get("archive_home_team_id", ""),
+            "away_team_id": item.get("archive_away_team_id", ""),
+            "home_last5_n": item.get("home_form_n", ""), "away_last5_n": item.get("away_form_n", ""),
+            "home_btts_historical_rate_pct": item.get("home_form_btts_rate", ""),
+            "away_btts_historical_rate_pct": item.get("away_form_btts_rate", ""),
+            "home_over15_historical_rate_pct": item.get("home_form_over15_rate", ""),
+            "away_over15_historical_rate_pct": item.get("away_form_over15_rate", ""),
+            "home_over25_historical_rate_pct": item.get("home_form_over25_rate", ""),
+            "away_over25_historical_rate_pct": item.get("away_form_over25_rate", ""),
+            "home_under45_historical_rate_pct": item.get("home_form_under45_rate", ""),
+            "away_under45_historical_rate_pct": item.get("away_form_under45_rate", ""),
+            "home_team_over15_historical_rate_pct": item.get("home_team_over15_rate", ""),
+            "away_team_over15_historical_rate_pct": item.get("away_team_over15_rate", ""),
+            "home_clean_sheet_rate_pct": item.get("home_clean_sheet_rate", ""),
+            "away_clean_sheet_rate_pct": item.get("away_clean_sheet_rate", ""),
+            "home_failed_to_score_rate_pct": item.get("home_failed_to_score_rate", ""),
+            "away_failed_to_score_rate_pct": item.get("away_failed_to_score_rate", ""),
+            "h2h_n": item.get("h2h_n", ""), "h2h_scope": item.get("h2h_scope", ""),
+            "h2h_meetings_detail": item.get("h2h_meetings_detail", ""),
+            "evidence_label": "HISTORICAL_EMPIRICAL_RATE_NOT_PREDICTION_PROBABILITY",
+            "history_cutoff_utc": item.get("history_cutoff_utc", "")
+        })
+    add_sheet("Goal Intelligence",
+        ["fixture_id", "selected_id", "home_team_id", "away_team_id", "home_last5_n", "away_last5_n",
+         "home_btts_historical_rate_pct", "away_btts_historical_rate_pct",
+         "home_over15_historical_rate_pct", "away_over15_historical_rate_pct",
+         "home_over25_historical_rate_pct", "away_over25_historical_rate_pct",
+         "home_under45_historical_rate_pct", "away_under45_historical_rate_pct",
+         "home_team_over15_historical_rate_pct", "away_team_over15_historical_rate_pct",
+         "home_clean_sheet_rate_pct", "away_clean_sheet_rate_pct",
+         "home_failed_to_score_rate_pct", "away_failed_to_score_rate_pct",
+         "h2h_n", "h2h_scope", "h2h_meetings_detail", "evidence_label", "history_cutoff_utc"], goal_rows)
     add_sheet("Market Data Coverage",
         ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
          "not_validated_or_not_graded", "coverage_pct"], coverage)
