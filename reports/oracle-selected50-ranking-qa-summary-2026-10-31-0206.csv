@@ -1,0 +1,4 @@
+market,candidate_pool,top50_rows,top50_selected_groups,top50_quarantined,top50_kickoff_mismatches,snapshot_age_hours,production_eligible,betting_eligible
+BTTS,319,50,23,0,0,4.34,NO,NO
+DC_HOME,319,50,27,0,0,4.34,NO,NO
+DC_AWAY,319,50,28,0,0,4.34,NO,NO
