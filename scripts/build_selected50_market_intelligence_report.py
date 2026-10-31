@@ -478,6 +478,83 @@ def build_report(runtime_rows, archive_rows):
     }
 
 
+
+def build_xg_audit(runtime_rows, archive_rows, trace_rows=None):
+    """Exact-identity xG evidence inventory. This output is never a prediction input."""
+    index = defaultdict(list)
+    for row in archive_rows:
+        key = archive_key(row)
+        if all(key):
+            index[key].append(row)
+    trace_by_key = {}
+    for item in (trace_rows or []):
+        key = (
+            str(item.get("runtime_provider_season_id") or item.get("archive_provider_season_id") or "").strip(),
+            str(item.get("fixture_id") or "").strip(),
+            str(item.get("runtime_home_team_id") or item.get("archive_home_team_id") or "").strip(),
+            str(item.get("runtime_away_team_id") or item.get("archive_away_team_id") or "").strip(),
+        )
+        if all(key):
+            trace_by_key[key] = item
+    output = []
+    for runtime in runtime_rows:
+        key = runtime_key(runtime)
+        matches = index.get(key, []) if all(key) else []
+        trace = trace_by_key.get(key, {})
+        if not all(key):
+            join_status, source = "BLOCKED_MISSING_RUNTIME_COMPOSITE_IDENTITY", {}
+        elif len(matches) == 0:
+            join_status, source = "BLOCKED_NO_EXACT_ARCHIVE_MATCH", {}
+        elif len(matches) > 1:
+            join_status, source = "QUARANTINED_DUPLICATE_ARCHIVE_IDENTITY", {}
+        else:
+            join_status, source = "PASS_EXACT_COMPOSITE_IDENTITY", matches[0]
+        output.append({
+            "fixture_id": runtime.get("fixture_id", ""),
+            "selected_id": runtime.get("selected_id", ""),
+            "provider_season_id": key[0] if all(key) else "",
+            "home_team_id": key[2] if all(key) else "",
+            "away_team_id": key[3] if all(key) else "",
+            "fixture": f"{runtime.get('home_team','')} vs {runtime.get('away_team','')}",
+            "runtime_kickoff_utc": runtime.get("date_utc", ""),
+            "archive_kickoff_utc": source.get("kickoff_utc", ""),
+            "history_cutoff_utc": runtime.get("date_utc", ""),
+            "join_status": join_status,
+            "schedule_reconciliation_status": trace.get("schedule_reconciliation_status", "NOT_VERIFIED"),
+            "home_xg_source_field": source.get("home_xg_prematch_source_field", "") or "NOT_AVAILABLE",
+            "home_xg_raw": source.get("home_xg_prematch_raw", "") if source else "NOT_AVAILABLE",
+            "home_xg_numeric": source.get("home_xg_prematch_value", "") if source else "NOT_AVAILABLE",
+            "away_xg_source_field": source.get("away_xg_prematch_source_field", "") or "NOT_AVAILABLE",
+            "away_xg_raw": source.get("away_xg_prematch_raw", "") if source else "NOT_AVAILABLE",
+            "away_xg_numeric": source.get("away_xg_prematch_value", "") if source else "NOT_AVAILABLE",
+            "total_xg_source_field": source.get("total_xg_prematch_source_field", "") or "NOT_AVAILABLE",
+            "total_xg_raw": source.get("total_xg_prematch_raw", "") if source else "NOT_AVAILABLE",
+            "total_xg_numeric": source.get("total_xg_prematch_value", "") if source else "NOT_AVAILABLE",
+            "capture_time_utc": source.get("xg_capture_time_utc", "") if source else "NOT_AVAILABLE",
+            "temporal_provenance_status": source.get("xg_temporal_provenance_status", "NOT_AVAILABLE"),
+            "prediction_use_status": "QUARANTINED_RESEARCH_AUDIT_ONLY",
+            "prediction_eligible": "NO",
+            "betting_eligible": "NO",
+            "archive_source_file": source.get("source_file", ""),
+            "archive_source_row": source.get("source_row", ""),
+            "archive_raw_record_sha256": source.get("raw_record_sha256", ""),
+            "remediation": "Obtain provider point-in-time snapshot/capture timestamp and revision policy; exclude from all forecasts until verified."
+        })
+    return output
+
+
+XG_AUDIT_HEADERS = [
+    "fixture_id", "selected_id", "provider_season_id", "home_team_id", "away_team_id",
+    "fixture", "runtime_kickoff_utc", "archive_kickoff_utc", "history_cutoff_utc",
+    "join_status", "schedule_reconciliation_status",
+    "home_xg_source_field", "home_xg_raw", "home_xg_numeric",
+    "away_xg_source_field", "away_xg_raw", "away_xg_numeric",
+    "total_xg_source_field", "total_xg_raw", "total_xg_numeric",
+    "capture_time_utc", "temporal_provenance_status", "prediction_use_status",
+    "prediction_eligible", "betting_eligible", "archive_source_file",
+    "archive_source_row", "archive_raw_record_sha256", "remediation"
+]
+
 def fmt(value):
     return "N/A" if value is None else f"{value:.2f}"
 
