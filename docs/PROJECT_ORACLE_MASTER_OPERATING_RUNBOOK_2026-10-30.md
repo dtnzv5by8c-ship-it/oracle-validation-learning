@@ -279,6 +279,7 @@ A static comparison of the default-branch and governed-branch workflow files fou
 - Current-fixture snapshot branch script: 2.1-second interval; HTTP 429 capture; no retries; fail-fast; pagination validation remains fail-closed.
 - Existing contract run `41208617886` remains overall failed because two of 19 snapshot-runtime bridge provenance tests failed. The FootyStats offline safety contract suite passed 16/16 and current snapshot validator suite passed 22/22. The two bridge failures remain open and must not be bypassed.
 - This checkpoint changes documentation only. No new code tests were required or claimed as run for this update.
+- Dispatch-safety documentation commit: `b25b29b5ffb243a2aed7ed4786573cd35e19aeb7` (this commit adds the default-branch versus governed-branch pacing comparison and the mandatory branch-selection warning).
 
 ### Operator gates unchanged
 1. Nolan must confirm the FootyStats subscription tier supports all 50 selected leagues and check the actual monthly credit balance.
