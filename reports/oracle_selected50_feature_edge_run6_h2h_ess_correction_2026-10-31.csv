@@ -1,0 +1,11 @@
+screen_or_prior_label,pair_count,definition_or_explanation,status
+Run 5 label: BOTH >=5,318,Actually the 5 <= ESS <8 band at both half-lives; label too broad.,SUPERSEDED
+Both ESS >=8,1,ESS365 >=8 and ESS730 >=8.,CORRECTED
+ESS365 5-<8; ESS730 >=8,67,365-day ESS is 5-<8; 730-day ESS is >=8.,CORRECTED
+Both ESS 5-<8,318,5 <= ESS365 <8 and 5 <= ESS730 <8.,CORRECTED
+ESS365 <5; ESS730 >=5,174,730-day ESS crosses 5 but 365-day ESS does not.,CORRECTED
+Both ESS <5,6628,ESS365 <5 and ESS730 <5.,CORRECTED
+Inclusive ESS >=5 under both half-lives,386,1 + 67 + 318.,CORRECTED
+Below 365-day ESS 5 screen,6802,174 + 6,628.,CORRECTED
+ESS730 <3,3882,Non-exclusive severe low-effective-sample subset.,VERIFIED
+Total exact H2H pairs,7188,All exact selected_id + ordered provider team-ID pairings.,VERIFIED
