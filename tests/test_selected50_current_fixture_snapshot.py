@@ -179,6 +179,11 @@ class SnapshotValidatorTests(unittest.TestCase):
         data["requests_skipped_after_stop"] = 1
         self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
+    def test_unverified_pagination_metadata_fails_closed(self):
+        data = self.build()
+        data["per_season"][0]["schedule_status"] = "UNVERIFIED_PAGINATION"
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
 
 if __name__ == "__main__":
     unittest.main()

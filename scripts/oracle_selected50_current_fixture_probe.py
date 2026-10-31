@@ -192,9 +192,16 @@ for index, item in enumerate(selected):
                     result["recent_completed_30d_count"] += 1
 
         if result["http_status"] == 200 and result["provider_success"] and isinstance(data, list):
-            result["schedule_status"] = (
-                "REQUIRES_PAGINATION" if season_id in pagination_gaps else "ONE_PAGE_RESPONSE"
-            )
+            try:
+                max_page = int(result["max_page"])
+                if max_page < 1:
+                    raise ValueError("max_page must be positive")
+            except (TypeError, ValueError):
+                result["schedule_status"] = "UNVERIFIED_PAGINATION"
+            else:
+                result["schedule_status"] = (
+                    "REQUIRES_PAGINATION" if max_page > 1 else "ONE_PAGE_RESPONSE"
+                )
         elif result["provider_success"] and not isinstance(data, list):
             result["error_class"] = "INVALID_PROVIDER_DATA_SHAPE"
 
