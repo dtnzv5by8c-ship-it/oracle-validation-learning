@@ -1,0 +1,41 @@
+{
+  "generated_sast": "2026-10-31T03:22:09+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "working_workbook": {
+    "filename": "Oracle_Selected50_v9_Plus_Team_H2H_Shrinkage_Run5_2026-10-31.xlsx",
+    "sha256": "335b313bf3ced7343b84fe00446aceea4b1593fb4d39190cc80a69b88c1f4c03",
+    "bytes": 16089288,
+    "sheets": 70
+  },
+  "append_ready_addendum": {
+    "filename": "Oracle_Team_H2H_Shrinkage_Addendum_Run5.xlsx",
+    "sha256": "92204d6ab7832d02caff8d87ccb63777aa782e81bed31d79b314122bed1fe10c",
+    "bytes": 347318,
+    "sheets": [
+      "Team Shrinkage Sensitivity",
+      "H2H Shrinkage Sensitivity",
+      "Shrinkage Reliability Summary",
+      "Team Shrunk Scoring Screen",
+      "H2H Recency Reliability Gate",
+      "H2H Shrinkage Watch",
+      "Team Shrinkage Watch",
+      "Consolidation Lineage"
+    ]
+  },
+  "latest_canonical_v11": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v11_Feature_Edge_H2H_Recency_0302SAST.xlsx",
+    "sha256": "5f165ac19db4a06cfed2d64268f43d02173d6c4412523e5e3e4e2ca7f19c9206",
+    "bytes": 15155577,
+    "sheets": 85,
+    "binary_available_in_this_run": false
+  },
+  "note": "docs/PROJECT_ORACLE_TEAM_H2H_DNA_SHRINKAGE_RESEARCH_2026-10-31-0322-SAST.md",
+  "checkpoint": "reports/oracle_selected50_team_h2h_shrinkage_checkpoint_2026-10-31-0322-sast.json",
+  "summary": "reports/oracle_selected50_team_h2h_shrinkage_summary_2026-10-31.csv",
+  "limitations": [
+    "Team/H2H raw score profiles cover 31/50 selected groups; 19 raw JSON payloads are unavailable in the accessible Run64 extract.",
+    "H2H venue decay is not calculated because no_home_away is absent from the H2H Meetings ledger.",
+    "k=10/20 are sensitivity settings only, not optimized or OOS validated.",
+    "v11 workbook binary is not mounted; Run 5 addendum not merged into v11."
+  ]
+}
