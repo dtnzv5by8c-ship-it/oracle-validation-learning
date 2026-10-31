@@ -244,6 +244,7 @@ jobs:
           name: oracle-selected50-market-intelligence-repair
           path: |
             market-intelligence-output/oracle_selected50_market_intelligence.xlsx
+            market-intelligence-output/oracle_selected50_50_league_coverage.csv
             market-intelligence-output/oracle_selected50_market_intelligence.csv
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
