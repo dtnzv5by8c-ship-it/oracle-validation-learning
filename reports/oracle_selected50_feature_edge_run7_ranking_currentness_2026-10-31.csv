@@ -1,0 +1,4 @@
+market,top50_rows,exact_runtime_bridge_matches,quarantined_rows,kickoff_mismatch_rows,candidate_pool,groups_represented,top3_per_league_rows,top3_overall_rows,ranking_cut_sast,snapshot_retrieved_utc,snapshot_age_hours_at_0601,earliest_top50_kickoff_sast,status
+BTTS,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,8.245359,2026-10-31 09:00 SAST,Future at 06:01; schedule not refreshed
+DC_HOME,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,8.245359,2026-10-31 16:00 SAST,Future at 06:01; schedule not refreshed
+DC_AWAY,50,50,0,0,319,37,111,3,2026-10-31 03:02:03 SAST,2026-10-30T19:46:39.708942Z,8.245359,2026-10-31 07:00 SAST,Future at 06:01; schedule not refreshed
