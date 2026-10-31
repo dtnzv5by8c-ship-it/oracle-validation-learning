@@ -1,0 +1,20 @@
+metric,value,interpretation
+selected_groups,50,governed universe
+raw_profile_groups,31,exact raw JSON accessible
+unavailable_raw_groups,19,ledger present; raw JSON unavailable
+team_profiles,732,exact selected_id + team_id
+h2h_pairs,7188,exact selected_id + ordered provider team IDs
+h2h_meetings,23328,chronological completed scored matches
+h2h_ess_ge8_both,1,effective sample >=8 at both 365d and 730d
+h2h_ess_ge8_730_only,67,>=8 at 730d only
+h2h_ess_ge5_both,386,inclusive threshold; corrected from Run5 tier-label ambiguity
+h2h_ess_5_to_lt8_both,318,Run5 BOTH>=5 tier
+h2h_ess_ge5_730_only,174,365d <5; 730d >=5
+h2h_ess_lt3_730,3882,730d Kish effective sample <3
+team_ess_ge30_365,648,of 732
+team_ess_ge30_730,650,of 732
+team_scoring_candidates,13,strict Run5 candidates
+team_candidates_pass_four_scenarios,13,365/730 × k10/k20
+qa_rows,26,Run6 Profile QA
+original_v11_sheet_xml_mismatches,0,all 85 original worksheet XML parts byte-identical
+final_workbook_sheets,101,85 v11 + 8 Run5 + 8 Run6
