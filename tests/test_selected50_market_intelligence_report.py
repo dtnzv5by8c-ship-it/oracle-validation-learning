@@ -51,6 +51,12 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(rows, {})
         self.assertEqual(missing[0][1], "NO_EXACT_ARCHIVE_MATCH")
 
+    def test_kickoff_mismatch_is_quarantined(self):
+        changed = dict(self.archive[-1], kickoff_utc="2026-10-31T17:59:00+00:00")
+        joined, missing, _ = market_report.exact_join([runtime_row()], self.archive[:-1] + [changed])
+        self.assertEqual(joined, {})
+        self.assertEqual(missing[0][1], "KICKOFF_MISMATCH_OR_UNPARSEABLE")
+
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
         report, trace, summary = market_report.build_report([runtime_row()], self.archive + [same_time])
