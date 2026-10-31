@@ -233,3 +233,30 @@ At the start of a continuation session, recover the live GitHub branch head and 
 - Next: inspect the resulting push-triggered Actions run/checks for commit `b2f7921bab2b76e8947a1bd191abc8cfe5079719`; if the run is not visible, use the repository Actions UI to inspect the workflow. Do not dispatch the full archive workflow solely to test these changes.
 - Rebuild the full report only after targeted tests pass and a new full repair workflow is manually dispatched. Schedule reconciliation remains blocked absent independent authoritative schedule evidence. Do not use provider API credits without explicit authorization.
 - Keep the separate pre-existing snapshot-runtime-bridge contract-test failures isolated; do not modify unrelated runtime bridge code in this workstream.
+
+
+## 11. 2026-10-31 Market Intelligence evidence expansion
+
+### Verified implementation changes
+- Commit `f1371abd2a45d068f81b873ced948d1408685469`: H2H pair indexing now uses explicit FootyStats `provider_league_id` across seasons, retaining exact stable home/away team IDs and strict pre-kickoff chronology. If the competition ID is absent, it falls back to exact provider season ID. No names or fuzzy joins are used.
+- Subsequent report-builder commits extend team-form history across seasons only within the same explicit provider competition ID; standings and league scoring baselines remain season-scoped.
+- The workbook preserves the exact 38-column `Market Intelligence` sheet and adds supporting tabs: `H2H Intelligence`, `Team Form Evidence`, `Goal Intelligence`, `Market Data Coverage`, `Archive Field Coverage`, `Data Quality & Risk`, and `Definitions & Governance`.
+- Goal Intelligence contains empirical last-five historical rates (BTTS, Over 1.5/2.5, Under 4.5, team Over 1.5, clean sheets and failed-to-score) with sample sizes and source fixture evidence. These are descriptive historical frequencies, not predicted probabilities and must never be copied into the prediction columns.
+- H2H tab records individual prior meetings, dates, season IDs, exact team IDs, scores and current-home-team-perspective result.
+- Archive Field Coverage reports raw archive field presence only; field presence is not proof of point-in-time availability or semantic validity.
+- Raw supported Oracle probabilities remain copied unchanged. Unsupported market forecast probabilities remain unavailable unless an approved runtime market output exists. Combo forecasts remain masked.
+
+### Validation
+- Targeted Selected-50 repair workflow Run `41184361994` succeeded on commit `807b0d4c4fd30c75285cdcf14cf00a77215e501a`; all 13 Market Intelligence tests passed, including cross-season exact-competition H2H, composite-key schedule-conflict isolation, venue-split form and expanded workbook tabs.
+- The separate full repository contract workflow continues to fail only at the known snapshot-runtime-bridge provenance test stage; its other preceding contract steps pass. Keep this unrelated failure isolated.
+- The latest code/test commit at this point is `807b0d4c4fd30c75285cdcf14cf00a77215e501a`; subsequent documentation commits may advance the branch head without changing tested code.
+- No full archive rebuild has yet been run against the expanded workbook. Push-triggered workflow runs are test-only and skip private archive download/build steps.
+- The next required user action is one manual full repair dispatch using the workflow URL and the exact pinned archive/runtime inputs in Section 2. This is required because the full workflow requires explicit private-archive consent and the existing private token. After that run, inspect and validate every tab and compare raw supported probabilities byte-for-byte with the runtime report.
+
+### Remaining governed blockers
+1. Reconcile the 19 schedule discrepancies from an independently authoritative existing source; archive timestamps alone are not sufficient.
+2. Use the full archive run to quantify how many of the 434 fixtures gain cross-season H2H and form evidence from provider competition IDs; do not claim a coverage uplift until the artifact is measured.
+3. Market forecast probabilities for Over/Under, team goals and M-1UP remain unavailable because the runtime does not emit those markets. Historical rates are now separately exposed, not predictions. An approved market-specific output/source is required for actual forecast probabilities.
+4. Historical accuracy and A+ grading remain blocked pending exact pre-match prediction ledger, official settlement truth and contemporaneous odds.
+5. Standings remain provisional until competition-specific tie-break and season-format rules are independently verified.
+6. Production V1.6 and its probabilities remain frozen; all research rows remain production- and betting-ineligible.
