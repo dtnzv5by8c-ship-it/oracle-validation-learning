@@ -81,5 +81,30 @@ class GoalMarketResearchEngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "EXPERIMENTAL_UNCALIBRATED")
         self.assertEqual(result["league_prior_n"], 20)
 
+    def test_missing_exact_identity_is_explicitly_blocked(self):
+        teams, leagues = engine.build_indexes([])
+        result = engine.forecast(
+            {"provider_season_id":"", "fixture_id":"999",
+             "home_team_provider_id":"1", "away_team_provider_id":"2"},
+            teams, leagues, datetime(2026, 2, 1, tzinfo=timezone.utc)
+        )
+        self.assertEqual(result["status"], "BLOCKED_MISSING_EXACT_IDENTITY_OR_KICKOFF")
+        self.assertEqual(result["production_eligible"], "NO")
+        self.assertEqual(result["betting_eligible"], "NO")
+        self.assertTrue(result["blocked_reason"])
+
+    def test_invalid_league_baseline_is_explicitly_blocked(self):
+        rows=[]
+        for i in range(20):
+            rows.append(self.make_match(i+1, i, 1 if i%2==0 else 2, 2 if i%2==0 else 1, 0, 0))
+        teams, leagues = engine.build_indexes(rows)
+        target={"provider_season_id":"S1","fixture_id":"999",
+                "home_team_provider_id":"1","away_team_provider_id":"2"}
+        result=engine.forecast(target, teams, leagues, datetime(2026, 2, 1, tzinfo=timezone.utc))
+        self.assertEqual(result["status"], "BLOCKED_INVALID_LEAGUE_BASELINE")
+        self.assertEqual(result["production_eligible"], "NO")
+        self.assertEqual(result["betting_eligible"], "NO")
+        self.assertTrue(result["blocked_reason"])
+
 if __name__ == "__main__":
     unittest.main()
