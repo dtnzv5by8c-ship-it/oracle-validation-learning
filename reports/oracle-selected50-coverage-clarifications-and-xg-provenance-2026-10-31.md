@@ -28,7 +28,7 @@ The first local coverage-audit workbook contained a reporting-label defect in it
 - partial samples;
 - unvalidated/ungraded fields.
 
-H2H needs a further distinction: **144/434** fixtures have at least one prior meeting in the exact report scope; **290/434** have `NO_VERIFIED_PRIOR_H2H`. H2H average total goals is numeric for 144 fixtures and blank for the other 290. A non-empty status string is not a usable H2H statistic.
+H2H needs a further distinction: **144/434** fixtures have at least one prior meeting in the exact report scope; **290/434** have `NO_VERIFIED_PRIOR_H2H`. H2H average total goals is numeric for 144 fixtures. In the 83-column Excel `Market Intelligence` tab, both duplicate H2H-average columns carry the explicit `NO_VERIFIED_PRIOR_H2H` status for the other 290; in the 38-column `Oracle V1.6 Output` tab and CSV export, those 290 cells are blank. A non-empty status string is not a numeric H2H statistic.
 
 The corrected local workbook includes a 50-row xG coverage tab and a 25-row side-by-side reconciliation of descriptive score form against runtime model history support. It is a reporting artifact only.
 
@@ -79,8 +79,27 @@ Official references:
 
 The corrected reporting workbook and companion extracts were generated from the verified Run #124 artifacts. SHA-256 values:
 
-- `Oracle_Selected50_Market_Intelligence_Coverage_Audit_CORRECTED_2026-10-31.xlsx`: `a237f35012135271827e1d58f212612b2808aba57b1e91c036633d00695eeacd`
+- `Oracle_Selected50_Market_Intelligence_Coverage_Audit_CORRECTED_2026-10-31.xlsx`: `b9f8ee1e435ba1863475b6bc7a585a85d144d6491667321a7b274fede7ada937`
 - `oracle_selected50_50_league_xg_coverage_2026-10-31.csv`: `2d1b534c717873ddf3be05552f7d4d2c8885b7b638abecb3e40d20900e7cf2d8`
 - `oracle_selected50_form_scope_reconciliation_2026-10-31.csv`: `0ad83c1f43b85b3ceafd63ee3f02e02e8b4ffbcd33fbc80369176a3fe8b3a3db`
 
-The workbook contains 50 league rows in the xG detail tab (46 with fixture rows, four without), 434/434 numeric home, away and total xG values, zero capture timestamps and 434 quarantined rows. The form reconciliation tab contains all 25 runtime-blocked team-side histories. These are local report artifacts; the repository change is documentation-only.
+The workbook contains 50 league rows in the xG detail tab (46 with fixture rows, four without), 434/434 numeric home, away and total xG values, zero capture timestamps and 434 quarantined rows. The form reconciliation tab contains all 25 runtime-blocked team-side histories. The 50 × 83 field matrix contains 4,150 league/field rows for the current seven-day fixture horizon; the four no-fixture groups are marked N/A, not missing. These are local report artifacts; the repository change is documentation-only.
+
+
+## 7. Excel workbook structure and full fixture-field matrix
+
+A further inspection of the original Run #124 workbook clarified its structure:
+
+- The workbook has 12 tabs.
+- `Oracle V1.6 Output` has 38 columns and matches the 38-column CSV export.
+- `Market Intelligence` has 83 columns: the 38-column base plus 45 additional evidence, team-form, H2H, schedule, experimental goal-research and eligibility fields.
+- The 83-column Excel tab has three duplicate header pairs: H2H Avg Total Goals (columns 31/64), Historical Accuracy Status (32/78), and A+ Setup Status (37/79). Each pair is identical within that Excel tab. The H2H no-prior status is explicit in both duplicate columns; the 38-column Oracle V1.6 Output/CSV leaves those cells blank.
+- The 83-column sheet contains 422 experimental goal-research estimates and 12 blocked rows. These are uncalibrated research outputs, not Oracle V1.6 probabilities.
+- The original workbook's `Market Data Coverage` and `Archive Field Coverage` tabs are aggregate summaries, not a full 50-league field matrix.
+
+The corrected local audit now includes a **4,150-row long-form matrix** (50 selected groups × 83 Market Intelligence fields) for the current seven-day fixture horizon. It is fixture-level coverage, not certification of every historical archive field. The four groups without fixtures are marked N/A rather than treated as missing.
+
+Additional local artifact hashes:
+
+- `oracle_selected50_market_intelligence_83_column_coverage_2026-10-31.csv`: `526282bcbdf6c8debd88c396d58df78c565785ecbe424637f91e010ab21c7920`
+- `oracle_selected50_50_league_83_field_matrix_2026-10-31.csv`: `cb9029d4b5c7846b053c8ac3a6417399ee105bc8d042f967472726fe49476572`
