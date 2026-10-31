@@ -242,7 +242,7 @@ def build_report(runtime_rows, archive_rows):
         target = joined.get(key)
         cutoff = parse_dt(runtime.get("date_utc"))
         if target is None or cutoff is None:
-            reason = next((why for row, why in missing if row is runtime), "MISSING_ARCHIVE_JOIN_OR_KICKOFF")
+            reason = next((entry[1] for entry in missing if entry[0] is runtime), "MISSING_ARCHIVE_JOIN_OR_KICKOFF")
             outrow = base_row(runtime, league_name, reason)
             output.append(outrow)
             trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
@@ -356,7 +356,7 @@ def build_report(runtime_rows, archive_rows):
         "duplicate_archive_composite_keys": len(duplicate_archive_keys),
         "duplicate_archive_history_rows": history_duplicates,
         "duplicate_runtime_keys": len(runtime_rows) - len(seen_runtime),
-        "join_failure_reason_counts": {reason: sum(1 for _, why in missing if why == reason) for reason in sorted({why for _, why in missing})},
+        "join_failure_reason_counts": {reason: sum(1 for entry in missing if entry[1] == reason) for reason in sorted({entry[1] for entry in missing})},
         "join_failure_examples": [
             {"reason": reason, "runtime_key": list(runtime_key(row)),
              "runtime_kickoff_utc": row.get("date_utc", ""),
