@@ -1055,9 +1055,12 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             if item.get(field) in (None, ""):
                 item[field] = value
     goal_market_headers = list(dict.fromkeys(
-        ["Fixture Date", "League", "Fixture"] + [k for r in goal_market_rows for k in r]
-    )) or ["Fixture Date", "League", "Fixture", "fixture_id", "forecast_status", "forecast_label",
-           "model_id", "production_eligible", "betting_eligible"]
+        ["Fixture Date", "League", "Fixture"] + (
+            list(dict.fromkeys(k for r in goal_market_rows for k in r)) or
+            ["fixture_id", "forecast_status", "forecast_label", "model_id",
+             "production_eligible", "betting_eligible"]
+        )
+    ))
     add_sheet("Goal Market Research", goal_market_headers, goal_market_rows)
     add_sheet("Market Data Coverage",
         ["field", "fixture_rows", "populated_rows", "not_available_from_oracle_output",
