@@ -1,0 +1,120 @@
+{
+  "generated_sast": "2026-10-31T05:17:45+02:00",
+  "run": 7,
+  "branch": "research/oracle-50-league-readiness-audit",
+  "scope": "POINT_IN_TIME_H2H_INCREMENTAL_SIGNAL_AUDIT",
+  "prior_checkpoint": "reports/oracle_selected50_team_h2h_run6_checkpoint_2026-10-31-0423-sast.json",
+  "source": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Team_H2H_Consolidated.xlsx",
+    "sha256": "1e22b8765114d9beb897ac4e34a01a26ea8be91cc83818d74e349186e8519e65",
+    "archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+    "run64_sha256": "65aca16d0562745576f1499d25808498a560b5167cdf00bc86074f8e4c20211a",
+    "runtime_run_id": "41119141526",
+    "runtime_artifact_id": "13006609602",
+    "snapshot_artifact_id": "13005239530",
+    "bridge_run_id": "41121900062",
+    "bridge_artifact_id": "13009350718"
+  },
+  "coverage": {
+    "governed_groups": 50,
+    "raw_profile_groups": 31,
+    "unavailable_raw_groups": 19,
+    "team_profiles": 732,
+    "h2h_pairs": 7188,
+    "h2h_meetings": 23328,
+    "primary_window_fixtures": 15003,
+    "h2h_prior_bands": {
+      "0": 2173,
+      "1_2": 7097,
+      "3_4": 4685,
+      "5_plus": 1048
+    }
+  },
+  "method": {
+    "same_kickoff_excluded": true,
+    "team_form": "last 10 prior matches per team; 730d league prior; k=10",
+    "h2h": "exact prior pair; 365d half-life; Kish ESS; league shrinkage k=10",
+    "blend_weights": [
+      0.1,
+      0.2,
+      0.3
+    ],
+    "markets": [
+      "BTTS",
+      "OVER25"
+    ],
+    "venue_split": "not calculated; no_home_away absent"
+  },
+  "primary_metrics": {
+    "BTTS": {
+      "league_brier": 0.246222,
+      "team_form_brier": 0.248002,
+      "team_h2h30_brier": 0.247217,
+      "league_log_loss": 0.685552,
+      "team_h2h30_log_loss": 0.687614,
+      "fold_decision": "H2H blends worse than league prior in all 3 folds"
+    },
+    "OVER25": {
+      "league_brier": 0.245587,
+      "team_form_brier": 0.246498,
+      "team_h2h30_brier": 0.245535,
+      "league_log_loss": 0.684236,
+      "team_h2h30_log_loss": 0.684136,
+      "fold_decision": "30% blend marginally better Brier; bootstrap vs league prior crosses zero"
+    }
+  },
+  "paired_bootstrap": {
+    "replicates": 1000,
+    "seed": 20261031,
+    "BTTS_blend30_vs_team_brier_delta": -0.000785,
+    "BTTS_vs_team_ci95": [
+      -0.001145,
+      -0.000433
+    ],
+    "BTTS_blend30_vs_league_brier_delta": 0.000995,
+    "BTTS_vs_league_ci95": [
+      0.0003,
+      0.001707
+    ],
+    "OVER25_blend30_vs_team_brier_delta": -0.000963,
+    "OVER25_vs_team_ci95": [
+      -0.001315,
+      -0.000619
+    ],
+    "OVER25_blend30_vs_league_brier_delta": -0.000052,
+    "OVER25_vs_league_ci95": [
+      -0.000713,
+      0.000639
+    ]
+  },
+  "integrity": {
+    "fixture_rows": 23328,
+    "unique_fixture_ids": 23328,
+    "missing_kickoff_ids_scores_hashes": 0,
+    "independent_pit_sample_validation": "250/250 PASS"
+  },
+  "private_archive_workflow": {
+    "source_commit": "cb89e5bd1c24810fe821a6b2c3c2c1c19272b381",
+    "league_codes": 27,
+    "artifact_id_verified": false,
+    "dispatched": false
+  },
+  "output": {
+    "workbook": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v15_Team_H2H_PIT_Incremental_Validated.xlsx",
+    "sha256": "948a224fa7a340ebb77a4afeef5b662d94a3764e2599f2362dab0efa78ef9fed",
+    "sheets": 109,
+    "note": "PROJECT_ORACLE_TEAM_H2H_PIT_INCREMENTAL_RESEARCH_2026-10-31-0517-SAST.md",
+    "manifest": "oracle_selected50_v15_team_h2h_pit_manifest_2026-10-31.json",
+    "bundle": "Oracle_Selected50_Team_H2H_Run7_PIT_Incremental_Research_Bundle_2026-10-31-0517-SAST.zip"
+  },
+  "governance": {
+    "provider_api_credits_used": 0,
+    "completed_workflows_rerun": false,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  },
+  "decision": "Retain H2H as low-weight research context only; no robust incremental edge beyond league prior established."
+}
