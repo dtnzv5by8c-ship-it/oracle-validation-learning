@@ -135,3 +135,17 @@ At the start of a continuation session, recover the live GitHub branch head and 
 - Do not relax the timestamp equality rule based solely on this evidence. The archive-side kickoff must be recorded and compared to the runtime kickoff for each quarantined fixture.
 - Follow-on diagnostic commit: `cc8b3f7b4c56e0ddeb844c9e20e92c544ffbe735`. It extends the join quarantine and QA examples with archive kickoff, source file and source row, so the next workflow run can establish whether the pinned archive contains stale schedule timestamps or parse issues.
 - Next action: rerun the workflow from the research branch using the same pinned archive and runtime run ID. Inspect the diagnostic artifact's runtime/archive kickoff pairs. Only then decide whether this is a schedule timestamp drift, parser issue, or true data integrity conflict. If schedule drift is proven, preserve the runtime kickoff as the history cutoff and record the stale archive schedule as a quarantined metadata discrepancy; do not use that archived target row as historical evidence.
+
+
+### Diagnostic implementation follow-through — 2026-10-31
+
+- The first diagnostic instrumentation commit exposed a tuple-shape issue in the report summary/trace handling. GitHub push-triggered tests caught it before any new full archive workflow was run.
+- Corrective commits:
+  - `d401f6e163d5e224d5cd9c2a465befff8aa1b80e`: safely read enriched quarantine tuple entries when deriving the row-level reason and reason counts.
+  - `3a55377f91d01b0715302ec53494a47d631ae55b`: adds regression assertions for archive kickoff evidence and quarantine summary.
+  - `f468fc72a7eb07daa61cbc3d35daea7cae9d664b`: initial correction to bind the archive row for trace diagnostics.
+  - `11b9c39a5439dd2d3c3d0f026956e4d1d90fe66f`: final correction binds the archive row in the QA failure-example comprehension.
+- Targeted report test workflow run `41182626414` completed successfully; all eight Selected-50 Market Intelligence tests passed.
+- The wider repository `contract-tests` job in run `41182626465` failed two existing snapshot-runtime-bridge provenance tests (`test_exact_hashes_and_run_ids_verify`, `test_snapshot_artifact_branch_must_match_snapshot_workflow_branch`). These are outside the Market Intelligence repair files and were not changed in this work. Keep them visible as a separate repository-level issue; do not modify unrelated runtime bridge logic as part of this repair.
+- The manual full archive repair has not yet been rerun against the enriched diagnostics. The previous run `41182327428` used the earlier commit and therefore did not contain archive-side kickoff values.
+- Next action: user manually dispatches the full workflow on `research/oracle-50-league-readiness-audit` using the same pinned archive tag and runtime run ID. Inspect new diagnostic artifact to compare runtime vs archive kickoff for each of the 19 fixture keys. Do not relax kickoff equality or use schedule-mismatched target rows as historical evidence.
