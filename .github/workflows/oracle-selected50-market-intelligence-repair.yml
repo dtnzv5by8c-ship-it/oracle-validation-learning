@@ -201,6 +201,8 @@ jobs:
             --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
             --archive-audit archive-audit \
             --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \
+            --runtime-provenance runtime-artifact/extracted/oracle_selected50_runtime_provenance.json \
+            --archive-summary archive-audit/summary.json \
             --out-dir market-intelligence-output \
             --expected-league-groups 50
 
