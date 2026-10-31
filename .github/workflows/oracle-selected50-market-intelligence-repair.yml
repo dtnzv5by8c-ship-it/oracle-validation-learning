@@ -122,6 +122,7 @@ jobs:
               "head_sha": run["head_sha"],
           }, indent=2) + "\n")
           PY
+          python -m json.tool runtime-artifact/artifact-metadata.json > /dev/null
           ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           EXPECTED="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1].lower())')"
           curl --fail --location --silent --show-error \
@@ -165,7 +166,6 @@ jobs:
               raise SystemExit(f"FAIL: runtime rows/schedule scope mismatch: rows={len(rows)}, schedule_rows={len(schedule)}, unique_governed_ids={len(governed_ids)}, report_ids={len(report_ids)}")
           print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}")
           PY
-          python -m json.tool runtime-artifact/artifact-metadata.json > /dev/null
 
       - name: Install report-only dependencies
         run: python -m pip install --disable-pip-version-check openpyxl
