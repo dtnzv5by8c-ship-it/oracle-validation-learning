@@ -131,6 +131,7 @@ jobs:
           mkdir -p runtime-artifact/extracted
           unzip -q runtime-artifact/runtime-report.zip -d runtime-artifact/extracted
           test -s runtime-artifact/extracted/oracle_selected50_prediction_report.csv
+          test -s runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv
           test -s runtime-artifact/extracted/oracle_selected50_runtime_provenance.json
           python - <<'PY'
           import csv, hashlib, json, os
@@ -153,10 +154,13 @@ jobs:
               raise SystemExit("FAIL: runtime report content SHA mismatch")
           with report.open(encoding="utf-8-sig", newline="") as f:
               rows = list(csv.DictReader(f))
-          groups = {r.get("selected_id", "") for r in rows if r.get("selected_id")}
-          if len(rows) != 434 or len(groups) != 50:
-              raise SystemExit(f"FAIL: expected 434 runtime rows and 50 selected groups, got {len(rows)} and {len(groups)}")
-          print(f"Runtime artifact verified: run={run_id}; rows={len(rows)}; selected_groups={len(groups)}")
+          with (root / "oracle_selected50_schedule_coverage.csv").open(encoding="utf-8-sig", newline="") as f:
+              schedule = list(csv.DictReader(f))
+          governed_ids = {r.get("selected_id", "").strip() for r in schedule if r.get("selected_id", "").strip()}
+          report_ids = {r.get("selected_id", "").strip() for r in rows if r.get("selected_id", "").strip()}
+          if len(rows) != 434 or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
+              raise SystemExit(f"FAIL: runtime rows/schedule scope mismatch: rows={len(rows)}, schedule_rows={len(schedule)}, unique_governed_ids={len(governed_ids)}, report_ids={len(report_ids)}")
+          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}")
           PY
 
       - name: Install report-only dependencies
