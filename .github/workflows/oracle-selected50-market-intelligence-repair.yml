@@ -120,7 +120,8 @@ jobs:
               "run_id": run_id,
               "head_branch": run["head_branch"],
               "head_sha": run["head_sha"],
-          }, indent=2) + "\\n")
+          }, indent=2) + "\n")
+          python -m json.tool runtime-artifact/artifact-metadata.json > /dev/null
           PY
           ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           EXPECTED="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1].lower())')"
