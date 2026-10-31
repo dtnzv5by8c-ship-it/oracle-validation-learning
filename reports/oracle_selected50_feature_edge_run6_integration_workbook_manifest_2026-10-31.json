@@ -3,8 +3,8 @@
   "branch": "research/oracle-50-league-readiness-audit",
   "workbook": {
     "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v13_Run6_Feature_Edge_Team_H2H_0500SAST.xlsx",
-    "sha256": "3417db1d5fb4c823a19ce31e9807d5b4a0baa136afb848b2234846a65d3b5721",
-    "bytes": 16960802,
+    "sha256": "0216ab9435190471d334cd5bf10630485e85d1a93abd7a353986b40dd0244d0c",
+    "bytes": 16926465,
     "sheets": 106,
     "base_filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Run5_Shrinkage_Archive_Recovery_0404SAST.xlsx",
     "base_sha256": "27cba94ab2ddd7d050cfad73c7302fc92190cc380703c247193b941df2695c46",
