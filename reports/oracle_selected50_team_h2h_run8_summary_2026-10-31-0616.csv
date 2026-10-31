@@ -1,0 +1,21 @@
+metric,value,interpretation
+source_rows,23328,H2H Meetings source ledger rows
+unique_selected_fixture_keys,23328,selected_id:fixture_id composite keys
+duplicate_selected_fixture_keys,0,must be zero
+source_hash_rows_present,23328,SHA-256 raw-record provenance fields
+score_derived_market_flags_mismatch_rows,0,score-derived BTTS/Over flags vs stored flags
+team_profiles_reconciled,732,of 732
+h2h_pair_profiles_reconciled,7188,of 7188
+team_recent_high_scoring_shifts,9,last10 and last20 directional screens align
+team_recent_low_scoring_shifts,4,last10 and last20 directional screens align
+confirmed_shifts_with_some_wilson_ci_separation,2,2 only in last10 BTTS; none in last20 BTTS/Over2.5
+team_profiles_gt30d_stale_at_run_time,732,all 732 profiles; archive ends 2026-09-20
+team_profiles_gt90d_stale_at_run_time,164,as of 2026-10-31 run time
+team_profiles_gt180d_stale_at_run_time,92,as of 2026-10-31 run time
+team_profiles_gt365d_stale_at_run_time,71,as of 2026-10-31 run time
+h2h_pairs_with_10plus_meetings,1,only pairs with >=10 can compare last5 vs prior5
+h2h_pairs_insufficient_10_meeting_comparator,7187,out of 7,188 exact pairings
+h2h_pairs_ess_ge8_both_half_lives,1,Kish ESS >=8 at 365d and 730d
+h2h_pairs_ess_ge5_both_half_lives,386,Kish ESS >=5 at 365d and 730d
+governed_manifest_ids_exactly_match_dna_coverage,True,50/50 exact IDs
+raw_profile_groups_unavailable,19,19 groups; not zero-filled
