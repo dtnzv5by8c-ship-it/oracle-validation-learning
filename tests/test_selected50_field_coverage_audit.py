@@ -74,5 +74,24 @@ class FieldCoverageAuditTests(unittest.TestCase):
             self.assertEqual(result["Data Quality & Risk"].cell(2,7).value, 0)
             result.close()
 
+    def test_fails_closed_on_unmapped_source_rows(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            book = root / "source.xlsx"
+            out = root / "out"
+            wb = Workbook()
+            wb.remove(wb.active)
+            cov = wb.create_sheet("50-League Coverage")
+            cov.append(["Selected Season ID", "Country", "League"])
+            for i in range(50):
+                cov.append([f"S{i+1:02d}", "Testland", f"League {i+1}"])
+            mi = wb.create_sheet("Market Intelligence")
+            mi.append(["Provider Season ID", "League", "BTTS Yes"])
+            mi.append(["UNMAPPED", "Out of scope", 50.0])
+            wb.save(book)
+            result = subprocess.run([sys.executable, str(SCRIPT), "--workbook", str(book), "--out-dir", str(out)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("could not be assigned to a governed Selected-50 season ID", result.stderr + result.stdout)
+
 if __name__ == "__main__":
     unittest.main()
