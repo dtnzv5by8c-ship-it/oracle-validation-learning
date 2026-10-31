@@ -327,6 +327,10 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             xg = market_report.build_xg_audit([runtime_row()], self.archive[:-1] + [changed], trace)
             market_report.write_xlsx(path, report, trace, {}, xg_audit_rows=xg)
             workbook = load_workbook(path, read_only=True, data_only=True)
+            goal_headers = [cell.value for cell in workbook["Goal Market Research"][1]]
+            self.assertEqual(goal_headers[:3], ["Fixture Date", "League", "Fixture"])
+            self.assertIn("fixture_id", goal_headers)
+            self.assertIn("forecast_status", goal_headers)
             sheet = workbook["Schedule Reconciliation"]
             headers = [cell.value for cell in sheet[1]]
             values = dict(zip(headers, [cell.value for cell in sheet[2]]))
