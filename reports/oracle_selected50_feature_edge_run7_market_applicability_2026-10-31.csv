@@ -1,0 +1,6 @@
+oracle_market,run7_status,sample_n,evidence,decision
+BTTS,TESTED_IN_RUN7,15003,"30% H2H vs league prior: Brier +0.000995; log loss +0.002062; AUC -0.002871; ECE10 +0.006386.",Reject H2H uplift
+DC_HOME,NOT_TESTED_IN_RUN7,N/A,"Prior Run 4 H2H: Brier/log loss improved 3/5 folds; AUC 2/5.",Mixed prior evidence; no weight increase
+DC_AWAY,NOT_TESTED_IN_RUN7,N/A,"Prior Run 4 H2H: Brier/log loss/AUC improved 1/5 folds.",Weak prior evidence; no weight increase
+OVER25_DIAGNOSTIC,TESTED_NOT_ORACLE_MARKET,15003,"30% H2H vs league prior: Brier -0.000052; log loss -0.000101; AUC +0.004595; ECE10 +0.003887.",Bootstrap intervals cross zero; no reliable uplift
+COMBO_HOME_AWAY,BLOCKED,N/A,Target and settlement definitions unresolved,Do not rank or approve
