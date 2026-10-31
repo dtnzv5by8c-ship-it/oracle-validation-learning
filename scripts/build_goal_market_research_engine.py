@@ -174,7 +174,11 @@ def main():
         output.append({"fixture_id":r.get("fixture_id",""),"provider_season_id":r.get("provider_season_id",""),
           "home_team_id":r.get("home_team_provider_id",""),"away_team_id":r.get("away_team_provider_id",""),
           "fixture":f'{r.get("home_team","")} vs {r.get("away_team","")}',"kickoff_utc":r.get("date_utc",""),
-          **pred,"forecast_label":pred.get("forecast_label","RESEARCH_ESTIMATE_NOT_ORACLE_PRODUCTION_PROBABILITY")})
+          **pred,"forecast_label":pred.get("forecast_label","RESEARCH_ESTIMATE_NOT_ORACLE_PRODUCTION_PROBABILITY"),
+          "forecast_status":pred.get("status","UNKNOWN"),
+          "production_eligible":pred.get("production_eligible","NO"),
+          "betting_eligible":pred.get("betting_eligible","NO"),
+          "blocked_reason":pred.get("blocked_reason","")})
     fields=list(dict.fromkeys(k for x in output for k in x))
     with open(out/"goal_market_research.csv","w",encoding="utf-8",newline="") as f:
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(output)
