@@ -572,7 +572,10 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
 
     # Consolidated analyst view. Production output remains separately preserved.
     trace = trace or []
-    trace_by_fixture = {str(x.get("fixture_id") or "").strip(): x for x in trace}
+    trace_by_fixture = {
+        (str(x.get("runtime_home_team") or "").strip() + " vs " +
+         str(x.get("runtime_away_team") or "").strip()): x for x in trace
+    }
     goal_by_fixture = {str(x.get("fixture_id") or "").strip(): x for x in (goal_market_rows or [])}
     decision_headers = HEADERS + [
         "Fixture ID", "Provider Season ID", "Home Team ID", "Away Team ID",
@@ -595,8 +598,8 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     ]
     decision_rows = []
     for base_row_data in rows:
-        fid = str(base_row_data.get("Fixture ID") or "").strip()
-        t = trace_by_fixture.get(fid, {})
+        t = trace_by_fixture.get(str(base_row_data.get("Fixture") or "").strip(), {})
+        fid = str(t.get("fixture_id") or "").strip()
         g = goal_by_fixture.get(fid, {})
         extra = {
             "Fixture ID": fid,
