@@ -1,6 +1,7 @@
-# Oracle Market Intelligence Report Template — v1.0
+# Oracle Market Intelligence Report Template — v1.1
 Status: LOCKED REPORTING TEMPLATE
 Effective: 2026-10-31
+Supersedes: v1.0
 Governed branch: research/oracle-50-league-readiness-audit
 
 ## Purpose and continuity
@@ -17,6 +18,7 @@ This is the canonical reporting contract for every weekly Selected-50 Market Int
 8. **Market Data Coverage** — per-field population and unavailable counts.
 9. **Archive Field Coverage** — source-field availability and limitations.
 10. **Definitions & Governance** — definitions, restrictions and research eligibility.
+11. **xG Evidence Audit** — exact-identity fixture-level raw/source/numeric prematch xG inventory, capture timestamp status, archive provenance and quarantine. All xG remains excluded from prediction and betting use until point-in-time capture and revision provenance are verified.
 
 ## Required report invariants
 - 50 governed league universe; actual fixture count varies by reporting horizon.
@@ -25,6 +27,7 @@ This is the canonical reporting contract for every weekly Selected-50 Market Int
 - No fuzzy identity joins, silent imputation, fabricated probabilities or blank failure states.
 - Production source sheet remains exactly 38 columns.
 - Research fields remain separate and explicitly marked non-production/non-betting eligible.
+- The xG Evidence Audit uses exact ordered composite identity only; duplicate/missing keys are blocked, timestamps are not inferred, and every row remains prediction/betting ineligible.
 - Preserve schedule conflicts and all missing/blocked reasons.
 - All 434 fixture rows in the 2026-10-31 reference run had Production Eligible=NO and Betting Eligible=NO; future runs must derive these fields from governance, not copy that row count.
 - H2H average total goals is computed only from exact verified pre-cutoff H2H meeting details. If no verified prior H2H exists, display NO_VERIFIED_PRIOR_H2H.
