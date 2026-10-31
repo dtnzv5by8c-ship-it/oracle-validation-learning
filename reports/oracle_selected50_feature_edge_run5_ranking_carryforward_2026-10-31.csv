@@ -1,0 +1,4 @@
+market,top50_rows,exact_runtime_bridge_matches,quarantined_rows,kickoff_mismatch_rows,top3_per_league_rows,groups_represented,top3_overall_rows,ranking_cut_sast,snapshot_age_hours_at_0404
+BTTS,50,50,0,0,111,37,3,2026-10-31T03:02:03+02:00,6.29175
+DC_HOME,50,50,0,0,111,37,3,2026-10-31T03:02:03+02:00,6.29175
+DC_AWAY,50,50,0,0,111,37,3,2026-10-31T03:02:03+02:00,6.29175
