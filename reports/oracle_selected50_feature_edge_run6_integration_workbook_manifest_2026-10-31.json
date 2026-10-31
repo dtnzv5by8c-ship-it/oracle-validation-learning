@@ -1,0 +1,46 @@
+{
+  "generated_sast": "2026-10-31T05:00:33+02:00",
+  "branch": "research/oracle-50-league-readiness-audit",
+  "workbook": {
+    "filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v13_Run6_Feature_Edge_Team_H2H_0500SAST.xlsx",
+    "sha256": "3417db1d5fb4c823a19ce31e9807d5b4a0baa136afb848b2234846a65d3b5721",
+    "bytes": 16960802,
+    "sheets": 106,
+    "base_filename": "Oracle_Selected50_Final_Readiness_Visual_Intelligence_31Oct2026_v12_Run5_Shrinkage_Archive_Recovery_0404SAST.xlsx",
+    "base_sha256": "27cba94ab2ddd7d050cfad73c7302fc92190cc380703c247193b941df2695c46",
+    "base_sheets": 95,
+    "base_sheet_xml_parts_byte_identical": 95,
+    "new_tabs": [
+      "Run6 Executive Summary",
+      "Run6 Team Effective Sample",
+      "Run6 H2H Pair ESS Audit",
+      "Run6 H2H ESS Leaders",
+      "Run6 Team Robustness",
+      "Run6 Profile QA",
+      "Run6 50-League Coverage",
+      "Run6 Source Lineage",
+      "Run6 H2H Correction",
+      "Run6 Feature Edge Update",
+      "Run6 Ranking Currentness"
+    ]
+  },
+  "source_checkpoints": [
+    "reports/oracle_selected50_feature_edge_run5_checkpoint_2026-10-31-0404-sast.json",
+    "reports/oracle_selected50_team_h2h_run6_checkpoint_2026-10-31-0423-sast.json"
+  ],
+  "repository_evidence_files": [
+    "reports/oracle_selected50_feature_edge_run6_h2h_ess_correction_2026-10-31.csv",
+    "reports/oracle_selected50_feature_edge_run6_h2h_ess_leader_2026-10-31.csv",
+    "reports/oracle_selected50_feature_edge_run6_team_robustness_2026-10-31.csv",
+    "reports/oracle_selected50_feature_edge_run6_ranking_currentness_2026-10-31.csv"
+  ],
+  "governance": {
+    "provider_api_credits_used": 0,
+    "workflow_reruns": 0,
+    "production_logic_changed": false,
+    "production_probabilities_changed": false,
+    "calibration_changed": false,
+    "production_eligible": false,
+    "betting_eligible": false
+  }
+}
