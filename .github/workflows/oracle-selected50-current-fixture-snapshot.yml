@@ -22,15 +22,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Enforce governed research branch before any provider access
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" ]] || {
+            echo "::error::Dispatch this provider workflow from research/oracle-50-league-readiness-audit; zero provider requests made."
+            exit 1
+          }
+
       - name: Checkout this workflow revision
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
 
-      - name: Checkout isolated research branch
+      - name: Checkout the same immutable workflow commit for the research script
         uses: actions/checkout@v4
         with:
-          ref: research/oracle-50-league-readiness-audit
+          ref: ${{ github.sha }}
           path: research-source
           persist-credentials: false
 
