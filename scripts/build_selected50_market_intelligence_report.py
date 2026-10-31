@@ -248,6 +248,12 @@ def build_report(runtime_rows, archive_rows):
             trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
                           "join_status": reason, "home_form_n": 0, "away_form_n": 0,
                           "home_table_status": "UNAVAILABLE", "away_table_status": "UNAVAILABLE",
+                          "runtime_provider_season_id": runtime.get("provider_season_id", ""),
+                          "runtime_home_team_id": runtime.get("home_team_provider_id", ""),
+                          "runtime_away_team_id": runtime.get("away_team_provider_id", ""),
+                          "runtime_kickoff_utc": runtime.get("date_utc", ""),
+                          "runtime_home_team": runtime.get("home_team", ""),
+                          "runtime_away_team": runtime.get("away_team", ""),
                           "history_cutoff_utc": runtime.get("date_utc", ""), "production_eligible": "NO", "betting_eligible": "NO"})
             continue
         league = key[0]
@@ -347,6 +353,13 @@ def build_report(runtime_rows, archive_rows):
         "duplicate_archive_composite_keys": len(duplicate_archive_keys),
         "duplicate_archive_history_rows": history_duplicates,
         "duplicate_runtime_keys": len(runtime_rows) - len(seen_runtime),
+        "join_failure_reason_counts": {reason: sum(1 for _, why in missing if why == reason) for reason in sorted({why for _, why in missing})},
+        "join_failure_examples": [
+            {"reason": reason, "runtime_key": list(runtime_key(row)),
+             "runtime_kickoff_utc": row.get("date_utc", ""),
+             "home_team": row.get("home_team", ""), "away_team": row.get("away_team", "")}
+            for row, reason in missing[:25]
+        ],
     }
 
 
@@ -536,6 +549,9 @@ def main():
     write_csv(out_dir / "oracle_selected50_market_intelligence.csv", report, HEADERS)
     write_csv(out_dir / "oracle_selected50_market_intelligence_evidence_trace.csv", trace,
               list(dict.fromkeys(k for r in trace for k in r)))
+    quarantined = [r for r in trace if r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS"]
+    write_csv(out_dir / "oracle_selected50_market_intelligence_join_quarantine.csv", quarantined,
+              list(dict.fromkeys(k for r in quarantined for k in r)) or ["fixture_id", "join_status"])
     write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
