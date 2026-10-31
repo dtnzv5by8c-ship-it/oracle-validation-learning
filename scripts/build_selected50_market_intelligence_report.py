@@ -374,6 +374,8 @@ def build_report(runtime_rows, archive_rows):
             "join_status": "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS",
             "schedule_reconciliation_status": "MISMATCH_REVIEW_REQUIRED" if schedule_entry else "MATCH",
             "runtime_kickoff_utc": runtime.get("date_utc", ""),
+            "runtime_home_team": runtime.get("home_team", ""),
+            "runtime_away_team": runtime.get("away_team", ""),
             "archive_kickoff_utc": target.get("kickoff_utc", ""),
             "schedule_discordance_minutes": (
                 int((parse_dt(target.get("kickoff_utc")) - cutoff).total_seconds() / 60)
