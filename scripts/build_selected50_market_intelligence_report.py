@@ -242,7 +242,9 @@ def build_report(runtime_rows, archive_rows):
         target = joined.get(key)
         cutoff = parse_dt(runtime.get("date_utc"))
         if target is None or cutoff is None:
-            reason = next((entry[1] for entry in missing if entry[0] is runtime), "MISSING_ARCHIVE_JOIN_OR_KICKOFF")
+            failure_entry = next((entry for entry in missing if entry[0] is runtime), None)
+            reason = failure_entry[1] if failure_entry else "MISSING_ARCHIVE_JOIN_OR_KICKOFF"
+            archive_match = failure_entry[2] if failure_entry and len(failure_entry) > 2 else {}
             outrow = base_row(runtime, league_name, reason)
             output.append(outrow)
             trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
@@ -252,9 +254,9 @@ def build_report(runtime_rows, archive_rows):
                           "runtime_home_team_id": runtime.get("home_team_provider_id", ""),
                           "runtime_away_team_id": runtime.get("away_team_provider_id", ""),
                           "runtime_kickoff_utc": runtime.get("date_utc", ""),
-                          "archive_kickoff_utc": next((entry[2].get("kickoff_utc", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
-                          "archive_source_file": next((entry[2].get("source_file", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
-                          "archive_source_row": next((entry[2].get("source_row", "") for entry in missing if entry[0] is runtime and len(entry) > 2), ""),
+                          "archive_kickoff_utc": archive_match.get("kickoff_utc", ""),
+                          "archive_source_file": archive_match.get("source_file", ""),
+                          "archive_source_row": archive_match.get("source_row", ""),
                           "runtime_home_team": runtime.get("home_team", ""),
                           "runtime_away_team": runtime.get("away_team", ""),
                           "history_cutoff_utc": runtime.get("date_utc", ""), "production_eligible": "NO", "betting_eligible": "NO"})
