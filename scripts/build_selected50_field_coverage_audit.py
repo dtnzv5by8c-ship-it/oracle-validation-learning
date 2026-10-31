@@ -174,6 +174,12 @@ def main():
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     wb = load_workbook(workbook_path)
+    missing_sheets = [name for name in SOURCE_SHEETS if name not in wb.sheetnames]
+    if missing_sheets:
+        raise SystemExit(
+            "FAIL: required Selected-50 source sheets are missing: "
+            + json.dumps(missing_sheets, ensure_ascii=False)
+        )
     normalizations = normalize_report_statuses(wb)
     if "50-League Coverage" not in wb.sheetnames:
         raise SystemExit("FAIL: workbook has no 50-League Coverage sheet")
@@ -315,6 +321,7 @@ def main():
         "status": "PASS_FIELD_BY_FIELD_SELECTED50_REPORT_AUDIT",
         "selected_league_groups": len(groups),
         "selected_season_ids": sorted(groups),
+        "required_source_sheet_gate": "PASS_ALL_REQUIRED_SOURCE_SHEETS_PRESENT",
         "source_sheets_audited": list(field_counts),
         "source_sheet_row_counts": row_counts,
         "source_sheet_field_counts": field_counts,
