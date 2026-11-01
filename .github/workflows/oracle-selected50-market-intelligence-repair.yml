@@ -289,6 +289,41 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Download preserved runtime artifact for feature blocker CI
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-selected50-research-runtime-report
+          path: /tmp/oracle-selected50-runtime-41175230838
+          run-id: 41175230838
+          github-token: ${{ github.token }}
+
+      - name: Build report-only team-level feature blocker diagnostics from preserved runtime
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+          python scripts/diagnose_selected50_feature_blockers.py \\
+            --input-csv /tmp/oracle-selected50-runtime-41175230838/oracle_selected50_prediction_report.csv \\
+            --output-side-csv /tmp/oracle-selected50-feature-blocker-side.csv \\
+            --output-team-csv /tmp/oracle-selected50-feature-blocker-team.csv \\
+            --output-summary-json /tmp/oracle-selected50-feature-blocker-qa.json \\
+            --source-runtime-run-id 41175230838 \\
+            --source-runtime-artifact-id 13032880970 \\
+            --source-runtime-commit ea3f46dab4e54b71a818ab8d8723f36426e36bef \\
+            --source-runtime-artifact-sha256 e4bca38c8ab8e6afd5c23d241e4b55fe3ce6277e656172e8cda910718c897ae0
+
+      - name: Upload team-level feature blocker CI diagnostics
+        if: ${{ success() && github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-feature-blocker-ci-diagnostics
+          path: |
+            /tmp/oracle-selected50-feature-blocker-side.csv
+            /tmp/oracle-selected50-feature-blocker-team.csv
+            /tmp/oracle-selected50-feature-blocker-qa.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
