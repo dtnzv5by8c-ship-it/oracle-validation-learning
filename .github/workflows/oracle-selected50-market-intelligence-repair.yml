@@ -26,6 +26,10 @@ on:
       - ".github/workflows/oracle-selected50-market-intelligence-repair.yml"
       - "scripts/build_selected50_market_intelligence_report.py"
       - "scripts/build_selected50_field_coverage_audit.py"
+      - "scripts/add_selected50_llm_data_dictionary.py"
+      - "tests/test_selected50_llm_data_dictionary.py"
+      - "config/oracle_selected50_market_intelligence_weekly.json"
+      - "docs/ORACLE_SELECTED50_MARKET_INTELLIGENCE_WEEKLY_RUNBOOK.md"
       - "scripts/build_selected50_kickoff_discrepancy_triage.py"
       - "tests/test_selected50_kickoff_discrepancy_triage.py"
       - "scripts/validate_selected50_kickoff_source_evidence.py"
@@ -261,6 +265,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_llm_data_dictionary.py' -v
           python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
           python -m unittest discover -s tests -p 'test_selected50_field_coverage_audit.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
@@ -518,6 +523,14 @@ jobs:
           python scripts/build_selected50_field_coverage_audit.py \
             --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
             --out-dir market-intelligence-output
+
+      - name: Add LLM data dictionary and permanent weekly configuration tabs
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/add_selected50_llm_data_dictionary.py \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --config config/oracle_selected50_market_intelligence_weekly.json
 
       - name: Upload join diagnostics when QA blocks the report
         if: ${{ failure() && github.event_name == 'workflow_dispatch' }}
