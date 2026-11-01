@@ -131,7 +131,7 @@ The eight not closed:
 - Lorient–Brest: official LFP material contains a date/time wording conflict and a separate title/body mismatch.
 - Six Saudi Pro League fixtures: official schedule evidence is incomplete; Al Hazem–Al Nassr and Al Ittihad–NEOM have official team-page date/TBD conflicts against the runtime date.
 
-A separate CSV records every original queue row, source URL, local time, timezone, converted UTC where corroborated, evidence status and review decision:
+A separate 19-row source-evidence register is keyed by exact fixture ID and records runtime/archive UTC, source URL, local time/timezone, converted UTC where corroborated, evidence status and review decision:
 `reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv`.
 
 This is an external research evidence overlay, not a manual edit to the canonical workbook. The original schedule queue and its no-auto-correction controls remain unchanged.
