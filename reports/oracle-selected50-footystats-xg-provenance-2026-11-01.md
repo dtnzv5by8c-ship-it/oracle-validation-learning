@@ -53,6 +53,19 @@ However:
 
 Therefore, `max_time` is a worthwhile controlled provider test for time-fenced league/team statistics, but it is not evidence that the individual prematch-xG fields are historically point-in-time safe. The xG quarantine remains in force.
 
+## Archive manifest clarification — code-path review
+
+A distinction in the existing archive tooling needs to be recorded before interpreting the earlier `manifest_rows=0` summary:
+
+- `scripts/build_footystats_archive_features.py` searches specifically for `ingestion_manifest.csv` when it calculates its `manifest_rows` value.
+- The row-level history audit, `scripts/audit_selected50_row_level_history_provenance.py`, requires and reads `ingestion_manifest.json` to map archived season IDs to the Selected-50 country/competition labels.
+- Therefore, the prior zero count means **zero rows were read from the CSV-form manifest path**; it does not establish that the archive contains no manifest at all.
+- The actual JSON manifest's metadata keys and row granularity have not yet been inventoried. In particular, no conclusion can yet be made about whether it contains fixture-linked capture timestamps, response hashes or revision metadata.
+
+A new report-only inventory, `scripts/audit_footystats_xg_manifest_provenance.py`, has been added to the governed workflow. It will emit field names and counts only, without exposing raw values or credentials. It deliberately cannot approve xG provenance: semantic review, timestamp validation, fixture linkage and provider revision semantics remain separate requirements.
+
+**Current decision is unchanged:** all pre-match-labelled xG remains quarantined. The manifest schema inventory is pending the next manually dispatched archive-only workflow run; it makes no provider API calls.
+
 ## Required evidence to lift quarantine
 
 At least one of the following must be obtained and independently validated:
