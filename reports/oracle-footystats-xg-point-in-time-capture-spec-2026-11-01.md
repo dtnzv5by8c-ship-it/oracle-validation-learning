@@ -24,11 +24,14 @@ The League Matches documentation describes `max_time` as an as-of timestamp for 
 
 The FAQ says match statistics are usually available around 20 minutes after full-time. This is general timing guidance and does not define when pre-match-labelled xG fields are first generated, published or revised.
 
+The public API product page states a general results update frequency of every 20 minutes. This is not a field-specific service-level guarantee and does not prove that each xG value is recomputed or published on that cadence. The same page lists Hobby at a maximum of 50 leagues and 1,800 requests/hour, and Serious at 150 leagues and 3,600 requests/hour. If the governed universe is 50 distinct leagues, Hobby is exactly at the published league cap. The actual account tier and entitlement remain unverified.
+
 Official references:
 - https://footystats.org/api/documentations/match-details
 - https://api.football-data-api.com/match?key=example&match_id=579101
 - https://footystats.org/api/documentations/match-schedule-and-stats
 - https://footystats.org/api/documentations/faq
+- https://footystats.org/api
 
 ## 3. Provider questions that must be answered
 
@@ -44,6 +47,7 @@ Obtain written provider confirmation and, where possible, a machine-readable exa
 8. Which of the 50 selected competitions and seasons have these fields, and any known coverage gaps or changes in methodology.
 9. Whether the same fixture can be queried repeatedly and whether prior values/revisions can be retrieved.
 10. Whether a documented API response schema or data dictionary defines the xG fields and their lifecycle.
+11. Which subscription tier is active for the existing account, its selected-league limit, request limit, and whether the 50 selected leagues are all enabled concurrently.
 
 A current response for a completed historical fixture is not an answer to questions 3–7.
 
@@ -78,11 +82,14 @@ Never fabricate provider update timestamps or revision identifiers. Client captu
 
 - A small pilot must be separately budgeted and authorised before any authenticated API calls. Do not poll all 50 leagues or consume credits merely to test field presence.
 - Use a small fixture sample spanning different selected competitions only after API entitlement, credit cost and request limits are confirmed.
-- Capture at planned pre-kickoff checkpoints (initial proposal: approximately T-24h and T-60m) and retain every response as an immutable version. These are proposed research checkpoints, not an existing scheduled process.
+- Preserve immutable snapshots at approximately T-24h, T-60m, T-20m and T-5m (or the closest operationally reliable pre-kickoff point). These checkpoints are a proposed research protocol, not an existing scheduled process.
+- The public product page states a general 20-minute results update frequency. Therefore, T-60m alone is not a sufficient last pre-kickoff observation; add a near-kickoff capture to observe the last value actually received before kickoff. This cadence is not a guarantee of the xG field's internal update schedule.
+- Optionally capture again around T+20–25m after kickoff to compare whether values appear or change after kickoff. This post-kickoff response is diagnostic only and must never be used as a pre-match input.
 - Require `response_received_at_utc < kickoff_utc`. A request started before kickoff but completed after kickoff does not pass.
 - Verify fixture ID, ordered team IDs, season ID and kickoff against the governed fixture record. Any mismatch is quarantined.
 - Preserve each revision; never overwrite an earlier capture with a later response.
 - Do not use values from captures received at or after kickoff as pre-match inputs.
+- Budget the capture pilot against the verified account tier and actual request limits. Do not assume the public package maximum is the user's current entitlement.
 - A prospective capture study cannot retroactively validate the 20 March 2025–20 September 2026 historical backtest window.
 
 ## 6. Acceptance gates
