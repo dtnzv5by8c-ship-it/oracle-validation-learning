@@ -107,17 +107,32 @@ def audit_archive(archive_path: Path, expected_sha256: str = ""):
     with zipfile.ZipFile(archive_path) as archive:
         names = sorted(archive.namelist())
         manifest_names = [name for name in names if name.endswith("ingestion_manifest.json")]
-        if len(manifest_names) != 1:
-            raise ValueError(
-                f"Expected exactly one ingestion_manifest.json, found {len(manifest_names)}"
-            )
-        manifest_name = manifest_names[0]
-        manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
-        if not isinstance(manifest, list):
-            raise ValueError("ingestion_manifest.json must contain a JSON list")
-        manifest_rows = [row for row in manifest if isinstance(row, dict)]
-        if len(manifest_rows) != len(manifest):
-            raise ValueError("ingestion_manifest.json contains non-object rows")
+        manifest_name = manifest_names[0] if len(manifest_names) == 1 else "|".join(manifest_names)
+        manifest_status = "VALID"
+        manifest_error = ""
+        manifest_rows = []
+        if len(manifest_names) == 0:
+            manifest_status = "MISSING"
+            manifest_error = "No ingestion_manifest.json found in pinned archive"
+        elif len(manifest_names) > 1:
+            manifest_status = "AMBIGUOUS"
+            manifest_error = f"Expected one ingestion_manifest.json, found {len(manifest_names)}"
+        else:
+            try:
+                manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                manifest = None
+                manifest_status = "INVALID"
+                manifest_error = "ingestion_manifest.json is not valid UTF-8 JSON"
+            if manifest_status == "VALID" and not isinstance(manifest, list):
+                manifest_status = "INVALID"
+                manifest_error = "ingestion_manifest.json does not contain a JSON list"
+            if manifest_status == "VALID":
+                manifest_rows = [row for row in manifest if isinstance(row, dict)]
+                if len(manifest_rows) != len(manifest):
+                    manifest_rows = []
+                    manifest_status = "INVALID"
+                    manifest_error = "ingestion_manifest.json contains non-object rows"
 
         match_files = [name for name in names if name.endswith("/matches.json")]
         if not match_files:
@@ -194,9 +209,12 @@ def audit_archive(archive_path: Path, expected_sha256: str = ""):
             })
 
     summary = {
-        "status": "PASS_RESEARCH_ONLY_MANIFEST_SCHEMA_INVENTORY",
+        "status": "PASS_RESEARCH_ONLY_MANIFEST_SCHEMA_INVENTORY" if manifest_status == "VALID" else f"BLOCKED_MANIFEST_{manifest_status}",
         "archive_sha256": archive_sha,
         "manifest_path": manifest_name,
+        "manifest_file_count": len(manifest_names),
+        "manifest_status": manifest_status,
+        "manifest_error": manifest_error,
         "manifest_rows": len(manifest_rows),
         "manifest_grain_candidate": manifest_grain,
         "manifest_rows_with_fixture_id_candidate": manifest_fixture_rows,
