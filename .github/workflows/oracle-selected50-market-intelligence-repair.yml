@@ -268,6 +268,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
           python -m unittest discover -s tests -p 'test_selected50_row_level_history_provenance.py' -v
           python -m unittest discover -s tests -p 'test_footystats_xg_manifest_provenance.py' -v
+          python -m unittest discover -s tests -p 'test_footystats_archive_features.py' -v
 
       - name: Download preserved Run 154 schedule queue for evidence-register CI
         if: ${{ github.event_name == 'push' }}
