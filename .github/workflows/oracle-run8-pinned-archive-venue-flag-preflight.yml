@@ -20,7 +20,7 @@ jobs:
       - name: Checkout exact research commit
         uses: actions/checkout@v4
         with:
-          ref: \${{ github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,27 +32,22 @@ jobs:
 
       - name: Download and verify exact pinned Run 8 archive (read only)
         env:
-          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "\${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
           TAG="research-selected50-footystats-history-20261025"
           EXPECTED_SHA256="bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261"
           mkdir -p private-download
           gh release download "$TAG" \
             --repo dtnzv5by8c-ship-it/oracle-football-data \
-            --pattern "oracle-selected50-footystats-private-ingestion.zip" \
+            --pattern "oracle-selected50-footstats-private-ingestion.zip" \
             --pattern "private-package.sha256" \
             --dir private-download
-          (
-            cd private-download
-            sha256sum -c private-package.sha256
-          )
+          DECLARED_SHA256="$(awk 'NR==1 {print $1}' private-download/private-package.sha256)"
+          [[ "$DECLARED_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Release checksum file does not match the pinned digest."; exit 1; }
           ACTUAL_SHA256="$(sha256sum private-download/oracle-selected50-footystats-private-ingestion.zip | awk '{print $1}')"
-          [[ "$ACTUAL_SHA256" == "$EXPECTED_SHA256" ]] || {
-            echo "::error::Pinned Run 8 archive SHA-256 mismatch."
-            exit 1
-          }
+          [[ "$ACTUAL_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Pinned Run 8 archive SHA-256 mismatch."; exit 1; }
           printf '%s\n' "$ACTUAL_SHA256" > private-download/archive.sha256
 
       - name: Audit raw venue flag coverage without exporting provider rows
