@@ -55,6 +55,13 @@ class TestSelected50MarketIntelligenceActualSignals(unittest.TestCase):
         self.assertEqual(qa["clean_rows_with_home_history_below_minimum"], 1)
         self.assertEqual(qa["strict_history_cutoff_invalid_or_late_rows"], 1)
 
+    def test_by_adjust_is_more_conservative_than_bh(self):
+        p = np.array([0.001, 0.01, 0.04])
+        bh = signal.bh_adjust(p)
+        by = signal.by_adjust(p)
+        self.assertTrue(np.all(by >= bh))
+        self.assertTrue(np.all(by <= 1.0))
+
     def test_engineered_venue_signals_require_five_venue_matches(self):
         row = {c: 1.0 for c in signal.BASE_FEATURES}
         row.update({
@@ -77,6 +84,28 @@ class TestSelected50MarketIntelligenceActualSignals(unittest.TestCase):
         self.assertTrue(pd.isna(out.loc[0, "venue_ppg_diff"]))
         self.assertAlmostEqual(out.loc[0, "overall_ppg_diff"], 1.0)
         self.assertAlmostEqual(out.loc[0, "home_strength_x_away_weakness"], 1.5)
+
+    def test_h2h_goal_environment_requires_five_observed_meetings(self):
+        row = {c: 1.0 for c in signal.BASE_FEATURES}
+        row.update({
+            "home_form_n": 5, "away_form_n": 5,
+            "home_at_home_form_n": 5, "away_away_form_n": 5,
+            "home_form_ppg": 2.0, "away_form_ppg": 1.0,
+            "home_form_gf_avg": 2.0, "away_form_ga_avg": 1.5,
+            "away_form_gf_avg": 1.0, "home_form_ga_avg": 1.2,
+            "home_at_home_avg_points": 2.2, "away_away_avg_points": 1.1,
+            "home_at_home_avg_goals_for": 2.0, "away_away_avg_goals_for": 1.0,
+            "home_at_home_avg_goals_against": 0.8, "away_away_avg_goals_against": 1.4,
+            "h2h_n": 4, "h2h_avg_total_goals": 3.5,
+            "actual_match_result": "HOME_WIN", "actual_btts": "YES",
+            "actual_over_1_5": "YES", "actual_over_2_5": "YES", "actual_under_4_5": "YES",
+            "actual_home_goals": 2, "actual_away_goals": 1,
+        })
+        low = signal.engineer_features(pd.DataFrame([row]))
+        self.assertTrue(pd.isna(low.loc[0, "h2h_goal_environment"]))
+        row["h2h_n"] = 5
+        high = signal.engineer_features(pd.DataFrame([row]))
+        self.assertAlmostEqual(float(high.loc[0, "h2h_goal_environment"]), 3.5)
 
     def test_fixture_diagnostics_preserves_rows_and_marks_research_only(self):
         df = pd.DataFrame({
@@ -113,6 +142,34 @@ class TestSelected50MarketIntelligenceActualSignals(unittest.TestCase):
         self.assertIn("logloss_improvement_ci95_high", out.columns)
         self.assertIn("auc_ci95_low", out.columns)
         self.assertIn("ece10", out.columns)
+
+    def test_partial_spearman_removes_shared_main_effect(self):
+        z = np.arange(1, 51, dtype=float)
+        x = 2.0 * z + np.random.default_rng(5).normal(0, 0.01, size=len(z))
+        y = z + np.random.default_rng(6).normal(0, 2.0, size=len(z))
+        rho, p = signal.partial_spearman(x, y, z)
+        self.assertLess(abs(rho), 0.2)
+        self.assertGreater(p, 0.05)
+
+    def test_bootstrap_partial_spearman_ci_is_finite(self):
+        z = np.arange(1, 41, dtype=float)
+        x = z * 1.5 + np.random.default_rng(10).normal(0, 0.2, size=len(z))
+        y = z + np.random.default_rng(11).normal(0, 2.0, size=len(z))
+        lo, hi = signal.bootstrap_partial_spearman_ci(x, y, z, 100, np.random.default_rng(12))
+        self.assertTrue(np.isfinite(lo))
+        self.assertTrue(np.isfinite(hi))
+        self.assertLessEqual(lo, hi)
+
+    def test_joint_adjustment_uses_both_base_and_interaction_tests(self):
+        base = pd.DataFrame({"outcome": ["HomeWin", "HomeWin"], "feature": ["form", "venue"], "p_value_raw": [0.01, 0.04]})
+        interaction = pd.DataFrame({"outcome": ["HomeWin"], "feature": ["form_x_weakness"], "p_value_raw": [0.001]})
+        partial = pd.DataFrame({"outcome": ["HomeWin"], "feature": ["form_x_weakness"], "partial_p_value": [0.02]})
+        b, i, p = signal.adjust_joint_multiple_testing(base, interaction, partial)
+        self.assertIn("q_value_bh_global", b.columns)
+        self.assertIn("q_value_by_global", i.columns)
+        self.assertAlmostEqual(float(i.loc[0, "q_value_bh_global"]), 0.004)
+        self.assertIn("q_value_bh_global", p.columns)
+        self.assertGreater(float(i.loc[0, "q_value_by_global"]), float(i.loc[0, "q_value_bh_global"]))
 
     def test_exact_identity_join_fails_closed_on_duplicate_actuals(self):
         keys = {
