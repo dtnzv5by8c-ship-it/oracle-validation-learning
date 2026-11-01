@@ -41,6 +41,25 @@ class KickoffEvidenceRegisterTests(unittest.TestCase):
         self.assertEqual(result["schedule_auto_corrections"], 0)
         self.assertFalse(result["production_eligible"])
 
+    def test_authoritative_source_can_corroborate_archive_without_rewriting_runtime(self):
+        queue = queue_row()
+        queue["runtime_kickoff_utc"] = "2026-11-01T14:00:00+00:00"
+        queue["archive_kickoff_utc"] = "2026-10-30T18:00:00+00:00"
+        evidence = evidence_row()
+        evidence.update({
+            "runtime_kickoff_utc": "2026-11-01T14:00:00Z",
+            "archive_kickoff_utc": "2026-10-30T18:00:00Z",
+            "external_source_status": "AUTHORITATIVE_TIME_CORROBORATES_ARCHIVE",
+            "source_local_kickoff": "2026-10-30 18:00",
+            "source_timezone": "Europe/Lisbon",
+            "source_converted_utc": "2026-10-30T18:00:00Z",
+            "decision": "CORROBORATES_ARCHIVE_NO_AUTO_CORRECTION",
+        })
+        result = validate([queue], [evidence])
+        self.assertEqual(result["authoritative_archive_corroborations"], 1)
+        self.assertEqual(result["authoritative_runtime_corroborations"], 0)
+        self.assertEqual(result["schedule_auto_corrections"], 0)
+
     def test_fixture_set_mismatch_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "fixture identity set mismatch"):
             validate([queue_row("1")], [evidence_row("2")])
