@@ -7,12 +7,12 @@ Branch: research/oracle-50-league-readiness-audit
 ## Canonical template — do not rebuild
 
 The canonical weekly workbook is governed by:
-- Template: `reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1.md` — v1.2, LOCKED REPORTING TEMPLATE.
+- Template: `reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_3.md` — v1.3, LOCKED REPORTING TEMPLATE.
 - Generator: `scripts/build_selected50_market_intelligence_report.py`.
 - Workflow: `.github/workflows/oracle-selected50-market-intelligence-repair.yml`.
 - Field dictionary: `docs/ORACLE_MASTER_INTELLIGENCE_DATA_DICTIONARY_V1.md` — v1.0.
 
-The v1.2 contract preserves 12 tabs, the 38-column Oracle V1.6 Output sheet, the 83-column Market Intelligence view, fixture-context supporting tabs, and the dedicated Schedule Reconciliation queue.
+The v1.3 contract preserves the 12 v1.2 core tabs and adds seven Selected-50 audit appendices, for 19 worksheets in the exact locked order. It preserves the 38-column Oracle V1.6 Output sheet, the 83-column Market Intelligence view, fixture-context supporting tabs, the dedicated Schedule Reconciliation queue, and field-level coverage audit outputs.
 
 **Mandatory weekly rule:** Never recreate the workbook manually or start again from a blank workbook. Regenerate from the existing version-controlled template and generator. Carry forward the same sheet order, headers, calculations, supporting evidence, coverage summaries, definitions, exception queue and governance flags. If schema or calculations change, update the template, dictionary, tests and generator together, then verify the governed workflow before declaring the change complete.
 
@@ -66,7 +66,7 @@ Continue the field-level audit against the dictionary and implementation. Inspec
 - That run is an offline regression result on its recorded commit, not proof of production integration or approved mappings.
 - Static review identified three resolver gaps requiring correction before further integration: no approved competition-bridge gate; no explicit quarantine for multiple reference candidates; and timezone-naive ISO kickoff values are currently interpreted as UTC.
 - Keep the resolver research-only, all mappings NOT_APPROVED, no API calls/credits, no production writes and no Oracle V1.6 changes. Correct these gaps with regression tests in a narrowly scoped research-only change and verify the exact commit before integration.
-- Continue weekly Market Intelligence reports from the locked v1.2 template and existing generator. Identity resolver work must not alter report schemas or production probabilities.
+- Continue weekly Market Intelligence reports from the locked v1.3 template and existing generator. Identity resolver work must not alter report schemas or production probabilities.
 
 
 ## Weekly report release verification — run #124
@@ -75,5 +75,18 @@ Continue the field-level audit against the dictionary and implementation. Inspec
 - Report artifact: `13053167426`, name `oracle-selected50-market-intelligence-repair`, size 1,106,692 bytes, SHA-256 `429019182bc4f522ff7035f5dd574814325d1431ef67388a8588d817f455c396`.
 - Run and artifact are retained by GitHub Actions at: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41229773531
 - This confirms the report workflow and artifact upload succeeded for the v1.2 generator/template state at that source commit. The report is still governed by its QA status; a successful workflow execution is not equivalent to production or betting eligibility.
-- The later documentation-only commits `61b2d3d5e574847d5b29f1368db24e9ed2362146` and `18d5eebcdaebb31a2263f3c6e06fd01a29948d35` do not alter report generator code, workbook schema or production model logic. The template blob remains `799cf25154ea8030d1d729b53e5dd0e7ad50cc06`.
+- The later documentation-only commits `61b2d3d5e574847d5b29f1368db24e9ed2362146` and `18d5eebcdaebb31a2263f3c6e06fd01a29948d35` do not alter report generator code, workbook schema or production model logic. The superseded v1.2 template blob remains `799cf25154ea8030d1d729b53e5dd0e7ad50cc06`; v1.3 is the current reporting contract.
 - For the next weekly cycle, use the existing report workflow and template. Preserve the pinned archive, runtime run ID, governed branch SHA, workflow run ID, artifact ID/digest and QA outputs. Do not manually reconstruct the workbook.
+
+
+## 2026-11-01 — permanent Market Intelligence template lock v1.3
+
+- New canonical contract: `reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_3.md`.
+- Supersedes v1.2 for workbook sheet composition; v1.2 field and governance invariants remain in force.
+- Exact 19-sheet reference workbook inspected from workflow run `41268816105`, artifact `13068825279`.
+- Reference workbook SHA-256: `a39030b4c7bd37dc2e37c9d53962a70cce069c309e3f51c7c77f7edcac917f20`.
+- Durable user Library copy: `/Project Oracle/Templates/Market Intelligence/Oracle_Selected50_Market_Intelligence_Reference_2026-11-01.xlsx`; full source ZIP stored alongside.
+- The 19 tabs comprise the 12 original core reporting tabs plus 7 audit appendices. The workbook has 19 sheets (not 20); the earlier 20-sheet description is corrected by direct workbook inspection.
+- Weekly generation remains workflow-driven through `scripts/build_selected50_market_intelligence_report.py` and `.github/workflows/oracle-selected50-market-intelligence-repair.yml`. Do not rebuild manually.
+- Future schema changes require a versioned template, matching generator/tests/dictionary updates, and successful governed workflow QA.
+- No Oracle V1.6 production logic, probabilities, thresholds or eligibility changed.
