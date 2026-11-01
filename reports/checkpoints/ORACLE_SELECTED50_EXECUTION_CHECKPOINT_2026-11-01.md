@@ -555,3 +555,11 @@ The latest full pinned-archive rebuild remains Run #208, which predates this cor
 The run reads only the pinned archive (SHA-256 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`) and the existing runtime artifact. It must make zero provider API calls. After completion, verify the user's full fixture list against the rebuilt `H2H Intelligence` sheet and confirm every included meeting has source country/competition, source season, fixture ID, score and kickoff strictly before the target. Zero H2H is valid only where the archive contains no qualifying same-country Selected-50 meeting. Keep any unresolved fixture explicitly `NO_VERIFIED_PRIOR_H2H`; do not fabricate or infer meetings.
 
 **Governance:** PR #31 remains open/draft/unmerged. Run #154 frozen baseline untouched. Production V1.6 logic/probabilities/thresholds/eligibility unchanged. No provider API credits used.
+
+
+### Follow-up verification — source league provenance field and final push CI
+- H2H meeting detail now exports `meeting_selected_id`, `selected_country` and `selected_competition_name` as explicit meeting-level columns in the H2H Intelligence sheet.
+- Added regression coverage for cross-division matching by exact provider team IDs and by exact normalized team names, plus country isolation and unmapped-country fail-closed behavior.
+- Latest complete governed push-CI run: **Run #41289454045**, success, commit `755e2686c3b582eacfba6bfde0a8bdaf62c7a2a9`. Market Intelligence repair test step passed: 33 tests; all subsequent workflow test suites passed (6, 3, 4, 6, 15, 10, 5 and 11 tests respectively).
+- Branch head: `755e2686c3b582eacfba6bfde0a8bdaf62c7a2a9`. PR #31 remains open/draft/unmerged.
+- These are CI unit/regression tests only. They do not execute the private archive replay. Run #208 remains the last full archive build, so the requested fixture-by-fixture H2H recovery is not yet empirically verified. The manual workflow-dispatch gate above remains mandatory.
