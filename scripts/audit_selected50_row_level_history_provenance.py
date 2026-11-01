@@ -136,9 +136,12 @@ def load_archive(archive_path, selected_labels):
         if len(manifest_names) != 1:
             raise ValueError(f"Expected exactly one pinned archive ingestion_manifest.json, found {len(manifest_names)}")
         manifest_name = manifest_names[0]
-        manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
+        try:
+            manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("Pinned archive ingestion_manifest.json is invalid") from exc
         if not isinstance(manifest, list):
-            raise ValueError("Unexpected ingestion manifest shape")
+            raise ValueError("Pinned archive ingestion_manifest.json has unexpected shape")
         mapped_seasons = 0
         for meta in manifest:
             if not isinstance(meta, dict):
@@ -459,13 +462,58 @@ def main():
     parser.add_argument("--out-dir", required=True, type=Path)
     args = parser.parse_args()
     selected_ids, selected_labels = load_selected_manifest(args.selected_manifest)
-    archive_rows, mapped_seasons = load_archive(args.archive, selected_labels)
     with args.runtime_report.open(encoding="utf-8-sig", newline="") as handle:
         runtime_rows = list(csv.DictReader(handle))
-    sides, details, summary = audit(runtime_rows, archive_rows, set(selected_ids))
+    archive_sha256 = hashlib.sha256(args.archive.read_bytes()).hexdigest()
+    try:
+        archive_rows, mapped_seasons = load_archive(args.archive, selected_labels)
+    except ValueError as exc:
+        if "ingestion_manifest.json" not in str(exc):
+            raise
+        blocked_runtime = []
+        for row in runtime_rows:
+            missing = [x for x in str(row.get("missing_required_features") or "").split(";") if x]
+            if (str(row.get("feature_support_status") or "") == "BLOCKED_MISSING_REQUIRED_FEATURES"
+                    or str(row.get("prediction_status") or "") == "BLOCKED_MISSING_REQUIRED_FEATURES"
+                    or missing):
+                blocked_runtime.append((row, missing))
+        expected_sides = sum(
+            any(feature.startswith(side + "_") for feature in missing)
+            for _, missing in blocked_runtime for side in ("home", "away")
+        )
+        sides, details = [], []
+        mapped_seasons = 0
+        archive_rows = []
+        summary = {
+            "status": "BLOCKED_ARCHIVE_MANIFEST_UNAVAILABLE",
+            "archive_manifest_error": str(exc),
+            "runtime_fixture_rows": len(runtime_rows),
+            "blocked_fixture_count": len({str(row.get("fixture_id") or "") for row, _ in blocked_runtime}),
+            "blocked_team_side_rows_expected": expected_sides,
+            "blocked_team_side_rows_audited": 0,
+            "historical_match_detail_rows": 0,
+            "history_decision_counts": {},
+            "side_root_cause_counts": {},
+            "runtime_archive_history_count_mismatches": ["ARCHIVE_MANIFEST_UNAVAILABLE"],
+            "all_side_history_counts_reconcile": False,
+            "selected_competition_grouping": "NOT_EXECUTED_ARCHIVE_MANIFEST_UNAVAILABLE",
+            "history_rules": "EXISTING_RUNTIME_FINISHED_INTEGER_SCORE_DISTINCT_TEAM_ID_DEDUPLICATED_SIGNATURE_STRICT_PRE_KICKOFF",
+            "minimum_history_required": 5,
+            "minimum_history_changed": False,
+            "feature_imputation": 0,
+            "production_model_logic_changed": False,
+            "production_probabilities_changed": False,
+            "provider_api_calls": 0,
+            "production_eligible": False,
+            "betting_eligible": False,
+            "interpretation": "The archive manifest required for exact Selected-50 season mapping was unavailable or invalid. No team-side history was reconstructed; all blocked sides remain unresolved.",
+        }
+    else:
+        sides, details, summary = audit(runtime_rows, archive_rows, set(selected_ids))
     summary.update({
-        "archive_sha256": hashlib.sha256(args.archive.read_bytes()).hexdigest(),
-        "archive_match_rows_loaded": len(archive_rows), "archive_seasons_mapped": mapped_seasons,
+        "archive_sha256": archive_sha256,
+        "archive_match_rows_loaded": len(archive_rows),
+        "archive_seasons_mapped": mapped_seasons,
         "selected_league_groups": len(selected_ids),
     })
     args.out_dir.mkdir(parents=True, exist_ok=True)
