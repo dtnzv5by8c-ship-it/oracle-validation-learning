@@ -52,7 +52,7 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
         self.assertEqual(side["history_count_reconciles"], "YES")
         self.assertEqual(side["included_history_match_ids"], "H1;H2")
         decisions = {d["historical_fixture_id"]: d["history_decision"] for d in details}
-        self.assertEqual(decisions["H3"], "ORIENTATION_UNAVAILABLE")
+        self.assertEqual(decisions["H3"], "OTHER_EVIDENCED_REASON")
         self.assertEqual(decisions["H4"], "AFTER_CUTOFF")
         self.assertEqual(decisions["H5"], "REQUIRED_FEATURE_MISSING")
         self.assertTrue(qa["all_side_history_counts_reconcile"])
