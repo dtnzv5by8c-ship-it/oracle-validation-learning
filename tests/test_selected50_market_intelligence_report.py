@@ -11,9 +11,9 @@ market_report = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(market_report)
 
 
-def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1"):
+def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1", selected_id="S1", provider_competition_id="L1"):
     return {
-        "provider_season_id": season, "provider_league_id": "L1", "fixture_id": fid,
+        "provider_season_id": season, "provider_league_id": provider_competition_id, "selected_id": selected_id, "fixture_id": fid,
         "home_team_id": home_id, "away_team_id": away_id,
         "kickoff_utc": date, "league_folder": league, "season_folder": "2026",
         "status_raw": "complete", "home_goals": str(hg), "away_goals": str(ag),
@@ -266,9 +266,30 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             [target_runtime], [prior, target_archive]
         )
         self.assertEqual(trace[0]["h2h_n"], 1)
-        self.assertEqual(trace[0]["h2h_scope"], "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
         self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
+
+    def test_h2h_does_not_mix_same_team_pair_from_another_selected_competition(self):
+        foreign = archive_row("FOREIGN", "2025-08-01T12:00:00+00:00", "H", "A", 5, 0,
+                              season="FOREIGN-S", league="Foreign", selected_id="OTHER",
+                              provider_competition_id="OTHER")
+        target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                                     season="S1", selected_id="S1", provider_competition_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [foreign, target_archive])
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
+
+    def test_h2h_requires_selected_manifest_scope_and_does_not_fallback_to_season_id(self):
+        unmapped_prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                                     season="S1", selected_id="")
+        target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                                     season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [unmapped_prior, target_archive])
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
 
     def test_same_season_competition_key_is_not_claimed_as_cross_season_coverage(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
