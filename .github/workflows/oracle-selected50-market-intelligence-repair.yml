@@ -28,6 +28,9 @@ on:
       - "scripts/build_selected50_field_coverage_audit.py"
       - "scripts/build_selected50_kickoff_discrepancy_triage.py"
       - "tests/test_selected50_kickoff_discrepancy_triage.py"
+      - "scripts/validate_selected50_kickoff_source_evidence.py"
+      - "tests/test_selected50_kickoff_source_evidence.py"
+      - "reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv"
       - "tests/test_selected50_field_coverage_audit.py"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
@@ -235,6 +238,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
           python -m unittest discover -s tests -p 'test_selected50_field_coverage_audit.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
 
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -339,6 +343,15 @@ jobs:
             --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
             --out-dir market-intelligence-output
 
+      - name: Validate report-only kickoff source evidence register
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/validate_selected50_kickoff_source_evidence.py \\
+            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \\
+            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \\
+            --out market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
+
       - name: Build 50-league field-by-field coverage audit (report only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
@@ -364,6 +377,7 @@ jobs:
             market-intelligence-output/oracle_selected50_runtime_feature_block_audit_qa.json
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
             runtime-artifact/extracted/current_snapshot_candidate_trace.csv
             runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           if-no-files-found: ignore
