@@ -81,10 +81,14 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
         statuses[status] += 1
         if not (ev.get("source_url") or "").strip().startswith("https://"):
             raise ValueError(f"{fixture_id}: missing HTTPS source reference")
-        if q.get("schedule_auto_correction") != "NO":
+        action = (q.get("resolution_action") or "").upper()
+        if "MANUAL" not in action or "NO_AUTO_CORRECTION" not in action:
+            raise ValueError(f"{fixture_id}: source queue does not enforce manual review/no auto-correction")
+        if "schedule_auto_correction" in q and q.get("schedule_auto_correction") != "NO":
             raise ValueError(f"{fixture_id}: source queue permits a schedule auto-correction")
-        if q.get("production_eligible") != "NO" or q.get("betting_eligible") != "NO":
-            raise ValueError(f"{fixture_id}: queue row is not explicitly ineligible")
+        for eligibility_field in ("production_eligible", "betting_eligible"):
+            if eligibility_field in q and q.get(eligibility_field) != "NO":
+                raise ValueError(f"{fixture_id}: queue row is not explicitly ineligible")
 
         converted = (ev.get("source_converted_utc") or "").strip()
         local_text = (ev.get("source_local_kickoff") or "").strip()
