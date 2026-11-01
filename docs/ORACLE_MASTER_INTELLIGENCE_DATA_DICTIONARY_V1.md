@@ -175,3 +175,12 @@ Do not reconstruct historical predictions from final results. Do not use actual-
 - Historical accuracy, calibration, A+ and value remain NOT_VALIDATED / NOT_GRADED pending immutable predictions, official settlements and contemporaneous odds.
 - Evidence-risk formula's implementation must be explicitly documented from its source function before describing its exact component weights.
 - Confidence is not currently a validated numeric metric.
+
+
+### Kickoff discrepancy triage sidecar — v1.4 candidate only
+- The workflow may emit a separate "oracle_selected50_kickoff_discrepancy_triage.csv" from the generated Schedule Reconciliation queue.
+- It is not a workbook worksheet and must not change the locked 19-sheet composition.
+- Signed archive-minus-runtime delta is recomputed from timezone-aware UTC timestamps; mismatches block the sidecar.
+- UTC-midnight, >24-hour and <=150-minute indicators are descriptive review signals only. They are not root-cause labels.
+- Every row remains REVIEW_REQUIRED with manual authoritative-time review only; no automatic timestamp selection or correction is allowed.
+- Production and betting eligibility remain NO.
