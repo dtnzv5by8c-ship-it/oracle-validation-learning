@@ -256,7 +256,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(market_report.h2h_average_total_goals({"h2h_meetings_detail": "[]"}),
                          "NO_VERIFIED_PRIOR_H2H")
 
-    def test_h2h_uses_verified_provider_competition_across_seasons(self):
+    def test_h2h_uses_exact_selected_manifest_scope_across_season_scoped_provider_ids(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
                             season="S1", league="L1")
         target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
@@ -298,7 +298,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                                      season="S2", league="L1")
         target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
         report, trace, _ = market_report.build_report([target_runtime], [prior, target_archive])
-        self.assertEqual(trace[0]["h2h_scope"], "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
         meetings = json.loads(trace[0]["h2h_meetings_detail"])
         self.assertEqual(meetings[0]["provider_season_id"], "S1")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
