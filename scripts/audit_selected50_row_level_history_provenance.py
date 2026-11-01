@@ -96,7 +96,7 @@ def valid_integer_score(home, away):
 def normalize_team_name(value):
     """Exact conservative name key for diagnostic ID-drift detection only."""
     value = unicodedata.normalize("NFKC", str(value or "")).casefold()
-    value = re.sub(r"[^\\w\\s]", "", value, flags=re.UNICODE)
+    value = re.sub(r"[^\w\s]", "", value, flags=re.UNICODE)
     return " ".join(value.split())
 
 
