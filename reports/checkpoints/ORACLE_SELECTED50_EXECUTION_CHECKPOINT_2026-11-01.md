@@ -312,7 +312,7 @@ This workflow reads the existing pinned archive and existing runtime artifact on
 
 ## Row-level history audit hardening and xG manifest schema inventory — 2026-11-01
 
-**Repository head at this checkpoint:** `70602da4c205ed1a63a1c093f02873b96ad40e54`  
+**Branch head before the first hardening commits:** `70602da4c205ed1a63a1c093f02873b96ad40e54`  
 **Scope:** Research/reporting-only. No workbook was rebuilt in this change set. No production model, probability, threshold or eligibility changes.
 
 ### Row-level history provenance audit correction
@@ -377,7 +377,7 @@ After dispatch, inspect the history side/match/QA outputs and xG manifest field 
 
 ## Follow-up hardening — diagnostic blockers must not stop the canonical workbook
 
-**Latest research branch head:** `167a10253830ab5c8b983fd2577a0f17fbf8509a`.
+**Latest code/test commit included in this follow-up:** `167a10253830ab5c8b983fd2577a0f17fbf8509a`.
 
 A second safety review identified that the new archive diagnostics could otherwise fail the entire report-repair job if the expected JSON manifest were absent, duplicated or unmappable. These are research-data blockers; they must be visible without preventing the existing canonical workbook generator from completing.
 
