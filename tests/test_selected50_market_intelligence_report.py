@@ -13,7 +13,10 @@ spec.loader.exec_module(market_report)
 
 def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1", selected_id="S1", provider_competition_id="L1"):
     return {
-        "provider_season_id": season, "provider_league_id": provider_competition_id, "selected_id": selected_id, "fixture_id": fid,
+        "provider_season_id": season, "provider_league_id": provider_competition_id, "selected_id": selected_id,
+        "selected_country": "Testland" if selected_id != "OTHER" else "Elsewhere",
+        "selected_competition_name": "Test League" if selected_id != "OTHER" else "Foreign League",
+        "fixture_id": fid,
         "home_team_id": home_id, "away_team_id": away_id,
         "kickoff_utc": date, "league_folder": league, "season_folder": "2026",
         "status_raw": "complete", "home_goals": str(hg), "away_goals": str(ag),
@@ -294,7 +297,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             [target_runtime], [prior, target_archive]
         )
         self.assertEqual(trace[0]["h2h_n"], 1)
-        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED50_COUNTRY_SCOPE")
         self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
@@ -333,7 +336,22 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(meetings[0]["result_current_home_perspective"], "N/A")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "N/A")
 
-    def test_h2h_does_not_mix_same_team_pair_from_another_selected_competition(self):
+    def test_h2h_includes_prior_meetings_from_another_selected_division_in_same_country(self):
+        prior = archive_row("OLD-DIVISION", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S2", league="Lower Division", selected_id="S2",
+                            provider_competition_id="S2")
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                             season="S1", league="Top Division", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED50_COUNTRY_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope_id"], "Testland")
+        meetings = json.loads(trace[0]["h2h_meetings_detail"])
+        self.assertEqual(meetings[0]["selected_id"], "S2")
+        self.assertEqual(meetings[0]["selected_competition_name"], "Test League")
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
+    def test_h2h_does_not_mix_same_team_pair_from_another_country(self):
         foreign = archive_row("FOREIGN", "2025-08-01T12:00:00+00:00", "H", "A", 5, 0,
                               season="FOREIGN-S", league="Foreign", selected_id="OTHER",
                               provider_competition_id="OTHER")
@@ -350,7 +368,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                                      season="S1", selected_id="S1")
         report, trace, _ = market_report.build_report([runtime_row()], [unmapped_prior, target_archive])
         self.assertEqual(trace[0]["h2h_n"], 0)
-        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED50_COUNTRY_SCOPE")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
 
     def test_h2h_meeting_retains_source_season_under_selected_competition_scope(self):
@@ -362,7 +380,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                                      provider_competition_id="S2")
         target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
         report, trace, _ = market_report.build_report([target_runtime], [prior, target_archive])
-        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
+        self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED50_COUNTRY_SCOPE")
         meetings = json.loads(trace[0]["h2h_meetings_detail"])
         self.assertEqual(meetings[0]["provider_season_id"], "S1")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
