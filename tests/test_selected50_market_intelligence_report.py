@@ -14,8 +14,8 @@ spec.loader.exec_module(market_report)
 def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1", selected_id="S1", provider_competition_id="L1"):
     return {
         "provider_season_id": season, "provider_league_id": provider_competition_id, "selected_id": selected_id,
-        "selected_country": "Testland" if selected_id != "OTHER" else "Elsewhere",
-        "selected_competition_name": "Test League" if selected_id != "OTHER" else "Foreign League",
+        "selected_country": ("Testland" if selected_id else "") if selected_id != "OTHER" else "Elsewhere",
+        "selected_competition_name": ("Test League" if selected_id else "") if selected_id != "OTHER" else "Foreign League",
         "fixture_id": fid,
         "home_team_id": home_id, "away_team_id": away_id,
         "kickoff_utc": date, "league_folder": league, "season_folder": "2026",
