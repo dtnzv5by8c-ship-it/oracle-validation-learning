@@ -83,6 +83,25 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                          "ORIENTATION_UNKNOWN")
         self.assertEqual(swapped_qa["exact_snapshot_matches"], 0)
 
+    def test_snapshot_orientation_release_gate_rejects_unknown_or_incomplete_rows(self):
+        runtime = runtime_row()
+        orientation, qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("1")], snapshot_provenance(),
+            {"archive_sha256": "archive-sha"}
+        )
+        self.assertTrue(market_report.require_snapshot_orientation_qa(qa))
+
+        _, unknown_qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("unknown")], snapshot_provenance(),
+            {"archive_sha256": "archive-sha"}
+        )
+        with self.assertRaisesRegex(ValueError, "SNAPSHOT_ORIENTATION_QA_BLOCKED"):
+            market_report.require_snapshot_orientation_qa(unknown_qa)
+
+        inconsistent = dict(qa, no_home_away_flagged=0)
+        with self.assertRaisesRegex(ValueError, "SNAPSHOT_ORIENTATION_QA_BLOCKED"):
+            market_report.require_snapshot_orientation_qa(inconsistent)
+
     def test_runtime_feature_block_audit_counts_sides_without_relaxing_gate(self):
         rows = [
             dict(runtime_row(), feature_support_status="BLOCKED_MISSING_REQUIRED_FEATURES",
@@ -105,6 +124,9 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(qa["side_history_sample_n_counts"], {"3": 1, "4": 2})
         self.assertTrue(all(row["production_eligible"] == "NO" for row in audit))
         self.assertTrue(all(row["betting_eligible"] == "NO" for row in audit))
+        self.assertTrue(market_report.require_runtime_feature_block_audit(audit, qa))
+        with self.assertRaisesRegex(ValueError, "RUNTIME_FEATURE_BLOCK_AUDIT_RECONCILIATION_FAILED"):
+            market_report.require_runtime_feature_block_audit(audit[:-1], qa)
 
     def setUp(self):
         self.archive = [
