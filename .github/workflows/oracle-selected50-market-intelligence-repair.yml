@@ -26,6 +26,8 @@ on:
       - ".github/workflows/oracle-selected50-market-intelligence-repair.yml"
       - "scripts/build_selected50_market_intelligence_report.py"
       - "scripts/build_selected50_field_coverage_audit.py"
+      - "scripts/build_selected50_kickoff_discrepancy_triage.py"
+      - "tests/test_selected50_kickoff_discrepancy_triage.py"
       - "tests/test_selected50_field_coverage_audit.py"
       - "scripts/build_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
@@ -232,6 +234,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
           python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
           python -m unittest discover -s tests -p 'test_selected50_field_coverage_audit.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
 
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
         if: ${{ github.event_name == 'workflow_dispatch' }}
