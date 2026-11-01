@@ -31,6 +31,8 @@ on:
       - "tests/test_selected50_market_intelligence_report.py"
       - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1.md"
       - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_3.md"
+      - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_4.md"
+      - "docs/ORACLE_MASTER_INTELLIGENCE_DATA_DICTIONARY_V1.md"
       - "docs/ORACLE_MASTER_INTELLIGENCE_CONTINUITY_LOCK.md"
       - "scripts/build_goal_market_research_engine.py"
       - "tests/test_goal_market_research_engine.py"
@@ -147,12 +149,16 @@ jobs:
           test -s runtime-artifact/extracted/oracle_selected50_prediction_report.csv
           test -s runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv
           test -s runtime-artifact/extracted/oracle_selected50_runtime_provenance.json
+          test -s runtime-artifact/extracted/current_snapshot_candidate_trace.csv
+          test -s runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           python - <<'PY'
           import csv, hashlib, json, os
           from pathlib import Path
           root = Path("runtime-artifact/extracted")
           report = root / "oracle_selected50_prediction_report.csv"
           provenance = json.loads((root / "oracle_selected50_runtime_provenance.json").read_text())
+          snapshot_meta = json.loads((root / "oracle_selected50_snapshot_artifact_metadata.json").read_text())
+          snapshot_trace_path = root / "current_snapshot_candidate_trace.csv"
           run_id = str(os.environ["RUNTIME_RUN_ID"])
           metadata = json.loads(Path("runtime-artifact/artifact-metadata.json").read_text())
           actual_report_sha = hashlib.sha256(report.read_bytes()).hexdigest()
@@ -170,11 +176,51 @@ jobs:
               rows = list(csv.DictReader(f))
           with (root / "oracle_selected50_schedule_coverage.csv").open(encoding="utf-8-sig", newline="") as f:
               schedule = list(csv.DictReader(f))
+          with snapshot_trace_path.open(encoding="utf-8-sig", newline="") as f:
+              snapshot_trace = list(csv.DictReader(f))
           governed_ids = {r.get("selected_id", "").strip() for r in schedule if r.get("selected_id", "").strip()}
           report_ids = {r.get("selected_id", "").strip() for r in rows if r.get("selected_id", "").strip()}
           if len(rows) != 434 or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
               raise SystemExit(f"FAIL: runtime rows/schedule scope mismatch: rows={len(rows)}, schedule_rows={len(schedule)}, unique_governed_ids={len(governed_ids)}, report_ids={len(report_ids)}")
-          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}")
+          expected_snapshot_sha = str(provenance.get("snapshot_file_sha256") or "")
+          expected_snapshot_time = str(provenance.get("snapshot_retrieved_utc") or "")
+          expected_archive_sha = str(provenance.get("source_archive_sha256") or "")
+          if str(snapshot_meta.get("artifact_id")) != str(provenance.get("snapshot_artifact_id")):
+              raise SystemExit("FAIL: snapshot artifact ID does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_workflow_run_id")) != str(provenance.get("snapshot_run_id")):
+              raise SystemExit("FAIL: snapshot run ID does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_head_branch")) != str(provenance.get("snapshot_artifact_head_branch")):
+              raise SystemExit("FAIL: snapshot artifact branch does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_head_sha")) != str(provenance.get("snapshot_artifact_head_sha")):
+              raise SystemExit("FAIL: snapshot artifact commit does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_zip_sha256", "")).removeprefix("sha256:") != str(provenance.get("snapshot_artifact_zip_sha256", "")).removeprefix("sha256:"):
+              raise SystemExit("FAIL: snapshot artifact digest does not match runtime provenance")
+          if len(snapshot_trace) != int(provenance.get("snapshot_fixture_rows") or -1):
+              raise SystemExit("FAIL: snapshot candidate trace row count does not match runtime provenance")
+          snapshot_keys = []
+          for item in snapshot_trace:
+              if item.get("snapshot_file_sha256") != expected_snapshot_sha:
+                  raise SystemExit("FAIL: snapshot trace file hash mismatch")
+              if item.get("source_archive_sha256") != expected_archive_sha:
+                  raise SystemExit("FAIL: snapshot trace archive hash mismatch")
+              if item.get("snapshot_retrieved_utc") != expected_snapshot_time:
+                  raise SystemExit("FAIL: snapshot trace retrieval time mismatch")
+              key = tuple(str(item.get(k) or "").strip() for k in (
+                  "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"))
+              if not all(key):
+                  raise SystemExit("FAIL: snapshot candidate trace has an incomplete exact identity")
+              snapshot_keys.append(key)
+          if len(snapshot_keys) != len(set(snapshot_keys)):
+              raise SystemExit("FAIL: duplicate exact identities in snapshot candidate trace")
+          runtime_keys = [tuple(str(item.get(k) or "").strip() for k in (
+              "selected_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) for item in rows]
+          if len(runtime_keys) != len(set(runtime_keys)) or not set(runtime_keys).issubset(set(snapshot_keys)):
+              raise SystemExit("FAIL: runtime fixtures do not have exact ordered-ID snapshot trace matches")
+          runtime_key_set = set(runtime_keys)
+          runtime_snapshot = [item for item in snapshot_trace if tuple(str(item.get(k) or "").strip() for k in (
+              "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) in runtime_key_set]
+          no_home_away = sum(str(item.get("no_home_away") or "").strip() == "1" for item in runtime_snapshot)
+          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}; exact_snapshot_trace={len(runtime_snapshot)}; no_home_away={no_home_away}")
           PY
 
       - name: Install report-only dependencies
@@ -231,6 +277,7 @@ jobs:
             --archive-audit archive-audit \
             --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \
             --runtime-provenance runtime-artifact/extracted/oracle_selected50_runtime_provenance.json \
+            --snapshot-candidate-trace runtime-artifact/extracted/current_snapshot_candidate_trace.csv \
             --archive-summary archive-audit/summary.json \
             --goal-market-research goal-market-research/goal_market_research.csv \
             --out-dir market-intelligence-output \
@@ -273,6 +320,10 @@ jobs:
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
             market-intelligence-output/oracle_selected50_xg_evidence_audit.csv
             market-intelligence-output/oracle_selected50_xg_evidence_audit_qa.json
+            market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
+            market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit_qa.json
             market-intelligence-output/oracle_selected50_field_coverage_by_league.csv
             market-intelligence-output/oracle_selected50_field_coverage_summary.csv
             market-intelligence-output/oracle_selected50_field_coverage_exceptions.csv

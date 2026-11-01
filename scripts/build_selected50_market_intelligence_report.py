@@ -621,6 +621,172 @@ def build_xg_audit(runtime_rows, archive_rows, trace_rows=None):
     return output
 
 
+def snapshot_identity(row):
+    return (
+        str(row.get("selected_season_id") or "").strip(),
+        str(row.get("fixture_id") or "").strip(),
+        str(row.get("home_team_provider_id") or "").strip(),
+        str(row.get("away_team_provider_id") or "").strip(),
+    )
+
+
+def _optional_count(value):
+    try:
+        if value in (None, ""):
+            return None
+        number = float(value)
+        return int(number) if math.isfinite(number) else None
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenance, archive_summary):
+    """Join no_home_away only through the verified ordered snapshot composite identity."""
+    if not snapshot_rows:
+        raise ValueError("Snapshot candidate trace is required for the v1.4 orientation audit.")
+    expected_snapshot_sha = str(runtime_provenance.get("snapshot_file_sha256") or "").strip()
+    expected_archive_sha = str(archive_summary.get("archive_sha256") or "").strip()
+    expected_retrieved = str(runtime_provenance.get("snapshot_retrieved_utc") or "").strip()
+    expected_artifact_id = str(runtime_provenance.get("snapshot_artifact_id") or "").strip()
+    expected_run_id = str(runtime_provenance.get("snapshot_run_id") or "").strip()
+    expected_trace_rows = _optional_count(runtime_provenance.get("snapshot_fixture_rows"))
+    if not all((expected_snapshot_sha, expected_archive_sha, expected_retrieved,
+                expected_artifact_id, expected_run_id, expected_trace_rows is not None)):
+        raise ValueError("Runtime provenance is missing verified snapshot artifact metadata.")
+    if len(snapshot_rows) != expected_trace_rows:
+        raise ValueError("Snapshot candidate trace row count does not match runtime provenance.")
+
+    index = defaultdict(list)
+    for row in snapshot_rows:
+        if str(row.get("snapshot_file_sha256") or "").strip() != expected_snapshot_sha:
+            raise ValueError("Snapshot trace file hash does not match runtime provenance.")
+        if str(row.get("source_archive_sha256") or "").strip() != expected_archive_sha:
+            raise ValueError("Snapshot trace archive hash does not match the pinned archive.")
+        if str(row.get("snapshot_retrieved_utc") or "").strip() != expected_retrieved:
+            raise ValueError("Snapshot trace retrieval time does not match runtime provenance.")
+        key = snapshot_identity(row)
+        if all(key):
+            index[key].append(row)
+
+    orientation_by_key = {}
+    exact_matches = flagged = distinction_present = unknown = 0
+    duplicate_keys = sum(1 for values in index.values() if len(values) > 1)
+    incomplete_snapshot_identity_rows = sum(1 for row in snapshot_rows if not all(snapshot_identity(row)))
+    for runtime in runtime_rows:
+        key = runtime_key(runtime)
+        matches = index.get(key, []) if all(key) else []
+        source = matches[0] if len(matches) == 1 else {}
+        flag = str(source.get("no_home_away") or "").strip() if source else ""
+        if not all(key):
+            orientation_status = "ORIENTATION_UNKNOWN"
+            review_status = "REVIEW_REQUIRED_RUNTIME_IDENTITY_MISSING"
+        elif not matches:
+            orientation_status = "ORIENTATION_UNKNOWN"
+            review_status = "REVIEW_REQUIRED_NO_EXACT_SNAPSHOT_MATCH"
+        elif len(matches) > 1:
+            orientation_status = "ORIENTATION_UNKNOWN"
+            review_status = "REVIEW_REQUIRED_DUPLICATE_SNAPSHOT_MATCH"
+        elif flag == "1":
+            orientation_status = "NO_HOME_AWAY_DISTINCTION"
+            review_status = "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION"
+            exact_matches += 1
+            flagged += 1
+        elif flag == "0":
+            orientation_status = "HOME_AWAY_DISTINCTION_PRESENT"
+            review_status = "NO_ORIENTATION_REVIEW_FLAG"
+            exact_matches += 1
+            distinction_present += 1
+        else:
+            orientation_status = "ORIENTATION_UNKNOWN"
+            review_status = "REVIEW_REQUIRED_UNKNOWN_NO_HOME_AWAY_FLAG"
+        if orientation_status == "ORIENTATION_UNKNOWN":
+            unknown += 1
+        orientation_by_key[key] = {
+            "snapshot_no_home_away_flag": flag or "NOT_AVAILABLE",
+            "fixture_orientation_status": orientation_status,
+            "home_away_market_review_status": review_status,
+            "snapshot_row_number": source.get("snapshot_row_number", "NOT_AVAILABLE"),
+            "snapshot_retrieved_utc": source.get("snapshot_retrieved_utc", "NOT_AVAILABLE"),
+            "snapshot_file_sha256": source.get("snapshot_file_sha256", "NOT_AVAILABLE"),
+        }
+
+    qa = {
+        "status": "PASS_EXACT_SNAPSHOT_TRACE_JOIN" if exact_matches == len(runtime_rows) and unknown == 0 and duplicate_keys == 0 and incomplete_snapshot_identity_rows == 0 else "REVIEW_REQUIRED",
+        "runtime_fixture_rows": len(runtime_rows),
+        "snapshot_trace_rows": len(snapshot_rows),
+        "snapshot_trace_rows_expected": expected_trace_rows,
+        "snapshot_trace_row_count_match": len(snapshot_rows) == expected_trace_rows,
+        "incomplete_snapshot_identity_rows": incomplete_snapshot_identity_rows,
+        "exact_snapshot_matches": exact_matches,
+        "no_home_away_flagged": flagged,
+        "home_away_distinction_present": distinction_present,
+        "orientation_unknown_rows": unknown,
+        "duplicate_snapshot_keys": duplicate_keys,
+        "snapshot_artifact_id": expected_artifact_id,
+        "snapshot_run_id": expected_run_id,
+        "snapshot_file_sha256": expected_snapshot_sha,
+        "snapshot_retrieved_utc": expected_retrieved,
+        "production_eligible": False,
+        "betting_eligible": False,
+    }
+    return orientation_by_key, qa
+
+
+def build_runtime_feature_block_audit(runtime_rows):
+    """Expose the runtime's actual 20-feature gate; do not substitute score-only form counts."""
+    blocked = [
+        row for row in runtime_rows
+        if str(row.get("feature_support_status") or row.get("prediction_status") or "").startswith("BLOCKED")
+    ]
+    output = []
+    feature_counts = {}
+    sample_counts = {}
+    home_sides = 0
+    away_sides = 0
+    for row in blocked:
+        missing = str(row.get("missing_required_features") or "").strip()
+        for feature in [item for item in missing.split(";") if item]:
+            feature_counts[feature] = feature_counts.get(feature, 0) + 1
+        for side in ("home", "away"):
+            count = _optional_count(row.get(f"{side}_recent5_n"))
+            if count is None or count >= 5:
+                continue
+            if side == "home":
+                home_sides += 1
+            else:
+                away_sides += 1
+            sample_counts[str(count)] = sample_counts.get(str(count), 0) + 1
+            output.append({
+                "Fixture Date": row.get("date_utc", ""),
+                "League": row.get("league", ""),
+                "Fixture": f"{row.get('home_team', '')} vs {row.get('away_team', '')}",
+                "fixture_id": row.get("fixture_id", ""),
+                "selected_id": row.get("selected_id", ""),
+                "provider_season_id": row.get("provider_season_id", ""),
+                "team_side": side.upper(),
+                "team_provider_id": row.get(f"{side}_team_provider_id", ""),
+                "recent5_feature_complete_n": count,
+                "team_side_history_gate": "BLOCKED_LT_5_FEATURE_COMPLETE_PRIOR_MATCHES",
+                "missing_required_features": missing,
+                "feature_support_status": row.get("feature_support_status", ""),
+                "prediction_block_reason": row.get("prediction_block_reason", ""),
+                "production_eligible": "NO",
+                "betting_eligible": "NO",
+            })
+    qa = {
+        "status": "RESEARCH_ONLY_RUNTIME_FEATURE_BLOCK_AUDIT",
+        "blocked_fixture_rows": len(blocked),
+        "blocked_team_side_histories": len(output),
+        "home_side_histories_below_5": home_sides,
+        "away_side_histories_below_5": away_sides,
+        "side_history_sample_n_counts": dict(sorted(sample_counts.items())),
+        "missing_required_feature_counts": dict(sorted(feature_counts.items())),
+        "production_eligible": False,
+        "betting_eligible": False,
+    }
+    return output, qa
+
+
 XG_AUDIT_HEADERS = [
     "Fixture Date", "League", "Fixture",
     "fixture_id", "selected_id", "provider_season_id", "home_team_id", "away_team_id",
@@ -928,6 +1094,22 @@ def build_coverage_summary_rows(coverage_rows, runtime_rows=None, report_rows=No
         ("Schedule reconciliation gate", report_summary.get("schedule_reconciliation_gate", "NOT_VERIFIED"), None),
         ("Production readiness", archive_summary.get("production_readiness", "NOT_GRANTED"), None),
     ]
+    orientation = report_summary.get("fixture_orientation", {})
+    runtime_blocks = report_summary.get("runtime_feature_block_audit", {})
+    metrics.extend([
+        ("Runtime fixtures with no home/away distinction", orientation.get("no_home_away_flagged", 0),
+         "Exact ordered-ID snapshot join; review home/away-oriented markets only; no probability changes."),
+        ("Runtime fixtures with home/away distinction", orientation.get("home_away_distinction_present", 0), None),
+        ("Runtime fixtures with unresolved orientation", orientation.get("orientation_unknown_rows", 0),
+         "Unknown orientation remains review-required; never infer a flag."),
+        ("Exact snapshot trace matches", orientation.get("exact_snapshot_matches", 0), None),
+        ("Runtime feature-blocked fixtures", runtime_blocks.get("blocked_fixture_rows", 0),
+         "Copied from the source runtime's 20-feature gate; not recalculated by the report builder."),
+        ("Runtime blocked team-side histories", runtime_blocks.get("blocked_team_side_histories", 0),
+         "Counts home/away sides with fewer than five feature-complete prior matches."),
+        ("Home team-side histories below five", runtime_blocks.get("home_side_histories_below_5", 0), None),
+        ("Away team-side histories below five", runtime_blocks.get("away_side_histories_below_5", 0), None),
+    ])
     return [{"Metric": metric, "Value": value, "Interpretation": interpretation}
             for metric, value, interpretation in metrics]
 
@@ -1026,7 +1208,7 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None, league_coverage_rows=None, coverage_summary_rows=None, xg_provenance_rows=None):
+def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None, league_coverage_rows=None, coverage_summary_rows=None, xg_provenance_rows=None, runtime_rows=None, snapshot_orientation_by_key=None):
     wb = Workbook()
     ws = wb.active
     ws.title = "Oracle V1.6 Output"
@@ -1090,6 +1272,14 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         key = trace_identity(item)
         if all(key):
             trace_by_exact_key[key] = item
+    runtime_by_exact_key = {}
+    for item in (runtime_rows or []):
+        key = runtime_key(item)
+        if all(key):
+            if key in runtime_by_exact_key:
+                raise ValueError(f"Duplicate runtime row for supporting-tab identity: {key}")
+            runtime_by_exact_key[key] = item
+    snapshot_orientation_by_key = snapshot_orientation_by_key or {}
     goal_by_key_candidates = defaultdict(list)
     for item in (goal_market_rows or []):
         key = (
@@ -1228,6 +1418,15 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
                 "table_status": item.get("league_table_status", ""),
                 "table_sample_n": item.get(f"{side}_table_sample_n", "")
             })
+        exact_key = trace_identity(item)
+        runtime_item = runtime_by_exact_key.get(exact_key, {})
+        orientation_item = snapshot_orientation_by_key.get(exact_key, {})
+        home_n = _optional_count(runtime_item.get("home_recent5_n"))
+        away_n = _optional_count(runtime_item.get("away_recent5_n"))
+        blocked_sides = [
+            side for side, count in (("HOME", home_n), ("AWAY", away_n))
+            if count is not None and count < 5
+        ]
         quality_rows.append({
             **fixture_context(item),
             "fixture_identity": item.get("fixture_identity", ""),
@@ -1248,7 +1447,25 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "archive_source_row": item.get("archive_source_row", ""),
             "archive_raw_record_sha256": item.get("archive_raw_record_sha256", ""),
             "production_eligible": item.get("production_eligible", ""),
-            "betting_eligible": item.get("betting_eligible", "")
+            "betting_eligible": item.get("betting_eligible", ""),
+            "snapshot_no_home_away_flag": orientation_item.get("snapshot_no_home_away_flag", "NOT_AVAILABLE_SNAPSHOT_TRACE_NOT_SUPPLIED"),
+            "fixture_orientation_status": orientation_item.get("fixture_orientation_status", "ORIENTATION_UNKNOWN"),
+            "home_away_market_review_status": orientation_item.get("home_away_market_review_status", "REVIEW_REQUIRED_ORIENTATION_UNVERIFIED"),
+            "snapshot_row_number": orientation_item.get("snapshot_row_number", "NOT_AVAILABLE"),
+            "snapshot_retrieved_utc": orientation_item.get("snapshot_retrieved_utc", "NOT_AVAILABLE"),
+            "snapshot_file_sha256": orientation_item.get("snapshot_file_sha256", "NOT_AVAILABLE"),
+            "runtime_feature_support_status": runtime_item.get("feature_support_status", "NOT_AVAILABLE_RUNTIME_FEATURE_STATUS"),
+            "runtime_prediction_block_reason": runtime_item.get("prediction_block_reason", "NOT_AVAILABLE_RUNTIME_BLOCK_REASON"),
+            "runtime_missing_required_features": (
+                runtime_item.get("missing_required_features") or "NONE"
+                if runtime_item else "NOT_AVAILABLE_RUNTIME_FEATURES"
+            ),
+            "runtime_home_recent5_n": runtime_item.get("home_recent5_n", "NOT_AVAILABLE"),
+            "runtime_away_recent5_n": runtime_item.get("away_recent5_n", "NOT_AVAILABLE"),
+            "runtime_home_history_gate": "NOT_AVAILABLE" if home_n is None else ("PASS_5_OR_MORE" if home_n >= 5 else "BLOCKED_LT_5"),
+            "runtime_away_history_gate": "NOT_AVAILABLE" if away_n is None else ("PASS_5_OR_MORE" if away_n >= 5 else "BLOCKED_LT_5"),
+            "runtime_blocked_team_sides": ";".join(blocked_sides) if blocked_sides else "NONE",
+            "runtime_blocked_team_side_count": len(blocked_sides)
         })
     add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
@@ -1271,7 +1488,12 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
          "runtime_kickoff_utc", "archive_kickoff_utc", "schedule_delta_minutes_archive_minus_runtime",
          "history_cutoff_utc", "home_evidence_risk_pct", "away_evidence_risk_pct",
          "home_form_n", "away_form_n", "h2h_n", "h2h_scope", "archive_source_file", "archive_source_row",
-         "archive_raw_record_sha256", "production_eligible", "betting_eligible"], quality_rows)
+         "archive_raw_record_sha256", "production_eligible", "betting_eligible",
+         "snapshot_no_home_away_flag", "fixture_orientation_status", "home_away_market_review_status",
+         "snapshot_row_number", "snapshot_retrieved_utc", "snapshot_file_sha256",
+         "runtime_feature_support_status", "runtime_prediction_block_reason", "runtime_missing_required_features",
+         "runtime_home_recent5_n", "runtime_away_recent5_n", "runtime_home_history_gate",
+         "runtime_away_history_gate", "runtime_blocked_team_sides", "runtime_blocked_team_side_count"], quality_rows)
     schedule_queue = build_schedule_reconciliation_queue(trace)
     schedule_sheet_rows = [{
         "Fixture Date": q["fixture_date"], "League": q["league"], "Fixture": q["fixture"],
@@ -1405,6 +1627,8 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         {"term": "Team form", "definition": "Latest completed fixtures for the exact stable team ID within the same explicit provider competition; strict pre-kickoff cutoff. Venue splits are home-at-home and away-away."},
         {"term": "League position", "definition": "Reconstructed within exact provider season using conventional 3-1-0 points and provisional tie-break order; not official where competition rules are unverified."},
         {"term": "Evidence risk", "definition": "Coverage and provenance gaps only; not probability of losing or match outcome."},
+        {"term": "Fixture orientation", "definition": "The exact current-snapshot no_home_away flag is displayed as received. Flag 1 means no home/away distinction; it is not automatically a neutral-venue label. Affected home/away-oriented markets are review-required; probabilities are not changed."},
+        {"term": "Runtime feature support", "definition": "The source runtime's 20-feature support status and recent-five feature-complete side counts are shown separately from score-complete form recomputed for descriptive reporting. The report must never use score-only counts to override a runtime block."},
         {"term": "Eligibility", "definition": "All Selected-50 report rows remain production_eligible=false and betting_eligible=false."}
     ]
     add_sheet("Definitions & Governance", ["term", "definition"], definitions)
@@ -1423,6 +1647,8 @@ def main():
     ap.add_argument("--archive-audit", required=True, help="Directory containing match_field_audit.csv")
     ap.add_argument("--schedule-coverage", required=True, help="Runtime schedule coverage CSV proving the full governed league universe")
     ap.add_argument("--runtime-provenance", required=True)
+    ap.add_argument("--snapshot-candidate-trace", required=True,
+                    help="Exact snapshot candidate trace included in the verified runtime artifact")
     ap.add_argument("--archive-summary", required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--expected-league-groups", type=int, default=50)
@@ -1435,7 +1661,12 @@ def main():
     schedule_rows = read_csv(args.schedule_coverage)
     runtime_provenance = json.loads(Path(args.runtime_provenance).read_text(encoding="utf-8"))
     archive_summary = json.loads(Path(args.archive_summary).read_text(encoding="utf-8"))
+    snapshot_rows = read_csv(args.snapshot_candidate_trace)
     goal_market_rows = read_csv(args.goal_market_research) if args.goal_market_research else []
+    snapshot_orientation_by_key, snapshot_orientation_qa = build_snapshot_orientation_map(
+        runtime_rows, snapshot_rows, runtime_provenance, archive_summary
+    )
+    runtime_feature_block_rows, runtime_feature_block_qa = build_runtime_feature_block_audit(runtime_rows)
     runtime_report_sha256 = hashlib.sha256(Path(args.runtime_report).read_bytes()).hexdigest()
     if runtime_provenance.get("runtime_report_sha256") != runtime_report_sha256:
         raise SystemExit("FAIL: runtime report does not match its provenance SHA-256")
@@ -1542,6 +1773,9 @@ def main():
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
     summary["h2h_scope_policy"] = "Explicit provider competition ID; cross-season coverage only where source meeting season differs from target season."
     summary["xg_audit"] = xg_audit_counts
+    summary["fixture_orientation"] = snapshot_orientation_qa
+    summary["runtime_feature_block_audit"] = runtime_feature_block_qa
+    summary["report_template_candidate"] = "V1.4_REPORT_ONLY_EXTENSION_PENDING_FULL_WORKFLOW_QA"
     schedule_queue = build_schedule_reconciliation_queue(trace)
     summary["schedule_reconciliation_queue_rows"] = len(schedule_queue)
     summary["schedule_reconciliation_queue_status"] = "REVIEW_REQUIRED" if schedule_queue else "PASS"
@@ -1578,7 +1812,48 @@ def main():
     (out_dir / "oracle_selected50_xg_evidence_audit_qa.json").write_text(
         json.dumps(xg_audit_counts, indent=2) + "\n", encoding="utf-8"
     )
-    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace, archive_summary, goal_market_rows, xg_audit_rows, coverage_rows, coverage_summary_rows, xg_provenance_rows)
+    (out_dir / "oracle_selected50_snapshot_orientation_qa.json").write_text(
+        json.dumps(snapshot_orientation_qa, indent=2) + "\n", encoding="utf-8"
+    )
+    (out_dir / "oracle_selected50_runtime_feature_block_audit_qa.json").write_text(
+        json.dumps(runtime_feature_block_qa, indent=2) + "\n", encoding="utf-8"
+    )
+    write_csv(out_dir / "oracle_selected50_runtime_feature_block_audit.csv",
+              runtime_feature_block_rows,
+              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
+               "provider_season_id", "team_side", "team_provider_id",
+               "recent5_feature_complete_n", "team_side_history_gate",
+               "missing_required_features", "feature_support_status",
+               "prediction_block_reason", "production_eligible", "betting_eligible"])
+    orientation_rows = []
+    for item in runtime_rows:
+        key = runtime_key(item)
+        orientation = snapshot_orientation_by_key.get(key, {})
+        orientation_rows.append({
+            "Fixture Date": item.get("date_utc", ""),
+            "League": item.get("league", ""),
+            "Fixture": f"{item.get('home_team', '')} vs {item.get('away_team', '')}",
+            "fixture_id": item.get("fixture_id", ""),
+            "selected_id": item.get("selected_id", ""),
+            "provider_season_id": item.get("provider_season_id", ""),
+            "home_team_id": item.get("home_team_provider_id", ""),
+            "away_team_id": item.get("away_team_provider_id", ""),
+            **orientation,
+            "production_eligible": "NO",
+            "betting_eligible": "NO",
+        })
+    write_csv(out_dir / "oracle_selected50_fixture_orientation_audit.csv", orientation_rows,
+              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
+               "provider_season_id", "home_team_id", "away_team_id",
+               "snapshot_no_home_away_flag", "fixture_orientation_status",
+               "home_away_market_review_status", "snapshot_row_number",
+               "snapshot_retrieved_utc", "snapshot_file_sha256",
+               "production_eligible", "betting_eligible"])
+    write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace,
+               archive_summary, goal_market_rows, xg_audit_rows, coverage_rows,
+               coverage_summary_rows, xg_provenance_rows,
+               runtime_rows=runtime_rows,
+               snapshot_orientation_by_key=snapshot_orientation_by_key)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )

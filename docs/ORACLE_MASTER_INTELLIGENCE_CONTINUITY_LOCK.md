@@ -90,3 +90,32 @@ Continue the field-level audit against the dictionary and implementation. Inspec
 - Weekly generation remains workflow-driven through `scripts/build_selected50_market_intelligence_report.py` and `.github/workflows/oracle-selected50-market-intelligence-repair.yml`. Do not rebuild manually.
 - Future schema changes require a versioned template, matching generator/tests/dictionary updates, and successful governed workflow QA.
 - No Oracle V1.6 production logic, probabilities, thresholds or eligibility changed.
+
+
+## v1.4 candidate — orientation and runtime feature-support reporting (2026-11-01)
+
+The v1.3 template and the 2026-11-01 reference workbook remain the locked baseline. A versioned v1.4 candidate has been prepared on the same governed research branch; it is not canonical until its full workflow_dispatch report build passes QA.
+
+The candidate preserves the exact 19 worksheet names and order, the 38-column Oracle V1.6 Output sheet, and the 83-column Market Intelligence decision view. It adds 15 report-only fields to the existing Data Quality & Risk tab; it adds no worksheet and changes no production output or probabilities.
+
+The 15 candidate fields are:
+- Snapshot orientation: `snapshot_no_home_away_flag`, `fixture_orientation_status`, `home_away_market_review_status`, `snapshot_row_number`, `snapshot_retrieved_utc`, `snapshot_file_sha256`.
+- Runtime feature gate: `runtime_feature_support_status`, `runtime_prediction_block_reason`, `runtime_missing_required_features`, `runtime_home_recent5_n`, `runtime_away_recent5_n`, `runtime_home_history_gate`, `runtime_away_history_gate`, `runtime_blocked_team_sides`, `runtime_blocked_team_side_count`.
+
+The workflow requires the current snapshot candidate trace to be present in the exact runtime artifact and validates its snapshot file hash, archive hash, retrieval timestamp, snapshot artifact ID/run ID, unique composite keys and exact ordered-ID coverage of runtime fixtures before the generator can consume the orientation flag.
+
+The source runtime evidence inspected for this candidate has 434 runtime fixtures, 434 exact snapshot-trace matches, 66 `no_home_away=1` fixtures and 368 `no_home_away=0` fixtures. No orientation value is inferred. Flagged fixtures receive a review status for home/away-oriented markets; no probability is changed.
+
+The source runtime feature gate has 24 blocked fixtures and 25 team-side histories below five feature-complete prior matches: 15 home sides and 10 away sides; 21 sides have four matches and four sides have three. The runtime's missing-feature list shows six pair/environment features missing on all 24 blocked fixtures, seven home-side features missing on 15 fixtures, and seven away-side features missing on 10 fixtures. The report must show these source-runtime values separately from descriptive score-complete samples in Team Form Evidence.
+
+The 19 kickoff discrepancies remain `REVIEW_REQUIRED`. In the pinned report artifact, nine archive kickoff values are at 00:00 UTC, seven absolute deltas exceed 24 hours, and five absolute deltas are 150 minutes or less. These are overlapping descriptive indicators, not proven root-cause labels. No schedule is auto-corrected.
+
+The xG gate is unchanged: 59,049/59,049 archive records have non-empty pre-match-labelled xG fields, but the archive ingestion manifest has zero rows; 434 current candidates have zero verified capture timestamps and remain quarantined. No authenticated provider API calls or credits were used.
+
+Release gate for v1.4:
+1. Run the existing Selected-50 workflow manually on this branch with the governed read-only archive confirmation and exact source runtime run.
+2. Verify all 19 tabs/order, 38/83 column contracts, the 15 new Data Quality & Risk fields, exact 434/434 snapshot trace matches, 66 orientation flags, 24/25 runtime feature blockers, the 19-row schedule queue, xG quarantine and field-coverage QA.
+3. Verify the expanded field audit reports 340 field occurrences and 17,000 league/field records (50 selected groups × 340 fields), with no unmapped source rows.
+4. Keep v1.3 as the canonical reference until every v1.4 gate passes.
+
+No production code, Oracle V1.6 logic, probabilities, thresholds, calibration or eligibility has been changed. All v1.4 outputs remain research-only, production-ineligible and betting-ineligible.

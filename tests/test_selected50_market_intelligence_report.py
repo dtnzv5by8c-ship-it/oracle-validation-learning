@@ -32,7 +32,80 @@ def runtime_row():
     }
 
 
+def snapshot_row(no_home_away="1"):
+    return {
+        "snapshot_row_number": "7", "snapshot_file_sha256": "snapshot-sha",
+        "source_archive_sha256": "archive-sha",
+        "snapshot_retrieved_utc": "2026-10-31T06:02:13.776050+00:00",
+        "selected_season_id": "S1", "fixture_id": "F100",
+        "home_team_provider_id": "H", "away_team_provider_id": "A",
+        "no_home_away": no_home_away,
+    }
+
+
+def snapshot_provenance():
+    return {
+        "snapshot_file_sha256": "snapshot-sha",
+        "snapshot_retrieved_utc": "2026-10-31T06:02:13.776050+00:00",
+        "snapshot_artifact_id": "SNAP-1", "snapshot_run_id": "RUN-1",
+        "snapshot_fixture_rows": 1,
+    }
+
+
 class Selected50MarketIntelligenceTests(unittest.TestCase):
+    def test_snapshot_orientation_uses_exact_ordered_identity_and_quarantines_unknowns(self):
+        runtime = runtime_row()
+        archive_summary = {"archive_sha256": "archive-sha"}
+        orientation, qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("1")], snapshot_provenance(), archive_summary
+        )
+        item = orientation[("S1", "F100", "H", "A")]
+        self.assertEqual(item["snapshot_no_home_away_flag"], "1")
+        self.assertEqual(item["fixture_orientation_status"], "NO_HOME_AWAY_DISTINCTION")
+        self.assertEqual(item["home_away_market_review_status"],
+                         "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION")
+        self.assertEqual(qa["exact_snapshot_matches"], 1)
+        self.assertEqual(qa["no_home_away_flagged"], 1)
+        self.assertEqual(qa["orientation_unknown_rows"], 0)
+
+        unknown, unknown_qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("unknown")], snapshot_provenance(), archive_summary
+        )
+        self.assertEqual(unknown[("S1", "F100", "H", "A")]["fixture_orientation_status"],
+                         "ORIENTATION_UNKNOWN")
+        self.assertEqual(unknown_qa["orientation_unknown_rows"], 1)
+
+        swapped = dict(runtime, home_team_provider_id="A", away_team_provider_id="H")
+        swapped_map, swapped_qa = market_report.build_snapshot_orientation_map(
+            [swapped], [snapshot_row("1")], snapshot_provenance(), archive_summary
+        )
+        self.assertEqual(swapped_map[("S1", "F100", "A", "H")]["fixture_orientation_status"],
+                         "ORIENTATION_UNKNOWN")
+        self.assertEqual(swapped_qa["exact_snapshot_matches"], 0)
+
+    def test_runtime_feature_block_audit_counts_sides_without_relaxing_gate(self):
+        rows = [
+            dict(runtime_row(), feature_support_status="BLOCKED_MISSING_REQUIRED_FEATURES",
+                 prediction_block_reason="BLOCKED_MISSING_REQUIRED_FEATURES",
+                 missing_required_features="home_gf5;pair_btts_mean",
+                 home_recent5_n="4", away_recent5_n="5"),
+            dict(runtime_row(), fixture_id="F200", feature_support_status="BLOCKED_MISSING_REQUIRED_FEATURES",
+                 prediction_block_reason="BLOCKED_MISSING_REQUIRED_FEATURES",
+                 missing_required_features="home_gf5;away_gf5",
+                 home_recent5_n="3", away_recent5_n="4"),
+            dict(runtime_row(), fixture_id="F300", feature_support_status="PASS_ALL_20_REQUIRED_FEATURES",
+                 home_recent5_n="5", away_recent5_n="5"),
+        ]
+        audit, qa = market_report.build_runtime_feature_block_audit(rows)
+        self.assertEqual(len(audit), 3)
+        self.assertEqual(qa["blocked_fixture_rows"], 2)
+        self.assertEqual(qa["blocked_team_side_histories"], 3)
+        self.assertEqual(qa["home_side_histories_below_5"], 2)
+        self.assertEqual(qa["away_side_histories_below_5"], 1)
+        self.assertEqual(qa["side_history_sample_n_counts"], {"3": 1, "4": 2})
+        self.assertTrue(all(row["production_eligible"] == "NO" for row in audit))
+        self.assertTrue(all(row["betting_eligible"] == "NO" for row in audit))
+
     def setUp(self):
         self.archive = [
             archive_row("F1", "2026-10-01T12:00:00+00:00", "H", "X", 2, 1),
@@ -448,13 +521,39 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                             for row in xg_rows))
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "coverage.xlsx"
+            runtime["feature_support_status"] = "PASS_ALL_20_REQUIRED_FEATURES"
+            runtime["home_recent5_n"] = "5"
+            runtime["away_recent5_n"] = "5"
+            orientation, orientation_qa = market_report.build_snapshot_orientation_map(
+                [runtime], [snapshot_row("1")], snapshot_provenance(),
+                {"archive_sha256": "archive-sha"}
+            )
             market_report.write_xlsx(
                 path, report, trace, {}, goal_market_rows=goals, xg_audit_rows=xg,
                 league_coverage_rows=coverage, coverage_summary_rows=summary_rows,
-                xg_provenance_rows=xg_rows,
+                xg_provenance_rows=xg_rows, runtime_rows=[runtime],
+                snapshot_orientation_by_key=orientation,
             )
             workbook = load_workbook(path, read_only=True, data_only=True)
             self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            self.assertEqual(workbook["Market Intelligence"].max_column, 83)
+            self.assertEqual(workbook.sheetnames, [
+                "Oracle V1.6 Output", "Market Intelligence", "xG Evidence Audit",
+                "H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
+                "Schedule Reconciliation", "Goal Intelligence", "Goal Market Research",
+                "Market Data Coverage", "Archive Field Coverage", "Definitions & Governance",
+                "50-League Coverage", "Coverage Audit Summary", "xG Provenance Decision",
+            ])
+            quality = workbook["Data Quality & Risk"]
+            quality_headers = [cell.value for cell in quality[1]]
+            quality_values = dict(zip(quality_headers, [cell.value for cell in quality[2]]))
+            self.assertEqual(quality_values["snapshot_no_home_away_flag"], "1")
+            self.assertEqual(quality_values["fixture_orientation_status"], "NO_HOME_AWAY_DISTINCTION")
+            self.assertEqual(quality_values["home_away_market_review_status"],
+                             "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION")
+            self.assertEqual(quality_values["runtime_feature_support_status"],
+                             "PASS_ALL_20_REQUIRED_FEATURES")
+            self.assertEqual(quality_values["runtime_home_history_gate"], "PASS_5_OR_MORE")
             sheet = workbook["50-League Coverage"]
             self.assertEqual(sheet.max_row, 3)
             self.assertEqual(sheet.max_column, len(market_report.COVERAGE_HEADERS))
