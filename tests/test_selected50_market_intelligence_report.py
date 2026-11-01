@@ -258,9 +258,11 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
 
     def test_h2h_uses_exact_selected_manifest_scope_across_season_scoped_provider_ids(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
-                            season="S1", league="L1")
+                            season="S1", league="L1", selected_id="S2",
+                            provider_competition_id="S1")
         target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
-                                     season="S2", league="L1")
+                                     season="S2", league="L1", selected_id="S2",
+                                     provider_competition_id="S2")
         target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
         report, trace, _ = market_report.build_report(
             [target_runtime], [prior, target_archive]
@@ -269,7 +271,6 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
         self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
-
 
     def test_h2h_does_not_mix_same_team_pair_from_another_selected_competition(self):
         foreign = archive_row("FOREIGN", "2025-08-01T12:00:00+00:00", "H", "A", 5, 0,
