@@ -555,14 +555,6 @@ jobs:
             --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
             --out-dir market-intelligence-output
 
-      - name: Add LLM data dictionary and permanent weekly configuration tabs
-        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
-        run: |
-          set -euo pipefail
-          python scripts/add_selected50_llm_data_dictionary.py \
-            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
-            --config config/oracle_selected50_market_intelligence_weekly.json
-
       - name: Fetch and reconcile completed match results from FootyStats (report only)
         if: ${{ success() && github.event_name == 'workflow_dispatch' }}
         env:
@@ -573,6 +565,14 @@ jobs:
             --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
             --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
             --out-dir market-intelligence-output
+
+      - name: Add LLM data dictionary and permanent weekly configuration tabs
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/add_selected50_llm_data_dictionary.py \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --config config/oracle_selected50_market_intelligence_weekly.json
 
       - name: Upload join diagnostics when QA blocks the report
         if: ${{ failure() && github.event_name == 'workflow_dispatch' }}
