@@ -517,3 +517,41 @@ The code and regression tests are committed, but the pinned 59,049-row archive h
 
 **Release status:** implementation + CI verified; archive replay and fixture-by-fixture verification pending. Do not call the user-facing H2H defect fully resolved until the manual rebuild artifact confirms the outcomes.
 
+
+
+
+## H2H cross-division coverage correction — 2026-11-01
+
+**Scope:** Research/reporting-only correction following user review of 70+ fixture rows showing no H2H. No Oracle production model logic, probabilities, thresholds, or eligibility changes.
+
+### Confirmed report-builder defect
+The prior cross-season repair still restricted the H2H pair index to the fixture's current Selected-50 competition ID. This excluded valid earlier meetings when a club had moved between selected divisions (for example, Premier League / Championship / EFL League One; Bundesliga / 2. Bundesliga; Ligue 1 / Ligue 2; La Liga / Segunda División).
+
+The Run #208 workbook contains 73 rows with `H2H N = 0` and `NO_VERIFIED_PRIOR_H2H`. The user's supplied fixtures are present among those zero-H2H rows. Team Form Evidence independently confirms both teams have archive histories for examples including Cambuur–Go Ahead Eagles, Real Betis–Málaga, Schalke–RB Leipzig, Wolfsburg–Osnabrück, Watford–Lincoln and Everton–Coventry. The earlier report therefore cannot classify every zero as "no historical meetings"; it only proves no pair was found under the old league-scoped lookup.
+
+### Reporting-only correction implemented on governed branch
+- Archive season crosswalk now carries exact `selected_country` and `selected_competition_name` values from the Selected-50 manifest into normalized archive rows.
+- H2H candidate indexes now use exact country scope, not current selected competition ID. This allows a pair to be found across selected divisions in the same country.
+- Exact normalized team-name matching remains the fallback for provider team-ID changes, but is now country-scoped. Exact provider team-ID pairs are also country-scoped.
+- No fuzzy name matching, no cross-country joins, no inferred parent competition IDs, and no unverified/cross-source fixture joins.
+- H2H meeting evidence now records source `selected_id`, country and competition so the report shows where each meeting occurred.
+- Strict pre-kickoff cutoff, completed status, valid score, deduplication/quarantine and `no_home_away` handling remain in force.
+- The 38-column Oracle V1.6 Output schema and raw production probabilities remain unchanged.
+
+### Commits and test status
+- `0d11ea7555cfce4b144f28a994c570919c5d57c4` — exact country and competition added to archive crosswalk.
+- `6f6a242305bcd9cf8110fca6e7ea5f7d7272ecbf` — country-scoped cross-division H2H lookup.
+- `04f20ccc87729a0b0c44d15107b337b6770ae1b8` — cross-division and country-isolation regression tests.
+- `816281f7f61dc3cc7504bdb880c6c8d2c09920f5` — corrected fail-closed test fixture for unmapped countries.
+- Run #207 / #208 remain historical evidence for the previous H2H repair; they do not verify this new country-scope change.
+- Run #41289370036 passed all governed push-CI tests on `816281f7f61dc3cc7504bdb880c6c8d2c09920f5`. A further regression test for exact team-name identity across selected divisions is being run on the subsequent branch head.
+
+### Mandatory full-archive verification gate
+The latest full pinned-archive rebuild remains Run #208, which predates this correction. The GitHub connector does not expose a workflow-dispatch action. Manually dispatch `.github/workflows/oracle-selected50-market-intelligence-repair.yml` on `research/oracle-50-league-readiness-audit` with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+The run reads only the pinned archive (SHA-256 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`) and the existing runtime artifact. It must make zero provider API calls. After completion, verify the user's full fixture list against the rebuilt `H2H Intelligence` sheet and confirm every included meeting has source country/competition, source season, fixture ID, score and kickoff strictly before the target. Zero H2H is valid only where the archive contains no qualifying same-country Selected-50 meeting. Keep any unresolved fixture explicitly `NO_VERIFIED_PRIOR_H2H`; do not fabricate or infer meetings.
+
+**Governance:** PR #31 remains open/draft/unmerged. Run #154 frozen baseline untouched. Production V1.6 logic/probabilities/thresholds/eligibility unchanged. No provider API credits used.
