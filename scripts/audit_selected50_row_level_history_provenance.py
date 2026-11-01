@@ -468,7 +468,8 @@ def main():
     try:
         archive_rows, mapped_seasons = load_archive(args.archive, selected_labels)
     except ValueError as exc:
-        if "ingestion_manifest.json" not in str(exc):
+        if ("ingestion_manifest.json" not in str(exc)
+                and "No archive seasons map to the Selected-50 manifest" not in str(exc)):
             raise
         blocked_runtime = []
         for row in runtime_rows:
@@ -485,7 +486,7 @@ def main():
         mapped_seasons = 0
         archive_rows = []
         summary = {
-            "status": "BLOCKED_ARCHIVE_MANIFEST_UNAVAILABLE",
+            "status": "BLOCKED_ARCHIVE_MANIFEST_OR_MAPPING",
             "archive_manifest_error": str(exc),
             "runtime_fixture_rows": len(runtime_rows),
             "blocked_fixture_count": len({str(row.get("fixture_id") or "") for row, _ in blocked_runtime}),
