@@ -1,9 +1,14 @@
+import csv
+import json
 import sys
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from audit_selected50_row_level_history_provenance import audit, fixture_id, finished, match_score, team_ids  # noqa: E402
+from audit_selected50_row_level_history_provenance import audit, fixture_id, finished, main, match_score, team_ids  # noqa: E402
 
 
 def archive_row(fid, kickoff, home="H", away="X", status="complete",
@@ -144,6 +149,50 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
             self.assertEqual(set(rows[0]), {"fixture_id", "home_gf5", "away_gf5"})
             self.assertEqual(rows[0]["home_gf5"], "COMPLETE")
             self.assertEqual(rows[1]["away_gf5"], "NO_FIVE_MATCH_SAMPLE")
+
+    def test_missing_archive_manifest_is_explicit_blocker_not_prediction_or_report_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive_path = root / "archive.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("seasons/S1/matches.json", "[]")
+            selected_path = root / "selected.csv"
+            with selected_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=["selected_id", "country", "competition_name"])
+                writer.writeheader()
+                writer.writerow({"selected_id": "L", "country": "Test", "competition_name": "League"})
+            runtime_path = root / "runtime.csv"
+            with runtime_path.open("w", newline="", encoding="utf-8") as handle:
+                fields = [
+                    "fixture_id", "selected_id", "date_utc", "home_team_provider_id",
+                    "home_recent5_n", "feature_support_status", "missing_required_features",
+                ]
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerow({
+                    "fixture_id": "TARGET", "selected_id": "L",
+                    "date_utc": "2026-11-02T12:00:00Z", "home_team_provider_id": "H",
+                    "home_recent5_n": "4",
+                    "feature_support_status": "BLOCKED_MISSING_REQUIRED_FEATURES",
+                    "missing_required_features": "home_gf5",
+                })
+            out_dir = root / "out"
+            argv = [
+                "audit_selected50_row_level_history_provenance.py",
+                "--archive", str(archive_path),
+                "--selected-manifest", str(selected_path),
+                "--runtime-report", str(runtime_path),
+                "--out-dir", str(out_dir),
+            ]
+            with patch.object(sys, "argv", argv):
+                self.assertEqual(main(), 0)
+            qa = json.loads((out_dir / "oracle_selected50_history_provenance_qa.json").read_text())
+            self.assertEqual(qa["status"], "BLOCKED_ARCHIVE_MANIFEST_OR_MAPPING")
+            self.assertEqual(qa["blocked_team_side_rows_expected"], 1)
+            self.assertEqual(qa["blocked_team_side_rows_audited"], 0)
+            self.assertEqual(qa["minimum_history_required"], 5)
+            self.assertFalse(qa["production_eligible"])
+            self.assertFalse(qa["betting_eligible"])
 
     def test_unknown_selected_id_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "unknown selected_id"):
