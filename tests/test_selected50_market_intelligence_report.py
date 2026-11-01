@@ -360,7 +360,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED50_COUNTRY_SCOPE")
         self.assertEqual(trace[0]["h2h_scope_id"], "Testland")
         meetings = json.loads(trace[0]["h2h_meetings_detail"])
-        self.assertEqual(meetings[0]["selected_id"], "S2")
+        self.assertEqual(meetings[0]["meeting_selected_id"], "S2")
         self.assertEqual(meetings[0]["selected_competition_name"], "Test League")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
