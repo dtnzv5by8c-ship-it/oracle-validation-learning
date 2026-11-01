@@ -54,6 +54,8 @@ class Selected50LLMDataDictionaryTests(unittest.TestCase):
                 ("xG Evidence Audit","fixture_id"),
                 ("xG Evidence Audit","capture_time_utc"),
                 ("xG Evidence Audit","temporal_provenance_status"),
+                ("Report Configuration","Configuration Key"),
+                ("Report Configuration","Value / Instruction"),
             })
             cfg={result["Report Configuration"].cell(r,1).value:result["Report Configuration"].cell(r,2).value
                  for r in range(2,result["Report Configuration"].max_row+1)}
