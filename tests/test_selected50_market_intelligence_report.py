@@ -256,6 +256,32 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(market_report.h2h_average_total_goals({"h2h_meetings_detail": "[]"}),
                          "NO_VERIFIED_PRIOR_H2H")
 
+    def test_h2h_bridges_provider_team_id_changes_with_exact_team_names(self):
+        prior = archive_row("OLD-ID-MEETING", "2025-08-01T12:00:00+00:00",
+                            "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
+                            season="S0", selected_id="S1")
+        prior["home_team"] = "Home FC"
+        prior["away_team"] = "Away FC"
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00",
+                             "H", "A", 0, 0, season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_NORMALIZED_TEAM_NAMES")
+        self.assertIn("OLD-ID-MEETING", trace[0]["h2h_source_fixture_ids"])
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
+    def test_h2h_name_matching_is_not_fuzzy(self):
+        prior = archive_row("OLD-ID-MEETING", "2025-08-01T12:00:00+00:00",
+                            "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
+                            season="S0", selected_id="S1")
+        prior["home_team"] = "Home FC Reserves"
+        prior["away_team"] = "Away FC"
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00",
+                             "H", "A", 0, 0, season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(trace[0]["h2h_match_basis"], "NO_VERIFIED_PAIR_MATCH")
+
     def test_h2h_uses_exact_selected_manifest_scope_across_season_scoped_provider_ids(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
                             season="S1", league="L1", selected_id="S2",
