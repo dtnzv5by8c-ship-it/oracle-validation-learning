@@ -10,7 +10,7 @@ The pinned Selected-50 archive is identified by SHA-256:
 
 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`
 
-Existing archive evidence reports 59,049 match records across 200 season folders, 51,983 settled-status/score-complete records, zero parse errors and zero ingestion-manifest rows. The archive feature builder writes `xg_capture_time_utc` as blank and `xg_temporal_provenance_status=UNVERIFIED_NO_CAPTURE_TIMESTAMP`. It presence-audits actual and pre-match-labelled xG fields but excludes them from model features.
+Existing archive evidence reports 59,049 match records across 200 season folders, 51,983 settled-status/score-complete records and zero parse errors. Its `manifest_rows=0` metric is specific to `ingestion_manifest.csv`: the archive feature builder searches for that CSV filename only. A separate `ingestion_manifest.json` is present and required by the row-level history audit for season-to-Selected-50 mapping; its metadata schema has not yet been inventoried for fixture-linked capture timestamps, response hashes or revision fields. The archive feature builder writes `xg_capture_time_utc` as blank and `xg_temporal_provenance_status=UNVERIFIED_NO_CAPTURE_TIMESTAMP`. It presence-audits actual and pre-match-labelled xG fields but excludes them from model features.
 
 For the current Selected-50 report, 434 upcoming fixtures have numeric pre-match-labelled home, away and total xG candidates; zero have a verified capture timestamp; all 434 remain quarantined, prediction-ineligible and betting-ineligible.
 
