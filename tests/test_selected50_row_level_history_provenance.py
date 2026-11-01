@@ -128,6 +128,23 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
         self.assertEqual(side["home_sot5_numeric_count"], 2)
         self.assertEqual(side["home_sot5"], "PARTIAL_NUMERIC_SOURCE_VALUES_2_OF_5")
 
+
+    def test_csv_writer_accepts_feature_columns_varying_by_side(self):
+        import csv
+        import tempfile
+        from pathlib import Path
+        from audit_selected50_row_level_history_provenance import write_csv
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "side_rows.csv"
+            write_csv(path, [{"fixture_id": "1", "home_gf5": "COMPLETE"},
+                             {"fixture_id": "2", "away_gf5": "NO_FIVE_MATCH_SAMPLE"}])
+            with path.open(encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(set(rows[0]), {"fixture_id", "home_gf5", "away_gf5"})
+            self.assertEqual(rows[0]["home_gf5"], "COMPLETE")
+            self.assertEqual(rows[1]["away_gf5"], "NO_FIVE_MATCH_SAMPLE")
+
     def test_unknown_selected_id_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "unknown selected_id"):
             audit([runtime_row(selected_id="UNKNOWN")], [], {"L"})
