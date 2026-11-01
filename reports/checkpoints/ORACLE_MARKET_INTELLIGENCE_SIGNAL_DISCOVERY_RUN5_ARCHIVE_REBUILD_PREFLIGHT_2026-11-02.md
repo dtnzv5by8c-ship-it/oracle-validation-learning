@@ -49,3 +49,8 @@ The corrected workflow is committed in this change. Its run result and archive r
 - No pseudo-counts are used. Five-match gates are observed-match counts only.
 - Event-time chronology is not source-publication-time proof.
 - production_eligible=false; betting_eligible=false.
+
+## Contract-test correction
+
+- The first corrected-workflow contract run (commit 556ad8dd6639cbdaf6d42a3662f25ceb8742576f) found that the aggregate roll-up attempted to sum string label fields alongside numeric counts. The failing test was isolated to the summary aggregation helper; archive data was not downloaded and no provider calls occurred.
+- Updated the helper to sum numeric count fields only. The next push-triggered run must pass the two synthetic tri-state tests before it attempts private archive retrieval.

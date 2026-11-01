@@ -47,7 +47,8 @@ def _counts():
 
 def _add(target, source):
     for key, value in source.items():
-        target[key] += value
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            target[key] += value
 
 
 def _write_csv(path: Path, rows, fields):
