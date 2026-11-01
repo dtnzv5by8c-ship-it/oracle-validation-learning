@@ -516,6 +516,7 @@ def build_report(runtime_rows, archive_rows):
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
                 "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
+                "no_home_away": r.get("no_home_away", 0),
                 "home_goals": r.get("home_goals", ""), "away_goals": r.get("away_goals", ""),
                 "result_current_home_perspective": h2h_results[i],
                 "total_goals": int(float(r["home_goals"])) + int(float(r["away_goals"]))
