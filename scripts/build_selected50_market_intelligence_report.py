@@ -117,7 +117,7 @@ def runtime_key(row):
 def normalize_team_name(value):
     """Conservative exact-name key: Unicode compatibility, case and punctuation only."""
     value = unicodedata.normalize("NFKC", str(value or "")).casefold()
-    value = re.sub(r"[^\\w\\s]", "", value, flags=re.UNICODE)
+    value = re.sub(r"[^\w\s]", "", value, flags=re.UNICODE)
     return " ".join(value.split())
 
 
