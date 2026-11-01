@@ -88,6 +88,7 @@ def write_csv(path, rows, fields=None):
 def map_archive_seasons_to_selected_ids(selected_manifest_rows, ingestion_manifest, archive_season_ids):
     """Map every archived season to its Selected-50 competition using exact manifest labels."""
     selected_by_label = {}
+    selected_label_by_id = {}
     selected_ids = set()
     for row in selected_manifest_rows:
         sid = str(row.get("selected_id") or "").strip()
@@ -97,6 +98,7 @@ def map_archive_seasons_to_selected_ids(selected_manifest_rows, ingestion_manife
             raise ValueError("Selected-50 manifest has blank or duplicate IDs/labels")
         selected_ids.add(sid)
         selected_by_label[label] = sid
+        selected_label_by_id[sid] = label
     if not isinstance(ingestion_manifest, list):
         raise ValueError("Archive ingestion manifest must be a list")
     mapping = {}
@@ -140,6 +142,8 @@ def map_archive_seasons_to_selected_ids(selected_manifest_rows, ingestion_manife
     }
     crosswalk = [
         {"provider_season_id": season_id, "selected_id": selected_id,
+         "selected_country": selected_label_by_id[selected_id][0],
+         "selected_competition_name": selected_label_by_id[selected_id][1],
          "mapping_basis": "EXACT_INGESTION_MANIFEST_COUNTRY_COMPETITION_LABEL"}
         for season_id, selected_id in sorted(mapping.items())
     ]
@@ -187,11 +191,16 @@ def main():
             "fuzzy_matching_used": False,
         }, []
     write_csv(out/"season_selected_id_crosswalk.csv", h2h_crosswalk_rows,
-              ["provider_season_id", "selected_id", "mapping_basis"])
+              ["provider_season_id", "selected_id", "selected_country",
+               "selected_competition_name", "mapping_basis"])
     manifest_files=list(root.rglob("ingestion_manifest.csv"))
     manifest=[]
     if manifest_files:
         with manifest_files[0].open(encoding="utf-8-sig",newline="") as f: manifest=list(csv.DictReader(f))
+    selected_country_by_id = {str(r.get("selected_id") or "").strip(): str(r.get("country") or "").strip()
+                              for r in selected_manifest_rows}
+    selected_competition_by_id = {str(r.get("selected_id") or "").strip(): str(r.get("competition_name") or "").strip()
+                                  for r in selected_manifest_rows}
     records=[]; season_rows=[]; file_errors=[]; field_counts=collections.Counter()
     for fp in files:
         rel=str(fp.relative_to(root)); parts=fp.parts
@@ -229,6 +238,8 @@ def main():
                  "source_file":rel,"source_row":i,"fixture_id":str(ident) if ident is not None else "",
                  "provider_league_id":str(first(d,("competition_id","league_id","leagueID")) or ""),
                  "provider_season_id":str(season),"selected_id":season_to_selected_id.get(str(season), ""),
+                 "selected_country":selected_country_by_id.get(season_to_selected_id.get(str(season), ""), ""),
+                 "selected_competition_name":selected_competition_by_id.get(season_to_selected_id.get(str(season), ""), ""),
                  "selected_id_mapping_basis":"EXACT_INGESTION_MANIFEST_LABEL" if str(season) in season_to_selected_id else "UNMAPPED",
                  "provider_season_id_source":"ARCHIVE_SEASON_FOLDER_ID",
                  "kickoff_utc":dt.isoformat() if dt else "",
