@@ -308,3 +308,68 @@ This workflow reads the existing pinned archive and existing runtime artifact on
 - Production V1.6 logic/probabilities, thresholds and eligibility are unchanged.
 - No provider API credits were spent.
 - All Selected-50 outputs remain production-ineligible and betting-ineligible.
+
+
+## Row-level history audit hardening and xG manifest schema inventory — 2026-11-01
+
+**Repository head at this checkpoint:** `70602da4c205ed1a63a1c093f02873b96ad40e54`  
+**Scope:** Research/reporting-only. No workbook was rebuilt in this change set. No production model, probability, threshold or eligibility changes.
+
+### Row-level history provenance audit correction
+
+The row-level replay script was compared directly with the existing archive feature builder's accepted source-field aliases. The earlier replay script used a narrower set of keys, which could have falsely excluded source history where FootyStats records used alternate documented/archive aliases.
+
+Corrected the audit to accept the same source aliases as the archive feature builder for:
+- Home/away provider team IDs, including `team_a_id` and `team_b_id`.
+- Fixture IDs: `id`, `match_id`, `fixture_id`, `game_id`.
+- Score fields, including `home_goal_count`, `homeGoalsCount` and corresponding away fields.
+- Status fields: `status`, `status_name`, `match_status`, `game_status`.
+- Completed statuses including AET / after extra time / penalties.
+
+The shot and shots-on-target evidence classification was also tightened. A feature is no longer labelled complete when only one of five source values is numeric; the side audit now records numeric counts and reports partial 1–4-of-5 coverage explicitly.
+
+Regression tests were added for alternate source aliases and partial shot/SOT coverage. These tests are wired into the existing governed workflow. **Their GitHub Actions execution is not yet verified in this checkpoint.** The last previously verified row-level unit-test run remains Run #173, which tested the earlier implementation; it did not execute the private archive replay.
+
+### FootyStats xG archive-manifest clarification
+
+A code-path review found that the earlier `manifest_rows=0` statement was too broad:
+
+- `build_footystats_archive_features.py` searches specifically for `ingestion_manifest.csv` when calculating its manifest row count.
+- `audit_selected50_row_level_history_provenance.py` separately requires and reads `ingestion_manifest.json` to map archive season IDs to Selected-50 country/competition labels.
+- Therefore, the zero count refers to the CSV-form manifest path; it does not prove that the archive contains no manifest.
+
+The JSON manifest's actual field inventory and granularity have not yet been inspected. No claim is made that it contains, or does not contain, per-fixture capture timestamps, response hashes or revision metadata.
+
+### New research-only inventory added
+
+Added:
+- `scripts/audit_footystats_xg_manifest_provenance.py`
+- `tests/test_footystats_xg_manifest_provenance.py`
+
+Integrated both into the existing Selected-50 repair workflow. The manual-dispatch path will inspect the pinned archive's single JSON ingestion manifest and match-record metadata, then emit:
+- `oracle_selected50_xg_manifest_field_inventory.csv`
+- `oracle_selected50_xg_manifest_provenance_qa.json`
+
+The inventory emits field names and counts only, never raw metadata values or credentials. It reports candidate capture, revision, hash and fixture-linkage fields but always leaves `xg_point_in_time_provenance_verified=false` and `xg_quarantine_required=true`. It makes no provider API calls and does not add or alter workbook columns.
+
+The xG provenance report and point-in-time specification were corrected to distinguish the CSV-only zero count from the JSON manifest that is already used by the row-level history audit.
+
+### Current preserved evidence and gates
+
+- Run #169 remains the latest verified full workbook rebuild: 19 worksheets; Oracle V1.6 Output 38 columns; Market Intelligence 83 columns; 17,000-row field matrix. v1.3 remains canonical; v1.4 remains an unpromoted candidate.
+- Orientation sidecar: 66 `no_home_away` flags, 368 with home/away distinction, zero unknown. No neutral-venue inference or probability changes.
+- Schedule: the separate Run #164 source-evidence QA corroborates 18 of 19 runtime kickoff times; one Tondela–Felgueiras row remains unresolved. The workbook's original 19-row queue remains `REVIEW_REQUIRED`; no automatic correction.
+- Runtime feature support: 24 blocked fixtures and 25 blocked team-side histories (15 home, 10 away). The prior count-only diagnostic found 21 sides with four eligible matches and four with three. The corrected archive replay has not yet run; no root cause is certified.
+- xG: 434 upcoming candidates remain quarantined; zero verified capture timestamps; zero prediction-eligible and zero betting-eligible. The JSON manifest schema inventory has not yet executed against the pinned private archive.
+- No provider API calls or credits were used. Oracle V1.6 production logic/probabilities, thresholds and eligibility remain unchanged.
+
+### Next controlled action
+
+Manually dispatch the existing `.github/workflows/oracle-selected50-market-intelligence-repair.yml` from `research/oracle-50-league-readiness-audit` with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+This uses only the existing pinned private archive and exact runtime artifact. It will run the corrected 25-side history replay and the new xG manifest inventory, then rebuild the workbook through the existing generator. It does not call FootyStats or consume provider credits.
+
+After dispatch, inspect the history side/match/QA outputs and xG manifest field inventory/QA. Any history count mismatch remains `REVIEW_REQUIRED`; the five-match gate is unchanged. xG remains quarantined regardless of metadata-key presence until the provider semantics and point-in-time evidence are independently validated.
