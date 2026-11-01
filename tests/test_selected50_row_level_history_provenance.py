@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from audit_selected50_row_level_history_provenance import audit, fixture_id, finished, main, match_score, team_ids  # noqa: E402
+from audit_selected50_row_level_history_provenance import audit, fixture_id, finished, load_archive, main, match_score, team_ids  # noqa: E402
 
 
 def archive_row(fid, kickoff, home="H", away="X", status="complete",
@@ -193,6 +193,36 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
             self.assertEqual(qa["minimum_history_required"], 5)
             self.assertFalse(qa["production_eligible"])
             self.assertFalse(qa["betting_eligible"])
+
+    def test_load_archive_resolves_exact_season_folder_under_nested_archive_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = Path(directory) / "archive.zip"
+            manifest = [{"season_id": "S1", "selected_country": "Test",
+                         "selected_competition_name": "League"}]
+            match = {"id": "M1", "homeID": "H", "awayID": "A",
+                     "date_unix": 1000000100, "status": "complete",
+                     "homeGoalCount": 2, "awayGoalCount": 1}
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("private-package/metadata/ingestion_manifest.json",
+                                 json.dumps(manifest))
+                archive.writestr("private-package/seasons/S1/matches.json",
+                                 json.dumps([match]))
+            rows, mapped = load_archive(archive_path, {("Test", "League"): "L"})
+            self.assertEqual(mapped, 1)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["fixture_id"], "M1")
+            self.assertEqual(rows[0]["source_file"], "private-package/seasons/S1/matches.json")
+
+    def test_load_archive_fails_closed_when_mapped_season_file_is_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = Path(directory) / "archive.zip"
+            manifest = [{"season_id": "S1", "selected_country": "Test",
+                         "selected_competition_name": "League"}]
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("private-package/metadata/ingestion_manifest.json",
+                                 json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError, "matches.json path resolution failed"):
+                load_archive(archive_path, {("Test", "League"): "L"})
 
     def test_unknown_selected_id_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "unknown selected_id"):
