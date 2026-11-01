@@ -346,8 +346,10 @@ def build_report(runtime_rows, archive_rows):
                                            hf["ga"] if hf["n"] >= 3 else None, league_goals_per_team)
         a_attack, a_defence = index_value(af["gf"] if af["n"] >= 3 else None,
                                            af["ga"] if af["n"] >= 3 else None, league_goals_per_team)
-        h2h_scope_id = selected
-        pair_rows = before(by_pair[(h2h_scope_id, tuple(sorted((home, away))))], cutoff)
+        h2h_scope_id = str(target.get("selected_id") or "").strip()
+        if h2h_scope_id != selected:
+            h2h_scope_id = ""
+        pair_rows = before(by_pair[(h2h_scope_id, tuple(sorted((home, away))))], cutoff) if h2h_scope_id else []
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
