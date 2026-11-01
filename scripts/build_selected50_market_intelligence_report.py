@@ -1537,7 +1537,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "h2h_scope_id",
-         "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id", "h2h_scope_id",
+         "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
          "home_team_id", "away_team_id", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
