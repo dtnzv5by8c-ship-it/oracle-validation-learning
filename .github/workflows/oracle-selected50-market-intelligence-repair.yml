@@ -240,6 +240,33 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
 
+      - name: Download preserved Run 154 schedule queue for evidence-register CI
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-selected50-market-intelligence-repair
+          path: /tmp/oracle-selected50-run154
+          run-id: 41276694062
+          github-token: ${{ github.token }}
+
+      - name: Validate kickoff source evidence against preserved Run 154 queue
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+          python scripts/validate_selected50_kickoff_source_evidence.py \\
+            --queue /tmp/oracle-selected50-run154/market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \\
+            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \\
+            --out /tmp/oracle-selected50-kickoff-evidence-qa.json
+
+      - name: Upload kickoff evidence CI QA
+        if: ${{ success() && github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-kickoff-evidence-ci-qa
+          path: /tmp/oracle-selected50-kickoff-evidence-qa.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
