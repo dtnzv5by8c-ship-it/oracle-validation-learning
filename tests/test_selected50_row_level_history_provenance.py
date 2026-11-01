@@ -21,7 +21,10 @@ def archive_row(fid, kickoff, home="H", away="X", status="complete",
         "competition_id": competition, "season_id": season, "country": "Test",
         "league": "League", "source_file": f"seasons/{season}/matches.json",
         "source_row": source_row, "fixture_id": fid, "kickoff_unix": kickoff,
-        "home_id": home, "away_id": away, "home_goals": hg, "away_goals": ag,
+        "home_id": home, "away_id": away,
+        "home_name": "Home Team" if home == "H" else "Other Home",
+        "away_name": "Away Team" if away == "A" else "Other Away",
+        "home_goals": hg, "away_goals": ag,
         "finished": status.lower() in {"complete", "completed", "finished", "full time", "full-time", "ft", "ended", "played", "after extra time", "aet", "penalties"} and hg is not None and ag is not None,
         "status_raw": status, "raw": raw, "raw_record_sha256": f"hash-{source_row}",
     }
@@ -50,14 +53,14 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
             archive_row("H4", 1000, home="H", away="Q", source_row=4),
             archive_row("H5", 400, home="H", away="R", status="incomplete", source_row=5),
         ]
-        sides, details, qa = audit([runtime_row()], rows, {"L"})
+        sides, details, qa = audit([runtime_row(home_recent5_n="3")], rows, {"L"})
         side = sides[0]
-        self.assertEqual(side["reconstructed_history_count"], 2)
-        self.assertEqual(side["runtime_history_count"], "2")
+        self.assertEqual(side["reconstructed_history_count"], 3)
+        self.assertEqual(side["runtime_history_count"], "3")
         self.assertEqual(side["history_count_reconciles"], "YES")
-        self.assertEqual(side["included_history_match_ids"], "H1;H2")
+        self.assertEqual(side["included_history_match_ids"], "H1;H2;H3")
         decisions = {d["historical_fixture_id"]: d["history_decision"] for d in details}
-        self.assertEqual(decisions["H3"], "OTHER_EVIDENCED_REASON")
+        self.assertEqual(decisions["H3"], "INCLUDED_IN_RUNTIME_HISTORY")
         self.assertEqual(decisions["H4"], "AFTER_CUTOFF")
         self.assertEqual(decisions["H5"], "REQUIRED_FEATURE_MISSING")
         self.assertTrue(qa["all_side_history_counts_reconcile"])
@@ -89,6 +92,19 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
         self.assertEqual(sides[0]["audit_status"], "REVIEW_REQUIRED_COUNT_MISMATCH")
         self.assertFalse(qa["all_side_history_counts_reconcile"])
         self.assertEqual(len(qa["runtime_archive_history_count_mismatches"]), 1)
+
+    def test_exact_name_diagnostic_identifies_provider_team_id_drift_without_imputing_history(self):
+        rows = [archive_row("OLD-ID", 100, home="OLD-H", away="X", source_row=1)]
+        rows[0]["home_name"] = "Home Team"
+        sides, _, qa = audit([runtime_row(home_recent5_n="1")], rows, {"L"})
+        side = sides[0]
+        self.assertEqual(side["considered_source_rows"], 0)
+        self.assertEqual(side["exact_name_candidate_rows"], 1)
+        self.assertEqual(side["exact_name_completed_prior_matches"], 1)
+        self.assertEqual(side["root_cause"], "PROVIDER_TEAM_ID_DRIFT_EXACT_NAME_CANDIDATES_FOUND")
+        self.assertEqual(side["reconstructed_history_count"], 0)
+        self.assertEqual(side["features_imputed"], 0)
+        self.assertFalse(qa["all_side_history_counts_reconcile"])
 
     def test_feature_completeness_does_not_claim_five_match_sample(self):
         rows = [archive_row(f"M{i}", 100 + i, source_row=i) for i in range(1, 4)]
