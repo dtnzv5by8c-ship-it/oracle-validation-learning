@@ -33,6 +33,10 @@ on:
       - "scripts/build_goal_market_research_engine.py"
       - "tests/test_goal_market_research_engine.py"
       - "docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md"
+      - "reports/oracle-footystats-max-time-xg-endpoint-scope-2026-11-01.md"
+      - "reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md"
+      - "reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md"
+      - "reports/oracle-selected50-xg-league-coverage-2026-11-01.csv"
 
 permissions:
   actions: read
@@ -273,5 +277,9 @@ jobs:
             archive-audit/summary.json
             goal-market-research/goal_market_research.csv
             goal-market-research/goal_market_research_qa.json
+            reports/oracle-footystats-max-time-xg-endpoint-scope-2026-11-01.md
+            reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md
+            reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md
+            reports/oracle-selected50-xg-league-coverage-2026-11-01.csv
           if-no-files-found: error
           retention-days: 14
