@@ -38,7 +38,7 @@ on:
       - "tests/test_selected50_kickoff_source_evidence.py"
       - "reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv"
       - "tests/test_selected50_field_coverage_audit.py"
-      - "scripts/build_footystats_archive_features.py"
+      - "scripts/build_footystats_archive_features.py"\n      - "tests/test_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
       - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1.md"
       - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_3.md"
