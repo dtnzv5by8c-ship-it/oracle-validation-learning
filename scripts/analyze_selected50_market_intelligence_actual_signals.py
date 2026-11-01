@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import rankdata, spearmanr
+from scipy.stats import rankdata, spearmanr, t as student_t
 
 KEYS = ["provider_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"]
 SETTLED = "SETTLED_VERIFIED_PROVIDER_SCORE"
@@ -165,7 +165,9 @@ def engineer_features(df: pd.DataFrame, min_history: int = MIN_HISTORY) -> pd.Da
     out["venue_ppg_diff"] = (out["home_at_home_avg_points"] - out["away_away_avg_points"]).where(venue_ok)
     out["venue_gf_adv"] = (out["home_at_home_avg_goals_for"] - out["away_away_avg_goals_for"]).where(venue_ok)
     out["venue_ga_adv"] = (out["away_away_avg_goals_against"] - out["home_at_home_avg_goals_against"]).where(venue_ok)
-    out["h2h_goal_environment"] = out["h2h_avg_total_goals"]
+    # H2H performance features are admissible only with five observed prior meetings.
+    h2h_n = pd.to_numeric(out["h2h_n"], errors="coerce")
+    out["h2h_goal_environment"] = pd.to_numeric(out["h2h_avg_total_goals"], errors="coerce").where(h2h_n.ge(min_history))
 
     # Prespecified interactions: exploratory only; no fitted weights or promotion.
     out["home_strength_x_away_weakness"] = out["overall_ppg_diff"] * out["away_form_ga_avg"]
@@ -218,6 +220,109 @@ def bh_adjust(p_values: np.ndarray) -> np.ndarray:
     return np.clip(q, 0, 1)
 
 
+def by_adjust(p_values: np.ndarray) -> np.ndarray:
+    """Benjamini-Yekutieli q-values; valid under arbitrary test dependence."""
+    p = np.asarray(p_values, dtype=float)
+    if p.size == 0:
+        return p.copy()
+    harmonic = float(np.sum(1.0 / np.arange(1, len(p) + 1)))
+    return np.clip(bh_adjust(p) * harmonic, 0.0, 1.0)
+
+
+def partial_spearman(x: np.ndarray, y: np.ndarray, controls: np.ndarray) -> tuple[float, float]:
+    """Partial Spearman correlation using rank-residualization and a t approximation."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    controls = np.asarray(controls, dtype=float)
+    if controls.ndim == 1:
+        controls = controls.reshape(-1, 1)
+    if len(x) != len(y) or len(x) != len(controls) or len(x) <= controls.shape[1] + 2:
+        return float("nan"), float("nan")
+    xr, yr = rankdata(x), rankdata(y)
+    zr = np.column_stack([np.ones(len(x))] + [rankdata(controls[:, j]) for j in range(controls.shape[1])])
+    rx = xr - zr @ np.linalg.lstsq(zr, xr, rcond=None)[0]
+    ry = yr - zr @ np.linalg.lstsq(zr, yr, rcond=None)[0]
+    sx, sy = float(np.std(rx)), float(np.std(ry))
+    if sx == 0 or sy == 0:
+        return float("nan"), float("nan")
+    rho = float(np.corrcoef(rx, ry)[0, 1])
+    dof = len(x) - controls.shape[1] - 2
+    if not np.isfinite(rho) or abs(rho) >= 1:
+        return rho, float("nan")
+    statistic = rho * np.sqrt(dof / (1.0 - rho * rho))
+    return rho, float(2.0 * student_t.sf(abs(statistic), dof))
+
+
+def bootstrap_partial_spearman_ci(x: np.ndarray, y: np.ndarray, controls: np.ndarray, reps: int, rng: np.random.Generator) -> tuple[float, float]:
+    """Percentile bootstrap interval for partial Spearman correlation."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    controls = np.asarray(controls, dtype=float)
+    n = len(x)
+    idx = rng.integers(0, n, size=(reps, n))
+    values = []
+    for sample in idx:
+        rho, _ = partial_spearman(x[sample], y[sample], controls[sample])
+        if np.isfinite(rho):
+            values.append(rho)
+    if not values:
+        return float("nan"), float("nan")
+    lo, hi = np.quantile(values, [0.025, 0.975])
+    return float(lo), float(hi)
+
+
+def partial_interaction_table(df: pd.DataFrame, outcome: str, reps: int, seed: int) -> pd.DataFrame:
+    """Test whether the two lead interactions add rank-association beyond their main effects."""
+    rng = np.random.default_rng(seed)
+    controls_by_feature = {
+        "home_strength_x_away_weakness": ["overall_ppg_diff", "away_form_ga_avg"],
+        "home_attack_x_away_defence": ["home_form_gf_avg", "away_form_ga_avg"],
+    }
+    rows = []
+    y_all = pd.to_numeric(df[outcome], errors="coerce")
+    for feature, controls in controls_by_feature.items():
+        cols = [feature] + controls
+        numeric = df[cols].apply(pd.to_numeric, errors="coerce")
+        mask = numeric.notna().all(axis=1) & y_all.notna()
+        if int(mask.sum()) < 30:
+            continue
+        x = numeric.loc[mask, feature].to_numpy(float)
+        y = y_all.loc[mask].to_numpy(float)
+        z = numeric.loc[mask, controls].to_numpy(float)
+        rho, p = partial_spearman(x, y, z)
+        lo, hi = bootstrap_partial_spearman_ci(x, y, z, reps, rng)
+        rows.append({
+            "outcome": "HomeWin", "feature": feature, "n": int(mask.sum()),
+            "controls": ";".join(controls), "partial_spearman_rho": rho,
+            "partial_rho_ci95_low": lo, "partial_rho_ci95_high": hi,
+            "partial_p_value": p,
+        })
+    return pd.DataFrame(rows)
+
+
+def adjust_joint_multiple_testing(base: pd.DataFrame, interactions: pd.DataFrame, partial: pd.DataFrame | None = None):
+    """Adjust base, raw-interaction and partial-interaction tests as one family."""
+    partial = partial if partial is not None else pd.DataFrame()
+    parts = []
+    for family, frame, p_col in (("base", base, "p_value_raw"),
+                                 ("interaction", interactions, "p_value_raw"),
+                                 ("partial_interaction", partial, "partial_p_value")):
+        if not frame.empty:
+            part = frame.copy()
+            part["_p_for_adjustment"] = pd.to_numeric(part[p_col], errors="coerce")
+            part["test_family"] = family
+            parts.append(part)
+    if not parts:
+        return base.copy(), interactions.copy(), partial.copy()
+    combined = pd.concat(parts, ignore_index=True)
+    p = combined["_p_for_adjustment"].to_numpy(float)
+    combined["q_value_bh_global"] = bh_adjust(p)
+    combined["q_value_by_global"] = by_adjust(p)
+    def extract(family):
+        return combined[combined["test_family"].eq(family)].drop(columns=["test_family", "_p_for_adjustment"]).reset_index(drop=True)
+    return extract("base"), extract("interaction"), extract("partial_interaction")
+
+
 def bootstrap_spearman(x: np.ndarray, y: np.ndarray, reps: int, rng: np.random.Generator) -> tuple[float, float]:
     n = len(x)
     idx = rng.integers(0, n, size=(reps, n))
@@ -252,8 +357,8 @@ def association_table(df: pd.DataFrame, features: list[str], outcomes: dict[str,
             })
     result = pd.DataFrame(rows)
     if not result.empty:
-        result["q_value_bh_all_tests"] = bh_adjust(result["p_value_raw"].to_numpy())
-        result = result.sort_values(["outcome", "q_value_bh_all_tests", "p_value_raw"], kind="stable")
+        result["q_value_bh_within_table"] = bh_adjust(result["p_value_raw"].to_numpy())
+        result = result.sort_values(["outcome", "q_value_bh_within_table", "p_value_raw"], kind="stable")
     return result
 
 
@@ -397,7 +502,9 @@ def run(args: argparse.Namespace) -> dict:
         "home_team_over15_rate", "away_team_over15_rate",
         "home_clean_sheet_rate", "away_clean_sheet_rate",
         "home_failed_to_score_rate", "away_failed_to_score_rate",
-        "home_league_position", "away_league_position", "h2h_n", "h2h_goal_environment",
+        # Provisional standings and raw H2H sample count are deliberately not predictors.
+        # H2H goal environment is masked unless at least five observed meetings exist.
+        "h2h_goal_environment",
         "venue_ppg_diff", "venue_gf_adv", "venue_ga_adv",
     ]
     outcomes = {
@@ -413,12 +520,16 @@ def run(args: argparse.Namespace) -> dict:
     ]
     interaction_outcomes = {k: outcomes[k] for k in ("HomeWin", "Home1X", "AwayX2", "BTTS", "Over25")}
     interaction_table = association_table(strict, interactions, interaction_outcomes, args.bootstrap_reps, args.seed + 1)
+    partial_interactions = partial_interaction_table(strict, "y_home_win", args.bootstrap_reps, args.seed + 3)
+    associations, interaction_table, partial_interactions = adjust_joint_multiple_testing(associations, interaction_table, partial_interactions)
     scores = probability_table(strict, args.bootstrap_reps, args.seed + 2)
     fixture_rows = fixture_diagnostics_table(strict)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     associations.to_csv(args.output_dir / "market_intelligence_signal_associations.csv", index=False)
     interaction_table.to_csv(args.output_dir / "market_intelligence_interaction_associations.csv", index=False)
+    partial_columns = ["outcome", "feature", "n", "controls", "partial_spearman_rho", "partial_rho_ci95_low", "partial_rho_ci95_high", "partial_p_value", "q_value_bh_global", "q_value_by_global"]
+    partial_interactions[partial_columns].to_csv(args.output_dir / "market_intelligence_interaction_incremental_tests.csv", index=False)
     scores.to_csv(args.output_dir / "market_intelligence_probability_scores.csv", index=False)
     fixture_rows.to_csv(args.output_dir / "market_intelligence_fixture_signal_diagnostics.csv", index=False)
 
@@ -427,12 +538,21 @@ def run(args: argparse.Namespace) -> dict:
     qa = {
         **join_qa, **sample_qa,
         "strict_sample_rows": int(len(strict)),
+        "joint_feature_outcome_test_count": int(len(associations) + len(interaction_table) + len(partial_interactions)),
+        "partial_interaction_tests": int(len(partial_interactions)),
+        "h2h_five_meeting_rows": int(pd.to_numeric(strict["h2h_n"], errors="coerce").ge(args.min_history).sum()),
         "venue_five_match_sample_rows": int(len(venue)),
         "fixture_row_diagnostics_rows": int(len(fixture_rows)),
         "league_table_positions_quarantined": bool(provisional_table),
         "league_position_provenance": "PROVISIONAL_CONVENTIONAL_TABLE_NOT_ADMISSIBLE_FOR_SIGNAL_PROMOTION" if provisional_table else "REVIEW_REQUIRED",
         "xg_policy": "EXCLUDED_UNTIL_POINT_IN_TIME_CAPTURE_TIMESTAMP_AND_SOURCE_PROVENANCE_ARE_VERIFIED",
-        "multiple_testing": "BENJAMINI_HOCHBERG_ADJUSTMENT_ACROSS_ALL_FEATURE_OUTCOME_TESTS_WITHIN_EACH_TABLE",
+        "multiple_testing": "JOINT_BASE_PLUS_RAW_INTERACTION_PLUS_PARTIAL_INTERACTION_BH_AND_BENJAMINI_YEKUTIELI_ADJUSTMENTS; WITHIN_TABLE_Q_VALUES_RETAINED_FOR_DIAGNOSTIC_ONLY",
+        "feature_test_quarantine": {
+            "league_positions": "EXCLUDED_FROM_ASSOCIATION_TESTS_WHILE_ALL_CURRENT_TABLES_ARE_PROVISIONAL",
+            "h2h_sample_count": "NOT_USED_AS_A_PREDICTIVE_FEATURE",
+            "h2h_goal_environment": "MASKED_UNLESS_H2H_N_AT_LEAST_FIVE_OBSERVED_PRIOR_MEETINGS",
+            "venue_features": "MASKED_UNLESS_HOME_AT_HOME_AND_AWAY_AWAY_N_AT_LEAST_FIVE",
+        },
         "bootstrap_repetitions": int(args.bootstrap_reps),
         "random_seed": int(args.seed),
         "production_eligible": False,
