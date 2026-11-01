@@ -87,3 +87,40 @@ This candidate is not canonical until the governed workflow produces a new workb
 ## Next action
 
 After the push-triggered regression workflow passes, manually dispatch the existing Selected-50 report repair workflow on this branch with the read-only pinned-archive confirmation and source runtime run 41175230838. Then inspect the new 19-sheet workbook, 38/83 schemas, 340-field matrix, orientation QA, 24/25 blocker audit, 19-row schedule queue and unchanged xG quarantine. Keep v1.3 as canonical until every v1.4 gate passes.
+
+
+## 6. Post-implementation verification and xG code-path root cause
+
+The v1.4 candidate implementation was committed in two research-only commits:
+- `a5fbf916212087382c103c058d07bdc50f046161` — generator, workflow, tests, dictionary, continuity lock, candidate template and this diagnostic.
+- `f6d3cc1b5a9f55e205e5868ca74c700fb6f6f92c` — corrected the synthetic field-audit fixture to preserve the existing 49 exact-match/1 mismatch normalization test case.
+
+Push-triggered CI on the final test commit completed successfully:
+- Market Intelligence report-repair test workflow: run 41273597499 — PASS.
+- Selected-50 safety contract workflow: run 41273597521 — PASS.
+- Selected-50 dry-run planner: run 41273597538 — PASS.
+
+The Market Intelligence job ran 23 report-builder tests, 6 goal-market research tests and 3 field-coverage tests (32 total). The first run on the initial implementation exposed a test-fixture error in the synthetic schedule-delta normalization case; that test fixture was corrected without changing report logic, and the rerun passed.
+
+These were push-triggered test executions. The private archive download, runtime artifact download, archive-wide feature build, workbook rebuild and artifact upload steps were skipped by design on push. No v1.4 workbook has yet been generated.
+
+### FootyStats xG code path verified
+
+The live research-branch script `scripts/build_footystats_archive_features.py` confirms the provenance blocker directly:
+- It searches for `ingestion_manifest.csv`; if no manifest is found, it leaves the manifest list empty.
+- It writes `xg_capture_time_utc` as an empty string for each archived match.
+- It sets `xg_temporal_provenance_status` to `UNVERIFIED_NO_CAPTURE_TIMESTAMP`.
+- The archive summary reports `manifest_rows` from that empty manifest list.
+
+In the pinned archive summary, manifest rows are zero. This is therefore not merely a missing display column in the workbook: the archive feature builder has no captured ingestion timestamp to attach to the historical xG fields. The three pre-match-labelled fields are retained for field-presence auditing but are explicitly quarantined from prediction use.
+
+Source code: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/blob/research/oracle-50-league-readiness-audit/scripts/build_footystats_archive_features.py
+
+### Remaining execution gate
+
+The existing workflow is available for manual dispatch only. Its push event runs tests but skips the full rebuild. The next action is to dispatch the existing workflow on this branch with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+The connected GitHub actions available in this session do not expose workflow dispatch, so no full v1.4 rebuild is claimed. v1.3 remains canonical until that full rebuild passes the 19-sheet, 38/83-column, 340-field, orientation, feature-block, schedule and xG gates.
