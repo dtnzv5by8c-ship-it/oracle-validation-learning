@@ -424,3 +424,45 @@ No full workbook rebuild was run in this follow-up. Run #169 remains the latest 
 - Push CI intentionally skips private archive replay; Run #179 passing does not certify row-level archive output or JSON manifest inventory.
 - Next action: manually dispatch `.github/workflows/oracle-selected50-market-intelligence-repair.yml` on `research/oracle-50-league-readiness-audit` with `confirm_private_archive_read=true`, `private_archive_release_tag=research-selected50-footystats-history-40375285207`, and `runtime_run_id=41175230838`. Then inspect all history provenance and xG manifest sidecars before treating them as verified.
 - PR #31 remains open/draft/unmerged. v1.3 remains canonical; v1.4 remains a research/reporting candidate. Run #154 remains frozen. Production Oracle V1.6 logic, probabilities, thresholds and eligibility are unchanged. No provider API credits were spent.
+
+
+## H2H cross-season coverage repair — 2026-11-01 11:20 SAST
+
+**Latest H2H code/report CI:** Run #207 (`41288126229`), conclusion `success`, commit `d394cd724a7fa36b9543499076f719bc9f51e741`.  
+**Archive mapping regression suite:** included in Run #207; 11 tests passed.  
+**Market Intelligence report regression suite:** included in Run #207; 29 tests passed.
+
+### Confirmed root cause in Run #169
+The report builder grouped H2H pairs by raw `provider_league_id`. In the archived FootyStats data this field is sourced from the match-level `competition_id`, which is season-scoped in this archive. Consequently, historical meetings in prior season folders were not consistently joined to current-season fixtures. The 50-league coverage tab therefore showed zero prior H2H for entire league groups such as Germany Bundesliga (selected season 17210), Netherlands Eredivisie (17097), and Mexico Liga MX (17099), even though the pinned archive contains multiple historical seasons for those groups.
+
+### Reporting-only repair implemented
+1. `build_footystats_archive_features.py` now reads the pinned `ingestion_manifest.json` and the governed Selected-50 manifest. It maps each archive season folder to its selected competition using exact `selected_country` + `selected_competition_name` labels. It does not infer a parent competition ID or use fuzzy matching.
+2. Every normalized archive match row now carries `selected_id` and its mapping basis. The archive audit emits `season_selected_id_crosswalk.csv` and a mapping QA object in `summary.json`.
+3. H2H report pairing now uses the exact selected competition mapping plus the exact unordered provider team-ID pair, with strict `historical kickoff < target kickoff`. Team form, league table and production output logic are unchanged.
+4. Target archive rows must themselves map to the runtime selected ID; otherwise H2H is blocked rather than falling back to a season ID.
+5. H2H history is deduplicated by selected competition + fixture ID. Conflicting fixture-ID groups and duplicate completed signatures are quarantined.
+6. Historical `no_home_away` is preserved. Such meetings may contribute goal totals, but the home-perspective W/D/L result is recorded as `N/A`, not inferred.
+7. Workbook H2H Intelligence exposes the H2H scope ID, source season ID, home/away IDs, orientation flag, scores and result. Coverage Audit Summary now reports mapping status, mapped/unmapped archive rows and H2H duplicate/quarantine counts.
+8. Workflow upload now includes `archive-audit/season_selected_id_crosswalk.csv`.
+
+### Verification
+- Run #207 (`41288126229`) passed on commit `d394cd724a7fa36b9543499076f719bc9f51e741`.
+- Market Intelligence tests: 29/29 passed, including cross-season mapping, foreign-competition isolation, pre-cutoff chronology, duplicate fixture quarantine and orientation uncertainty.
+- Archive feature tests: 11/11 passed, including exact Selected-50 label mapping and duplicate-label rejection.
+- CI push mode skips the private archive replay by design. Therefore these tests prove code behavior on fixtures, not yet the actual 200-season archive mapping or the rebuilt workbook H2H counts.
+
+### Required manual execution to produce the corrected report
+Manually dispatch `.github/workflows/oracle-selected50-market-intelligence-repair.yml` from branch `research/oracle-50-league-readiness-audit` with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+The workflow uses the pinned archive SHA-256 `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f` and the exact existing runtime artifact. It makes no provider API calls. Inspect mapping QA before accepting H2H coverage:
+- Expect `PASS_EXACT_SELECTED_MANIFEST_LABEL_MAPPING`, 200 mapped season folders, 50 mapped selected groups, and zero unmapped archive seasons.
+- Review the new `season_selected_id_crosswalk.csv`.
+- Check Germany Bundesliga, Netherlands Eredivisie, Mexico Liga MX and all other 50 groups in `50-League Coverage`.
+- Verify nonzero H2H rows only where exact prior meetings exist; zero-meeting fixtures remain explicitly marked as no verified prior meeting.
+- Confirm strict pre-kickoff cutoff, deduplication QA, and no cross-competition leakage.
+
+### Governance
+All changes are research/reporting-only. Oracle V1.6 production logic, probabilities, thresholds, five-match runtime gate and eligibility are unchanged. No FootyStats API credits were used. PR #31 remains open/draft/unmerged. Run #154 remains frozen. The new corrected full archive report has **not** yet been generated; Run #169 remains the last completed workbook until the manual archive dispatch succeeds.
