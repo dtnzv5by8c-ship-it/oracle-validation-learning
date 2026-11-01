@@ -37,6 +37,7 @@ on:
       - "reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md"
       - "reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md"
       - "reports/oracle-selected50-xg-league-coverage-2026-11-01.csv"
+      - "reports/oracle-selected50-cross-sheet-field-coverage-and-xg-provenance-2026-11-01.md"
 
 permissions:
   actions: read
@@ -281,5 +282,6 @@ jobs:
             reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md
             reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md
             reports/oracle-selected50-xg-league-coverage-2026-11-01.csv
+            reports/oracle-selected50-cross-sheet-field-coverage-and-xg-provenance-2026-11-01.md
           if-no-files-found: error
           retention-days: 14
