@@ -119,3 +119,10 @@ Release gate for v1.4:
 4. Keep v1.3 as the canonical reference until every v1.4 gate passes.
 
 No production code, Oracle V1.6 logic, probabilities, thresholds, calibration or eligibility has been changed. All v1.4 outputs remain research-only, production-ineligible and betting-ineligible.
+
+
+### v1.4 candidate addendum — kickoff discrepancy triage sidecar
+- A separate CSV/QA sidecar may classify the existing workflow-generated schedule queue using recomputed signed deltas and non-causal review indicators.
+- It does not add or repurpose a workbook worksheet and does not change the 19-sheet v1.3 structure, 38-column source sheet or 83-column Market Intelligence view.
+- No schedule value is automatically corrected; all rows remain manual-review-only.
+- The v1.4 candidate remains non-canonical until the existing manual-dispatch workflow completes the full archive/runtime rebuild and all QA gates pass.
