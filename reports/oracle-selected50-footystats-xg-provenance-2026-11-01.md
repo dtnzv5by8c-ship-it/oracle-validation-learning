@@ -58,9 +58,9 @@ Therefore, `max_time` is a worthwhile controlled provider test for time-fenced l
 A distinction in the existing archive tooling needs to be recorded before interpreting the earlier `manifest_rows=0` summary:
 
 - `scripts/build_footystats_archive_features.py` searches specifically for `ingestion_manifest.csv` when it calculates its `manifest_rows` value.
-- The row-level history audit, `scripts/audit_selected50_row_level_history_provenance.py`, requires and reads `ingestion_manifest.json` to map archived season IDs to the Selected-50 country/competition labels.
-- Therefore, the prior zero count means **zero rows were read from the CSV-form manifest path**; it does not establish that the archive contains no manifest at all.
-- The actual JSON manifest's metadata keys and row granularity have not yet been inventoried. In particular, no conclusion can yet be made about whether it contains fixture-linked capture timestamps, response hashes or revision metadata.
+- The row-level history audit, `scripts/audit_selected50_row_level_history_provenance.py`, expects `ingestion_manifest.json` and attempts to use it to map archived season IDs to the Selected-50 country/competition labels. That code path has not yet executed against the pinned private archive, so the file's actual presence is not yet verified.
+- Therefore, the prior zero count means **zero rows were read from the CSV-form manifest path**; it does not establish either the presence or absence of a JSON manifest.
+- The JSON manifest's presence, metadata keys and row granularity have not yet been verified. In particular, no conclusion can yet be made about whether it contains fixture-linked capture timestamps, response hashes or revision metadata.
 
 A new report-only inventory, `scripts/audit_footystats_xg_manifest_provenance.py`, has been added to the governed workflow. It will emit field names and counts only, without exposing raw values or credentials. It deliberately cannot approve xG provenance: semantic review, timestamp validation, fixture linkage and provider revision semantics remain separate requirements.
 
