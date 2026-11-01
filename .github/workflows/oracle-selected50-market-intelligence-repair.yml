@@ -31,6 +31,8 @@ on:
       - "scripts/validate_selected50_kickoff_source_evidence.py"
       - "scripts/diagnose_selected50_feature_blockers.py"
       - "tests/test_selected50_feature_blocker_diagnostics.py"
+      - "scripts/audit_selected50_row_level_history_provenance.py"
+      - "tests/test_selected50_row_level_history_provenance.py"
       - "tests/test_selected50_kickoff_source_evidence.py"
       - "reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv"
       - "tests/test_selected50_field_coverage_audit.py"
@@ -261,6 +263,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
           python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_row_level_history_provenance.py' -v
 
       - name: Download preserved Run 154 schedule queue for evidence-register CI
         if: ${{ github.event_name == 'push' }}
@@ -331,6 +334,28 @@ jobs:
           python scripts/build_footystats_archive_features.py \
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
             --out archive-audit
+
+      - name: Build row-level historical feature provenance audit (research only)
+        if: \${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/audit_selected50_row_level_history_provenance.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --selected-manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --out-dir market-intelligence-output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa = json.loads(Path("market-intelligence-output/oracle_selected50_history_provenance_qa.json").read_text())
+          if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+              raise SystemExit("FAIL: row-level history audit did not use the pinned archive")
+          if qa.get("minimum_history_required") != 5 or qa.get("minimum_history_changed") is not False:
+              raise SystemExit("FAIL: five-match minimum governance contract changed")
+          if qa.get("feature_imputation") != 0 or qa.get("production_model_logic_changed") is not False or qa.get("production_probabilities_changed") is not False:
+              raise SystemExit("FAIL: research-only history audit governance contract violated")
+          print("Row-level history provenance QA:", qa.get("status"), "sides:", qa.get("blocked_team_side_rows_audited"), "count mismatches:", len(qa.get("runtime_archive_history_count_mismatches", [])))
+          PY
 
       - name: Verify archive audit digest and pinned archive coverage
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -465,6 +490,9 @@ jobs:
             market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv
             market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv
             market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json
+            market-intelligence-output/oracle_selected50_history_provenance_sides.csv
+            market-intelligence-output/oracle_selected50_history_provenance_matches.csv
+            market-intelligence-output/oracle_selected50_history_provenance_qa.json
             runtime-artifact/extracted/current_snapshot_candidate_trace.csv
             runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           if-no-files-found: ignore
@@ -495,6 +523,9 @@ jobs:
             market-intelligence-output/oracle_selected50_field_coverage_qa.json
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
+            market-intelligence-output/oracle_selected50_history_provenance_sides.csv
+            market-intelligence-output/oracle_selected50_history_provenance_matches.csv
+            market-intelligence-output/oracle_selected50_history_provenance_qa.json
             archive-audit/summary.json
             goal-market-research/goal_market_research.csv
             goal-market-research/goal_market_research_qa.json
