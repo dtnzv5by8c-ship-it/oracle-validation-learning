@@ -196,6 +196,29 @@ def main():
                 units="Numeric feature; typically goals/match or model lambda. Check exact field and sample."
             dictionary.append([source.title, sheet_purpose, col, str(header), purpose, calc, units, limits])
             count+=1
+    # The configuration tab is created after the source-sheet scan, so document its
+    # two fixed headings explicitly in the dictionary as well.
+    dictionary.append([
+        "Report Configuration",
+        SHEET_PURPOSE["Report Configuration"],
+        1,
+        "Configuration Key",
+        "Stable name of a permanent weekly report setting or governance control.",
+        "Authored in config/oracle_selected50_market_intelligence_weekly.json and embedded unchanged.",
+        "Text key.",
+        "Do not rename keys without updating the configuration validator and weekly runbook."
+    ])
+    dictionary.append([
+        "Report Configuration",
+        SHEET_PURPOSE["Report Configuration"],
+        2,
+        "Value / Instruction",
+        "Configured value or operating instruction associated with the configuration key.",
+        "Loaded from the version-controlled weekly JSON configuration; values are not inferred from fixture rows.",
+        "Text, identifier, digest, count or instruction depending on the key.",
+        "Treat as the governed operating configuration; any change requires a reviewed repository commit."
+    ])
+    count += 2
     if count==0:
         raise SystemExit("No report headings found; dictionary cannot be generated.")
     style_sheet(dictionary,[25,48,11,38,58,76,32,76])
