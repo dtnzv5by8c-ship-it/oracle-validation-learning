@@ -377,8 +377,23 @@ jobs:
           import json
           from pathlib import Path
           qa = json.loads(Path("market-intelligence-output/oracle_selected50_history_provenance_qa.json").read_text())
+          archive_summary = json.loads(Path("archive-audit/summary.json").read_text())
           if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
               raise SystemExit("FAIL: row-level history audit did not use the pinned archive")
+          if qa.get("archive_match_rows_loaded") != archive_summary.get("archive_match_records"):
+              raise SystemExit(
+                  "FAIL: row-level history audit did not load every archived match: "
+                  f"loaded={qa.get('archive_match_rows_loaded')} expected={archive_summary.get('archive_match_records')}"
+              )
+          if qa.get("archive_seasons_mapped") != archive_summary.get("season_folders"):
+              raise SystemExit(
+                  "FAIL: row-level history audit did not map every archive season: "
+                  f"mapped={qa.get('archive_seasons_mapped')} expected={archive_summary.get('season_folders')}"
+              )
+          if qa.get("blocked_team_side_rows_audited") != 25:
+              raise SystemExit(
+                  f"FAIL: expected 25 blocked team-side histories to be audited, got {qa.get('blocked_team_side_rows_audited')}"
+              )
           if qa.get("minimum_history_required") != 5 or qa.get("minimum_history_changed") is not False:
               raise SystemExit("FAIL: five-match minimum governance contract changed")
           if qa.get("feature_imputation") != 0 or qa.get("production_model_logic_changed") is not False or qa.get("production_probabilities_changed") is not False:
