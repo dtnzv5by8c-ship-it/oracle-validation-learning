@@ -466,3 +466,54 @@ The workflow uses the pinned archive SHA-256 `7c60a239f16dcee318cd04b031c68c0750
 
 ### Governance
 All changes are research/reporting-only. Oracle V1.6 production logic, probabilities, thresholds, five-match runtime gate and eligibility are unchanged. No FootyStats API credits were used. PR #31 remains open/draft/unmerged. Run #154 remains frozen. The new corrected full archive report has **not** yet been generated; Run #169 remains the last completed workbook until the manual archive dispatch succeeds.
+
+## H2H provider team-ID drift repair — 1 November 2026
+
+**User-reported defect:** a large set of fixtures in Run #208 displayed `NO_VERIFIED_PRIOR_H2H`, including repeat meetings where the archive may contain the clubs under historical provider IDs.
+
+### Root cause established from report-builder code
+- Run #208 had repaired archive season → Selected-50 competition mapping.
+- The remaining H2H index and lookup still keyed solely on the exact unordered provider team-ID pair.
+- The pinned archive contains season-scoped competition identifiers and can also contain provider team-ID changes between seasons. Exact ID-pair matching therefore silently omitted a historical meeting when one or both clubs had a different provider ID in an earlier season.
+- This is distinct from the earlier season-to-Selected-50 competition mapping defect.
+
+### Report-only repair committed
+- `4f69576ab4c63eb0f4d427c81930716c4502b1b0`: exact normalized team-name cross-season H2H index and lookup.
+- `bf0619b9891f2d82032bc4904a08bb636e74748e`: regression tests for team-ID drift and non-fuzzy matching.
+- `d78ccb3dd1972ad0f53744a4520cf2ddd600ece7`: expose match basis and historical team names in H2H evidence.
+- `0b3cf345084ca0df533051c77b3b3e244c4a76c4`: corrected Unicode/name normalization regex.
+- Current branch head at checkpoint: `0b3cf345084ca0df533051c77b3b3e244c4a76c4`.
+
+### Identity and safety policy
+- H2H prefers exact normalized unordered team-name pairs within the same Selected-50 competition.
+- Normalization is limited to Unicode NFKC, case-folding, punctuation removal and whitespace normalization.
+- Exact provider team-ID pair is the fallback when no name-pair candidate exists.
+- No fuzzy matching, guessed aliases, cross-league joins, parent-competition inference, or cutoff relaxation.
+- Historical meeting results are oriented using the exact team-name identity, with provider IDs as a secondary orientation check; if orientation cannot be established, result is N/A.
+- H2H evidence now carries historical team names and `match_basis`; summary QA counts name-based matches, ID-based matches and no-pair matches.
+- Production model logic and probabilities remain unchanged; PR #31 remains open/draft/unmerged; no provider API calls or credits.
+
+### CI verification
+- Run `41289245346` — Market Intelligence repair CI: SUCCESS.
+- Run `41289245345` — contract tests: SUCCESS.
+- Run `41289245395` — research planner: SUCCESS.
+- The report-builder suite ran 31 tests, including:
+  - `test_h2h_bridges_provider_team_id_changes_with_exact_team_names`
+  - `test_h2h_name_matching_is_not_fuzzy`
+  - existing selected-competition isolation, chronology, duplicate quarantine and no-home-away tests.
+- All applicable tests passed.
+
+### Required archive-level verification — NOT YET COMPLETE
+The code and regression tests are committed, but the pinned 59,049-row archive has not yet been replayed against the repaired builder. The successful Run #208 artifact predates this repair and must not be presented as proof that these user-listed fixtures now have H2H.
+- Manually dispatch `.github/workflows/oracle-selected50-market-intelligence-repair.yml` on `research/oracle-50-league-readiness-audit`.
+- Inputs:
+  - `confirm_private_archive_read=true`
+  - `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+  - `runtime_run_id=41175230838`
+- Inspect the rebuilt workbook and evidence trace for every user-listed fixture.
+- Reconcile each result as one of: recovered by exact normalized names; recovered by exact IDs; genuinely no qualifying pre-kickoff meeting in the pinned Selected-50 archive; or unresolved name/identity mismatch requiring a source-backed exact alias crosswalk.
+- Do not fabricate H2H or add cross-competition meetings to the Selected-50 league-scoped H2H definition without an explicit governance decision.
+- Preserve all production/betting eligibility masks and unchanged Oracle V1.6 probabilities.
+
+**Release status:** implementation + CI verified; archive replay and fixture-by-fixture verification pending. Do not call the user-facing H2H defect fully resolved until the manual rebuild artifact confirms the outcomes.
+
