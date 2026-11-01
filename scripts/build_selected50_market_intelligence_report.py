@@ -453,7 +453,8 @@ def build_report(runtime_rows, archive_rows):
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
             "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
             "archive_provider_competition_id": target.get("provider_league_id", ""),
-            "h2h_scope": "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",\n            "h2h_scope_id": h2h_scope_id,
+            "h2h_scope": "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",
+            "h2h_scope_id": h2h_scope_id,
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
@@ -1448,7 +1449,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
                 "fixture_id": item.get("fixture_id", ""), "selected_id": item.get("selected_id", ""),
                 "history_cutoff_utc": item.get("history_cutoff_utc", ""),
                 "h2h_scope": item.get("h2h_scope", ""),
-                "provider_competition_id": item.get("archive_provider_competition_id", "")}
+                "h2h_scope_id": item.get("h2h_scope_id", "")}
         try:
             meetings = json.loads(item.get("h2h_meetings_detail") or "[]")
         except (TypeError, ValueError):
@@ -1535,7 +1536,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         })
     add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
-        ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
+        ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "h2h_scope_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id", "h2h_scope_id",
          "home_team_id", "away_team_id", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
