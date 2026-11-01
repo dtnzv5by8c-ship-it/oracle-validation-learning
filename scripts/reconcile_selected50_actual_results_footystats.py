@@ -142,7 +142,8 @@ def main():
     provider, failed, api_calls = {}, set(), 0
     for i, season in enumerate(seasons):
         try:
-            provider[season], calls = fetch_season(api_key, season)\n            api_calls += calls
+            provider[season], calls = fetch_season(api_key, season)
+            api_calls += calls
         except Exception as exc:
             failed.add(season)
             print(f"FootyStats retrieval failed for season {season}: {type(exc).__name__}", file=sys.stderr)
