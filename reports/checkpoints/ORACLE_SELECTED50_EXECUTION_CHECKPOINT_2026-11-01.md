@@ -162,3 +162,51 @@ The full manual report-repair workflow has not yet been rerun after adding the s
 Then verify the fresh report artifact contains `oracle_selected50_kickoff_source_evidence_qa.json` and re-check the unchanged 19-sheet / 38-column / 83-column workbook contract, exact joins, 17,000-row field matrix, orientation and feature blocker audits, xG quarantine, and eligibility masks.
 
 **Governance remains unchanged:** v1.3 canonical; v1.4 candidate only; no merge of PR #31; no production model/probability/threshold changes; no API-credit spend.
+
+
+## Team-level feature blocker diagnostics — Run #168 (2026-11-01)
+
+**CI run:** [Run #168](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41278235512)  
+**Run ID:** `41278235512`  
+**Head commit:** `d6ebb26949427eddfc71a60e2987f0eb16ee8246`  
+**Result:** SUCCESS. Push CI downloaded the preserved runtime artifact and executed the existing offline diagnostic against the exact runtime prediction CSV.
+
+### Diagnostic result
+- Input runtime rows: 434; unique fixture IDs: 434.
+- Blocked fixtures: 24.
+- Blocked team-side rows: 25 (15 home, 10 away).
+- Provider-season/team-ID profiles: 23.
+- Repeated affected profiles: Coventry City (two side gaps) and Kruger United (two side gaps).
+- One fixture has both sides below the minimum history gate.
+- All 25 sides are below the five-match requirement: 21 have four oriented-history matches and 4 have three.
+- Count contradictions (count >=5 but side features missing): 0.
+- Unknown history counts: 0.
+- All blocked fixtures have training support for all markets.
+- Combo probabilities remain masked.
+- No imputation, predictions, provider calls, canonical team mapping or production eligibility.
+
+The diagnostic is deliberately count-only. It inherits history counts and feature names from the runtime report; it does not replay the private archive cutoff, expose the historical match IDs used/excluded, or prove why the fifth qualifying match is absent. Do not describe this as a root-cause fix.
+
+### Artifact
+- Artifact ID: `13072152007`
+- Artifact ZIP SHA-256: `f21362e24363ccf70e6b4c10aac2c8d80a02a450b23019ff17d4c741c70594f8`
+- Files: side-level diagnostics CSV, team-level diagnostics CSV, QA JSON.
+- Saved Library copies:
+  - `/Project Oracle/Selected-50/Oracle_Selected50_Feature_Blocker_Side_Audit_2026-11-01.csv`
+  - `/Project Oracle/Selected-50/Oracle_Selected50_Feature_Blocker_Team_Audit_2026-11-01.csv`
+  - `/Project Oracle/Selected-50/Oracle_Selected50_Feature_Blocker_QA_2026-11-01.json`
+
+### Implementation and workflow
+- The existing offline `diagnose_selected50_feature_blockers.py` and its 14 unit tests are now part of the repair workflow test contract.
+- The manual report rebuild now emits side-level, team-level and QA JSON diagnostics from the exact verified runtime artifact.
+- Push CI also validates the preserved Run #154 kickoff evidence register and executes the feature blocker diagnostics against the pinned runtime artifact; no provider API calls.
+
+## Updated next controlled priorities
+1. Manually dispatch the full report-repair workflow from the current governed branch head after these CI changes, using the same pinned archive and runtime inputs recorded above. This is required to create a fresh report artifact containing both new QA sidecars.
+2. Obtain a runtime-side row-level feature provenance export: exact historical fixture IDs, kickoff cutoffs, source status, oriented team IDs and per-feature completeness/exclusion reasons for each of the 25 affected sides. Keep the five-match gate; no imputation.
+3. Continue manual authoritative schedule review for the 19 queue rows; 18 runtime times now have external source corroboration, but the original queue remains review-required and no schedule correction is authorized. Tondela–Felgueiras remains unresolved.
+4. Preserve the 66 runtime orientation warnings and official FootyStats semantics; do not infer neutral venue or alter home/away probabilities.
+5. Keep xG quarantined until field definition, capture time and revision provenance are evidenced.
+6. Keep v1.3 canonical until v1.4 release gates are formally passed. No PR #31 merge, production model changes, probability changes, threshold relaxation, or API-credit spend.
+
+**Run #154 remains the frozen workbook baseline. Run #164 and #168 add validated report-only evidence and diagnostics; neither changes the workbook or production model.**
