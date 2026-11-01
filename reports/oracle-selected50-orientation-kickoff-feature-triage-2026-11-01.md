@@ -186,3 +186,10 @@ Important limitation: this was a push-triggered CI run. The private-archive down
 - All unverified xG remains quarantined.
 
 **Next execution gate:** manually dispatch the existing Selected-50 Market Intelligence repair workflow on `research/oracle-50-league-readiness-audit`, with the already specified read-only archive confirmation, pinned archive release and verified runtime run ID `41175230838`. Inspect the resulting workbook and sidecar artifacts against the locked v1.3 contract before considering any v1.4 candidate acceptance.
+
+
+## 8. Follow-up CI and branch status
+
+After the report was committed, the xG capture specification was aligned with the user's confirmed Hobby 50-league entitlement. That documentation-only commit (`a4e96f8522f7db8ca15727780384491407dd452f`) triggered another push check, run `41275569658`. It also passed the same 24 Market Intelligence, 6 goal-market, 3 field-coverage and 4 kickoff-triage tests. The private archive/runtime and full report-build steps were again skipped because the event was a push, not a manual dispatch.
+
+Pull request #31 remains open and unmerged. The research branch is not promoted to main.
