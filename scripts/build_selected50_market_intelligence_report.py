@@ -1854,7 +1854,7 @@ def main():
         "combo_policy": "Combo probabilities remain masked; no combo output is synthesized.",
         "historical_accuracy_status": "NOT_VALIDATED",
         "standings_policy": "Provisional conventional 3-1-0 table within exact provider season ID; special competition tie-breaks/formats not verified.",
-        "history_scope": "Team form and H2H use explicit provider_competition_id where present with exact stable team IDs and strict pre-kickoff cutoffs; tables remain exact provider-season scoped. Provider competition IDs may themselves be season-scoped; cross-season coverage is measured from actual source and target season IDs, not inferred from the scope label.",
+        "history_scope": "Team form uses the existing provider competition/season scope. H2H uses the exact Selected-50 country/competition mapping from the pinned ingestion manifest, exact unordered provider team IDs and strict pre-kickoff chronology. Tables remain exact provider-season scoped; no parent competition ID is inferred.",
         "risk_policy": "Evidence coverage gap score only; not outcome risk or probability of losing.",
         "minimum_expected_league_groups": args.expected_league_groups,
         "league_group_gate": "PASS" if summary["selected_league_groups"] == args.expected_league_groups and report_ids.issubset(governed_ids) else "FAIL",
