@@ -272,6 +272,41 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertIn("OLD1", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
+
+    def test_h2h_deduplicates_repeated_fixture_ids_across_season_folders(self):
+        prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", selected_id="S1", provider_competition_id="S1")
+        duplicate = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                                season="S2", selected_id="S1", provider_competition_id="S2")
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                             season="S1", selected_id="S1")
+        report, trace, summary = market_report.build_report([runtime_row()], [prior, duplicate, target])
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(summary["h2h_history_deduplication"]["exact_duplicate_rows_removed"], 1)
+
+    def test_h2h_quarantines_conflicting_fixture_id_duplicates(self):
+        first = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", selected_id="S1")
+        conflicting = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 4, 0,
+                                  season="S2", selected_id="S1")
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                             season="S1", selected_id="S1")
+        report, trace, summary = market_report.build_report([runtime_row()], [first, conflicting, target])
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(summary["h2h_history_deduplication"]["conflicting_fixture_id_groups_quarantined"], 1)
+
+    def test_h2h_marks_unoriented_history_without_inventing_home_away_result(self):
+        prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
+                            season="S1", selected_id="S1")
+        prior["no_home_away"] = 1
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
+                             season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        meetings = json.loads(trace[0]["h2h_meetings_detail"])
+        self.assertEqual(meetings[0]["no_home_away"], 1)
+        self.assertEqual(meetings[0]["result_current_home_perspective"], "N/A")
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "N/A")
+
     def test_h2h_does_not_mix_same_team_pair_from_another_selected_competition(self):
         foreign = archive_row("FOREIGN", "2025-08-01T12:00:00+00:00", "H", "A", 5, 0,
                               season="FOREIGN-S", league="Foreign", selected_id="OTHER",
