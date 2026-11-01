@@ -80,12 +80,14 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
           CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
         run: |
           set -euo pipefail
           [[ "$GITHUB_REF_NAME" == "research/oracle-50-league-readiness-audit" ]] || { echo "::error::Run this workflow from the governed research branch only."; exit 1; }
           [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit read-only archive confirmation required."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY repository secret is missing; configure it before dispatch."; exit 1; }
           gh auth status
 
       - name: Validate permanent weekly report configuration
