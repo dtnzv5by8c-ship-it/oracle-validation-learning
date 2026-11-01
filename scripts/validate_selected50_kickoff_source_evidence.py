@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 CORROBORATED = {
     "AUTHORITATIVE_TIME_CORROBORATES_RUNTIME",
     "AUTHORITATIVE_BODY_MATCH_TITLE_SLUG_MISMATCH",
+    "AUTHORITATIVE_TIME_CORROBORATES_ARCHIVE",
 }
 
 
@@ -67,7 +68,7 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
         raise ValueError(f"fixture identity set mismatch; missing={missing}, extra={extra}")
 
     statuses = Counter()
-    corroborated = unresolved = 0
+    runtime_corroborated = archive_corroborated = unresolved = 0
     for fixture_id, ev in evidence.items():
         q = queue[fixture_id]
         if (ev.get("fixture") or "").strip() != (q.get("fixture") or "").strip():
@@ -102,11 +103,17 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
             calculated = local.replace(tzinfo=source_timezone(zone_text)).astimezone(timezone.utc)
             if calculated != utc(converted):
                 raise ValueError(f"{fixture_id}: source local-to-UTC conversion mismatch")
-            if utc(converted) != utc(ev.get("runtime_kickoff_utc", "")):
-                raise ValueError(f"{fixture_id}: authoritative source does not corroborate runtime kickoff")
+            corroborated_time = utc(converted)
+            if status == "AUTHORITATIVE_TIME_CORROBORATES_ARCHIVE":
+                if corroborated_time != utc(ev.get("archive_kickoff_utc", "")):
+                    raise ValueError(f"{fixture_id}: authoritative source does not corroborate archive kickoff")
+                archive_corroborated += 1
+            else:
+                if corroborated_time != utc(ev.get("runtime_kickoff_utc", "")):
+                    raise ValueError(f"{fixture_id}: authoritative source does not corroborate runtime kickoff")
+                runtime_corroborated += 1
             if "NO_AUTO_CORRECTION" not in decision and "NO_CORRECTION" not in decision:
                 raise ValueError(f"{fixture_id}: corroboration decision must prohibit automatic correction")
-            corroborated += 1
         else:
             if converted:
                 raise ValueError(f"{fixture_id}: unresolved/conflicted source must not carry accepted UTC")
@@ -125,7 +132,8 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
         "exact_fixture_id_set_match": True,
         "unique_fixture_ids": True,
         "source_status_counts": dict(sorted(statuses.items())),
-        "authoritative_runtime_corroborations": corroborated,
+        "authoritative_runtime_corroborations": runtime_corroborated,
+        "authoritative_archive_corroborations": archive_corroborated,
         "unresolved_or_conflicted_sources": unresolved,
         "schedule_auto_corrections": 0,
         "original_queue_rows_still_review_required": len(queue),
