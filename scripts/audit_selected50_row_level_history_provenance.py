@@ -191,6 +191,7 @@ def deduplicate(rows):
     exact_extra = set()
     seen_ids = set()
     normalized = []
+    seen_dedup_keys = set()
     for row in rows:
         if row["kickoff_unix"] is None or not row["home_id"] or not row["away_id"]:
             continue
@@ -207,6 +208,10 @@ def deduplicate(rows):
         else:
             dedup_key = (row["competition_id"], row["season_id"], row["kickoff_unix"],
                          row["home_id"], row["away_id"])
+        if dedup_key in seen_dedup_keys:
+            exact_extra.add((row["source_file"], row["source_row"]))
+            continue
+        seen_dedup_keys.add(dedup_key)
         normalized.append(row)
     signature_groups = defaultdict(list)
     for row in normalized:
@@ -234,10 +239,8 @@ def parse_target_time(value):
 def numeric_feature_completeness(sample, side, team_id):
     if len(sample) < 5:
         return {f"{side}_{name}": "NO_FIVE_MATCH_SAMPLE" for name in SIDE_FEATURES}
-    shot_key = "team_a_shots" if side == "home" else "team_b_shots"
-    sot_key = "team_a_shotsOnTarget" if side == "home" else "team_b_shotsOnTarget"
-    shot_n = sum(number(row["raw"].get(shot_key)) is not None for row in sample)
-    sot_n = sum(number(row["raw"].get(sot_key)) is not None for row in sample)
+    shot_n = sum(number(row["raw"].get("team_a_shots" if row["home_id"] == team_id else "team_b_shots")) is not None for row in sample)
+    sot_n = sum(number(row["raw"].get("team_a_shotsOnTarget" if row["home_id"] == team_id else "team_b_shotsOnTarget")) is not None for row in sample)
     result = {f"{side}_{name}": "COMPLETE_FROM_FIVE_MATCHES" for name in SIDE_FEATURES[:5]}
     result[f"{side}_shots5"] = "COMPLETE" if shot_n else "NO_NUMERIC_SOURCE_VALUES"
     result[f"{side}_sot5"] = "COMPLETE" if sot_n else "NO_NUMERIC_SOURCE_VALUES"
@@ -294,7 +297,9 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 elif row["kickoff_unix"] >= cutoff:
                     reason, detail = "AFTER_CUTOFF", "NOT_STRICTLY_BEFORE_TARGET_KICKOFF"
                 elif not home_id or not away_id or home_id == away_id:
-                    reason, detail = "ORIENTATION_UNAVAILABLE", "MISSING_OR_IDENTICAL_TEAM_IDS"
+                    reason, detail = "INVALID_IDENTITY", "MISSING_OR_IDENTICAL_TEAM_IDS"
+                elif (side == "home" and home_id != team_id) or (side == "away" and away_id != team_id):
+                    reason, detail = "ORIENTATION_UNAVAILABLE", f"HISTORICAL_TEAM_NOT_IN_REQUIRED_{side.upper()}_ORIENTATION"
                 elif row["fixture_id"] and (selected_id, row["fixture_id"]) in conflicting_ids:
                     reason, detail = "DUPLICATE_RECORD", "CONFLICTING_COMPETITION_SCOPED_FIXTURE_ID"
                 elif (row["source_file"], row["source_row"]) in exact_extra:
