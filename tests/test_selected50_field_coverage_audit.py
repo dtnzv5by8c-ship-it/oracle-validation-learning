@@ -49,7 +49,7 @@ class FieldCoverageAuditTests(unittest.TestCase):
             quality.append(quality_headers)
             for i in range(49):
                 quality.append([f"S{i+1:02d}", f"League {i+1}", "MATCH", None,
-                                "2026-10-31T12:00:00Z", "2026-10-31T12:00:00Z", 0,
+                                "2026-10-31T12:00:00Z", "2026-10-31T12:00:00Z", None,
                                 "0", "HOME_AWAY_DISTINCTION_PRESENT", "NO_ORIENTATION_REVIEW_FLAG",
                                 i + 1, "2026-10-31T06:02:13Z", "snapshot-sha",
                                 "PASS_ALL_20_REQUIRED_FEATURES", "RESEARCH_PREDICTION_AVAILABLE",
