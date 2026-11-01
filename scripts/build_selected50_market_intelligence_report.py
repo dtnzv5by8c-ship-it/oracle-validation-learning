@@ -158,9 +158,9 @@ def build_indexes(matches):
         by_team[(competition, h)].append(item)
         by_team[(competition, a)].append(item)
         by_season[(league, season)].append(item)
-        # H2H alone uses the exact Selected-50 country/competition mapping from
-        # the pinned ingestion manifest. provider_league_id in this archive is
-        # season-scoped, so it must not be used as a cross-season competition key.
+        # H2H uses the exact Selected-50 country mapping from the pinned ingestion
+        # manifest, allowing historical meetings across selected divisions in the
+        # same country. No fuzzy team aliases or cross-country joins are permitted.
         # H2H spans the governed Selected-50 archive within the same country.
         # This retains prior meetings when clubs move between selected divisions,
         # while preventing same-name/team-ID joins across countries.
