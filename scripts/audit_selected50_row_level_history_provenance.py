@@ -444,8 +444,9 @@ def write_csv(path, rows):
     if not rows:
         path.write_text("", encoding="utf-8")
         return
+    fieldnames = list(dict.fromkeys(key for row in rows for key in row.keys()))
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
