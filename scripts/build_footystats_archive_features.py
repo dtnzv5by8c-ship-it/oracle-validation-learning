@@ -84,15 +84,110 @@ def write_csv(path, rows, fields=None):
         w=csv.DictWriter(f,fieldnames=fields,extrasaction="ignore")
         w.writeheader(); w.writerows(rows)
 
+
+def map_archive_seasons_to_selected_ids(selected_manifest_rows, ingestion_manifest, archive_season_ids):
+    """Map every archived season to its Selected-50 competition using exact manifest labels."""
+    selected_by_label = {}
+    selected_ids = set()
+    for row in selected_manifest_rows:
+        sid = str(row.get("selected_id") or "").strip()
+        label = (str(row.get("country") or "").strip(),
+                 str(row.get("competition_name") or "").strip())
+        if not sid or not all(label) or sid in selected_ids or label in selected_by_label:
+            raise ValueError("Selected-50 manifest has blank or duplicate IDs/labels")
+        selected_ids.add(sid)
+        selected_by_label[label] = sid
+    if not isinstance(ingestion_manifest, list):
+        raise ValueError("Archive ingestion manifest must be a list")
+    mapping = {}
+    duplicate_season_ids = []
+    unmapped_labels = []
+    for meta in ingestion_manifest:
+        if not isinstance(meta, dict):
+            continue
+        season_id = str(meta.get("season_id") or "").strip()
+        label = (str(meta.get("selected_country") or "").strip(),
+                 str(meta.get("selected_competition_name") or "").strip())
+        if not season_id:
+            continue
+        if season_id in mapping:
+            duplicate_season_ids.append(season_id)
+            continue
+        selected_id = selected_by_label.get(label)
+        if not selected_id:
+            unmapped_labels.append({"season_id": season_id, "country": label[0], "competition_name": label[1]})
+            continue
+        mapping[season_id] = selected_id
+    archive_ids = {str(value).strip() for value in archive_season_ids if str(value).strip()}
+    unmapped_archive_seasons = sorted(archive_ids - set(mapping))
+    covered_selected_ids = set(mapping.values())
+    qa = {
+        "status": "PASS_EXACT_SELECTED_MANIFEST_LABEL_MAPPING" if (
+            not duplicate_season_ids and not unmapped_archive_seasons and not unmapped_labels
+            and covered_selected_ids == selected_ids
+        ) else "REVIEW_REQUIRED_SELECTED_MANIFEST_MAPPING",
+        "mapping_source": "PINNED_ARCHIVE_INGESTION_MANIFEST_JSON_EXACT_COUNTRY_COMPETITION_LABELS",
+        "archive_season_folders": len(archive_ids),
+        "mapped_archive_seasons": len(archive_ids & set(mapping)),
+        "unmapped_archive_seasons": unmapped_archive_seasons,
+        "unmapped_manifest_labels": unmapped_labels,
+        "duplicate_season_ids": sorted(set(duplicate_season_ids)),
+        "selected_groups_expected": len(selected_ids),
+        "selected_groups_mapped": len(covered_selected_ids),
+        "selected_ids_without_any_mapped_season": sorted(selected_ids - covered_selected_ids),
+        "parent_competition_id_inference_used": False,
+        "fuzzy_matching_used": False,
+    }
+    crosswalk = [
+        {"provider_season_id": season_id, "selected_id": selected_id,
+         "mapping_basis": "EXACT_INGESTION_MANIFEST_COUNTRY_COMPETITION_LABEL"}
+        for season_id, selected_id in sorted(mapping.items())
+    ]
+    return mapping, qa, crosswalk
+
 def main():
     ap=argparse.ArgumentParser()
-    ap.add_argument("--archive",required=True); ap.add_argument("--out",required=True)
+    ap.add_argument("--archive",required=True); ap.add_argument("--out",required=True); ap.add_argument("--selected-manifest",default="data/oracle-footystats-selected-50-season-id-manifest.csv")
     args=ap.parse_args(); out=Path(args.out); out.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(args.archive) as z:
         z.extractall(out/"extracted")
     root=out/"extracted"
     files=list(root.rglob("matches.json"))
     if not files: raise SystemExit("No matches.json files found in archive.")
+    selected_manifest_path = Path(args.selected_manifest)
+    with selected_manifest_path.open(encoding="utf-8-sig", newline="") as handle:
+        selected_manifest_rows = list(csv.DictReader(handle))
+    json_manifest_files = sorted(root.rglob("ingestion_manifest.json"))
+    if len(json_manifest_files) == 1:
+        try:
+            ingestion_manifest_json = json.loads(json_manifest_files[0].read_text(encoding="utf-8"))
+            season_to_selected_id, h2h_mapping_qa, h2h_crosswalk_rows = map_archive_seasons_to_selected_ids(
+                selected_manifest_rows, ingestion_manifest_json, [fp.parent.name for fp in files]
+            )
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            season_to_selected_id, h2h_mapping_qa, h2h_crosswalk_rows = {}, {
+                "status": "BLOCKED_INVALID_SELECTED_MANIFEST_MAPPING",
+                "mapping_source": "PINNED_ARCHIVE_INGESTION_MANIFEST_JSON",
+                "error_type": type(exc).__name__,
+                "archive_season_folders": len(files),
+                "mapped_archive_seasons": 0,
+                "unmapped_archive_seasons": sorted(fp.parent.name for fp in files),
+                "parent_competition_id_inference_used": False,
+                "fuzzy_matching_used": False,
+            }, []
+    else:
+        season_to_selected_id, h2h_mapping_qa, h2h_crosswalk_rows = {}, {
+            "status": "BLOCKED_INGESTION_MANIFEST_MISSING_OR_AMBIGUOUS",
+            "mapping_source": "PINNED_ARCHIVE_INGESTION_MANIFEST_JSON",
+            "manifest_file_count": len(json_manifest_files),
+            "archive_season_folders": len(files),
+            "mapped_archive_seasons": 0,
+            "unmapped_archive_seasons": sorted(fp.parent.name for fp in files),
+            "parent_competition_id_inference_used": False,
+            "fuzzy_matching_used": False,
+        }, []
+    write_csv(out/"season_selected_id_crosswalk.csv", h2h_crosswalk_rows,
+              ["provider_season_id", "selected_id", "mapping_basis"])
     manifest_files=list(root.rglob("ingestion_manifest.csv"))
     manifest=[]
     if manifest_files:
@@ -133,7 +228,9 @@ def main():
             rec={"league_folder":league,"season_folder":season,"season_start_year":season_year,
                  "source_file":rel,"source_row":i,"fixture_id":str(ident) if ident is not None else "",
                  "provider_league_id":str(first(d,("competition_id","league_id","leagueID")) or ""),
-                 "provider_season_id":str(season),"provider_season_id_source":"ARCHIVE_SEASON_FOLDER_ID",
+                 "provider_season_id":str(season),"selected_id":season_to_selected_id.get(str(season), ""),
+                 "selected_id_mapping_basis":"EXACT_INGESTION_MANIFEST_LABEL" if str(season) in season_to_selected_id else "UNMAPPED",
+                 "provider_season_id_source":"ARCHIVE_SEASON_FOLDER_ID",
                  "kickoff_utc":dt.isoformat() if dt else "",
                  "date_parse_ok":bool(dt),"home_team_id":str(hid or ""),
                  "away_team_id":str(aid or ""),"home_team":str(hn or ""),
@@ -300,6 +397,7 @@ def main():
       "records_with_team_ids":sum(bool(r["home_team_id"] and r["away_team_id"]) for r in records),"feature_rows":len(feature_rows),
       "season_folders":len(season_rows),"manifest_rows":len(manifest),"parse_errors":len(file_errors),
       "competition_season_identity_audit":competition_identity_summary,
+      "h2h_selected_season_mapping":h2h_mapping_qa,
       "field_nonempty_counts":dict(field_counts.most_common()),"xg_policy":"Actual-match xG is descriptive only; prematch-labelled fields are presence-audited but excluded from model features until point-in-time provenance is verified.",
       "market_odds_policy":"Odds field presence is audited; no odds feature is built because timestamp/provenance is unverified.",
       "historical_table_policy":"No provider final/current table is treated as historical. Historical standings remain unbuilt pending rules for season formats and a separately validated reconstruction.",
