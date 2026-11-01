@@ -24,7 +24,7 @@ The League Matches documentation describes `max_time` as an as-of timestamp for 
 
 The FAQ says match statistics are usually available around 20 minutes after full-time. This is general timing guidance and does not define when pre-match-labelled xG fields are first generated, published or revised.
 
-The public API product page states a general results update frequency of every 20 minutes. This is not a field-specific service-level guarantee and does not prove that each xG value is recomputed or published on that cadence. The same page lists Hobby at a maximum of 50 leagues and 1,800 requests/hour, and Serious at 150 leagues and 3,600 requests/hour. If the governed universe is 50 distinct leagues, Hobby is exactly at the published league cap. The actual account tier and entitlement remain unverified.
+The public API product page states a general results update frequency of every 20 minutes. This is not a field-specific service-level guarantee and does not prove that each xG value is recomputed or published on that cadence. The public product page lists Hobby at a maximum of 50 leagues and 1,800 requests/hour, and Serious at 150 leagues and 3,600 requests/hour. The user has confirmed that the active Hobby subscription supports all 50 selected leagues; no package upgrade is required for this universe. Account-specific request/credit cost and remaining allowance for a prospective pilot still require confirmation.
 
 Official references:
 - https://footystats.org/api/documentations/match-details
@@ -47,7 +47,7 @@ Obtain written provider confirmation and, where possible, a machine-readable exa
 8. Which of the 50 selected competitions and seasons have these fields, and any known coverage gaps or changes in methodology.
 9. Whether the same fixture can be queried repeatedly and whether prior values/revisions can be retrieved.
 10. Whether a documented API response schema or data dictionary defines the xG fields and their lifecycle.
-11. Which subscription tier is active for the existing account, its selected-league limit, request limit, and whether the 50 selected leagues are all enabled concurrently.
+11. Confirm the account-specific request/credit cost and remaining allowance for the prospective pilot. The user has already confirmed that the active Hobby subscription supports all 50 selected leagues; do not repeat the package-upgrade question.
 
 A current response for a completed historical fixture is not an answer to questions 3–7.
 
@@ -89,7 +89,7 @@ Never fabricate provider update timestamps or revision identifiers. Client captu
 - Verify fixture ID, ordered team IDs, season ID and kickoff against the governed fixture record. Any mismatch is quarantined.
 - Preserve each revision; never overwrite an earlier capture with a later response.
 - Do not use values from captures received at or after kickoff as pre-match inputs.
-- Budget the capture pilot against the verified account tier and actual request limits. Do not assume the public package maximum is the user's current entitlement.
+- Budget the capture pilot against the user's confirmed Hobby entitlement and the actual account-specific request/credit cost and remaining allowance. The public 1,800-requests/hour limit is not itself confirmation of available credits for the pilot.
 - A prospective capture study cannot retroactively validate the 20 March 2025–20 September 2026 historical backtest window.
 
 ## 6. Acceptance gates
