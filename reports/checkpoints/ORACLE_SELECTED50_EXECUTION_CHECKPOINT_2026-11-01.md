@@ -393,3 +393,34 @@ These are research scripts, tests, workflow wiring and documentation only. The c
 **Verification limitation:** the latest GitHub Actions status lookup for commit `167a10253830ab5c8b983fd2577a0f17fbf8509a` returned no commit-status entries. The new tests are present in the governed workflow but are not yet certified as passing. The last verified passing CI remains Run #173 on the earlier implementation; it predates these latest corrections.
 
 No full workbook rebuild was run in this follow-up. Run #169 remains the latest verified full workbook artifact. The next manual dispatch will run the updated diagnostics and use the existing report generator; if archive manifest evidence is unavailable, the workbook build can still complete with explicit blocked sidecars.
+
+
+## Latest continuation checkpoint — 2026-11-01 08:30 SAST
+
+**Verified research branch head at checkpoint:** `175f76c07ff23e06555e6fc88aa12726253008a1`  
+**Latest code/test CI run:** Run #179 (`41280651255`), commit `20c45a98e43c6d9c98123c938906be0774d327be`, conclusion `success`.  
+**Previous exporter-fix CI:** Run #178 (`41280648334`), commit `5a8a9e998f61e5840485294fbc5a65fcd0d2404a`, conclusion `success`.
+
+### Completed since prior checkpoint
+
+- Fixed the row-level provenance CSV export failure caused by heterogeneous home/away feature columns. The writer now uses the ordered union of keys across all side rows.
+- Added a regression test proving distinct home/away feature columns export correctly.
+- The complete governed push-CI job passed in Runs #178 and #179. Run #179 is the latest passing code/test verification.
+- The existing report artifact from Run #169 was retrieved for review. Artifact ID `13073055114`; 27 files; workbook SHA-256 `8526cfea9ba147ab85262e2dd28321605956d9669e01f28d00e56e31b7bd4456`; archive ZIP SHA-256 `6cdec9fd99f1a93ffc4cfadd90b54d337f026a15a9d224ed370ab71202bc8c1c`.
+
+### Current report evidence (Run #169; latest complete full workbook)
+
+- 434 runtime fixtures; 434 report rows; 434 exact archive joins; zero unmatched/quarantined joins.
+- 50 selected league groups; workbook has 19 worksheets. Oracle V1.6 Output: 434 rows x 38 columns. Market Intelligence: 434 rows x 83 columns. Field-coverage matrix: 17,000 rows x 19 columns.
+- Schedule reconciliation: 19 rows remain `REVIEW_REQUIRED`; no automatic kickoff corrections.
+- Orientation: 66 no-home/away flags; 368 fixtures with home/away distinction; zero unknown.
+- Runtime feature audit: 24 blocked fixtures / 25 blocked team-side histories; prior count-only evidence: 21 sides with four qualifying prior matches and four with three. The corrected row-level archive replay remains unexecuted, so no root cause is certified.
+- xG remains quarantined: 434 candidates, zero verified capture timestamps, zero prediction-eligible and zero betting-eligible.
+- Historical accuracy remains `NOT_VALIDATED`; production eligibility and betting eligibility remain false.
+
+### Execution and governance state
+
+- Run #176 (`41280596249`) was the last manual private-archive dispatch and failed at the row-level CSV export. The exporter correction is now CI-tested, but the private archive replay has **not** yet been rerun after that fix.
+- Push CI intentionally skips private archive replay; Run #179 passing does not certify row-level archive output or JSON manifest inventory.
+- Next action: manually dispatch `.github/workflows/oracle-selected50-market-intelligence-repair.yml` on `research/oracle-50-league-readiness-audit` with `confirm_private_archive_read=true`, `private_archive_release_tag=research-selected50-footystats-history-40375285207`, and `runtime_run_id=41175230838`. Then inspect all history provenance and xG manifest sidecars before treating them as verified.
+- PR #31 remains open/draft/unmerged. v1.3 remains canonical; v1.4 remains a research/reporting candidate. Run #154 remains frozen. Production Oracle V1.6 logic, probabilities, thresholds and eligibility are unchanged. No provider API credits were spent.
