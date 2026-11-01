@@ -13,6 +13,7 @@ def queue_row(fid="1"):
         "runtime_kickoff_utc": "2026-11-01T17:00:00+00:00",
         "archive_kickoff_utc": "2026-11-01T18:00:00+00:00",
         "schedule_reconciliation_status": "REVIEW_REQUIRED",
+        "resolution_action": "MANUAL_AUTHORITATIVE_EVENT_TIME_REVIEW_ONLY_NO_AUTO_CORRECTION",
         "schedule_auto_correction": "NO", "production_eligible": "NO",
         "betting_eligible": "NO",
     }
