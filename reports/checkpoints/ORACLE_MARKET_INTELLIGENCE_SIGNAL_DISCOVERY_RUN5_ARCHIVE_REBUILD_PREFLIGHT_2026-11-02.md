@@ -54,3 +54,9 @@ The corrected workflow is committed in this change. Its run result and archive r
 
 - The first corrected-workflow contract run (commit 556ad8dd6639cbdaf6d42a3662f25ceb8742576f) found that the aggregate roll-up attempted to sum string label fields alongside numeric counts. The failing test was isolated to the summary aggregation helper; archive data was not downloaded and no provider calls occurred.
 - Updated the helper to sum numeric count fields only. The next push-triggered run must pass the two synthetic tri-state tests before it attempts private archive retrieval.
+
+## Pinned archive access result
+
+- The corrected workflow successfully downloaded the exact 66,416,916-byte private archive and verified its SHA-256 against the declared bc64...e7261 digest. No provider API was called.
+- The subsequent audit step failed before parsing the archive because direct script execution did not put the repository root on Python's import path for the shared archive helper. The contract tests themselves passed. The helper import path is corrected in this commit; no archive data was modified or exported.
+- The next workflow run will repeat the checksum-verified read and complete the aggregate venue-flag audit. The archive remains ephemeral in the job workspace.

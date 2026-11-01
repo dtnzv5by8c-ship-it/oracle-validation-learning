@@ -15,6 +15,11 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path, PurePosixPath
 
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 from scripts.build_footystats_archive_features import (
     DATE_KEYS, HG_KEYS, AG_KEYS, as_date, first, score, settled,
     map_archive_seasons_to_selected_ids,
