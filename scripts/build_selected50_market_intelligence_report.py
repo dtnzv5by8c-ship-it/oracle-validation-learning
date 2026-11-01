@@ -732,6 +732,67 @@ def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenan
     return orientation_by_key, qa
 
 
+
+def require_snapshot_orientation_qa(qa):
+    """Fail the candidate report if any runtime fixture lacks an exact binary orientation flag."""
+    expected = int(qa.get("runtime_fixture_rows", -1))
+    exact = int(qa.get("exact_snapshot_matches", -1))
+    flagged = int(qa.get("no_home_away_flagged", -1))
+    distinction = int(qa.get("home_away_distinction_present", -1))
+    unknown = int(qa.get("orientation_unknown_rows", -1))
+    duplicates = int(qa.get("duplicate_snapshot_keys", -1))
+    incomplete = int(qa.get("incomplete_snapshot_identity_rows", -1))
+    if (
+        qa.get("status") != "PASS_EXACT_SNAPSHOT_TRACE_JOIN"
+        or expected < 0
+        or exact != expected
+        or flagged + distinction != expected
+        or unknown != 0
+        or duplicates != 0
+        or incomplete != 0
+        or qa.get("snapshot_trace_row_count_match") is not True
+        or qa.get("production_eligible") is not False
+        or qa.get("betting_eligible") is not False
+    ):
+        raise ValueError(
+            "SNAPSHOT_ORIENTATION_QA_BLOCKED: "
+            f"status={qa.get('status')}; runtime={expected}; exact={exact}; "
+            f"flagged={flagged}; distinction={distinction}; unknown={unknown}; "
+            f"duplicates={duplicates}; incomplete={incomplete}"
+        )
+    return True
+
+
+def require_runtime_feature_block_audit(rows, qa):
+    """Reconcile source-runtime blocked fixtures and side rows without relaxing any feature gate."""
+    expected_sides = int(qa.get("blocked_team_side_histories", -1))
+    home_sides = int(qa.get("home_side_histories_below_5", -1))
+    away_sides = int(qa.get("away_side_histories_below_5", -1))
+    if expected_sides < 0 or len(rows) != expected_sides or home_sides + away_sides != expected_sides:
+        raise ValueError(
+            "RUNTIME_FEATURE_BLOCK_AUDIT_RECONCILIATION_FAILED: "
+            f"rows={len(rows)}; expected={expected_sides}; home={home_sides}; away={away_sides}"
+        )
+    keys = []
+    for row in rows:
+        try:
+            count = int(row.get("recent5_feature_complete_n"))
+        except (TypeError, ValueError):
+            raise ValueError("RUNTIME_FEATURE_BLOCK_AUDIT_HAS_INVALID_SIDE_SAMPLE_COUNT")
+        if count >= 5 or row.get("team_side") not in {"HOME", "AWAY"}:
+            raise ValueError("RUNTIME_FEATURE_BLOCK_AUDIT_CONTAINS_NON_BLOCKED_SIDE")
+        if row.get("production_eligible") != "NO" or row.get("betting_eligible") != "NO":
+            raise ValueError("RUNTIME_FEATURE_BLOCK_AUDIT_ELIGIBILITY_MUST_REMAIN_NO")
+        keys.append((
+            str(row.get("provider_season_id") or ""),
+            str(row.get("fixture_id") or ""),
+            str(row.get("team_side") or ""),
+            str(row.get("team_provider_id") or ""),
+        ))
+    if len(keys) != len(set(keys)):
+        raise ValueError("RUNTIME_FEATURE_BLOCK_AUDIT_HAS_DUPLICATE_EXACT_SIDE_KEYS")
+    return True
+
 def build_runtime_feature_block_audit(runtime_rows):
     """Expose the runtime's actual 20-feature gate; do not substitute score-only form counts."""
     blocked = [
@@ -1667,6 +1728,49 @@ def main():
         runtime_rows, snapshot_rows, runtime_provenance, archive_summary
     )
     runtime_feature_block_rows, runtime_feature_block_qa = build_runtime_feature_block_audit(runtime_rows)
+
+    # Persist diagnostics before enforcing the candidate release gates so failed
+    # runs still upload exact orientation and feature-block evidence.
+    (out_dir / "oracle_selected50_snapshot_orientation_qa.json").write_text(
+        json.dumps(snapshot_orientation_qa, indent=2) + "\\n", encoding="utf-8"
+    )
+    (out_dir / "oracle_selected50_runtime_feature_block_audit_qa.json").write_text(
+        json.dumps(runtime_feature_block_qa, indent=2) + "\\n", encoding="utf-8"
+    )
+    write_csv(out_dir / "oracle_selected50_runtime_feature_block_audit.csv",
+              runtime_feature_block_rows,
+              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
+               "provider_season_id", "team_side", "team_provider_id",
+               "recent5_feature_complete_n", "team_side_history_gate",
+               "missing_required_features", "feature_support_status",
+               "prediction_block_reason", "production_eligible", "betting_eligible"])
+    orientation_rows = []
+    for item in runtime_rows:
+        key = runtime_key(item)
+        orientation = snapshot_orientation_by_key.get(key, {})
+        orientation_rows.append({
+            "Fixture Date": item.get("date_utc", ""),
+            "League": item.get("league", ""),
+            "Fixture": f"{item.get('home_team', '')} vs {item.get('away_team', '')}",
+            "fixture_id": item.get("fixture_id", ""),
+            "selected_id": item.get("selected_id", ""),
+            "provider_season_id": item.get("provider_season_id", ""),
+            "home_team_id": item.get("home_team_provider_id", ""),
+            "away_team_id": item.get("away_team_provider_id", ""),
+            **orientation,
+            "production_eligible": "NO",
+            "betting_eligible": "NO",
+        })
+    write_csv(out_dir / "oracle_selected50_fixture_orientation_audit.csv", orientation_rows,
+              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
+               "provider_season_id", "home_team_id", "away_team_id",
+               "snapshot_no_home_away_flag", "fixture_orientation_status",
+               "home_away_market_review_status", "snapshot_row_number",
+               "snapshot_retrieved_utc", "snapshot_file_sha256",
+               "production_eligible", "betting_eligible"])
+    require_snapshot_orientation_qa(snapshot_orientation_qa)
+    require_runtime_feature_block_audit(runtime_feature_block_rows, runtime_feature_block_qa)
+
     runtime_report_sha256 = hashlib.sha256(Path(args.runtime_report).read_bytes()).hexdigest()
     if runtime_provenance.get("runtime_report_sha256") != runtime_report_sha256:
         raise SystemExit("FAIL: runtime report does not match its provenance SHA-256")
@@ -1812,43 +1916,6 @@ def main():
     (out_dir / "oracle_selected50_xg_evidence_audit_qa.json").write_text(
         json.dumps(xg_audit_counts, indent=2) + "\n", encoding="utf-8"
     )
-    (out_dir / "oracle_selected50_snapshot_orientation_qa.json").write_text(
-        json.dumps(snapshot_orientation_qa, indent=2) + "\n", encoding="utf-8"
-    )
-    (out_dir / "oracle_selected50_runtime_feature_block_audit_qa.json").write_text(
-        json.dumps(runtime_feature_block_qa, indent=2) + "\n", encoding="utf-8"
-    )
-    write_csv(out_dir / "oracle_selected50_runtime_feature_block_audit.csv",
-              runtime_feature_block_rows,
-              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
-               "provider_season_id", "team_side", "team_provider_id",
-               "recent5_feature_complete_n", "team_side_history_gate",
-               "missing_required_features", "feature_support_status",
-               "prediction_block_reason", "production_eligible", "betting_eligible"])
-    orientation_rows = []
-    for item in runtime_rows:
-        key = runtime_key(item)
-        orientation = snapshot_orientation_by_key.get(key, {})
-        orientation_rows.append({
-            "Fixture Date": item.get("date_utc", ""),
-            "League": item.get("league", ""),
-            "Fixture": f"{item.get('home_team', '')} vs {item.get('away_team', '')}",
-            "fixture_id": item.get("fixture_id", ""),
-            "selected_id": item.get("selected_id", ""),
-            "provider_season_id": item.get("provider_season_id", ""),
-            "home_team_id": item.get("home_team_provider_id", ""),
-            "away_team_id": item.get("away_team_provider_id", ""),
-            **orientation,
-            "production_eligible": "NO",
-            "betting_eligible": "NO",
-        })
-    write_csv(out_dir / "oracle_selected50_fixture_orientation_audit.csv", orientation_rows,
-              ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
-               "provider_season_id", "home_team_id", "away_team_id",
-               "snapshot_no_home_away_flag", "fixture_orientation_status",
-               "home_away_market_review_status", "snapshot_row_number",
-               "snapshot_retrieved_utc", "snapshot_file_sha256",
-               "production_eligible", "betting_eligible"])
     write_xlsx(out_dir / "oracle_selected50_market_intelligence.xlsx", report, trace,
                archive_summary, goal_market_rows, xg_audit_rows, coverage_rows,
                coverage_summary_rows, xg_provenance_rows,
