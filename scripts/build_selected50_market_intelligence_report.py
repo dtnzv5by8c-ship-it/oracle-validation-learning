@@ -12,6 +12,8 @@ import csv
 import json
 import hashlib
 import math
+import re
+import unicodedata
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -112,6 +114,13 @@ def runtime_key(row):
     )
 
 
+def normalize_team_name(value):
+    """Conservative exact-name key: Unicode compatibility, case and punctuation only."""
+    value = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    value = re.sub(r"[^\\w\\s]", "", value, flags=re.UNICODE)
+    return " ".join(value.split())
+
+
 def build_indexes(matches):
     """Create strictly chronological archive indexes from exact provider identities."""
     by_team = defaultdict(list)
@@ -144,6 +153,8 @@ def build_indexes(matches):
         item["_competition"] = competition
         item["_home"] = h
         item["_away"] = a
+        item["_home_name_key"] = normalize_team_name(row.get("home_team"))
+        item["_away_name_key"] = normalize_team_name(row.get("away_team"))
         by_team[(competition, h)].append(item)
         by_team[(competition, a)].append(item)
         by_season[(league, season)].append(item)
@@ -157,7 +168,11 @@ def build_indexes(matches):
             h2h_candidates.append(item)
     safe_h2h_rows, h2h_dedup_qa = deduplicate_h2h_history(h2h_candidates)
     for item in safe_h2h_rows:
-        by_pair[(item["_h2h_scope_id"], tuple(sorted((item["_home"], item["_away"]))))].append(item)
+        by_pair[(item["_h2h_scope_id"], "ID",
+                 tuple(sorted((item["_home"], item["_away"]))))].append(item)
+        if item.get("_home_name_key") and item.get("_away_name_key"):
+            by_pair[(item["_h2h_scope_id"], "NAME",
+                     tuple(sorted((item["_home_name_key"], item["_away_name_key"]))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
@@ -401,14 +416,43 @@ def build_report(runtime_rows, archive_rows):
         h2h_scope_id = str(target.get("selected_id") or "").strip()
         if h2h_scope_id != selected:
             h2h_scope_id = ""
-        pair_rows = before(by_pair[(h2h_scope_id, tuple(sorted((home, away))))], cutoff) if h2h_scope_id else []
+        home_name_key = normalize_team_name(runtime.get("home_team"))
+        away_name_key = normalize_team_name(runtime.get("away_team"))
+        name_pair = tuple(sorted((home_name_key, away_name_key)))
+        id_pair = tuple(sorted((home, away)))
+        name_candidates = (
+            by_pair[(h2h_scope_id, "NAME", name_pair)]
+            if h2h_scope_id and all(name_pair) and home_name_key != away_name_key else []
+        )
+        id_candidates = by_pair[(h2h_scope_id, "ID", id_pair)] if h2h_scope_id else []
+        # Prefer exact normalized team-name identity across seasons when provider
+        # team IDs have changed. Fall back to exact provider IDs only when the
+        # name-based index has no candidate. No fuzzy aliases or cross-league joins.
+        if name_candidates:
+            pair_rows = before(name_candidates, cutoff)
+            h2h_match_basis = "EXACT_NORMALIZED_TEAM_NAMES"
+        else:
+            pair_rows = before(id_candidates, cutoff)
+            h2h_match_basis = "EXACT_PROVIDER_TEAM_IDS"
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
             if str(r.get("no_home_away") or "").strip().lower() in {"1", "true", "yes"}:
                 h2h_results.append("N/A")
                 continue
-            home_was_home = str(r.get("home_team_id")) == home
+            historical_home_name = normalize_team_name(r.get("home_team"))
+            historical_away_name = normalize_team_name(r.get("away_team"))
+            if home_name_key and historical_home_name == home_name_key:
+                home_was_home = True
+            elif home_name_key and historical_away_name == home_name_key:
+                home_was_home = False
+            elif str(r.get("home_team_id")) == home:
+                home_was_home = True
+            elif str(r.get("away_team_id")) == home:
+                home_was_home = False
+            else:
+                h2h_results.append("N/A")
+                continue
             own = int(float(r["home_goals"] if home_was_home else r["away_goals"]))
             opp = int(float(r["away_goals"] if home_was_home else r["home_goals"]))
             h2h_results.append("W" if own > opp else "D" if own == opp else "L")
@@ -478,6 +522,7 @@ def build_report(runtime_rows, archive_rows):
                 if schedule_entry and parse_dt(target.get("kickoff_utc")) and cutoff else ""
             ),
             "home_form_n": hf["n"], "away_form_n": af["n"], "h2h_n": len(h2h),
+            "h2h_match_basis": h2h_match_basis if h2h else "NO_VERIFIED_PAIR_MATCH",
             "home_form": hf["form"], "away_form": af["form"],
             "home_form_gf_avg": fmt(hf["gf"]), "home_form_ga_avg": fmt(hf["ga"]),
             "home_form_ppg": fmt(hf["ppg"]), "away_form_gf_avg": fmt(af["gf"]),
@@ -512,10 +557,12 @@ def build_report(runtime_rows, archive_rows):
             "archive_provider_competition_id": target.get("provider_league_id", ""),
             "h2h_scope": "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",
             "h2h_scope_id": h2h_scope_id,
+            "h2h_match_basis": h2h_match_basis if h2h else "NO_VERIFIED_PAIR_MATCH",
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
                 "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
+                "home_team": r.get("home_team", ""), "away_team": r.get("away_team", ""),
                 "no_home_away": r.get("no_home_away", 0),
                 "home_goals": r.get("home_goals", ""), "away_goals": r.get("away_goals", ""),
                 "result_current_home_perspective": h2h_results[i],
@@ -1954,7 +2001,7 @@ def main():
         "parent_competition_id_inference_used": False,
         "fuzzy_matching_used": False,
     })
-    summary["h2h_scope_policy"] = "Exact Selected-50 country/competition label mapping from the pinned archive ingestion manifest; exact unordered provider team-ID pair; strict pre-kickoff chronology; unmapped archive rows excluded from H2H."
+    summary["h2h_scope_policy"] = "Exact Selected-50 country/competition label mapping from the pinned archive ingestion manifest; exact normalized unordered team-name pair preferred across seasons to bridge provider team-ID changes, with exact unordered provider team-ID fallback; strict pre-kickoff chronology; unmapped archive rows excluded; no fuzzy aliases or cross-league joins."
     summary["xg_audit"] = xg_audit_counts
     summary["fixture_orientation"] = snapshot_orientation_qa
     summary["runtime_feature_block_audit"] = runtime_feature_block_qa
