@@ -38,7 +38,7 @@ def identity(season, match_id, home_id, away_id):
     return tuple(map(clean, (season, match_id, home_id, away_id)))
 
 def fetch_season(api_key, season_id, opener=urlopen, sleep=time.sleep):
-    all_rows, page = [], 1
+    all_rows, page, calls = [], 1, 0
     while True:
         params = urlencode({"key": api_key, "season_id": season_id,
                             "max_per_page": 1000, "page": page})
@@ -46,6 +46,7 @@ def fetch_season(api_key, season_id, opener=urlopen, sleep=time.sleep):
         payload = None
         for attempt in range(5):
             try:
+                calls += 1
                 with opener(req, timeout=45) as response:
                     payload = json.loads(response.read().decode("utf-8"))
                 break
@@ -66,7 +67,7 @@ def fetch_season(api_key, season_id, opener=urlopen, sleep=time.sleep):
             break
         page += 1
         sleep(1.1)
-    return all_rows
+    return all_rows, calls
 
 def reconcile(runtime_rows, provider_rows, failed_seasons, retrieved):
     index = {}
@@ -138,10 +139,10 @@ def main():
     seasons = sorted({clean(r.get("provider_season_id")) for r in runtime if clean(r.get("provider_season_id"))})
     if not seasons:
         raise SystemExit("Runtime report contains no provider season IDs; fail closed.")
-    provider, failed = {}, set()
+    provider, failed, api_calls = {}, set(), 0
     for i, season in enumerate(seasons):
         try:
-            provider[season] = fetch_season(api_key, season)
+            provider[season], calls = fetch_season(api_key, season)\n            api_calls += calls
         except Exception as exc:
             failed.add(season)
             print(f"FootyStats retrieval failed for season {season}: {type(exc).__name__}", file=sys.stderr)
@@ -172,7 +173,7 @@ def main():
         "status": "PASS" if not failed and counts.get("QUARANTINED_DUPLICATE_PROVIDER_IDENTITY", 0) == 0 else "PARTIAL_REVIEW_REQUIRED",
         "runtime_fixture_rows": len(runtime), "results_rows": len(rows),
         "provider_seasons_requested": len(seasons), "provider_seasons_failed": sorted(failed),
-        "settlement_status_counts": counts, "provider_api_calls": len(seasons) + sum(1 for s in provider if len(provider[s]) >= 1000),
+        "settlement_status_counts": counts, "provider_api_calls": api_calls,
         "retrieved_utc": retrieved, "source": "FootyStats league-matches API",
         "identity_policy": "EXACT_PROVIDER_SEASON_FIXTURE_ID_ORDERED_HOME_AWAY_TEAM_IDS",
         "production_eligible": False, "betting_eligible": False,
