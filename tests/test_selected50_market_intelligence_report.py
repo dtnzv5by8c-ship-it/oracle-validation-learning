@@ -441,7 +441,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(empty["Raw Oracle Prediction Status"], "NO_FIXTURES_TO_SCORE")
         summary_rows = market_report.build_coverage_summary_rows(coverage)
         xg_rows = market_report.build_xg_provenance_rows(coverage)
-        self.assertTrue(any(row["Metric"] == "Groups without fixtures in seven-day horizon"
+        self.assertTrue(any(row["Metric"] == "Groups with no 7-day fixtures"
                             and row["Value"] == 1 for row in summary_rows))
         self.assertTrue(any(row["Control"] == "Point-in-time capture timestamps"
                             and row["Finding"] == "0/1 rows have a verified capture timestamp."
