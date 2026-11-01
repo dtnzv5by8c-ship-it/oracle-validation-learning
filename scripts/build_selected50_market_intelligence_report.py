@@ -432,12 +432,19 @@ def build_report(runtime_rows, archive_rows):
         # Prefer exact normalized team-name identity across seasons when provider
         # team IDs have changed. Fall back to exact provider IDs only when the
         # name-based index has no candidate. No fuzzy aliases or cross-league joins.
-        if name_candidates:
-            pair_rows = before(name_candidates, cutoff)
+        prior_name_candidates = before(name_candidates, cutoff) if name_candidates else []
+        prior_id_candidates = before(id_candidates, cutoff) if id_candidates else []
+        if prior_name_candidates:
+            pair_rows = prior_name_candidates
             h2h_match_basis = "EXACT_NORMALIZED_TEAM_NAMES"
-        else:
-            pair_rows = before(id_candidates, cutoff)
+        elif prior_id_candidates:
+            # A name-pair record may exist only after the strict cutoff. In that
+            # case it must not suppress valid earlier exact provider-ID evidence.
+            pair_rows = prior_id_candidates
             h2h_match_basis = "EXACT_PROVIDER_TEAM_IDS"
+        else:
+            pair_rows = []
+            h2h_match_basis = "NO_VERIFIED_PAIR_MATCH"
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
