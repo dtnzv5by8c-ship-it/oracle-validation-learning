@@ -296,10 +296,12 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     reason, detail = "OTHER_EVIDENCED_REASON", "TARGET_KICKOFF_UNAVAILABLE"
                 elif row["kickoff_unix"] >= cutoff:
                     reason, detail = "AFTER_CUTOFF", "NOT_STRICTLY_BEFORE_TARGET_KICKOFF"
-                elif not home_id or not away_id or home_id == away_id:
-                    reason, detail = "INVALID_IDENTITY", "MISSING_OR_IDENTICAL_TEAM_IDS"
+                elif home_id == away_id:
+                    reason, detail = "INVALID_IDENTITY", "IDENTICAL_HOME_AND_AWAY_TEAM_IDS"
+                elif not home_id or not away_id:
+                    reason, detail = "ORIENTATION_UNAVAILABLE", "ONE_TEAM_ID_MISSING_FROM_SOURCE_RECORD"
                 elif (side == "home" and home_id != team_id) or (side == "away" and away_id != team_id):
-                    reason, detail = "ORIENTATION_UNAVAILABLE", f"HISTORICAL_TEAM_NOT_IN_REQUIRED_{side.upper()}_ORIENTATION"
+                    reason, detail = "OTHER_EVIDENCED_REASON", f"OPPOSITE_ORIENTATION_EXCLUDED_BY_RUNTIME_{side.upper()}_HISTORY"
                 elif row["fixture_id"] and (selected_id, row["fixture_id"]) in conflicting_ids:
                     reason, detail = "DUPLICATE_RECORD", "CONFLICTING_COMPETITION_SCOPED_FIXTURE_ID"
                 elif (row["source_file"], row["source_row"]) in exact_extra:
@@ -321,8 +323,12 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     exclusions[reason] += 1
                 reason_counts[reason] += 1
                 historical_side = ("home" if home_id == team_id else "away" if away_id == team_id else "unknown")
+                relative_to_cutoff = ("KICKOFF_UNAVAILABLE" if row["kickoff_unix"] is None else
+                    "TARGET_CUTOFF_UNAVAILABLE" if cutoff is None else
+                    "BEFORE_CUTOFF" if row["kickoff_unix"] < cutoff else "AT_OR_AFTER_CUTOFF")
                 details_out.append({
                     "target_fixture_id": fixture_id, "selected_id": selected_id, "target_side": side,
+                    "kickoff_relative_to_cutoff": relative_to_cutoff,
                     "target_team_id": team_id, "target_kickoff_utc": target.get("date_utc", ""),
                     "historical_fixture_id": row["fixture_id"], "archive_season_id": row["season_id"],
                     "historical_kickoff_utc": datetime.fromtimestamp(row["kickoff_unix"], timezone.utc).isoformat()
@@ -350,8 +356,9 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 count_mismatches.append(f"{fixture_id}:{side}:runtime={runtime_count_raw}:archive={reconstructed}")
             sample = included[-5:]
             completeness = numeric_feature_completeness(sample, side, team_id)
-            root_cause = ("INSUFFICIENT_QUALIFYING_PRE_KICKOFF_HISTORY" if len(included) < 5
-                          else "FIVE_MATCH_HISTORY_PRESENT_FEATURE_FIELD_GAP")
+            root_cause = ("NO_MATCHING_TEAM_ID_SOURCE_RECORDS_IN_MAPPED_ARCHIVE" if not candidates else
+                          "INSUFFICIENT_QUALIFYING_PRE_KICKOFF_HISTORY" if len(included) < 5 else
+                          "FIVE_MATCH_HISTORY_PRESENT_FEATURE_FIELD_GAP")
             sides_out.append({
                 "fixture_id": fixture_id, "selected_id": selected_id, "country": target.get("country", ""),
                 "league": target.get("league", ""), "side": side, "team_name": target.get(f"{side}_team", ""),
@@ -363,9 +370,10 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 "last_five_included_match_ids": ";".join(r["fixture_id"] or f"NO_ID:{r['source_row']}" for r in sample),
                 "excluded_history_match_ids": ";".join(
                     str(d["historical_fixture_id"] or f"NO_ID:{d['source_record_index']}")
-                    for d in details_out if d["target_fixture_id"] == fixture_id and d["target_side"] == side
-                    and d["history_decision"] != "INCLUDED_IN_RUNTIME_HISTORY"
+                    for d in details_out if d["target_fixture_id"] == fixture_id and d["selected_id"] == selected_id
+                    and d["target_side"] == side and d["history_decision"] != "INCLUDED_IN_RUNTIME_HISTORY"
                 ),
+                "archive_candidate_status": "MATCHING_TEAM_ID_RECORDS_FOUND" if candidates else "NO_TEAM_ID_MATCHING_RECORDS_IN_MAPPED_ARCHIVE",
                 "excluded_reason_counts": json.dumps(dict(sorted(exclusions.items())), separators=(",", ":")),
                 "missing_side_features": ";".join(side_missing),
                 **completeness,
@@ -378,6 +386,7 @@ def audit(runtime_rows, archive_rows, selected_ids):
         "runtime_fixture_rows": len(runtime_rows), "blocked_fixture_count": len(blocked_fixtures),
         "blocked_team_side_rows_audited": len(sides_out), "historical_match_detail_rows": len(details_out),
         "history_decision_counts": dict(sorted(reason_counts.items())),
+        "side_root_cause_counts": dict(sorted(Counter(x.get("root_cause", "") for x in sides_out).items())),
         "runtime_archive_history_count_mismatches": count_mismatches,
         "all_side_history_counts_reconcile": not count_mismatches,
         "selected_competition_grouping": "EXACT_COUNTRY_COMPETITION_LABEL_TO_SELECTED_ID_AS_EXISTING_RUNTIME",
