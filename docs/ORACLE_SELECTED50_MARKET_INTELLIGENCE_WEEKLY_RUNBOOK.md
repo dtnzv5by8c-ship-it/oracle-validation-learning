@@ -22,6 +22,7 @@ The report builder, field-coverage audit and LLM dictionary generator are versio
 - No provider API calls or credit spending in this workflow.
 - Preserve Oracle V1.6 production logic and all source probabilities.
 - Do not reduce the five-match feature minimum or impute missing feature values.
+- If the independent row-level archive replay finds runtime/history count mismatches, retain the full side- and match-level evidence and flag the workbook as research-only. This discrepancy must not suppress report generation, but it must keep affected rows and the report ineligible for production and betting until reconciled. Never convert an unresolved mismatch into a pass.
 - Historical rows must be completed, valid-score records strictly before the fixture kickoff cutoff.
 - H2H matching remains exact and country-scoped. A zero means no verified prior pair in the pinned archive, not proof the clubs never met.
 - xG remains quarantined unless fixture-linked point-in-time capture and revision/hash evidence are verified.
