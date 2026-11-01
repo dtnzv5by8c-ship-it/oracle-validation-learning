@@ -117,6 +117,7 @@ def build_indexes(matches):
     by_team = defaultdict(list)
     by_season = defaultdict(list)
     by_pair = defaultdict(list)
+    h2h_candidates = []
     seen = set()
     duplicates = 0
     for row in matches:
@@ -150,12 +151,63 @@ def build_indexes(matches):
         # the pinned ingestion manifest. provider_league_id in this archive is
         # season-scoped, so it must not be used as a cross-season competition key.
         h2h_scope_id = str(row.get("selected_id") or "").strip()
-        if h2h_scope_id:
-            by_pair[(h2h_scope_id, tuple(sorted((h, a))))].append(item)
+        if (h2h_scope_id and str(row.get("status_raw") or "").lower() in SETTLED
+                and valid_score(row) and str(row.get("fixture_id") or "").strip()):
+            item["_h2h_scope_id"] = h2h_scope_id
+            h2h_candidates.append(item)
+    safe_h2h_rows, h2h_dedup_qa = deduplicate_h2h_history(h2h_candidates)
+    for item in safe_h2h_rows:
+        by_pair[(item["_h2h_scope_id"], tuple(sorted((item["_home"], item["_away"]))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
-    return by_team, by_season, by_pair, duplicates
+    return by_team, by_season, by_pair, duplicates, h2h_dedup_qa
+
+
+def deduplicate_h2h_history(rows):
+    """Fail closed on conflicting fixture IDs and duplicate completed meeting signatures."""
+    by_fixture = defaultdict(list)
+    for row in rows:
+        scope = str(row.get("_h2h_scope_id") or "").strip()
+        fid = str(row.get("fixture_id") or "").strip()
+        if scope and fid:
+            by_fixture[(scope, fid)].append(row)
+    conflicting_fixture_keys = set()
+    exact_duplicate_rows = 0
+    fixture_candidates = []
+    for key, values in by_fixture.items():
+        signatures = set()
+        for row in values:
+            pair = tuple(sorted((str(row.get("_home") or ""), str(row.get("_away") or ""))))
+            home_goals, away_goals = int(float(row["home_goals"])), int(float(row["away_goals"]))
+            normalized_score = (home_goals, away_goals) if str(row.get("_home")) == pair[0] else (away_goals, home_goals)
+            signatures.add((row["_dt"], pair, normalized_score))
+        if len(signatures) > 1:
+            conflicting_fixture_keys.add(key)
+            continue
+        fixture_candidates.append(values[0])
+        exact_duplicate_rows += max(0, len(values) - 1)
+
+    by_signature = defaultdict(list)
+    for row in fixture_candidates:
+        pair = tuple(sorted((str(row.get("_home") or ""), str(row.get("_away") or ""))))
+        by_signature[(str(row.get("_h2h_scope_id")), row["_dt"], pair)].append(row)
+    duplicate_signatures = {key for key, values in by_signature.items() if len(values) > 1}
+    safe = [
+        row for row in fixture_candidates
+        if (str(row.get("_h2h_scope_id")), row["_dt"],
+            tuple(sorted((str(row.get("_home") or ""), str(row.get("_away") or ""))))) not in duplicate_signatures
+    ]
+    qa = {
+        "candidate_completed_meetings": len(rows),
+        "exact_duplicate_rows_removed": exact_duplicate_rows,
+        "conflicting_fixture_id_groups_quarantined": len(conflicting_fixture_keys),
+        "duplicate_completed_signature_groups_quarantined": len(duplicate_signatures),
+        "meetings_retained": len(safe),
+        "meetings_quarantined": len(rows) - len(safe),
+        "policy": "EXACT_SELECTED_ID_AND_FIXTURE_ID; CONFLICTS_AND_DUPLICATE_COMPLETED_SIGNATURES_QUARANTINED",
+    }
+    return safe, qa
 
 
 def before(rows, cutoff):
@@ -284,7 +336,7 @@ def build_report(runtime_rows, archive_rows):
         row for row in archive_rows
         if archive_key(row) not in schedule_conflict_keys
     ]
-    by_team, by_season, by_pair, history_duplicates = build_indexes(history_archive_rows)
+    by_team, by_season, by_pair, history_duplicates, h2h_dedup_qa = build_indexes(history_archive_rows)
     output, trace = [], []
     leagues = set()
     seen_runtime = set()
@@ -353,6 +405,9 @@ def build_report(runtime_rows, archive_rows):
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
+            if str(r.get("no_home_away") or "").strip().lower() in {"1", "true", "yes"}:
+                h2h_results.append("N/A")
+                continue
             home_was_home = str(r.get("home_team_id")) == home
             own = int(float(r["home_goals"] if home_was_home else r["away_goals"]))
             opp = int(float(r["away_goals"] if home_was_home else r["home_goals"]))
@@ -479,6 +534,7 @@ def build_report(runtime_rows, archive_rows):
     if len(output) != len(runtime_rows):
         raise AssertionError("Output row count does not reconcile to runtime fixture rows")
     return output, trace, {
+        "h2h_history_deduplication": h2h_dedup_qa,
         "runtime_rows": len(runtime_rows), "report_rows": len(output),
         "exact_archive_joins": sum(r.get("join_status") == "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" for r in trace),
         "unmatched_or_quarantined_rows": sum(r.get("join_status") != "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" for r in trace),
@@ -1540,7 +1596,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     add_sheet("H2H Intelligence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "h2h_scope_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
-         "home_team_id", "away_team_id", "home_goals", "away_goals",
+         "home_team_id", "away_team_id", "no_home_away", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
