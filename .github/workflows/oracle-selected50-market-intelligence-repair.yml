@@ -58,6 +58,8 @@ on:
       - "reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md"
       - "reports/oracle-selected50-xg-league-coverage-2026-11-01.csv"
       - "reports/oracle-selected50-cross-sheet-field-coverage-and-xg-provenance-2026-11-01.md"
+      - "scripts/reconcile_selected50_actual_results_footystats.py"
+      - "tests/test_selected50_footystats_results_reconciliation.py"
 
 permissions:
   actions: read
@@ -292,6 +294,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
           python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
           python -m unittest discover -s tests -p 'test_selected50_row_level_history_provenance.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_footystats_results_reconciliation.py' -v
           python -m unittest discover -s tests -p 'test_footystats_xg_manifest_provenance.py' -v
           python -m unittest discover -s tests -p 'test_footystats_archive_features.py' -v
 
@@ -559,6 +562,17 @@ jobs:
           python scripts/add_selected50_llm_data_dictionary.py \
             --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
             --config config/oracle_selected50_market_intelligence_weekly.json
+
+      - name: Fetch and reconcile completed match results from FootyStats (report only)
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python scripts/reconcile_selected50_actual_results_footystats.py \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --out-dir market-intelligence-output
 
       - name: Upload join diagnostics when QA blocks the report
         if: ${{ failure() && github.event_name == 'workflow_dispatch' }}
