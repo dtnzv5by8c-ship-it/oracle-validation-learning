@@ -146,7 +146,12 @@ def build_indexes(matches):
         by_team[(competition, h)].append(item)
         by_team[(competition, a)].append(item)
         by_season[(league, season)].append(item)
-        by_pair[(competition, tuple(sorted((h, a))))].append(item)
+        # H2H alone uses the exact Selected-50 country/competition mapping from
+        # the pinned ingestion manifest. provider_league_id in this archive is
+        # season-scoped, so it must not be used as a cross-season competition key.
+        h2h_scope_id = str(row.get("selected_id") or "").strip()
+        if h2h_scope_id:
+            by_pair[(h2h_scope_id, tuple(sorted((h, a))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
@@ -341,8 +346,8 @@ def build_report(runtime_rows, archive_rows):
                                            hf["ga"] if hf["n"] >= 3 else None, league_goals_per_team)
         a_attack, a_defence = index_value(af["gf"] if af["n"] >= 3 else None,
                                            af["ga"] if af["n"] >= 3 else None, league_goals_per_team)
-        h2h_scope = competition_id
-        pair_rows = before(by_pair[(h2h_scope, tuple(sorted((home, away))))], cutoff)
+        h2h_scope_id = selected
+        pair_rows = before(by_pair[(h2h_scope_id, tuple(sorted((home, away))))], cutoff)
         h2h = [r for r in pair_rows if str(r.get("status_raw") or "").lower() in SETTLED and valid_score(r)][-5:]
         h2h_results = []
         for r in h2h:
@@ -448,7 +453,7 @@ def build_report(runtime_rows, archive_rows):
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
             "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
             "archive_provider_competition_id": target.get("provider_league_id", ""),
-            "h2h_scope": "EXPLICIT_PROVIDER_COMPETITION_ID_SCOPE" if competition_id else "EXACT_SEASON_FALLBACK",
+            "h2h_scope": "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",\n            "h2h_scope_id": h2h_scope_id,
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
@@ -1531,7 +1536,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     add_sheet("xG Evidence Audit", XG_AUDIT_HEADERS, xg_audit_rows or [])
     add_sheet("H2H Intelligence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "provider_competition_id",
-         "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
+         "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id", "h2h_scope_id",
          "home_team_id", "away_team_id", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
@@ -1684,7 +1689,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         archive_coverage)
     definitions = [
         {"term": "Market probability", "definition": "Only raw supported Oracle runtime probabilities are predictions. Unsupported markets remain unavailable; empirical rates are not forecasts."},
-        {"term": "Historical H2H", "definition": "Prior completed meetings for the exact stable team-ID pair within the same explicit provider competition ID, strictly before fixture kickoff. Falls back to exact season when competition ID is absent."},
+        {"term": "Historical H2H", "definition": "Prior completed meetings for the exact unordered provider team-ID pair mapped to the same Selected-50 country/competition through the pinned ingestion_manifest.json and exact selected-manifest labels, strictly before fixture kickoff. No fuzzy matching or inferred parent competition IDs."},
         {"term": "Team form", "definition": "Latest completed fixtures for the exact stable team ID within the same explicit provider competition; strict pre-kickoff cutoff. Venue splits are home-at-home and away-away."},
         {"term": "League position", "definition": "Reconstructed within exact provider season using conventional 3-1-0 points and provisional tie-break order; not official where competition rules are unverified."},
         {"term": "Evidence risk", "definition": "Coverage and provenance gaps only; not probability of losing or match outcome."},
@@ -1875,7 +1880,15 @@ def main():
     summary["h2h_meetings_total"] = h2h_meetings_total
     summary["h2h_cross_season_meetings_verified"] = h2h_cross_season_meetings
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
-    summary["h2h_scope_policy"] = "Explicit provider competition ID; cross-season coverage only where source meeting season differs from target season."
+    summary["h2h_selected_scope_rows"] = sum(bool(str(r.get("selected_id") or "").strip()) for r in archive_rows)
+    summary["h2h_selected_scope_groups"] = len({str(r.get("selected_id") or "").strip() for r in archive_rows if str(r.get("selected_id") or "").strip()})
+    summary["h2h_selected_scope_unmapped_archive_rows"] = len(archive_rows) - summary["h2h_selected_scope_rows"]
+    summary["h2h_selected_season_mapping"] = archive_summary.get("h2h_selected_season_mapping", {
+        "status": "NOT_PROVIDED_BY_ARCHIVE_AUDIT",
+        "parent_competition_id_inference_used": False,
+        "fuzzy_matching_used": False,
+    })
+    summary["h2h_scope_policy"] = "Exact Selected-50 country/competition label mapping from the pinned archive ingestion manifest; exact unordered provider team-ID pair; strict pre-kickoff chronology; unmapped archive rows excluded from H2H."
     summary["xg_audit"] = xg_audit_counts
     summary["fixture_orientation"] = snapshot_orientation_qa
     summary["runtime_feature_block_audit"] = runtime_feature_block_qa
