@@ -563,6 +563,7 @@ def build_report(runtime_rows, archive_rows):
                 "provider_season_id": r.get("provider_season_id", ""),
                 "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
                 "home_team": r.get("home_team", ""), "away_team": r.get("away_team", ""),
+                "match_basis": h2h_match_basis,
                 "no_home_away": r.get("no_home_away", 0),
                 "home_goals": r.get("home_goals", ""), "away_goals": r.get("away_goals", ""),
                 "result_current_home_perspective": h2h_results[i],
@@ -1650,7 +1651,8 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     add_sheet("H2H Intelligence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "h2h_scope_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
-         "home_team_id", "away_team_id", "no_home_away", "home_goals", "away_goals",
+         "home_team_id", "away_team_id", "home_team", "away_team", "match_basis",
+         "no_home_away", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
     add_sheet("Team Form Evidence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "side", "team_id",
@@ -1991,6 +1993,10 @@ def main():
             if str(meeting.get("provider_season_id") or "") != target_season:
                 h2h_cross_season_meetings += 1
     summary["h2h_meetings_total"] = h2h_meetings_total
+    summary["h2h_match_basis_counts"] = {
+        basis: sum(1 for item in trace if item.get("h2h_match_basis") == basis)
+        for basis in ("EXACT_NORMALIZED_TEAM_NAMES", "EXACT_PROVIDER_TEAM_IDS", "NO_VERIFIED_PAIR_MATCH")
+    }
     summary["h2h_cross_season_meetings_verified"] = h2h_cross_season_meetings
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
     summary["h2h_selected_scope_rows"] = sum(bool(str(r.get("selected_id") or "").strip()) for r in archive_rows)
