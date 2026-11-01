@@ -60,3 +60,19 @@ The corrected workflow is committed in this change. Its run result and archive r
 - The corrected workflow successfully downloaded the exact 66,416,916-byte private archive and verified its SHA-256 against the declared bc64...e7261 digest. No provider API was called.
 - The subsequent audit step failed before parsing the archive because direct script execution did not put the repository root on Python's import path for the shared archive helper. The contract tests themselves passed. The helper import path is corrected in this commit; no archive data was modified or exported.
 - The next workflow run will repeat the checksum-verified read and complete the aggregate venue-flag audit. The archive remains ephemeral in the job workspace.
+
+## Successful pinned-archive preflight result
+
+- Corrected workflow run: 41360247981; conclusion SUCCESS. Both tri-state contract tests passed, the exact private release archive downloaded, and its actual SHA-256 matched the pinned digest.
+- Aggregate artifact: ID 13104773485, name oracle-run8-pinned-archive-venue-flag-preflight, SHA-256 c95af0baf1e2da5af38ebe4ed9d149ae564e6232cc585aa94cd870d276ee134b. The artifact contains only summary and group/season counts; it contains no raw provider rows or fixture-level predictions.
+- Exact mapping passed: 200 season folders mapped to all 50 selected groups using exact country/competition labels; no fuzzy matching, parent-competition inference, unmapped seasons or duplicate season IDs.
+- Archive inventory: 59,049 match records across 200 matches.json files; zero file parse errors.
+- Primary window 20 March 2025 through 20 September 2026: 22,291 records, of which 22,256 had settled status and complete score pairs.
+- Primary-window no_home_away coverage: 100.0% explicit. Of the 22,291 records, 17,792 were explicitly non-neutral and 4,499 explicitly neutral; zero unknown/blank and zero invalid. Among settled-score rows, 17,780 were non-neutral and 4,476 neutral.
+- Full archive season coverage independently summed from the aggregate season CSV: 52,132 explicit non-neutral records, 6,917 explicit neutral records, zero unknown/blank and zero invalid across all 59,049 records.
+- The pinned archive is now proven retrievable and checksum-verifiable through the research workflow without provider API calls. It can be rebuilt in the ephemeral runner; the original Run 8 v18 workbook and companion bundle themselves remain unrecovered.
+- No raw archive, full feature ledger or row-level predictions were uploaded. Only the aggregate coverage artifact was retained.
+
+## Next research action
+
+Use the verified pinned archive to reconstruct the full 50-group event-time panel directly from raw JSON, preserving the explicit venue flag. Match the Run 8 24-hour history lag and the three existing folds: [2025-03-20, 2025-10-01), [2025-10-01, 2026-04-01), [2026-04-01, 2026-09-21). Require five observed overall matches for both teams, five explicit non-neutral home-role/away-role matches for venue features, and H2H N>=5. Then run the nested main-effects versus each interaction ablations and the joint BH/BY, paired-bootstrap and reliability analysis. Keep the V1.6 baseline explicitly blocked until its frozen fixture-level probability ledger is available.
