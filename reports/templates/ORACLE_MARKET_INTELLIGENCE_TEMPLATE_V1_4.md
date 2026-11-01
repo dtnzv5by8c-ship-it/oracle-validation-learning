@@ -219,3 +219,21 @@ The full workflow must regenerate the workbook and field matrix from the existin
 - The 19 kickoff discrepancies remain `REVIEW_REQUIRED`; no automatic schedule correction is permitted.
 - Oracle V1.6 logic, probabilities, thresholds and calibration remain untouched.
 - Production and betting eligibility remain NO for every research row.
+
+
+### 9.7 Separate kickoff-discrepancy triage artifact — no workbook schema change
+
+The v1.4 candidate also emits "oracle_selected50_kickoff_discrepancy_triage.csv" and its QA JSON from the workflow-generated Schedule Reconciliation queue. This is a separate report-only CSV, not a twentieth worksheet and not an alteration of the locked Schedule Reconciliation worksheet.
+
+The triage builder must:
+- retain each source queue row and its exact composite fixture identity;
+- recompute signed archive-minus-runtime kickoff delta from timezone-aware timestamps and reject a mismatch;
+- emit mutually exclusive triage buckets for archive UTC-midnight values, non-midnight absolute deltas greater than 24 hours, non-midnight deltas up to 150 minutes, and other non-midnight deltas below 24 hours;
+- separately retain overlapping indicator flags for UTC-midnight, greater-than-24-hour and up-to-150-minute patterns;
+- label all buckets as review indicators, not proven root causes;
+- preserve MANUAL_AUTHORITATIVE_EVENT_TIME_REVIEW_ONLY_NO_AUTO_CORRECTION;
+- set authoritative event-time verification, automatic correction, production eligibility and betting eligibility to NO.
+
+The CSV and QA JSON must be included in the immutable workflow artifact. A successful triage build does not resolve any kickoff discrepancy. All source rows remain REVIEW_REQUIRED until authoritative event-time evidence is manually recorded.
+
+This supplementary artifact does not add a worksheet, change any worksheet name/order, change the 38-column Oracle V1.6 Output, or change the 83-column Market Intelligence view. v1.3 remains canonical until the complete v1.4 workflow-dispatch rebuild and every release gate pass.
