@@ -239,14 +239,14 @@ jobs:
           ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           RUNTIME_COMMIT="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["head_sha"])')"
           ARTIFACT_DIGEST="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1])')"
-          python scripts/diagnose_selected50_feature_blockers.py \\
-            --input-csv runtime-artifact/extracted/oracle_selected50_prediction_report.csv \\
-            --output-side-csv market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv \\
-            --output-team-csv market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv \\
-            --output-summary-json market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json \\
-            --source-runtime-run-id "$RUNTIME_RUN_ID" \\
-            --source-runtime-artifact-id "$ARTIFACT_ID" \\
-            --source-runtime-commit "$RUNTIME_COMMIT" \\
+          python scripts/diagnose_selected50_feature_blockers.py \
+            --input-csv runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --output-side-csv market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv \
+            --output-team-csv market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv \
+            --output-summary-json market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json \
+            --source-runtime-run-id "$RUNTIME_RUN_ID" \
+            --source-runtime-artifact-id "$ARTIFACT_ID" \
+            --source-runtime-commit "$RUNTIME_COMMIT" \
             --source-runtime-artifact-sha256 "$ARTIFACT_DIGEST"
 
       - name: Install report-only dependencies
