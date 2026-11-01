@@ -336,7 +336,7 @@ jobs:
             --out archive-audit
 
       - name: Build row-level historical feature provenance audit (research only)
-        if: \${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           python scripts/audit_selected50_row_level_history_provenance.py \
