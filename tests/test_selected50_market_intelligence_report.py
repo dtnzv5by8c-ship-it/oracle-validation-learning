@@ -286,6 +286,27 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_NORMALIZED_TEAM_NAMES")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
+    def test_h2h_falls_back_to_prior_exact_ids_when_name_candidates_are_after_cutoff(self):
+        future_name_match = archive_row("FUTURE-NAME", "2026-11-02T12:00:00+00:00",
+                                        "OLD-H", "OLD-A", 1, 0,
+                                        season="S0", selected_id="S1")
+        future_name_match["home_team"] = "Home FC"
+        future_name_match["away_team"] = "Away FC"
+        prior_id_match = archive_row("PRIOR-ID", "2025-08-01T12:00:00+00:00",
+                                     "H", "A", 2, 1,
+                                     season="S0", selected_id="S1")
+        prior_id_match["home_team"] = "Home Club Historic"
+        prior_id_match["away_team"] = "Away Club Historic"
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00",
+                             "H", "A", 0, 0, season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [
+            future_name_match, prior_id_match, target
+        ])
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_PROVIDER_TEAM_IDS")
+        self.assertIn("PRIOR-ID", trace[0]["h2h_source_fixture_ids"])
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
     def test_h2h_name_matching_is_not_fuzzy(self):
         prior = archive_row("OLD-ID-MEETING", "2025-08-01T12:00:00+00:00",
                             "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
