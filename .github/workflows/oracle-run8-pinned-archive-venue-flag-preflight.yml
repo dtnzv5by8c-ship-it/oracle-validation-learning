@@ -41,7 +41,7 @@ jobs:
           mkdir -p private-download
           gh release download "$TAG" \
             --repo dtnzv5by8c-ship-it/oracle-football-data \
-            --pattern "oracle-selected50-footstats-private-ingestion.zip" \
+            --pattern "oracle-selected50-footystats-private-ingestion.zip" \
             --pattern "private-package.sha256" \
             --dir private-download
           DECLARED_SHA256="$(awk 'NR==1 {print $1}' private-download/private-package.sha256)"

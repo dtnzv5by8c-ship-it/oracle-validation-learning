@@ -2,7 +2,7 @@
 
 **Date:** 2 November 2026 (SAST)  
 **Branch:** research/oracle-50-league-readiness-audit  
-**Inspected live branch HEAD before workflow correction:** 9a205a3516b98e2257bcb0e98b9584440719841c  
+**Inspected live branch HEAD before this correction:** 556ad8dd6639cbdaf6d42a3662f25ceb8742576f  
 **Previous checkpoint commit:** 038ca1b3bb44de994c93a3a2911a34af052417a8  
 **Scope:** Run 8 binary recovery and raw venue-flag preflight. Research-only.
 
@@ -11,10 +11,9 @@
 - Reconfirmed that the Run 8 v18 workbook and companion bundle are absent from the Library and repository tree. The committed manifest provides names, sizes and checksums only.
 - Confirmed the pinned archive release: tag research-selected50-footystats-history-20261025, asset ID 675196963, 66,416,916 bytes, declared SHA-256 bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261.
 - Added a separate research-only workflow that reads only this exact private release asset, checks the checksum file against the pinned digest, verifies the downloaded archive bytes, and audits raw no_home_away coverage. It makes no FootyStats/provider calls.
-- Added a tri-state parser: explicit 1/true/yes = neutral; explicit 0/false/no = non-neutral; missing/blank = unknown; other values = invalid. Only explicit non-neutral rows can qualify for venue histories.
-- Added synthetic contract tests to ensure missing/unknown venue flags are never silently counted as non-neutral.
+- Added a tri-state parser and synthetic tests: explicit 1/true/yes = neutral; explicit 0/false/no = non-neutral; missing/blank = unknown; other values = invalid. Unknown values are never counted as venue-eligible.
 - The workflow uploads aggregate group/season coverage and a summary only. It does not upload the archive, raw provider rows, row-level features or fixture predictions.
-- Corrected the workflow's GitHub expression interpolation before relying on any run. The first in-flight run (41360004249) uses the pre-correction workflow revision and is not accepted as a valid preflight result. The correction push should trigger a new run.
+- Corrected two workflow-definition issues before accepting any result: GitHub expression interpolation and the exact archive filename in the release download pattern. Earlier in-flight runs reference pre-correction revisions and are not treated as valid preflight results.
 
 ## Key technical finding
 
@@ -32,7 +31,7 @@ Run 3 already tested both candidate interactions as nested ablations on the 31-g
 - Expected archive checksum: bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261
 - Artifact name: oracle-run8-pinned-archive-venue-flag-preflight (aggregate outputs only; three-day retention).
 
-The corrected workflow has been committed to the research branch. Its run result and archive retrieval are not claimed until the corrected Actions run completes.
+The corrected workflow is committed in this change. Its run result and archive retrieval are not claimed until the corrected Actions run completes.
 
 ## Remaining blockers and next steps
 
