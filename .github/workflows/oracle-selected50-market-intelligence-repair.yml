@@ -283,6 +283,59 @@ jobs:
             --out-dir market-intelligence-output \
             --expected-league-groups 50
 
+      - name: Enforce exact orientation and runtime feature-block QA
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          out = Path("market-intelligence-output")
+          orientation_qa = json.loads((out / "oracle_selected50_snapshot_orientation_qa.json").read_text())
+          with (out / "oracle_selected50_fixture_orientation_audit.csv").open(encoding="utf-8-sig", newline="") as f:
+              orientation = list(csv.DictReader(f))
+          with Path("runtime-artifact/extracted/oracle_selected50_prediction_report.csv").open(encoding="utf-8-sig", newline="") as f:
+              runtime = list(csv.DictReader(f))
+          if orientation_qa.get("status") != "PASS_EXACT_SNAPSHOT_TRACE_JOIN":
+              raise SystemExit("FAIL: exact snapshot orientation QA did not pass")
+          if len(orientation) != len(runtime) or len(orientation) != orientation_qa.get("runtime_fixture_rows"):
+              raise SystemExit("FAIL: orientation audit row count does not reconcile to runtime fixtures")
+          flagged = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "1"]
+          distinct = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "0"]
+          unknown = [r for r in orientation if r.get("fixture_orientation_status") == "ORIENTATION_UNKNOWN"]
+          if len(flagged) != orientation_qa.get("no_home_away_flagged") or len(distinct) != orientation_qa.get("home_away_distinction_present"):
+              raise SystemExit("FAIL: orientation CSV counts do not match orientation QA")
+          if unknown or len(flagged) + len(distinct) != len(runtime):
+              raise SystemExit("FAIL: orientation audit contains unknown or unclassified runtime fixtures")
+          if any(r.get("home_away_market_review_status") != "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION" for r in flagged):
+              raise SystemExit("FAIL: no_home_away=1 fixture lacks home/away market review status")
+          if any(r.get("production_eligible") != "NO" or r.get("betting_eligible") != "NO" for r in orientation):
+              raise SystemExit("FAIL: orientation research rows must remain ineligible")
+          feature_qa = json.loads((out / "oracle_selected50_runtime_feature_block_audit_qa.json").read_text())
+          with (out / "oracle_selected50_runtime_feature_block_audit.csv").open(encoding="utf-8-sig", newline="") as f:
+              side_rows = list(csv.DictReader(f))
+          if len(side_rows) != feature_qa.get("blocked_team_side_histories"):
+              raise SystemExit("FAIL: runtime feature-block side rows do not reconcile to QA")
+          if sum(r.get("team_side") == "HOME" for r in side_rows) != feature_qa.get("home_side_histories_below_5"):
+              raise SystemExit("FAIL: home-side feature-block count mismatch")
+          if sum(r.get("team_side") == "AWAY" for r in side_rows) != feature_qa.get("away_side_histories_below_5"):
+              raise SystemExit("FAIL: away-side feature-block count mismatch")
+          if any(int(r.get("recent5_feature_complete_n", "99")) >= 5 for r in side_rows):
+              raise SystemExit("FAIL: side audit includes a history that passes the five-match gate")
+          if any(r.get("production_eligible") != "NO" or r.get("betting_eligible") != "NO" for r in side_rows):
+              raise SystemExit("FAIL: feature-block research rows must remain ineligible")
+          print(f"Orientation QA PASS: {len(flagged)} no_home_away flags; {len(distinct)} with distinction; 0 unknown.")
+          print(f"Runtime feature audit PASS: {feature_qa.get('blocked_fixture_rows')} fixtures; {len(side_rows)} blocked team sides.")
+          PY
+
+      - name: Build report-only kickoff discrepancy triage
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/build_selected50_kickoff_discrepancy_triage.py \
+            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
+            --out-dir market-intelligence-output
+
       - name: Build 50-league field-by-field coverage audit (report only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
@@ -302,6 +355,14 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
             market-intelligence-output/oracle_selected50_field_coverage_qa.json
+            market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
+            market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
+            runtime-artifact/extracted/current_snapshot_candidate_trace.csv
+            runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           if-no-files-found: ignore
           retention-days: 14
 
@@ -328,6 +389,8 @@ jobs:
             market-intelligence-output/oracle_selected50_field_coverage_summary.csv
             market-intelligence-output/oracle_selected50_field_coverage_exceptions.csv
             market-intelligence-output/oracle_selected50_field_coverage_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
             archive-audit/summary.json
             goal-market-research/goal_market_research.csv
             goal-market-research/goal_market_research_qa.json
