@@ -394,6 +394,12 @@ jobs:
               raise SystemExit(
                   f"FAIL: expected 25 blocked team-side histories to be audited, got {qa.get('blocked_team_side_rows_audited')}"
               )
+          if qa.get("all_side_history_counts_reconcile") is not True:
+              mismatches = qa.get("runtime_archive_history_count_mismatches", [])
+              raise SystemExit(
+                  "FAIL: row-level history counts do not reconcile for every blocked team side: "
+                  f"{len(mismatches)} mismatches; first={mismatches[:5]}"
+              )
           if qa.get("minimum_history_required") != 5 or qa.get("minimum_history_changed") is not False:
               raise SystemExit("FAIL: five-match minimum governance contract changed")
           if qa.get("feature_imputation") != 0 or qa.get("production_model_logic_changed") is not False or qa.get("production_probabilities_changed") is not False:
