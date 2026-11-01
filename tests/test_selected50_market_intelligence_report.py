@@ -273,6 +273,19 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertIn("OLD-ID-MEETING", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
 
+    def test_h2h_bridges_team_id_changes_across_selected_divisions_in_same_country(self):
+        prior = archive_row("OLD-DIVISION-ID", "2025-08-01T12:00:00+00:00",
+                            "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
+                            season="S2", league="Lower Division", selected_id="S2")
+        prior["home_team"] = "Home FC"
+        prior["away_team"] = "Away FC"
+        target = archive_row("F100", "2026-10-31T18:00:00+00:00",
+                             "H", "A", 0, 0, season="S1", selected_id="S1")
+        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        self.assertEqual(trace[0]["h2h_n"], 1)
+        self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_NORMALIZED_TEAM_NAMES")
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+
     def test_h2h_name_matching_is_not_fuzzy(self):
         prior = archive_row("OLD-ID-MEETING", "2025-08-01T12:00:00+00:00",
                             "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
