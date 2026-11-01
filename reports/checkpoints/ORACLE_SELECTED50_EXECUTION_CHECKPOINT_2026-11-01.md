@@ -210,3 +210,53 @@ The diagnostic is deliberately count-only. It inherits history counts and featur
 6. Keep v1.3 canonical until v1.4 release gates are formally passed. No PR #31 merge, production model changes, probability changes, threshold relaxation, or API-credit spend.
 
 **Run #154 remains the frozen workbook baseline. Run #164 and #168 add validated report-only evidence and diagnostics; neither changes the workbook or production model.**
+
+
+## Full Selected-50 Market Intelligence rebuild — Run #169 (2026-11-01)
+
+**Workflow:** [Run #169](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41279308002)  
+**Run ID:** `41279308002`  
+**Head commit:** `ba1d33652bbbb06e5de1ff5466f28d1cfafc2df6`  
+**Branch:** `research/oracle-50-league-readiness-audit`  
+**Conclusion:** SUCCESS. Job `market-intelligence-repair`, ID `124767767827`; all applicable build, provenance, QA and upload steps passed.
+
+### Run #169 execution evidence
+- Pinned private archive downloaded and SHA-256 verified: `7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f`.
+- Exact runtime artifact downloaded and run/branch/commit/digest provenance verified against runtime run `41175230838`, runtime commit `ea3f46dab4e54b71a818ab8d8723f36426e36bef`.
+- Report-only diagnostics built: archive-wide pre-kickoff evidence, experimental goal-market estimates/backtest, 38-column Market Intelligence report, exact orientation and feature-block audits, kickoff discrepancy triage, and 50-league field-by-field coverage audit.
+- Exact joins, chronology, duplicate guards and market masking tests passed.
+- No provider API calls. No production model or probability changes.
+- Conditional join-diagnostics upload and preserved Run #154 secondary CI-only checks were skipped because the applicable QA gates did not block; all required Run #169 build and upload steps succeeded.
+
+### Run #169 artifact and independently checked workbook
+- Artifact ID: `13073055114`; artifact name: `oracle-selected50-market-intelligence-repair`.
+- Artifact ZIP SHA-256: `6cdec9fd99f1a93ffc4cfadd90b54d337f026a15a9d224ed370ab71202bc8c1c`.
+- Artifact size: 2,992,896 bytes; GitHub expiry: 2026-11-15.
+- Workbook: `market-intelligence-output/oracle_selected50_market_intelligence.xlsx`.
+- Workbook SHA-256: `8526cfea9ba147ab85262e2dd28321605956d9669e01f28d00e56e31b7bd4456`; size 2,673,235 bytes.
+- Independently opened workbook: exactly 19 worksheets. `Oracle V1.6 Output`: 434 data rows × 38 columns. `Market Intelligence`: 434 data rows × 83 columns. `50-League Field Coverage`: 17,000 data rows × 19 columns.
+- Artifact has 27 files, including workbook, report CSV, 50-league coverage, QA, evidence trace, schedule queue, join quarantine, xG audit, orientation audit, runtime feature-block audit, 17,000-row field matrix and exceptions, kickoff triage, archive audit, goal-market research and xG provenance research notes.
+
+### Run #169 QA findings
+- Runtime/report rows: 434/434; exact archive joins: 434; unmatched/quarantined identity rows: 0; duplicate archive composite keys/history rows/runtime keys: 0.
+- 50 selected league-season IDs are represented in the coverage register; 46 selected IDs have fixtures in this runtime horizon and four have no fixture rows in this horizon. Do not mislabel those four as ingestion failures.
+- Schedule: 19 exact-identity kickoff discrepancies remain `REVIEW_REQUIRED`; zero authoritative event-time verifications and zero automatic corrections. Root cause remains unestablished. All are manual-review-only.
+- Orientation: exact snapshot trace join 434/434; 66 `no_home_away` flags and 368 with home/away distinction; zero unknown. This flag is not a neutral-venue label.
+- Runtime feature support: 24 blocked fixtures; 25 affected team-side histories (15 home, 10 away); 21 have four qualifying prior matches and four have three. Keep the five-match gate; no imputation. Count-only diagnostics do not establish the historical row-level root cause.
+- Field coverage: 340 fields × 50 groups = 17,000 matrix rows; 965 exceptions (99 partial, 770 explicitly unavailable/blocked, 96 no usable values); zero unmapped source rows.
+- xG: numeric home/away/total values appear on 434 rows, but verified capture-time rows = 0 and prediction-eligible rows = 0. Keep xG quarantined until point-in-time capture and revision provenance are proven.
+- Historical accuracy remains `NOT_VALIDATED`; A+ setup is not graded. H2H total meetings 188; verified cross-season meetings 0. Risk columns measure evidence coverage gaps, not outcome probability or probability of losing.
+- Market availability: BTTS Yes, Home 1X and Away X2 copied unchanged from runtime; 24 rows have unavailable source predictions for these markets. Other markets are explicitly unavailable; combo probabilities remain masked. No synthetic probability fields.
+- QA reports `production_model_logic_changed=false`, `production_probabilities_changed=false`, `production_eligible=false`, `betting_eligible=false`; report status `PARTIAL_RESEARCH_ONLY`.
+
+### Updated controlled priorities
+1. Preserve Run #169 workbook and artifact as the latest full rebuild; do not overwrite Run #154 baseline.
+2. Obtain sanitized row-level provenance for all 25 affected team-side histories: exact prior fixture IDs, kickoff cutoffs, source status, oriented team IDs and per-feature inclusion/exclusion reasons. Keep five-match gate and no imputation.
+3. Continue authoritative schedule evidence review for the 19 kickoff conflicts; no automatic correction. Run #164 corroborated 18 runtime times but one remains unresolved; Run #169 queue is still review-required.
+4. Trace all 66 orientation flags to official source semantics; do not infer neutral venues or change home/away probabilities.
+5. Keep xG quarantined until capture-time and revision semantics are independently evidenced.
+6. Historical calibration/backtesting requires contemporaneous odds, trusted outcomes/settlements and chronological out-of-fold predictions. Do not present research estimates as calibrated.
+7. Preserve v1.3 as canonical. v1.4 remains a report-only candidate pending formal release/governance gates; do not merge PR #31.
+8. Do not alter production V1.6 logic, production probabilities, thresholds, eligibility, or spend provider API credits.
+
+**Run #169 is a successful full research/report rebuild with QA, not Selected-50 production readiness or betting approval.**
