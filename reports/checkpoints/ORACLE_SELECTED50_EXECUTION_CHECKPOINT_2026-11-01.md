@@ -373,3 +373,23 @@ Manually dispatch the existing `.github/workflows/oracle-selected50-market-intel
 This uses only the existing pinned private archive and exact runtime artifact. It will run the corrected 25-side history replay and the new xG manifest inventory, then rebuild the workbook through the existing generator. It does not call FootyStats or consume provider credits.
 
 After dispatch, inspect the history side/match/QA outputs and xG manifest field inventory/QA. Any history count mismatch remains `REVIEW_REQUIRED`; the five-match gate is unchanged. xG remains quarantined regardless of metadata-key presence until the provider semantics and point-in-time evidence are independently validated.
+
+
+## Follow-up hardening — diagnostic blockers must not stop the canonical workbook
+
+**Latest research branch head:** `167a10253830ab5c8b983fd2577a0f17fbf8509a`.
+
+A second safety review identified that the new archive diagnostics could otherwise fail the entire report-repair job if the expected JSON manifest were absent, duplicated or unmappable. These are research-data blockers; they must be visible without preventing the existing canonical workbook generator from completing.
+
+Changes made:
+
+1. The xG manifest inventory now reports `BLOCKED_MANIFEST_MISSING`, `BLOCKED_MANIFEST_AMBIGUOUS` or `BLOCKED_MANIFEST_INVALID` rather than aborting. It still inventories available match-record field names/counts, writes explicit QA, and keeps xG quarantined.
+2. The row-level history audit now writes `BLOCKED_ARCHIVE_MANIFEST_OR_MAPPING` QA when the JSON manifest is absent, invalid, duplicated or cannot map archive seasons to Selected-50 labels. It does not invent history rows or relax the five-match rule.
+3. The workflow QA guards check archive digest, quarantine and governance invariants, but do not require these research diagnostics to pass before the existing report generator can run.
+4. Regression tests cover alternate FootyStats team/fixture/score/status aliases, partial shot/SOT coverage, missing archive manifest handling, and missing/ambiguous xG manifest inventory.
+
+These are research scripts, tests, workflow wiring and documentation only. The canonical v1.3 template, workbook generator, Oracle V1.6 output and probabilities were not changed.
+
+**Verification limitation:** the latest GitHub Actions status lookup for commit `167a10253830ab5c8b983fd2577a0f17fbf8509a` returned no commit-status entries. The new tests are present in the governed workflow but are not yet certified as passing. The last verified passing CI remains Run #173 on the earlier implementation; it predates these latest corrections.
+
+No full workbook rebuild was run in this follow-up. Run #169 remains the latest verified full workbook artifact. The next manual dispatch will run the updated diagnostics and use the existing report generator; if archive manifest evidence is unavailable, the workbook build can still complete with explicit blocked sidecars.
