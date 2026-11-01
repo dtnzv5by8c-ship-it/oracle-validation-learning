@@ -17,7 +17,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-FINISHED = {"complete", "completed", "finished", "full time", "full-time", "ft", "ended", "played"}
+FINISHED = {"complete", "completed", "finished", "full time", "full-time", "ft", "ended", "played", "after extra time", "aet", "penalties"}
 SIDE_FEATURES = ("gf5", "ga5", "btts5", "fts5", "cs5", "shots5", "sot5")
 
 
@@ -30,10 +30,15 @@ def first(row, keys):
 
 
 def team_ids(match):
-    home = first(match, ("homeID", "home_id", "home_team_id"))
-    away = first(match, ("awayID", "away_id", "away_team_id"))
+    # Keep the source aliases aligned with build_footystats_archive_features.py.
+    home = first(match, ("homeID", "home_id", "team_a_id", "home_team_id"))
+    away = first(match, ("awayID", "away_id", "team_b_id", "away_team_id"))
     return (str(home).strip() if home is not None else "",
             str(away).strip() if away is not None else "")
+
+
+def fixture_id(match):
+    return str(first(match, ("id", "match_id", "fixture_id", "game_id")) or "").strip()
 
 
 def stamp(match):
@@ -72,8 +77,13 @@ def number(value):
 
 
 def match_score(match):
-    return (number(first(match, ("homeGoalCount", "home_goals", "home_score"))),
-            number(first(match, ("awayGoalCount", "away_goals", "away_score"))))
+    # Keep the score aliases aligned with build_footystats_archive_features.py.
+    return (number(first(match, ("homeGoalCount", "home_goal_count", "home_score", "homeGoalsCount", "home_goals"))),
+            number(first(match, ("awayGoalCount", "away_goal_count", "away_score", "awayGoalsCount", "away_goals"))))
+
+
+def match_status(match):
+    return str(first(match, ("status", "status_name", "match_status", "game_status")) or "").strip().lower()
 
 
 def valid_integer_score(home, away):
@@ -82,9 +92,9 @@ def valid_integer_score(home, away):
 
 
 def finished(match):
-    status = str(first(match, ("status", "game_status")) or "").strip().lower()
+    status = match_status(match)
     home, away = match_score(match)
-    return status in FINISHED and home is not None and away is not None
+    return status in FINISHED and valid_integer_score(home, away)
 
 
 def completed_signature(row):
@@ -122,9 +132,10 @@ def load_archive(archive_path, selected_labels):
     rows = []
     with zipfile.ZipFile(archive_path) as archive:
         names = set(archive.namelist())
-        manifest_name = next((name for name in names if name.endswith("ingestion_manifest.json")), None)
-        if not manifest_name:
-            raise ValueError("Pinned archive ingestion_manifest.json is missing")
+        manifest_names = sorted(name for name in names if name.endswith("ingestion_manifest.json"))
+        if len(manifest_names) != 1:
+            raise ValueError(f"Expected exactly one pinned archive ingestion_manifest.json, found {len(manifest_names)}")
+        manifest_name = manifest_names[0]
         manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
         if not isinstance(manifest, list):
             raise ValueError("Unexpected ingestion manifest shape")
@@ -151,12 +162,12 @@ def load_archive(archive_path, selected_labels):
                 home_id, away_id = team_ids(match)
                 kickoff = stamp(match)
                 home_goals, away_goals = match_score(match)
-                status = str(first(match, ("status", "game_status")) or "")
+                status = str(first(match, ("status", "status_name", "match_status", "game_status")) or "")
                 rows.append({
                     "competition_id": selected_id, "season_id": season_id,
                     "country": label[0], "league": label[1],
                     "source_file": match_path, "source_row": source_row,
-                    "fixture_id": str(match.get("id") or "").strip(),
+                    "fixture_id": fixture_id(match),
                     "kickoff_unix": kickoff, "home_id": home_id, "away_id": away_id,
                     "home_goals": home_goals, "away_goals": away_goals,
                     "finished": finished(match), "status_raw": status,
@@ -236,14 +247,42 @@ def parse_target_time(value):
         return None
 
 
+def side_stat(row, team_id, home_key, away_key):
+    if row["home_id"] == team_id:
+        key = home_key
+    elif row["away_id"] == team_id:
+        key = away_key
+    else:
+        return None
+    return number(row["raw"].get(key))
+
+
 def numeric_feature_completeness(sample, side, team_id):
-    if len(sample) < 5:
-        return {f"{side}_{name}": "NO_FIVE_MATCH_SAMPLE" for name in SIDE_FEATURES}
-    shot_n = sum(number(row["raw"].get("team_a_shots" if row["home_id"] == team_id else "team_b_shots")) is not None for row in sample)
-    sot_n = sum(number(row["raw"].get("team_a_shotsOnTarget" if row["home_id"] == team_id else "team_b_shotsOnTarget")) is not None for row in sample)
-    result = {f"{side}_{name}": "COMPLETE_FROM_FIVE_MATCHES" for name in SIDE_FEATURES[:5]}
-    result[f"{side}_shots5"] = "COMPLETE" if shot_n else "NO_NUMERIC_SOURCE_VALUES"
-    result[f"{side}_sot5"] = "COMPLETE" if sot_n else "NO_NUMERIC_SOURCE_VALUES"
+    shot_n = sum(side_stat(row, team_id, "team_a_shots", "team_b_shots") is not None for row in sample)
+    sot_n = sum(side_stat(row, team_id, "team_a_shotsOnTarget", "team_b_shotsOnTarget") is not None for row in sample)
+    denominator = len(sample)
+    result = {
+        f"{side}_{name}": "NO_FIVE_MATCH_SAMPLE"
+        for name in SIDE_FEATURES
+    } if denominator < 5 else {
+        f"{side}_{name}": "COMPLETE_FROM_FIVE_MATCHES"
+        for name in SIDE_FEATURES[:5]
+    }
+    result[f"{side}_shots5_numeric_count"] = shot_n
+    result[f"{side}_shots5_numeric_denominator"] = denominator
+    result[f"{side}_sot5_numeric_count"] = sot_n
+    result[f"{side}_sot5_numeric_denominator"] = denominator
+    if denominator >= 5:
+        result[f"{side}_shots5"] = (
+            "COMPLETE_FROM_FIVE_MATCHES" if shot_n == 5 else
+            "NO_NUMERIC_SOURCE_VALUES" if shot_n == 0 else
+            f"PARTIAL_NUMERIC_SOURCE_VALUES_{shot_n}_OF_5"
+        )
+        result[f"{side}_sot5"] = (
+            "COMPLETE_FROM_FIVE_MATCHES" if sot_n == 5 else
+            "NO_NUMERIC_SOURCE_VALUES" if sot_n == 0 else
+            f"PARTIAL_NUMERIC_SOURCE_VALUES_{sot_n}_OF_5"
+        )
     return result
 
 
@@ -339,8 +378,8 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     "source_file": row["source_file"], "source_record_index": row["source_row"],
                     "source_record_sha256": row["raw_record_sha256"],
                     "history_decision": reason, "exclusion_detail": detail,
-                    "historical_shots_numeric": number(row["raw"].get("team_a_shots" if historical_side == "home" else "team_b_shots")) is not None,
-                    "historical_sot_numeric": number(row["raw"].get("team_a_shotsOnTarget" if historical_side == "home" else "team_b_shotsOnTarget")) is not None,
+                    "historical_shots_numeric": side_stat(row, team_id, "team_a_shots", "team_b_shots") is not None,
+                    "historical_sot_numeric": side_stat(row, team_id, "team_a_shotsOnTarget", "team_b_shotsOnTarget") is not None,
                 })
             included.sort(key=lambda r: (r["kickoff_unix"], r["fixture_id"]))
             runtime_count_raw = str(target.get(f"{side}_recent5_n") or "").strip()
