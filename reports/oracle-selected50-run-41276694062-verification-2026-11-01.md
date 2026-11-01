@@ -156,7 +156,12 @@ A further code-path gap is confirmed in `scripts/build_footystats_archive_featur
 
 Therefore, adding a manifest file alone would not close provenance. A future research-only change must define and validate an exact fixture/field/raw-response-hash/capture-time join, with the raw response retained immutably. Until provider evidence or genuine historical snapshots exist, all 434 xG candidates remain quarantined.
 
-No authenticated FootyStats API calls or private credits were used. The public Match Details example and `max_time` documentation do not establish immutable historical per-fixture xG snapshots or revision history.
+No authenticated FootyStats API calls or private credits were used. The current public Match Details sample response returns numeric `team_a_xg_prematch`, `team_b_xg_prematch` and `total_xg_prematch` values for a completed 2019/20 fixture, but the response has no capture timestamp, immutable snapshot ID or revision number. The published Match Details variable table does not define a point-in-time capture or revision mechanism for these fields. The League Matches documentation describes `max_time` as returning league/team statistics up to a specified time; it does not document an immutable per-fixture xG snapshot. FootyStats' FAQ says match statistics are usually available within 20 minutes after full-time. None of these statements proves that the historical pre-match-labelled xG value was captured or available before that fixture's kickoff.
+
+Provider references:
+- Match Details endpoint and sample response: https://footystats.org/api/documentations/match-details
+- League Matches `max_time` definition: https://footystats.org/api/documentations/match-schedule-and-stats
+- FootyStats FAQ update timing: https://footystats.org/api/documentations/faq
 
 ## 8. Governance and next actions
 
