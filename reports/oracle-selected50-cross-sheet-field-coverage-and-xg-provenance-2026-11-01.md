@@ -6,7 +6,7 @@
 
 ## Executive finding
 
-The latest local audit extends the earlier 50 × 83 Market Intelligence matrix. It covers **325 field occurrences across nine workbook sheets**, for **50 selected league-season groups**, yielding **16,250 league/field scope rows** and **1,090 exception rows**.
+The latest local audit extends the earlier 50 × 83 Market Intelligence matrix. It covers **325 field occurrences across nine workbook sheets**, for **50 selected league-season groups**, yielding **16,250 league/field scope rows** and **965 final exception rows** after report-only status normalisation.
 
 The 1,090 exceptions are **league/field-scope records, not 1,090 missing fixtures**. Denominators vary by sheet: fixture rows, team-side rows, H2H meeting rows, schedule-review rows or league-group rows. Expected states such as `NO_VERIFIED_PRIOR_H2H`, a blank schedule delta where no mismatch exists, and a blank `blocked_reason` where a forecast is not blocked must not be misclassified as ingestion failures.
 
@@ -18,25 +18,22 @@ The local expanded workbook passed reconciliation: 50 selected season IDs, 325 f
 
 | State | Scope exception rows | Interpretation |
 |---|---:|---|
-| Explicitly unavailable / blocked | 769 | Includes intentionally unsupported markets and explicit no-evidence states; not all are ingestion failures. |
-| No usable values | 133 | Includes missing capture timestamps, expected N/A schedule deltas, and fields blocked by the experimental goal baseline. |
-| Partial value coverage | 98 | Some records in the scope have values and others do not. |
-| Status missing | 81 | Mostly expected blank status fields where no block or schedule mismatch exists. |
-| Status partial | 9 | Nine league groups contain schedule mismatch review statuses. |
-| **Total** | **1,090** | Scope-aware exception count, not a fixture count. |
+| Explicitly unavailable / blocked | 770 | Includes intentionally unsupported markets and explicit no-evidence states; not all are ingestion failures. |
+| Partial value coverage | 99 | Some records in the scope have values and others do not. |
+| No usable values | 96 | Includes the 46 fixture-group xG capture timestamps that remain unverified and goal-research values blocked by insufficient baselines. |
+| **Total** | **965** | Final scope-aware exception count after report-only status normalisation; not a fixture count. |
+
+The final normalisation filled 422 non-blocked goal-research reason fields, 415 schedule no-mismatch reason fields, and 415 zero-minute deltas where runtime and archive UTC kickoff instants were exactly equal. The 19 genuine kickoff mismatches remain in the manual review queue.
 
 ### By field role
 
 | Field role | Scope exception rows |
 |---|---:|
-| Market / probability | 723 |
-| Head-to-head | 120 |
-| Descriptive / supporting | 118 |
-| Status / governance | 90 |
-| Team form / performance | 25 |
-| xG / goal-model evidence | 12 |
-| Identity / provenance | 2 |
-| **Total** | **1,090** |
+| Value / description | 873 |
+| Probability / rate | 78 |
+| Count / sample | 8 |
+| Identity / provenance | 6 |
+| **Total** | **965** |
 
 ## 2. Main root causes and controls
 
@@ -89,3 +86,19 @@ Official references:
 5. Keep all xG and experimental goal outputs research-only and non-betting eligible until their separate validation gates pass.
 
 **Governance:** no production model logic, probability, threshold, market definition or setting was modified. No PR merge is proposed.
+
+
+## 6. Final exception-count reconciliation (1 November 2026, 02:56 SAST)
+
+The earlier 1,090-row exception snapshot pre-dated report-only status normalisation. The final local QA record `oracle_selected50_field_coverage_qa_2026-11-01_FINAL.json` supersedes that count and records:
+
+- 50 selected league-season groups.
+- 325 field occurrences across nine source sheets.
+- 16,250 league-field matrix rows.
+- 965 final exception rows: 770 explicitly unavailable/blocked, 99 partial value coverage and 96 no usable values.
+- 0 unmapped source rows.
+- Local regression tests: 2/2 passed.
+- Idempotent rebuild: 50 groups, 325 fields, 16,250 matrix rows, 0 unmapped rows.
+- The final workbook's raw Oracle V1.6 output and original Market Intelligence sheet remain unchanged at the cell-data level.
+
+This correction is reporting-only. It does not change Oracle V1.6 production logic, probabilities, thresholds, or eligibility.
