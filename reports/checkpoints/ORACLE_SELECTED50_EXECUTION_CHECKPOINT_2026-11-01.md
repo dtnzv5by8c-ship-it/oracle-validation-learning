@@ -112,3 +112,53 @@ The latest v1.4 workflow definition pins and verifies the archive SHA-256 and th
 7. Keep v1.3 canonical until v1.4 candidate passes formal release gates. No merge of PR #31, no production logic/probability/threshold changes.
 
 **Run #154 is a successful report rebuild and QA milestone, not a declaration of 50-league production readiness.**
+
+
+## Kickoff source evidence QA — Run #164 (2026-11-01)
+
+**CI run:** [Run #164](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41278097171)  
+**Run ID:** `41278097171`  
+**Head commit:** `23aa98a9337df5acbc698170962bdfc19f9dac2a`  
+**Result:** SUCCESS. Push-triggered tests plus actual source-evidence validation against the preserved Run #154 schedule queue.
+
+### Implementation committed
+- `scripts/validate_selected50_kickoff_source_evidence.py` — offline, fail-closed validation of exact fixture-ID joins, runtime/archive timestamps, timezone conversion, evidence status and no-auto-correction contract.
+- `tests/test_selected50_kickoff_source_evidence.py` — six unit tests covering exact joins, timezone conversion, unresolved-source handling, runtime disagreement and no-auto-correction.
+- `.github/workflows/oracle-selected50-market-intelligence-repair.yml` — test path and test invocation added; push CI downloads the preserved Run #154 artifact, validates the 19-row evidence register against its exact schedule queue, and uploads a QA JSON. The manual full rebuild also validates the register against the newly generated queue and includes the QA JSON in the report artifact.
+- `reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv` — repaired malformed CSV quoting and updated official source evidence.
+
+### Verified actual QA
+- Preserved queue rows: 19.
+- Evidence register rows: 19.
+- Exact fixture-ID set match: true; IDs unique: true.
+- Runtime/archive timestamps match original queue: all 19.
+- Source local-time/timezone conversions verified for all 18 corroborated rows.
+- Authoritative source corroborates runtime: 18.
+- Unresolved/conflicted: 1 (CD Tondela vs Felgueiras 1932).
+- Original schedule queue remains 19/19 `REVIEW_REQUIRED`; zero auto-corrections.
+- Production eligible: false; betting eligible: false; network/provider calls: 0.
+
+QA artifact:
+- Artifact ID: `13072720459`
+- Artifact ZIP SHA-256: `bb5f4cf3ef1238839f32769b2e51a2e30c19370057576493fadba068e720c0d8`
+- Saved Library copy: `/Project Oracle/Selected-50/Oracle_Selected50_Kickoff_Evidence_QA_2026-11-01.json`
+
+### Authoritative schedule evidence updates
+- Six Saudi Pro League fixture times were confirmed from the Saudi Arabian Football Federation schedule.
+- Lorient–Brest was confirmed from official LFP and FC Lorient notices as Monday 2 November 20:45 local.
+- Reims–Sochaux remains corroborated from the official page body with a title/slug caveat.
+- One Liga Portugal 2 fixture remains unresolved due lack of authoritative exact kickoff evidence.
+- These are external evidence overlays only; the original schedule queue and workbook remain unchanged.
+
+### Run #164 interpretation
+This validates the external evidence register against the preserved Run #154 queue. It does **not** rewrite the original queue, certify automatic schedule corrections, or complete a new workbook rebuild. All 19 queue entries remain review-required pending formal controlled reconciliation.
+
+## Remaining execution gate
+The full manual report-repair workflow has not yet been rerun after adding the source-evidence validator. Before v1.4 candidate release review, manually dispatch the same workflow on the governed research branch with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+Then verify the fresh report artifact contains `oracle_selected50_kickoff_source_evidence_qa.json` and re-check the unchanged 19-sheet / 38-column / 83-column workbook contract, exact joins, 17,000-row field matrix, orientation and feature blocker audits, xG quarantine, and eligibility masks.
+
+**Governance remains unchanged:** v1.3 canonical; v1.4 candidate only; no merge of PR #31; no production model/probability/threshold changes; no API-credit spend.
