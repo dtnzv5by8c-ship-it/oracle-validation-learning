@@ -142,7 +142,17 @@ def load_archive(archive_path, selected_labels):
             raise ValueError("Pinned archive ingestion_manifest.json is invalid") from exc
         if not isinstance(manifest, list):
             raise ValueError("Pinned archive ingestion_manifest.json has unexpected shape")
+        from pathlib import PurePosixPath
+        match_paths_by_season = defaultdict(list)
+        for member in names:
+            path = PurePosixPath(member)
+            if path.name == "matches.json":
+                match_paths_by_season[path.parent.name].append(member)
+
         mapped_seasons = 0
+        loaded_season_files = 0
+        missing_match_files = []
+        ambiguous_match_files = []
         for meta in manifest:
             if not isinstance(meta, dict):
                 continue
@@ -153,12 +163,18 @@ def load_archive(archive_path, selected_labels):
             if not selected_id:
                 continue
             mapped_seasons += 1
-            match_path = f"seasons/{season_id}/matches.json"
-            if match_path not in names:
+            candidates = sorted(match_paths_by_season.get(season_id, []))
+            if not candidates:
+                missing_match_files.append(season_id)
                 continue
+            if len(candidates) != 1:
+                ambiguous_match_files.append({"season_id": season_id, "paths": candidates})
+                continue
+            match_path = candidates[0]
             source = json.loads(archive.read(match_path).decode("utf-8"))
             if not isinstance(source, list):
-                continue
+                raise ValueError(f"Mapped season matches.json is not a list: {match_path}")
+            loaded_season_files += 1
             for source_row, match in enumerate(source):
                 if not isinstance(match, dict):
                     continue
@@ -179,8 +195,18 @@ def load_archive(archive_path, selected_labels):
                         json.dumps(match, sort_keys=True, ensure_ascii=False).encode("utf-8")
                     ).hexdigest(),
                 })
+        if missing_match_files or ambiguous_match_files:
+            raise ValueError(
+                "Mapped season matches.json path resolution failed: "
+                f"missing={missing_match_files[:10]} ambiguous={ambiguous_match_files[:5]}"
+            )
     if mapped_seasons == 0:
         raise ValueError("No archive seasons map to the Selected-50 manifest")
+    if loaded_season_files != mapped_seasons or not rows:
+        raise ValueError(
+            f"Archive match-file load incomplete: mapped_seasons={mapped_seasons}, "
+            f"loaded_season_files={loaded_season_files}, match_rows={len(rows)}"
+        )
     return rows, mapped_seasons
 
 
