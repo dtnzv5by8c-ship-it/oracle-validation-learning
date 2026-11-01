@@ -565,7 +565,7 @@ def build_report(runtime_rows, archive_rows):
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
-                "selected_id": r.get("selected_id", ""),
+                "meeting_selected_id": r.get("selected_id", ""),
                 "selected_country": r.get("selected_country", ""),
                 "selected_competition_name": r.get("selected_competition_name", ""),
                 "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
