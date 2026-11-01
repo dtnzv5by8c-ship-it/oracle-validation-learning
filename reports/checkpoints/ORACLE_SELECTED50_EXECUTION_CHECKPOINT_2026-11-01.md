@@ -335,10 +335,10 @@ Regression tests were added for alternate source aliases and partial shot/SOT co
 A code-path review found that the earlier `manifest_rows=0` statement was too broad:
 
 - `build_footystats_archive_features.py` searches specifically for `ingestion_manifest.csv` when calculating its manifest row count.
-- `audit_selected50_row_level_history_provenance.py` separately requires and reads `ingestion_manifest.json` to map archive season IDs to Selected-50 country/competition labels.
-- Therefore, the zero count refers to the CSV-form manifest path; it does not prove that the archive contains no manifest.
+- `audit_selected50_row_level_history_provenance.py` expects `ingestion_manifest.json` for archive season-to-Selected-50 mapping, but that code path has not yet run against the pinned archive; actual file presence is not yet verified.
+- Therefore, the zero count refers to the CSV-form manifest path; it does not prove either the presence or absence of a JSON manifest.
 
-The JSON manifest's actual field inventory and granularity have not yet been inspected. No claim is made that it contains, or does not contain, per-fixture capture timestamps, response hashes or revision metadata.
+The JSON manifest's actual presence, field inventory and granularity have not yet been verified. No claim is made that it contains, or does not contain, per-fixture capture timestamps, response hashes or revision metadata.
 
 ### New research-only inventory added
 
@@ -346,13 +346,13 @@ Added:
 - `scripts/audit_footystats_xg_manifest_provenance.py`
 - `tests/test_footystats_xg_manifest_provenance.py`
 
-Integrated both into the existing Selected-50 repair workflow. The manual-dispatch path will inspect the pinned archive's single JSON ingestion manifest and match-record metadata, then emit:
+Integrated both into the existing Selected-50 repair workflow. The manual-dispatch path will require exactly one JSON ingestion manifest in the pinned archive, fail closed if it is missing or duplicated, inventory its metadata and the match-record fields, then emit:
 - `oracle_selected50_xg_manifest_field_inventory.csv`
 - `oracle_selected50_xg_manifest_provenance_qa.json`
 
 The inventory emits field names and counts only, never raw metadata values or credentials. It reports candidate capture, revision, hash and fixture-linkage fields but always leaves `xg_point_in_time_provenance_verified=false` and `xg_quarantine_required=true`. It makes no provider API calls and does not add or alter workbook columns.
 
-The xG provenance report and point-in-time specification were corrected to distinguish the CSV-only zero count from the JSON manifest that is already used by the row-level history audit.
+The xG provenance report and point-in-time specification were corrected to distinguish the CSV-only zero count from the unverified JSON-manifest expectation in the row-level history audit.
 
 ### Current preserved evidence and gates
 
