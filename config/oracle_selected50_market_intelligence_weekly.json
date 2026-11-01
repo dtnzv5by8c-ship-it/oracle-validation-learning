@@ -1,0 +1,19 @@
+{
+  "report_name": "Oracle Selected-50 Market Intelligence Report",
+  "configuration_version": "1.0.0",
+  "governed_league_universe": "Selected-50 governed season manifest; exact selected_id mapping only",
+  "selected_league_count": 50,
+  "production_benchmark": "Oracle V1.6",
+  "pinned_archive_release_tag": "research-selected50-footystats-history-40375285207",
+  "pinned_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+  "history_minimum_matches": 5,
+  "history_cutoff_rule": "Only completed, valid-score historical matches strictly earlier than the runtime fixture kickoff UTC; never lower the five-match runtime feature minimum.",
+  "h2h_matching_policy": "Exact Selected-50 country scope; exact normalized unordered team names preferred, exact provider team IDs fallback; completed valid-score meetings strictly before cutoff; no fuzzy aliases or cross-country joins; zero means no verified pair in pinned archive, not proof of no prior meetings.",
+  "xg_policy": "Quarantine xG from prediction/backtest/betting unless fixture-linked capture timestamp and immutable revision/hash evidence prove point-in-time availability before kickoff.",
+  "production_and_betting_policy": "Research/report-only. production_eligible=false and betting_eligible=false. Do not modify Oracle V1.6 model logic or probabilities.",
+  "weekly_workflow": ".github/workflows/oracle-selected50-market-intelligence-repair.yml",
+  "weekly_run_instructions": "From the governed research branch, manually dispatch the workflow weekly after a successful runtime run. Confirm private archive read. Keep the pinned archive tag unchanged unless a separately reviewed archive release and SHA are approved. Supply the current successful runtime_run_id. Workflow verifies archive/runtime provenance, rebuilds the workbook, runs all QA, adds LLM Data Dictionary and Report Configuration tabs, and uploads the artifact.",
+  "required_inputs": "confirm_private_archive_read=true; private_archive_release_tag=research-selected50-footystats-history-40375285207; runtime_run_id=<current successful governed Selected-50 runtime run>",
+  "output_artifact": "oracle-selected50-market-intelligence-repair",
+  "reproducibility_rule": "All report-generation scripts, tests, workflow, selected-season manifest and this configuration are version-controlled in oracle-validation-learning. Reuse the workflow; do not recreate workbook manually. Update config only through reviewed commits."
+}
