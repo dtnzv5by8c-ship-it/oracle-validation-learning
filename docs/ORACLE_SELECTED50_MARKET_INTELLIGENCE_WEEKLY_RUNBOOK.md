@@ -35,3 +35,31 @@ The report builder, field-coverage audit and LLM dictionary generator are versio
 The **LLM Data Dictionary** tab contains one row for every column heading in every other workbook tab, with sheet purpose, field meaning, source/calculation, units and interpretation limitations. It is generated from the actual workbook schema on every run, so new columns are detected automatically. If a new heading has no explicit field definition, the dictionary labels it conservatively and directs the reader to the source sheet and script rather than inventing a formula.
 
 The **Report Configuration** tab embeds the permanent configuration and weekly instructions in the workbook itself.
+
+
+## FootyStats completed-results reconciliation (report-only)
+
+The report workflow now runs `scripts/reconcile_selected50_actual_results_footystats.py` after the Market Intelligence workbook and LLM dictionary have been built. It retrieves league match schedules/results through the FootyStats `league-matches` endpoint, using the provider season IDs present in the exact runtime fixture report. It requests pages with `max_per_page=1000`, handles pagination and transient rate-limit/server errors, and records the actual request count.
+
+### Required repository secret
+
+Before dispatching the report workflow, configure the GitHub Actions repository secret named `FOOTYSTATS_API_KEY`:
+
+1. Open the repository Settings.
+2. Go to Secrets and variables → Actions.
+3. Create a repository secret named `FOOTYSTATS_API_KEY`.
+4. Paste the FootyStats API key directly into GitHub's secret-value field. Do not place the key in source code, workflow inputs, commits, workbook outputs or ChatGPT messages.
+
+The workflow does not echo the key. If the secret is absent, the reconciliation step fails closed and the report is not published as if results were checked.
+
+### Settlement and evidence policy
+
+- Exact identity only: provider season ID + fixture ID + ordered home team ID + ordered away team ID. No fuzzy team-name matching.
+- Only provider status `complete` (or an explicitly equivalent completed status) and valid non-negative integer final scores can settle.
+- Pending, missing, API-error, duplicate, conflicting or malformed records remain unresolved/quarantined.
+- The `Actual Results` workbook tab and the companion CSV contain actual scores, result, BTTS and goal-line outcomes, settlement status, source and retrieval timestamp.
+- QA JSON records requested seasons, request count, settlement counts, and explicitly sets `production_eligible=false`, `betting_eligible=false`, and `prediction_probabilities_modified=false`.
+- This API feed is not an in-play/live-score service. Results availability is subject to FootyStats coverage and its published update cadence.
+- Results are for reporting and later chronological validation only. They do not feed back into predictions or modify Oracle V1.6.
+
+The provider API call is a new, explicit exception to the previous archive-only/no-provider-call rule, authorized for completed-results retrieval only. All historical archive and model-governance controls remain unchanged.
