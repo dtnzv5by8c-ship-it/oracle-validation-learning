@@ -53,7 +53,7 @@ class KickoffEvidenceRegisterTests(unittest.TestCase):
     def test_runtime_disagreement_fails_closed(self):
         row = evidence_row()
         row["source_local_kickoff"] = "2026-11-01 20:00"
-        with self.assertRaisesRegex(ValueError, "does not corroborate runtime"):
+        with self.assertRaisesRegex(ValueError, "source local-to-UTC conversion mismatch"):
             validate([queue_row()], [row])
 
     def test_unresolved_source_stays_review_required(self):
