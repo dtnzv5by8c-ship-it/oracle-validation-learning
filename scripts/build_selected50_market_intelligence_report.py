@@ -161,7 +161,10 @@ def build_indexes(matches):
         # H2H alone uses the exact Selected-50 country/competition mapping from
         # the pinned ingestion manifest. provider_league_id in this archive is
         # season-scoped, so it must not be used as a cross-season competition key.
-        h2h_scope_id = str(row.get("selected_id") or "").strip()
+        # H2H spans the governed Selected-50 archive within the same country.
+        # This retains prior meetings when clubs move between selected divisions,
+        # while preventing same-name/team-ID joins across countries.
+        h2h_scope_id = str(row.get("selected_country") or "").strip()
         if (h2h_scope_id and str(row.get("status_raw") or "").lower() in SETTLED
                 and valid_score(row) and str(row.get("fixture_id") or "").strip()):
             item["_h2h_scope_id"] = h2h_scope_id
@@ -413,8 +416,9 @@ def build_report(runtime_rows, archive_rows):
                                            hf["ga"] if hf["n"] >= 3 else None, league_goals_per_team)
         a_attack, a_defence = index_value(af["gf"] if af["n"] >= 3 else None,
                                            af["ga"] if af["n"] >= 3 else None, league_goals_per_team)
-        h2h_scope_id = str(target.get("selected_id") or "").strip()
-        if h2h_scope_id != selected:
+        target_selected_id = str(target.get("selected_id") or "").strip()
+        h2h_scope_id = str(target.get("selected_country") or "").strip()
+        if target_selected_id != selected or not h2h_scope_id:
             h2h_scope_id = ""
         home_name_key = normalize_team_name(runtime.get("home_team"))
         away_name_key = normalize_team_name(runtime.get("away_team"))
@@ -555,12 +559,15 @@ def build_report(runtime_rows, archive_rows):
             "home_risk_pct": h_risk, "away_risk_pct": a_risk,
             "archive_provider_season_id": key[0], "archive_provider_season_id_source": target.get("provider_season_id_source", "ARCHIVE_SEASON_FOLDER_ID"),
             "archive_provider_competition_id": target.get("provider_league_id", ""),
-            "h2h_scope": "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",
+            "h2h_scope": "EXACT_SELECTED50_COUNTRY_SCOPE" if h2h_scope_id else "BLOCKED_SELECTED_MANIFEST_MAPPING",
             "h2h_scope_id": h2h_scope_id,
             "h2h_match_basis": h2h_match_basis if h2h else "NO_VERIFIED_PAIR_MATCH",
             "h2h_meetings_detail": json.dumps([{
                 "fixture_id": r.get("fixture_id", ""), "kickoff_utc": r.get("kickoff_utc", ""),
                 "provider_season_id": r.get("provider_season_id", ""),
+                "selected_id": r.get("selected_id", ""),
+                "selected_country": r.get("selected_country", ""),
+                "selected_competition_name": r.get("selected_competition_name", ""),
                 "home_team_id": r.get("home_team_id", ""), "away_team_id": r.get("away_team_id", ""),
                 "home_team": r.get("home_team", ""), "away_team": r.get("away_team", ""),
                 "match_basis": h2h_match_basis,
@@ -1651,6 +1658,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     add_sheet("H2H Intelligence",
         ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id", "history_cutoff_utc", "h2h_scope", "h2h_scope_id",
          "meeting_rank_latest_first", "meeting_fixture_id", "kickoff_utc", "provider_season_id",
+         "meeting_selected_id", "selected_country", "selected_competition_name",
          "home_team_id", "away_team_id", "home_team", "away_team", "match_basis",
          "no_home_away", "home_goals", "away_goals",
          "result_current_home_perspective", "total_goals"], h2h_rows)
