@@ -260,3 +260,51 @@ The diagnostic is deliberately count-only. It inherits history counts and featur
 8. Do not alter production V1.6 logic, production probabilities, thresholds, eligibility, or spend provider API credits.
 
 **Run #169 is a successful full research/report rebuild with QA, not Selected-50 production readiness or betting approval.**
+
+
+## Row-level historical feature provenance audit implementation — 2026-11-01
+
+**Latest governed branch HEAD at checkpoint:** `ebd4522368e5f7deaef4ac9e5a8ba130b1e0c13c`  
+**Scope:** Research/reporting-only. No production model, probability, threshold, eligibility or archive changes.
+
+### Implemented
+- `scripts/audit_selected50_row_level_history_provenance.py` — new standard-library-only replay audit over the pinned private archive and exact runtime prediction report.
+- `tests/test_selected50_row_level_history_provenance.py` — six unit tests.
+- `.github/workflows/oracle-selected50-market-intelligence-repair.yml` — manual-dispatch-only archive replay step, test invocation, and artifact sidecars for side-level summary, match-level provenance and QA JSON.
+
+### Replay contract
+The audit mirrors the existing Selected-50 research runtime's current historical feature rules without changing them:
+- Exact country + competition label mapping from the Selected-50 manifest to the existing selected-ID competition grouping.
+- Provider team IDs preserved as the only team identity key; no display-name joins or canonical mapping.
+- Separate home-oriented and away-oriented history, matching the runtime's `home_history` and `away_history` stores.
+- Strictly pre-kickoff history; same-time and later matches are excluded.
+- Existing finished-status and valid integer-score requirements.
+- Existing competition-scoped fixture-ID conflict quarantine, exact duplicate handling and duplicate completed-signature quarantine.
+- Five-match minimum unchanged; no imputation, prediction generation or production eligibility.
+
+The output design records target fixture/team-side identity, archive season, considered historical fixture IDs, included and excluded IDs, source file/record index/hash, kickoff relation to cutoff, orientation, status/score, duplicate decisions, shot/SOT evidence and per-feature completeness. A missing archive match is reported as no matching team-ID record found in the mapped archive; the audit does not invent a provider-missing reason.
+
+### CI and test evidence
+- Run #170 (`41280110832`) failed on an intermediate workflow commit because the manual-only condition was escaped incorrectly and the archive step ran during a push test without the private archive. No archive access occurred.
+- Run #171 (`41280145141`) succeeded after correcting the manual-dispatch condition.
+- Run #172 (`41280185972`) failed on an intermediate script/test commit because the expected orientation label had not yet been updated.
+- Run #173 (`41280188782`) succeeded on the latest implementation commit `ebd4522368e5f7deaef4ac9e5a8ba130b1e0c13c`. The six new row-level provenance unit tests all passed; the complete report repair push-test job passed.
+- In push-triggered CI, the private-archive replay step was correctly skipped. Therefore the actual 25-side archive replay has **not yet been executed or validated**.
+
+### Outstanding execution gate
+The existing GitHub connector exposes repository/file/run reads and workflow reruns, but no workflow-dispatch action. A user must manually dispatch:
+`.github/workflows/oracle-selected50-market-intelligence-repair.yml`
+from `research/oracle-50-league-readiness-audit` with:
+- `confirm_private_archive_read=true`
+- `private_archive_release_tag=research-selected50-footystats-history-40375285207`
+- `runtime_run_id=41175230838`
+
+This workflow reads the existing pinned archive and existing runtime artifact only; it makes no provider API calls. After dispatch, inspect the generated `oracle_selected50_history_provenance_sides.csv`, `oracle_selected50_history_provenance_matches.csv` and `oracle_selected50_history_provenance_qa.json`. Any count mismatch must remain `REVIEW_REQUIRED`; do not relax the five-match gate.
+
+### Governance and preserved state
+- Run #169 workbook/artifact and Run #154 frozen baseline remain untouched.
+- PR #31 remains open and draft; not merged.
+- v1.3 remains canonical; v1.4 remains a research/reporting candidate.
+- Production V1.6 logic/probabilities, thresholds and eligibility are unchanged.
+- No provider API credits were spent.
+- All Selected-50 outputs remain production-ineligible and betting-ineligible.
