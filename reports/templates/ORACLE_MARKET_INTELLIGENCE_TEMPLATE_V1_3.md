@@ -75,7 +75,7 @@ Do not remove, rename, reorder or silently repurpose any of these worksheets. If
 - Missing venue splits display `NOT_AVAILABLE_INSUFFICIENT_VENUE_SAMPLE`, not blank.
 - Goal Research Block Reason displays `NONE_FORECASTABLE_RESEARCH_ONLY` for forecastable rows, or a specific blocker for blocked rows.
 - Historical accuracy and A+ statuses remain explicit `NOT_VALIDATED` / `NOT_GRADED` until chronology, settlement, odds and calibration gates pass.
-- Fixture orientation `no_home_away` must be surfaced as a review flag; never assume it means neutral venue or auto-change home/away predictions.
+- Known outstanding enhancement: the current reference run has 66 `no_home_away` fixtures that require a report-only orientation flag. This flag is not yet part of the locked v1.3 workbook schema; implement it only through a versioned template/generator/test update (v1.4 or later). Never assume it means neutral venue or auto-change home/away predictions.
 - Coverage states must distinguish full values, status-only, no records in scope, explicitly unavailable/blocked, partial values and no usable values. `NO_RECORDS_IN_SCOPE` is not a missing-fixture or ingestion-failure count.
 
 ## 5. Weekly release gate
