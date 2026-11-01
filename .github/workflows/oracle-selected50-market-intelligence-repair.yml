@@ -347,9 +347,9 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
-          python scripts/validate_selected50_kickoff_source_evidence.py \\
-            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \\
-            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \\
+          python scripts/validate_selected50_kickoff_source_evidence.py \
+            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
+            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \
             --out market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
 
       - name: Build 50-league field-by-field coverage audit (report only)
