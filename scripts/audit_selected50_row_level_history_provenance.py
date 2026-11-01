@@ -12,6 +12,8 @@ import csv
 import hashlib
 import json
 import math
+import re
+import unicodedata
 import zipfile
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -89,6 +91,13 @@ def match_status(match):
 def valid_integer_score(home, away):
     return (home is not None and away is not None and
             float(home).is_integer() and float(away).is_integer())
+
+
+def normalize_team_name(value):
+    """Exact conservative name key for diagnostic ID-drift detection only."""
+    value = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    value = re.sub(r"[^\\w\\s]", "", value, flags=re.UNICODE)
+    return " ".join(value.split())
 
 
 def finished(match):
@@ -188,6 +197,8 @@ def load_archive(archive_path, selected_labels):
                     "source_file": match_path, "source_row": source_row,
                     "fixture_id": fixture_id(match),
                     "kickoff_unix": kickoff, "home_id": home_id, "away_id": away_id,
+                    "home_name": str(first(match, ("home_name", "homeTeam", "home_team_name", "team_a_name", "home")) or ""),
+                    "away_name": str(first(match, ("away_name", "awayTeam", "away_team_name", "team_b_name", "away")) or ""),
                     "home_goals": home_goals, "away_goals": away_goals,
                     "finished": finished(match), "status_raw": status,
                     "raw": match,
@@ -354,6 +365,25 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 continue
             candidates = [r for r in archive_rows if r["competition_id"] == selected_id
                           and team_id in {r["home_id"], r["away_id"]}]
+            target_name_key = normalize_team_name(target.get(f"{side}_team"))
+            exact_name_candidates = [
+                r for r in archive_rows
+                if r["competition_id"] == selected_id and target_name_key
+                and target_name_key in {
+                    normalize_team_name(r.get("home_name")),
+                    normalize_team_name(r.get("away_name")),
+                }
+            ] if not candidates else []
+            exact_name_prior = [
+                r for r in exact_name_candidates
+                if cutoff is not None and r["kickoff_unix"] is not None
+                and r["kickoff_unix"] < cutoff and r["finished"]
+                and valid_integer_score(r["home_goals"], r["away_goals"])
+                and (r["source_file"], r["source_row"]) in normalized_sources
+                and not (r["fixture_id"] and (selected_id, r["fixture_id"]) in conflicting_ids)
+                and (r["source_file"], r["source_row"]) not in exact_extra
+                and completed_signature(r) not in duplicate_signatures
+            ]
             included = []
             exclusions = Counter()
             for row in candidates:
@@ -368,8 +398,6 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     reason, detail = "INVALID_IDENTITY", "IDENTICAL_HOME_AND_AWAY_TEAM_IDS"
                 elif not home_id or not away_id:
                     reason, detail = "ORIENTATION_UNAVAILABLE", "ONE_TEAM_ID_MISSING_FROM_SOURCE_RECORD"
-                elif (side == "home" and home_id != team_id) or (side == "away" and away_id != team_id):
-                    reason, detail = "OTHER_EVIDENCED_REASON", f"OPPOSITE_ORIENTATION_EXCLUDED_BY_RUNTIME_{side.upper()}_HISTORY"
                 elif row["fixture_id"] and (selected_id, row["fixture_id"]) in conflicting_ids:
                     reason, detail = "DUPLICATE_RECORD", "CONFLICTING_COMPETITION_SCOPED_FIXTURE_ID"
                 elif (row["source_file"], row["source_row"]) in exact_extra:
@@ -424,9 +452,12 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 count_mismatches.append(f"{fixture_id}:{side}:runtime={runtime_count_raw}:archive={reconstructed}")
             sample = included[-5:]
             completeness = numeric_feature_completeness(sample, side, team_id)
-            root_cause = ("NO_MATCHING_TEAM_ID_SOURCE_RECORDS_IN_MAPPED_ARCHIVE" if not candidates else
-                          "INSUFFICIENT_QUALIFYING_PRE_KICKOFF_HISTORY" if len(included) < 5 else
-                          "FIVE_MATCH_HISTORY_PRESENT_FEATURE_FIELD_GAP")
+            root_cause = (
+                "PROVIDER_TEAM_ID_DRIFT_EXACT_NAME_CANDIDATES_FOUND" if not candidates and exact_name_candidates
+                else "NO_MATCHING_TEAM_ID_OR_EXACT_NAME_SOURCE_RECORDS_IN_MAPPED_ARCHIVE" if not candidates
+                else "INSUFFICIENT_QUALIFYING_PRE_KICKOFF_HISTORY" if len(included) < 5
+                else "FIVE_MATCH_HISTORY_PRESENT_FEATURE_FIELD_GAP"
+            )
             sides_out.append({
                 "fixture_id": fixture_id, "selected_id": selected_id, "country": target.get("country", ""),
                 "league": target.get("league", ""), "side": side, "team_name": target.get(f"{side}_team", ""),
@@ -434,6 +465,16 @@ def audit(runtime_rows, archive_rows, selected_ids):
                 "runtime_history_count": runtime_count_raw, "reconstructed_history_count": reconstructed,
                 "all_qualifying_prior_matches": len(included), "history_count_reconciles": "YES" if reconciles else "NO",
                 "considered_source_rows": len(candidates),
+                "exact_name_candidate_rows": len(exact_name_candidates),
+                "exact_name_completed_prior_matches": len(exact_name_prior),
+                "exact_name_prior_match_ids": ";".join(
+                    r["fixture_id"] or ("NO_ID:" + str(r["source_row"]))
+                    for r in sorted(exact_name_prior, key=lambda x: (x["kickoff_unix"], x["fixture_id"]))
+                ),
+                "exact_name_history_count_reconciles": (
+                    "YES" if runtime_count is not None and runtime_count == min(len(exact_name_prior), 5)
+                    else "NO"
+                ),
                 "included_history_match_ids": ";".join(r["fixture_id"] or f"NO_ID:{r['source_row']}" for r in included),
                 "last_five_included_match_ids": ";".join(r["fixture_id"] or f"NO_ID:{r['source_row']}" for r in sample),
                 "excluded_history_match_ids": ";".join(
@@ -441,7 +482,11 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     for d in details_out if d["target_fixture_id"] == fixture_id and d["selected_id"] == selected_id
                     and d["target_side"] == side and d["history_decision"] != "INCLUDED_IN_RUNTIME_HISTORY"
                 ),
-                "archive_candidate_status": "MATCHING_TEAM_ID_RECORDS_FOUND" if candidates else "NO_TEAM_ID_MATCHING_RECORDS_IN_MAPPED_ARCHIVE",
+                "archive_candidate_status": (
+                    "MATCHING_TEAM_ID_RECORDS_FOUND" if candidates else
+                    "EXACT_NAME_RECORDS_FOUND_PROVIDER_ID_DRIFT_CANDIDATE" if exact_name_candidates else
+                    "NO_TEAM_ID_OR_EXACT_NAME_RECORDS_IN_MAPPED_ARCHIVE"
+                ),
                 "excluded_reason_counts": json.dumps(dict(sorted(exclusions.items())), separators=(",", ":")),
                 "missing_side_features": ";".join(side_missing),
                 **completeness,
