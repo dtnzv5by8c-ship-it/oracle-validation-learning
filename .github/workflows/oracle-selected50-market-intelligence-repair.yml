@@ -29,6 +29,8 @@ on:
       - "scripts/build_selected50_kickoff_discrepancy_triage.py"
       - "tests/test_selected50_kickoff_discrepancy_triage.py"
       - "scripts/validate_selected50_kickoff_source_evidence.py"
+      - "scripts/diagnose_selected50_feature_blockers.py"
+      - "tests/test_selected50_feature_blocker_diagnostics.py"
       - "tests/test_selected50_kickoff_source_evidence.py"
       - "reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv"
       - "tests/test_selected50_field_coverage_audit.py"
@@ -228,6 +230,25 @@ jobs:
           print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}; exact_snapshot_trace={len(runtime_snapshot)}; no_home_away={no_home_away}")
           PY
 
+      - name: Build report-only team-level feature blocker diagnostics
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
+        run: |
+          set -euo pipefail
+          ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
+          RUNTIME_COMMIT="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["head_sha"])')"
+          ARTIFACT_DIGEST="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1])')"
+          python scripts/diagnose_selected50_feature_blockers.py \\
+            --input-csv runtime-artifact/extracted/oracle_selected50_prediction_report.csv \\
+            --output-side-csv market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv \\
+            --output-team-csv market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv \\
+            --output-summary-json market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json \\
+            --source-runtime-run-id "$RUNTIME_RUN_ID" \\
+            --source-runtime-artifact-id "$ARTIFACT_ID" \\
+            --source-runtime-commit "$RUNTIME_COMMIT" \\
+            --source-runtime-artifact-sha256 "$ARTIFACT_DIGEST"
+
       - name: Install report-only dependencies
         run: python -m pip install --disable-pip-version-check openpyxl
 
@@ -239,6 +260,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_selected50_field_coverage_audit.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
           python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
 
       - name: Download preserved Run 154 schedule queue for evidence-register CI
         if: ${{ github.event_name == 'push' }}
@@ -405,6 +427,9 @@ jobs:
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
             market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
             market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
+            market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv
+            market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv
+            market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json
             runtime-artifact/extracted/current_snapshot_candidate_trace.csv
             runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           if-no-files-found: ignore
