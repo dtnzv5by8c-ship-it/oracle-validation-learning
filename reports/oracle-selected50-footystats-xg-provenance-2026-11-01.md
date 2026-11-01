@@ -26,6 +26,33 @@
 
 The field suffix `prematch` is a label, not a timestamp. The sample response demonstrates that these values are exposed on a completed fixture record alongside actual-match xG. It does not reveal whether the prematch values were captured before kickoff, recalculated later, backfilled, or revised. The `max_time` parameter cannot be treated as proof of a historical xG snapshot because the documentation only describes league/team statistics up to a time.
 
+## Selected-50 per-league evidence roll-up (Run #124)
+
+The existing 50-league field-coverage matrix was reconciled into a dedicated xG provenance roll-up. This measures only the upcoming seven-day fixture set in Run #124; it does not certify historical xG coverage for every season.
+
+- Selected league-season groups: 50.
+- Groups with upcoming fixtures and xG audit rows: 46.
+- Groups with no upcoming fixtures in this reporting window: 4 (Canada Canadian Premier League; China Chinese Super League; Republic of Ireland Premier Division; South Korea K League 1).
+- Upcoming fixture rows: 434.
+- Numeric values present for home, away and total pre-match-labelled xG: 434/434 for each field.
+- Capture timestamps: 0/434.
+- Explicit no-capture-timestamp status: 434/434.
+- Quarantined research rows: 434/434.
+- Prediction eligible: 0/434; betting eligible: 0/434.
+
+The league-by-league roll-up is stored in `reports/oracle-selected50-xg-league-coverage-2026-11-01.csv`. A zero-row group means no fixture was in the current seven-day scope, not that the provider lacks xG coverage for that league historically.
+
+## New documentation finding: `max_time` is a possible test route, not proof
+
+The current League Matches API documentation explicitly describes `max_time` as a UNIX timestamp that returns league and team statistics up to a specified time. The public API overview also advertises selecting a historical date to calculate league statistics as of that date.
+
+However:
+- the League Matches documented response-field list does not define the per-fixture `team_a_xg_prematch`, `team_b_xg_prematch` or `total_xg_prematch` fields;
+- the Match Details public example response does expose those fields on a completed match, together with actual-match xG, but does not provide field-level capture timestamps or revision metadata;
+- no evidence currently shows that `max_time` rewinds or freezes those per-fixture xG fields at the requested historical cutoff.
+
+Therefore, `max_time` is a worthwhile controlled provider test for time-fenced league/team statistics, but it is not evidence that the individual prematch-xG fields are historically point-in-time safe. The xG quarantine remains in force.
+
 ## Required evidence to lift quarantine
 
 At least one of the following must be obtained and independently validated:
