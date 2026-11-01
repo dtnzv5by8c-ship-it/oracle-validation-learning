@@ -292,11 +292,13 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
         self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
 
-    def test_same_season_competition_key_is_not_claimed_as_cross_season_coverage(self):
+    def test_h2h_meeting_retains_source_season_under_selected_competition_scope(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
-                            season="S1", league="L1")
+                            season="S1", league="L1", selected_id="S2",
+                            provider_competition_id="S1")
         target_archive = archive_row("F100", "2026-10-31T18:00:00+00:00", "H", "A", 0, 0,
-                                     season="S2", league="L1")
+                                     season="S2", league="L1", selected_id="S2",
+                                     provider_competition_id="S2")
         target_runtime = dict(runtime_row(), provider_season_id="S2", selected_id="S2")
         report, trace, _ = market_report.build_report([target_runtime], [prior, target_archive])
         self.assertEqual(trace[0]["h2h_scope"], "EXACT_SELECTED_MANIFEST_COMPETITION_SCOPE")
