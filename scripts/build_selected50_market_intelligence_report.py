@@ -1732,10 +1732,10 @@ def main():
     # Persist diagnostics before enforcing the candidate release gates so failed
     # runs still upload exact orientation and feature-block evidence.
     (out_dir / "oracle_selected50_snapshot_orientation_qa.json").write_text(
-        json.dumps(snapshot_orientation_qa, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(snapshot_orientation_qa, indent=2) + "\n", encoding="utf-8"
     )
     (out_dir / "oracle_selected50_runtime_feature_block_audit_qa.json").write_text(
-        json.dumps(runtime_feature_block_qa, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(runtime_feature_block_qa, indent=2) + "\n", encoding="utf-8"
     )
     write_csv(out_dir / "oracle_selected50_runtime_feature_block_audit.csv",
               runtime_feature_block_rows,
