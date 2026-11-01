@@ -8,6 +8,41 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 class FeatureBuilderUnitTests(unittest.TestCase):
+
+    def test_selected_season_mapping_uses_exact_country_competition_labels(self):
+        selected = [
+            {"selected_id": "CURRENT-DE", "country": "Germany", "competition_name": "Bundesliga"},
+            {"selected_id": "CURRENT-NL", "country": "Netherlands", "competition_name": "Eredivisie"},
+        ]
+        ingestion = [
+            {"season_id": "17210", "selected_country": "Germany", "selected_competition_name": "Bundesliga"},
+            {"season_id": "GER-2025", "selected_country": "Germany", "selected_competition_name": "Bundesliga"},
+            {"season_id": "17097", "selected_country": "Netherlands", "selected_competition_name": "Eredivisie"},
+            {"season_id": "MEX-2025", "selected_country": "Mexico", "selected_competition_name": "Liga MX"},
+        ]
+        mapping, qa, rows = mod.map_archive_seasons_to_selected_ids(
+            selected, ingestion, ["17210", "GER-2025", "17097"]
+        )
+        self.assertEqual(mapping, {
+            "17210": "CURRENT-DE", "GER-2025": "CURRENT-DE", "17097": "CURRENT-NL"
+        })
+        self.assertEqual(qa["status"], "REVIEW_REQUIRED_SELECTED_MANIFEST_MAPPING")
+        self.assertEqual(qa["unmapped_manifest_labels"][0]["season_id"], "MEX-2025")
+        self.assertFalse(qa["parent_competition_id_inference_used"])
+        self.assertFalse(qa["fuzzy_matching_used"])
+        self.assertEqual(len(rows), 3)
+
+    def test_selected_season_mapping_rejects_duplicate_selected_labels(self):
+        selected = [
+            {"selected_id": "A", "country": "Germany", "competition_name": "Bundesliga"},
+            {"selected_id": "B", "country": "Germany", "competition_name": "Bundesliga"},
+        ]
+        with self.assertRaisesRegex(ValueError, "blank or duplicate"):
+            mod.map_archive_seasons_to_selected_ids(
+                selected, [{"season_id": "1", "selected_country": "Germany",
+                            "selected_competition_name": "Bundesliga"}], ["1"]
+            )
+
     def test_unix_seconds_parse(self):
         dt = mod.as_date(1790000000)
         self.assertIsNotNone(dt)
