@@ -3,12 +3,12 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from audit_selected50_row_level_history_provenance import audit  # noqa: E402
+from audit_selected50_row_level_history_provenance import audit, fixture_id, finished, match_score, team_ids  # noqa: E402
 
 
 def archive_row(fid, kickoff, home="H", away="X", status="complete",
-                hg=1, ag=0, source_row=0, competition="L", season="S"):
-    raw = {
+                hg=1, ag=0, source_row=0, competition="L", season="S", raw=None):
+    raw = raw if raw is not None else {
         "team_a_shots": 10, "team_b_shots": 7,
         "team_a_shotsOnTarget": 4, "team_b_shotsOnTarget": 2,
     }
@@ -17,7 +17,7 @@ def archive_row(fid, kickoff, home="H", away="X", status="complete",
         "league": "League", "source_file": f"seasons/{season}/matches.json",
         "source_row": source_row, "fixture_id": fid, "kickoff_unix": kickoff,
         "home_id": home, "away_id": away, "home_goals": hg, "away_goals": ag,
-        "finished": status.lower() in {"complete", "completed", "finished", "full time", "full-time", "ft", "ended", "played"} and hg is not None and ag is not None,
+        "finished": status.lower() in {"complete", "completed", "finished", "full time", "full-time", "ft", "ended", "played", "after extra time", "aet", "penalties"} and hg is not None and ag is not None,
         "status_raw": status, "raw": raw, "raw_record_sha256": f"hash-{source_row}",
     }
 
@@ -90,6 +90,43 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
         sides, _, _ = audit([runtime_row(home_recent5_n="3")], rows, {"L"})
         for feature in ("home_gf5", "home_ga5", "home_shots5", "home_sot5"):
             self.assertEqual(sides[0][feature], "NO_FIVE_MATCH_SAMPLE")
+
+    def test_source_aliases_match_archive_feature_builder(self):
+        source = {
+            "match_id": "ALIAS-1",
+            "team_a_id": "H",
+            "team_b_id": "A",
+            "homeGoalsCount": "2",
+            "awayGoalsCount": "1",
+            "match_status": "AET",
+        }
+        self.assertEqual(fixture_id(source), "ALIAS-1")
+        self.assertEqual(team_ids(source), ("H", "A"))
+        self.assertEqual(match_score(source), (2.0, 1.0))
+        self.assertTrue(finished(source))
+
+    def test_shots_and_sot_require_all_five_numeric_values(self):
+        rows = []
+        for i in range(1, 6):
+            raw = {
+                "team_a_shots": 10 if i <= 2 else "",
+                "team_b_shots": 7 if i <= 2 else "",
+                "team_a_shotsOnTarget": 4 if i <= 2 else "",
+                "team_b_shotsOnTarget": 2 if i <= 2 else "",
+            }
+            rows.append(archive_row(f"M{i}", 100 + i, source_row=i, raw=raw))
+        sides, _, _ = audit(
+            [runtime_row(home_recent5_n="5", date_utc="1970-01-01T00:16:40Z")],
+            rows,
+            {"L"},
+        )
+        side = sides[0]
+        self.assertEqual(side["reconstructed_history_count"], 5)
+        self.assertEqual(side["home_shots5_numeric_count"], 2)
+        self.assertEqual(side["home_shots5_numeric_denominator"], 5)
+        self.assertEqual(side["home_shots5"], "PARTIAL_NUMERIC_SOURCE_VALUES_2_OF_5")
+        self.assertEqual(side["home_sot5_numeric_count"], 2)
+        self.assertEqual(side["home_sot5"], "PARTIAL_NUMERIC_SOURCE_VALUES_2_OF_5")
 
     def test_unknown_selected_id_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "unknown selected_id"):
