@@ -1,9 +1,15 @@
+import importlib.util
 import json
 import tempfile
 import unittest
 from pathlib import Path
 from openpyxl import Workbook, load_workbook
-from add_selected50_llm_data_dictionary import main
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "add_selected50_llm_data_dictionary.py"
+spec = importlib.util.spec_from_file_location("selected50_dictionary", SCRIPT)
+dictionary_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(dictionary_module)
+main = dictionary_module.main
 
 class Selected50LLMDataDictionaryTests(unittest.TestCase):
     def test_adds_definition_for_every_heading_and_embeds_config(self):
