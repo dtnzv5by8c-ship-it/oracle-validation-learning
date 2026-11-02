@@ -1,0 +1,85 @@
+name: Oracle Run 8 Selected-50 Venue Calibration (Research Only)
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-run8-selected50-venue-calibration.yml"
+      - "scripts/calibrate_run8_selected50_venue_models.py"
+      - "tests/test_calibrate_run8_selected50_venue_models.py"
+      - "scripts/run8_full_archive_nested_ablations.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selected50-chronological-calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact research commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pinned research dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.1.3 pandas==2.2.3 scipy==1.14.1 scikit-learn==1.5.2
+
+      - name: Run calibration contract tests
+        run: python -m unittest discover -s tests -p "test_calibrate_run8_selected50_venue_models.py" -v
+
+      - name: Download and verify exact pinned archive (read only; no provider calls)
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          TAG="research-selected50-footystats-history-20261025"
+          EXPECTED_SHA256="bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261"
+          mkdir -p private-download
+          gh release download "$TAG" \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern "oracle-selected50-footystats-private-ingestion.zip" \
+            --pattern "private-package.sha256" \
+            --dir private-download
+          DECLARED_SHA256="$(awk 'NR==1 {print $1}' private-download/private-package.sha256)"
+          [[ "$DECLARED_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Release checksum mismatch."; exit 1; }
+          ACTUAL_SHA256="$(sha256sum private-download/oracle-selected50-footystats-private-ingestion.zip | awk '{print $1}')"
+          [[ "$ACTUAL_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Pinned archive SHA-256 mismatch."; exit 1; }
+
+      - name: Rebuild event-time panel and evaluate chronological calibration
+        run: |
+          set -euo pipefail
+          python scripts/calibrate_run8_selected50_venue_models.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --selected-manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
+            --out research-output \
+            --calibration-days 90 \
+            --min-calibration-n 500
+
+      - name: Upload aggregate-only calibration results
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-run8-selected50-venue-calibration
+          path: |
+            research-output/summary.json
+            research-output/report.md
+            research-output/archive_sha256.txt
+            research-output/fold_metrics.csv
+            research-output/paired_calibration_comparisons.csv
+            research-output/calibration_status.csv
+            research-output/reliability_bins.csv
+            research-output/fold_coverage.csv
+            research-output/league_coverage.csv
+            research-output/feature_missingness.csv
+          if-no-files-found: error
+          retention-days: 7
