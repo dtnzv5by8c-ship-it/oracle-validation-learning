@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Research-only Selected-50 scoreline model; aggregate outputs only."""
 from __future__ import annotations
-import argparse, json, math
+import argparse, json, math, sys
 from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
