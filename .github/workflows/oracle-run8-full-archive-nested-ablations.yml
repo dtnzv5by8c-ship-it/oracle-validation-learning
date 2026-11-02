@@ -1,0 +1,83 @@
+name: Oracle Run 8 Full Selected-50 Nested Ablations (Research Only)
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/oracle-run8-full-archive-nested-ablations.yml"
+      - "scripts/run8_full_archive_nested_ablations.py"
+      - "tests/test_run8_full_archive_nested_ablations.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-selected50-ablation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact research commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pinned research dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==2.1.3 pandas==2.2.3 scipy==1.14.1 scikit-learn==1.5.2
+
+      - name: Run research contract tests
+        run: python -m unittest discover -s tests -p "test_run8_full_archive_nested_ablations.py" -v
+
+      - name: Download and verify exact pinned archive (read only; no provider calls)
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          TAG="research-selected50-footystats-history-20261025"
+          EXPECTED_SHA256="bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261"
+          mkdir -p private-download
+          gh release download "$TAG" \
+            --repo dtnzv5by8c-ship-it/oracle-football-data \
+            --pattern "oracle-selected50-footystats-private-ingestion.zip" \
+            --pattern "private-package.sha256" \
+            --dir private-download
+          DECLARED_SHA256="$(awk 'NR==1 {print $1}' private-download/private-package.sha256)"
+          [[ "$DECLARED_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Release checksum mismatch."; exit 1; }
+          ACTUAL_SHA256="$(sha256sum private-download/oracle-selected50-footystats-private-ingestion.zip | awk '{print $1}')"
+          [[ "$ACTUAL_SHA256" == "$EXPECTED_SHA256" ]] || { echo "::error::Pinned archive SHA-256 mismatch."; exit 1; }
+
+      - name: Rebuild full Selected-50 event-time panel in memory and run nested ablations
+        run: |
+          set -euo pipefail
+          python scripts/run8_full_archive_nested_ablations.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --selected-manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
+            --out research-output \
+            --history-lag-hours 0
+
+      - name: Upload aggregate-only research results
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-run8-full-selected50-nested-ablations
+          path: |
+            research-output/summary.json
+            research-output/report.md
+            research-output/archive_sha256.txt
+            research-output/fold_metrics.csv
+            research-output/paired_confidence_intervals.csv
+            research-output/multiplicity_bh_by.csv
+            research-output/partial_spearman.csv
+            research-output/reliability_bins.csv
+            research-output/league_coverage.csv
+            research-output/feature_coverage_and_missingness.csv
+          if-no-files-found: error
+          retention-days: 7
