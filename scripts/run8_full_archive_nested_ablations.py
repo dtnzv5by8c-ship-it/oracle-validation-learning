@@ -258,7 +258,7 @@ def build_event_time_panel(records, start_date, end_date, lag_hours=0.0):
             all_history[(sid, hid)].append(h_entry)
             all_history[(sid, aid)].append(a_entry)
             # H2H goal-rate evidence is pair-based and does not require home/away orientation.
-            h2h_history[(sid, tuple(sorted((hid, aid)))].append((match["kickoff_ts"], btts, over25))
+            h2h_history[(sid, tuple(sorted((hid, aid))))].append((match["kickoff_ts"], btts, over25))
             if match["venue_state"] == "DISTINGUISHED":
                 home_role_history[(sid, hid)].append(h_entry)
                 away_role_history[(sid, aid)].append(a_entry)
