@@ -138,7 +138,9 @@ def score_metrics(yh, ya, markets, joint, tail_mass):
     result = np.where(yh > ya, 0, np.where(yh == ya, 1, 2))
     probs = np.column_stack([markets["home_win"], markets["draw"], markets["away_win"]])
     onehot = np.eye(3)[result]
-    score_prob = joint[np.arange(len(yh)), np.minimum(yh, MAX_GOALS), np.minimum(ya, MAX_GOALS)]
+    in_grid = (yh <= MAX_GOALS) & (ya <= MAX_GOALS)
+    score_prob = np.zeros(len(yh), dtype=float)
+    score_prob[in_grid] = joint[np.where(in_grid)[0], yh[in_grid], ya[in_grid]]
     return {
         "btts_brier": float(np.mean((markets["btts"] - yb) ** 2)),
         "btts_log_loss": metric_value("log_loss", yb, markets["btts"]),
