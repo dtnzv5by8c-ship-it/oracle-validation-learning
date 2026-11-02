@@ -17,7 +17,7 @@ class TestRun8ChronologicalCalibration(unittest.TestCase):
         self.assertEqual(windows["calibration_end_exclusive"], test_start)
         self.assertEqual(windows["calibration_start"], test_start - timedelta(days=90))
         self.assertEqual(windows["train_end_exclusive"], windows["calibration_start"])
-        self.assertLess(windows["train_end_exclusive"], windows["calibration_start"])
+        self.assertEqual(windows["train_end_exclusive"], windows["calibration_start"])
         self.assertLess(windows["calibration_end_exclusive"], windows["test_end_exclusive"])
 
     def test_platt_calibrator_fits_only_supplied_calibration_sample(self):
