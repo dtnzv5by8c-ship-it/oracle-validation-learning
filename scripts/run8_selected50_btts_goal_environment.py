@@ -318,7 +318,7 @@ def main():
     p.add_argument("--out",required=True); p.add_argument("--league-min-n",type=int,default=50)
     a=p.parse_args()
     records,selected_ids,meta=read_archive(a.archive,a.selected_manifest,EXPECTED_ARCHIVE_SHA256)
-    panel=build_event_time_panel(records,PRIMARY_START,PRIMARY_END,lag_hours=0.0)
+    panel=build_event_time_panel(records,TRAIN_START,PRIMARY_END,lag_hours=0.0)
     panel=derive_goal_environment_features(records,panel,a.league_min_n)
     summary=run_diagnostics(panel,selected_ids,meta,a.out,a.league_min_n)
     print(json.dumps({"status":"COMPLETED_RESEARCH_ONLY","population":summary["population"],
