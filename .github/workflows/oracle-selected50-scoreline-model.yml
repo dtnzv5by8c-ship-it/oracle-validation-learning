@@ -25,7 +25,7 @@ jobs:
       - name: Checkout exact research commit
         uses: actions/checkout@v4
         with:
-          ref: \${{ github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,10 +42,10 @@ jobs:
 
       - name: Download and verify exact pinned archive (read only; no provider calls)
         env:
-          GH_TOKEN: \${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "\${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
           TAG="research-selected50-footystats-history-20261025"
           EXPECTED_SHA256="bc64fbad2f827dac983ae8ef1de5055be34209693b7b8057f4c00508059e7261"
           mkdir -p private-download
