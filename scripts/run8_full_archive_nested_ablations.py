@@ -44,6 +44,7 @@ MAIN_NUMERIC = [
     "home_home_ppg5", "home_home_gf5", "home_home_ga5",
     "away_away_ppg5", "away_away_gf5", "away_away_ga5",
 ]
+OVERALL_NUMERIC = MAIN_NUMERIC[:6]
 INTERACTIONS = {
     "home_strength_x_away_weakness": {
         "formula": "(home_ppg5 - away_ppg5) * away_ga5",
@@ -61,12 +62,15 @@ MARKETS = {
 }
 MODEL_FEATURES = {
     "league_only": [],
+    "overall_form_only": OVERALL_NUMERIC,
     "main_effects": MAIN_NUMERIC,
     "main_plus_home_strength_x_away_weakness": MAIN_NUMERIC + ["home_strength_x_away_weakness"],
     "main_plus_home_attack_x_away_defence": MAIN_NUMERIC + ["home_attack_x_away_defence"],
     "main_plus_both_interactions": MAIN_NUMERIC + list(INTERACTIONS),
 }
 COMPARISONS = [
+    ("overall_form_vs_league_only", "overall_form_only", "league_only"),
+    ("venue_features_incremental_vs_overall_form", "main_effects", "overall_form_only"),
     ("main_effects_vs_league_only", "main_effects", "league_only"),
     ("home_strength_interaction_vs_main_effects", "main_plus_home_strength_x_away_weakness", "main_effects"),
     ("home_attack_interaction_vs_main_effects", "main_plus_home_attack_x_away_defence", "main_effects"),
@@ -611,7 +615,7 @@ def run_experiment(frame, selected_ids, archive_meta, out_dir, lag_hours):
         },
         "models": {
             "estimator": "LogisticRegression(C=0.1, solver=lbfgs, max_iter=2500)",
-            "league_baseline": "selected_id one-hot only", "main_effects": MAIN_NUMERIC,
+            "league_baseline": "selected_id one-hot only", "overall_form_only": OVERALL_NUMERIC, "main_effects": MAIN_NUMERIC,
             "candidate_interactions": INTERACTIONS, "calibration": "NOT_APPLIED", "hyperparameter_tuning": "NONE",
         },
         "multiplicity": {
@@ -654,8 +658,8 @@ def run_experiment(frame, selected_ids, archive_meta, out_dir, lag_hours):
         f"- Eligible league groups: {counts['eligible_leagues']}/50.",
         "- History rule: strict earlier-than-kickoff; no extra 24-hour lag. This follows the original Run 8 methodology document; a later checkpoint note mentioning 24 hours conflicted with that source specification.",
         "- The source no_home_away flag is interpreted conservatively: 1 means home/away undistinguished, not proof of a neutral venue; only explicit 0 is used for venue-role histories and target eligibility.",
-        "", "## Pooled nested interaction deltas", "",
-        "Deltas are challenger minus main-effects. Negative Brier/log-loss/ECE is better; positive AUC is better.",
+        "", "## Pooled nested ablation deltas", "",
+        "Deltas are challenger minus the named baseline. Negative Brier/log-loss/ECE is better; positive AUC is better.",
         "", "| Market | Comparison | Metric | Pooled delta | League-cluster 95% CI | BY q |",
         "|---|---|---|---:|---:|---:|",
     ]
