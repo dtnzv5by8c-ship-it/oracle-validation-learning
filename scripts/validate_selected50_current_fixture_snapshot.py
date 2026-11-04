@@ -69,9 +69,12 @@ def validate(path):
     if d.get("production_ledger_written") is not False:
         errors.append("production ledger must not be written")
 
+    snapshot_started = parse_aware(d.get("snapshot_started_utc"))
     retrieved = parse_aware(d.get("retrieved_utc"))
     window_start = parse_aware(d.get("window_start_utc"))
     window_end = parse_aware(d.get("window_end_utc"))
+    if snapshot_started is None:
+        errors.append("snapshot_started_utc must be a valid ISO timestamp with an explicit timezone")
     if retrieved is None:
         errors.append("retrieved_utc must be a valid ISO timestamp with an explicit timezone")
     if window_start is None:
@@ -81,8 +84,10 @@ def validate(path):
     if window_start is not None and window_end is not None:
         if window_end <= window_start:
             errors.append("window_end_utc must be later than window_start_utc")
-        elif retrieved is not None and abs((retrieved - window_start).total_seconds() - 30 * 86400) > 2:
-            errors.append("historical window must span 30 days backward from retrieval")
+        elif snapshot_started is not None and abs((snapshot_started - window_start).total_seconds() - 30 * 86400) > 2:
+            errors.append("historical window must span 30 days backward from snapshot start")
+        if snapshot_started is not None and retrieved is not None and retrieved < snapshot_started:
+            errors.append("retrieved_utc cannot precede snapshot_started_utc")
         report_end_date = str(d.get("report_end_date_utc_inclusive") or "").strip()
         if not report_end_date:
             errors.append("report_end_date_utc_inclusive is required")
@@ -93,6 +98,8 @@ def validate(path):
                     errors.append("window_end_utc must equal the inclusive end of report_end_date_utc_inclusive")
             except ValueError:
                 errors.append("report_end_date_utc_inclusive must be YYYY-MM-DD")
+        if snapshot_started is not None and not (window_start < snapshot_started < window_end):
+            errors.append("snapshot_started_utc must fall inside the declared snapshot window")
         if retrieved is not None and not (window_start < retrieved < window_end):
             errors.append("retrieved_utc must fall inside the declared snapshot window")
 
