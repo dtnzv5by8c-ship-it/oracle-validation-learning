@@ -28,6 +28,12 @@ jobs:
 
       - name: Install report-only regression dependencies
         run: python -m pip install --disable-pip-version-check openpyxl scikit-learn
+      - name: Compile dynamic FootyStats provider registry and adapter
+        run: python -m py_compile scripts/build_footystats_provider_registry.py scripts/oracle_selected50_footystats_adapter.py
+      - name: Test dynamic FootyStats provider registry
+        run: python -m unittest discover -s tests -p "test_footystats_provider_registry.py" -v
+      - name: Test dynamic FootyStats season adapter
+        run: python -m unittest discover -s tests -p "test_oracle_selected50_footystats_adapter.py" -v
       - name: Compile OMI report, history audit and no-call actuals placeholder
         run: python -m py_compile scripts/build_selected50_market_intelligence_report.py scripts/audit_selected50_row_level_history_provenance.py scripts/write_selected50_unqueried_actual_results.py scripts/build_selected50_research_runtime.py
       - name: Test explicit snapshot evidence exceptions in OMI report
