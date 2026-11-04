@@ -74,6 +74,14 @@ def prune_ledger(ledger: dict[str, Any], now: datetime) -> dict[str, Any]:
         raise ValueError("now must include an explicit timezone")
     now = now.astimezone(timezone.utc)
     cutoff = now - timedelta(hours=1)
+    for event in ledger["actual_requests"]:
+        if parse_utc(event["timestamp_utc"]) > now:
+            raise ValueError("future actual request timestamp found in rolling ledger")
+    for reservation in ledger["reservations"]:
+        reserved_at = parse_utc(reservation["reserved_at_utc"])
+        expires_at = parse_utc(reservation["expires_at_utc"])
+        if reserved_at > now or expires_at <= reserved_at:
+            raise ValueError("invalid or future reservation interval found in rolling ledger")
     ledger["actual_requests"] = [
         event for event in ledger["actual_requests"]
         if cutoff < parse_utc(event["timestamp_utc"]) <= now
