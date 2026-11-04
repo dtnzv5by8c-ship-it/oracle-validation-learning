@@ -215,7 +215,7 @@ class SnapshotValidatorTests(unittest.TestCase):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
         probe = Path("scripts/oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
         self.assertIn("report_end_date:", workflow)
-        self.assertIn("REPORT_END_DATE: \${{ inputs.report_end_date }}", workflow)
+        self.assertIn("REPORT_END_DATE: ${{ inputs.report_end_date }}", workflow)
         self.assertIn("time.max", probe)
         self.assertIn("report_end_date_utc_inclusive", probe)
 
