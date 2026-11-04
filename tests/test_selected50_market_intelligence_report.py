@@ -695,7 +695,16 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(empty["Upcoming Fixtures (Report Window)"], 0)
         self.assertEqual(empty["Fixture Coverage Status"], "NO_FIXTURE_IN_REPORT_WINDOW")
         self.assertEqual(empty["Raw Oracle Prediction Status"], "NO_FIXTURES_TO_SCORE")
-        summary_rows = market_report.build_coverage_summary_rows(coverage)
+        summary_rows = market_report.build_coverage_summary_rows(
+            coverage,
+            report_summary={
+                "report_start_date_utc": "2026-11-06",
+                "report_end_date_utc_inclusive": "2026-11-24",
+                "report_horizon_days": 19,
+            },
+        )
+        self.assertTrue(any(row["Metric"] == "Report horizon (inclusive calendar days)"
+                            and row["Value"] == 19 for row in summary_rows))
         xg_rows = market_report.build_xg_provenance_rows(coverage)
         self.assertTrue(any(row["Metric"] == "Groups with no fixtures in report window"
                             and row["Value"] == 1 for row in summary_rows))
