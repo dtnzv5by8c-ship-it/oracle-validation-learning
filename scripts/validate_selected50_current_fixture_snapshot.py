@@ -81,8 +81,19 @@ def validate(path):
     if window_start is not None and window_end is not None:
         if window_end <= window_start:
             errors.append("window_end_utc must be later than window_start_utc")
-        elif abs((window_end - window_start).total_seconds() - 50 * 86400) > 2:
-            errors.append("declared window must span 30 days backward and 20 days forward")
+        elif window_end <= window_start:
+            errors.append("declared snapshot window must be ordered")
+    report_start = parse_aware(str(d.get("report_start_date_utc", "")) + "T00:00:00+00:00")
+    report_end = parse_aware(str(d.get("report_end_date_utc_inclusive", "")) + "T23:59:59.999999+00:00")
+    declared_end = parse_aware(d.get("report_end_utc_inclusive"))
+    if report_start is None or report_end is None or declared_end is None:
+        errors.append("explicit report start/end dates and inclusive UTC end timestamp are required")
+    elif declared_end != report_end:
+        errors.append("report_end_utc_inclusive must equal end-of-day UTC for report_end_date_utc_inclusive")
+    if window_start is not None and report_start is not None and window_start > report_start - dt.timedelta(days=30):
+        errors.append("snapshot does not include the required 30-day pre-report history")
+    if window_end is not None and declared_end is not None and window_end < declared_end:
+        errors.append("snapshot cutoff does not cover the full inclusive report end date")
         if retrieved is not None and not (window_start < retrieved < window_end):
             errors.append("retrieved_utc must fall inside the declared snapshot window")
 
@@ -121,7 +132,7 @@ def validate(path):
     statuses = Counter()
     no_home = 0
     missing_fields = Counter()
-    window_boundary = window_end - dt.timedelta(days=20) if window_end is not None else None
+    window_boundary = report_start if report_start is not None else None
 
     for i, row in enumerate(rows):
         if not isinstance(row, dict):
@@ -162,7 +173,7 @@ def validate(path):
             if kickoff < window_start or kickoff > window_end:
                 errors.append(f"row {i}: kickoff_utc is outside the declared snapshot window")
             if window_boundary is not None:
-                expected_class = "FUTURE_20D" if kickoff >= window_boundary else "RECENT_30D"
+                expected_class = "REPORT_WINDOW" if kickoff >= window_boundary else "RECENT_30D"
                 if cls != expected_class:
                     errors.append(f"row {i}: window_class disagrees with kickoff_utc and declared window")
 
@@ -194,15 +205,14 @@ def validate(path):
             if kickoff is not None and retrieved is not None and kickoff > retrieved:
                 errors.append(f"row {i}: completed status conflicts with a future kickoff")
 
-    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "FUTURE_20D")
+    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "REPORT_WINDOW")
     recent_complete = sum(
         1 for row in rows
         if isinstance(row, dict)
         and row.get("window_class") == "RECENT_30D"
         and str(row.get("status", "")).lower() == "complete"
     )
-    if future != d.get("future_20d_fixture_rows"):
-        errors.append("future fixture count does not match summary")
+    if future != d.get("report_window_fixture_rows"):\n        errors.append("report-window fixture count does not match summary")
     if recent_complete != d.get("recent_completed_30d_rows"):
         errors.append("recent completed count does not match summary")
     if any(missing_fields.values()):
@@ -213,7 +223,7 @@ def validate(path):
         "errors": errors,
         "selected_seasons": len(seasons) if isinstance(seasons, list) else 0,
         "fixture_rows": len(rows),
-        "future_20d_rows": future,
+        "report_window_fixture_rows": future,
         "recent_completed_30d_rows": recent_complete,
         "no_home_away_rows": no_home,
         "duplicate_match_ids": len(rows) - len(seen),
