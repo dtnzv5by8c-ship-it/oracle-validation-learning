@@ -268,6 +268,7 @@ summary = {
     "report_end_date_utc_inclusive": report_end_date.isoformat(),
     "endpoint": "league-matches",
     "selected_leagues": len(selected),
+    "catalogue_season_ids": [str(item["selected_season_id"]) for item in selected],
     "requests_planned": len(selected),
     "requests_attempted": requests_started,
     "http_200_success": sum(
