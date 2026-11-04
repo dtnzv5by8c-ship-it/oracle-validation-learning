@@ -87,7 +87,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
           CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
           CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_results_provider_credit_usage }}
         run: |
@@ -96,10 +95,10 @@ jobs:
           [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit read-only archive confirmation required."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
           if [[ "$CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE" == "true" ]]; then
-            [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::Results-provider credit approval was given but FOOTYSTATS_API_KEY is missing."; exit 1; }
-          else
-            echo "Results provider not approved: zero FootyStats results API calls will be made."
+            echo "::error::Direct results-provider calls are disabled here; all FootyStats requests must use the governed global rolling-hour budget workflow."
+            exit 1
           fi
+          echo "Results provider remains a zero-call placeholder; all FootyStats requests are centralized in the governed budget workflow."
           gh auth status
 
       - name: Validate permanent weekly report configuration
@@ -660,21 +659,10 @@ jobs:
             --out-dir market-intelligence-output
 
       - name: Write explicit not-retrieved actual-results register (zero provider calls)
-        if: ${{ success() && github.event_name == 'workflow_dispatch' && inputs.confirm_results_provider_credit_usage != true }}
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           python scripts/write_selected50_unqueried_actual_results.py \
-            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
-            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
-            --out-dir market-intelligence-output
-
-      - name: Fetch and reconcile completed match results from FootyStats (report only)
-        if: ${{ success() && github.event_name == 'workflow_dispatch' && inputs.confirm_results_provider_credit_usage == true }}
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-        run: |
-          set -euo pipefail
-          python scripts/reconcile_selected50_actual_results_footystats.py \
             --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
             --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
             --out-dir market-intelligence-output
