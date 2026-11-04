@@ -84,3 +84,8 @@ Run [41872807554](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learni
 6. Do not rebuild the OMI workbook until source runtime, complete match history, H2H meeting ledger, recent/home-away form, standings timing, xG provenance and official result evidence pass their own gates.
 
 No Oracle V1.6 production logic, probabilities, thresholds, calibration, production ledgers, or betting eligibility were changed. All research and betting eligibility remain false.
+
+
+### Follow-up CI after audit commit
+
+Run [41873707538](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41873707538) completed successfully on the governed research branch. Its test groups reported 15, 14, 5, 5 and 11 tests passed (50 total). Private-archive consent and report rebuild steps remained skipped; this was test/diagnostic CI only, with no provider API calls and no new OMI workbook. Diagnostic artifact ID: `13345092932`.
