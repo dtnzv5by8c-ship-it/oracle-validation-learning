@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
-        description: "Confirm read-only use of the existing pinned private archive; no provider API calls"
+        description: "Confirm read-only use of the pinned private archive; results-provider calls have a separate opt-in approval"
         required: true
         default: false
         type: boolean
@@ -14,10 +14,15 @@ on:
         default: "research-selected50-footystats-history-40375285207"
         type: string
       runtime_run_id:
-        description: "Verified successful Selected-50 runtime run containing the source prediction report"
+        description: "Current successful Selected-50 runtime run ID; never reuse a prior run"
         required: true
-        default: "41175230838"
+        default: ""
         type: string
+      confirm_results_provider_credit_usage:
+        description: "Explicitly approve FootyStats API calls for completed-results reconciliation; false writes a zero-call NOT_RETRIEVED register"
+        required: true
+        default: false
+        type: boolean
 
   push:
     branches:
@@ -25,8 +30,43 @@ on:
     paths:
       - ".github/workflows/oracle-selected50-market-intelligence-repair.yml"
       - "scripts/build_selected50_market_intelligence_report.py"
+      - "scripts/build_selected50_field_coverage_audit.py"
+      - "scripts/add_selected50_llm_data_dictionary.py"
+      - "tests/test_selected50_llm_data_dictionary.py"
+      - "config/oracle_selected50_market_intelligence_weekly.json"
+      - "docs/ORACLE_SELECTED50_MARKET_INTELLIGENCE_WEEKLY_RUNBOOK.md"
+      - "scripts/build_selected50_kickoff_discrepancy_triage.py"
+      - "tests/test_selected50_kickoff_discrepancy_triage.py"
+      - "scripts/validate_selected50_kickoff_source_evidence.py"
+      - "scripts/diagnose_selected50_feature_blockers.py"
+      - "tests/test_selected50_feature_blocker_diagnostics.py"
+      - "scripts/audit_selected50_row_level_history_provenance.py"
+      - "tests/test_selected50_row_level_history_provenance.py"
+      - "scripts/audit_footystats_xg_manifest_provenance.py"
+      - "tests/test_footystats_xg_manifest_provenance.py"
+      - "tests/test_selected50_kickoff_source_evidence.py"
+      - "reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv"
+      - "tests/test_selected50_field_coverage_audit.py"
       - "scripts/build_footystats_archive_features.py"
+      - "tests/test_footystats_archive_features.py"
       - "tests/test_selected50_market_intelligence_report.py"
+      - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1.md"
+      - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_3.md"
+      - "reports/templates/ORACLE_MARKET_INTELLIGENCE_TEMPLATE_V1_4.md"
+      - "docs/ORACLE_MASTER_INTELLIGENCE_DATA_DICTIONARY_V1.md"
+      - "docs/ORACLE_MASTER_INTELLIGENCE_CONTINUITY_LOCK.md"
+      - "scripts/build_goal_market_research_engine.py"
+      - "tests/test_goal_market_research_engine.py"
+      - "docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md"
+      - "reports/oracle-footystats-max-time-xg-endpoint-scope-2026-11-01.md"
+      - "reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md"
+      - "reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md"
+      - "reports/oracle-selected50-xg-league-coverage-2026-11-01.csv"
+      - "reports/oracle-selected50-cross-sheet-field-coverage-and-xg-provenance-2026-11-01.md"
+      - "scripts/reconcile_selected50_actual_results_footystats.py"
+      - "tests/test_selected50_footystats_results_reconciliation.py"
+      - "scripts/write_selected50_unqueried_actual_results.py"
+      - "tests/test_selected50_unqueried_actual_results.py"
 
 permissions:
   actions: read
@@ -47,13 +87,40 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
           CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
+          CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_results_provider_credit_usage }}
         run: |
           set -euo pipefail
           [[ "$GITHUB_REF_NAME" == "research/oracle-50-league-readiness-audit" ]] || { echo "::error::Run this workflow from the governed research branch only."; exit 1; }
           [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit read-only archive confirmation required."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          if [[ "$CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE" == "true" ]]; then
+            [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::Results-provider credit approval was given but FOOTYSTATS_API_KEY is missing."; exit 1; }
+          else
+            echo "Results provider not approved: zero FootyStats results API calls will be made."
+          fi
           gh auth status
+
+      - name: Validate permanent weekly report configuration
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          config = json.loads(Path("config/oracle_selected50_market_intelligence_weekly.json").read_text())
+          expected = {
+              "selected_league_count": 50,
+              "pinned_archive_release_tag": "research-selected50-footystats-history-40375285207",
+              "pinned_archive_sha256": "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f",
+              "history_minimum_matches": 5,
+              "production_benchmark": "Oracle V1.6",
+          }
+          for key, value in expected.items():
+              if config.get(key) != value:
+                  raise SystemExit(f"FAIL: permanent report config mismatch for {key}: {config.get(key)!r}")
+          print("Permanent Selected-50 weekly report configuration: PASS")
+          PY
 
       - name: Download pinned private archive and verify SHA-256
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -119,6 +186,7 @@ jobs:
               "head_sha": run["head_sha"],
           }, indent=2) + "\n")
           PY
+          python -m json.tool runtime-artifact/artifact-metadata.json > /dev/null
           ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           EXPECTED="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1].lower())')"
           curl --fail --location --silent --show-error \
@@ -133,12 +201,16 @@ jobs:
           test -s runtime-artifact/extracted/oracle_selected50_prediction_report.csv
           test -s runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv
           test -s runtime-artifact/extracted/oracle_selected50_runtime_provenance.json
+          test -s runtime-artifact/extracted/current_snapshot_candidate_trace.csv
+          test -s runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           python - <<'PY'
-          import csv, hashlib, json, os
+          import csv, datetime as dt, hashlib, json, os
           from pathlib import Path
           root = Path("runtime-artifact/extracted")
           report = root / "oracle_selected50_prediction_report.csv"
           provenance = json.loads((root / "oracle_selected50_runtime_provenance.json").read_text())
+          snapshot_meta = json.loads((root / "oracle_selected50_snapshot_artifact_metadata.json").read_text())
+          snapshot_trace_path = root / "current_snapshot_candidate_trace.csv"
           run_id = str(os.environ["RUNTIME_RUN_ID"])
           metadata = json.loads(Path("runtime-artifact/artifact-metadata.json").read_text())
           actual_report_sha = hashlib.sha256(report.read_bytes()).hexdigest()
@@ -156,18 +228,221 @@ jobs:
               rows = list(csv.DictReader(f))
           with (root / "oracle_selected50_schedule_coverage.csv").open(encoding="utf-8-sig", newline="") as f:
               schedule = list(csv.DictReader(f))
+          with snapshot_trace_path.open(encoding="utf-8-sig", newline="") as f:
+              snapshot_trace = list(csv.DictReader(f))
           governed_ids = {r.get("selected_id", "").strip() for r in schedule if r.get("selected_id", "").strip()}
           report_ids = {r.get("selected_id", "").strip() for r in rows if r.get("selected_id", "").strip()}
-          if len(rows) != 434 or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
+          if not rows or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
               raise SystemExit(f"FAIL: runtime rows/schedule scope mismatch: rows={len(rows)}, schedule_rows={len(schedule)}, unique_governed_ids={len(governed_ids)}, report_ids={len(report_ids)}")
-          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}")
+          start_dates = {str(r.get("report_start_date_utc") or "").strip() for r in schedule}
+          end_dates = {str(r.get("report_end_date_utc_inclusive") or "").strip() for r in schedule}
+          if len(start_dates) != 1 or len(end_dates) != 1 or not next(iter(start_dates)) or not next(iter(end_dates)):
+              raise SystemExit("FAIL: schedule coverage does not declare one consistent report date window")
+          report_start = dt.date.fromisoformat(next(iter(start_dates)))
+          report_end = dt.date.fromisoformat(next(iter(end_dates)))
+          if report_end < report_start:
+              raise SystemExit("FAIL: schedule coverage report date window is reversed")
+          for row in rows:
+              fixture_date = dt.date.fromisoformat(str(row.get("date_utc") or "")[:10])
+              if not report_start <= fixture_date <= report_end:
+                  raise SystemExit(f"FAIL: runtime fixture {row.get('fixture_id')} falls outside declared report window: {fixture_date}")
+          scheduled_count = sum(int(r.get("upcoming_fixture_count_report_window") or 0) for r in schedule)
+          if scheduled_count != len(rows):
+              raise SystemExit(f"FAIL: schedule fixture count does not reconcile to runtime report: schedule={scheduled_count}, report={len(rows)}")
+          expected_snapshot_sha = str(provenance.get("snapshot_file_sha256") or "")
+          expected_snapshot_time = str(provenance.get("snapshot_retrieved_utc") or "")
+          expected_archive_sha = str(provenance.get("source_archive_sha256") or "")
+          if str(snapshot_meta.get("artifact_id")) != str(provenance.get("snapshot_artifact_id")):
+              raise SystemExit("FAIL: snapshot artifact ID does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_workflow_run_id")) != str(provenance.get("snapshot_run_id")):
+              raise SystemExit("FAIL: snapshot run ID does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_head_branch")) != str(provenance.get("snapshot_artifact_head_branch")):
+              raise SystemExit("FAIL: snapshot artifact branch does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_head_sha")) != str(provenance.get("snapshot_artifact_head_sha")):
+              raise SystemExit("FAIL: snapshot artifact commit does not match runtime provenance")
+          if str(snapshot_meta.get("artifact_zip_sha256", "")).removeprefix("sha256:") != str(provenance.get("snapshot_artifact_zip_sha256", "")).removeprefix("sha256:"):
+              raise SystemExit("FAIL: snapshot artifact digest does not match runtime provenance")
+          if len(snapshot_trace) != int(provenance.get("snapshot_fixture_rows") or -1):
+              raise SystemExit("FAIL: snapshot candidate trace row count does not match runtime provenance")
+          from collections import Counter
+          from pathlib import Path
+          snapshot_keys = []
+          incomplete_snapshot_identity_rows = 0
+          for item in snapshot_trace:
+              if item.get("snapshot_file_sha256") != expected_snapshot_sha:
+                  raise SystemExit("FAIL: snapshot trace file hash mismatch")
+              if item.get("source_archive_sha256") != expected_archive_sha:
+                  raise SystemExit("FAIL: snapshot trace archive hash mismatch")
+              if item.get("snapshot_retrieved_utc") != expected_snapshot_time:
+                  raise SystemExit("FAIL: snapshot trace retrieval time mismatch")
+              key = tuple(str(item.get(k) or "").strip() for k in (
+                  "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"))
+              if not all(key):
+                  incomplete_snapshot_identity_rows += 1
+                  continue
+              snapshot_keys.append(key)
+          snapshot_counts = Counter(snapshot_keys)
+          runtime_keys = [tuple(str(item.get(k) or "").strip() for k in (
+              "selected_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) for item in rows]
+          runtime_counts = Counter(runtime_keys)
+          exact_runtime = []
+          exception_rows = []
+          for row, key in zip(rows, runtime_keys):
+              count = snapshot_counts.get(key, 0) if all(key) else 0
+              if not all(key):
+                  status = "RUNTIME_IDENTITY_MISSING"
+              elif count == 0:
+                  status = "MISSING_FROM_FRESH_SNAPSHOT"
+              elif count > 1:
+                  status = "DUPLICATE_SNAPSHOT_MATCH"
+              elif runtime_counts[key] > 1:
+                  status = "DUPLICATE_RUNTIME_IDENTITY"
+              else:
+                  status = "EXACT_SNAPSHOT_MATCH"
+                  exact_runtime.append(key)
+              if status != "EXACT_SNAPSHOT_MATCH":
+                  exception_rows.append({
+                      "fixture_date": row.get("date_utc", ""),
+                      "league": row.get("league", ""),
+                      "fixture": f"{row.get('home_team', '')} vs {row.get('away_team', '')}",
+                      "selected_id": row.get("selected_id", ""),
+                      "fixture_id": row.get("fixture_id", ""),
+                      "home_team_provider_id": row.get("home_team_provider_id", ""),
+                      "away_team_provider_id": row.get("away_team_provider_id", ""),
+                      "snapshot_match_count": count,
+                      "snapshot_evidence_status": status,
+                  })
+          runtime_snapshot = [item for item in snapshot_trace if tuple(str(item.get(k) or "").strip() for k in (
+              "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) in set(exact_runtime)]
+          no_home_away = sum(str(item.get("no_home_away") or "").strip() == "1" for item in runtime_snapshot)
+          out = Path("market-intelligence-output")
+          out.mkdir(parents=True, exist_ok=True)
+          with (out / "oracle_selected50_runtime_snapshot_exceptions.csv").open("w", newline="", encoding="utf-8") as handle:
+              fields = ["fixture_date", "league", "fixture", "selected_id", "fixture_id",
+                        "home_team_provider_id", "away_team_provider_id", "snapshot_match_count",
+                        "snapshot_evidence_status"]
+              writer = csv.DictWriter(handle, fieldnames=fields)
+              writer.writeheader()
+              writer.writerows(exception_rows)
+          reconciliation = {
+              "status": "PASS_EXACT_SNAPSHOT_TRACE_JOIN" if not exception_rows and not incomplete_snapshot_identity_rows else "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS",
+              "runtime_fixture_rows": len(rows),
+              "snapshot_trace_rows": len(snapshot_trace),
+              "exact_snapshot_matches": len(exact_runtime),
+              "runtime_snapshot_exception_rows": len(exception_rows),
+              "missing_snapshot_rows": sum(x["snapshot_evidence_status"] == "MISSING_FROM_FRESH_SNAPSHOT" for x in exception_rows),
+              "duplicate_snapshot_match_rows": sum(x["snapshot_evidence_status"] == "DUPLICATE_SNAPSHOT_MATCH" for x in exception_rows),
+              "runtime_identity_missing_rows": sum(x["snapshot_evidence_status"] == "RUNTIME_IDENTITY_MISSING" for x in exception_rows),
+              "duplicate_runtime_identity_rows": sum(x["snapshot_evidence_status"] == "DUPLICATE_RUNTIME_IDENTITY" for x in exception_rows),
+              "incomplete_snapshot_identity_rows": incomplete_snapshot_identity_rows,
+              "duplicate_snapshot_keys": sum(1 for n in snapshot_counts.values() if n > 1),
+              "no_home_away_flagged_exact_matches": no_home_away,
+              "production_eligible": False,
+              "betting_eligible": False,
+              "policy": "EXACT_ORDERED_IDENTITY_ONLY; ALL MISSING OR AMBIGUOUS ROWS EXPLICITLY QUARANTINED; NO INFERENCE",
+          }
+          (out / "oracle_selected50_runtime_snapshot_reconciliation_qa.json").write_text(json.dumps(reconciliation, indent=2) + "\n")
+          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}; exact_snapshot_trace={len(exact_runtime)}; snapshot_exceptions={len(exception_rows)}; no_home_away={no_home_away}")
           PY
+
+      - name: Build report-only team-level feature blocker diagnostics
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
+        run: |
+          set -euo pipefail
+          ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
+          RUNTIME_COMMIT="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["head_sha"])')"
+          ARTIFACT_DIGEST="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_digest"].split(":",1)[1])')"
+          python scripts/diagnose_selected50_feature_blockers.py \
+            --input-csv runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --output-side-csv market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv \
+            --output-team-csv market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv \
+            --output-summary-json market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json \
+            --source-runtime-run-id "$RUNTIME_RUN_ID" \
+            --source-runtime-artifact-id "$ARTIFACT_ID" \
+            --source-runtime-commit "$RUNTIME_COMMIT" \
+            --source-runtime-artifact-sha256 "$ARTIFACT_DIGEST"
 
       - name: Install report-only dependencies
         run: python -m pip install --disable-pip-version-check openpyxl
 
       - name: Test exact joins, chronology, duplicate guards and market masking
-        run: python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_selected50_market_intelligence_report.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_llm_data_dictionary.py' -v
+          python -m unittest discover -s tests -p 'test_goal_market_research_engine.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_field_coverage_audit.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_kickoff_discrepancy_triage.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_kickoff_source_evidence.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_feature_blocker_diagnostics.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_row_level_history_provenance.py' -v
+          python -m unittest discover -s tests -p 'test_selected50_footystats_results_reconciliation.py' -v
+          python -m unittest discover -s tests -p 'test_footystats_xg_manifest_provenance.py' -v
+          python -m unittest discover -s tests -p 'test_footystats_archive_features.py' -v
+
+      - name: Download preserved Run 154 schedule queue for evidence-register CI
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-selected50-market-intelligence-repair
+          path: /tmp/oracle-selected50-run154
+          run-id: 41276694062
+          github-token: ${{ github.token }}
+
+      - name: Validate kickoff source evidence against preserved Run 154 queue
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+          python scripts/validate_selected50_kickoff_source_evidence.py \
+            --queue /tmp/oracle-selected50-run154/market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
+            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \
+            --out /tmp/oracle-selected50-kickoff-evidence-qa.json
+
+      - name: Upload kickoff evidence CI QA
+        if: ${{ success() && github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-kickoff-evidence-ci-qa
+          path: /tmp/oracle-selected50-kickoff-evidence-qa.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Download preserved runtime artifact for feature blocker CI
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: oracle-selected50-research-runtime-report
+          path: /tmp/oracle-selected50-runtime-41175230838
+          run-id: 41175230838
+          github-token: ${{ github.token }}
+
+      - name: Build report-only team-level feature blocker diagnostics from preserved runtime
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+          python scripts/diagnose_selected50_feature_blockers.py \
+            --input-csv /tmp/oracle-selected50-runtime-41175230838/oracle_selected50_prediction_report.csv \
+            --output-side-csv /tmp/oracle-selected50-feature-blocker-side.csv \
+            --output-team-csv /tmp/oracle-selected50-feature-blocker-team.csv \
+            --output-summary-json /tmp/oracle-selected50-feature-blocker-qa.json \
+            --source-runtime-run-id 41175230838 \
+            --source-runtime-artifact-id 13032880970 \
+            --source-runtime-commit ea3f46dab4e54b71a818ab8d8723f36426e36bef \
+            --source-runtime-artifact-sha256 e4bca38c8ab8e6afd5c23d241e4b55fe3ce6277e656172e8cda910718c897ae0
+
+      - name: Upload team-level feature blocker CI diagnostics
+        if: ${{ success() && github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-feature-blocker-ci-diagnostics
+          path: |
+            /tmp/oracle-selected50-feature-blocker-side.csv
+            /tmp/oracle-selected50-feature-blocker-team.csv
+            /tmp/oracle-selected50-feature-blocker-qa.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Build archive-wide pre-kickoff evidence from the pinned archive
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -175,7 +450,82 @@ jobs:
           set -euo pipefail
           python scripts/build_footystats_archive_features.py \
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --selected-manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
             --out archive-audit
+
+      - name: Inventory FootyStats archive manifest and xG metadata provenance (research only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/audit_footystats_xg_manifest_provenance.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --out-dir market-intelligence-output \
+            --expected-archive-sha256 7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa = json.loads(Path("market-intelligence-output/oracle_selected50_xg_manifest_provenance_qa.json").read_text())
+          if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+              raise SystemExit("FAIL: xG manifest inventory did not use the pinned archive")
+          if qa.get("xg_point_in_time_provenance_verified") is not False or qa.get("xg_quarantine_required") is not True:
+              raise SystemExit("FAIL: xG provenance inventory must preserve quarantine")
+          if qa.get("provider_api_calls") != 0 or qa.get("production_eligible") is not False or qa.get("betting_eligible") is not False:
+              raise SystemExit("FAIL: xG manifest inventory governance contract violated")
+          print("xG manifest inventory:", qa.get("status"), "manifest rows:", qa.get("manifest_rows"),
+                "manifest capture candidates:", qa.get("manifest_rows_with_capture_timestamp_candidate"),
+                "fixture-linked capture/hash candidates:", qa.get("manifest_rows_with_fixture_capture_and_hash_candidates"))
+          PY
+
+      - name: Build row-level historical feature provenance audit (research only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/audit_selected50_row_level_history_provenance.py \
+            --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
+            --selected-manifest data/oracle-footystats-selected-50-season-id-manifest.csv \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --out-dir market-intelligence-output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          qa = json.loads(Path("market-intelligence-output/oracle_selected50_history_provenance_qa.json").read_text())
+          archive_summary = json.loads(Path("archive-audit/summary.json").read_text())
+          if qa.get("archive_sha256") != "7c60a239f16dcee318cd04b031c68c07505760cb1063c1c34f368bef86844f2f":
+              raise SystemExit("FAIL: row-level history audit did not use the pinned archive")
+          if qa.get("archive_match_rows_loaded") != archive_summary.get("archive_match_records"):
+              raise SystemExit(
+                  "FAIL: row-level history audit did not load every archived match: "
+                  f"loaded={qa.get('archive_match_rows_loaded')} expected={archive_summary.get('archive_match_records')}"
+              )
+          if qa.get("archive_seasons_mapped") != archive_summary.get("season_folders"):
+              raise SystemExit(
+                  "FAIL: row-level history audit did not map every archive season: "
+                  f"mapped={qa.get('archive_seasons_mapped')} expected={archive_summary.get('season_folders')}"
+              )
+          if qa.get("blocked_team_side_rows_audited") != 25:
+              raise SystemExit(
+                  f"FAIL: expected 25 blocked team-side histories to be audited, got {qa.get('blocked_team_side_rows_audited')}"
+              )
+          mismatches = qa.get("runtime_archive_history_count_mismatches", [])
+          if qa.get("all_side_history_counts_reconcile") is not True:
+              # Preserve the unresolved row-level evidence without suppressing the
+              # report. These cases remain explicitly ineligible; this is not a
+              # production or betting readiness gate.
+              if qa.get("production_eligible") is not False or qa.get("betting_eligible") is not False:
+                  raise SystemExit("FAIL: unresolved history mismatches must remain production- and betting-ineligible")
+              print(
+                  "::warning::Row-level history provenance remains unresolved: "
+                  f"{len(mismatches)} runtime/archive count mismatches. "
+                  "The report may be generated for research only; do not use these rows for production or betting."
+              )
+          if qa.get("minimum_history_required") != 5 or qa.get("minimum_history_changed") is not False:
+              raise SystemExit("FAIL: five-match minimum governance contract changed")
+          if qa.get("feature_imputation") != 0 or qa.get("production_model_logic_changed") is not False or qa.get("production_probabilities_changed") is not False:
+              raise SystemExit("FAIL: research-only history audit governance contract violated")
+          if qa.get("production_eligible") is not False or qa.get("betting_eligible") is not False:
+              raise SystemExit("FAIL: row-level history provenance audit must remain research-only")
+          print("Row-level history provenance QA:", qa.get("status"), "sides:", qa.get("blocked_team_side_rows_audited"), "count mismatches:", len(mismatches), "report_mode: RESEARCH_ONLY")
+          PY
 
       - name: Verify archive audit digest and pinned archive coverage
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -193,29 +543,218 @@ jobs:
           print("Pinned archive audit verified: 59,049 records; 200 season folders; zero provider API calls.")
           PY
 
+      - name: Build experimental goal-market estimates and chronological backtest (research only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/build_goal_market_research_engine.py \
+            --archive-audit archive-audit/match_field_audit.csv \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --out-dir goal-market-research
+
       - name: Rebuild 38-column Market Intelligence report and enforce QA gates
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
+          RUNTIME_ARTIFACT_ID="$(python -c 'import json; print(json.load(open("runtime-artifact/artifact-metadata.json"))["artifact_id"])')"
           python scripts/build_selected50_market_intelligence_report.py \
+            --runtime-artifact-id "$RUNTIME_ARTIFACT_ID" \
             --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
             --archive-audit archive-audit \
             --schedule-coverage runtime-artifact/extracted/oracle_selected50_schedule_coverage.csv \
             --runtime-provenance runtime-artifact/extracted/oracle_selected50_runtime_provenance.json \
+            --snapshot-candidate-trace runtime-artifact/extracted/current_snapshot_candidate_trace.csv \
             --archive-summary archive-audit/summary.json \
+            --goal-market-research goal-market-research/goal_market_research.csv \
             --out-dir market-intelligence-output \
             --expected-league-groups 50
 
-      - name: Upload rebuilt report, evidence trace and QA
+      - name: Enforce exact orientation and runtime feature-block QA
         if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          out = Path("market-intelligence-output")
+          orientation_qa = json.loads((out / "oracle_selected50_snapshot_orientation_qa.json").read_text())
+          with (out / "oracle_selected50_fixture_orientation_audit.csv").open(encoding="utf-8-sig", newline="") as f:
+              orientation = list(csv.DictReader(f))
+          with Path("runtime-artifact/extracted/oracle_selected50_prediction_report.csv").open(encoding="utf-8-sig", newline="") as f:
+              runtime = list(csv.DictReader(f))
+          if orientation_qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}:
+              raise SystemExit("FAIL: snapshot orientation QA has an invalid status")
+          if len(orientation) != len(runtime) or len(orientation) != orientation_qa.get("runtime_fixture_rows"):
+              raise SystemExit("FAIL: orientation audit row count does not reconcile to runtime fixtures")
+          if orientation_qa.get("rows_accounted_for") != len(runtime) or orientation_qa.get("all_runtime_rows_accounted_for") is not True:
+              raise SystemExit("FAIL: runtime fixtures are not all represented in snapshot evidence QA")
+          flagged = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "1"]
+          distinct = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "0"]
+          unknown = [r for r in orientation if r.get("fixture_orientation_status") == "ORIENTATION_UNKNOWN"]
+          missing = [r for r in orientation if r.get("snapshot_evidence_status") == "MISSING_FROM_FRESH_SNAPSHOT"]
+          if len(flagged) != orientation_qa.get("no_home_away_flagged") or len(distinct) != orientation_qa.get("home_away_distinction_present"):
+              raise SystemExit("FAIL: orientation CSV counts do not match orientation QA")
+          if len(missing) != orientation_qa.get("missing_snapshot_rows") or len(unknown) != orientation_qa.get("orientation_unknown_rows"):
+              raise SystemExit("FAIL: explicit snapshot exception counts do not match orientation QA")
+          allowed_unknown_statuses = {
+              "MISSING_FROM_FRESH_SNAPSHOT", "DUPLICATE_SNAPSHOT_MATCH",
+              "RUNTIME_IDENTITY_MISSING", "EXACT_SNAPSHOT_MATCH_FLAG_UNKNOWN"
+          }
+          if any(r.get("snapshot_evidence_status") not in allowed_unknown_statuses for r in unknown):
+              raise SystemExit("FAIL: orientation audit contains an unclassified snapshot evidence exception")
+          if len(flagged) + len(distinct) + len(unknown) != len(runtime):
+              raise SystemExit("FAIL: orientation audit contains unknown or unclassified runtime fixtures")
+          if any(r.get("home_away_market_review_status") != "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION" for r in flagged):
+              raise SystemExit("FAIL: no_home_away=1 fixture lacks home/away market review status")
+          if any(r.get("production_eligible") != "NO" or r.get("betting_eligible") != "NO" for r in orientation):
+              raise SystemExit("FAIL: orientation research rows must remain ineligible")
+          feature_qa = json.loads((out / "oracle_selected50_runtime_feature_block_audit_qa.json").read_text())
+          with (out / "oracle_selected50_runtime_feature_block_audit.csv").open(encoding="utf-8-sig", newline="") as f:
+              side_rows = list(csv.DictReader(f))
+          if len(side_rows) != feature_qa.get("blocked_team_side_histories"):
+              raise SystemExit("FAIL: runtime feature-block side rows do not reconcile to QA")
+          if sum(r.get("team_side") == "HOME" for r in side_rows) != feature_qa.get("home_side_histories_below_5"):
+              raise SystemExit("FAIL: home-side feature-block count mismatch")
+          if sum(r.get("team_side") == "AWAY" for r in side_rows) != feature_qa.get("away_side_histories_below_5"):
+              raise SystemExit("FAIL: away-side feature-block count mismatch")
+          if any(int(r.get("recent5_feature_complete_n", "99")) >= 5 for r in side_rows):
+              raise SystemExit("FAIL: side audit includes a history that passes the five-match gate")
+          if any(r.get("production_eligible") != "NO" or r.get("betting_eligible") != "NO" for r in side_rows):
+              raise SystemExit("FAIL: feature-block research rows must remain ineligible")
+          print(f"Orientation QA {orientation_qa.get('status')}: {len(flagged)} no_home_away flags; {len(distinct)} with distinction; {len(unknown)} explicit evidence exceptions; {len(missing)} missing from fresh snapshot.")
+          print(f"Runtime feature audit PASS: {feature_qa.get('blocked_fixture_rows')} fixtures; {len(side_rows)} blocked team sides.")
+          PY
+
+      - name: Build report-only kickoff discrepancy triage
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/build_selected50_kickoff_discrepancy_triage.py \
+            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
+            --out-dir market-intelligence-output
+
+      - name: Validate report-only kickoff source evidence register
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/validate_selected50_kickoff_source_evidence.py \
+            --queue market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv \
+            --evidence reports/oracle-selected50-kickoff-source-evidence-2026-11-01.csv \
+            --out market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
+
+      - name: Build 50-league field-by-field coverage audit (report only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/build_selected50_field_coverage_audit.py \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --out-dir market-intelligence-output
+
+      - name: Write explicit not-retrieved actual-results register (zero provider calls)
+        if: ${{ success() && github.event_name == 'workflow_dispatch' && inputs.confirm_results_provider_credit_usage != true }}
+        run: |
+          set -euo pipefail
+          python scripts/write_selected50_unqueried_actual_results.py \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --out-dir market-intelligence-output
+
+      - name: Fetch and reconcile completed match results from FootyStats (report only)
+        if: ${{ success() && github.event_name == 'workflow_dispatch' && inputs.confirm_results_provider_credit_usage == true }}
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python scripts/reconcile_selected50_actual_results_footystats.py \
+            --runtime-report runtime-artifact/extracted/oracle_selected50_prediction_report.csv \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --out-dir market-intelligence-output
+
+      - name: Add LLM data dictionary and permanent weekly configuration tabs
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          python scripts/add_selected50_llm_data_dictionary.py \
+            --workbook market-intelligence-output/oracle_selected50_market_intelligence.xlsx \
+            --config config/oracle_selected50_market_intelligence_weekly.json
+
+      - name: Upload join diagnostics when QA blocks the report
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-selected50-join-diagnostics
+          path: |
+            market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_actual_results.csv
+            market-intelligence-output/oracle_selected50_actual_results_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
+            market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
+            market-intelligence-output/oracle_selected50_field_coverage_qa.json
+            market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
+            market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_source_evidence_qa.json
+            market-intelligence-output/oracle_selected50_feature_blocker_side_diagnostics.csv
+            market-intelligence-output/oracle_selected50_feature_blocker_team_diagnostics.csv
+            market-intelligence-output/oracle_selected50_feature_blocker_diagnostics_qa.json
+            market-intelligence-output/oracle_selected50_history_provenance_sides.csv
+            market-intelligence-output/oracle_selected50_history_provenance_matches.csv
+            market-intelligence-output/oracle_selected50_history_provenance_qa.json
+            market-intelligence-output/oracle_selected50_xg_manifest_field_inventory.csv
+            market-intelligence-output/oracle_selected50_xg_manifest_provenance_qa.json
+            runtime-artifact/extracted/current_snapshot_candidate_trace.csv
+            runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload rebuilt report, evidence trace, QA and schedule queue
+        if: ${{ success() && github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v4
         with:
           name: oracle-selected50-market-intelligence-repair
           path: |
+            market-intelligence-output/oracle_selected50_actual_results.csv
+            market-intelligence-output/oracle_selected50_actual_results_qa.json
             market-intelligence-output/oracle_selected50_market_intelligence.xlsx
+            market-intelligence-output/oracle_selected50_50_league_coverage.csv
             market-intelligence-output/oracle_selected50_market_intelligence.csv
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
+            market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
+            market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
+            market-intelligence-output/oracle_selected50_xg_evidence_audit.csv
+            market-intelligence-output/oracle_selected50_xg_evidence_audit_qa.json
+            market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
+            market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
+            market-intelligence-output/oracle_selected50_runtime_feature_block_audit_qa.json
+            market-intelligence-output/oracle_selected50_field_coverage_by_league.csv
+            market-intelligence-output/oracle_selected50_field_coverage_summary.csv
+            market-intelligence-output/oracle_selected50_field_coverage_exceptions.csv
+            market-intelligence-output/oracle_selected50_field_coverage_qa.json
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage.csv
+            market-intelligence-output/oracle_selected50_kickoff_discrepancy_triage_qa.json
+            market-intelligence-output/oracle_selected50_history_provenance_sides.csv
+            market-intelligence-output/oracle_selected50_history_provenance_matches.csv
+            market-intelligence-output/oracle_selected50_history_provenance_qa.json
+            market-intelligence-output/oracle_selected50_xg_manifest_field_inventory.csv
+            market-intelligence-output/oracle_selected50_xg_manifest_provenance_qa.json
             archive-audit/summary.json
+            archive-audit/season_selected_id_crosswalk.csv
+            goal-market-research/goal_market_research.csv
+            goal-market-research/goal_market_research_qa.json
+            reports/oracle-footystats-max-time-xg-endpoint-scope-2026-11-01.md
+            reports/oracle-footystats-xg-point-in-time-capture-spec-2026-11-01.md
+            reports/oracle-selected50-footystats-xg-provenance-2026-11-01.md
+            reports/oracle-selected50-xg-league-coverage-2026-11-01.csv
+            reports/oracle-selected50-cross-sheet-field-coverage-and-xg-provenance-2026-11-01.md
           if-no-files-found: error
           retention-days: 14
