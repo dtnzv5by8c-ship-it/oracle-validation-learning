@@ -115,3 +115,12 @@ Continue from the live research branch and this checkpoint. Preserve all previou
 - No raw data was written to the public repository or protected private archive. No Oracle V1.6 production logic/probabilities/thresholds/calibration/ledgers/eligibility were changed.
 - Remaining live gate: manually dispatch **FootyStats Global Budgeted Endpoint Preflight (Research Only)** with `confirm_provider_api_usage=true`, `max_seasons=182`, `max_requests=1000`. The available GitHub connection cannot dispatch it.
 - Canonical mapping remains unapproved: current catalogue reconciliation reports zero approved Oracle canonical mappings and zero verified provider parent competition IDs. Do not mark the mapping complete until the exact IDs and scope decisions are approved.
+
+## Saved-state refresh after documentation reconciliation
+
+- Latest live research branch HEAD: `b472f5371140f4d4f6f9a92aca3834a36cd7c447`.
+- Gateway implementation report refreshed at `reports/ORACLE_FOOTYSTATS_BUDGETED_PREFLIGHT_GATEWAY_2026-11-04.md`.
+- Current catalogue reconciliation report updated with the offline ingestion-manifest design and 42-test evidence.
+- Latest targeted test evidence remains run `41865887561`, job `126699886190`: the job log shows 42 tests passing. GitHub run metadata still has no final conclusion; do not overstate it as formally completed.
+- No FootyStats API calls, raw payload writes, private archive writes, or production model changes occurred in this continuation.
+- The only live external action required to progress endpoint evidence is manual dispatch of the central preflight workflow. Full raw ingestion remains gated by private archive write authorization.
