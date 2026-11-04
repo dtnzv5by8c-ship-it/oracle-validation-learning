@@ -168,3 +168,6 @@ Additional commits:
 - `815019208404b96b1246a8368ac2535228962c4d` and `e450e40c6f512ff727e7a77b34e1abf8b45dd3e5` — derive report-window coverage from runtime schedule dates.
 - `c5d813450aa05a9ab1062ecb0ffc3b82c2016297` and `c04731ba85d55ef37e518e4aa91a823a6c4831bc` — update coverage regression tests.
 - `d88ec981601e5236c8742cdd3b92d2b1763d6591` — document report-window interpretation.
+
+
+Latest branch checkpoint after report-window correction: `f46515817187f32cea28753e60de44d18fb2ef1a`. The contract-test workflow is configured on governed-branch non-document pushes, but its push-run result is not available from the connected workflow reader. No tests are reported as passing until that run is inspected.
