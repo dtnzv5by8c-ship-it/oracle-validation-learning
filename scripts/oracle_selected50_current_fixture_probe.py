@@ -57,8 +57,22 @@ if not key:
 
 now = datetime.now(timezone.utc)
 now_ts = int(now.timestamp())
-past_cutoff = now_ts - int(timedelta(days=30).total_seconds())
-future_cutoff = now_ts + int(timedelta(days=20).total_seconds())
+report_start_raw = os.environ.get("REPORT_START_DATE", "").strip()
+report_end_raw = os.environ.get("REPORT_END_DATE", "").strip()
+try:
+    report_start = datetime.strptime(report_start_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    report_end_date = datetime.strptime(report_end_raw, "%Y-%m-%d").date()
+except ValueError:
+    raise SystemExit("REPORT_START_DATE and REPORT_END_DATE must be valid YYYY-MM-DD values; zero requests made.")
+if report_end_date < report_start.date():
+    raise SystemExit("REPORT_END_DATE must be on or after REPORT_START_DATE; zero requests made.")
+report_end = datetime.combine(report_end_date, datetime.max.time(), tzinfo=timezone.utc)
+past_cutoff = int((report_start - timedelta(days=30)).timestamp())
+future_cutoff = int(report_end.timestamp())
+if report_start > now + timedelta(days=365):
+    raise SystemExit("Report start date is implausibly far in the future; zero requests made.")
+if report_end < now:
+    raise SystemExit("Report end date is in the past; use a historical archive workflow; zero requests made.")
 
 fields = (
     "id", "homeID", "awayID", "home_name", "away_name", "season", "status",
@@ -90,7 +104,7 @@ def not_attempted_row(item):
         "retry_after_header": None,
         "rate_limit_detected": False,
         "matches_in_window": 0,
-        "future_20d_count": 0,
+        "future_20d_count": 0,\n        "report_window_fixture_count": 0,
         "recent_completed_30d_count": 0,
         "schedule_status": "NOT_ATTEMPTED_AFTER_STOP",
     }
@@ -180,10 +194,10 @@ for index, item in enumerate(selected):
                     "kickoff_utc": datetime.fromtimestamp(
                         kickoff_epoch, tz=timezone.utc
                     ).isoformat(),
-                    "window_class": "FUTURE_20D" if kickoff_epoch >= now_ts else "RECENT_30D",
+                    "window_class": "REPORT_WINDOW" if kickoff_epoch >= int(report_start.timestamp()) else "RECENT_30D",
                 })
                 all_window_matches.append(clean)
-                result["matches_in_window"] += 1
+                result["matches_in_window"] += 1\n                if int(report_start.timestamp()) <= kickoff_epoch <= future_cutoff:\n                    result["report_window_fixture_count"] += 1
                 if kickoff_epoch >= now_ts:
                     result["future_20d_count"] += 1
                 elif str(match.get("status", "")).lower() == "complete":
@@ -255,6 +269,9 @@ summary = {
     "retrieved_utc": datetime.now(timezone.utc).isoformat(),
     "window_start_utc": datetime.fromtimestamp(past_cutoff, tz=timezone.utc).isoformat(),
     "window_end_utc": datetime.fromtimestamp(future_cutoff, tz=timezone.utc).isoformat(),
+    "report_start_date_utc": report_start.date().isoformat(),
+    "report_end_date_utc_inclusive": report_end_date.isoformat(),
+    "report_end_utc_inclusive": report_end.isoformat(),
     "endpoint": "league-matches",
     "selected_leagues": len(selected),
     "requests_planned": len(selected),
@@ -281,9 +298,7 @@ summary = {
     "seasons_with_future_20d_fixtures": sum(
         1 for row in results if row["future_20d_count"] > 0
     ),
-    "future_20d_fixture_rows": sum(
-        1 for row in all_window_matches if row["window_class"] == "FUTURE_20D"
-    ),
+    "report_window_fixture_rows": sum(1 for row in all_window_matches if int(report_start.timestamp()) <= int(row.get("date_unix") or 0) <= future_cutoff),
     "recent_completed_30d_rows": sum(
         1 for row in all_window_matches
         if row["window_class"] == "RECENT_30D" and str(row.get("status", "")).lower() == "complete"
@@ -318,7 +333,7 @@ print(json.dumps([
             "country", "competition", "selected_season_id",
             "provider_comp_master_id_observed", "request_attempted",
             "http_status", "provider_success", "returned_match_count",
-            "max_page", "future_20d_count", "recent_completed_30d_count",
+            "max_page", "future_20d_count", "report_window_fixture_count", "recent_completed_30d_count",
             "schedule_status", "error_class", "retry_after_header",
         )
     }
