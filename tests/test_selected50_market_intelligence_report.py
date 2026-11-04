@@ -813,7 +813,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             )
             workbook = load_workbook(path, read_only=True, data_only=True)
             self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
-            self.assertEqual(workbook["Market Intelligence"].max_column, 83)
+            self.assertEqual(workbook["Market Intelligence"].max_column, 95)
             self.assertEqual(workbook.sheetnames, [
                 "Oracle V1.6 Output", "Market Intelligence", "xG Evidence Audit",
                 "H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
