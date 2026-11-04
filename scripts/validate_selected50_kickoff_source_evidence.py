@@ -62,14 +62,16 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
 
     queue = keyed(queue_rows, "queue")
     evidence = keyed(evidence_rows, "evidence")
-    if set(queue) != set(evidence):
-        missing = sorted(set(queue) - set(evidence))
-        extra = sorted(set(evidence) - set(queue))
-        raise ValueError(f"fixture identity set mismatch; missing={missing}, extra={extra}")
+    queue_ids = set(queue)
+    evidence_ids = set(evidence)
+    in_scope_ids = sorted(queue_ids & evidence_ids)
+    uncovered_queue_ids = sorted(queue_ids - evidence_ids)
+    out_of_scope_evidence_ids = sorted(evidence_ids - queue_ids)
 
     statuses = Counter()
     runtime_corroborated = archive_corroborated = unresolved = 0
-    for fixture_id, ev in evidence.items():
+    for fixture_id in in_scope_ids:
+        ev = evidence[fixture_id]
         q = queue[fixture_id]
         if (ev.get("fixture") or "").strip() != (q.get("fixture") or "").strip():
             raise ValueError(f"{fixture_id}: fixture label differs from exact queue row")
@@ -125,11 +127,17 @@ def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str
         if q.get("schedule_reconciliation_status") != "REVIEW_REQUIRED":
             raise ValueError(f"{fixture_id}: original schedule queue must remain review-required")
 
+    exact_scope_match = not uncovered_queue_ids and not out_of_scope_evidence_ids
     return {
-        "status": "PASS_REPORT_ONLY_KICKOFF_EVIDENCE_REGISTER",
+        "status": "PASS_REPORT_ONLY_KICKOFF_EVIDENCE_REGISTER" if exact_scope_match else "REVIEW_REQUIRED_EVIDENCE_REGISTER_SCOPE_MISMATCH",
         "queue_rows": len(queue),
         "evidence_rows": len(evidence),
-        "exact_fixture_id_set_match": True,
+        "validated_in_scope_evidence_rows": len(in_scope_ids),
+        "uncovered_queue_fixture_count": len(uncovered_queue_ids),
+        "uncovered_queue_fixture_ids": uncovered_queue_ids,
+        "out_of_scope_evidence_count": len(out_of_scope_evidence_ids),
+        "out_of_scope_evidence_fixture_ids": out_of_scope_evidence_ids,
+        "exact_fixture_id_set_match": exact_scope_match,
         "unique_fixture_ids": True,
         "source_status_counts": dict(sorted(statuses.items())),
         "authoritative_runtime_corroborations": runtime_corroborated,
