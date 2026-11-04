@@ -103,3 +103,15 @@ Continue from the live research branch and this checkpoint. Preserve all previou
 4. Validate protected private archive write authorization before building/running full raw historical ingestion.
 5. Keep standings fixture-time validity, H2H chronology, recent/home-away form and xG provenance as separate fail-closed gates.
 6. Preserve frozen Oracle V1.6 production logic/probabilities and research/betting eligibility false.
+
+## Final continuation delta — budgeted gateway and ingestion manifest (2026-11-04)
+
+- Live branch HEAD before this checkpoint update: `176305f3a32ad0bdaf8a60416d97122de2d6d9f4`.
+- Added offline full-ingestion planner `scripts/build_footystats_full_ingestion_manifest.py`. It creates exact-ID paginated match/team tasks plus one current-snapshot tables and season request per preflight-verified season, retains blocked rows for every other planned season, and divides planned work into batches capped at 1,500 requests.
+- The planner does not call the API or persist raw data. It marks private raw archive writing as required and leaves production/betting eligibility false. H2H, recent form and home/away form are derived from the complete exact chronological match spine; fixture-time standings remain unverified and xG quarantined.
+- The central manual-dispatch preflight workflow now invokes this planner after the preflight attempt, then commits/uploads the sanitized report and manifest.
+- Latest targeted contract log: run `41865887561`, job `126699886190`. The log shows py_compile and 42 tests OK: 6 manifest planner, 9 rolling budget, 8 endpoint pagination, 7 preflight, 12 workflow/legacy-path tests. GitHub run metadata still reports queued/no final conclusion despite the completed test and cleanup log entries; treat the logs as evidence but do not claim formal Actions completion.
+- No provider API requests were made. The public rolling ledger still has only the earlier catalogue request timestamp and no active reservations.
+- No raw data was written to the public repository or protected private archive. No Oracle V1.6 production logic/probabilities/thresholds/calibration/ledgers/eligibility were changed.
+- Remaining live gate: manually dispatch **FootyStats Global Budgeted Endpoint Preflight (Research Only)** with `confirm_provider_api_usage=true`, `max_seasons=182`, `max_requests=1000`. The available GitHub connection cannot dispatch it.
+- Canonical mapping remains unapproved: current catalogue reconciliation reports zero approved Oracle canonical mappings and zero verified provider parent competition IDs. Do not mark the mapping complete until the exact IDs and scope decisions are approved.
