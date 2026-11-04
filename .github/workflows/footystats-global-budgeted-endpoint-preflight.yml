@@ -122,6 +122,17 @@ jobs:
             --max-requests "${MAX_REQUESTS}" \
             --history-end-date "${HISTORY_END_DATE}"
 
+      - name: Build offline full historical ingestion manifest from sanitized preflight evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/build_footystats_full_ingestion_manifest.py \
+            --plan-csv "${PLAN_DIR}/season-plan.csv" \
+            --preflight-dir "${REPORT_DIR}" \
+            --output-dir data/footystats/full-ingestion-manifest \
+            --max-requests-per-batch 1500
+
       - name: Commit sanitized report and finalized request ledger
         if: always()
         shell: bash
@@ -130,7 +141,7 @@ jobs:
           mkdir -p "${REPORT_DIR}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${LEDGER_PATH}" "${REPORT_DIR}/" "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
+          git add "${LEDGER_PATH}" "${REPORT_DIR}/" data/footystats/full-ingestion-manifest/ "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
           if git diff --cached --quiet; then
             echo "No sanitized outputs to commit."
             exit 0
@@ -145,6 +156,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: footystats-sanitized-endpoint-preflight-${{ github.run_id }}
-          path: data/footystats/endpoint-preflight/footystats-preflight-run-${{ github.run_id }}.json
+          path: |
+            data/footystats/endpoint-preflight/footystats-preflight-run-${{ github.run_id }}.json
+            data/footystats/full-ingestion-manifest/*.csv
+            data/footystats/full-ingestion-manifest/summary.json
           if-no-files-found: warn
           retention-days: 30
