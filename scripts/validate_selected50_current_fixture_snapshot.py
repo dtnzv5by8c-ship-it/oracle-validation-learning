@@ -212,7 +212,8 @@ def validate(path):
         and row.get("window_class") == "RECENT_30D"
         and str(row.get("status", "")).lower() == "complete"
     )
-    if future != d.get("report_window_fixture_rows"):\n        errors.append("report-window fixture count does not match summary")
+    if future != d.get("report_window_fixture_rows"):
+        errors.append("report-window fixture count does not match summary")
     if recent_complete != d.get("recent_completed_30d_rows"):
         errors.append("recent completed count does not match summary")
     if any(missing_fields.values()):
