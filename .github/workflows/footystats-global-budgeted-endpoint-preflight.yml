@@ -98,9 +98,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${LEDGER_PATH}" "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
           git commit -m "ops: reserve FootyStats budget for run ${GITHUB_RUN_ID}"
-          git fetch origin "${GOVERNED_BRANCH}"
-          git rebase FETCH_HEAD
-          git push origin "HEAD:${GOVERNED_BRANCH}"
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            if ! git rebase "origin/${GOVERNED_BRANCH}"; then
+              git rebase --abort || true
+              echo "Reservation rebase conflicted (attempt ${attempt}/5); retrying from the latest branch head."
+              sleep $((attempt * 2))
+              continue
+            fi
+            if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+              pushed=true
+              break
+            fi
+            echo "Research branch advanced during reservation push (attempt ${attempt}/5); retrying without force."
+            sleep $((attempt * 2))
+          done
+          [[ "${pushed}" == "true" ]] || { echo "::error::Could not safely publish request reservation after five attempts; stopping before provider access."; exit 1; }
 
       - name: Run sanitized endpoint and field preflight
         id: preflight
@@ -147,9 +161,23 @@ jobs:
             exit 0
           fi
           git commit -m "data: save sanitized FootyStats preflight run ${GITHUB_RUN_ID}"
-          git fetch origin "${GOVERNED_BRANCH}"
-          git rebase FETCH_HEAD
-          git push origin "HEAD:${GOVERNED_BRANCH}"
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            if ! git rebase "origin/${GOVERNED_BRANCH}"; then
+              git rebase --abort || true
+              echo "Sanitized-output rebase conflicted (attempt ${attempt}/5); retrying from the latest branch head."
+              sleep $((attempt * 2))
+              continue
+            fi
+            if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+              pushed=true
+              break
+            fi
+            echo "Research branch advanced during sanitized-output push (attempt ${attempt}/5); retrying without force."
+            sleep $((attempt * 2))
+          done
+          [[ "${pushed}" == "true" ]] || { echo "::error::Could not safely publish sanitized outputs after five attempts; artifact upload remains available."; exit 1; }
 
       - name: Upload sanitized preflight report and ingestion manifest
         if: always()
