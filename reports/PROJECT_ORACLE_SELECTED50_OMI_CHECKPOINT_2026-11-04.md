@@ -138,3 +138,16 @@ Additional commits:
 - `05ad3b0debd0d9827e07df052b1ca8ce31a523de` — document full-day snapshot and explicit credit approvals.
 
 No provider API call was made during this continuation. No production model or probability files were modified.
+
+
+### Final continuation delta — 2026-11-04
+
+- Added a zero-call Actual Results writer and test. The default report workflow now creates an explicit unavailable-results register and QA with `provider_api_calls=0`; no score is invented.
+- Added separate explicit `confirm_results_provider_credit_usage` input (default false). The FootyStats results API and its secret are required only when that input is true.
+- Removed the stale runtime-run default and clarified that private-archive read consent and results-provider credit consent are separate controls.
+- Added the affected OMI, venue-history, report-window and zero-call regression suites to the governed offline contract-test workflow, including its Python dependencies.
+- Data Quality & Risk and the fixture orientation audit both expose `snapshot_evidence_status`.
+- Failure diagnostics retain the no-call Actual Results CSV/QA as well as snapshot reconciliation exception artifacts.
+- Latest code/workflow commits after the prior checkpoint include `9dbdbc09`, `b590c823`, `240fbcc8`, `3cb3fda6`, `cf0baa47`, `168e68a0`, `05ad3b0d`, `03cd0af8`, `1e5210f2`, `007496a2` and `5237fd18`.
+- The latest governed contract-test workflow is configured to run offline tests on non-document pushes. The actual push-run result is not accessible through the current GitHub workflow-run reader; no test pass is claimed.
+- No provider API calls, credits, or production model/probability changes were made.
