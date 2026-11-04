@@ -553,3 +553,11 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 3. Inspect the generated workbook, 50-league coverage, exact joins, snapshot exceptions, schedule queue, xG quarantine, historical form audit and all eligibility flags. Expect `PARTIAL_RESEARCH_ONLY` while exceptions remain.
 4. Only after explicit provider-credit and monthly-budget approval, dispatch a fresh full-day snapshot with the required inclusive `report_end_date`; then rerun the runtime and OMI repair from the new exact artifact chain.
 5. Never change Oracle V1.6 production logic or probabilities to make a report QA gate pass.
+
+
+### Credit-control and CI addendum — 2026-11-04
+
+- Results reconciliation is opt-in only. `confirm_results_provider_credit_usage` defaults false; the zero-call Actual Results register is the default. Never infer that private archive read consent also authorizes provider credits.
+- The current-fixture snapshot requires its own explicit credit-usage and monthly-budget confirmations.
+- The offline Selected-50 contract-test workflow now includes the OMI snapshot-exception, venue-history, inclusive-window and no-call results tests. The Actions pass/fail state has not been independently read; no test pass is claimed.
+- Latest implementation checkpoint: `d567f56fb70e7cf0164fd4594db369f6fb7d4de1`. No provider API calls or production changes were made.
