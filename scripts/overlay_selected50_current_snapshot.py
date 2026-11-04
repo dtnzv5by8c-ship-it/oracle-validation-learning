@@ -127,6 +127,7 @@ def main():
     ap.add_argument("--out-archive",required=True,type=Path)
     ap.add_argument("--out-qa",required=True,type=Path)
     ap.add_argument("--out-trace",type=Path,help="Sanitized row-level snapshot staging trace CSV")
+    ap.add_argument("--report-end-date", required=False, help="Inclusive UTC report end date YYYY-MM-DD; defaults to snapshot metadata")
     args=ap.parse_args()
     trace_path=args.out_trace or args.out_qa.with_name("current_snapshot_candidate_trace.csv")
     now=datetime.now(timezone.utc)
@@ -135,6 +136,13 @@ def main():
     archive_sha256=sha256_file(args.archive)
     snap=json.loads(snapshot_bytes.decode("utf-8"))
     retrieved=parse_utc(snap.get("retrieved_utc"))
+    snapshot_window_end=parse_utc(snap.get("window_end_utc"))
+    report_end_date=str(snap.get("report_end_date_utc_inclusive") or "").strip()
+    declared_end=parse_utc(snap.get("report_end_utc_inclusive"))
+    if args.report_end_date and args.report_end_date != report_end_date:
+        raise SystemExit("FAIL: overlay report end date does not match snapshot's declared report window")
+    if snapshot_window_end is None or declared_end is None or snapshot_window_end < declared_end:
+        raise SystemExit("FAIL: snapshot does not cover the full inclusive report end date")
     if retrieved is None or retrieved>now or now-retrieved>timedelta(hours=24):
         raise SystemExit("FAIL: snapshot provenance missing, future-dated, or older than 24 hours")
     seasons=snap.get("per_season")
@@ -179,7 +187,7 @@ def main():
         status=str(row.get("status") or "").strip().lower()
         flag=no_home_away_flag(row.get("no_home_away"))
         meta=season_meta_by_id.get(sid,{})
-        within_20d = ko <= now+timedelta(days=20)
+        within_20d = ko <= snapshot_window_end
         if not within_20d:
             beyond_total+=1
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
@@ -371,7 +379,7 @@ def main():
       "overlay_archive_sha256":overlay_archive_sha256,
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
-      "staged_window_days":20,"candidate_rows_added":add_count,
+      "staged_window_days":round((snapshot_window_end-now).total_seconds()/86400,3),\n      "report_start_date_utc":snap.get("report_start_date_utc"),\n      "report_end_date_utc_inclusive":report_end_date,\n      "snapshot_window_end_utc":snapshot_window_end.isoformat(),"candidate_rows_added":add_count,
       "future_rows_beyond_20d_total":beyond_total,"future_rows_beyond_20d_quarantined":beyond_quarantined,
       "already_present_exact_fixture_ids":already,
       "refreshed_present_exact_fixture_ids":refreshed,
