@@ -145,7 +145,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true_beyond_20d"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["status_not_eligible_for_future_fixture_beyond_20d"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
-            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 5)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 6)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_unknown"], 1)
             self.assertEqual(by_league["Country 01 | League 01"]["future_rows_in_20d"], 2)
             self.assertEqual(by_league["Country 01 | League 01"]["no_home_away_false"], 2)
@@ -166,7 +166,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(by_id["SUSPENDED-FUTURE"]["trace_reason"], "NONSTANDARD_STATUS")
             self.assertEqual(by_id["MISSING-STATUS"]["trace_reason"], "MISSING_STATUS")
             self.assertEqual(by_id["HISTORICAL"]["trace_outcome"], "HISTORICAL_NOT_STAGED")
-            self.assertEqual(by_id["BEYOND"]["trace_outcome"], "BEYOND_20D_NOT_STAGED")
+            self.assertEqual(by_id["BEYOND"]["trace_outcome"], "STAGED_PROVIDER_NATIVE_ROW_RESEARCH_ONLY")
             self.assertEqual(by_id["BEYOND-FLAGGED"]["trace_outcome"], "QUARANTINED_INVALID_OR_NONSTANDARD")
             self.assertIn("NO_HOME_AWAY_FLAGGED", by_id["BEYOND-FLAGGED"]["trace_reason"])
             self.assertIn("OUTSIDE_20D_STAGING_HORIZON", by_id["BEYOND-FLAGGED"]["trace_reason"])
@@ -188,7 +188,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertNotIn("away_name", TRACE_COLUMNS)
             with zipfile.ZipFile(out_archive) as staged_archive:
                 staged_rows = json.loads(staged_archive.read("private/archive/seasons/S00/matches.json").decode("utf-8"))
-            self.assertEqual([row["id"] for row in staged_rows], ["FUTURE-1"])
+            self.assertEqual([row["id"] for row in staged_rows], ["FUTURE-1", "BEYOND"])
 
 
 if __name__ == "__main__":
