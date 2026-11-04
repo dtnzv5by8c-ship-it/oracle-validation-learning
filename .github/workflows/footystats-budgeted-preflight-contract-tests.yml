@@ -44,6 +44,10 @@ jobs:
             scripts/footystats_request_budget.py \
             scripts/validate_footystats_endpoint_contracts.py \
             scripts/footystats_budgeted_endpoint_preflight.py
+      - name: Compile and test full historical ingestion manifest planner
+        run: |
+          python -m py_compile scripts/build_footystats_full_ingestion_manifest.py
+          python -m unittest discover -s tests -p "test_build_footystats_full_ingestion_manifest.py" -v
 
       - name: Test rolling-hour request budget
         run: python -m unittest discover -s tests -p "test_footystats_request_budget.py" -v
