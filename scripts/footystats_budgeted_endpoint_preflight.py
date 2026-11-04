@@ -615,6 +615,7 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             report["request_budget"]["provider_request_remaining_observed"] = first_match_meta[
                 "provider_request_remaining_observed"
             ]
+            check_provider_limit(first_match_meta, ledger_path)
 
             desired_rest = min(
                 max(0, reservation_count - 1),
