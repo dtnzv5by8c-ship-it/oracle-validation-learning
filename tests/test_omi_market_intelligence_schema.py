@@ -19,6 +19,20 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         self.assertEqual(s["headers"][0:3], ["Fixture Date", "League", "Fixture"])
         self.assertEqual(s["headers"][-1], "retrieved_utc")
 
+    def test_frozen_oracle_v16_output_is_exact_68_column_runtime_contract(self):
+        path = ROOT / "config" / "oracle_v1_6_output_schema_v1.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        headers = schema["headers"]
+        self.assertEqual(schema["sheet_name"], "Oracle V1.6 Output")
+        self.assertEqual(schema["column_count"], 68)
+        self.assertEqual(len(headers), 68)
+        self.assertEqual(len(headers), len(set(headers)))
+        self.assertEqual(headers[:4], ["fixture_id", "date_utc", "selected_id", "selected_id_type"])
+        self.assertEqual(headers[-5:], ["DC_AWAY_block_reason", "COMBO_HOME_governed_status", "COMBO_HOME_block_reason", "COMBO_AWAY_governed_status", "COMBO_AWAY_block_reason"])
+        digest = __import__("hashlib").sha256(json.dumps(headers, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+        self.assertEqual(digest, schema["header_sequence_sha256"])
+        self.assertEqual(schema["source_provenance"]["purpose"], "STRUCTURAL_HEADER_REFERENCE_ONLY_NOT_A_SOURCE_OF_CURRENT_FIXTURE_DATA")
+
     def test_headers_are_nonblank_and_unique(self):
         headers = self.schema["headers"]
         self.assertTrue(all(isinstance(h, str) and h.strip() for h in headers))
