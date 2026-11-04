@@ -698,7 +698,9 @@ def build_report(runtime_rows, archive_rows):
         "archive_index_policy": "EXPLICIT_TIMEZONE_AND_EXACT_SEASON_FIXTURE_TEAM_IDS; CONFLICTING_FIXTURE_IDENTITIES_QUARANTINED; EXACT_DUPLICATES_DEDUPLICATED",
         "archive_index_qa": archive_index_qa,
         "archive_index_gate": (
-            "REVIEW_REQUIRED" if archive_index_qa["rows_quarantined"]
+            "BLOCKED_NO_HISTORY_ROWS" if archive_index_qa["candidate_rows"] == 0
+            else "BLOCKED_NO_VALID_HISTORY_ROWS" if archive_index_qa["rows_indexed"] == 0
+            else "REVIEW_REQUIRED" if archive_index_qa["rows_quarantined"]
             else "PASS_WITH_EXACT_DUPLICATES_DEDUPLICATED" if archive_index_qa["exact_duplicate_rows_deduplicated"]
             else "PASS"
         ),
