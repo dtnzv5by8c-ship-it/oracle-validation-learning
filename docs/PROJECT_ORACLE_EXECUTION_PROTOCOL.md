@@ -608,3 +608,12 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - Run #285 uploaded diagnostic artifact `oracle-selected50-join-diagnostics` (artifact ID `13329414326`) only; the final workbook upload, 50-league coverage, Actual Results placeholder, and data dictionary/configuration steps were skipped because of the evidence scope failure.
 - xG remains quarantined: no fixture-linked capture timestamp/hash/revision provenance was found. Results provider approval remained false; no results API calls were made. Production logic/probabilities remain unchanged; research and betting eligibility remain false.
 - Next: register the updated validator on `main`, update protocol/checkpoint, then rerun the OMI repair on the governed branch with the same pinned archive and runtime run `41795266381`; keep results-provider credit approval false. Inspect full report and QA artifacts before declaring completion.
+
+
+## Run #288 CI follow-up — 2026-11-04
+
+- Run #288 (`41844688167`) failed before report execution at the offline contract-test step, not during report generation. All 34 Market Intelligence tests, 1 dictionary/configuration test, 6 goal-market tests, 3 coverage tests and 4 kickoff-triage tests passed. One kickoff evidence test still asserted the old all-or-nothing fixture-set failure behaviour.
+- Updated `tests/test_selected50_kickoff_source_evidence.py` to assert explicit `REVIEW_REQUIRED_EVIDENCE_REGISTER_SCOPE_MISMATCH`, exact uncovered/out-of-scope fixture IDs, and zero schedule auto-corrections. This aligns the contract test with the validator change in `d797cb31019a482063296a051b6f2fb70194868a`.
+- Test correction commit: `3d58e2b00288d01bb073fdd1b7c95e4a81abdf02` — `test: expect explicit review for partial kickoff evidence scope`.
+- Run #288 produced diagnostic artifact `13329404941` only; all report-building stages were skipped because the contract test failed. No provider calls/credits and no production model changes.
+- Next action: rerun the same OMI workflow on `research/oracle-50-league-readiness-audit`, pinned archive tag `research-selected50-footystats-history-40375285207`, runtime run `41795266381`, private archive read true, results-provider credit approval false. Inspect full final workbook and QA artifacts.
