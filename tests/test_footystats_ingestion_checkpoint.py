@@ -11,6 +11,10 @@ import footystats_ingestion_checkpoint as checkpoint
 
 
 def task(task_id="FS:101:league-matches:p1", endpoint="league-matches", page=1):
+    paged = endpoint in checkpoint.PAGED_ENDPOINTS
+    total = 1200 if endpoint == "league-matches" else 20 if endpoint == "league-teams" else ""
+    per_page = 600 if endpoint == "league-matches" else 50 if endpoint == "league-teams" else ""
+    pages = 2 if endpoint == "league-matches" else 1
     return {
         "task_id": task_id,
         "batch_id": "batch-0001",
@@ -20,11 +24,11 @@ def task(task_id="FS:101:league-matches:p1", endpoint="league-matches", page=1):
         "provider_season_id": "101",
         "endpoint": endpoint,
         "page": str(page),
-        "max_per_page": "600" if endpoint in checkpoint.PAGED_ENDPOINTS else "",
+        "max_per_page": str(per_page) if paged else "",
         "include": "",
         "max_time_unix": "",
-        "expected_total_results": "1200" if endpoint in checkpoint.PAGED_ENDPOINTS else "",
-        "expected_page_count": "2" if endpoint in checkpoint.PAGED_ENDPOINTS else "1",
+        "expected_total_results": str(total) if paged else "",
+        "expected_page_count": str(pages),
         "request_status": "PLANNED_NOT_EXECUTED",
         "raw_storage_required": "True",
         "production_eligible": "False",
@@ -50,10 +54,13 @@ def success_receipt(t, **overrides):
         "provider_success": True,
         "response_shape_verified": True,
         "page_complete": True,
-        "response_total_results": 1200 if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else None,
+        "response_total_results": int(t["expected_total_results"]) if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else None,
         "response_page": int(t["page"]),
-        "response_page_count": 2 if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else 1,
-        "returned_rows": 600 if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else 1,
+        "response_page_count": int(t["expected_page_count"]),
+        "returned_rows": min(
+            int(t["max_per_page"]),
+            max(0, int(t["expected_total_results"]) - ((int(t["page"]) - 1) * int(t["max_per_page"])))
+        ) if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else 1,
         "required_fields_missing": [],
         "xg_fields_missing": ["fixture_level_xg_provenance"],
         "payload_sha256": "a" * 64,
@@ -81,7 +88,11 @@ def failure_receipt(t, code="HTTP_429"):
 
 class FootyStatsIngestionCheckpointTests(unittest.TestCase):
     def test_pending_batch_is_deterministic_and_never_dispatches(self):
-        tasks = [task(f"FS:101:league-matches:p{i}", page=i) for i in (1, 2, 3)]
+        tasks = [
+            task("FS:101:league-matches:p1", page=1),
+            task("FS:101:league-matches:p2", page=2),
+            task("FS:101:league-teams:p1", endpoint="league-teams", page=1),
+        ]
         next_batch, statuses, summary = checkpoint.build_resume_plan(tasks, [], 2)
         self.assertEqual([row["task_id"] for row in next_batch], [
             "FS:101:league-matches:p1", "FS:101:league-matches:p2"
