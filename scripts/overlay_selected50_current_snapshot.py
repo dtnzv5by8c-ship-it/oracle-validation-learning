@@ -182,8 +182,8 @@ def main():
         status=str(row.get("status") or "").strip().lower()
         flag=no_home_away_flag(row.get("no_home_away"))
         meta=season_meta_by_id.get(sid,{})
-        within_20d = ko <= report_window_end
-        if not within_20d:
+        within_report_window = ko <= report_window_end
+        if not within_report_window:
             beyond_total+=1
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
         league_diag=no_home_away_by_league.setdefault(league_key,{
@@ -194,7 +194,7 @@ def main():
             "suspended_or_nonstandard_status":0,"status_not_eligible_for_future_fixture":0,
             "suspended_or_nonstandard_status_beyond_report_window":0,"status_not_eligible_for_future_fixture_beyond_report_window":0
         })
-        if within_20d:
+        if within_report_window:
             league_diag["future_rows_in_report_window"]+=1
             league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
         else:
@@ -206,7 +206,7 @@ def main():
         status_reason=future_status_quarantine_reason(status)
         if status_reason:
             reasons.append(status_reason)
-            if within_20d:
+            if within_report_window:
                 league_diag["status_not_eligible_for_future_fixture"]+=1
                 if status_reason != "MISSING_STATUS":
                     league_diag["suspended_or_nonstandard_status"]+=1
@@ -221,7 +221,7 @@ def main():
         if not str(row.get("away_name") or "").strip(): reasons.append("MISSING_AWAY_TEAM_NAME")
         if reasons:
             quarantined+=1
-            if not within_20d:
+            if not within_report_window:
                 beyond_quarantined+=1
                 reasons.append("OUTSIDE_DECLARED_REPORT_WINDOW")
             trace["trace_outcome"]="QUARANTINED_INVALID_OR_NONSTANDARD"
@@ -229,7 +229,7 @@ def main():
             for reason in reasons:
                 quarantine_reason_counts[reason]=quarantine_reason_counts.get(reason,0)+1
             continue
-        if not within_20d:
+        if not within_report_window:
             beyond+=1
             trace["trace_outcome"]="BEYOND_20D_NOT_STAGED"
             trace["trace_reason"]="KICKOFF_AFTER_DECLARED_REPORT_END"
