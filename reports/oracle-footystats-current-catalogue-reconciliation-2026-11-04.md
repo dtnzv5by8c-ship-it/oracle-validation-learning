@@ -84,10 +84,12 @@ Pagination validators require explicit provider page metadata and exact page row
 
 - User-approved absolute ceiling: **1,800 FootyStats requests per rolling 60 minutes**.
 - The budget helper uses an operational reservation ceiling of 1,500, preserving 300 requests of headroom.
-- The offline request-budget contract tests passed in the validation run.
-- The shared request helper is not yet integrated into one central authenticated ingestion workflow with a cross-workflow lock and durable reservation/actual-request finalisation. Therefore **no bulk provider ingestion is started by this reconciliation**.
-- Raw provider payloads have not been written to the public research repository. The protected private archive write path remains gated and must not be bypassed.
-- No API key or secret was read by this audit.
+- The shared request-budget helper is now integrated into a single manual-dispatch FootyStats endpoint preflight gateway on the governed research branch. It uses the repository-wide concurrency group `footystats-global-api-gateway`, a durable reservation commit before provider access, a timestamp-only rolling ledger, 1.1-second pacing, and no retries.
+- The gateway enforces the 1,800 absolute rolling-hour limit and 1,500 operational reservation ceiling with 300 headroom; any lower provider `request_limit` is binding.
+- The new sanitized endpoint preflight checks up to five endpoints per season (matches page 1, teams page 1, tables, season, and one exact-match details/H2H sample). It persists only field-presence/pagination metadata and payload hashes, never raw payloads.
+- The preflight workflow has not yet been manually dispatched. No additional provider API requests were made by the gateway implementation.
+- Raw provider payloads have not been written to the public research repository. The protected private archive write path remains gated and must not be bypassed; full historical ingestion is not yet started.
+- No API key or secret was read by the offline reconciliation.
 
 ## Validation and outputs
 
@@ -95,7 +97,9 @@ Pagination validators require explicit provider page metadata and exact page row
 - Crosswalk builder: `scripts/reconcile_footystats_current_catalogue_to_legacy50.py`.
 - Regression tests: `tests/test_footystats_current_catalogue_reconciliation.py`.
 - Contract workflow: `.github/workflows/oracle-selected50-contract-tests.yml`.
-- Validation run: [Oracle Selected-50 Safety Contract Tests](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41861736989).
+- Earlier validation run: [Oracle Selected-50 Safety Contract Tests](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41861736989).
+- New targeted preflight contract run: [FootyStats Budgeted Preflight Contract Tests](https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/41864509844), job `126695135837`. Its log records py_compile success and 35 passing unit/contract tests; the GitHub run metadata reader still reports queued/no final conclusion, so formal workflow completion remains unverified.
+- Gateway implementation checkpoint: [ORACLE_FOOTYSTATS_BUDGETED_PREFLIGHT_GATEWAY_2026-11-04.md](ORACLE_FOOTYSTATS_BUDGETED_PREFLIGHT_GATEWAY_2026-11-04.md).
 - Machine-readable crosswalk: [current-catalogue-provider-to-oracle-candidate-crosswalk.csv](../../data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-provider-to-oracle-candidate-crosswalk.csv).
 - Machine-readable summary: [current-catalogue-reconciliation-summary.json](../../data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-reconciliation-summary.json).
 
@@ -103,12 +107,13 @@ Pagination validators require explicit provider page metadata and exact page row
 
 1. Reconcile the five newly selected competitions against the protected canonical registry and owner-approved expanded Oracle universe.
 2. Resolve the six legacy manifest exclusions with the owner/provider configuration; do not re-add them automatically.
-3. Complete the central request executor, including one shared concurrency lock and durable global ledger, before authenticated ingestion.
-4. Confirm the approved private raw-data destination and write permission without touching production files.
-5. Execute bounded fixture/result/team retrieval for all 182 seasons, checkpoint every page, and verify pagination and exact identity.
-6. Derive H2H, recent form, venue splits and goal features from the exact completed match spine; separately validate fixture-time standings.
-7. Keep xG quarantined until provider point-in-time capture and revision semantics are verified.
-8. Rebuild the Master OMI and Visual Intelligence only after the source data and field-level coverage pass their gates.
+3. Manually dispatch the sanitized endpoint preflight workflow and inspect its per-season endpoint/field coverage report; the available GitHub connection cannot dispatch workflows itself.
+4. Resolve owner-approved canonical Oracle mappings for the 44 exact-name matches, 22 human-review candidates, six legacy exclusions and five newly selected competitions. The current reconciliation has zero approved canonical mappings and zero verified parent competition IDs.
+5. Confirm the approved private raw-data destination and write permission without touching production files.
+6. Build the resumable full-pagination ingestion executor behind the same global request gateway; checkpoint every page and verify exact fixture/team identity.
+7. Derive H2H, recent form, venue splits and goal features from the exact completed match spine; separately validate fixture-time standings.
+8. Keep xG quarantined until provider point-in-time capture and revision semantics are verified.
+9. Rebuild the Master OMI and Visual Intelligence only after the source data and field-level coverage pass their gates.
 
 ## Governance
 
