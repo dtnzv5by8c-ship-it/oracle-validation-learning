@@ -60,6 +60,21 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertIsNone(market_report.parse_dt("2026-10-31T18:00:00"))
         self.assertIsNotNone(market_report.parse_dt("2026-10-31T18:00:00Z"))
 
+    def test_archive_actual_fields_require_settlement_and_respect_no_home_away(self):
+        neutral = archive_row("NEUTRAL", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1)
+        neutral["no_home_away"] = "1"
+        actuals = market_report.archive_actual_fields(neutral)
+        self.assertEqual(actuals["settlement_status"], "SETTLED_VERIFIED_NO_HOME_AWAY")
+        self.assertEqual(actuals["actual_home_goals"], "")
+        self.assertEqual(actuals["actual_away_goals"], "")
+        self.assertEqual(actuals["actual_total_goals"], 3)
+        self.assertEqual(actuals["actual_match_result"], "NOT_AVAILABLE_NO_HOME_AWAY")
+        scheduled = archive_row("SCHEDULED", "2025-08-02T12:00:00+00:00", "H", "A", "", "")
+        scheduled["status_raw"] = "scheduled"
+        scheduled_actuals = market_report.archive_actual_fields(scheduled)
+        self.assertEqual(scheduled_actuals["settlement_status"], "NOT_SETTLED")
+        self.assertEqual(scheduled_actuals["actual_total_goals"], "")
+
     def test_archive_history_ignores_naive_kickoff_timestamps(self):
         naive = archive_row("NAIVE", "2025-08-01T12:00:00", "H", "A", 2, 1)
         by_team, by_season, by_pair, _, _, qa = market_report.build_indexes([naive])
@@ -567,24 +582,38 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             ))
             workbook = load_workbook(path, read_only=True, data_only=True)
             self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
-            self.assertEqual(workbook["Market Intelligence"].max_column, 83)
+            schema = json.loads((SCRIPT.parents[1] / "config" / "omi_market_intelligence_schema_v1.json").read_text(encoding="utf-8"))
+            self.assertEqual(workbook["Market Intelligence"].max_column, 95)
             decision = workbook["Market Intelligence"]
             decision_headers = [cell.value for cell in decision[1]]
-            self.assertIn("Research Over 1.5 %", decision_headers)
+            self.assertEqual(decision_headers, schema["headers"])
+            self.assertIn("Research Over 1,5 %", decision_headers)
             self.assertIn("Home Last-5 Form", decision_headers)
             self.assertIn("Schedule Reconciliation", decision_headers)
             decision_values = dict(zip(decision_headers, [cell.value for cell in decision[2]]))
             self.assertEqual(decision_values["BTTS Yes"], "58.21")
-            self.assertEqual(decision_values["Research Over 1.5 %"], 76.2)
+            self.assertEqual(decision_values["Research Over 1,5 %"], 76.2)
             self.assertEqual(decision_values["Goal Research Status"], "EXPERIMENTAL_UNCALIBRATED")
             self.assertEqual(decision_values["Production Eligible"], "NO")
             self.assertEqual(decision_values["Betting Eligible"], "NO")
             self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
             self.assertEqual(decision_values["H2H Avg Total Goals"], 3.5)
-            for sheet in ("H2H Intelligence", "Team Form Evidence", "Goal Intelligence",
-                          "Goal Market Research", "xG Evidence Audit", "Schedule Reconciliation",
-                          "Market Data Coverage", "Archive Field Coverage",
-                          "Data Quality & Risk", "Definitions & Governance"):
+            self.assertEqual(decision_values["H2H Avg Total Goals2"], 3.5)
+            self.assertEqual(decision_values["actual_home_goals"], 0)
+            self.assertEqual(decision_values["actual_away_goals"], 0)
+            self.assertEqual(decision_values["actual_total_goals"], 0)
+            self.assertEqual(decision_values["actual_match_result"], "DRAW")
+            self.assertEqual(decision_values["actual_btts"], "NO")
+            self.assertEqual(decision_values["actual_over_1_5"], "NO")
+            self.assertEqual(decision_values["actual_over_2_5"], "NO")
+            self.assertEqual(decision_values["actual_under_4_5"], "YES")
+            self.assertEqual(decision_values["settlement_status"], "SETTLED_VERIFIED_EXACT_ID")
+            self.assertEqual(decision_values["provider_match_status"], "complete")
+            self.assertEqual(workbook["OMI Report"].cell(row=2, column=2).value, "Oracle Market Intelligence (OMI) Report")
+            for sheet in ("OMI Report", "Visual Intelligence", "H2H Intelligence",
+                          "Team Form Evidence", "Goal Intelligence", "Goal Market Research",
+                          "xG Evidence Audit", "Schedule Reconciliation", "Market Data Coverage",
+                          "Archive Field Coverage", "Data Quality & Risk", "Definitions & Governance"):
                 self.assertIn(sheet, workbook.sheetnames)
             expected_context = ["Fixture Date", "League", "Fixture"]
             for sheet in ("H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
