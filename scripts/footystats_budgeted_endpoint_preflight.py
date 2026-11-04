@@ -397,6 +397,30 @@ def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[d
     return summary, rows
 
 
+
+def collect_team_stats_field_names(rows: list[dict[str, Any]]) -> list[str]:
+    names: set[str] = set()
+    for row in rows:
+        stats = row.get("stats") if isinstance(row, dict) else None
+        if isinstance(stats, dict):
+            names.update(str(key) for key in stats.keys())
+        elif isinstance(stats, list):
+            for item in stats:
+                if not isinstance(item, dict):
+                    continue
+                stat_name = (
+                    item.get("stat_name")
+                    or item.get("name")
+                    or item.get("stat")
+                    or item.get("key")
+                    or item.get("field")
+                )
+                if stat_name not in (None, ""):
+                    names.add(str(stat_name))
+                else:
+                    names.update(str(key) for key in item.keys() if key not in {"value", "data"})
+    return sorted(names)
+
 def validate_team_page(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         pager = validate_paged_response("league-teams", payload, 1)
@@ -426,9 +450,7 @@ def validate_team_page(payload: dict[str, Any]) -> dict[str, Any]:
         "all_pages_retrieved": pager["expected_page_count"] == 1,
         "team_identity_fields": {field: len(rows) for field in TEAM_ID_FIELDS},
         "unique_team_ids_on_page": len(set(ids)),
-        "team_stats_field_names": sorted({
-            key for row in rows if isinstance(row.get("stats"), dict) for key in row["stats"]
-        }),
+        "team_stats_field_names": collect_team_stats_field_names(rows),
     }
 
 
