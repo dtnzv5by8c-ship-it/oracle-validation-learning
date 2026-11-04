@@ -45,13 +45,14 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         self.assertTrue(policy["never_insert_before_or_within_baseline"])
         self.assertTrue(policy["never_rename_reorder_or_delete_baseline_headers"])
 
-if __name__ == "__main__":
-    unittest.main()
-
     def test_report_repair_workflow_blocks_legacy_builder_before_archive_download(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-market-intelligence-repair.yml").read_text(encoding="utf-8")
         guard = workflow.index("Fail closed until Book4 95-column report builder is integrated")
         archive = workflow.index("Download pinned private archive and verify SHA-256")
         self.assertLess(guard, archive)
+        self.assertIn("if: ${{ github.event_name == 'workflow_dispatch' }}", workflow[guard:archive])
         self.assertIn("omi_market_intelligence_schema_v1.json", workflow[guard:archive])
         self.assertIn("Required OMI Report sheet is not built", workflow[guard:archive])
+
+if __name__ == "__main__":
+    unittest.main()
