@@ -81,8 +81,8 @@ def validate(path):
     if window_start is not None and window_end is not None:
         if window_end <= window_start:
             errors.append("window_end_utc must be later than window_start_utc")
-        elif abs((window_end - window_start).total_seconds() - 44 * 86400) > 2:
-            errors.append("declared window must span 30 days backward and 14 days forward")
+        elif abs((window_end - window_start).total_seconds() - 50 * 86400) > 2:
+            errors.append("declared window must span 30 days backward and 20 days forward")
         if retrieved is not None and not (window_start < retrieved < window_end):
             errors.append("retrieved_utc must fall inside the declared snapshot window")
 
@@ -121,7 +121,7 @@ def validate(path):
     statuses = Counter()
     no_home = 0
     missing_fields = Counter()
-    window_boundary = window_end - dt.timedelta(days=14) if window_end is not None else None
+    window_boundary = window_end - dt.timedelta(days=20) if window_end is not None else None
 
     for i, row in enumerate(rows):
         if not isinstance(row, dict):
@@ -146,7 +146,7 @@ def validate(path):
             if row.get(field) in (None, ""):
                 missing_fields[field] += 1
         cls = row.get("window_class")
-        if cls not in ("FUTURE_14D", "RECENT_30D"):
+        if cls not in ("FUTURE_20D", "RECENT_30D"):
             errors.append(f"row {i}: invalid window_class {cls!r}")
         classes[str(cls)] += 1
 
@@ -162,7 +162,7 @@ def validate(path):
             if kickoff < window_start or kickoff > window_end:
                 errors.append(f"row {i}: kickoff_utc is outside the declared snapshot window")
             if window_boundary is not None:
-                expected_class = "FUTURE_14D" if kickoff >= window_boundary else "RECENT_30D"
+                expected_class = "FUTURE_20D" if kickoff >= window_boundary else "RECENT_30D"
                 if cls != expected_class:
                     errors.append(f"row {i}: window_class disagrees with kickoff_utc and declared window")
 
@@ -194,14 +194,14 @@ def validate(path):
             if kickoff is not None and retrieved is not None and kickoff > retrieved:
                 errors.append(f"row {i}: completed status conflicts with a future kickoff")
 
-    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "FUTURE_14D")
+    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "FUTURE_20D")
     recent_complete = sum(
         1 for row in rows
         if isinstance(row, dict)
         and row.get("window_class") == "RECENT_30D"
         and str(row.get("status", "")).lower() == "complete"
     )
-    if future != d.get("future_14d_fixture_rows"):
+    if future != d.get("future_20d_fixture_rows"):
         errors.append("future fixture count does not match summary")
     if recent_complete != d.get("recent_completed_30d_rows"):
         errors.append("recent completed count does not match summary")
@@ -213,7 +213,7 @@ def validate(path):
         "errors": errors,
         "selected_seasons": len(seasons) if isinstance(seasons, list) else 0,
         "fixture_rows": len(rows),
-        "future_14d_rows": future,
+        "future_20d_rows": future,
         "recent_completed_30d_rows": recent_complete,
         "no_home_away_rows": no_home,
         "duplicate_match_ids": len(rows) - len(seen),
