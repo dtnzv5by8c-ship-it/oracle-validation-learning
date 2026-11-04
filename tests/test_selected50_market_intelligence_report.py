@@ -302,11 +302,13 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         prior["away_team"] = "Away FC"
         target = archive_row("F100", "2026-10-31T18:00:00+00:00",
                              "H", "A", 0, 0, season="S1", selected_id="S1")
-        report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
+        report, trace, summary = market_report.build_report([runtime_row()], [prior, target])
         self.assertEqual(trace[0]["h2h_n"], 0)
         self.assertEqual(trace[0]["h2h_match_basis"], "NO_VERIFIED_PAIR_MATCH")
         self.assertNotIn("OLD-ID-MEETING", trace[0]["h2h_source_fixture_ids"])
         self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
+        self.assertEqual(summary["h2h_identity_policy"], "EXACT_UNORDERED_PROVIDER_TEAM_ID_PAIR_ONLY")
+        self.assertIn("NAIVE_KICKOFFS_REJECTED", summary["archive_timestamp_policy"])
 
     def test_h2h_does_not_bridge_changed_ids_across_selected_divisions_by_name(self):
         prior = archive_row("OLD-DIVISION-ID", "2025-08-01T12:00:00+00:00",
