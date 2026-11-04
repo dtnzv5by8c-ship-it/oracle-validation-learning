@@ -121,6 +121,16 @@ jobs:
           print("Permanent Selected-50 weekly report configuration: PASS")
           PY
 
+      - name: Fail closed until Book4 95-column report builder is integrated
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILDER="scripts/build_selected50_market_intelligence_report.py"
+          grep -q 'omi_market_intelligence_schema_v1.json' "$BUILDER" || { echo "::error::Book4 95-column schema is not integrated into the report builder; refusing private archive download and report rebuild."; exit 1; }
+          grep -q 'OMI Report' "$BUILDER" || { echo "::error::Required OMI Report sheet is not built; refusing report rebuild."; exit 1; }
+          echo "Book4 builder compatibility markers present."
+
       - name: Download pinned private archive and verify SHA-256
         if: ${{ github.event_name == 'workflow_dispatch' }}
         shell: bash
