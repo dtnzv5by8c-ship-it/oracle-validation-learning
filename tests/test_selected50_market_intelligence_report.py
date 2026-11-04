@@ -25,14 +25,16 @@ def archive_row(fid, date, home_id, away_id, hg, ag, season="S1", league="L1", s
 
 
 def runtime_row():
-    return {
+    row = {header: "" for header in market_report.ORACLE_V1_6_OUTPUT_HEADERS}
+    row.update({
         "fixture_id": "F100", "date_utc": "2026-10-31T18:00:00+00:00",
         "selected_id": "S1", "provider_season_id": "S1",
         "home_team_provider_id": "H", "away_team_provider_id": "A",
         "league": "Test League", "home_team": "Home FC", "away_team": "Away FC",
         "BTTS_probability_pct": "58.21", "DC_HOME_probability_pct": "71.09",
         "DC_AWAY_probability_pct": "49.87",
-    }
+    })
+    return row
 
 
 def snapshot_row(no_home_away="1"):
@@ -257,7 +259,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(sheet.max_row, 2)
             self.assertIn("QUARANTINED_RESEARCH_AUDIT_ONLY",
                           [cell.value for cell in sheet[2]])
-            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 68)
             workbook.close()
         swapped = dict(runtime_row(), home_team_provider_id="A", away_team_provider_id="H")
         self.assertEqual(market_report.build_xg_audit([swapped], self.archive)[0]["join_status"],
@@ -553,12 +555,53 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             market_report.write_xlsx(path, report)
             workbook = load_workbook(path, read_only=True, data_only=True)
             sheet = workbook["Oracle V1.6 Output"]
-            self.assertEqual([cell.value for cell in sheet[1]], market_report.HEADERS)
-            self.assertEqual(sheet.max_column, 38)
+            self.assertEqual([cell.value for cell in sheet[1]], market_report.ORACLE_V1_6_OUTPUT_HEADERS)
+            self.assertEqual(sheet.max_column, 68)
+            analyst = workbook["Oracle V1.6 Analyst Summary"]
+            self.assertEqual([cell.value for cell in analyst[1]], market_report.HEADERS)
+            self.assertEqual(analyst.max_column, 38)
             workbook.close()
         self.assertEqual(trace[0]["production_eligible"], "NO")
         self.assertEqual(trace[0]["betting_eligible"], "NO")
         self.assertEqual(trace[0]["history_cutoff_rule"], "STRICTLY_BEFORE_FIXTURE_KICKOFF")
+
+    def test_oracle_v16_output_mirrors_exact_68_column_runtime_values(self):
+        runtime = runtime_row()
+        runtime["BTTS_probability_pct"] = "58.2100"
+        runtime["DC_HOME_probability_pct"] = "71.0900"
+        report, trace, _ = market_report.build_report([runtime], self.archive)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.xlsx"
+            market_report.write_xlsx(
+                path, report, runtime_rows=[runtime],
+                runtime_source_headers=market_report.ORACLE_V1_6_OUTPUT_HEADERS,
+            )
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            source = workbook["Oracle V1.6 Output"]
+            headers = [cell.value for cell in source[1]]
+            self.assertEqual(headers, market_report.ORACLE_V1_6_OUTPUT_HEADERS)
+            self.assertEqual(source.max_column, 68)
+            self.assertEqual(source.max_row, 2)
+            self.assertEqual(source.cell(2, headers.index("fixture_id") + 1).value, "F100")
+            self.assertEqual(source.cell(2, headers.index("BTTS_probability_pct") + 1).value, "58.2100")
+            self.assertEqual(source.cell(2, headers.index("DC_HOME_probability_pct") + 1).value, "71.0900")
+            self.assertEqual(workbook["Oracle V1.6 Analyst Summary"].max_column, 38)
+            workbook.close()
+
+    def test_oracle_v16_output_fails_closed_on_header_drift_or_missing_runtime_fields(self):
+        runtime = runtime_row()
+        report, _, _ = market_report.build_report([runtime], self.archive)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.xlsx"
+            with self.assertRaisesRegex(ValueError, "header sequence does not exactly match"):
+                market_report.write_xlsx(
+                    path, report, runtime_rows=[runtime],
+                    runtime_source_headers=market_report.ORACLE_V1_6_OUTPUT_HEADERS[:-1],
+                )
+            incomplete = dict(runtime)
+            incomplete.pop("BTTS_probability_pct")
+            with self.assertRaisesRegex(ValueError, "missing locked Oracle V1.6 Output fields"):
+                market_report.write_xlsx(path, report, runtime_rows=[incomplete])
 
     def test_workbook_includes_expanded_evidence_tabs_without_changing_main_schema(self):
         prior = archive_row("OLD1", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1,
@@ -587,7 +630,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                 [runtime_row()], self.archive + [prior], trace
             ))
             workbook = load_workbook(path, read_only=True, data_only=True)
-            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 68)
             schema = json.loads((SCRIPT.parents[1] / "config" / "omi_market_intelligence_schema_v1.json").read_text(encoding="utf-8"))
             self.assertEqual(workbook["Market Intelligence"].max_column, 95)
             decision = workbook["Market Intelligence"]
@@ -818,10 +861,10 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                 snapshot_orientation_by_key=orientation,
             )
             workbook = load_workbook(path, read_only=True, data_only=True)
-            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
+            self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 68)
             self.assertEqual(workbook["Market Intelligence"].max_column, 95)
             self.assertEqual(workbook.sheetnames, [
-                "Oracle V1.6 Output", "Market Intelligence", "OMI Report", "Visual Intelligence",
+                "Oracle V1.6 Output", "Oracle V1.6 Analyst Summary", "Market Intelligence", "OMI Report", "Visual Intelligence",
                 "xG Evidence Audit", "H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
                 "Schedule Reconciliation", "Goal Intelligence", "Goal Market Research",
                 "Market Data Coverage", "Archive Field Coverage", "Definitions & Governance",
