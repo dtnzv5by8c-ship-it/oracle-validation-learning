@@ -283,6 +283,8 @@ def validate_receipt(
         raise ValueError("archive verifier did not authenticate the private writer receipt")
     if archive_claims.get("private_visibility_verified") is not True:
         raise ValueError("archive object private visibility was not verified")
+    if archive_claims.get("private_archive_write_verified") is not True or archive_claims.get("raw_payload_stored_privately") is not True:
+        raise ValueError("archive verifier did not confirm a private raw-payload write")
     if archive_claims.get("public_raw_payload_written") is not False:
         raise ValueError("archive verifier did not confirm public raw-payload prohibition")
     if not str(archive_claims.get("archive_object_id") or "").strip():
@@ -306,6 +308,8 @@ def validate_receipt(
         raise ValueError("budget verifier request timestamp does not match receipt")
     if budget_claims.get("hard_limit") != 1800:
         raise ValueError("budget verifier did not attest the hard 1800-request rolling-hour ceiling")
+    if budget_claims.get("hard_limit") != receipt.get("global_rolling_hour_limit"):
+        raise ValueError("signed budget hard limit does not match receipt")
     operational_limit = parse_int(budget_claims.get("operational_limit"), "budget_verification.operational_limit", 1)
     if operational_limit > 1500:
         raise ValueError("budget verifier operational limit exceeds 1,500 requests")
@@ -342,10 +346,6 @@ def validate_receipt(
         raise ValueError("successful receipt must attest at least 300 requests of headroom")
     if receipt.get("private_archive_write_verified") is not True:
         raise ValueError("successful receipt lacks verified private archive write")
-    if receipt.get("raw_payload_stored_privately") is not True:
-        raise ValueError("successful receipt does not attest private raw payload storage")
-    if receipt.get("public_raw_payload_written") is not False:
-        raise ValueError("public raw payload writes are prohibited")
     if receipt.get("raw_payload_stored_privately") is not True:
         raise ValueError("successful receipt does not attest private raw payload storage")
     if receipt.get("public_raw_payload_written") is not False:
