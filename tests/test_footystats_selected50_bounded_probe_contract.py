@@ -304,11 +304,17 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         )
 
 
-    def test_safety_contract_workflow_skips_markdown_only_checkpoint_edits(self):
+    def test_safety_contract_workflow_skips_markdown_and_data_only_checkpoint_edits(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-contract-tests.yml").read_text(encoding="utf-8")
+        planner = (ROOT / ".github" / "workflows" / "oracle-selected50-dry-run-planner.yml").read_text(encoding="utf-8")
         trigger = workflow.split("permissions:", 1)[0]
+        planner_trigger = planner.split("permissions:", 1)[0]
         self.assertIn("paths-ignore:", trigger)
         self.assertIn('"**/*.md"', trigger)
+        self.assertIn('"data/footystats/rolling-request-ledger.json"', trigger)
+        self.assertIn('"data/footystats/endpoint-preflight/**"', trigger)
+        self.assertIn('"data/footystats/rolling-request-ledger.json"', planner_trigger)
+        self.assertIn('"data/footystats/endpoint-preflight/**"', planner_trigger)
         self.assertIn("ref: ${{ github.sha }}", workflow)
 
 
