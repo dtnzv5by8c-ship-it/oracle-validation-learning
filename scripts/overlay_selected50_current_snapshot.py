@@ -148,6 +148,9 @@ def main():
     report_window_end=parse_utc(snap.get("window_end_utc"))
     if report_window_end is None:
         raise SystemExit("FAIL: snapshot report window end missing or invalid")
+    report_window_end=parse_utc(snap.get("window_end_utc"))
+    if report_window_end is None:
+        raise SystemExit("FAIL: snapshot report window end missing or invalid")
     fixture_rows=snap.get("fixture_rows")
     if not isinstance(fixture_rows,list):
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
@@ -188,18 +191,18 @@ def main():
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
         league_diag=no_home_away_by_league.setdefault(league_key,{
             "selected_season_id":sid,"country":meta.get("country",""),"competition":meta.get("competition",""),
-            "future_rows_in_20d":0,"future_rows_beyond_20d":0,
+            "future_rows_in_report_window":0,"future_rows_beyond_report_window":0,
             "no_home_away_true":0,"no_home_away_false":0,"no_home_away_unknown":0,
-            "no_home_away_true_beyond_20d":0,"no_home_away_false_beyond_20d":0,"no_home_away_unknown_beyond_20d":0,
+            "no_home_away_true_beyond_report_window":0,"no_home_away_false_beyond_report_window":0,"no_home_away_unknown_beyond_report_window":0,
             "suspended_or_nonstandard_status":0,"status_not_eligible_for_future_fixture":0,
-            "suspended_or_nonstandard_status_beyond_20d":0,"status_not_eligible_for_future_fixture_beyond_20d":0
+            "suspended_or_nonstandard_status_beyond_report_window":0,"status_not_eligible_for_future_fixture_beyond_report_window":0
         })
         if within_20d:
-            league_diag["future_rows_in_20d"]+=1
+            league_diag["future_rows_in_report_window"]+=1
             league_diag["no_home_away_true" if flag is True else "no_home_away_false" if flag is False else "no_home_away_unknown"]+=1
         else:
-            league_diag["future_rows_beyond_20d"]+=1
-            league_diag["no_home_away_true_beyond_20d" if flag is True else "no_home_away_false_beyond_20d" if flag is False else "no_home_away_unknown_beyond_20d"]+=1
+            league_diag["future_rows_beyond_report_window"]+=1
+            league_diag["no_home_away_true_beyond_report_window" if flag is True else "no_home_away_false_beyond_report_window" if flag is False else "no_home_away_unknown_beyond_report_window"]+=1
         reasons=[]
         if flag is True: reasons.append("NO_HOME_AWAY_FLAGGED")
         elif flag is None: reasons.append("NO_HOME_AWAY_FLAG_UNKNOWN")
@@ -211,9 +214,9 @@ def main():
                 if status_reason != "MISSING_STATUS":
                     league_diag["suspended_or_nonstandard_status"]+=1
             else:
-                league_diag["status_not_eligible_for_future_fixture_beyond_20d"]+=1
+                league_diag["status_not_eligible_for_future_fixture_beyond_report_window"]+=1
                 if status_reason != "MISSING_STATUS":
-                    league_diag["suspended_or_nonstandard_status_beyond_20d"]+=1
+                    league_diag["suspended_or_nonstandard_status_beyond_report_window"]+=1
         if not valid_id(row.get("id")): reasons.append("INVALID_FIXTURE_ID")
         if not valid_id(row.get("homeID")): reasons.append("INVALID_HOME_TEAM_ID")
         if not valid_id(row.get("awayID")): reasons.append("INVALID_AWAY_TEAM_ID")
@@ -223,7 +226,7 @@ def main():
             quarantined+=1
             if not within_20d:
                 beyond_quarantined+=1
-                reasons.append("OUTSIDE_20D_STAGING_HORIZON")
+                reasons.append("OUTSIDE_DECLARED_REPORT_WINDOW")
             trace["trace_outcome"]="QUARANTINED_INVALID_OR_NONSTANDARD"
             trace["trace_reason"]=";".join(reasons)
             for reason in reasons:
@@ -375,7 +378,7 @@ def main():
       "snapshot_age_seconds":int((now-retrieved).total_seconds()),
       "selected_seasons":50,"snapshot_fixture_rows":len(fixture_rows),
       "staged_window_days":20,"candidate_rows_added":add_count,
-      "future_rows_beyond_20d_total":beyond_total,"future_rows_beyond_20d_quarantined":beyond_quarantined,
+      "future_rows_beyond_report_window_total":beyond_total,"future_rows_beyond_report_window_quarantined":beyond_quarantined,
       "already_present_exact_fixture_ids":already,
       "refreshed_present_exact_fixture_ids":refreshed,
       "quarantined_or_invalid_rows":quarantined,
@@ -386,7 +389,7 @@ def main():
       "unsupported_archive_rows_not_staged":unsupported_rows,
       "unsupported_selected_league_count":len(unsupported_labels),
       "unsupported_selected_leagues":unsupported_labels,
-      "historical_rows_not_staged":historical,"future_rows_beyond_20d_not_staged":beyond,
+      "historical_rows_not_staged":historical,"future_rows_beyond_report_window_not_staged":beyond,
       "candidate_trace_rows":len(trace_rows),
       "candidate_trace_outcome_counts":dict(sorted(trace_outcome_counts.items())),
       "candidate_trace_file":trace_path.name,
