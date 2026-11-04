@@ -670,3 +670,52 @@ The first dynamic-adapter change removed the fixed-50 constraint but also weaken
 3. Extend the same exact provider-season-ID iteration to match history, results, teams, H2H and standings; build a per-league/per-field coverage matrix. Keep each endpoint's credit budget separate and explicitly approved.
 4. Validate pagination, per-season retrieval success, fixture/team ID completeness, source timestamps and field-level missingness. No fuzzy IDs, silent drops or fabricated features.
 5. Keep xG quarantined until point-in-time capture provenance is verified. Do not claim market readiness merely because a league endpoint returns data.
+
+
+## 10. 4 November 2026 — Provider-led historical plan, endpoint contracts and global request governance
+
+### User approval and request ceiling
+
+- The user confirmed that sufficient FootyStats credits are available and approved use of the account for Project Oracle ingestion, provided the hard ceiling of **1,800 requests in any rolling 60-minute period** is never exceeded.
+- The approved ceiling is global across all FootyStats endpoints and workflows. It is not a per-endpoint allowance.
+- The research implementation reserves 300 requests of headroom and therefore caps planned operational usage at 1,500 per rolling hour. A lower provider-reported request limit remains binding.
+- Provider request_remaining is a request-window indicator only; it must never be treated as monthly-credit evidence.
+- No uncontrolled retries. HTTP 429, 401, 403, provider success=false, transport errors or malformed response contracts cause checkpoint-and-stop behavior.
+- The global rolling request ledger is data/footystats/rolling-request-ledger.json. It is initialized with the single verified league-list request from 2026-11-04T14:34:00Z. The ledger contains timestamps and reservation metadata only; no keys or provider payloads.
+
+### Provider-driven historical season plan
+
+- New offline planner: scripts/build_footystats_historical_season_plan.py.
+- New regression tests: tests/test_footystats_historical_season_plan.py.
+- The planner uses the staged FootyStats provider registry, exact provider season IDs and season-label normalization. It does not make API calls.
+- The inclusive requested history window is 2024-01-01 through 2026-11-04. The verified plan contains **182 provider season partitions across 49 selected leagues**, from 756 catalogued season rows. The remaining 574 catalogue rows fall outside the requested window. Every catalogue row is accounted for; duplicate IDs and invalid labels fail closed or are explicitly quarantined.
+- Season membership does not imply fixture-date coverage. Every returned fixture must still pass an explicit UTC kickoff filter for the requested date range.
+- CI evidence: run 41854431521 completed successfully. It passed the planner regression tests, generated the offline plan artifact and logged: 182 planned seasons, 49 planned leagues, all 756 catalogue rows accounted for, zero FootyStats API requests.
+
+### Endpoint contract and pagination controls
+
+- New offline endpoint validator: scripts/validate_footystats_endpoint_contracts.py.
+- New tests: tests/test_footystats_endpoint_contracts.py.
+- Endpoint map and documentation evidence: reports/oracle-footystats-endpoint-contract-audit-2026-11-04.md.
+- Documented endpoints: league-list, league-matches, league-teams, league-tables, league-season and match.
+- league-matches supports max_per_page up to 1,000; league-teams documents 50 teams per page. Paged responses must have success=true, exact requested/provider page agreement, total_results, page size, consistent max_page when present, and exact row counts. Missing or conflicting metadata fails closed.
+- Recent form and home/away form are to be derived from exact provider team IDs and completed match histories with strict pre-kickoff cutoffs; no fuzzy names or same-kickoff rows.
+- The match endpoint returns H2H data by default. A sample response proves the documented field shape only; it does not prove full H2H coverage for every fixture.
+- league-tables and league-teams support max_time, but fixture-time standings coverage is not yet verified for every match/competition format.
+- xG fields appear in documented match examples, but point-in-time capture and revision provenance are not established. xG remains quarantined.
+
+### Request budget helper and legacy path shutdown
+
+- New budget core: scripts/footystats_request_budget.py.
+- New tests: tests/test_footystats_request_budget.py.
+- The helper validates a 1,800 global rolling-hour ceiling, 300 reserved headroom, lower provider limits, timezone-aware timestamps, durable reservations and actual request events. An unfinalized reservation remains conservatively counted for two hours, preventing a crash from undercounting requests.
+- Legacy direct-call workflows have been disabled on both the default branch and the governed research branch: selected-50 identity probe, current-fixture snapshot, provider schema diagnostic, bounded endpoint probe, one-call identity probe and cross-season identity stability probe.
+- The Market Intelligence repair workflow is now zero-call for results retrieval; direct results-provider calls are rejected there. The centralized budgeted workflow must be the only path for future FootyStats requests.
+- The new budget helper and legacy-workflow shutdown are under CI regression testing. The helper is not yet wired into an executing ingestion workflow; do not claim global request enforcement is live until that integration passes.
+
+### Data handling and remaining gates
+
+- No authenticated FootyStats fixture/team/table/season/match-detail requests were made during this implementation run. The only recent provider request in the ledger is the already verified catalogue retrieval.
+- Raw provider payloads must not be committed to the public research repository. The protected private archive write path remains gated and must not be bypassed. User approval of API credits does not by itself change the private archive write policy.
+- The next implementation step is a single centralized, resumable endpoint-preflight/ingestion workflow that uses the rolling ledger and stores only sanitized coverage outputs in the public research branch. Full raw historical ingestion and fixture-level OMI reconstruction require the approved private data destination.
+- Oracle V1.6 production logic, probabilities, thresholds, calibration, ledgers and betting eligibility remain unchanged. All new outputs remain research-only with production_eligible=false and betting_eligible=false.
