@@ -151,6 +151,21 @@ class FootyStatsBudgetedEndpointPreflightTests(unittest.TestCase):
 
         return fake
 
+    def test_provider_request_limit_never_reduces_required_300_headroom(self):
+        with self.assertRaises(preflight.PreflightError) as low:
+            preflight.check_provider_limit(
+                {"provider_request_limit_observed": 250}, self.ledger
+            )
+        self.assertEqual(low.exception.code, "PROVIDER_REQUEST_LIMIT_CANNOT_PRESERVE_300_HEADROOM")
+        with self.assertRaises(preflight.PreflightError) as insufficient:
+            preflight.check_provider_limit(
+                {"provider_request_limit_observed": 309}, self.ledger
+            )
+        self.assertEqual(insufficient.exception.code, "PROVIDER_REQUEST_LIMIT_BELOW_ACTIVE_RESERVATION")
+        preflight.check_provider_limit(
+            {"provider_request_limit_observed": 310}, self.ledger
+        )
+
     @patch.dict(os.environ, {"FOOTYSTATS_API_KEY": "test-key"})
     def test_successful_preflight_is_sanitized_and_counts_all_requests(self):
         values = payloads()
