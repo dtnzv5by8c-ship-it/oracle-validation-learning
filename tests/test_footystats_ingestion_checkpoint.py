@@ -61,7 +61,17 @@ def success_receipt(t, **overrides):
             int(t["max_per_page"]),
             max(0, int(t["expected_total_results"]) - ((int(t["page"]) - 1) * int(t["max_per_page"])))
         ) if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else 1,
+        "unique_ids_on_page": min(
+            int(t["max_per_page"]),
+            max(0, int(t["expected_total_results"]) - ((int(t["page"]) - 1) * int(t["max_per_page"])))
+        ) if t["endpoint"] in checkpoint.PAGED_ENDPOINTS else None,
+        "required_fields_present": sorted(checkpoint.REQUIRED_FIELDS_BY_ENDPOINT[t["endpoint"]] | (
+            {"homeGoalCount", "awayGoalCount", "totalGoalCount"} if t["endpoint"] == "league-matches" else set()
+        )),
         "required_fields_missing": [],
+        "completed_match_rows": 580 if t["endpoint"] == "league-matches" else None,
+        "completed_match_goal_field_gaps": 0 if t["endpoint"] == "league-matches" else None,
+        "no_home_away_rows": 10 if t["endpoint"] == "league-matches" else None,
         "xg_fields_missing": ["fixture_level_xg_provenance"],
         "payload_sha256": "a" * 64,
         "private_archive_receipt_sha256": "b" * 64,
@@ -133,7 +143,7 @@ class FootyStatsIngestionCheckpointTests(unittest.TestCase):
 
     def test_short_page_is_blocked(self):
         t = task()
-        receipt = success_receipt(t, returned_rows=599)
+        receipt = success_receipt(t, returned_rows=599, unique_ids_on_page=599)
         next_batch, statuses, summary = checkpoint.build_resume_plan([t], [receipt], 10)
         self.assertEqual(next_batch, [])
         self.assertEqual(statuses[0]["task_status"], "BLOCKED_RECEIPT_VALIDATION")
