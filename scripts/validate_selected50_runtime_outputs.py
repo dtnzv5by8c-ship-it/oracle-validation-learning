@@ -7,8 +7,10 @@ change model logic, probabilities, calibration, thresholds, or release status.
 from __future__ import annotations
 
 import csv
+import datetime as dt
 import json
 import math
+import os
 from collections import Counter
 from fractions import Fraction
 from pathlib import Path
@@ -362,6 +364,17 @@ def main():
     assert all(r.get("edge_claim") == "NOT_APPROVED" for r in readiness)
 
     assert len(schedule) == 50
+    report_start = dt.date.fromisoformat(os.environ.get("ORACLE_REPORT_START_DATE", "2026-11-06"))
+    report_end = dt.date.fromisoformat(os.environ.get("ORACLE_REPORT_END_DATE", "2026-11-24"))
+    assert report_end >= report_start
+    assert {r.get("report_start_date_utc") for r in schedule} == {report_start.isoformat()}
+    assert {r.get("report_end_date_utc_inclusive") for r in schedule} == {report_end.isoformat()}
+    for row in prediction_report:
+        fixture_date = dt.datetime.fromisoformat(str(row["date_utc"]).replace("Z", "+00:00")).date()
+        assert report_start <= fixture_date <= report_end, (
+            "Prediction fixture falls outside requested report window",
+            row.get("fixture_id"), fixture_date.isoformat(), report_start.isoformat(), report_end.isoformat()
+        )
     assert len(settlement) == 50
     # The settlement audit must calculate, not hard-code, predictor/ledger
     # disagreements. Only explicit finished integer-score rows are eligible.
