@@ -105,3 +105,10 @@ The earlier cross-branch blocker above is superseded by the following live-state
 - Fixture-time standings, full H2H chronology, recent form, home/away form and fixture-level xG provenance remain unverified until their complete source histories and timestamps are independently validated.
 - xG remains quarantined. All research and betting eligibility remain false.
 - Oracle V1.6 production logic, probabilities, thresholds, calibration, production ledgers and betting eligibility remain untouched.
+
+
+## Full default-branch workflow inventory — 2026-11-04T17:05Z
+
+A fresh read-only scan of every default-branch workflow whose path matched FootyStats, H2H, archive or Market Intelligence found 19 workflow files. Only `.github/workflows/footystats-global-budgeted-endpoint-preflight.yml` contains the FootyStats API secret. No workflow YAML in this inventory contains the FootyStats API hostname. The six retired legacy workflows and the additional `footystats-selected50-bounded-endpoint-probe.yml` and `oracle-footystats-one-call-identity-probe.yml` are fail-closed. `audit-private-footystats-history-h2h.yml` is also a disabled stub. `oracle-footystats-archive-feature-audit.yml` is archive-audit-only (no provider secret/host). The Market Intelligence repair workflow rejects direct results-provider opt-in and has no FootyStats secret. The H2H reporting workflow contains generic HTTP handling but no FootyStats hostname or credential. `h2h-exact-id-tests.yml` is a push-triggered test workflow with no provider calls.
+
+The one residual standalone script `scripts/oracle_selected50_one_season_identity_probe.py` remains in the default branch and contains a direct provider host/secret reference. It is not invoked by any workflow found in this inventory. Do not execute it. The workflow-level FootyStats bypass paths are closed; keep this script quarantined until it is removed or converted to a non-executable library/test fixture under a separate approved change.
