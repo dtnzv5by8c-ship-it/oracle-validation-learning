@@ -118,7 +118,7 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("contents: write", self.content)
         self.assertIn("rolling-request-ledger.json", self.content)
         self.assertIn("endpoint-preflight", self.content)
-        self.assertIn("Upload sanitized endpoint preflight report only", self.content)
+        self.assertIn("Upload sanitized preflight report and ingestion manifest", self.content)
         self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.content)
         self.assertNotIn("gh release create", self.content)
         self.assertNotIn("gh release upload", self.content)
