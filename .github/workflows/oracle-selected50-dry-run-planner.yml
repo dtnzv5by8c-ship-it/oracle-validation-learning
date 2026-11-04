@@ -7,6 +7,8 @@ on:
       - "reports/**"
       - "*.md"
       - "**/*.md"
+      - "data/footystats/rolling-request-ledger.json"
+      - "data/footystats/endpoint-preflight/**"
   workflow_dispatch:
 permissions:
   contents: read
