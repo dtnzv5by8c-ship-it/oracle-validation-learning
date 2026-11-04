@@ -212,26 +212,23 @@ class SnapshotValidatorTests(unittest.TestCase):
         self.assertLess(skipped, stop)
         self.assertLess(stop, next_request_delay)
 
-    def test_report_end_date_is_explicit_and_full_day_inclusive(self):
+    def test_report_end_date_logic_remains_explicit_while_legacy_workflow_is_disabled(self):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
         probe = Path("scripts/oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
-        self.assertIn("report_end_date:", workflow)
-        self.assertIn("REPORT_END_DATE: ${{ inputs.report_end_date }}", workflow)
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
+        self.assertNotIn("api.football-data-api.com", workflow)
         self.assertIn("time.max", probe)
         self.assertIn("report_end_date_utc_inclusive", probe)
 
-    def test_snapshot_workflow_is_branch_guarded_and_commit_pinned(self):
+    def test_snapshot_workflow_is_disabled_under_central_budget_governance(self):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
-        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" || "${GITHUB_REF}" == "refs/heads/research/selected50-explicit-report-end-date" ]]'
-        self.assertIn(guard, workflow)
-        guard_position = workflow.index("Enforce governed research branch before any provider access")
-        provider_position = workflow.index("Run paced sequential league-matches requests")
-        self.assertLess(guard_position, provider_position)
-        self.assertGreaterEqual(workflow.count("ref: ${{ github.sha }}"), 2)
-        self.assertNotIn(
-            "ref: research/oracle-50-league-readiness-audit\n          path: research-source",
-            workflow,
-        )
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertIn("exit 1", workflow)
+        self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
+        self.assertNotIn("api.football-data-api.com", workflow)
+        self.assertNotIn("Run paced sequential league-matches requests", workflow)
 
 
 if __name__ == "__main__":
