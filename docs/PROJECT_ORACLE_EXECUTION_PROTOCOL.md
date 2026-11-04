@@ -823,3 +823,20 @@ This section supersedes the earlier cross-branch blocker recorded in Section 10.
 - Full raw ingestion remains blocked pending protected private archive write authorization. Sanitized preflight metadata may be committed; raw payloads must not enter the public repository.
 - Fixture-time standings, full H2H chronology, recent/home-away form and point-in-time xG remain separate validation gates. xG remains quarantined.
 - Research eligibility, production eligibility and betting eligibility remain false. Oracle V1.6 production logic, probabilities, thresholds, calibration and ledgers remain unchanged.
+
+
+## 12. OMI master-template compatibility gate — 2026-11-04T16:58Z
+
+The user-approved Book4 master reference has been inspected in the Library: `MASTER_OMI_REPORT_06_to_24_NOV_2026_ALL_50_LEAGUES_RUN183.xlsx`. It contains 18 tabs. `OMI Report` and `Market Intelligence` each have 95 columns A:CQ and 756 fixture rows; each has 756 unique Fixture IDs with no duplicates. All 756 rows are explicitly Production Eligible=NO and Betting Eligible=NO — RESEARCH ONLY. Its `Oracle V1.6 Output` tab has 68 columns. The workbook is a structural reference only, not proof of new catalogue ingestion or complete historical evidence.
+
+The master workbook is sourced from Run #183 / `41805637807` and snapshot Run #13 / `41804168162`. The control summary states: 716 raw research predictions, 40 feature-blocked fixtures; individual H2H meeting ledger absent; raw match rows behind recent-form summaries absent; standings are current provider snapshots, not point-in-time; xG/odds unverified; confidence not calculated; risk percentage not quantified; canonical identity and settlement truth not verified; combos blocked for settlement-specification mismatch. The Market Intelligence/OMI tabs contain 46 distinct leagues, while the Report Notes sentence says 40 leagues have fixtures. Treat this as a note/data discrepancy requiring reconciliation, not as a completeness claim.
+
+Critical compatibility finding: `scripts/build_selected50_market_intelligence_report.py` on the governed branch still uses a 38-column `HEADERS` list and does not create the 95-column `OMI Report` sheet. The Book4 95-column schema contract exists only in open PR #44; its schema-specific tests are not wired to a dedicated CI workflow, and its enforcement script requires hardening before use (validate source headers; copy by header name, not position; preserve approved CT+ extensions). Do not run the current builder to publish a new OMI workbook until this incompatibility is resolved.
+
+H2H identity gate: `scripts/join_h2h_by_fixture_id.py` is exact-ID only and rejects missing/duplicate IDs; `scripts/build_h2h_report.py` contains legacy team-name aliases/normalization and must not be used for this governed pipeline. H2H must be built from the complete exact-ID chronological match spine; fixture-level summary alone is insufficient. Recent and home/away form require complete exact-team-ID history and strict pre-kickoff cutoffs.
+
+Report [OMI_MASTER_TEMPLATE_COMPATIBILITY_AUDIT_2026-11-04.md](../reports/OMI_MASTER_TEMPLATE_COMPATIBILITY_AUDIT_2026-11-04.md) records the evidence and next gates. The Book4 schema integration and builder migration are now explicit reporting blockers; no new report should be published using the legacy 38-column builder.
+
+Report-repair CI Run `41872807554` completed successfully but skipped private archive consent and all report rebuild steps; its report-only diagnostics made zero provider calls and zero model predictions. Central preflight Run `41869437030` was still in progress at 2026-11-04T16:58Z after passing validation, plan generation and durable reservation. Its final API results are not yet available.
+
+No production model logic, probabilities, thresholds, calibration, ledgers or eligibility were changed. Research, production and betting eligibility remain false.
