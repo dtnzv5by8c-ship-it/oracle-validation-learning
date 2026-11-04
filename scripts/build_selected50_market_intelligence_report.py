@@ -768,7 +768,7 @@ def _optional_count(value):
 
 
 def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenance, archive_summary):
-    """Join no_home_away only through the verified ordered snapshot composite identity."""
+    """Join orientation only by exact ordered identity; retain missing evidence as row-level exceptions."""
     if not snapshot_rows:
         raise ValueError("Snapshot candidate trace is required for the v1.4 orientation audit.")
     expected_snapshot_sha = str(runtime_provenance.get("snapshot_file_sha256") or "").strip()
@@ -787,7 +787,7 @@ def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenan
     for row in snapshot_rows:
         if str(row.get("snapshot_file_sha256") or "").strip() != expected_snapshot_sha:
             raise ValueError("Snapshot trace file hash does not match runtime provenance.")
-        if str(row.get("source_archive_sha256") or "").strip() != expected_archive_sha:
+        if str(row.get("source_archive_sha256") or "") != expected_archive_sha:
             raise ValueError("Snapshot trace archive hash does not match the pinned archive.")
         if str(row.get("snapshot_retrieved_utc") or "").strip() != expected_retrieved:
             raise ValueError("Snapshot trace retrieval time does not match runtime provenance.")
@@ -796,39 +796,61 @@ def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenan
             index[key].append(row)
 
     orientation_by_key = {}
-    exact_matches = flagged = distinction_present = unknown = 0
+    exact_identity_matches = exact_snapshot_matches = 0
+    flagged = distinction_present = unknown = 0
+    missing_snapshot_rows = duplicate_snapshot_match_rows = runtime_identity_missing_rows = 0
+    unknown_snapshot_flag_rows = 0
     duplicate_keys = sum(1 for values in index.values() if len(values) > 1)
     incomplete_snapshot_identity_rows = sum(1 for row in snapshot_rows if not all(snapshot_identity(row)))
-    for runtime in runtime_rows:
-        key = runtime_key(runtime)
-        matches = index.get(key, []) if all(key) else []
-        source = matches[0] if len(matches) == 1 else {}
-        flag = str(source.get("no_home_away") or "").strip() if source else ""
+    runtime_keys = [runtime_key(row) for row in runtime_rows]
+    duplicate_runtime_keys = len(runtime_keys) - len(set(runtime_keys))
+
+    for runtime, key in zip(runtime_rows, runtime_keys):
+        source = {}
+        flag = ""
         if not all(key):
+            runtime_identity_missing_rows += 1
+            evidence_status = "RUNTIME_IDENTITY_MISSING"
             orientation_status = "ORIENTATION_UNKNOWN"
             review_status = "REVIEW_REQUIRED_RUNTIME_IDENTITY_MISSING"
-        elif not matches:
-            orientation_status = "ORIENTATION_UNKNOWN"
-            review_status = "REVIEW_REQUIRED_NO_EXACT_SNAPSHOT_MATCH"
-        elif len(matches) > 1:
-            orientation_status = "ORIENTATION_UNKNOWN"
-            review_status = "REVIEW_REQUIRED_DUPLICATE_SNAPSHOT_MATCH"
-        elif flag == "1":
-            orientation_status = "NO_HOME_AWAY_DISTINCTION"
-            review_status = "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION"
-            exact_matches += 1
-            flagged += 1
-        elif flag == "0":
-            orientation_status = "HOME_AWAY_DISTINCTION_PRESENT"
-            review_status = "NO_ORIENTATION_REVIEW_FLAG"
-            exact_matches += 1
-            distinction_present += 1
         else:
-            orientation_status = "ORIENTATION_UNKNOWN"
-            review_status = "REVIEW_REQUIRED_UNKNOWN_NO_HOME_AWAY_FLAG"
+            matches = index.get(key, [])
+            if not matches:
+                missing_snapshot_rows += 1
+                evidence_status = "MISSING_FROM_FRESH_SNAPSHOT"
+                orientation_status = "ORIENTATION_UNKNOWN"
+                review_status = "REVIEW_REQUIRED_MISSING_FROM_FRESH_SNAPSHOT"
+            elif len(matches) > 1:
+                duplicate_snapshot_match_rows += 1
+                evidence_status = "DUPLICATE_SNAPSHOT_MATCH"
+                orientation_status = "ORIENTATION_UNKNOWN"
+                review_status = "REVIEW_REQUIRED_DUPLICATE_SNAPSHOT_MATCH"
+            else:
+                exact_identity_matches += 1
+                source = matches[0]
+                flag = str(source.get("no_home_away") or "").strip()
+                if flag == "1":
+                    exact_snapshot_matches += 1
+                    evidence_status = "EXACT_SNAPSHOT_MATCH"
+                    orientation_status = "NO_HOME_AWAY_DISTINCTION"
+                    review_status = "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION"
+                    flagged += 1
+                elif flag == "0":
+                    exact_snapshot_matches += 1
+                    evidence_status = "EXACT_SNAPSHOT_MATCH"
+                    orientation_status = "HOME_AWAY_DISTINCTION_PRESENT"
+                    review_status = "NO_ORIENTATION_REVIEW_FLAG"
+                    distinction_present += 1
+                else:
+                    unknown_snapshot_flag_rows += 1
+                    evidence_status = "EXACT_SNAPSHOT_MATCH_FLAG_UNKNOWN"
+                    orientation_status = "ORIENTATION_UNKNOWN"
+                    review_status = "REVIEW_REQUIRED_UNKNOWN_NO_HOME_AWAY_FLAG"
+
         if orientation_status == "ORIENTATION_UNKNOWN":
             unknown += 1
         orientation_by_key[key] = {
+            "snapshot_evidence_status": evidence_status,
             "snapshot_no_home_away_flag": flag or "NOT_AVAILABLE",
             "fixture_orientation_status": orientation_status,
             "home_away_market_review_status": review_status,
@@ -837,56 +859,90 @@ def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenan
             "snapshot_file_sha256": source.get("snapshot_file_sha256", "NOT_AVAILABLE"),
         }
 
+    rows_accounted_for = (
+        exact_identity_matches + missing_snapshot_rows
+        + duplicate_snapshot_match_rows + runtime_identity_missing_rows
+    )
+    status = (
+        "PASS_EXACT_SNAPSHOT_TRACE_JOIN"
+        if exact_identity_matches == len(runtime_rows)
+        and exact_snapshot_matches == len(runtime_rows)
+        and unknown == 0 and duplicate_keys == 0
+        and incomplete_snapshot_identity_rows == 0 and duplicate_runtime_keys == 0
+        else "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"
+    )
     qa = {
-        "status": "PASS_EXACT_SNAPSHOT_TRACE_JOIN" if exact_matches == len(runtime_rows) and unknown == 0 and duplicate_keys == 0 and incomplete_snapshot_identity_rows == 0 else "REVIEW_REQUIRED",
+        "status": status,
         "runtime_fixture_rows": len(runtime_rows),
         "snapshot_trace_rows": len(snapshot_rows),
         "snapshot_trace_rows_expected": expected_trace_rows,
         "snapshot_trace_row_count_match": len(snapshot_rows) == expected_trace_rows,
-        "incomplete_snapshot_identity_rows": incomplete_snapshot_identity_rows,
-        "exact_snapshot_matches": exact_matches,
+        "rows_accounted_for": rows_accounted_for,
+        "all_runtime_rows_accounted_for": rows_accounted_for == len(runtime_rows),
+        "exact_identity_matches": exact_identity_matches,
+        "exact_snapshot_matches": exact_snapshot_matches,
+        "missing_snapshot_rows": missing_snapshot_rows,
+        "duplicate_snapshot_match_rows": duplicate_snapshot_match_rows,
+        "runtime_identity_missing_rows": runtime_identity_missing_rows,
+        "unknown_snapshot_flag_rows": unknown_snapshot_flag_rows,
         "no_home_away_flagged": flagged,
         "home_away_distinction_present": distinction_present,
         "orientation_unknown_rows": unknown,
+        "duplicate_runtime_keys": duplicate_runtime_keys,
         "duplicate_snapshot_keys": duplicate_keys,
+        "incomplete_snapshot_identity_rows": incomplete_snapshot_identity_rows,
         "snapshot_artifact_id": expected_artifact_id,
         "snapshot_run_id": expected_run_id,
         "snapshot_file_sha256": expected_snapshot_sha,
         "snapshot_retrieved_utc": expected_retrieved,
         "production_eligible": False,
         "betting_eligible": False,
+        "interpretation": (
+            "Every runtime fixture is accounted for. Exact snapshot matches carry the source orientation flag; "
+            "missing, duplicate, incomplete or unknown evidence remains explicitly review-required and is not inferred."
+        ),
     }
     return orientation_by_key, qa
 
 
-
 def require_snapshot_orientation_qa(qa):
-    """Fail the candidate report if any runtime fixture lacks an exact binary orientation flag."""
+    """Require complete row accounting; permit explicit review-only snapshot gaps."""
     expected = int(qa.get("runtime_fixture_rows", -1))
+    exact_identity = int(qa.get("exact_identity_matches", -1))
     exact = int(qa.get("exact_snapshot_matches", -1))
-    flagged = int(qa.get("no_home_away_flagged", -1))
-    distinction = int(qa.get("home_away_distinction_present", -1))
+    missing = int(qa.get("missing_snapshot_rows", -1))
+    duplicate = int(qa.get("duplicate_snapshot_match_rows", -1))
+    identity_missing = int(qa.get("runtime_identity_missing_rows", -1))
+    unknown_flag = int(qa.get("unknown_snapshot_flag_rows", -1))
     unknown = int(qa.get("orientation_unknown_rows", -1))
     duplicates = int(qa.get("duplicate_snapshot_keys", -1))
     incomplete = int(qa.get("incomplete_snapshot_identity_rows", -1))
+    accounted = int(qa.get("rows_accounted_for", -1))
     if (
-        qa.get("status") != "PASS_EXACT_SNAPSHOT_TRACE_JOIN"
+        qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}
         or expected < 0
-        or exact != expected
-        or flagged + distinction != expected
-        or unknown != 0
-        or duplicates != 0
-        or incomplete != 0
+        or accounted != expected
+        or qa.get("all_runtime_rows_accounted_for") is not True
+        or exact_identity + missing + duplicate + identity_missing != expected
+        or unknown != missing + duplicate + identity_missing + unknown_flag
+        or exact != int(qa.get("no_home_away_flagged", -1)) + int(qa.get("home_away_distinction_present", -1))
         or qa.get("snapshot_trace_row_count_match") is not True
+        or duplicates < 0 or incomplete < 0
         or qa.get("production_eligible") is not False
         or qa.get("betting_eligible") is not False
     ):
         raise ValueError(
             "SNAPSHOT_ORIENTATION_QA_BLOCKED: "
-            f"status={qa.get('status')}; runtime={expected}; exact={exact}; "
-            f"flagged={flagged}; distinction={distinction}; unknown={unknown}; "
-            f"duplicates={duplicates}; incomplete={incomplete}"
+            f"status={qa.get('status')}; runtime={expected}; exact_identity={exact_identity}; "
+            f"exact_flag={exact}; missing={missing}; duplicate={duplicate}; "
+            f"identity_missing={identity_missing}; unknown_flag={unknown_flag}; "
+            f"unknown={unknown}; accounted={accounted}"
         )
+    if qa.get("status") == "PASS_EXACT_SNAPSHOT_TRACE_JOIN" and (
+        exact_identity != expected or exact != expected or unknown != 0
+        or duplicates != 0 or incomplete != 0 or int(qa.get("duplicate_runtime_keys", -1)) != 0
+    ):
+        raise ValueError("SNAPSHOT_ORIENTATION_QA_BLOCKED: PASS status contradicts evidence counts")
     return True
 
 
@@ -2025,6 +2081,10 @@ def main():
     summary["h2h_scope_policy"] = "Exact Selected-50 country/competition label mapping from the pinned archive ingestion manifest; exact normalized unordered team-name pair preferred across seasons to bridge provider team-ID changes, with exact unordered provider team-ID fallback; strict pre-kickoff chronology; unmapped archive rows excluded; no fuzzy aliases or cross-league joins."
     summary["xg_audit"] = xg_audit_counts
     summary["fixture_orientation"] = snapshot_orientation_qa
+    summary["snapshot_evidence_gate"] = snapshot_orientation_qa.get("status", "REVIEW_REQUIRED")
+    summary["snapshot_evidence_unresolved_rows"] = snapshot_orientation_qa.get("orientation_unknown_rows", 0)
+    if summary["snapshot_evidence_gate"] != "PASS_EXACT_SNAPSHOT_TRACE_JOIN":
+        summary["report_status"] = "PARTIAL_RESEARCH_ONLY"
     summary["runtime_feature_block_audit"] = runtime_feature_block_qa
     summary["report_template_candidate"] = "V1.4_REPORT_ONLY_EXTENSION_PENDING_FULL_WORKFLOW_QA"
     schedule_queue = build_schedule_reconciliation_queue(trace)
