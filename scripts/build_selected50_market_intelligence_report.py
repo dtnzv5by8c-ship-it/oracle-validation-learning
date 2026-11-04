@@ -12,8 +12,6 @@ import csv
 import json
 import hashlib
 import math
-import re
-import unicodedata
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -62,10 +60,11 @@ def write_csv(path, rows, fields):
 
 
 def parse_dt(value):
+    """Parse only explicit-offset timestamps; naive datetimes are not UTC evidence."""
     try:
         d = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        if d.tzinfo is None:
-            d = d.replace(tzinfo=timezone.utc)
+        if d.tzinfo is None or d.utcoffset() is None:
+            return None
         return d.astimezone(timezone.utc)
     except (TypeError, ValueError):
         return None
@@ -114,13 +113,6 @@ def runtime_key(row):
     )
 
 
-def normalize_team_name(value):
-    """Conservative exact-name key: Unicode compatibility, case and punctuation only."""
-    value = unicodedata.normalize("NFKC", str(value or "")).casefold()
-    value = re.sub(r"[^\w\s]", "", value, flags=re.UNICODE)
-    return " ".join(value.split())
-
-
 def build_indexes(matches):
     """Create strictly chronological archive indexes from exact provider identities."""
     by_team = defaultdict(list)
@@ -153,8 +145,6 @@ def build_indexes(matches):
         item["_competition"] = competition
         item["_home"] = h
         item["_away"] = a
-        item["_home_name_key"] = normalize_team_name(row.get("home_team"))
-        item["_away_name_key"] = normalize_team_name(row.get("away_team"))
         by_team[(competition, h)].append(item)
         by_team[(competition, a)].append(item)
         by_season[(league, season)].append(item)
@@ -171,11 +161,10 @@ def build_indexes(matches):
             h2h_candidates.append(item)
     safe_h2h_rows, h2h_dedup_qa = deduplicate_h2h_history(h2h_candidates)
     for item in safe_h2h_rows:
+        # H2H identity is exact provider team IDs only. Team names are display
+        # attributes and must never bridge changed or season-scoped IDs.
         by_pair[(item["_h2h_scope_id"], "ID",
                  tuple(sorted((item["_home"], item["_away"]))))].append(item)
-        if item.get("_home_name_key") and item.get("_away_name_key"):
-            by_pair[(item["_h2h_scope_id"], "NAME",
-                     tuple(sorted((item["_home_name_key"], item["_away_name_key"]))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
@@ -420,26 +409,10 @@ def build_report(runtime_rows, archive_rows):
         h2h_scope_id = str(target.get("selected_country") or "").strip()
         if target_selected_id != selected or not h2h_scope_id:
             h2h_scope_id = ""
-        home_name_key = normalize_team_name(runtime.get("home_team"))
-        away_name_key = normalize_team_name(runtime.get("away_team"))
-        name_pair = tuple(sorted((home_name_key, away_name_key)))
         id_pair = tuple(sorted((home, away)))
-        name_candidates = (
-            by_pair[(h2h_scope_id, "NAME", name_pair)]
-            if h2h_scope_id and all(name_pair) and home_name_key != away_name_key else []
-        )
         id_candidates = by_pair[(h2h_scope_id, "ID", id_pair)] if h2h_scope_id else []
-        # Prefer exact normalized team-name identity across seasons when provider
-        # team IDs have changed. Fall back to exact provider IDs only when the
-        # name-based index has no candidate. No fuzzy aliases or cross-league joins.
-        prior_name_candidates = before(name_candidates, cutoff) if name_candidates else []
         prior_id_candidates = before(id_candidates, cutoff) if id_candidates else []
-        if prior_name_candidates:
-            pair_rows = prior_name_candidates
-            h2h_match_basis = "EXACT_NORMALIZED_TEAM_NAMES"
-        elif prior_id_candidates:
-            # A name-pair record may exist only after the strict cutoff. In that
-            # case it must not suppress valid earlier exact provider-ID evidence.
+        if prior_id_candidates:
             pair_rows = prior_id_candidates
             h2h_match_basis = "EXACT_PROVIDER_TEAM_IDS"
         else:
@@ -451,15 +424,9 @@ def build_report(runtime_rows, archive_rows):
             if str(r.get("no_home_away") or "").strip().lower() in {"1", "true", "yes"}:
                 h2h_results.append("N/A")
                 continue
-            historical_home_name = normalize_team_name(r.get("home_team"))
-            historical_away_name = normalize_team_name(r.get("away_team"))
-            if home_name_key and historical_home_name == home_name_key:
+            if str(r.get("home_team_id") or "") == home:
                 home_was_home = True
-            elif home_name_key and historical_away_name == home_name_key:
-                home_was_home = False
-            elif str(r.get("home_team_id")) == home:
-                home_was_home = True
-            elif str(r.get("away_team_id")) == home:
+            elif str(r.get("away_team_id") or "") == home:
                 home_was_home = False
             else:
                 h2h_results.append("N/A")
@@ -2084,7 +2051,7 @@ def main():
     summary["h2h_meetings_total"] = h2h_meetings_total
     summary["h2h_match_basis_counts"] = {
         basis: sum(1 for item in trace if item.get("h2h_match_basis") == basis)
-        for basis in ("EXACT_NORMALIZED_TEAM_NAMES", "EXACT_PROVIDER_TEAM_IDS", "NO_VERIFIED_PAIR_MATCH")
+        for basis in ("EXACT_PROVIDER_TEAM_IDS", "NO_VERIFIED_PAIR_MATCH")
     }
     summary["h2h_cross_season_meetings_verified"] = h2h_cross_season_meetings
     summary["h2h_cross_season_verified"] = h2h_cross_season_meetings > 0
@@ -2096,7 +2063,7 @@ def main():
         "parent_competition_id_inference_used": False,
         "fuzzy_matching_used": False,
     })
-    summary["h2h_scope_policy"] = "Exact Selected-50 country/competition label mapping from the pinned archive ingestion manifest; exact normalized unordered team-name pair preferred across seasons to bridge provider team-ID changes, with exact unordered provider team-ID fallback; strict pre-kickoff chronology; unmapped archive rows excluded; no fuzzy aliases or cross-league joins."
+    summary["h2h_scope_policy"] = "Exact Selected-50 country scope plus exact unordered provider team-ID pair only; team-name matching is not used for identity; strict pre-kickoff chronology; unmapped archive rows excluded; unresolved or changed provider IDs produce no verified H2H match."
     summary["xg_audit"] = xg_audit_counts
     summary["fixture_orientation"] = snapshot_orientation_qa
     summary["snapshot_evidence_gate"] = snapshot_orientation_qa.get("status", "REVIEW_REQUIRED")
