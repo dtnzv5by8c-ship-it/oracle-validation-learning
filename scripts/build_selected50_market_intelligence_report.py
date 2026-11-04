@@ -637,6 +637,7 @@ def build_report(runtime_rows, archive_rows):
     if len(output) != len(runtime_rows):
         raise AssertionError("Output row count does not reconcile to runtime fixture rows")
     return output, trace, {
+        "archive_index_policy": "EXPLICIT_TIMEZONE_AND_EXACT_SEASON_FIXTURE_TEAM_IDS; CONFLICTING_FIXTURE_IDENTITIES_QUARANTINED; EXACT_DUPLICATES_DEDUPLICATED",
         "archive_index_qa": archive_index_qa,
         "archive_index_gate": (
             "REVIEW_REQUIRED" if archive_index_qa["rows_quarantined"]
