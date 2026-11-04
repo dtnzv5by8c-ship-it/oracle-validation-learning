@@ -35,6 +35,23 @@ HEADERS = [
     "Home Risk Rationale", "Away Risk Rationale", "A+ Setup Status",
     "Gem's Independent Match Analysis",
 ]
+
+
+def load_oracle_v1_6_output_headers():
+    schema_path = Path(__file__).resolve().parents[1] / "config" / "oracle_v1_6_output_schema_v1.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    headers = schema.get("headers")
+    if not isinstance(headers, list) or len(headers) != 68 or len(set(headers)) != 68:
+        raise RuntimeError("Oracle V1.6 Output schema must contain exactly 68 unique headers.")
+    digest = hashlib.sha256(json.dumps(headers, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+    if digest != schema.get("header_sequence_sha256"):
+        raise RuntimeError("Oracle V1.6 Output header sequence checksum mismatch.")
+    if schema.get("sheet_name") != "Oracle V1.6 Output" or schema.get("column_count") != 68:
+        raise RuntimeError("Oracle V1.6 Output schema metadata is inconsistent.")
+    return headers
+
+
+ORACLE_V1_6_OUTPUT_HEADERS = load_oracle_v1_6_output_headers()
 SUPPORTED = {
     "BTTS Yes": "BTTS_probability_pct",
     "Home 1X": "DC_HOME_probability_pct",
@@ -48,6 +65,17 @@ SETTLED = {"complete", "completed", "finished", "ft", "full time", "full_time",
 def read_csv(path):
     with Path(path).open(encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
+
+
+def read_csv_headers(path):
+    with Path(path).open(encoding="utf-8-sig", newline="") as handle:
+        try:
+            headers = next(csv.reader(handle))
+        except StopIteration as exc:
+            raise ValueError("Runtime CSV is empty; Oracle V1.6 source headers are unavailable.") from exc
+    if not headers or len(headers) != len(set(headers)):
+        raise ValueError("Runtime CSV headers must be nonblank and unique.")
+    return headers
 
 
 def write_csv(path, rows, fields):
@@ -1568,27 +1596,55 @@ def base_row(runtime, league_name, join_status):
     return row
 
 
-def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None, league_coverage_rows=None, coverage_summary_rows=None, xg_provenance_rows=None, runtime_rows=None, snapshot_orientation_by_key=None):
+def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None, league_coverage_rows=None, coverage_summary_rows=None, xg_provenance_rows=None, runtime_rows=None, snapshot_orientation_by_key=None, runtime_source_headers=None):
+    runtime_rows = runtime_rows or []
+    output_headers = ORACLE_V1_6_OUTPUT_HEADERS
+    if runtime_source_headers is not None and list(runtime_source_headers) != output_headers:
+        raise ValueError("Runtime source header sequence does not exactly match the locked 68-column Oracle V1.6 Output schema.")
+    for row_number, runtime_row_item in enumerate(runtime_rows, 1):
+        missing = [header for header in output_headers if header not in runtime_row_item]
+        if missing:
+            raise ValueError(f"Runtime row {row_number} is missing locked Oracle V1.6 Output fields: {','.join(missing)}")
+
     wb = Workbook()
     ws = wb.active
     ws.title = "Oracle V1.6 Output"
-    ws.append(HEADERS)
-    for row in rows:
-        ws.append([row.get(h, "") for h in HEADERS])
-    ws.freeze_panes = "D2"
+    ws.append(output_headers)
+    for runtime_row_item in runtime_rows:
+        ws.append([runtime_row_item[header] for header in output_headers])
+    ws.freeze_panes = "A2"
     ws.auto_filter.ref = ws.dimensions
     for cell in ws[1]:
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = PatternFill("solid", fgColor="333366")
         cell.alignment = Alignment(wrap_text=True, vertical="center")
     ws.row_dimensions[1].height = 42
+    for column_index, header in enumerate(output_headers, 1):
+        ws.column_dimensions[get_column_letter(column_index)].width = min(42, max(14, len(header) + 3))
+    for output_row in ws.iter_rows(min_row=2):
+        for cell in output_row:
+            cell.alignment = Alignment(vertical="top", wrap_text=True)
+
+    # The prior 38-column human-readable view is a derived analyst summary, not
+    # the frozen 68-column Oracle V1.6 runtime output. Keep it under a distinct name.
+    summary_ws = wb.create_sheet("Oracle V1.6 Analyst Summary")
+    summary_ws.append(HEADERS)
+    for row in rows:
+        summary_ws.append([row.get(header, "") for header in HEADERS])
+    summary_ws.freeze_panes = "D2"
+    summary_ws.auto_filter.ref = summary_ws.dimensions
+    for cell in summary_ws[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="333366")
+        cell.alignment = Alignment(wrap_text=True, vertical="center")
+    summary_ws.row_dimensions[1].height = 42
     widths = [14, 20, 34] + [18] * 17 + [32] * 18
     for i, width in enumerate(widths, 1):
-        ws.column_dimensions[get_column_letter(i)].width = width
-    for row in ws.iter_rows(min_row=2):
-        for cell in row:
+        summary_ws.column_dimensions[get_column_letter(i)].width = width
+    for output_row in summary_ws.iter_rows(min_row=2):
+        for cell in output_row:
             cell.alignment = Alignment(vertical="top", wrap_text=True)
-    # Supporting evidence tabs expand visibility without changing the locked 38-column summary.
+    # Supporting evidence tabs expand visibility without changing either source output or analyst summary.
     trace = trace or []
     def add_sheet(name, headers, data):
         sh = wb.create_sheet(name)
@@ -2108,6 +2164,7 @@ def main():
     ap.add_argument("--goal-market-research", required=False, help="Experimental goal-market research CSV; never production probabilities")
     args = ap.parse_args()
     out_dir = Path(args.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    runtime_source_headers = read_csv_headers(args.runtime_report)
     runtime_rows = read_csv(args.runtime_report)
     archive_rows = read_csv(Path(args.archive_audit) / "match_field_audit.csv")
     schedule_rows = read_csv(args.schedule_coverage)
@@ -2342,7 +2399,8 @@ def main():
                archive_summary, goal_market_rows, xg_audit_rows, coverage_rows,
                coverage_summary_rows, xg_provenance_rows,
                runtime_rows=runtime_rows,
-               snapshot_orientation_by_key=snapshot_orientation_by_key)
+               snapshot_orientation_by_key=snapshot_orientation_by_key,
+               runtime_source_headers=runtime_source_headers)
     (out_dir / "oracle_selected50_market_intelligence_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
