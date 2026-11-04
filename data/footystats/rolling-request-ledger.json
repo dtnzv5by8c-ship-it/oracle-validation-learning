@@ -4,7 +4,8 @@
   "notes": [
     "User-approved hard ceiling is 1,800 requests in any rolling 60-minute period.",
     "Operational reservation ceiling is 1,500 requests per rolling hour, retaining 300 requests of headroom.",
-    "This ledger contains request timestamps only; it contains no API keys or provider payloads."
+    "This ledger contains request timestamps only; it contains no API keys or provider payloads.",
+    "Run 41869437030 completed 910 successful provider calls (182 each across league-matches, league-teams, league-tables, league-season and match). Its final ledger push failed; the sanitized artifact and exact timestamp-set hash are now preserved in the research branch. The 1,000-request reservation is intentionally retained fail-closed until expiry, including 90 conservative unused requests, so no budget is released prematurely."
   ],
   "provider": "FootyStats",
   "reservations": [
@@ -13,9 +14,38 @@
       "reservation_id": "gha-41869437030-1",
       "reserved_at_utc": "2026-11-04T16:38:58.787518Z",
       "reserved_count": 1000,
-      "status": "RESERVED_FAIL_CLOSED"
+      "status": "COMPLETED_CONSERVATIVE_HOLD_UNTIL_EXPIRY",
+      "observed_actual_requests": 910,
+      "audit_artifact_id": 13345457575,
+      "audit_artifact_sha256": "99b438f33dc8e84774000ce64d02d5225dee2949ddfef41c2fc644751c6730eb"
     }
   ],
   "reserved_headroom": 300,
-  "schema_version": 1
+  "schema_version": 1,
+  "completed_run_audits": [
+    {
+      "run_id": "41869437030",
+      "status": "RECONCILED_FROM_SANITIZED_ARTIFACT_CONSERVATIVE_RESERVATION_RETAINED",
+      "actual_requests": 910,
+      "reserved_requests": 1000,
+      "conservative_extra_hold": 90,
+      "reservation_expires_at_utc": "2026-11-04T18:38:58.787518Z",
+      "first_request_utc": "2026-11-04T16:39:01.022668Z",
+      "last_request_utc": "2026-11-04T17:04:59.808534Z",
+      "per_endpoint_successful_requests": {
+        "league-matches": 182,
+        "league-teams": 182,
+        "league-tables": 182,
+        "league-season": 182,
+        "match": 182
+      },
+      "artifact_id": 13345457575,
+      "artifact_sha256": "99b438f33dc8e84774000ce64d02d5225dee2949ddfef41c2fc644751c6730eb",
+      "sanitized_report_sha256": "520ff534dd7e8f9b78c1b9b0e2ca89a908085316811fd45750dda7e7279c76ee",
+      "timestamp_count": 910,
+      "request_timestamp_sha256": "e4a80de8ee3c849ad8f0614a0a589bdaca5df917bff2dfa1b2c8ab4c9154354f",
+      "request_timestamp_audit_file": "data/footystats/request-audit/footystats-run-41869437030-timestamps.json",
+      "reconciled_at_utc": "2026-11-04T17:44:24Z"
+    }
+  ]
 }
