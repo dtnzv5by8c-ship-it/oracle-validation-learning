@@ -7,8 +7,11 @@ on:
       - research/oracle-50-league-readiness-audit
     paths:
       - "config/omi_market_intelligence_schema_v1.json"
+      - "config/oracle_v1_6_output_schema_v1.json"
+      - "scripts/build_selected50_market_intelligence_report.py"
       - "docs/OMI_MARKET_INTELLIGENCE_SCHEMA_LOCK_2026-11-04.md"
       - "tests/test_omi_market_intelligence_schema.py"
+      - "tests/test_selected50_market_intelligence_report.py"
       - ".github/workflows/oracle-selected50-market-intelligence-repair.yml"
       - ".github/workflows/omi-book4-schema-contract-tests.yml"
 
