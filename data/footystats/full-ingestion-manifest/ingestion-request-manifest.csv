@@ -1,0 +1,1 @@
+task_id,batch_id,provider,provider_league_name,provider_season_label,provider_season_id,endpoint,page,max_per_page,include,max_time_unix,expected_total_results,expected_page_count,request_status,raw_storage_required,production_eligible,betting_eligible
