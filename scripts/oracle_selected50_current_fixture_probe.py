@@ -11,7 +11,7 @@ import json
 import os
 import re
 import time
-from datetime import date, datetime, time, timezone, timedelta
+from datetime import date, datetime, time as dt_time, timezone, timedelta
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -62,7 +62,7 @@ try:
     report_end_date = date.fromisoformat(report_end_raw)
 except ValueError:
     raise SystemExit("REPORT_END_DATE must be a valid YYYY-MM-DD date; zero requests made.")
-report_end = datetime.combine(report_end_date, time.max, tzinfo=timezone.utc)
+report_end = datetime.combine(report_end_date, dt_time.max, tzinfo=timezone.utc)
 if report_end <= now:
     raise SystemExit("REPORT_END_DATE must be today or a future UTC date; zero requests made.")
 past_cutoff = now_ts - int(timedelta(days=30).total_seconds())
