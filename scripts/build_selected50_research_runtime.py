@@ -1090,7 +1090,7 @@ def main():
             raise SystemExit("H2H paired prediction chronology/integrity audit failed; fail closed.")
         # Explicit UTC calendar-date report window. End date is inclusive.
         report_start, report_end_exclusive, report_start_date, report_end_date = resolve_report_window(NOW)
-        future=[r for r in matches if report_start < r["kickoff_unix"] < report_end_exclusive
+        future=[r for r in matches if report_start <= r["kickoff_unix"] < report_end_exclusive
                 and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED]
         # Explicit 50-competition schedule coverage. Absence from the requested date
         # window is not treated as missing data; it remains visible for reconciliation.
