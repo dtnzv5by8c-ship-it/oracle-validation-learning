@@ -15,7 +15,7 @@ def season_rows():
 
 
 def snapshot_with(row):
-    return {"retrieved_utc": "2026-10-28T06:00:00+00:00", "per_season": season_rows(), "fixture_rows": [row]}
+    return {"retrieved_utc": "2026-10-28T06:00:00+00:00", "catalogue_season_ids": [str(i) for i in range(1, 51)], "per_season": season_rows(), "fixture_rows": [row]}
 
 
 class AdapterTests(unittest.TestCase):
@@ -188,6 +188,7 @@ class AdapterTests(unittest.TestCase):
         }
         snap = snapshot_with(row)
         snap["per_season"] = season_rows()[:3]
+        snap["catalogue_season_ids"] = ["1", "2", "3"]
         snap["fixture_rows"] = [row]
         rows, summary = adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
         self.assertEqual(summary["selected_league_seasons"], 3)
