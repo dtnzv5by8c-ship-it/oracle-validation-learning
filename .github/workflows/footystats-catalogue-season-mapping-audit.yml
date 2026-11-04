@@ -1,0 +1,64 @@
+name: FootyStats Catalogue Season Mapping Audit
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/audit_footystats_catalogue_season_mapping.py"
+      - "tests/test_footystats_catalogue_season_mapping.py"
+      - "scripts/normalize_footystats_season_year.py"
+      - "data/footystats/footystats-provider-season-registry-2026-11-04.csv"
+      - "data/footystats/historical-season-plan-2024-2026/**"
+      - "data/footystats/current-catalogue-reconciliation-2026-11-04/**"
+      - ".github/workflows/footystats-catalogue-season-mapping-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-catalogue-season-mapping-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile audit
+        run: |
+          python -m py_compile scripts/normalize_footystats_season_year.py
+          python -m py_compile scripts/audit_footystats_catalogue_season_mapping.py
+
+      - name: Run exact mapping and date-boundary tests
+        run: python -m unittest discover -s tests -p "test_footystats_catalogue_season_mapping.py" -v
+
+      - name: Generate sanitized human decision queue and summary
+        run: |
+          python scripts/audit_footystats_catalogue_season_mapping.py \
+            --registry data/footystats/footystats-provider-season-registry-2026-11-04.csv \
+            --plan data/footystats/historical-season-plan-2024-2026/season-plan.csv \
+            --excluded data/footystats/historical-season-plan-2024-2026/excluded-seasons.csv \
+            --crosswalk data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-provider-to-oracle-candidate-crosswalk.csv \
+            --queue-csv /tmp/oracle-footystats-49-league-human-decision-queue.csv \
+            --summary-json /tmp/oracle-footystats-49-league-mapping-date-audit.json
+
+      - name: Upload sanitized audit outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-footystats-49-league-mapping-date-audit
+          path: |
+            /tmp/oracle-footystats-49-league-human-decision-queue.csv
+            /tmp/oracle-footystats-49-league-mapping-date-audit.json
+          if-no-files-found: error
+          retention-days: 30
