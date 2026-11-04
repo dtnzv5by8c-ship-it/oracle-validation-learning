@@ -46,7 +46,8 @@ PACE_SECONDS = 1.1
 MAX_OPERATIONAL_REQUESTS = DEFAULT_GLOBAL_LIMIT - DEFAULT_HEADROOM
 MATCH_ID_FIELDS = ("id", "homeID", "awayID", "date_unix", "status")
 MATCH_RESULT_FIELDS = ("homeGoalCount", "awayGoalCount", "totalGoalCount")
-TEAM_ID_FIELDS = ("id", "name")
+TEAM_ID_FIELDS = ("id", "name_or_alias")
+TEAM_NAME_FIELDS = ("name", "full_name", "english_name")
 TABLE_FIELDS = (
     "league_table",
     "all_matches_table_overall",
@@ -428,8 +429,12 @@ def validate_team_page(payload: dict[str, Any]) -> dict[str, Any]:
         raise PreflightError("TEAM_PAGINATION_CONTRACT_FAILURE") from None
     rows = payload["data"]
     missing = {
-        field: sum(1 for row in rows if not isinstance(row, dict) or row.get(field) in (None, ""))
-        for field in TEAM_ID_FIELDS
+        "id": sum(1 for row in rows if not isinstance(row, dict) or row.get("id") in (None, "")),
+        "name_or_alias": sum(
+            1 for row in rows
+            if not isinstance(row, dict)
+            or not any(str(row.get(field) or "").strip() for field in TEAM_NAME_FIELDS)
+        ),
     }
     ids: list[str] = []
     for row in rows:
@@ -437,7 +442,8 @@ def validate_team_page(payload: dict[str, Any]) -> dict[str, Any]:
             raise PreflightError("TEAM_IDENTITY_FIELD_GAP")
         try:
             team_id = int(row.get("id"))
-            if team_id < 1 or not str(row.get("name") or "").strip():
+            has_name = any(str(row.get(field) or "").strip() for field in TEAM_NAME_FIELDS)
+            if team_id < 1 or not has_name:
                 raise ValueError
         except (TypeError, ValueError, OverflowError):
             raise PreflightError("TEAM_IDENTITY_FIELD_GAP") from None
