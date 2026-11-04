@@ -3,6 +3,16 @@ name: Oracle Selected-50 Current Fixture Snapshot (Research Only)
 on:
   workflow_dispatch:
     inputs:
+      report_start_date:
+        description: "Inclusive report start date in UTC (YYYY-MM-DD); snapshot also includes 30 days of prior history"
+        required: true
+        type: string
+        default: "2026-11-06"
+      report_end_date:
+        description: "Inclusive report end date in UTC (YYYY-MM-DD); snapshot cutoff is 23:59:59.999999 UTC"
+        required: true
+        type: string
+        default: "2026-11-24"
       confirm_provider_credit_usage:
         description: "Confirm approval for at most 50 FootyStats league-matches requests"
         required: true
@@ -66,6 +76,8 @@ jobs:
         working-directory: research-source
         env:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+          REPORT_START_DATE: ${{ inputs.report_start_date }}
+          REPORT_END_DATE: ${{ inputs.report_end_date }}
         run: python scripts/oracle_selected50_current_fixture_probe.py
 
       - name: Validate sanitized snapshot contract
