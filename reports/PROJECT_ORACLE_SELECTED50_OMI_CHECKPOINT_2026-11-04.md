@@ -151,3 +151,20 @@ No provider API call was made during this continuation. No production model or p
 - Latest code/workflow commits after the prior checkpoint include `9dbdbc09`, `b590c823`, `240fbcc8`, `3cb3fda6`, `cf0baa47`, `168e68a0`, `05ad3b0d`, `03cd0af8`, `1e5210f2`, `007496a2` and `5237fd18`.
 - The latest governed contract-test workflow is configured to run offline tests on non-document pushes. The actual push-run result is not accessible through the current GitHub workflow-run reader; no test pass is claimed.
 - No provider API calls, credits, or production model/probability changes were made.
+
+
+### Report-window metadata and coverage-label correction
+
+The 754-fixture runtime window spans 6–24 November (19 inclusive UTC calendar days). A second reporting defect was found: the OMI 50-League Coverage and Coverage Audit Summary still labelled fixture counts as a seven-day horizon. The builder now:
+- validates one consistent inclusive start/end date across all 50 schedule rows;
+- records `report_start_date_utc`, `report_end_date_utc_inclusive` and `report_horizon_days` in report QA;
+- labels fixture counts as `Upcoming Fixtures (Report Window)`;
+- uses `NO_FIXTURE_IN_REPORT_WINDOW` and report-window group metrics;
+- displays the actual date range and inclusive day count in Coverage Audit Summary and Definitions & Governance.
+
+Regression tests now assert the 19-day horizon is shown in the OMI coverage summary. No prediction inputs, model features, production probabilities or eligibility rules were changed.
+
+Additional commits:
+- `815019208404b96b1246a8368ac2535228962c4d` and `e450e40c6f512ff727e7a77b34e1abf8b45dd3e5` — derive report-window coverage from runtime schedule dates.
+- `c5d813450aa05a9ab1062ecb0ffc3b82c2016297` and `c04731ba85d55ef37e518e4aa91a823a6c4831bc` — update coverage regression tests.
+- `d88ec981601e5236c8742cdd3b92d2b1763d6591` — document report-window interpretation.
