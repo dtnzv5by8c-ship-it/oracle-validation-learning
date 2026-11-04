@@ -74,6 +74,10 @@ jobs:
           retention-days: 30
       - name: Test dynamic FootyStats season adapter
         run: python -m unittest discover -s tests -p "test_oracle_selected50_footystats_adapter.py" -v
+      - name: Compile and test FootyStats endpoint pagination contracts
+        run: |
+          python -m py_compile scripts/validate_footystats_endpoint_contracts.py
+          python -m unittest discover -s tests -p "test_footystats_endpoint_contracts.py" -v
       - name: Compile OMI report, history audit and no-call actuals placeholder
         run: python -m py_compile scripts/build_selected50_market_intelligence_report.py scripts/audit_selected50_row_level_history_provenance.py scripts/write_selected50_unqueried_actual_results.py scripts/build_selected50_research_runtime.py
       - name: Test explicit snapshot evidence exceptions in OMI report
