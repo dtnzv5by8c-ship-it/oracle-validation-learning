@@ -114,62 +114,123 @@ def runtime_key(row):
 
 
 def build_indexes(matches):
-    """Create strictly chronological archive indexes from exact provider identities."""
+    """Build exact-ID chronological indexes and account for every rejected row."""
     by_team = defaultdict(list)
     by_season = defaultdict(list)
     by_pair = defaultdict(list)
     h2h_candidates = []
-    seen = set()
-    duplicates = 0
+    qa = {
+        "candidate_rows": len(matches),
+        "invalid_or_naive_kickoff_rows": 0,
+        "missing_provider_season_id_rows": 0,
+        "missing_fixture_id_rows": 0,
+        "missing_home_team_id_rows": 0,
+        "missing_away_team_id_rows": 0,
+        "same_home_away_team_id_rows": 0,
+        "exact_duplicate_rows_deduplicated": 0,
+        "conflicting_fixture_identity_groups": 0,
+        "conflicting_fixture_identity_rows_quarantined": 0,
+        "duplicate_identity_rows": 0,
+        "rows_indexed": 0,
+        "rows_quarantined": 0,
+    }
+    grouped = defaultdict(list)
+
+    # Validate required chronology and exact identities before indexing. Group
+    # by (provider season ID, fixture ID), not by team names or unordered sides,
+    # so a changed orientation/score under one fixture ID quarantines the group.
     for row in matches:
         dt = parse_dt(row.get("kickoff_utc"))
-        if not dt or not row.get("home_team_id") or not row.get("away_team_id"):
+        if not dt:
+            qa["invalid_or_naive_kickoff_rows"] += 1
             continue
+        season_id = str(row.get("provider_season_id") or "").strip()
+        fixture_id = str(row.get("fixture_id") or "").strip()
+        home_id = str(row.get("home_team_id") or "").strip()
+        away_id = str(row.get("away_team_id") or "").strip()
+        if not season_id:
+            qa["missing_provider_season_id_rows"] += 1
+            continue
+        if not fixture_id:
+            qa["missing_fixture_id_rows"] += 1
+            continue
+        if not home_id:
+            qa["missing_home_team_id_rows"] += 1
+            continue
+        if not away_id:
+            qa["missing_away_team_id_rows"] += 1
+            continue
+        if home_id == away_id:
+            qa["same_home_away_team_id_rows"] += 1
+            continue
+        signature = (
+            dt.isoformat(), home_id, away_id,
+            str(row.get("status_raw") or "").strip().lower(),
+            str(row.get("home_goals") or "").strip(),
+            str(row.get("away_goals") or "").strip(),
+            str(row.get("provider_league_id") or "").strip(),
+            str(row.get("selected_id") or "").strip(),
+            str(row.get("selected_country") or "").strip(),
+            str(row.get("no_home_away") or "").strip().lower(),
+        )
+        grouped[(season_id, fixture_id)].append((row, dt, home_id, away_id, signature))
+
+    unique_rows = []
+    for identity, entries in grouped.items():
+        signatures = {entry[4] for entry in entries}
+        if len(signatures) > 1:
+            qa["conflicting_fixture_identity_groups"] += 1
+            qa["conflicting_fixture_identity_rows_quarantined"] += len(entries)
+            qa["duplicate_identity_rows"] += max(0, len(entries) - 1)
+            continue
+        if len(entries) > 1:
+            qa["exact_duplicate_rows_deduplicated"] += len(entries) - 1
+            qa["duplicate_identity_rows"] += len(entries) - 1
+        unique_rows.append(entries[0])
+
+    for row, dt, home_id, away_id, _signature in unique_rows:
         season_id = str(row.get("provider_season_id") or "").strip()
         league = season_id
         season = season_id
-        # Cross-season H2H requires a stable provider competition ID; otherwise use exact season only.
+        # Without a verified parent competition ID, recent form is season-scoped.
         competition = str(row.get("provider_league_id") or "").strip() or season_id
-        h, a = str(row["home_team_id"]), str(row["away_team_id"])
-        if not league or not season or h == a:
-            continue
-        identity = (str(row.get("provider_season_id") or ""), str(row.get("fixture_id") or ""), h, a)
-        if all(identity) and identity in seen:
-            duplicates += 1
-        elif all(identity):
-            seen.add(identity)
         item = dict(row)
         item["_dt"] = dt
         item["_league"] = league
         item["_season"] = season
         item["_competition"] = competition
-        item["_home"] = h
-        item["_away"] = a
-        by_team[(competition, h)].append(item)
-        by_team[(competition, a)].append(item)
+        item["_home"] = home_id
+        item["_away"] = away_id
+        by_team[(competition, home_id)].append(item)
+        by_team[(competition, away_id)].append(item)
         by_season[(league, season)].append(item)
-        # H2H uses the exact Selected-50 country mapping from the pinned ingestion
-        # manifest, allowing historical meetings across selected divisions in the
-        # same country. No fuzzy team aliases or cross-country joins are permitted.
-        # H2H spans the governed Selected-50 archive within the same country.
-        # This retains prior meetings when clubs move between selected divisions,
-        # while preventing same-name/team-ID joins across countries.
+        # H2H scope comes from the pinned selected-league manifest; pair identity
+        # remains exact provider team IDs only, never display-name matching.
         h2h_scope_id = str(row.get("selected_country") or "").strip()
         if (h2h_scope_id and str(row.get("status_raw") or "").lower() in SETTLED
-                and valid_score(row) and str(row.get("fixture_id") or "").strip()):
+                and valid_score(row)):
             item["_h2h_scope_id"] = h2h_scope_id
             h2h_candidates.append(item)
+        qa["rows_indexed"] += 1
+
     safe_h2h_rows, h2h_dedup_qa = deduplicate_h2h_history(h2h_candidates)
     for item in safe_h2h_rows:
-        # H2H identity is exact provider team IDs only. Team names are display
-        # attributes and must never bridge changed or season-scoped IDs.
         by_pair[(item["_h2h_scope_id"], "ID",
                  tuple(sorted((item["_home"], item["_away"]))))].append(item)
     for index in (by_team, by_season, by_pair):
         for key in index:
             index[key].sort(key=lambda x: (x["_dt"], str(x.get("fixture_id") or "")))
-    return by_team, by_season, by_pair, duplicates, h2h_dedup_qa
 
+    qa["rows_quarantined"] = (
+        qa["invalid_or_naive_kickoff_rows"]
+        + qa["missing_provider_season_id_rows"]
+        + qa["missing_fixture_id_rows"]
+        + qa["missing_home_team_id_rows"]
+        + qa["missing_away_team_id_rows"]
+        + qa["same_home_away_team_id_rows"]
+        + qa["conflicting_fixture_identity_rows_quarantined"]
+    )
+    return by_team, by_season, by_pair, qa["duplicate_identity_rows"], h2h_dedup_qa, qa
 
 def deduplicate_h2h_history(rows):
     """Fail closed on conflicting fixture IDs and duplicate completed meeting signatures."""
@@ -223,12 +284,21 @@ def before(rows, cutoff):
 
 
 def team_form(rows, team_id, venue=None):
-    """Latest-five completed form; venue optionally restricts the team's match role."""
+    """Latest-five completed form; venue splits exclude no-home/away fixtures."""
+    no_home_away = lambda row: str(row.get("no_home_away") or "").strip().lower() in {"1", "true", "yes"}
+    venue_excluded = sum(
+        1 for row in rows
+        if venue is not None and no_home_away(row)
+        and str(row.get("status_raw") or "").lower() in SETTLED and valid_score(row)
+    )
     usable = [r for r in rows if str(r.get("status_raw") or "").lower() in SETTLED
               and valid_score(r)
-              and (venue is None or
-                   (venue == "home" and str(r.get("home_team_id")) == team_id) or
-                   (venue == "away" and str(r.get("away_team_id")) == team_id))]
+              and (venue is None or (
+                  not no_home_away(r) and (
+                      (venue == "home" and str(r.get("home_team_id")) == team_id) or
+                      (venue == "away" and str(r.get("away_team_id")) == team_id)
+                  )
+              ))]
     sample = usable[-5:]
     results, gf, ga, pts = [], [], [], []
     for r in sample:
@@ -258,6 +328,7 @@ def team_form(rows, team_id, venue=None):
         "over25_rate": rate(over25), "under45_rate": rate(under45),
         "team_over15_rate": rate(team_over15), "clean_sheet_rate": rate(clean_sheet),
         "failed_to_score_rate": rate(failed_to_score),
+        "venue_excluded_no_home_away_rows": venue_excluded,
         "sample": sample,
     }
 
@@ -343,7 +414,7 @@ def build_report(runtime_rows, archive_rows):
         row for row in archive_rows
         if archive_key(row) not in schedule_conflict_keys
     ]
-    by_team, by_season, by_pair, history_duplicates, h2h_dedup_qa = build_indexes(history_archive_rows)
+    by_team, by_season, by_pair, history_duplicates, h2h_dedup_qa, archive_index_qa = build_indexes(history_archive_rows)
     output, trace = [], []
     leagues = set()
     seen_runtime = set()
@@ -515,12 +586,14 @@ def build_report(runtime_rows, archive_rows):
             "home_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in hf["sample"]),
             "away_form_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in af["sample"]),
             "home_at_home_form_n": home_venue_form["n"],
+            "home_at_home_no_home_away_excluded_n": home_venue_form["venue_excluded_no_home_away_rows"],
             "home_at_home_form": home_venue_form["form"],
             "home_at_home_avg_goals_for": fmt(home_venue_form["gf"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
             "home_at_home_avg_goals_against": fmt(home_venue_form["ga"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
             "home_at_home_avg_points": fmt(home_venue_form["ppg"]) if home_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
             "home_at_home_source_fixture_ids": ";".join(str(r.get("fixture_id") or "") for r in home_venue_form["sample"]),
             "away_away_form_n": away_venue_form["n"],
+            "away_away_no_home_away_excluded_n": away_venue_form["venue_excluded_no_home_away_rows"],
             "away_away_form": away_venue_form["form"],
             "away_away_avg_goals_for": fmt(away_venue_form["gf"]) if away_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
             "away_away_avg_goals_against": fmt(away_venue_form["ga"]) if away_venue_form["n"] >= 3 else "INSUFFICIENT_DATA",
@@ -564,6 +637,12 @@ def build_report(runtime_rows, archive_rows):
     if len(output) != len(runtime_rows):
         raise AssertionError("Output row count does not reconcile to runtime fixture rows")
     return output, trace, {
+        "archive_index_qa": archive_index_qa,
+        "archive_index_gate": (
+            "REVIEW_REQUIRED" if archive_index_qa["rows_quarantined"]
+            else "PASS_WITH_EXACT_DUPLICATES_DEDUPLICATED" if archive_index_qa["exact_duplicate_rows_deduplicated"]
+            else "PASS"
+        ),
         "h2h_history_deduplication": h2h_dedup_qa,
         "runtime_rows": len(runtime_rows), "report_rows": len(output),
         "exact_archive_joins": sum(r.get("join_status") == "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS" for r in trace),
