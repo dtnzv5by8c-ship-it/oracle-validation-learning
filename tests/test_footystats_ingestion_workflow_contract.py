@@ -114,6 +114,14 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("footystats_budgeted_endpoint_preflight.py reserve", self.content)
         self.assertIn("footystats_budgeted_endpoint_preflight.py execute", self.content)
 
+    def test_gateway_uses_bounded_safe_push_retries_without_force(self):
+        self.assertEqual(self.content.count("for attempt in 1 2 3 4 5"), 2)
+        self.assertIn("git rebase --abort", self.content)
+        self.assertIn("stopping before provider access", self.content)
+        self.assertIn("artifact upload remains available", self.content)
+        self.assertNotIn("git push --force", self.content)
+        self.assertNotIn("git push -f", self.content)
+
     def test_gateway_writes_only_sanitized_ledger_and_preflight_outputs(self):
         self.assertIn("contents: write", self.content)
         self.assertIn("rolling-request-ledger.json", self.content)
