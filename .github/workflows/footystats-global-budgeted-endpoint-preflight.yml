@@ -147,6 +147,19 @@ jobs:
             --output-dir data/footystats/full-ingestion-manifest \
             --max-requests-per-batch 1500
 
+      - name: Build offline resumable ingestion checkpoint plan
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          RECEIPTS_FILE="${RUNNER_TEMP}/footystats-ingestion-receipts.jsonl"
+          : > "${RECEIPTS_FILE}"
+          python scripts/footystats_ingestion_checkpoint.py \\
+            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \\
+            --receipts-jsonl "${RECEIPTS_FILE}" \\
+            --output-dir data/footystats/resumable-ingestion \\
+            --max-batch-requests 1500
+
       - name: Commit sanitized report and finalized request ledger
         if: always()
         shell: bash
@@ -155,7 +168,7 @@ jobs:
           mkdir -p "${REPORT_DIR}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${LEDGER_PATH}" "${REPORT_DIR}/" data/footystats/full-ingestion-manifest/ "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
+          git add "${LEDGER_PATH}" "${REPORT_DIR}/" data/footystats/full-ingestion-manifest/ data/footystats/resumable-ingestion/ "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
           if git diff --cached --quiet; then
             echo "No sanitized outputs to commit."
             exit 0
@@ -188,5 +201,7 @@ jobs:
             data/footystats/endpoint-preflight/footystats-preflight-run-${{ github.run_id }}.json
             data/footystats/full-ingestion-manifest/*.csv
             data/footystats/full-ingestion-manifest/summary.json
+            data/footystats/resumable-ingestion/*.csv
+            data/footystats/resumable-ingestion/summary.json
           if-no-files-found: warn
           retention-days: 30
