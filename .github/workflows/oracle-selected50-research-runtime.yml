@@ -159,6 +159,7 @@ jobs:
           python scripts/overlay_selected50_current_snapshot.py \
             --archive private-download/oracle-selected50-footystats-private-ingestion.zip \
             --snapshot current-snapshot/current-fixture-snapshot.json \
+            --report-end-date "${{ inputs.report_end_date }}" \
             --out-archive private-download/oracle-selected50-research-overlay.zip \
             --out-qa selected50_runtime_output/current_snapshot_overlay_qa.json \
             --out-trace selected50_runtime_output/current_snapshot_candidate_trace.csv
