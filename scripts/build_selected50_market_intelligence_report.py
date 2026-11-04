@@ -2063,6 +2063,8 @@ def main():
         "parent_competition_id_inference_used": False,
         "fuzzy_matching_used": False,
     })
+    summary["h2h_identity_policy"] = "EXACT_UNORDERED_PROVIDER_TEAM_ID_PAIR_ONLY"
+    summary["archive_timestamp_policy"] = "EXPLICIT_TIMEZONE_REQUIRED; NAIVE_KICKOFFS_REJECTED"
     summary["h2h_scope_policy"] = "Exact Selected-50 country scope plus exact unordered provider team-ID pair only; team-name matching is not used for identity; strict pre-kickoff chronology; unmapped archive rows excluded; unresolved or changed provider IDs produce no verified H2H match."
     summary["xg_audit"] = xg_audit_counts
     summary["fixture_orientation"] = snapshot_orientation_qa
