@@ -154,10 +154,10 @@ jobs:
           set -euo pipefail
           RECEIPTS_FILE="${RUNNER_TEMP}/footystats-ingestion-receipts.jsonl"
           : > "${RECEIPTS_FILE}"
-          python scripts/footystats_ingestion_checkpoint.py \\
-            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \\
-            --receipts-jsonl "${RECEIPTS_FILE}" \\
-            --output-dir data/footystats/resumable-ingestion \\
+          python scripts/footystats_ingestion_checkpoint.py \
+            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \
+            --receipts-jsonl "${RECEIPTS_FILE}" \
+            --output-dir data/footystats/resumable-ingestion \
             --max-batch-requests 1500
 
       - name: Commit sanitized report and finalized request ledger
