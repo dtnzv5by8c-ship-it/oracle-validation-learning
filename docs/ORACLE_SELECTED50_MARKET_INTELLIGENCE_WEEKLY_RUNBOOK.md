@@ -74,3 +74,8 @@ The workflow does not echo the key. If `confirm_results_provider_credit_usage=fa
 - Results are for reporting and later chronological validation only. They do not feed back into predictions or modify Oracle V1.6.
 
 The results API is a separate explicit opt-in exception to the archive-only/no-provider-call rule. It is not authorized by merely dispatching the report workflow. All historical archive and model-governance controls remain unchanged.
+
+
+## Report-window interpretation
+
+The 50-League Coverage tab and Coverage Audit Summary use the actual inclusive UTC start/end dates declared by runtime schedule coverage. Fixture counts and group coverage are labelled for the **Report Window**, not a hard-coded seven-day horizon. The report QA records the start date, inclusive end date and inclusive calendar-day count. Do not compare a multi-week runtime to legacy seven-day coverage labels.
