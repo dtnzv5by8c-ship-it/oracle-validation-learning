@@ -124,3 +124,10 @@ Continue from the live research branch and this checkpoint. Preserve all previou
 - Latest targeted test evidence remains run `41865887561`, job `126699886190`: the job log shows 42 tests passing. GitHub run metadata still has no final conclusion; do not overstate it as formally completed.
 - No FootyStats API calls, raw payload writes, private archive writes, or production model changes occurred in this continuation.
 - The only live external action required to progress endpoint evidence is manual dispatch of the central preflight workflow. Full raw ingestion remains gated by private archive write authorization.
+
+## Latest validation refresh
+
+- The central workflow label/finalizer change is included in the latest targeted validation run `41866548931`, job `126702151154`.
+- The job log shows successful py_compile and all 42 tests OK: 6 ingestion-manifest, 9 budget, 8 endpoint-pagination, 7 preflight, and 12 workflow/legacy-path contract tests.
+- GitHub run/job metadata still reports queued/no final conclusion despite the complete test and cleanup logs; retain this qualification in any status report.
+- The rolling request ledger remains unchanged: one older catalogue request timestamp, no active reservations, and no new provider requests.
