@@ -15,7 +15,7 @@ import math
 import re
 import unicodedata
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from bisect import bisect_left
 from openpyxl import Workbook
@@ -1046,7 +1046,7 @@ XG_AUDIT_HEADERS = [
 
 
 COVERAGE_HEADERS = [
-    "Selected Season ID", "Country", "League", "Upcoming Fixtures (7d)",
+    "Selected Season ID", "Country", "League", "Upcoming Fixtures (Report Window)",
     "Exact Archive Joins", "Kickoff Matches", "Kickoff Mismatches Requiring Review",
     "BTTS Raw Research Predictions", "Home 1X Raw Research Predictions",
     "Away X2 Raw Research Predictions", "Feature-blocked Fixtures",
@@ -1177,7 +1177,7 @@ def build_50_league_coverage_rows(schedule_rows, runtime_rows, report_rows, trac
         )
 
         if fixture_count == 0:
-            fixture_status = "NO_FIXTURE_IN_7D_HORIZON"
+            fixture_status = "NO_FIXTURE_IN_REPORT_WINDOW"
             prediction_status = "NO_FIXTURES_TO_SCORE"
         else:
             fixture_status = str(schedule.get("schedule_coverage_status") or "FIXTURES_FOUND")
@@ -1286,6 +1286,9 @@ def build_coverage_summary_rows(coverage_rows, runtime_rows=None, report_rows=No
     evidence_label = f"{evidence_date}; Selected-50 Run #{run_number}" if run_number else evidence_date
 
     metrics = [
+        ("Report start date (UTC)", report_summary.get("report_start_date_utc", "NOT_AVAILABLE"), None),
+        ("Report end date (UTC, inclusive)", report_summary.get("report_end_date_utc_inclusive", "NOT_AVAILABLE"), None),
+        ("Report horizon (inclusive calendar days)", report_summary.get("report_horizon_days", "NOT_AVAILABLE"), "Derived from runtime schedule coverage; not a hard-coded seven-day horizon."),
         ("Evidence cutoff", evidence_label, None),
         ("Runtime run ID", runtime_provenance.get("runtime_run_id", "NOT_RECORDED"), None),
         ("Runtime artifact ID", runtime_artifact_id or runtime_provenance.get("runtime_artifact_id") or "NOT_PROVIDED_TO_REPORT_BUILDER", None),
@@ -1297,9 +1300,9 @@ def build_coverage_summary_rows(coverage_rows, runtime_rows=None, report_rows=No
         ("Pinned archive completed match records", archive_summary.get("settled_status_and_score_complete_records", 0), None),
         ("Provider API calls for archive analysis", archive_summary.get("provider_api_calls", 0), None),
         ("Selected league-season groups", len(coverage_rows), "Governed selected season IDs; each appears once."),
-        ("Groups with 7-day fixtures", fixture_groups, None),
-        ("Groups with no 7-day fixtures", no_fixture_groups, "Not necessarily data failure; no fixture rows in the seven-day report horizon."),
-        ("Upcoming fixture rows", total("Upcoming Fixtures (7d)"), None),
+        ("Groups with fixtures in report window", fixture_groups, None),
+        ("Groups with no fixtures in report window", no_fixture_groups, "Not necessarily data failure; no fixture rows in the declared report window."),
+        ("Upcoming fixture rows in report window", total("Upcoming Fixtures (Report Window)"), None),
         ("Exact archive fixture joins", total("Exact Archive Joins"), None),
         ("Kickoff matches", total("Kickoff Matches"), None),
         ("Kickoff mismatches requiring manual review", total("Kickoff Mismatches Requiring Review"), "Manual authoritative event-time review; no automatic correction."),
@@ -1880,6 +1883,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         {"term": "Team form", "definition": "Latest completed fixtures for the exact stable team ID within the same explicit provider competition; strict pre-kickoff cutoff. Venue splits are home-at-home and away-away."},
         {"term": "League position", "definition": "Reconstructed within exact provider season using conventional 3-1-0 points and provisional tie-break order; not official where competition rules are unverified."},
         {"term": "Evidence risk", "definition": "Coverage and provenance gaps only; not probability of losing or match outcome."},
+        {"term": "Report window", "definition": "The inclusive UTC start and end dates and calendar-day horizon are derived from the runtime's 50-league schedule coverage; no fixed seven-day label is assumed."},
         {"term": "Fixture orientation", "definition": "The exact current-snapshot no_home_away flag is displayed as received. Flag 1 means no home/away distinction; it is not automatically a neutral-venue label. Affected home/away-oriented markets are review-required; probabilities are not changed."},
         {"term": "Runtime feature support", "definition": "The source runtime's 20-feature support status and recent-five feature-complete side counts are shown separately from score-complete form recomputed for descriptive reporting. The report must never use score-only counts to override a runtime block."},
         {"term": "Eligibility", "definition": "All Selected-50 report rows remain production_eligible=false and betting_eligible=false."}
@@ -1970,6 +1974,15 @@ def main():
         raise SystemExit("FAIL: runtime provenance and archive feature audit refer to different archives")
     governed_ids = {str(r.get("selected_id") or "").strip() for r in schedule_rows if str(r.get("selected_id") or "").strip()}
     report_ids = {str(r.get("selected_id") or "").strip() for r in runtime_rows if str(r.get("selected_id") or "").strip()}
+    report_start_dates = {str(r.get("report_start_date_utc") or "").strip() for r in schedule_rows}
+    report_end_dates = {str(r.get("report_end_date_utc_inclusive") or "").strip() for r in schedule_rows}
+    if len(report_start_dates) != 1 or len(report_end_dates) != 1 or not next(iter(report_start_dates)) or not next(iter(report_end_dates)):
+        raise SystemExit("FAIL: schedule coverage must declare one consistent inclusive UTC report window")
+    report_start_date = date.fromisoformat(next(iter(report_start_dates)))
+    report_end_date = date.fromisoformat(next(iter(report_end_dates)))
+    if report_end_date < report_start_date:
+        raise SystemExit("FAIL: schedule coverage report window is reversed")
+    report_horizon_days = (report_end_date - report_start_date).days + 1
     if len(schedule_rows) != args.expected_league_groups or len(governed_ids) != args.expected_league_groups:
         raise SystemExit(f"FAIL: governed schedule coverage must contain exactly {args.expected_league_groups} unique selected IDs")
     if not report_ids.issubset(governed_ids):
@@ -2030,6 +2043,10 @@ def main():
         "archive_season_folders": archive_summary.get("season_folders"),
         "provider_api_calls": archive_summary.get("provider_api_calls"),
         "fixture_cutoff_range_utc": {"first": fixture_dates[0] if fixture_dates else None, "last": fixture_dates[-1] if fixture_dates else None},
+        "report_start_date_utc": report_start_date.isoformat(),
+        "report_end_date_utc_inclusive": report_end_date.isoformat(),
+        "report_horizon_days": report_horizon_days,
+        "report_horizon_days_definition": "INCLUSIVE_UTC_CALENDAR_DATES_FROM_RUNTIME_SCHEDULE_COVERAGE",
         "history_cutoff_rule": "STRICTLY_BEFORE_EACH_FIXTURE_KICKOFF_UTC",
         "league_fixture_coverage": league_fixture_coverage,
         "column_status_counts": column_status_counts,
