@@ -10,14 +10,14 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
     def setUp(self):
         self.text = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_probe_is_manual_dispatch_only(self):
+    def test_probe_is_disabled_and_cannot_bypass_the_global_budget(self):
         trigger = self.text.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertNotIn("\n  push:", trigger)
-        self.assertIn("confirm_provider_credit_usage:", trigger)
-        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
-        self.assertIn("default: false", trigger)
-        self.assertNotIn("paths:", trigger)
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("DISABLED", self.text.upper())
+        self.assertIn("exit 1", self.text)
+        self.assertNotIn("FOOTYSTATS_API_KEY", self.text)
+        self.assertNotIn("api.football-data-api.com", self.text)
         self.assertNotIn("gh release download", self.text)
 
     def test_legacy_full_ingestion_and_catalogue_transfer_workflows_are_fail_closed(self):
@@ -224,27 +224,16 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("urlopen(", audit)
 
 
-    def test_provider_schema_diagnostic_requires_explicit_single_call_confirmation(self):
+    def test_provider_schema_diagnostic_is_disabled_and_cannot_make_a_direct_call(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-provider-schema-diagnostic.yml").read_text(encoding="utf-8")
-        diagnostic = (ROOT / "scripts" / "oracle_selected50_provider_schema_diagnostic.py").read_text(encoding="utf-8")
         trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertIn("confirm_provider_credit_usage:", trigger)
-        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
-        self.assertNotIn("\n  push:", trigger)
-        self.assertIn("Explicit provider-credit confirmation is required; no request made.", workflow)
-        self.assertIn("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", workflow)
-        self.assertIn("Current monthly FootyStats credit balance has not been explicitly confirmed; no request made.", workflow)
-        self.assertIn('"operator_confirmed_monthly_credit_budget_checked": os.environ.get("CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED", "false").lower() == "true"', diagnostic)
-        self.assertLess(workflow.index('if [ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" != "true" ]'), workflow.index("python scripts/oracle_selected50_provider_schema_diagnostic.py"))
-        self.assertIn('url = "https://api.football-data-api.com/league-list?', diagnostic)
-        self.assertIn('"planned_api_requests": 1', diagnostic)
-        self.assertIn('"hard_request_cap": 1', diagnostic)
-        self.assertIn('"monthly_credit_budget_verified": False', diagnostic)
-        self.assertIn('"raw_provider_payload_saved": False', diagnostic)
-        self.assertIn('"api_key_saved_or_printed": False', diagnostic)
-        self.assertNotIn("print(payload", diagnostic)
-
+        self.assertNotIn("\\n  push:", trigger)
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertIn("exit 1", workflow)
+        self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
+        self.assertNotIn("api.football-data-api.com", workflow)
+        self.assertNotIn("oracle_selected50_provider_schema_diagnostic.py", workflow)
 
     def test_runtime_quarantines_noncomplete_scores_from_targets_and_training(self):
         import ast
@@ -409,6 +398,12 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
             ".github/workflows/footystats-historical-season-coverage-audit.yml",
             ".github/workflows/oracle-selected50-parent-id-reconciliation.yml",
             ".github/workflows/oracle-selected50-catalogue-schema-audit.yml",
+            ".github/workflows/oracle-selected50-identity-probe.yml",
+            ".github/workflows/oracle-selected50-current-fixture-snapshot.yml",
+            ".github/workflows/oracle-selected50-provider-schema-diagnostic.yml",
+            ".github/workflows/footystats-selected50-bounded-endpoint-probe.yml",
+            ".github/workflows/oracle-footystats-one-call-identity-probe.yml",
+            ".github/workflows/oracle-selected50-cross-season-identity-stability.yml",
         )
         for relative in paths:
             workflow = (ROOT / relative).read_text(encoding="utf-8")
@@ -438,22 +433,15 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertNotIn("git/refs", workflow)
         self.assertNotIn("oracle-football-data", workflow)
 
-    def test_canonical_provider_schema_diagnostic_requires_monthly_budget_confirmation(self):
+    def test_canonical_provider_schema_diagnostic_is_disabled_under_central_budget_governance(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-provider-schema-diagnostic.yml").read_text(encoding="utf-8")
-        diagnostic = (ROOT / "scripts" / "oracle_selected50_provider_schema_diagnostic.py").read_text(encoding="utf-8")
         trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertIn("confirm_provider_credit_usage:", trigger)
-        self.assertIn("confirm_monthly_credit_budget_checked:", trigger)
-        self.assertIn("default: false", trigger)
-        self.assertIn('"planned_api_requests": 1', diagnostic)
-        self.assertIn('"hard_request_cap": 1', diagnostic)
-        self.assertIn('"monthly_credit_budget_verified": False', diagnostic)
-
-
-if __name__ == "__main__":
-    unittest.main()
-
+        self.assertIn("DISABLED", workflow.upper())
+        self.assertIn("exit 1", workflow)
+        self.assertNotIn("confirm_provider_credit_usage:", trigger)
+        self.assertNotIn("confirm_monthly_credit_budget_checked:", trigger)
+        self.assertNotIn("FOOTYSTATS_API_KEY", workflow)
 
     def test_provider_workflows_are_manual_budget_gated_and_reference_the_expected_secret_name(self):
         paths = (
