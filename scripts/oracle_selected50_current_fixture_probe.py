@@ -261,6 +261,7 @@ unattempted_season_ids = [
 summary = {
     "diagnostic": "BOUNDED_SELECTED50_CURRENT_FIXTURE_SNAPSHOT",
     "snapshot_started_utc": now.isoformat(),
+    "snapshot_started_utc": now.isoformat(),
     "retrieved_utc": datetime.now(timezone.utc).isoformat(),
     "window_start_utc": datetime.fromtimestamp(past_cutoff, tz=timezone.utc).isoformat(),
     "window_end_utc": report_end.isoformat(),
