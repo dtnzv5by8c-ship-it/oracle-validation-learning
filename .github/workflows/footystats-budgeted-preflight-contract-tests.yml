@@ -1,0 +1,58 @@
+name: FootyStats Budgeted Preflight Contract Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/footystats-budgeted-preflight-contract-tests.yml"
+      - ".github/workflows/footystats-global-budgeted-endpoint-preflight.yml"
+      - "scripts/footystats_budgeted_endpoint_preflight.py"
+      - "scripts/footystats_request_budget.py"
+      - "scripts/validate_footystats_endpoint_contracts.py"
+      - "tests/test_footystats_budgeted_endpoint_preflight.py"
+      - "tests/test_footystats_request_budget.py"
+      - "tests/test_footystats_endpoint_contracts.py"
+      - "tests/test_footystats_ingestion_workflow_contract.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-preflight-contract-tests
+  cancel-in-progress: false
+
+jobs:
+  preflight-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile budget, endpoint validators and preflight runner
+        run: |
+          python -m py_compile \
+            scripts/footystats_request_budget.py \
+            scripts/validate_footystats_endpoint_contracts.py \
+            scripts/footystats_budgeted_endpoint_preflight.py
+
+      - name: Test rolling-hour request budget
+        run: python -m unittest discover -s tests -p "test_footystats_request_budget.py" -v
+
+      - name: Test endpoint pagination contracts
+        run: python -m unittest discover -s tests -p "test_footystats_endpoint_contracts.py" -v
+
+      - name: Test sanitized budgeted endpoint preflight
+        run: python -m unittest discover -s tests -p "test_footystats_budgeted_endpoint_preflight.py" -v
+
+      - name: Test central workflow and legacy-path isolation
+        run: python -m unittest discover -s tests -p "test_footystats_ingestion_workflow_contract.py" -v
