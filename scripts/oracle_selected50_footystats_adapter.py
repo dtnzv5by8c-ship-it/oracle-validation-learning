@@ -118,15 +118,15 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
     if not isinstance(rows, list) or not isinstance(seasons, list):
         raise ValueError("snapshot must contain fixture_rows and per_season lists")
     season_ids = {str(x.get("selected_season_id") or "") for x in seasons if isinstance(x, dict)}
-    if len(seasons) != 50 or len(season_ids) != 50 or "" in season_ids:
-        raise ValueError("selected-50 guard failed: expected 50 per-season records with 50 unique season IDs")
+    if not seasons or len(season_ids) != len(seasons) or "" in season_ids:
+        raise ValueError("provider catalogue guard failed: expected a non-empty per-season list with unique, nonblank FootyStats season IDs")
     successful = {
         str(x.get("selected_season_id"))
         for x in seasons
         if isinstance(x, dict) and x.get("http_status") == 200 and x.get("provider_success") is True
     }
     if successful != season_ids:
-        raise ValueError(f"source retrieval guard failed: {len(successful)}/50 seasons returned verified HTTP 200 success")
+        raise ValueError(f"source retrieval guard failed: {len(successful)}/{len(season_ids)} provider seasons returned verified HTTP 200 success")
     output = []
     seen_ids = set()
     for row in rows:
@@ -182,7 +182,7 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
         "source_snapshot_hash_method": "canonical_json_sha256_sorted_keys_compact_v1",
         "source_snapshot_sha256": source_snapshot_sha256,
         "source_snapshot_age_seconds_at_adaptation": int((now - retrieved_utc).total_seconds()),
-        "selected_league_seasons": 50,
+        "selected_league_seasons": len(season_ids),
         "season_retrieval_success": len(successful),
         "source_fixture_rows": len(rows),
         "adapted_fixture_rows": len(output),
