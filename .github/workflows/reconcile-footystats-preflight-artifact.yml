@@ -63,7 +63,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
           expected_run = int(sys.argv[2])
-          if report.get("run_id") != expected_run:
+          if str(report.get("run_id")) != str(expected_run):
               raise SystemExit("FAIL: sanitized preflight run ID does not match requested source run")
           if report.get("run_status") != "ENDPOINT_PREFLIGHT_BATCH_COMPLETE":
               raise SystemExit("FAIL: source preflight did not complete")
