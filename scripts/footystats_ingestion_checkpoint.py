@@ -12,6 +12,9 @@ import argparse
 import csv
 import json
 import re
+import hashlib
+import hmac
+import os
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -39,6 +42,20 @@ FORBIDDEN_KEYS = {
     "authorization", "access_token", "secret", "token",
 }
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+ARCHIVE_VERIFIER_ID = "oracle-private-archive-readback-verifier"
+ARCHIVE_VERIFIER_KEY_ID = "private-archive-readback-v1"
+BUDGET_VERIFIER_ID = "oracle-central-budget-ledger-verifier"
+BUDGET_VERIFIER_KEY_ID = "central-budget-ledger-v1"
+ARCHIVE_VERIFIER_KEY_ENV = "FOOTYSTATS_ARCHIVE_VERIFIER_HMAC_KEY"
+BUDGET_VERIFIER_KEY_ENV = "FOOTYSTATS_BUDGET_VERIFIER_HMAC_KEY"
+RESPONSE_METADATA_FIELDS = (
+    "response_http_status", "provider_success", "response_shape_verified",
+    "page_complete", "response_total_results", "response_page",
+    "response_page_count", "returned_rows", "unique_ids_on_page",
+    "required_fields_present", "required_fields_missing",
+    "completed_match_rows", "completed_match_goal_field_gaps",
+    "no_home_away_rows", "xg_fields_missing",
+)
 TASK_FIELDS = (
     "task_id", "provider", "provider_league_name", "provider_season_label",
     "provider_season_id", "endpoint", "page", "max_per_page",
@@ -156,7 +173,60 @@ def receipt_signature(receipt: dict[str, Any]) -> str:
     return json.dumps(receipt, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
-def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str, str, list[str]]:
+def canonical_json_bytes(value: Any) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+
+def response_metadata_digest(receipt: dict[str, Any]) -> str:
+    metadata = {field: receipt.get(field) for field in RESPONSE_METADATA_FIELDS}
+    return hashlib.sha256(canonical_json_bytes(metadata)).hexdigest()
+
+
+def load_verification_keys_from_env() -> dict[str, bytes]:
+    """Load protected verifier keys; no key material is logged or written to outputs."""
+    values = {
+        "archive": os.environ.get(ARCHIVE_VERIFIER_KEY_ENV, ""),
+        "budget": os.environ.get(BUDGET_VERIFIER_KEY_ENV, ""),
+    }
+    keys: dict[str, bytes] = {}
+    for name, value in values.items():
+        if value:
+            key = value.encode("utf-8")
+            if len(key) < 32:
+                raise ValueError(f"{name} verifier HMAC key must contain at least 32 UTF-8 bytes")
+            keys[name] = key
+    return keys
+
+
+def verify_signed_attestation(
+    attestation: Any,
+    key: bytes | None,
+    expected_signer: str,
+    expected_key_id: str,
+    label: str,
+) -> dict[str, Any]:
+    if not isinstance(attestation, dict):
+        raise ValueError(f"missing authenticated {label} attestation")
+    if not isinstance(key, bytes) or len(key) < 32:
+        raise ValueError(f"trusted {label} verifier key is unavailable")
+    if attestation.get("algorithm") != "HMAC-SHA256":
+        raise ValueError(f"{label} attestation must use HMAC-SHA256")
+    if attestation.get("signer_id") != expected_signer or attestation.get("key_id") != expected_key_id:
+        raise ValueError(f"{label} attestation signer/key ID is not trusted")
+    claims = attestation.get("claims")
+    signature = attestation.get("signature_hex")
+    if not isinstance(claims, dict) or not isinstance(signature, str) or not SHA256_RE.fullmatch(signature):
+        raise ValueError(f"{label} attestation claims/signature are malformed")
+    expected = hmac.new(key, canonical_json_bytes(claims), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        raise ValueError(f"{label} attestation signature verification failed")
+    return claims
+
+
+def validate_receipt(
+    task: dict[str, str], receipt: dict[str, Any],
+    verification_keys: dict[str, bytes] | None = None,
+) -> tuple[str, str, list[str]]:
     """Return task status, reason and xG-missing fields without exposing hashes."""
     reject_sensitive_fields(receipt)
     expected_identity = {
@@ -183,6 +253,72 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
     if status != "SUCCESS":
         raise ValueError("receipt status must be SUCCESS or FAILED")
 
+    keys = verification_keys if verification_keys is not None else load_verification_keys_from_env()
+    archive_claims = verify_signed_attestation(
+        receipt.get("archive_verification"), keys.get("archive"),
+        ARCHIVE_VERIFIER_ID, ARCHIVE_VERIFIER_KEY_ID, "private archive read-back",
+    )
+    budget_claims = verify_signed_attestation(
+        receipt.get("budget_verification"), keys.get("budget"),
+        BUDGET_VERIFIER_ID, BUDGET_VERIFIER_KEY_ID, "central budget ledger",
+    )
+    for key, expected in expected_identity.items():
+        archive_actual = archive_claims.get(key)
+        budget_actual = budget_claims.get(key)
+        if key == "page":
+            archive_actual = parse_int(archive_actual, "archive_verification.page", 1)
+            budget_actual = parse_int(budget_actual, "budget_verification.page", 1)
+        if archive_actual != expected or budget_actual != expected:
+            raise ValueError(f"authenticated attestation exact task identity mismatch for {key}")
+
+    if archive_claims.get("payload_sha256") != receipt.get("payload_sha256"):
+        raise ValueError("archive verifier payload hash does not match receipt payload hash")
+    if archive_claims.get("archive_receipt_sha256") != receipt.get("private_archive_receipt_sha256"):
+        raise ValueError("archive verifier receipt hash does not match private archive receipt hash")
+    if archive_claims.get("archive_object_bytes_hash_verified") is not True:
+        raise ValueError("archive verifier did not independently verify archived object bytes")
+    if archive_claims.get("archive_receipt_bytes_hash_verified") is not True:
+        raise ValueError("archive verifier did not independently verify archive receipt bytes")
+    if archive_claims.get("writer_receipt_signature_verified") is not True:
+        raise ValueError("archive verifier did not authenticate the private writer receipt")
+    if archive_claims.get("private_visibility_verified") is not True:
+        raise ValueError("archive object private visibility was not verified")
+    if archive_claims.get("public_raw_payload_written") is not False:
+        raise ValueError("archive verifier did not confirm public raw-payload prohibition")
+    if not str(archive_claims.get("archive_object_id") or "").strip():
+        raise ValueError("archive verifier receipt lacks a private object identifier")
+    if not str(archive_claims.get("archive_object_version_id") or "").strip():
+        raise ValueError("archive verifier receipt lacks an immutable object version")
+    parse_int(archive_claims.get("archive_object_size_bytes"), "archive_verification.archive_object_size_bytes", 1)
+    parse_utc(archive_claims.get("verified_at_utc"))
+    if archive_claims.get("response_metadata_sha256") != response_metadata_digest(receipt):
+        raise ValueError("archive-signed response metadata digest mismatch")
+
+    if budget_claims.get("reservation_id") != receipt.get("budget_reservation_id"):
+        raise ValueError("budget verifier reservation ID does not match receipt")
+    if not str(budget_claims.get("ledger_entry_id") or "").strip():
+        raise ValueError("budget verifier receipt lacks a resolved ledger entry ID")
+    if not str(budget_claims.get("request_event_id") or "").strip():
+        raise ValueError("budget verifier receipt lacks a unique request event ID")
+    if parse_int(budget_claims.get("request_count"), "budget_verification.request_count", 1) != 1:
+        raise ValueError("each task receipt must resolve to exactly one provider request event")
+    if budget_claims.get("request_timestamp_utc") != receipt.get("request_timestamp_utc"):
+        raise ValueError("budget verifier request timestamp does not match receipt")
+    if budget_claims.get("hard_limit") != 1800:
+        raise ValueError("budget verifier did not attest the hard 1800-request rolling-hour ceiling")
+    operational_limit = parse_int(budget_claims.get("operational_limit"), "budget_verification.operational_limit", 1)
+    if operational_limit > 1500:
+        raise ValueError("budget verifier operational limit exceeds 1,500 requests")
+    if parse_int(budget_claims.get("reserved_headroom"), "budget_verification.reserved_headroom", 300) < 300:
+        raise ValueError("budget verifier did not preserve 300 requests of headroom")
+    if parse_int(budget_claims.get("rolling_60m_request_count_after"), "budget_verification.rolling_60m_request_count_after", 0) > operational_limit:
+        raise ValueError("budget verifier reports the rolling-hour operational limit was exceeded")
+    if budget_claims.get("provider_limit_enforced") is not True:
+        raise ValueError("budget verifier did not attest enforcement of lower provider limits")
+    if budget_claims.get("ledger_record_resolved") is not True or budget_claims.get("request_event_resolved") is not True:
+        raise ValueError("budget verifier did not resolve the authoritative ledger and request event")
+    parse_utc(budget_claims.get("verified_at_utc"))
+
     if receipt.get("response_http_status") != 200:
         raise ValueError("successful receipt must have HTTP 200")
     if receipt.get("provider_success") is not True:
@@ -197,6 +333,8 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         raise ValueError("successful receipt lacks the central budget reservation ID")
     if receipt.get("budget_ledger_attested") is not True:
         raise ValueError("successful receipt lacks durable rolling-ledger attestation")
+    if budget_claims.get("reserved_headroom") != receipt.get("reserved_headroom"):
+        raise ValueError("signed budget headroom does not match receipt")
     if receipt.get("global_rolling_hour_limit") != 1800:
         raise ValueError("successful receipt must attest the hard 1800-request rolling-hour ceiling")
     headroom = receipt.get("reserved_headroom")
@@ -204,6 +342,10 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         raise ValueError("successful receipt must attest at least 300 requests of headroom")
     if receipt.get("private_archive_write_verified") is not True:
         raise ValueError("successful receipt lacks verified private archive write")
+    if receipt.get("raw_payload_stored_privately") is not True:
+        raise ValueError("successful receipt does not attest private raw payload storage")
+    if receipt.get("public_raw_payload_written") is not False:
+        raise ValueError("public raw payload writes are prohibited")
     if receipt.get("raw_payload_stored_privately") is not True:
         raise ValueError("successful receipt does not attest private raw payload storage")
     if receipt.get("public_raw_payload_written") is not False:
@@ -269,6 +411,7 @@ def build_resume_plan(
     tasks: list[dict[str, str]],
     receipts: list[dict[str, Any]],
     max_batch_requests: int,
+    verification_keys: dict[str, bytes] | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     if isinstance(max_batch_requests, bool) or not isinstance(max_batch_requests, int) or not 1 <= max_batch_requests <= 1500:
         raise ValueError("max_batch_requests must be between 1 and 1500")
@@ -308,7 +451,7 @@ def build_resume_plan(
             else:
                 duplicate_receipts += max(0, len(task_receipts) - 1)
                 try:
-                    task_status, reason, xg_missing = validate_receipt(task, task_receipts[0])
+                    task_status, reason, xg_missing = validate_receipt(task, task_receipts[0], verification_keys)
                     xg_missing_counts.update(xg_missing)
                     if task_status == "COMPLETE_VERIFIED_PRIVATE_ARCHIVE" and task["endpoint"] == "league-matches":
                         no_home_away_rows_total += int(task_receipts[0]["no_home_away_rows"])
@@ -406,7 +549,9 @@ def main() -> int:
     args = parser.parse_args()
     tasks = read_manifest(Path(args.manifest))
     receipts = read_receipts(Path(args.receipts_jsonl))
-    next_batch, status_rows, summary = build_resume_plan(tasks, receipts, args.max_batch_requests)
+    next_batch, status_rows, summary = build_resume_plan(
+        tasks, receipts, args.max_batch_requests, load_verification_keys_from_env()
+    )
     write_outputs(Path(args.output_dir), next_batch, status_rows, summary)
     print(json.dumps(summary, sort_keys=True))
     return 0 if summary["execution_gate"] != "STOPPED_REQUIRES_OPERATOR_REVIEW" else 2
