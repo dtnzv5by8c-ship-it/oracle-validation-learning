@@ -502,9 +502,18 @@ jobs:
                   "FAIL: row-level history audit did not map every archive season: "
                   f"mapped={qa.get('archive_seasons_mapped')} expected={archive_summary.get('season_folders')}"
               )
-          if qa.get("blocked_team_side_rows_audited") != 25:
+          import csv
+          with Path("runtime-artifact/extracted/oracle_selected50_prediction_report.csv").open(encoding="utf-8-sig", newline="") as handle:
+              runtime_rows = list(csv.DictReader(handle))
+          expected_side_rows = sum(
+              any(feature.startswith(side + "_") for feature in str(row.get("missing_required_features") or "").split(";") if feature)
+              for row in runtime_rows
+              for side in ("home", "away")
+          )
+          if qa.get("blocked_team_side_rows_audited") != expected_side_rows:
               raise SystemExit(
-                  f"FAIL: expected 25 blocked team-side histories to be audited, got {qa.get('blocked_team_side_rows_audited')}"
+                  "FAIL: row-level history audit side count does not match runtime missing-feature scope: "
+                  f"audited={qa.get('blocked_team_side_rows_audited')} expected={expected_side_rows}"
               )
           mismatches = qa.get("runtime_archive_history_count_mismatches", [])
           if qa.get("all_side_history_counts_reconcile") is not True:
