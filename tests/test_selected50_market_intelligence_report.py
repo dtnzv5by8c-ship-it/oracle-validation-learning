@@ -114,8 +114,8 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertTrue(market_report.require_snapshot_orientation_qa(missing_qa))
 
         duplicated, duplicate_qa = market_report.build_snapshot_orientation_map(
-            [runtime], [snapshot_row("0"), snapshot_row("1")], snapshot_provenance(),
-            archive_summary
+            [runtime], [snapshot_row("0"), snapshot_row("1")],
+            dict(snapshot_provenance(), snapshot_fixture_rows=2), archive_summary
         )
         self.assertEqual(duplicated[("S1", "F100", "H", "A")]["snapshot_evidence_status"],
                          "DUPLICATE_SNAPSHOT_MATCH")
