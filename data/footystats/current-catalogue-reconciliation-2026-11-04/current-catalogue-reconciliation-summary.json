@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "diagnostic": "FOOTYSTATS_CURRENT_CATALOGUE_TO_LEGACY50_AND_CANONICAL_CANDIDATE_RECONCILIATION",
+  "source_of_truth": "FootyStats",
+  "catalogue_scope": "chosen_leagues_only",
+  "history_start_date": "2024-01-01",
+  "history_end_date_inclusive": "2026-11-04",
+  "current_provider_league_count": 49,
+  "current_catalogue_season_row_count": 756,
+  "historical_plan_provider_league_count": 49,
+  "historical_plan_season_row_count": 182,
+  "legacy50_manifest_row_count": 50,
+  "exact_legacy_country_competition_matches": 44,
+  "legacy50_selected_ids_present_under_exact_current_provider_names": 44,
+  "legacy50_leagues_absent_from_current_selected_catalogue_count": 6,
+  "new_current_catalogue_leagues_not_in_legacy50_count": 5,
+  "canonical_candidate_requires_human_approval_count": 22,
+  "no_match_in_current_protected_27_registry_count": 22,
+  "not_assessed_against_current_protected_registry_count": 5,
+  "historical_ledger_code_candidate_count": 24,
+  "legacy50_leagues_absent_from_current_selected_catalogue": [
+    "Finland Veikkausliiga",
+    "India Indian Super League",
+    "Republic of Ireland Premier Division",
+    "Russia Russian Premier League",
+    "South Korea K League 1",
+    "Venezuela Primera División"
+  ],
+  "new_current_catalogue_leagues_not_in_legacy50": [
+    "Bulgaria First League",
+    "Egypt Egyptian Premier League",
+    "Portugal Liga NOS",
+    "Qatar Stars League",
+    "Wales Welsh Premier League"
+  ],
+  "provider_parent_competition_ids_verified": 0,
+  "approved_oracle_canonical_mappings": 0,
+  "api_requests_made": 0,
+  "raw_provider_data_written": false,
+  "production_logic_changed": false,
+  "production_eligible": false,
+  "betting_eligible": false,
+  "limitations": [
+    "The current catalogue is chosen_leagues_only and contains 49 leagues; it is not the complete public FootyStats universe.",
+    "Canonical IDs from prior research are candidates only and require human review; the current protected 27-league registry is not the full intended expanded universe.",
+    "Provider comp_master_id was observed in a prior probe but its parent-competition semantics remain unverified.",
+    "The 2024-forward season plan identifies season partitions only; it does not prove that fixtures, results, teams, H2H, standings, recent form or xG have been ingested.",
+    "Historical ledger code candidates use team-pair/date joins and do not establish kickoff-precise canonical identity."
+  ]
+}
