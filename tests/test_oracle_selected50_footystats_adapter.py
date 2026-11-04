@@ -180,5 +180,26 @@ class AdapterTests(unittest.TestCase):
             adapt(snap)
 
 
+    def test_adapter_accepts_provider_catalogue_not_exactly_50_seasons(self):
+        row = {
+            "selected_season_id": "1", "id": 123, "homeID": 11, "awayID": 22,
+            "home_name": "Home FC", "away_name": "Away FC",
+            "kickoff_utc": "2026-10-30T18:00:00+00:00", "status": "scheduled",
+        }
+        snap = snapshot_with(row)
+        snap["per_season"] = season_rows()[:3]
+        snap["fixture_rows"] = [row]
+        rows, summary = adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+        self.assertEqual(summary["selected_league_seasons"], 3)
+        self.assertEqual(summary["season_retrieval_success"], 3)
+        self.assertEqual(rows[0]["source_season_id"], "1")
+
+    def test_adapter_rejects_duplicate_provider_season_ids(self):
+        snap = snapshot_with({"selected_season_id": "1", "id": 1})
+        snap["per_season"][1]["selected_season_id"] = "1"
+        with self.assertRaisesRegex(ValueError, "unique"):
+            adapt(snap, datetime(2026, 10, 28, 12, tzinfo=timezone.utc))
+
+
 if __name__ == "__main__":
     unittest.main()
