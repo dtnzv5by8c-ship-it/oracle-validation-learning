@@ -336,6 +336,24 @@ def add_history_window_summary(summary: dict[str, Any], rows: list[dict[str, Any
     summary["page_1_rows_outside_window"] = out_of_window
     summary["fixture_date_filter_applied_to_future_ingestion"] = True
 
+def parse_no_home_away_flag(value: Any) -> bool | None:
+    """Parse only explicit boolean/0-1 encodings; preserve missingness and reject ambiguity."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, float) and value in (0.0, 1.0):
+        return bool(int(value))
+    token = str(value).strip().casefold()
+    if token in {"1", "true"}:
+        return True
+    if token in {"0", "false"}:
+        return False
+    raise PreflightError("MATCH_NO_HOME_AWAY_FLAG_UNRECOGNIZED")
+
+
 def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     try:
         pager = validate_paged_response("league-matches", payload, 1)
@@ -353,6 +371,7 @@ def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[d
     complete_goal_gaps = 0
     goal_presence = {field: 0 for field in MATCH_RESULT_FIELDS}
     no_home_away_count = 0
+    no_home_away_missing_field_count = 0
     kickoff_values: list[int] = []
     for row in rows:
         if not isinstance(row, dict):
@@ -372,7 +391,10 @@ def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[d
             duplicate_ids += 1
         seen.add(str(match_id))
         kickoff_values.append(kickoff)
-        if str(row.get("no_home_away", "")).strip() in {"1", "true", "True"}:
+        no_home_away_flag = parse_no_home_away_flag(row.get("no_home_away"))
+        if no_home_away_flag is None:
+            no_home_away_missing_field_count += 1
+        elif no_home_away_flag:
             no_home_away_count += 1
         if str(row.get("status", "")).lower() == "complete":
             complete_rows += 1
@@ -394,6 +416,9 @@ def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[d
         "completed_rows_missing_any_goal_field": complete_goal_gaps,
         "completed_goal_field_presence": goal_presence,
         "no_home_away_rows": no_home_away_count,
+        "no_home_away_flag_field_present_rows": len(rows) - no_home_away_missing_field_count,
+        "no_home_away_flag_field_missing_rows": no_home_away_missing_field_count,
+        "no_home_away_flag_field_coverage_complete": no_home_away_missing_field_count == 0,
         "kickoff_unix_min": min(kickoff_values) if kickoff_values else None,
         "kickoff_unix_max": max(kickoff_values) if kickoff_values else None,
     }
