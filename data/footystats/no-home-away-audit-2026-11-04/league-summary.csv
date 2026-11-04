@@ -3,48 +3,48 @@ Argentina Primera División,3,3,2,1383,903,65.29,HIGH_GE_50_PERCENT,False,False,
 Australia A-League,4,3,0,664,21,3.16,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
 Austria Bundesliga,4,3,0,717,67,9.34,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
 Belgium Pro League,4,2,0,1244,74,5.95,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Brazil Serie A,3,0,0,1140,0,0.0,NONE_REPORTED,False,False,False,False,False
+Brazil Serie A,3,0,0,1140,0,0,NONE_REPORTED,False,False,False,False,False
 Bulgaria First League,4,3,0,1050,106,10.1,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
-Canada Canadian Premier League,3,3,0,350,14,4.0,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Chile Primera División,3,0,0,720,0,0.0,NONE_REPORTED,False,False,False,False,False
-China Chinese Super League,3,0,0,720,0,0.0,NONE_REPORTED,False,False,False,False,False
+Canada Canadian Premier League,3,3,0,350,14,4,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
+Chile Primera División,3,0,0,720,0,0,NONE_REPORTED,False,False,False,False,False
+China Chinese Super League,3,0,0,720,0,0,NONE_REPORTED,False,False,False,False,False
 Colombia Categoria Primera A,3,3,1,1278,825,64.55,HIGH_GE_50_PERCENT,False,False,False,False,False
-Croatia Prva HNL,4,0,0,720,0,0.0,NONE_REPORTED,False,False,False,False,False
+Croatia Prva HNL,4,0,0,720,0,0,NONE_REPORTED,False,False,False,False,False
 Czech Republic First League,4,3,0,1069,49,4.58,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
 Denmark Superliga,4,3,0,711,123,17.3,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 Ecuador Primera Categoría Serie A,3,3,0,866,146,16.86,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 Egypt Egyptian Premier League,4,1,0,1043,112,10.74,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 England Championship,4,3,0,2224,15,0.67,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
 England EFL League One,4,3,0,2223,15,0.67,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-England Premier League,4,0,0,1520,0,0.0,NONE_REPORTED,False,False,False,False,False
-France Ligue 1,4,0,0,1224,0,0.0,NONE_REPORTED,False,False,False,False,False
+England Premier League,4,0,0,1520,0,0,NONE_REPORTED,False,False,False,False,False
+France Ligue 1,4,0,0,1224,0,0,NONE_REPORTED,False,False,False,False,False
 France Ligue 2,4,2,0,1302,4,0.31,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Germany 2. Bundesliga,4,0,0,1224,0,0.0,NONE_REPORTED,False,False,False,False,False
-Germany Bundesliga,4,0,0,1224,0,0.0,NONE_REPORTED,False,False,False,False,False
+Germany 2. Bundesliga,4,0,0,1224,0,0,NONE_REPORTED,False,False,False,False,False
+Germany Bundesliga,4,0,0,1224,0,0,NONE_REPORTED,False,False,False,False,False
 Greece Super League,4,1,0,894,54,6.04,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Italy Serie A,4,0,0,1520,0,0.0,NONE_REPORTED,False,False,False,False,False
+Italy Serie A,4,0,0,1520,0,0,NONE_REPORTED,False,False,False,False,False
 Italy Serie B,4,3,0,1552,29,1.87,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Japan J1 League,3,0,0,1140,0,0.0,NONE_REPORTED,False,False,False,False,False
+Japan J1 League,3,0,0,1140,0,0,NONE_REPORTED,False,False,False,False,False
 Mexico Liga MX,4,4,2,1170,558,47.69,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 Netherlands Eredivisie,4,3,0,1233,9,0.73,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Norway Eliteserien,3,0,0,720,0,0.0,NONE_REPORTED,False,False,False,False,False
-Paraguay Division Profesional,3,3,3,792,792,100.0,ALL_SAMPLED_SEASONS_FULLY_FLAGGED,False,False,False,False,False
+Norway Eliteserien,3,0,0,720,0,0,NONE_REPORTED,False,False,False,False,False
+Paraguay Division Profesional,3,3,3,792,792,100,ALL_SAMPLED_SEASONS_FULLY_FLAGGED,False,False,False,False,False
 Peru Primera División,3,2,2,958,652,68.06,HIGH_GE_50_PERCENT,False,False,False,False,False
-Poland Ekstraklasa,4,1,1,1224,306,25.0,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
-Portugal Liga NOS,4,0,0,1224,0,0.0,NONE_REPORTED,False,False,False,False,False
-Portugal LigaPro,4,0,0,1224,0,0.0,NONE_REPORTED,False,False,False,False,False
-Qatar Stars League,4,0,0,462,0,0.0,NONE_REPORTED,False,False,False,False,False
+Poland Ekstraklasa,4,1,1,1224,306,25,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
+Portugal Liga NOS,4,0,0,1224,0,0,NONE_REPORTED,False,False,False,False,False
+Portugal LigaPro,4,0,0,1224,0,0,NONE_REPORTED,False,False,False,False,False
+Qatar Stars League,4,0,0,462,0,0,NONE_REPORTED,False,False,False,False,False
 Romania Liga I,4,2,0,1189,79,6.64,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Saudi Arabia Professional League,4,1,1,1224,306,25.0,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
+Saudi Arabia Professional League,4,1,1,1224,306,25,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 Scotland Premiership,4,1,1,882,198,22.45,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
 Serbia SuperLiga,4,1,0,1070,56,5.23,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-South Africa Premier Soccer League,4,0,0,960,0,0.0,NONE_REPORTED,False,False,False,False,False
-Spain La Liga,4,0,0,1520,0,0.0,NONE_REPORTED,False,False,False,False,False
+South Africa Premier Soccer League,4,0,0,960,0,0,NONE_REPORTED,False,False,False,False,False
+Spain La Liga,4,0,0,1520,0,0,NONE_REPORTED,False,False,False,False,False
 Spain Segunda División,4,3,0,1866,16,0.86,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Sweden Allsvenskan,3,0,0,720,0,0.0,NONE_REPORTED,False,False,False,False,False
+Sweden Allsvenskan,3,0,0,720,0,0,NONE_REPORTED,False,False,False,False,False
 Switzerland Super League,4,1,0,816,30,3.68,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
-Turkey Süper Lig,4,0,0,1334,0,0.0,NONE_REPORTED,False,False,False,False,False
-Ukraine Ukrainian Premier League,4,1,1,960,240,25.0,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
-Uruguay Primera División,3,3,0,878,470,53.53,HIGH_GE_50_PERCENT,False,False,False,False,False
+Turkey Süper Lig,4,0,0,1334,0,0,NONE_REPORTED,False,False,False,False,False
 USA MLS,3,2,0,1572,59,3.75,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
+Ukraine Ukrainian Premier League,4,1,1,960,240,25,MODERATE_10_TO_50_PERCENT,False,False,False,False,False
+Uruguay Primera División,3,3,0,878,470,53.53,HIGH_GE_50_PERCENT,False,False,False,False,False
 Wales Welsh Premier League,4,3,0,826,70,8.47,LOW_GT_0_TO_10_PERCENT,False,False,False,False,False
