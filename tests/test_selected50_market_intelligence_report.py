@@ -597,7 +597,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(decision_values["Production Eligible"], "NO")
             self.assertEqual(decision_values["Betting Eligible"], "NO")
             self.assertEqual(decision_values["Home Last-5 Form"], "WWDWW")
-            self.assertEqual(decision_values["H2H Avg Total Goals"], 3.5)
+            self.assertEqual(decision_values["H2H Avg Total Goals"], "3.50")
             self.assertEqual(decision_values["H2H Avg Total Goals2"], 3.5)
             self.assertEqual(decision_values["actual_home_goals"], 0)
             self.assertEqual(decision_values["actual_away_goals"], 0)
@@ -815,8 +815,8 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             self.assertEqual(workbook["Oracle V1.6 Output"].max_column, 38)
             self.assertEqual(workbook["Market Intelligence"].max_column, 95)
             self.assertEqual(workbook.sheetnames, [
-                "Oracle V1.6 Output", "Market Intelligence", "xG Evidence Audit",
-                "H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
+                "Oracle V1.6 Output", "Market Intelligence", "OMI Report", "Visual Intelligence",
+                "xG Evidence Audit", "H2H Intelligence", "Team Form Evidence", "Data Quality & Risk",
                 "Schedule Reconciliation", "Goal Intelligence", "Goal Market Research",
                 "Market Data Coverage", "Archive Field Coverage", "Definitions & Governance",
                 "50-League Coverage", "Coverage Audit Summary", "xG Provenance Decision",
