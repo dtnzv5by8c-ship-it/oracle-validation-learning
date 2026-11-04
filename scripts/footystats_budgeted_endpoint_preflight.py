@@ -540,6 +540,9 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             if len(matches) != 1:
                 raise PreflightError("ACTIVE_INITIAL_RESERVATION_NOT_FOUND")
             reservation_count = int(matches[0]["reserved_count"])
+            if reservation_count > args.max_requests:
+                raise PreflightError("RESERVATION_EXCEEDS_REQUESTED_MAXIMUM")
+            report["request_budget"]["reserved_requests_this_run"] = reservation_count
 
         if not api_key:
             raise PreflightError("FOOTYSTATS_API_KEY_SECRET_MISSING")
