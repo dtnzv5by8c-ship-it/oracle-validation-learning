@@ -561,3 +561,12 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - The current-fixture snapshot requires its own explicit credit-usage and monthly-budget confirmations.
 - The offline Selected-50 contract-test workflow now includes the OMI snapshot-exception, venue-history, inclusive-window and no-call results tests. The Actions pass/fail state has not been independently read; no test pass is claimed.
 - Latest implementation checkpoint: `d567f56fb70e7cf0164fd4594db369f6fb7d4de1`. No provider API calls or production changes were made.
+
+
+### Report-window QA correction — 2026-11-04
+
+- The OMI 50-League Coverage and Coverage Audit Summary now derive the inclusive UTC report horizon from the runtime's 50 schedule-coverage rows.
+- Removed fixed seven-day labels/statuses. Coverage fields now say `Upcoming Fixtures (Report Window)`; no-fixture status is `NO_FIXTURE_IN_REPORT_WINDOW`.
+- QA and the workbook show the actual inclusive start/end dates and calendar-day count. For Run #181 this is 6–24 November, 19 days.
+- This is report metadata/coverage labelling only. It does not change runtime selection, model inputs, probabilities, production logic or eligibility.
+- Regression tests added. CI result remains unverified pending inspection of the push-triggered contract-test run.
