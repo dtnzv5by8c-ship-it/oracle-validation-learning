@@ -1,0 +1,75 @@
+name: FootyStats No-Home-Away Aggregate Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/footystats-no-home-away-aggregate-audit.yml"
+      - "scripts/audit_footystats_no_home_away_coverage.py"
+      - "tests/test_footystats_no_home_away_coverage.py"
+      - "data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-no-home-away-aggregate-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout triggering research commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile offline audit
+        run: python -m py_compile scripts/audit_footystats_no_home_away_coverage.py
+
+      - name: Run no-home-away audit regression tests
+        run: python -m unittest discover -s tests -p "test_footystats_no_home_away_coverage.py" -v
+
+      - name: Build sanitized aggregate audit (zero provider calls)
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/footystats-no-home-away-audit"
+          python scripts/audit_footystats_no_home_away_coverage.py \
+            --coverage-csv data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv \
+            --output-dir "${OUT}"
+          OUT="${OUT}" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          s=json.loads((Path(os.environ["OUT"]) / "summary.json").read_text(encoding="utf-8"))
+          assert s["provider_season_count"] == 182, s
+          assert s["provider_league_count"] == 49, s
+          assert s["page_1_match_rows_returned"] == 54546, s
+          assert s["page_1_no_home_away_rows"] == 6398, s
+          assert s["seasons_with_any_no_home_away_rows"] == 73, s
+          assert s["leagues_with_any_no_home_away_rows"] == 31, s
+          assert s["seasons_with_all_page_1_rows_no_home_away"] == 14, s
+          assert s["page_1_no_home_away_rate_pct"] == 11.73, s
+          assert s["single_page_pagination_metadata_consistent_all_seasons"] is True, s
+          assert s["fixture_level_records_inspected"] == 0, s
+          assert s["root_cause_resolved"] is False, s
+          assert s["api_requests_made"] == 0 and s["raw_provider_payloads_read"] is False, s
+          assert s["production_eligible"] is False and s["betting_eligible"] is False, s
+          print("PASS: aggregate no_home_away counts reconcile; no fixture identity or root cause inferred.")
+          PY
+
+      - name: Upload sanitized aggregate audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-no-home-away-aggregate-audit
+          path: ${{ runner.temp }}/footystats-no-home-away-audit/
+          if-no-files-found: error
+          retention-days: 30
