@@ -1106,7 +1106,8 @@ def main():
                 "country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
                 "archive_match_rows":len(comp_rows),"completed_match_rows":sum(1 for r in comp_rows if r["finished"]),
                 "upcoming_fixture_count_report_window":len(comp_future),
-                "report_start_date_utc":report_start_date,"report_end_date_utc_inclusive":report_end_date,\n                "first_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[0],dt.timezone.utc).isoformat() if future_times else "",
+                "report_start_date_utc":report_start_date,"report_end_date_utc_inclusive":report_end_date,
+                "first_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[0],dt.timezone.utc).isoformat() if future_times else "",
                 "last_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[-1],dt.timezone.utc).isoformat() if future_times else "",
                 "schedule_coverage_status":"FIXTURES_FOUND" if comp_future else "NO_FIXTURE_IN_REQUESTED_REPORT_WINDOW_CHECK_SCHEDULE_FRESHNESS",
                 "production_eligible":"NO"
