@@ -1,0 +1,18 @@
+name: DISABLED — Legacy FootyStats request path (oracle-selected50-cross-season-identity-stability)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Refuse legacy provider request path
+        shell: bash
+        run: |
+          echo "::error::This legacy FootyStats request workflow is disabled. All provider requests must use the single governed ingestion workflow with the global rolling-hour request ledger."
+          exit 1
