@@ -28,6 +28,15 @@ PRIMARY_START = dt.datetime(2025, 3, 20, tzinfo=dt.timezone.utc).timestamp()
 PRIMARY_END = dt.datetime(2026, 9, 21, tzinfo=dt.timezone.utc).timestamp()
 NOW = dt.datetime.now(dt.timezone.utc).timestamp()
 
+def inclusive_report_horizon_days(start_text, end_text):
+    """Return the declared inclusive UTC calendar-date span, independent of runtime lead-time clipping."""
+    start_date = dt.date.fromisoformat(str(start_text))
+    end_date = dt.date.fromisoformat(str(end_text))
+    if end_date < start_date:
+        raise ValueError("Report end date must be on or after report start date.")
+    return (end_date - start_date).days + 1
+
+
 def resolve_report_window(now_utc=None):
     """Resolve an explicit UTC calendar-date report window; end date is inclusive."""
     start_text = os.environ.get("ORACLE_REPORT_START_DATE", "2026-11-06").strip()
@@ -1553,7 +1562,9 @@ def main():
         if any(r["production_eligible"] != "NO" for r in provider_season_year_rows):
             raise RuntimeError("Provider season-year coverage attempted to grant production eligibility")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"selected_groups_with_match_rows":len(present_comps),
-            "report_horizon_days":7,"minimum_lead_time_minutes":15,
+            "report_horizon_days":inclusive_report_horizon_days(report_start_text, report_end_text),
+            "report_start_date_utc":report_start_text,"report_end_date_utc_inclusive":report_end_text,
+            "minimum_lead_time_minutes":15,
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
             "future_fixture_candidates_in_report_horizon":len(future),
             "season_rows_seen":len(season_rows),"selected_season_ids":len(selected_by_id),"historical_seasons_mapped_by_exact_labels":mapped_historical_seasons,"historical_seasons_loaded":sum(1 for r in season_qa if r["status"]=="INGESTED"),
