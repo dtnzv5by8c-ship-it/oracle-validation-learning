@@ -58,3 +58,60 @@
 
 ## Permanent OMI workbook standard
 Use the enriched Master OMI structure already established in Project Oracle, including the OMI Report, Oracle V1.6 Output, Market/Visual Intelligence, xG evidence/provenance, H2H, team form, data quality/risk, schedule reconciliation, goal intelligence/research, 50-league coverage and field coverage QA, actual results, data dictionary and configuration tabs. Preserve all 50 leagues even when they have no fixtures. Production outputs stay unchanged; research-only outputs remain clearly labelled.
+
+
+---
+
+## 2026-11-04 continued execution update (post-Run #181)
+
+### Live evidence recovered
+
+- Governed branch: `research/oracle-50-league-readiness-audit`.
+- Runtime Run #181: `41795266381`; artifact `13305112544`; successful.
+- Runtime output: 754 fixture rows, 714 research prediction rows, 40 feature-blocked fixtures, 50 selected league groups.
+- Snapshot Run #11: `41792644975`; artifact `13304256411`; successful; 2,568 snapshot rows.
+- OMI repair attempt: `41792013568`; failed before report construction in its exact runtime-to-snapshot subset check. Its input runtime run was `41787205480`, not Run #181. Failure was caused by 21 runtime fixtures without exact ordered-identity rows in the supplied snapshot trace. No report was built by that attempt.
+
+### Evidence-based diagnosis of the 21 snapshot exceptions
+
+The Run #11 snapshot declared `window_end_utc=2026-11-24T07:29:52Z`. Only one 24-November fixture was present in its 2,568 rows. Twenty runtime fixtures on 24 November had kickoffs later than that declared cutoff and were therefore outside the snapshot window. This confirms the prior partial-day cutoff hypothesis for those 20 rows.
+
+One additional runtime fixture, ID `8409563` (Atlético Mineiro vs Corinthians, 21 November), was absent despite being inside the declared window. Its selected season `16544` returned HTTP 200, provider success, one page, and 380 raw match records; the snapshot contained no same-fixture row or same-team-pair substitute. Treat this as a provider-response/schedule evidence omission until a fresh source response resolves it. Do not infer or fabricate the missing orientation flag.
+
+The current branch already contains explicit inclusive `report_end_date` support in the current-fixture snapshot workflow, probe and validator. The next snapshot dispatch must set `report_end_date=2026-11-24`, which makes the snapshot window cover the entire UTC calendar date. It also requires both explicit provider-credit and monthly-budget confirmations. Do not dispatch without those approvals.
+
+### Implemented reporting corrections
+
+The report-only pipeline now accounts for every runtime fixture even when the fresh snapshot has no exact match:
+
+- Preflight writes `oracle_selected50_runtime_snapshot_reconciliation_qa.json` and `oracle_selected50_runtime_snapshot_exceptions.csv`.
+- The report builder labels missing rows `MISSING_FROM_FRESH_SNAPSHOT`; duplicates, incomplete runtime identities and unknown flags receive separate explicit exception states.
+- The orientation QA accepts only complete row accounting. Missing/ambiguous evidence remains review-required; it is never treated as a successful join.
+- The report status is forced to `PARTIAL_RESEARCH_ONLY` whenever snapshot evidence remains unresolved.
+- The exception QA and CSV are included in both failure diagnostics and successful report artifacts.
+- The report horizon metadata is now computed from the actual inclusive UTC date range. The 6–24 November window is 19 calendar days, not the previous hard-coded 7-day metadata value.
+
+### Historical form provenance correction
+
+The Run #253 row-level audit had counted both home and away appearances when reconstructing home-side and away-side history. That inflated reconstructed counts and mislabeled 24 side discrepancies as feature-field gaps. The audit now applies venue orientation: home-side history only counts matches where the target team was home; away-side history only counts matches where the target team was away. Rechecking the Run #253 evidence gives exact agreement with runtime counts for all 25 audited sides (21 sides with four matches; four sides with three). The five-match runtime gate remains unchanged.
+
+### Changes committed on the governed research branch
+
+- `31ff3883b303973e3033d8f6680ee5c76f47e9ab` — retain missing snapshot evidence as report-level exceptions.
+- `2b95b6c8c12e36db340e1e8fd5f6836146e85af6` — preflight snapshot exception reconciliation.
+- `ef2101af91465fa6abeff8b09624f8d99a66ffe1` and `9034d02591b2d90959e9e368c222f6145cde13a9` — expose snapshot evidence status in report output.
+- `7cb5e25684da1b5ec21d5a57b1e28f9daeb3d577` — correct inclusive report horizon metadata.
+- `1e17365e2f3991b6637cbc9b29bf76250f514682` and `9efa50d357a244f6e5eeb7d4cd9aa59c72f44afb` — add regression tests.
+- `9e84d6ed883006303dc8afeed6c0b964203d7133` and `7254da658b220b0ab3d51e77fe61fddd444f0e21` — publish snapshot exception artifacts and correct artifact lists.
+- Earlier commits in this continuation correct the row-level history audit to use venue-specific history.
+
+Latest implementation commit recorded at this checkpoint: `7254da658b220b0ab3d51e77fe61fddd444f0e21`.
+
+### Governance and outstanding verification
+
+- Oracle V1.6 production logic and probabilities remain untouched.
+- The five-match minimum, exact ordered fixture identity, pinned archive digest, xG quarantine and research-only eligibility remain unchanged.
+- Unit-test changes are committed, but a successful CI run against these new commits has not yet been verified.
+- The updated OMI repair workflow has not yet been dispatched against Run #181.
+- Next execution: verify CI; dispatch OMI repair with runtime run ID `41795266381` and the unchanged pinned archive; inspect the new workbook and QA; then run a fresh full-day snapshot only after the two provider-credit confirmations are explicitly approved.
+- Results reconciliation uses the separate FootyStats results-provider exception documented in the weekly runbook. Review actual API-call count and retrieval freshness in its QA; do not treat stale results as current.
