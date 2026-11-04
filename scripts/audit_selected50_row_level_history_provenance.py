@@ -369,10 +369,9 @@ def audit(runtime_rows, archive_rows, selected_ids):
             exact_name_candidates = [
                 r for r in archive_rows
                 if r["competition_id"] == selected_id and target_name_key
-                and target_name_key in {
-                    normalize_team_name(r.get("home_name")),
-                    normalize_team_name(r.get("away_name")),
-                }
+                and target_name_key == normalize_team_name(
+                    r.get("home_name") if side == "home" else r.get("away_name")
+                )
             ] if not candidates else []
             exact_name_prior = [
                 r for r in exact_name_candidates
@@ -398,6 +397,11 @@ def audit(runtime_rows, archive_rows, selected_ids):
                     reason, detail = "INVALID_IDENTITY", "IDENTICAL_HOME_AND_AWAY_TEAM_IDS"
                 elif not home_id or not away_id:
                     reason, detail = "ORIENTATION_UNAVAILABLE", "ONE_TEAM_ID_MISSING_FROM_SOURCE_RECORD"
+                elif (side == "home" and home_id != team_id) or (side == "away" and away_id != team_id):
+                    reason, detail = "WRONG_VENUE_ORIENTATION", (
+                        "HOME_HISTORY_REQUIRES_TEAM_AS_HOME" if side == "home"
+                        else "AWAY_HISTORY_REQUIRES_TEAM_AS_AWAY"
+                    )
                 elif row["fixture_id"] and (selected_id, row["fixture_id"]) in conflicting_ids:
                     reason, detail = "DUPLICATE_RECORD", "CONFLICTING_COMPETITION_SCOPED_FIXTURE_ID"
                 elif (row["source_file"], row["source_row"]) in exact_extra:
@@ -455,7 +459,7 @@ def audit(runtime_rows, archive_rows, selected_ids):
             root_cause = (
                 "PROVIDER_TEAM_ID_DRIFT_EXACT_NAME_CANDIDATES_FOUND" if not candidates and exact_name_candidates
                 else "NO_MATCHING_TEAM_ID_OR_EXACT_NAME_SOURCE_RECORDS_IN_MAPPED_ARCHIVE" if not candidates
-                else "INSUFFICIENT_QUALIFYING_PRE_KICKOFF_HISTORY" if len(included) < 5
+                else "INSUFFICIENT_QUALIFYING_HOME_OR_AWAY_VENUE_HISTORY" if len(included) < 5
                 else "FIVE_MATCH_HISTORY_PRESENT_FEATURE_FIELD_GAP"
             )
             sides_out.append({
@@ -503,7 +507,8 @@ def audit(runtime_rows, archive_rows, selected_ids):
         "runtime_archive_history_count_mismatches": count_mismatches,
         "all_side_history_counts_reconcile": not count_mismatches,
         "selected_competition_grouping": "EXACT_COUNTRY_COMPETITION_LABEL_TO_SELECTED_ID_AS_EXISTING_RUNTIME",
-        "history_rules": "EXISTING_RUNTIME_FINISHED_INTEGER_SCORE_DISTINCT_TEAM_ID_DEDUPLICATED_SIGNATURE_STRICT_PRE_KICKOFF",
+        "history_rules": "EXISTING_RUNTIME_FINISHED_INTEGER_SCORE_DISTINCT_TEAM_ID_DEDUPLICATED_SIGNATURE_STRICT_PRE_KICKOFF_AND_HOME_AWAY_VENUE_ORIENTATION",
+        "venue_history_scope": "HOME_SIDE_COUNTS_ONLY_MATCHES_WHERE_TARGET_TEAM_IS_HOME; AWAY_SIDE_COUNTS_ONLY_MATCHES_WHERE_TARGET_TEAM_IS_AWAY",
         "minimum_history_required": 5, "minimum_history_changed": False,
         "feature_imputation": 0, "production_model_logic_changed": False,
         "production_probabilities_changed": False, "provider_api_calls": 0,
