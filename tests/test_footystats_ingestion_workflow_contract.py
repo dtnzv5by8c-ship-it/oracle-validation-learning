@@ -87,5 +87,62 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
 
 
 
+class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
+    def setUp(self):
+        self.central = ROOT / ".github" / "workflows" / "footystats-global-budgeted-endpoint-preflight.yml"
+        self.content = self.central.read_text(encoding="utf-8")
+
+    def test_single_central_gateway_is_manual_and_serialized(self):
+        trigger = self.content.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\n  push:", trigger)
+        self.assertNotIn("\n  schedule:", trigger)
+        self.assertIn("group: footystats-global-api-gateway", self.content)
+        self.assertIn("cancel-in-progress: false", self.content)
+        self.assertIn("confirm_provider_api_usage:", self.content)
+        self.assertIn("default: true", self.content)
+        self.assertIn("max_requests:", self.content)
+        self.assertIn("default: 1000", self.content)
+        self.assertIn("<= 1500", self.content)
+
+    def test_reservation_is_committed_before_the_only_api_executor(self):
+        reserve_step = self.content.index("Reserve global rolling-hour request budget before any provider call")
+        commit_step = self.content.index("Commit durable reservation before provider access")
+        execute_step = self.content.index("Run sanitized endpoint and field preflight")
+        self.assertLess(reserve_step, commit_step)
+        self.assertLess(commit_step, execute_step)
+        self.assertIn("footystats_budgeted_endpoint_preflight.py reserve", self.content)
+        self.assertIn("footystats_budgeted_endpoint_preflight.py execute", self.content)
+
+    def test_gateway_writes_only_sanitized_ledger_and_preflight_outputs(self):
+        self.assertIn("contents: write", self.content)
+        self.assertIn("rolling-request-ledger.json", self.content)
+        self.assertIn("endpoint-preflight", self.content)
+        self.assertIn("Upload sanitized endpoint preflight report only", self.content)
+        self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.content)
+        self.assertNotIn("gh release create", self.content)
+        self.assertNotIn("gh release upload", self.content)
+        self.assertNotIn("oracle-football-data", self.content)
+
+    def test_only_the_central_workflow_may_reference_footystats_api_secret_or_host(self):
+        workflow_dir = ROOT / ".github" / "workflows"
+        allowed = self.central.resolve()
+        for path in workflow_dir.glob("*.yml"):
+            content = path.read_text(encoding="utf-8")
+            if path.resolve() == allowed:
+                continue
+            with self.subTest(workflow=path.name):
+                self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
+                self.assertNotIn("api.football-data-api.com", content)
+
+    def test_preflight_script_never_persists_provider_payloads_or_changes_production(self):
+        script = (ROOT / "scripts" / "footystats_budgeted_endpoint_preflight.py").read_text(encoding="utf-8")
+        self.assertIn('"raw_payloads_persisted": False', script)
+        self.assertIn('"production_eligible": False', script)
+        self.assertIn('"betting_eligible": False', script)
+        self.assertIn("QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE", script)
+        self.assertNotIn("write_text(json.dumps(payload", script)
+
+
 if __name__ == "__main__":
     unittest.main()
