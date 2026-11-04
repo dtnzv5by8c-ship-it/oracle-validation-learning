@@ -1,0 +1,62 @@
+name: FootyStats Prior Probe Identity Reconciliation
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/reconcile_footystats_prior_probe_identity_to_current_catalogue.py"
+      - "tests/test_footystats_prior_probe_identity_reconciliation.py"
+      - "reports/oracle-selected50-footystats-first-identity-registry-2026-10-29.csv"
+      - "data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-provider-to-oracle-candidate-crosswalk.csv"
+      - "data/footystats/historical-season-plan-2024-2026/season-plan.csv"
+      - ".github/workflows/footystats-prior-probe-identity-reconciliation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-prior-probe-identity-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile exact-ID reconciler
+        run: python -m py_compile scripts/reconcile_footystats_prior_probe_identity_to_current_catalogue.py
+
+      - name: Run exact-ID provider identity tests
+        run: python -m unittest discover -s tests -p "test_footystats_prior_probe_identity_reconciliation.py" -v
+
+      - name: Generate sanitized identity reconciliation outputs
+        run: |
+          python scripts/reconcile_footystats_prior_probe_identity_to_current_catalogue.py \
+            --crosswalk data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-provider-to-oracle-candidate-crosswalk.csv \
+            --prior-probe reports/oracle-selected50-footystats-first-identity-registry-2026-10-29.csv \
+            --plan data/footystats/historical-season-plan-2024-2026/season-plan.csv \
+            --current-output /tmp/footystats-current-49-prior-probe-identity.csv \
+            --absent-output /tmp/footystats-legacy6-absent-current-catalogue.csv \
+            --summary-json /tmp/footystats-prior-probe-identity-summary.json
+
+      - name: Upload sanitized identity evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-prior-probe-identity-reconciliation
+          path: |
+            /tmp/footystats-current-49-prior-probe-identity.csv
+            /tmp/footystats-legacy6-absent-current-catalogue.csv
+            /tmp/footystats-prior-probe-identity-summary.json
+          if-no-files-found: error
+          retention-days: 30
