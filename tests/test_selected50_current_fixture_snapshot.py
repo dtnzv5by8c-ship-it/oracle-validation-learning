@@ -211,9 +211,17 @@ class SnapshotValidatorTests(unittest.TestCase):
         self.assertLess(skipped, stop)
         self.assertLess(stop, next_request_delay)
 
+    def test_report_end_date_is_explicit_and_full_day_inclusive(self):
+        workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
+        probe = Path("scripts/oracle_selected50_current_fixture_probe.py").read_text(encoding="utf-8")
+        self.assertIn("report_end_date:", workflow)
+        self.assertIn("REPORT_END_DATE: \${{ inputs.report_end_date }}", workflow)
+        self.assertIn("time.max", probe)
+        self.assertIn("report_end_date_utc_inclusive", probe)
+
     def test_snapshot_workflow_is_branch_guarded_and_commit_pinned(self):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
-        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" ]]'
+        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" || "${GITHUB_REF}" == "refs/heads/research/selected50-explicit-report-end-date" ]]'
         self.assertIn(guard, workflow)
         guard_position = workflow.index("Enforce governed research branch before any provider access")
         provider_position = workflow.index("Run paced sequential league-matches requests")
