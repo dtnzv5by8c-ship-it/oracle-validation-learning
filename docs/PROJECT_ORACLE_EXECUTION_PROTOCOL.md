@@ -730,3 +730,47 @@ The first dynamic-adapter change removed the fixed-50 constraint but also weaken
 - Oracle Identity & Settlement Evidence Tests run 41856565537 completed successfully.
 - Oracle Selected-50 Safety Contract Tests run 41856565437 completed successfully, including historical planning, pagination contracts, global request-budget tests, legacy API path shutdown and current snapshot validator tests.
 - The latest research branch contains the new plan, endpoint contract audit, request budget helper, rolling request ledger and disabled legacy provider workflows. No production files were changed.
+
+## 10. Central FootyStats global API gateway and sanitized endpoint preflight (2026-11-04)
+
+### Single provider request path
+- The only active FootyStats API request workflow on this governed research branch is `.github/workflows/footystats-global-budgeted-endpoint-preflight.yml`.
+- It is manual-dispatch only and uses the repository-wide GitHub Actions concurrency group `footystats-global-api-gateway` with `cancel-in-progress: false`.
+- Legacy FootyStats request workflows remain fail-closed stubs. The offline OMI repair, private archive QA and historical runtime workflows do not make direct FootyStats requests.
+- The preflight workflow commits a durable reservation to `data/footystats/rolling-request-ledger.json` before any provider request. The ledger contains timestamps/reservations only; no API key or raw provider payload.
+- The Python runner also uses a local file lock. If a run is terminated before finalization, the durable reservation remains for its two-hour TTL, conservatively blocking additional budget use until it expires.
+
+### Request budget
+- Absolute user-approved ceiling: 1,800 requests in any rolling 60-minute window.
+- Operational reservation ceiling: 1,500, preserving 300 requests of headroom.
+- The initial reservation is capped by the available rolling-hour budget. After the first response, a lower provider `request_limit` is binding and constrains the remaining reservation.
+- `request_remaining` is recorded only as a provider request-window observation; it is never interpreted as monthly credit evidence.
+- Calls are paced at approximately 1.1 seconds each. There are no automatic retries. HTTP 429/401/403, provider `success=false`, transport errors, malformed JSON, pagination-contract failures and identity failures stop the run and checkpoint the attempted request.
+
+### Preflight scope
+For each selected provider season, the runner performs a bounded schema/field preflight:
+1. `league-matches` page 1, requesting up to 1,000 rows;
+2. `league-teams` page 1 with `include=stats` and an explicit `max_time`;
+3. `league-tables` with an explicit `max_time`;
+4. `league-season` with an explicit `max_time`;
+5. `match` details/H2H for one exact fixture ID sampled from the returned match page, where available.
+
+The current 182-season plan therefore has a maximum expected preflight cost of 910 requests before any budget adjustment. The default workflow reservation is 1,000 requests, below the 1,500 operational ceiling. The runner round-robins seasons across leagues so early batches cover the widest league spread.
+
+### Data handling and interpretation
+- Raw API payloads remain in memory only and are not written to the public repository or uploaded as artifacts.
+- Only a sanitized JSON report is committed/uploaded: season IDs, endpoint names, response hashes, pagination metadata, field-presence counts and status codes. Team names, scores, odds and raw rows are not persisted.
+- Paged endpoints are preflighted on page 1 only. The report records expected page counts; it does not claim full pagination or full historical ingestion.
+- The fixture date window is checked against explicit UTC kickoff filters. Out-of-window rows are counted, not silently dropped.
+- The standings preflight uses a current `max_time` snapshot; it does not establish fixture-time historical standings.
+- H2H is presence-checked on a sample match only; previous-match chronology remains unverified.
+- Recent form and home/away form remain unverified until all relevant match pages are ingested and venue-specific chronology is reconstructed.
+- xG remains quarantined even if pre-match-labelled fields are present, until fixture-level point-in-time capture and revision provenance are proven.
+- Every output remains `production_eligible=false` and `betting_eligible=false`.
+
+### Required execution action
+- The workflow is deliberately manual-dispatch only. It does not run on push or schedule, preventing code commits from triggering unplanned provider spend.
+- Workflow: `FootyStats Global Budgeted Endpoint Preflight (Research Only)`.
+- Default inputs: `confirm_provider_api_usage=true` (already covered by the user's explicit API approval), `max_seasons=182`, `max_requests=1000`.
+- The connected GitHub actions interface available to this execution can inspect runs and logs but cannot dispatch a new workflow. A repository owner must select this exact workflow and click **Run workflow** to start the live preflight. No API request is made before that manual dispatch.
+- This preflight does not write to the protected private archive. Full raw historical ingestion remains gated until the protected private archive write path is explicitly authorized and validated.
