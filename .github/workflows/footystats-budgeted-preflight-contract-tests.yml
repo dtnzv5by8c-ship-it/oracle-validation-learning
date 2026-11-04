@@ -19,6 +19,7 @@ on:
       - "tests/test_footystats_request_budget.py"
       - "tests/test_footystats_endpoint_contracts.py"
       - "tests/test_footystats_ingestion_workflow_contract.py"
+      - "data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv"
 
 permissions:
   contents: read
@@ -66,6 +67,27 @@ jobs:
 
       - name: Test sanitized budgeted endpoint preflight
         run: python -m unittest discover -s tests -p "test_footystats_budgeted_endpoint_preflight.py" -v
+
+      - name: Dry-run resumable planner against committed ingestion manifest
+        run: |
+          mkdir -p "${RUNNER_TEMP}/footystats-resume-plan"
+          : > "${RUNNER_TEMP}/footystats-empty-receipts.jsonl"
+          python scripts/footystats_ingestion_checkpoint.py \\
+            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \\
+            --receipts-jsonl "${RUNNER_TEMP}/footystats-empty-receipts.jsonl" \\
+            --output-dir "${RUNNER_TEMP}/footystats-resume-plan" \\
+            --max-batch-requests 1500
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary = json.loads((Path("${RUNNER_TEMP}") / "footystats-resume-plan" / "summary.json").read_text())
+          assert summary["planned_task_count"] == 728, summary
+          assert summary["pending_task_count"] == 728, summary
+          assert summary["next_batch_task_count"] == 728, summary
+          assert summary["dispatch_allowed"] is False, summary
+          assert summary["central_budget_reservation_required"] is True, summary
+          assert summary["production_eligible"] is False and summary["betting_eligible"] is False, summary
+          PY
 
       - name: Test central workflow and legacy-path isolation
         run: python -m unittest discover -s tests -p "test_footystats_ingestion_workflow_contract.py" -v
