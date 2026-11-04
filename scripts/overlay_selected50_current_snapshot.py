@@ -228,7 +228,7 @@ def main():
             continue
         if not within_20d:
             beyond+=1
-            trace["trace_outcome"]="BEYOND_7D_NOT_STAGED"
+            trace["trace_outcome"]="BEYOND_20D_NOT_STAGED"
             trace["trace_reason"]="KICKOFF_AFTER_TWENTY_DAY_STAGING_HORIZON"
             continue
         trace["trace_outcome"]="ELIGIBLE_FOR_ARCHIVE_TARGET_RESOLUTION"
