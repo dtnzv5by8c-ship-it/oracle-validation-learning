@@ -9,6 +9,7 @@ on:
       - "config/omi_market_intelligence_schema_v1.json"
       - "docs/OMI_MARKET_INTELLIGENCE_SCHEMA_LOCK_2026-11-04.md"
       - "tests/test_omi_market_intelligence_schema.py"
+      - ".github/workflows/oracle-selected50-market-intelligence-repair.yml"
       - ".github/workflows/omi-book4-schema-contract-tests.yml"
 
 permissions:
