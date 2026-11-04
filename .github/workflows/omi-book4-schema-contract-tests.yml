@@ -1,0 +1,31 @@
+name: OMI Book4 Schema Contract Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "config/omi_market_intelligence_schema_v1.json"
+      - "docs/OMI_MARKET_INTELLIGENCE_SCHEMA_LOCK_2026-11-04.md"
+      - "tests/test_omi_market_intelligence_schema.py"
+      - ".github/workflows/omi-book4-schema-contract-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  omi-schema-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate Book4 95-column schema contract
+        run: python -m unittest discover -s tests -p "test_omi_market_intelligence_schema.py" -v
