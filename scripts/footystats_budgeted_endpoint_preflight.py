@@ -263,6 +263,8 @@ def fetch_json(
         raise PreflightError("TRANSPORT_ERROR", timestamp) from None
     except TimeoutError:
         raise PreflightError("TRANSPORT_TIMEOUT", timestamp) from None
+    except OSError:
+        raise PreflightError("TRANSPORT_ERROR", timestamp) from None
 
     if status != 200:
         raise PreflightError(f"HTTP_{status}", timestamp)
