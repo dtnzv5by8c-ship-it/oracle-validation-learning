@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from build_selected50_research_runtime import resolve_report_window
+from build_selected50_research_runtime import inclusive_calendar_days, resolve_report_window
 
 
 class Selected50ReportWindowTests(unittest.TestCase):
@@ -30,6 +30,12 @@ class Selected50ReportWindowTests(unittest.TestCase):
         start, end_exclusive, _, _ = resolve_report_window(now)
         self.assertEqual(start, now + 15 * 60)
         self.assertGreater(end_exclusive, start)
+
+    def test_inclusive_horizon_metadata_matches_requested_window(self):
+        self.assertEqual(inclusive_calendar_days("2026-11-06", "2026-11-24"), 19)
+        self.assertEqual(inclusive_calendar_days("2026-11-06", "2026-11-12"), 7)
+        with self.assertRaises(ValueError):
+            inclusive_calendar_days("2026-11-25", "2026-11-24")
 
     def test_reversed_dates_fail_closed(self):
         os.environ["ORACLE_REPORT_START_DATE"] = "2026-11-25"
