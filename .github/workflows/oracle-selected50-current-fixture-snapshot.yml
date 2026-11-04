@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" ]] || {
+          [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" || "${GITHUB_REF}" == "refs/heads/research/selected50-explicit-report-end-date" ]] || {
             echo "::error::Dispatch this provider workflow from research/oracle-50-league-readiness-audit; zero provider requests made."
             exit 1
           }
