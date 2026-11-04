@@ -1193,7 +1193,7 @@ def build_50_league_coverage_rows(schedule_rows, runtime_rows, report_rows, trac
             "Selected Season ID": sid,
             "Country": schedule.get("country", ""),
             "League": schedule.get("competition_name", ""),
-            "Upcoming Fixtures (7d)": fixture_count,
+            "Upcoming Fixtures (Report Window)": fixture_count,
             "Exact Archive Joins": exact_joins,
             "Kickoff Matches": kickoff_matches,
             "Kickoff Mismatches Requiring Review": kickoff_mismatches,
@@ -1240,7 +1240,7 @@ def build_coverage_summary_rows(coverage_rows, runtime_rows=None, report_rows=No
     report_summary = report_summary or {}
     xg_audit_rows = xg_audit_rows or []
     total = lambda field: sum(_coverage_int(item.get(field)) for item in coverage_rows)
-    fixture_groups = sum(_coverage_int(item.get("Upcoming Fixtures (7d)")) > 0 for item in coverage_rows)
+    fixture_groups = sum(_coverage_int(item.get("Upcoming Fixtures (Report Window)")) > 0 for item in coverage_rows)
     no_fixture_groups = len(coverage_rows) - fixture_groups
     blocked_runtime = [
         item for item in runtime_rows
