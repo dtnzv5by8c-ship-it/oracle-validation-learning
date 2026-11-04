@@ -840,3 +840,8 @@ Report [OMI_MASTER_TEMPLATE_COMPATIBILITY_AUDIT_2026-11-04.md](../reports/OMI_MA
 Report-repair CI Run `41872807554` completed successfully but skipped private archive consent and all report rebuild steps; its report-only diagnostics made zero provider calls and zero model predictions. Central preflight Run `41869437030` was still in progress at 2026-11-04T16:58Z after passing validation, plan generation and durable reservation. Its final API results are not yet available.
 
 No production model logic, probabilities, thresholds, calibration, ledgers or eligibility were changed. Research, production and betting eligibility remain false.
+
+
+### OMI compatibility audit CI follow-up — 2026-11-04T17:04Z
+
+After the compatibility audit was committed, report-repair CI Run `41873707538` completed successfully. Its five test groups reported 15 + 14 + 5 + 5 + 11 = 50 passing tests. Private-archive consent, archive download, report rebuild and workbook upload remained skipped; no FootyStats API calls or model predictions were made. Diagnostic artifact ID: `13345092932`. This validates the existing report-only CI contracts, not the Book4 95-column migration or historical ingestion.
