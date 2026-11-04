@@ -630,3 +630,43 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - Embedded team tables: 51 table blocks, including an extra Qatar Stars League table not in revised list, a duplicate Germany 2. Bundesliga table, and no Austria Bundesliga roster table. Thus 49 of the 50 intended leagues have a corresponding current team roster table in this workbook; Austria Bundesliga roster must be supplied/confirmed. The tables are current 2026 standings/team lists, not a 2024+ historical team-ID catalogue.
 - No FootyStats API calls or credits were used to inspect the revised workbook. API League IDs, season IDs for 2024/2025/2026, endpoint availability, historical fixtures/results/team stats/H2H/standings coverage and pagination completeness remain NOT VERIFIED. Never infer IDs from names or use team display names as stable join keys.
 - Next gated work: obtain approval for the specific FootyStats API acquisition/credit budget and confirm the canonical 50 league changes; then build an exact league-season-team ID crosswalk and 2024-forward endpoint/coverage audit. Validate fixture/results, teams, match stats, date-specific standings, H2H, venue-specific form and xG provenance; retain strict pre-kickoff temporal cutoffs and the five-match minimum. Keep all mapping/research outputs research-only; do not alter Oracle V1.6 production logic/probabilities.
+
+
+## 9. 2026-11-04 — FootyStats provider-led configuration implementation
+
+### Verified live catalogue
+- Catalogue workflow run: `41848820573`, success, exactly one `league-list?chosen_leagues_only=true` request.
+- Sanitized artifact: `footystats-selected-league-catalogue`, artifact ID `13332511451`, SHA-256 `6ae5ff7c575d5d7517d25600047d4e342454514ed996324c81685c1204a870fe`.
+- Provider response: 49 unique league names, 756 league-season records.
+- Scope is the account's currently selected catalogue only; it does not prove all competitions offered by FootyStats.
+- Provider catalogue included Qatar Stars League; Slovenia and Finland were absent from this selected response.
+- No fixture, results, team, H2H, standings, xG or historical endpoints were called in this catalogue run.
+
+### Research implementation commits
+- `20c9eb33bd01c6d5a6244c762ba68e7c8d06c496`: catalogue evidence checkpoint.
+- `a87cf33688372f1950f9694ebe847a18c7974522`: initial fixed-50 removal in the adapter.
+- `8ff296af46cbfd1c25f6a19d515dab302db84c5b`: offline dynamic FootyStats provider registry builder.
+- `c3993abf68ea7b809296e543affee400ae810442`: registry contract tests.
+- `5bad2a8e09393da8c27d4e4378f88533b65ee269`: dynamic adapter tests.
+- `715cc23373516593277ccf505b1755fba0f44aee`: register registry/adapter tests in CI.
+- `98908015107c7c72c2c9b4d893f7c861d10dcf3e`: restore full-retrieval integrity by comparing returned seasons to the complete planned catalogue IDs.
+- `8144805fe47900628b3a0f42f5f505230ab60833`: update adapter test fixtures to include the full catalogue ID list.
+- `d749610c01cc49746c29f406a867c09c2078adec`: snapshot probe now writes the full planned `catalogue_season_ids` list into its provenance snapshot.
+
+### Design correction
+The first dynamic-adapter change removed the fixed-50 constraint but also weakened detection of a truncated retrieval because the adapter had no independent expected season list. CI exposed this. The correction makes the snapshot carry `catalogue_season_ids` and requires exact set equality with `per_season`; duplicate, missing or extra provider season records fail closed. The adapter accepts variable catalogue sizes while preserving completeness checks.
+
+### CI evidence and current state
+- Identity/settlement evidence tests on commit `8144805fe47900628b3a0f42f5f505230ab60833`: run `41850543168`, success.
+- Earlier adapter CI failed because the old missing-season test no longer had an independent expected catalogue; this was fixed by the explicit catalogue ID contract above.
+- Selected-50 safety contract run `41850543357` was still in progress at checkpoint time. Do not declare the registry/adapter CI complete until its conclusion and test steps are inspected.
+- The research adapter is now dynamic in principle, but the current fixture snapshot probe still reads the legacy fixed-50 manifest and has a 50-request hard cap. Do not claim the live ingestion workflow is provider-catalogue dynamic yet.
+- The dynamic registry builder is offline and consumes a saved catalogue CSV; it does not make API calls. The sanitized 756-row catalogue must be staged as a versioned research input before this registry can be built from the actual account catalogue.
+- All new outputs remain research-only; production and betting eligibility false. Oracle V1.6 logic and probabilities unchanged.
+
+### Next execution sequence
+1. Inspect run `41850543357` and confirm registry and adapter tests pass; repair any evidenced failures.
+2. Replace the legacy 50-row fixture snapshot planner with a provider-catalogue-driven planner that reads the verified registry, applies an explicit request cap, and fails before any request if the catalogue exceeds the approved budget.
+3. Extend the same exact provider-season-ID iteration to match history, results, teams, H2H and standings; build a per-league/per-field coverage matrix. Keep each endpoint's credit budget separate and explicitly approved.
+4. Validate pagination, per-season retrieval success, fixture/team ID completeness, source timestamps and field-level missingness. No fuzzy IDs, silent drops or fabricated features.
+5. Keep xG quarantined until point-in-time capture provenance is verified. Do not claim market readiness merely because a league endpoint returns data.
