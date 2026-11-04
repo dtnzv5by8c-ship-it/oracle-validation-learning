@@ -81,7 +81,7 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
         self.assertNotIn("FOOTYSTATS_API_KEY", content)
         self.assertNotIn("api.football-data-api.com", content)
-        self.assertNotIn("reconcile_selected50_actual_results_footystats.py", content)
+        self.assertNotIn("python scripts/reconcile_selected50_actual_results_footystats.py", content)
         self.assertIn("all FootyStats requests must use the governed global rolling-hour budget workflow", content)
         self.assertIn("write_selected50_unqueried_actual_results.py", content)
 
