@@ -62,7 +62,7 @@ def payloads():
             "pager": {"page": 1, "per_page": 50, "total_results": 2},
             "data": [
                 {"id": 10, "name": "HOME_TEST_PRIVATE_NAME", "stats": {"xg_for_avg_overall": 1.2}},
-                {"id": 20, "name": "AWAY_TEST_PRIVATE_NAME", "stats": {"xg_for_avg_overall": 0.8}},
+                {"id": 20, "full_name": "AWAY_TEST_PRIVATE_NAME", "stats": [{"name": "xg_against_avg_overall", "value": 0.9}]},
             ],
             "request_limit": 1800,
             "request_remaining": 1798,
