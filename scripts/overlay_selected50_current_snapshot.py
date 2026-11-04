@@ -148,9 +148,6 @@ def main():
     report_window_end=parse_utc(snap.get("window_end_utc"))
     if report_window_end is None:
         raise SystemExit("FAIL: snapshot report window end missing or invalid")
-    report_window_end=parse_utc(snap.get("window_end_utc"))
-    if report_window_end is None:
-        raise SystemExit("FAIL: snapshot report window end missing or invalid")
     fixture_rows=snap.get("fixture_rows")
     if not isinstance(fixture_rows,list):
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
