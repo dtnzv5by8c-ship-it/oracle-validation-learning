@@ -310,7 +310,7 @@ def build_resume_plan(
                 try:
                     task_status, reason, xg_missing = validate_receipt(task, task_receipts[0])
                     xg_missing_counts.update(xg_missing)
-                    if task["endpoint"] == "league-matches":
+                    if task_status == "COMPLETE_VERIFIED_PRIVATE_ARCHIVE" and task["endpoint"] == "league-matches":
                         no_home_away_rows_total += int(task_receipts[0]["no_home_away_rows"])
                         completed_match_rows_total += int(task_receipts[0]["completed_match_rows"])
                         completed_match_goal_gap_rows_total += int(task_receipts[0]["completed_match_goal_field_gaps"])
