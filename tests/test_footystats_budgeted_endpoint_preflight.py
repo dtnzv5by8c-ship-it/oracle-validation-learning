@@ -183,6 +183,8 @@ class FootyStatsBudgetedEndpointPreflightTests(unittest.TestCase):
         self.assertTrue(report["season_results"][0]["match_detail"]["h2h_field_present"])
         self.assertIn("xg_against_avg_overall", report["season_results"][0]["league_teams"]["team_stats_field_names"])
         self.assertEqual(report["season_results"][0]["league_teams"]["team_identity_fields"]["name_or_alias"], 2)
+        self.assertEqual(report["season_results"][0]["league_matches"]["no_home_away_flag_field_missing_rows"], 1)
+        self.assertFalse(report["season_results"][0]["league_matches"]["no_home_away_flag_field_coverage_complete"])
         self.assertEqual(
             report["season_results"][0]["xg_usage_status"],
             "QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE",
@@ -228,6 +230,52 @@ class FootyStatsBudgetedEndpointPreflightTests(unittest.TestCase):
         ledger = json.loads(self.ledger.read_text(encoding="utf-8"))
         self.assertEqual(ledger["actual_requests"], [])
         self.assertEqual(ledger["reservations"], [])
+
+    def test_no_home_away_flag_parser_handles_explicit_boolean_and_numeric_values(self):
+        for value in (True, 1, 1.0, "1", "true", "TRUE", " True "):
+            self.assertIs(preflight.parse_no_home_away_flag(value), True)
+        for value in (False, 0, 0.0, "0", "false", "FALSE", " False "):
+            self.assertIs(preflight.parse_no_home_away_flag(value), False)
+        for value in (None, ""):
+            self.assertIsNone(preflight.parse_no_home_away_flag(value))
+        with self.assertRaises(preflight.PreflightError) as unknown:
+            preflight.parse_no_home_away_flag("neutral")
+        self.assertEqual(unknown.exception.code, "MATCH_NO_HOME_AWAY_FLAG_UNRECOGNIZED")
+
+    def test_match_page_counts_true_flags_and_preserves_missing_flag_field(self):
+        kickoff = int(datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp())
+        rows = []
+        for index, flag in enumerate(("TRUE", 0, None, "false", 1, "true"), start=1):
+            item = {
+                "id": 100 + index, "homeID": 10, "awayID": 20,
+                "date_unix": kickoff + index, "status": "complete",
+            }
+            if flag is not None:
+                item["no_home_away"] = flag
+            rows.append(item)
+        summary, returned = preflight.validate_match_page({
+            "success": True,
+            "pager": {"current_page": 1, "max_page": 1, "results_per_page": 10, "total_results": len(rows)},
+            "data": rows,
+        })
+        self.assertEqual(len(returned), 6)
+        self.assertEqual(summary["no_home_away_rows"], 3)
+        self.assertEqual(summary["no_home_away_flag_field_present_rows"], 5)
+        self.assertEqual(summary["no_home_away_flag_field_missing_rows"], 1)
+        self.assertFalse(summary["no_home_away_flag_field_coverage_complete"])
+
+    def test_unknown_no_home_away_flag_stops_match_page_validation(self):
+        kickoff = int(datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp())
+        with self.assertRaises(preflight.PreflightError) as unknown:
+            preflight.validate_match_page({
+                "success": True,
+                "pager": {"current_page": 1, "max_page": 1, "results_per_page": 10, "total_results": 1},
+                "data": [{
+                    "id": 101, "homeID": 10, "awayID": 20, "date_unix": kickoff,
+                    "status": "complete", "no_home_away": "neutral",
+                }],
+            })
+        self.assertEqual(unknown.exception.code, "MATCH_NO_HOME_AWAY_FLAG_UNRECOGNIZED")
 
     def test_match_detail_requires_exact_ordered_provider_ids(self):
         data = {
