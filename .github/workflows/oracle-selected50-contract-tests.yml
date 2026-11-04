@@ -9,6 +9,7 @@ on:
       - "**/*.md"
       - "data/footystats/rolling-request-ledger.json"
       - "data/footystats/endpoint-preflight/**"
+      - "data/footystats/historical-season-plan-2024-2026/**"
 
 permissions:
   contents: read
