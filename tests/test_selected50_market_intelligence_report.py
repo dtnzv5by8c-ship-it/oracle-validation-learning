@@ -500,7 +500,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
     def test_no_home_away_history_is_excluded_from_venue_splits_but_retained_for_overall_form(self):
         neutral = archive_row("F8", "2026-10-27T12:00:00+00:00", "H", "R", 1, 0)
         neutral["no_home_away"] = "1"
-        _, trace, _ = market_report.build_report([runtime_row()], self.archive + [neutral])
+        _, trace, summary = market_report.build_report([runtime_row()], self.archive + [neutral])
         self.assertEqual(trace[0]["home_form_n"], 5)
         self.assertEqual(trace[0]["home_at_home_form_n"], 4)
         self.assertEqual(trace[0]["home_at_home_no_home_away_excluded_n"], 1)
