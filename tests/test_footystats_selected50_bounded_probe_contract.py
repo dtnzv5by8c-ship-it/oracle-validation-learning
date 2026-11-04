@@ -313,8 +313,10 @@ class Selected50BoundedProbeContractTests(unittest.TestCase):
         self.assertIn('"**/*.md"', trigger)
         self.assertIn('"data/footystats/rolling-request-ledger.json"', trigger)
         self.assertIn('"data/footystats/endpoint-preflight/**"', trigger)
+        self.assertIn('"data/footystats/historical-season-plan-2024-2026/**"', trigger)
         self.assertIn('"data/footystats/rolling-request-ledger.json"', planner_trigger)
         self.assertIn('"data/footystats/endpoint-preflight/**"', planner_trigger)
+        self.assertIn('"data/footystats/historical-season-plan-2024-2026/**"', planner_trigger)
         self.assertIn("ref: ${{ github.sha }}", workflow)
 
 
