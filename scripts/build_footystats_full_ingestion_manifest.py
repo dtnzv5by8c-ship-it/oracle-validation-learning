@@ -115,6 +115,13 @@ def page_contract(season: dict[str, Any], key: str) -> tuple[int, int]:
         raise ValueError(f"{key} expected_page_count conflicts with total/per_page")
     if item.get("fetched_pages") != 1 or item.get("page_complete") is not True:
         raise ValueError(f"{key} page-1 preflight evidence is incomplete")
+    all_pages_retrieved = item.get("all_pages_retrieved")
+    if not isinstance(all_pages_retrieved, bool):
+        raise ValueError(f"{key} all_pages_retrieved flag is missing or invalid")
+    if pages_i == 1 and all_pages_retrieved is not True:
+        raise ValueError(f"{key} single-page endpoint is not certified fully retrieved")
+    if pages_i > 1 and all_pages_retrieved is not False:
+        raise ValueError(f"{key} multi-page preflight must not claim all pages retrieved")
     returned = item.get("returned_rows")
     if isinstance(returned, bool):
         raise ValueError(f"{key} returned_rows is invalid")
@@ -124,6 +131,9 @@ def page_contract(season: dict[str, Any], key: str) -> tuple[int, int]:
         raise ValueError(f"{key} returned_rows is invalid") from None
     if returned_i < 0 or returned_i > per_page_i or returned_i > total_i:
         raise ValueError(f"{key} returned_rows conflicts with total/per_page")
+    expected_page_1_rows = min(total_i, per_page_i)
+    if returned_i != expected_page_1_rows:
+        raise ValueError(f"{key} page 1 is short: expected {expected_page_1_rows}, received {returned_i}")
     return total_i, pages_i
 
 
@@ -360,7 +370,7 @@ def build_manifest(
                 "provider_season_id": sid,
                 "endpoint": "league-teams",
                 "page": page,
-                "max_per_page": "",
+                "max_per_page": int(team_page["per_page"]),
                 "include": "stats",
                 "max_time_unix": team_max_time,
                 "expected_total_results": teams_total,
