@@ -13,8 +13,18 @@ The report builder, field-coverage audit and LLM dictionary generator are versio
 3. Set `confirm_private_archive_read=true`; retain the pinned archive release tag; enter the current successful runtime run ID (the workflow default is intentionally blank to prevent stale-run reuse).
 4. Leave `confirm_results_provider_credit_usage=false` unless bounded FootyStats results API usage and the available credit budget have been explicitly approved. The default path makes zero results-provider calls and writes an explicit `NOT_RETRIEVED_NO_CREDIT_APPROVAL` Actual Results register.
 5. Wait for all steps and QA checks. A green workflow alone is not permission for production or betting use: review the workbook QA and eligibility flags.
-5. Download the `oracle-selected50-market-intelligence-repair` artifact. The workbook will include all report sheets plus the dynamically generated LLM dictionary and configuration tabs.
-6. Retain the workflow run URL, artifact and configuration version as the weekly evidence record.
+6. Download the `oracle-selected50-market-intelligence-repair` artifact. The workbook will include all report sheets plus the dynamically generated LLM dictionary and configuration tabs.
+7. Retain the workflow run URL, artifact and configuration version as the weekly evidence record.
+
+## Fresh current-fixture snapshot (separate provider-credit gate)
+
+The optional current-fixture snapshot workflow is `.github/workflows/oracle-selected50-current-fixture-snapshot.yml`. Run it before the Selected-50 runtime when a fresh schedule snapshot is required.
+
+- Set `report_end_date` to the inclusive UTC calendar end date of the requested runtime window. The probe includes the entire UTC date, not merely the first 20 rolling days from dispatch time.
+- The workflow is capped at one sequential `league-matches` request per selected season (maximum 50), paced at 2.1 seconds, with no retries and a stop after the first provider/pagination failure.
+- Both `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true` are mandatory. Do not dispatch without explicit approval and a verified remaining credit budget.
+- Raw provider payloads and API keys are not persisted. The sanitized snapshot and provenance are retained as a short-lived artifact.
+- A successful snapshot is not proof of full fixture coverage: inspect the per-season response and exact fixture-ID reconciliation. Missing rows remain quarantined.
 
 ## Non-negotiable controls
 
