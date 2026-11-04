@@ -287,7 +287,7 @@ summary = {
     "complete_one_page_responses": sum(
         1 for row in results if row["schedule_status"] == "ONE_PAGE_RESPONSE"
     ),
-    "seasons_with_future_20d_fixtures": sum(
+    "seasons_with_fixtures_in_report_window": sum(
         1 for row in results if row["future_report_window_count"] > 0
     ),
     "future_report_window_fixture_rows": sum(
