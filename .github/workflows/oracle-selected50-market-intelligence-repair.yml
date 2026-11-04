@@ -670,8 +670,6 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
             market-intelligence-output/oracle_selected50_field_coverage_qa.json
-            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
-            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
             market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
             market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
             market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
@@ -704,6 +702,8 @@ jobs:
             market-intelligence-output/oracle_selected50_50_league_coverage.csv
             market-intelligence-output/oracle_selected50_market_intelligence.csv
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
