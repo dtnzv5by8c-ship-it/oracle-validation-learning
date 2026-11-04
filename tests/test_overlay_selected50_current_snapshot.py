@@ -99,6 +99,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             fixture("BEYOND", kickoff=now + timedelta(days=8)),
             fixture("BEYOND-FLAGGED", kickoff=now + timedelta(days=21), no_home_away=1),
             fixture("BEYOND-SUSPENDED", kickoff=now + timedelta(days=22), status="suspended"),
+            fixture("OUTSIDE-20D", kickoff=now + timedelta(days=23)),
             fixture("BAD-TIME", kickoff_utc="not-a-timestamp"),
         ]
         snapshot = {"retrieved_utc": iso(now - timedelta(minutes=5)), "per_season": seasons, "fixture_rows": fixture_rows}
@@ -139,14 +140,14 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertIn("no_home_away=1", qa["no_home_away_flag_semantics"])
             self.assertIn("remain quarantined", qa["no_home_away_flag_semantics"])
             by_league = {f'{row["country"]} | {row["competition"]}': row for row in qa["no_home_away_flag_by_league"]}
-            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_20d"], 7)
+            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_20d"], 8)
             self.assertEqual(by_league["Country 00 | League 00"]["future_rows_beyond_20d"], 3)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true_beyond_20d"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["status_not_eligible_for_future_fixture_beyond_20d"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 5)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_unknown"], 1)
-            self.assertEqual(by_league["Country 01 | League 01"]["future_rows_in_7d"], 2)
+            self.assertEqual(by_league["Country 01 | League 01"]["future_rows_in_20d"], 2)
             self.assertEqual(by_league["Country 01 | League 01"]["no_home_away_false"], 2)
             self.assertEqual(qa["unsupported_selected_league_count"], 1)
             self.assertEqual(len(qa["unsupported_selected_leagues"]), 1)
@@ -170,8 +171,9 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertIn("NO_HOME_AWAY_FLAGGED", by_id["BEYOND-FLAGGED"]["trace_reason"])
             self.assertIn("OUTSIDE_20D_STAGING_HORIZON", by_id["BEYOND-FLAGGED"]["trace_reason"])
             self.assertEqual(by_id["BEYOND-SUSPENDED"]["trace_outcome"], "QUARANTINED_INVALID_OR_NONSTANDARD")
+            self.assertEqual(by_id["OUTSIDE-20D"]["trace_outcome"], "BEYOND_20D_NOT_STAGED")
             self.assertIn("NONSTANDARD_STATUS", by_id["BEYOND-SUSPENDED"]["trace_reason"])
-            self.assertIn("OUTSIDE_7D_STAGING_HORIZON", by_id["BEYOND-SUSPENDED"]["trace_reason"])
+            self.assertIn("OUTSIDE_20D_STAGING_HORIZON", by_id["BEYOND-SUSPENDED"]["trace_reason"])
             self.assertEqual(qa["future_rows_beyond_20d_not_staged"], 1)
             self.assertEqual(qa["future_rows_beyond_20d_total"], 3)
             self.assertEqual(qa["future_rows_beyond_20d_quarantined"], 2)
