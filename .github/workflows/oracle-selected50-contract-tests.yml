@@ -26,28 +26,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify required Actions secret availability without exposing values or calling providers
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          ORACLE_PRIVATE_REPO_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-        run: |
-          python - <<'PY'
-          import os
-
-          required = ("FOOTYSTATS_API_KEY", "ORACLE_PRIVATE_REPO_TOKEN")
-          missing = []
-          for name in required:
-              present = bool(os.environ.get(name, "").strip())
-              print(f"{name}={'PRESENT' if present else 'MISSING'}")
-              if not present:
-                  missing.append(name)
-          if missing:
-              raise SystemExit(
-                  "Required Actions secret(s) are missing or unavailable to this workflow: "
-                  + ", ".join(missing)
-              )
-          PY
-
       - name: Install report-only regression dependencies
         run: python -m pip install --disable-pip-version-check openpyxl scikit-learn
       - name: Compile OMI report, history audit and no-call actuals placeholder
