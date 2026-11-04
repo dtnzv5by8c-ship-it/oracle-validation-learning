@@ -664,6 +664,8 @@ jobs:
           name: oracle-selected50-join-diagnostics
           path: |
             market-intelligence-output/oracle_selected50_market_intelligence_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
             market-intelligence-output/oracle_selected50_market_intelligence_evidence_trace.csv
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
