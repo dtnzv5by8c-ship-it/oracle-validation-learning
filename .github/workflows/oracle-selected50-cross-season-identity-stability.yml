@@ -1,56 +1,18 @@
-name: Oracle Selected-50 Cross-Season FootyStats Identity Stability (Research Only)
+name: DISABLED — Legacy FootyStats request path (oracle-selected50-cross-season-identity-stability)
 
 on:
   workflow_dispatch:
-    inputs:
-      confirm_provider_credit_usage:
-        description: "Confirm one FootyStats league-list request; no retries"
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: read
 
 jobs:
-  stability-probe:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 1
     steps:
-      - name: Checkout governed research branch
-        uses: actions/checkout@v4
-        with:
-          ref: research/oracle-50-league-readiness-audit
-
-      - name: Guard explicit provider-credit permission
+      - name: Refuse legacy provider request path
         shell: bash
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          CONFIRM_CREDITS: ${{ inputs.confirm_provider_credit_usage }}
         run: |
-          set -euo pipefail
-          [[ "${CONFIRM_CREDITS:-false}" == "true" ]] || { echo "::error::Explicit provider-credit confirmation required; zero requests made."; exit 1; }
-          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY missing; zero provider requests made."; exit 1; }
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Validate and run one-call identity audit
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-        run: |
-          set -euo pipefail
-          python -m py_compile scripts/oracle_selected50_cross_season_stability_probe.py
-          python scripts/oracle_selected50_cross_season_stability_probe.py
-
-      - name: Upload sanitized research evidence only
-        uses: actions/upload-artifact@v4
-        with:
-          name: oracle-selected50-cross-season-identity-stability
-          path: |
-            oracle-selected50-cross-season-stability/summary.json
-            oracle-selected50-cross-season-stability/cross_season_stability.csv
-          if-no-files-found: error
-          retention-days: 14
+          echo "::error::This legacy FootyStats request workflow is disabled. All provider requests must use the single governed ingestion workflow with the global rolling-hour request ledger."
+          exit 1
