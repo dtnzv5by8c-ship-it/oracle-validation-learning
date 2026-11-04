@@ -118,3 +118,13 @@ Pagination validators require explicit provider page metadata and exact page row
 ## Governance
 
 Oracle V1.6 production logic, probabilities, thresholds, calibration, ledgers and betting eligibility were not changed. All mapping candidates and season-plan outputs remain research-only, `production_eligible=false` and `betting_eligible=false`. No provider API calls were made by this reconciliation.
+
+## 2026-11-04 offline ingestion-manifest implementation update
+
+- Added `scripts/build_footystats_full_ingestion_manifest.py` and six regression tests. The planner consumes only sanitized endpoint-preflight reports plus the exact provider season plan.
+- It requires exact provider season ID, league name and season label agreement. Any missing, incomplete or mismatched preflight row remains explicitly blocked in the coverage output; no fuzzy joins or silent omissions.
+- For each preflight-verified season it plans every `league-matches` page, every `league-teams` page, and one `league-tables` plus one `league-season` snapshot request. Planned batches are capped at 1,500 requests and must still be reserved against the live ledger before execution.
+- H2H, recent form and home/away form are planned to be derived from the complete exact chronological match spine. Fixture-time standings remain unresolved; xG remains quarantined.
+- The central manual-dispatch preflight workflow now runs the planner after the preflight attempt and commits/uploads the sanitized manifest and coverage summary. This is still an offline plan, not raw-data ingestion.
+- Targeted contract log run 41865887561 / job 126699886190 reports 42 tests OK, including the six manifest tests and workflow integration test. GitHub run metadata remains queued/no conclusion despite the completed test and cleanup log.
+- No provider API request or private archive write was made by this update. Full historical ingestion remains blocked until the protected private raw-data destination is authorized and validated.
