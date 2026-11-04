@@ -510,3 +510,46 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - Contemporaneous odds, verified settlements/outcomes and chronological out-of-fold prediction history are still required for calibration/performance claims.
 - FootyStats plan tier/monthly credits and the snapshot-runtime bridge provenance test failures remain separate blockers documented in the 31 October readiness audit.
 - No provider API calls, credits, paid subscriptions, archive mutation, production logic changes or probability changes were made by this report hardening work.
+
+
+---
+
+## 15. Continuation addendum — 2026-11-04 (Run #181 and OMI snapshot evidence)
+
+### Current governed state
+- Continue only on `research/oracle-50-league-readiness-audit` in `dtnzv5by8c-ship-it/oracle-validation-learning`.
+- Latest recovered successful runtime: Run #181, ID `41795266381`, artifact `13305112544`; 754 fixtures, 714 research predictions, 40 feature-blocked fixtures, all 50 selected league groups.
+- Snapshot Run #11: ID `41792644975`, artifact `13304256411`, 2,568 trace rows.
+- OMI repair run `41792013568` failed before report construction because its preflight required every runtime fixture to have an exact snapshot-trace row. It used runtime run `41787205480`, not Run #181.
+
+### Snapshot discrepancy confirmed from the artifacts
+- Snapshot Run #11 ended at `2026-11-24T07:29:52Z`, not at the end of 24 November.
+- Twenty missing runtime fixtures have 24-November kickoffs later than that boundary; they were outside the old snapshot window.
+- One additional missing fixture, ID `8409563` (Atlético Mineiro vs Corinthians, 21 November), was within the window but absent from the successful one-page response for selected season `16544`. Keep it unresolved pending a fresh source response.
+- The current snapshot workflow now supports an explicit inclusive UTC `report_end_date`. A new full-day snapshot still requires both `confirm_provider_credit_usage=true` and `confirm_monthly_credit_budget_checked=true`. No dispatch or provider call is authorized without these approvals.
+
+### Report-only implementation now committed
+- Runtime-to-snapshot reconciliation now emits one explicit row per runtime fixture. Missing exact rows are `MISSING_FROM_FRESH_SNAPSHOT`; duplicate, incomplete and unknown evidence receive separate exception states.
+- The OMI report can be generated with explicit unresolved snapshot exceptions, but remains `PARTIAL_RESEARCH_ONLY`. Missing evidence is never promoted to an exact join or used to infer `no_home_away`.
+- The OMI preflight and successful/blocked artifacts now include the snapshot reconciliation QA JSON and exception CSV.
+- Runtime report horizon metadata is computed from inclusive UTC dates; 6–24 November is 19 days, replacing the stale hard-coded 7-day value.
+- The independent history provenance audit now applies venue-specific scope: home-side history only counts matches where the team was home; away-side history only counts matches where the team was away. The Run #253 audit evidence reconciles all 25 side counts under that scope without relaxing the five-match gate.
+
+### Results-provider credit protection
+- The OMI workflow now defaults `confirm_results_provider_credit_usage=false`. It writes an explicit `NOT_RETRIEVED_NO_CREDIT_APPROVAL` Actual Results register with blank scores and `provider_api_calls=0`.
+- The FootyStats completed-results endpoint runs only if the workflow dispatcher explicitly sets `confirm_results_provider_credit_usage=true`; only then is `FOOTYSTATS_API_KEY` required.
+- Runtime run ID default is blank to prevent stale-run reuse.
+- Current-snapshot credits and completed-results credits are separate approvals. Do not conflate them.
+
+### Regression coverage and verification
+- Added tests for missing snapshot rows, duplicate snapshot rows, venue-specific historical form, inclusive report horizon metadata and the zero-call Actual Results placeholder.
+- Added these suites to the governed Selected-50 contract-test workflow.
+- Code and workflow changes are committed; the Actions pass/fail result has not yet been independently verified. Do not claim tests passed until the workflow run is inspected.
+- No provider API calls, paid credits, new subscriptions, production model changes or production probability changes were made during this continuation.
+
+### Next execution order
+1. Inspect the governed contract-test workflow result for the latest branch commit.
+2. Dispatch the OMI repair against runtime run `41795266381`, with the pinned archive and explicit private-archive read confirmation. Keep results-provider credit approval false.
+3. Inspect the generated workbook, 50-league coverage, exact joins, snapshot exceptions, schedule queue, xG quarantine, historical form audit and all eligibility flags. Expect `PARTIAL_RESEARCH_ONLY` while exceptions remain.
+4. Only after explicit provider-credit and monthly-budget approval, dispatch a fresh full-day snapshot with the required inclusive `report_end_date`; then rerun the runtime and OMI repair from the new exact artifact chain.
+5. Never change Oracle V1.6 production logic or probabilities to make a report QA gate pass.
