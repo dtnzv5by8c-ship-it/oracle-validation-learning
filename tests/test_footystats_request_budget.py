@@ -86,6 +86,23 @@ class FootyStatsRollingRequestBudgetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "explicit timezone"):
             validate_ledger(ledger)
 
+    def test_future_actual_request_and_invalid_reservation_fail_closed(self):
+        ledger = empty_ledger()
+        ledger["actual_requests"] = [{
+            "timestamp_utc": (self.now + timedelta(seconds=1)).isoformat().replace("+00:00", "Z")
+        }]
+        with self.assertRaisesRegex(ValueError, "future actual request"):
+            active_usage(ledger, self.now)
+        ledger = empty_ledger()
+        ledger["reservations"] = [{
+            "reservation_id": "bad",
+            "reserved_at_utc": (self.now + timedelta(seconds=1)).isoformat().replace("+00:00", "Z"),
+            "expires_at_utc": (self.now + timedelta(hours=1)).isoformat().replace("+00:00", "Z"),
+            "reserved_count": 1,
+        }]
+        with self.assertRaisesRegex(ValueError, "future reservation"):
+            active_usage(ledger, self.now)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
