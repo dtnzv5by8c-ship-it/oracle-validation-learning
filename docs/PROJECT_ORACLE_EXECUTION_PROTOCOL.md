@@ -808,3 +808,18 @@ The current 182-season plan therefore has a maximum expected preflight cost of 9
 - Budgeted preflight contract job `41866548931` / job `126702151154` emitted successful output for 42 tests (6 ingestion-manifest, 9 request-budget, 8 pagination, 7 preflight, 12 workflow-contract tests). GitHub run metadata was still `in_progress` at last check; do not claim a formal Actions success until a completed conclusion is available.
 - A preceding planner contract run `41866509488` failed because a test expected an obsolete artifact-step label. The workflow's artifact step was renamed when the ingestion manifest was added; the later commit `cf33e155a95927df42e7cca28b660697cc9ba62d` updated the assertion. The rerun is `41866549120`; inspect its final conclusion before declaring the planner contract green.
 - Preserve production Oracle V1.6 logic, probabilities, thresholds, calibration, ledgers and eligibility. All new research outputs remain `production_eligible=false` and `betting_eligible=false`.
+
+
+## 11. Live-state correction — 2026-11-04T16:57Z
+
+This section supersedes the earlier cross-branch blocker recorded in Section 10. The user explicitly approved the narrowly scoped main-branch safety exception.
+
+- Main commit `fc998b224b2cce924355af11bc7c153e8d519889` registers the manual-dispatch central FootyStats gateway and includes strict numeric input normalization.
+- The six previously active default-branch FootyStats workflows are now fail-closed retirement stubs. Reinspection found no API host or `FOOTYSTATS_API_KEY` reference in those six workflow files. A dormant standalone identity-probe script remains in the repository but is not invoked by any active workflow found by repository search; do not execute it.
+- All new implementation work remains on `research/oracle-50-league-readiness-audit`. No additional main-branch changes are authorized or required.
+- Central preflight Run `41869437030` is live. Its first six steps passed, including API approval validation, historical-plan generation and durable reservation of 1,000 requests before provider access. The sanitized endpoint preflight step was still running at 2026-11-04T16:57Z. Do not assert final request usage or data coverage until its final logs and report are available.
+- The durable reservation is `gha-41869437030-1`, reserved count 1,000. The operational limit remains 1,500 requests per rolling hour, preserving 300 headroom under the 1,800 hard ceiling. The reservation is not evidence that all reserved requests were consumed.
+- The source catalogue provenance is run `41848820573`, artifact ID `13332511451`, SHA-256 `6ae5ff7c575d5d7517d25600047d4e342454514ed996324c81685c1204a870fe`. It contains 49 selected leagues and 756 season rows. The 2024-01-01 through 2026-11-04 plan contains 182 provider-season partitions across those 49 leagues; all catalogue rows are accounted for.
+- Full raw ingestion remains blocked pending protected private archive write authorization. Sanitized preflight metadata may be committed; raw payloads must not enter the public repository.
+- Fixture-time standings, full H2H chronology, recent/home-away form and point-in-time xG remain separate validation gates. xG remains quarantined.
+- Research eligibility, production eligibility and betting eligibility remain false. Oracle V1.6 production logic, probabilities, thresholds, calibration and ledgers remain unchanged.
