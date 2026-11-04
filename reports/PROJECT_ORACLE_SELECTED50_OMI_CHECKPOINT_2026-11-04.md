@@ -115,3 +115,26 @@ Latest implementation commit recorded at this checkpoint: `7254da658b220b0ab3d51
 - The updated OMI repair workflow has not yet been dispatched against Run #181.
 - Next execution: verify CI; dispatch OMI repair with runtime run ID `41795266381` and the unchanged pinned archive; inspect the new workbook and QA; then run a fresh full-day snapshot only after the two provider-credit confirmations are explicitly approved.
 - Results reconciliation uses the separate FootyStats results-provider exception documented in the weekly runbook. Review actual API-call count and retrieval freshness in its QA; do not treat stale results as current.
+
+
+### 2026-11-04 additional execution safeguards
+
+The saved issue #34 execution constraint explicitly prohibits unapproved FootyStats API calls/credits. The weekly OMI workflow previously required `FOOTYSTATS_API_KEY` and always ran completed-results retrieval. This was unsafe as a default. It is now credit-gated:
+
+- New workflow input `confirm_results_provider_credit_usage` defaults to `false`.
+- Default path writes an `Actual Results` tab with `NOT_RETRIEVED_NO_CREDIT_APPROVAL`, blank score fields, and QA showing `provider_api_calls=0`.
+- Only an explicit `confirm_results_provider_credit_usage=true` opt-in invokes the FootyStats results endpoint; the secret is required only for that opt-in.
+- The runtime run ID default is now blank to prevent reuse of stale run `41175230838`.
+- Runbook and permanent configuration updated to describe both the current-snapshot credit gate and the separate results-provider credit gate.
+
+New offline regression coverage was added for the zero-call results placeholder, missing snapshot exceptions, venue-specific history reconstruction and inclusive report-window metadata. The Selected-50 contract-test workflow now compiles the affected scripts and runs these suites on governed-branch pushes. Workflow execution still needs to be inspected; code commits alone are not a test pass.
+
+Additional commits:
+- `9dbdbc09e7b356c570ebd1e55b271ea226295034` — zero-call actual-results placeholder.
+- `b590c8238013bd090bcf8509fa4ddc8328b4cc23` — placeholder regression test.
+- `240fbcc866716b2f30e7cfd7214f1f6fcbfe87bd` — explicit results-provider credit approval gate.
+- `3cb3fda664545f2af4a86ff7f57fe4bd0ed5254e` and `cf0baa47bdda5a086e2f3af20b09931bc7d353c2` — runbook/config credit controls.
+- `168e68a0b0b85f69223052bcc45f14a89de1ce43` — add new OMI regression suites to the offline contract-test workflow.
+- `05ad3b0debd0d9827e07df052b1ca8ce31a523de` — document full-day snapshot and explicit credit approvals.
+
+No provider API call was made during this continuation. No production model or probability files were modified.
