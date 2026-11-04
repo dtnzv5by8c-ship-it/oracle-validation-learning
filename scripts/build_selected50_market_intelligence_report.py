@@ -79,6 +79,60 @@ def valid_score(row):
         return False
 
 
+def archive_actual_fields(row):
+    """Expose settled actuals only from the exact archive row already joined by IDs."""
+    empty = {
+        "actual_home_goals": "",
+        "actual_away_goals": "",
+        "actual_total_goals": "",
+        "actual_match_result": "",
+        "actual_btts": "",
+        "actual_over_1_5": "",
+        "actual_over_2_5": "",
+        "actual_under_4_5": "",
+        "settlement_status": "NOT_VERIFIED_EXACT_ID_JOIN",
+        "provider_match_status": "",
+        "results_source": "",
+        "retrieved_utc": "",
+    }
+    if not row:
+        return empty
+    status = str(row.get("status_raw") or "").strip()
+    status_key = status.lower()
+    result = dict(empty)
+    result["provider_match_status"] = status
+    result["results_source"] = str(row.get("results_source") or "")
+    result["retrieved_utc"] = str(row.get("retrieved_utc") or "")
+    if status_key not in SETTLED:
+        result["settlement_status"] = "NOT_SETTLED"
+        return result
+    if not valid_score(row):
+        result["settlement_status"] = "SETTLED_SCORE_MISSING"
+        return result
+    home_goals = int(float(row["home_goals"]))
+    away_goals = int(float(row["away_goals"]))
+    total_goals = home_goals + away_goals
+    no_home_away = str(row.get("no_home_away") or "").strip().lower() in {"1", "true", "yes"}
+    if no_home_away:
+        result["settlement_status"] = "SETTLED_VERIFIED_NO_HOME_AWAY"
+        result["actual_match_result"] = "NOT_AVAILABLE_NO_HOME_AWAY"
+    else:
+        result["settlement_status"] = "SETTLED_VERIFIED_EXACT_ID"
+        result["actual_home_goals"] = home_goals
+        result["actual_away_goals"] = away_goals
+        result["actual_match_result"] = (
+            "HOME_WIN" if home_goals > away_goals
+            else "DRAW" if home_goals == away_goals
+            else "AWAY_WIN"
+        )
+    result["actual_total_goals"] = total_goals
+    result["actual_btts"] = "YES" if home_goals > 0 and away_goals > 0 else "NO"
+    result["actual_over_1_5"] = "YES" if total_goals > 1 else "NO"
+    result["actual_over_2_5"] = "YES" if total_goals > 2 else "NO"
+    result["actual_under_4_5"] = "YES" if total_goals < 5 else "NO"
+    return result
+
+
 def h2h_average_total_goals(trace_row):
     """Mean goals across exact, strictly pre-cutoff H2H meetings already in trace."""
     try:
@@ -437,7 +491,8 @@ def build_report(runtime_rows, archive_rows):
             archive_match = failure_entry[2] if failure_entry and len(failure_entry) > 2 else {}
             outrow = base_row(runtime, league_name, reason)
             output.append(outrow)
-            trace.append({"fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
+            trace.append({**archive_actual_fields(None),
+                          "fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
                           "join_status": reason, "home_form_n": 0, "away_form_n": 0,
                           "home_table_status": "UNAVAILABLE", "away_table_status": "UNAVAILABLE",
                           "fixture_date": runtime.get("date_utc", ""),
@@ -548,6 +603,7 @@ def build_report(runtime_rows, archive_rows):
         })
         output.append(row)
         trace.append({
+            **archive_actual_fields(target),
             "fixture_id": runtime.get("fixture_id", ""), "selected_id": selected,
             "join_status": "PASS_EXACT_SEASON_FIXTURE_ORDERED_TEAM_IDS",
             "fixture_date": runtime.get("date_utc", ""),
@@ -1593,25 +1649,40 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         if all(key):
             goal_by_key_candidates[key].append(item)
     goal_by_exact_key = {key: values[0] for key, values in goal_by_key_candidates.items() if len(values) == 1}
-    decision_headers = HEADERS + [
-        "Fixture ID", "Provider Season ID", "Home Team ID", "Away Team ID",
-        "Schedule Reconciliation", "History Cutoff UTC",
-        "Home Last-5 Form", "Home Last-5 N", "Home Goals For Avg", "Home Goals Against Avg",
-        "Home Points Per Game", "Home-at-Home N", "Home-at-Home Form",
-        "Away Last-5 Form", "Away Last-5 N", "Away Goals For Avg", "Away Goals Against Avg",
-        "Away Points Per Game", "Away-Away N", "Away-Away Form",
-        "Home League Position", "Away League Position", "League Table Status",
-        "H2H Last-5", "H2H N", "H2H Avg Total Goals",
-        "Goal Research Status", "Goal Research Model ID",
-        "Research Over 1.5 %", "Research Over 2.5 %", "Research Under 4.5 %",
-        "Research Home Over 1.5 %", "Research Away Over 1.5 %",
-        "Home Expected Goals Lambda", "Away Expected Goals Lambda",
-        "Goal Research Home/Away Sample N", "Goal Research League Prior N",
-        "Goal Research Source", "Goal Research Block Reason",
-        "Historical Accuracy Status", "A+ Setup Status",
-        "Evidence / Schedule Gate", "Production Eligible", "Betting Eligible",
-        "History Source Fixture IDs"
-    ]
+    schema_path = Path(__file__).resolve().parents[1] / "config" / "omi_market_intelligence_schema_v1.json"
+    omi_schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    decision_headers = omi_schema.get("headers", [])
+    if (omi_schema.get("sheet_name") != "Market Intelligence"
+            or omi_schema.get("baseline_column_count") != 95
+            or omi_schema.get("baseline_columns") != "A:CQ"
+            or len(decision_headers) != 95
+            or len(set(decision_headers)) != 95):
+        raise ValueError("Governed OMI Book4 schema is missing, changed, or not exactly 95 unique columns")
+    base_header_aliases = {
+        "Over 1.5": "Over 1,5",
+        "Over 2.5": "Over 2,5",
+        "Under 4.5": "Under 4,5",
+        "Home over 1.5 goals": "Home over 1,5 goals",
+        "Away over 1.5 goals": "Away over 1,5 goals",
+        "Home 1X + Over 1.5": "Home 1X + Over 1,5",
+        "Away X2 + Over 1.5": "Away X2 + Over 1,5",
+        "Home 1X + Under 4.5": "Home 1X + Under 4,5",
+        "Away X2 + Under 4.5": "Away X2 + Under 4,5",
+        "Goal Line Call (O/U 2.5)": "Goal Line Call (O/U 2,5)",
+        "Avg. Goals Scored (Last 5)": "Avg, Goals Scored (Last 5)",
+        "Avg. Goals Conceded (Last 5)": "Avg, Goals Conceded (Last 5)",
+        "Avg. Points (Last 5)": "Avg, Points (Last 5)",
+    }
+    extra_header_aliases = {
+        "H2H Avg Total Goals": "H2H Avg Total Goals2",
+        "Historical Accuracy Status": "Historical Accuracy Status3",
+        "A+ Setup Status": "A+ Setup Status4",
+        "Research Over 1.5 %": "Research Over 1,5 %",
+        "Research Over 2.5 %": "Research Over 2,5 %",
+        "Research Under 4.5 %": "Research Under 4,5 %",
+        "Research Home Over 1.5 %": "Research Home Over 1,5 %",
+        "Research Away Over 1.5 %": "Research Away Over 1,5 %",
+    }
     decision_rows = []
     for row_index, base_row_data in enumerate(rows):
         t = trace[row_index] if row_index < len(trace) else {}
@@ -1671,10 +1742,83 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
                 str(t.get("away_form_source_fixture_ids") or "")
             ) if x)
         }
-        decision_rows.append({**base_row_data, **extra})
+        book4_row = {header: "" for header in decision_headers}
+        for header, value in base_row_data.items():
+            destination = base_header_aliases.get(header, header)
+            if destination in book4_row:
+                book4_row[destination] = value
+        for header, value in extra.items():
+            destination = extra_header_aliases.get(header, header)
+            if destination in book4_row:
+                book4_row[destination] = value
+        for header in (
+            "actual_home_goals", "actual_away_goals", "actual_total_goals",
+            "actual_match_result", "actual_btts", "actual_over_1_5",
+            "actual_over_2_5", "actual_under_4_5", "settlement_status",
+            "provider_match_status", "results_source", "retrieved_utc",
+        ):
+            book4_row[header] = t.get(header, "")
+        decision_rows.append(book4_row)
     decision_sheet = add_sheet("Market Intelligence", decision_headers, decision_rows)
     decision_sheet.freeze_panes = "D2"
     decision_sheet.row_dimensions[1].height = 54
+
+    archive_summary = archive_summary or {}
+    add_sheet("OMI Report", ["Metric", "Value"], [
+        {"Metric": "Report Name", "Value": "Oracle Market Intelligence (OMI) Report"},
+        {"Metric": "Governed Template", "Value": "OMI Book4"},
+        {"Metric": "Schema Version", "Value": omi_schema.get("schema_version", "")},
+        {"Metric": "Market Intelligence Columns", "Value": len(decision_headers)},
+        {"Metric": "Runtime Fixture Rows", "Value": archive_summary.get("runtime_rows", len(rows))},
+        {"Metric": "Exact Archive Joins", "Value": archive_summary.get("exact_archive_joins", 0)},
+        {"Metric": "Unmatched / Quarantined Rows", "Value": archive_summary.get("unmatched_or_quarantined_rows", len(rows))},
+        {"Metric": "Archive Index Gate", "Value": archive_summary.get("archive_index_gate", "NOT_VERIFIED")},
+        {"Metric": "H2H Identity Policy", "Value": archive_summary.get("h2h_identity_policy", "NOT_VERIFIED")},
+        {"Metric": "Archive Timestamp Policy", "Value": archive_summary.get("archive_timestamp_policy", "NOT_VERIFIED")},
+        {"Metric": "Report Status", "Value": "RESEARCH_ONLY"},
+        {"Metric": "Production Eligible", "Value": "NO"},
+        {"Metric": "Betting Eligible", "Value": "NO"},
+    ])
+
+    visual_headers = [
+        "Fixture Date", "League", "Fixture", "Fixture ID",
+        "BTTS Yes", "Home 1X", "Away X2", "Home Evidence Risk", "Away Evidence Risk",
+        "Recent Form (5)", "Home Last-5 Form", "Away Last-5 Form",
+        "Home-at-Home Form", "Away-Away Form", "H2H Last 5 Summary", "H2H N",
+        "Home League Position", "Away League Position", "Schedule Reconciliation",
+        "Evidence / Schedule Gate", "Production Eligible", "Betting Eligible",
+    ]
+    visual_rows = []
+    for index, base_row_data in enumerate(rows):
+        item = trace[index] if index < len(trace) else {}
+        visual_rows.append({
+            "Fixture Date": base_row_data.get("Fixture Date", ""),
+            "League": base_row_data.get("League", ""),
+            "Fixture": base_row_data.get("Fixture", ""),
+            "Fixture ID": item.get("fixture_id", ""),
+            "BTTS Yes": base_row_data.get("BTTS Yes", ""),
+            "Home 1X": base_row_data.get("Home 1X", ""),
+            "Away X2": base_row_data.get("Away X2", ""),
+            "Home Evidence Risk": base_row_data.get("Home Evidence Risk", ""),
+            "Away Evidence Risk": base_row_data.get("Away Evidence Risk", ""),
+            "Recent Form (5)": base_row_data.get("Recent Form (5)", ""),
+            "Home Last-5 Form": item.get("home_form", ""),
+            "Away Last-5 Form": item.get("away_form", ""),
+            "Home-at-Home Form": item.get("home_at_home_form", ""),
+            "Away-Away Form": item.get("away_away_form", ""),
+            "H2H Last 5 Summary": base_row_data.get("H2H Last 5 Summary", ""),
+            "H2H N": item.get("h2h_n", 0),
+            "Home League Position": item.get("home_league_position", ""),
+            "Away League Position": item.get("away_league_position", ""),
+            "Schedule Reconciliation": item.get("schedule_reconciliation_status", "UNAVAILABLE"),
+            "Evidence / Schedule Gate": (
+                "EXACT_JOIN_EVIDENCE_AVAILABLE" if str(item.get("join_status", "")).startswith("PASS")
+                else "BLOCKED_OR_UNAVAILABLE"
+            ),
+            "Production Eligible": "NO",
+            "Betting Eligible": "NO",
+        })
+    add_sheet("Visual Intelligence", visual_headers, visual_rows)
 
     h2h_rows = []
     team_rows = []
