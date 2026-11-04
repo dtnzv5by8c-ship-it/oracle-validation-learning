@@ -143,6 +143,15 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE", script)
         self.assertNotIn("write_text(json.dumps(payload", script)
 
+    def test_gateway_builds_offline_manifest_after_preflight(self):
+        self.assertIn("Build offline full historical ingestion manifest", self.content)
+        self.assertIn("build_footystats_full_ingestion_manifest.py", self.content)
+        self.assertIn("full-ingestion-manifest", self.content)
+        planner = (ROOT / "scripts" / "build_footystats_full_ingestion_manifest.py").read_text(encoding="utf-8")
+        self.assertIn('"api_requests_made": 0', planner)
+        self.assertIn('"raw_payloads_written": False', planner)
+        self.assertIn('"private_raw_archive_write_required": True', planner)
+
 
 if __name__ == "__main__":
     unittest.main()
