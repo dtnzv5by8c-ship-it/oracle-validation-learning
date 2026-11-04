@@ -200,8 +200,9 @@ class FootyStatsBudgetedEndpointPreflightTests(unittest.TestCase):
         values[0]["request_limit"] = 300
         with patch.object(preflight, "fetch_json", side_effect=self.make_fetch(values)):
             report, code = preflight.execute(self.args)
-        self.assertEqual(code, 0)
-        self.assertEqual(report["run_status"], "PARTIAL_PROVIDER_BUDGET")
+        self.assertEqual(code, 1)
+        self.assertEqual(report["run_status"], "STOPPED_FAIL_CLOSED")
+        self.assertEqual(report["failure_code"], "PROVIDER_REQUEST_LIMIT_CANNOT_PRESERVE_300_HEADROOM")
         self.assertEqual(report["request_budget"]["requests_attempted_this_run"], 1)
         self.assertEqual(report["request_budget"]["provider_request_limit_observed"], 300)
         self.assertEqual(len(json.loads(self.ledger.read_text(encoding="utf-8"))["actual_requests"]), 1)
