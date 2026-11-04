@@ -728,5 +728,5 @@ The first dynamic-adapter change removed the fixed-50 constraint but also weaken
 - Staging workflow run 41856521492 completed successfully and committed the plan in commit cadc2c269e3babb28df436102f315d057770db7c.
 - Historical plan dry-run run 41856565640 completed successfully.
 - Oracle Identity & Settlement Evidence Tests run 41856565537 completed successfully.
-- Oracle Selected-50 Safety Contract Tests run 41856565437 completed every substantive test step successfully, including historical planning, pagination contracts, global request-budget tests, legacy API path shutdown and current snapshot validator tests; final GitHub job cleanup was still pending when this checkpoint was written.
+- Oracle Selected-50 Safety Contract Tests run 41856565437 completed successfully, including historical planning, pagination contracts, global request-budget tests, legacy API path shutdown and current snapshot validator tests.
 - The latest research branch contains the new plan, endpoint contract audit, request budget helper, rolling request ledger and disabled legacy provider workflows. No production files were changed.
