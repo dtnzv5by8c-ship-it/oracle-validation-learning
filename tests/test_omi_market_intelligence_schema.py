@@ -45,6 +45,16 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         self.assertTrue(policy["never_insert_before_or_within_baseline"])
         self.assertTrue(policy["never_rename_reorder_or_delete_baseline_headers"])
 
+    def test_report_builder_uses_locked_95_column_schema_and_builds_omi_visual_tabs(self):
+        builder = (ROOT / "scripts" / "build_selected50_market_intelligence_report.py").read_text(encoding="utf-8")
+        self.assertIn("omi_market_intelligence_schema_v1.json", builder)
+        self.assertIn('decision_headers = omi_schema.get("headers", [])', builder)
+        self.assertIn('add_sheet("OMI Report"', builder)
+        self.assertIn('add_sheet("Visual Intelligence"', builder)
+        self.assertIn("def archive_actual_fields(row):", builder)
+        self.assertIn("SETTLED_VERIFIED_EXACT_ID", builder)
+        self.assertIn("NOT_VERIFIED_EXACT_ID_JOIN", builder)
+
     def test_report_repair_workflow_blocks_legacy_builder_before_archive_download(self):
         workflow = (ROOT / ".github" / "workflows" / "oracle-selected50-market-intelligence-repair.yml").read_text(encoding="utf-8")
         guard = workflow.index("Fail closed until Book4 95-column report builder is integrated")
