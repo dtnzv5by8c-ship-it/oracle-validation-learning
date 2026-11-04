@@ -292,6 +292,45 @@ def fetch_json(
     }
 
 
+
+def check_provider_limit(meta: dict[str, Any], ledger_path: Path) -> None:
+    """A lower provider request_limit returned mid-run immediately binds."""
+    observed = meta.get("provider_request_limit_observed")
+    if observed is None:
+        return
+    effective = min(DEFAULT_GLOBAL_LIMIT, int(observed))
+    headroom = min(DEFAULT_HEADROOM, max(0, effective - 1))
+    usage = active_usage(read_ledger(ledger_path), now_utc())["active_total"]
+    if usage + headroom > effective:
+        raise PreflightError("PROVIDER_REQUEST_LIMIT_BELOW_ACTIVE_RESERVATION")
+
+
+def add_history_window_summary(summary: dict[str, Any], rows: list[dict[str, Any]], season: dict[str, str]) -> None:
+    try:
+        start = datetime.fromisoformat(season["fixture_filter_start_utc"].replace("Z", "+00:00"))
+        end = datetime.fromisoformat(season["fixture_filter_end_utc_inclusive"].replace("Z", "+00:00"))
+        if start.tzinfo is None or end.tzinfo is None or start > end:
+            raise ValueError
+        start_unix = int(start.timestamp())
+        end_unix = int(end.timestamp())
+    except (KeyError, ValueError, TypeError):
+        raise PreflightError("INVALID_EXPLICIT_FIXTURE_DATE_FILTER") from None
+    in_window = 0
+    out_of_window = 0
+    for row in rows:
+        kickoff = int(row["date_unix"])
+        if start_unix <= kickoff <= end_unix:
+            in_window += 1
+        else:
+            out_of_window += 1
+    summary["requested_history_window_utc"] = {
+        "start_inclusive": season["fixture_filter_start_utc"],
+        "end_inclusive": season["fixture_filter_end_utc_inclusive"],
+    }
+    summary["page_1_rows_in_window"] = in_window
+    summary["page_1_rows_outside_window"] = out_of_window
+    summary["fixture_date_filter_applied_to_future_ingestion"] = True
+
 def validate_match_page(payload: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     try:
         pager = validate_paged_response("league-matches", payload, 1)
@@ -458,6 +497,7 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     first_match_payload: dict[str, Any] | None = None
     first_match_meta: dict[str, Any] | None = None
     first_match_summary: dict[str, Any] | None = None
+    request_meta_observations: list[dict[str, Any]] = []
     pending: list[dict[str, str]] = []
     report: dict[str, Any] = {
         "schema_version": "1.0",
@@ -533,6 +573,8 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             first_reservation_finalized = True
 
             first_match_summary, first_rows = validate_match_page(first_match_payload)
+            add_history_window_summary(first_match_summary, first_rows, first)
+            request_meta_observations.append(first_match_meta)
             provider_limit_seen = first_match_meta["provider_request_limit_observed"]
             report["request_budget"]["provider_request_limit_observed"] = provider_limit_seen
             report["request_budget"]["provider_request_remaining_observed"] = first_match_meta[
@@ -602,6 +644,9 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                             args.base_url,
                         )
                         match_summary, match_rows = validate_match_page(match_payload)
+                        check_provider_limit(match_meta, ledger_path)
+                        request_meta_observations.append(match_meta)
+                        add_history_window_summary(match_summary, match_rows, season)
                     result["league_matches"] = match_summary
                     result["league_matches_response"] = match_meta
                     result["completed_goal_field_gap_rows"] = match_summary["completed_rows_missing_any_goal_field"]
@@ -614,6 +659,8 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                         attempts,
                         args.base_url,
                     )
+                    check_provider_limit(teams_meta, ledger_path)
+                    request_meta_observations.append(teams_meta)
                     result["league_teams"] = validate_team_page(teams_payload)
                     result["league_teams_response"] = teams_meta
 
@@ -624,6 +671,8 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                         attempts,
                         args.base_url,
                     )
+                    check_provider_limit(tables_meta, ledger_path)
+                    request_meta_observations.append(tables_meta)
                     result["league_tables"] = summarize_single("league-tables", tables_payload)
                     result["league_tables_response"] = tables_meta
                     table_data = tables_payload["data"]
@@ -639,6 +688,8 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                         attempts,
                         args.base_url,
                     )
+                    check_provider_limit(season_meta, ledger_path)
+                    request_meta_observations.append(season_meta)
                     result["league_season"] = summarize_single("league-season", season_payload)
                     result["league_season_response"] = season_meta
 
@@ -659,6 +710,8 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
                             attempts,
                             args.base_url,
                         )
+                        check_provider_limit(detail_meta, ledger_path)
+                        request_meta_observations.append(detail_meta)
                         result["match_detail"] = match_detail_summary(detail_payload, sample_match)
                         result["match_detail_response"] = detail_meta
                         result["h2h_endpoint_status"] = "RESPONSE_VERIFIED"
@@ -718,6 +771,10 @@ def execute(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
 
         report["finished_at_utc"] = utc_text(now_utc())
         report["request_budget"]["requests_attempted_this_run"] = len(attempts)
+        observed_limits = [item["provider_request_limit_observed"] for item in request_meta_observations if item.get("provider_request_limit_observed") is not None]
+        observed_remaining = [item["provider_request_remaining_observed"] for item in request_meta_observations if item.get("provider_request_remaining_observed") is not None]
+        report["request_budget"]["provider_request_limit_observed_min"] = min(observed_limits) if observed_limits else None
+        report["request_budget"]["provider_request_remaining_observed_min"] = min(observed_remaining) if observed_remaining else None
         report["request_budget"]["actual_requests_in_rolling_hour_after_run"] = active_usage(
             read_ledger(ledger_path), now_utc()
         )["actual_requests_in_rolling_hour"]
