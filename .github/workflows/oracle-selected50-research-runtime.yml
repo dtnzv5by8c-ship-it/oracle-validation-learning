@@ -193,6 +193,8 @@ jobs:
 
       - name: Test snapshot-disabled artifact contract
         run: python -m unittest discover -s tests -p 'test_selected50_runtime_workflow_contract.py' -v
+      - name: Test explicit inclusive report window
+        run: python -m unittest discover -s tests -p 'test_selected50_report_window.py' -v
 
       - name: Test composite-market target against settlement contract
         run: python -m unittest discover -s tests -p 'test_selected50_combo_target_contract.py' -v
