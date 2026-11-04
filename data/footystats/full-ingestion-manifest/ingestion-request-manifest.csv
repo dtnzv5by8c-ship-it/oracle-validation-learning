@@ -1,1 +1,729 @@
 task_id,batch_id,provider,provider_league_name,provider_season_label,provider_season_id,endpoint,page,max_per_page,include,max_time_unix,expected_total_results,expected_page_count,request_status,raw_storage_required,production_eligible,betting_eligible
+FS:11212:league-matches:p1,batch-0001,FootyStats,Argentina Primera División,2024,11212,league-matches,1,600,,,378,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11212:league-teams:p1,batch-0001,FootyStats,Argentina Primera División,2024,11212,league-teams,1,,stats,1793810343,28,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11212:league-tables:p1,batch-0001,FootyStats,Argentina Primera División,2024,11212,league-tables,1,,,1793810345,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11212:league-season:p1,batch-0001,FootyStats,Argentina Primera División,2024,11212,league-season,1,,,1793810347,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15746:league-matches:p1,batch-0001,FootyStats,Argentina Primera División,2025,15746,league-matches,1,600,,,510,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15746:league-teams:p1,batch-0001,FootyStats,Argentina Primera División,2025,15746,league-teams,1,,stats,1793810760,30,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15746:league-tables:p1,batch-0001,FootyStats,Argentina Primera División,2025,15746,league-tables,1,,,1793810762,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15746:league-season:p1,batch-0001,FootyStats,Argentina Primera División,2025,15746,league-season,1,,,1793810764,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16571:league-matches:p1,batch-0001,FootyStats,Argentina Primera División,2026,16571,league-matches,1,600,,,495,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16571:league-teams:p1,batch-0001,FootyStats,Argentina Primera División,2026,16571,league-teams,1,,stats,1793811178,30,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16571:league-tables:p1,batch-0001,FootyStats,Argentina Primera División,2026,16571,league-tables,1,,,1793811181,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16571:league-season:p1,batch-0001,FootyStats,Argentina Primera División,2026,16571,league-season,1,,,1793811182,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10505:league-matches:p1,batch-0001,FootyStats,Australia A-League,20232024,10505,league-matches,1,600,,,169,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10505:league-teams:p1,batch-0001,FootyStats,Australia A-League,20232024,10505,league-teams,1,,stats,1793810352,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10505:league-tables:p1,batch-0001,FootyStats,Australia A-League,20232024,10505,league-tables,1,,,1793810354,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10505:league-season:p1,batch-0001,FootyStats,Australia A-League,20232024,10505,league-season,1,,,1793810356,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13703:league-matches:p1,batch-0001,FootyStats,Australia A-League,20242025,13703,league-matches,1,600,,,176,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13703:league-teams:p1,batch-0001,FootyStats,Australia A-League,20242025,13703,league-teams,1,,stats,1793810769,13,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13703:league-tables:p1,batch-0001,FootyStats,Australia A-League,20242025,13703,league-tables,1,,,1793810771,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13703:league-season:p1,batch-0001,FootyStats,Australia A-League,20242025,13703,league-season,1,,,1793810772,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16036:league-matches:p1,batch-0001,FootyStats,Australia A-League,20252026,16036,league-matches,1,600,,,163,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16036:league-teams:p1,batch-0001,FootyStats,Australia A-League,20252026,16036,league-teams,1,,stats,1793811187,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16036:league-tables:p1,batch-0001,FootyStats,Australia A-League,20252026,16036,league-tables,1,,,1793811189,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16036:league-season:p1,batch-0001,FootyStats,Australia A-League,20252026,16036,league-season,1,,,1793811191,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17326:league-matches:p1,batch-0001,FootyStats,Australia A-League,20262027,17326,league-matches,1,600,,,156,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17326:league-teams:p1,batch-0001,FootyStats,Australia A-League,20262027,17326,league-teams,1,,stats,1793811606,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17326:league-tables:p1,batch-0001,FootyStats,Australia A-League,20262027,17326,league-tables,1,,,1793811608,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17326:league-season:p1,batch-0001,FootyStats,Australia A-League,20262027,17326,league-season,1,,,1793811610,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9954:league-matches:p1,batch-0001,FootyStats,Austria Bundesliga,20232024,9954,league-matches,1,600,,,195,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9954:league-teams:p1,batch-0001,FootyStats,Austria Bundesliga,20232024,9954,league-teams,1,,stats,1793810360,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9954:league-tables:p1,batch-0001,FootyStats,Austria Bundesliga,20232024,9954,league-tables,1,,,1793810362,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9954:league-season:p1,batch-0001,FootyStats,Austria Bundesliga,20232024,9954,league-season,1,,,1793810363,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12472:league-matches:p1,batch-0001,FootyStats,Austria Bundesliga,20242025,12472,league-matches,1,600,,,195,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12472:league-teams:p1,batch-0001,FootyStats,Austria Bundesliga,20242025,12472,league-teams,1,,stats,1793810777,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12472:league-tables:p1,batch-0001,FootyStats,Austria Bundesliga,20242025,12472,league-tables,1,,,1793810779,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12472:league-season:p1,batch-0001,FootyStats,Austria Bundesliga,20242025,12472,league-season,1,,,1793810780,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14923:league-matches:p1,batch-0001,FootyStats,Austria Bundesliga,20252026,14923,league-matches,1,600,,,195,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14923:league-teams:p1,batch-0001,FootyStats,Austria Bundesliga,20252026,14923,league-teams,1,,stats,1793811196,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14923:league-tables:p1,batch-0001,FootyStats,Austria Bundesliga,20252026,14923,league-tables,1,,,1793811197,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14923:league-season:p1,batch-0001,FootyStats,Austria Bundesliga,20252026,14923,league-season,1,,,1793811199,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17181:league-matches:p1,batch-0001,FootyStats,Austria Bundesliga,20262027,17181,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17181:league-teams:p1,batch-0001,FootyStats,Austria Bundesliga,20262027,17181,league-teams,1,,stats,1793811615,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17181:league-tables:p1,batch-0001,FootyStats,Austria Bundesliga,20262027,17181,league-tables,1,,,1793811616,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17181:league-season:p1,batch-0001,FootyStats,Austria Bundesliga,20262027,17181,league-season,1,,,1793811618,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9577:league-matches:p1,batch-0001,FootyStats,Belgium Pro League,20232024,9577,league-matches,1,600,,,313,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9577:league-teams:p1,batch-0001,FootyStats,Belgium Pro League,20232024,9577,league-teams,1,,stats,1793810368,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9577:league-tables:p1,batch-0001,FootyStats,Belgium Pro League,20232024,9577,league-tables,1,,,1793810370,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9577:league-season:p1,batch-0001,FootyStats,Belgium Pro League,20232024,9577,league-season,1,,,1793810372,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12137:league-matches:p1,batch-0001,FootyStats,Belgium Pro League,20242025,12137,league-matches,1,600,,,312,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12137:league-teams:p1,batch-0001,FootyStats,Belgium Pro League,20242025,12137,league-teams,1,,stats,1793810785,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12137:league-tables:p1,batch-0001,FootyStats,Belgium Pro League,20242025,12137,league-tables,1,,,1793810787,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12137:league-season:p1,batch-0001,FootyStats,Belgium Pro League,20242025,12137,league-season,1,,,1793810789,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14937:league-matches:p1,batch-0001,FootyStats,Belgium Pro League,20252026,14937,league-matches,1,600,,,313,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14937:league-teams:p1,batch-0001,FootyStats,Belgium Pro League,20252026,14937,league-teams,1,,stats,1793811204,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14937:league-tables:p1,batch-0001,FootyStats,Belgium Pro League,20252026,14937,league-tables,1,,,1793811206,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14937:league-season:p1,batch-0001,FootyStats,Belgium Pro League,20252026,14937,league-season,1,,,1793811208,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17171:league-matches:p1,batch-0001,FootyStats,Belgium Pro League,20262027,17171,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17171:league-teams:p1,batch-0001,FootyStats,Belgium Pro League,20262027,17171,league-teams,1,,stats,1793811623,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17171:league-tables:p1,batch-0001,FootyStats,Belgium Pro League,20262027,17171,league-tables,1,,,1793811625,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17171:league-season:p1,batch-0001,FootyStats,Belgium Pro League,20262027,17171,league-season,1,,,1793811626,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11321:league-matches:p1,batch-0001,FootyStats,Brazil Serie A,2024,11321,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11321:league-teams:p1,batch-0001,FootyStats,Brazil Serie A,2024,11321,league-teams,1,,stats,1793810377,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11321:league-tables:p1,batch-0001,FootyStats,Brazil Serie A,2024,11321,league-tables,1,,,1793810379,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11321:league-season:p1,batch-0001,FootyStats,Brazil Serie A,2024,11321,league-season,1,,,1793810381,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14231:league-matches:p1,batch-0001,FootyStats,Brazil Serie A,2025,14231,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14231:league-teams:p1,batch-0001,FootyStats,Brazil Serie A,2025,14231,league-teams,1,,stats,1793810794,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14231:league-tables:p1,batch-0001,FootyStats,Brazil Serie A,2025,14231,league-tables,1,,,1793810796,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14231:league-season:p1,batch-0001,FootyStats,Brazil Serie A,2025,14231,league-season,1,,,1793810797,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16544:league-matches:p1,batch-0001,FootyStats,Brazil Serie A,2026,16544,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16544:league-teams:p1,batch-0001,FootyStats,Brazil Serie A,2026,16544,league-teams,1,,stats,1793811213,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16544:league-tables:p1,batch-0001,FootyStats,Brazil Serie A,2026,16544,league-tables,1,,,1793811215,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16544:league-season:p1,batch-0001,FootyStats,Brazil Serie A,2026,16544,league-season,1,,,1793811216,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9551:league-matches:p1,batch-0001,FootyStats,Bulgaria First League,20232024,9551,league-matches,1,600,,,283,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9551:league-teams:p1,batch-0001,FootyStats,Bulgaria First League,20232024,9551,league-teams,1,,stats,1793810390,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9551:league-tables:p1,batch-0001,FootyStats,Bulgaria First League,20232024,9551,league-tables,1,,,1793810391,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9551:league-season:p1,batch-0001,FootyStats,Bulgaria First League,20232024,9551,league-season,1,,,1793810393,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13863:league-matches:p1,batch-0001,FootyStats,Bulgaria First League,20242025,13863,league-matches,1,600,,,292,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13863:league-teams:p1,batch-0001,FootyStats,Bulgaria First League,20242025,13863,league-teams,1,,stats,1793810802,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13863:league-tables:p1,batch-0001,FootyStats,Bulgaria First League,20242025,13863,league-tables,1,,,1793810804,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13863:league-season:p1,batch-0001,FootyStats,Bulgaria First League,20242025,13863,league-season,1,,,1793810806,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15056:league-matches:p1,batch-0001,FootyStats,Bulgaria First League,20252026,15056,league-matches,1,600,,,293,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15056:league-teams:p1,batch-0001,FootyStats,Bulgaria First League,20252026,15056,league-teams,1,,stats,1793811222,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15056:league-tables:p1,batch-0001,FootyStats,Bulgaria First League,20252026,15056,league-tables,1,,,1793811224,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15056:league-season:p1,batch-0001,FootyStats,Bulgaria First League,20252026,15056,league-season,1,,,1793811225,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17088:league-matches:p1,batch-0001,FootyStats,Bulgaria First League,20262027,17088,league-matches,1,600,,,182,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17088:league-teams:p1,batch-0001,FootyStats,Bulgaria First League,20262027,17088,league-teams,1,,stats,1793811632,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17088:league-tables:p1,batch-0001,FootyStats,Bulgaria First League,20262027,17088,league-tables,1,,,1793811633,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17088:league-season:p1,batch-0001,FootyStats,Bulgaria First League,20262027,17088,league-season,1,,,1793811635,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11121:league-matches:p1,batch-0001,FootyStats,Canada Canadian Premier League,2024,11121,league-matches,1,600,,,117,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11121:league-teams:p1,batch-0001,FootyStats,Canada Canadian Premier League,2024,11121,league-teams,1,,stats,1793810397,8,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11121:league-tables:p1,batch-0001,FootyStats,Canada Canadian Premier League,2024,11121,league-tables,1,,,1793810399,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11121:league-season:p1,batch-0001,FootyStats,Canada Canadian Premier League,2024,11121,league-season,1,,,1793810401,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14236:league-matches:p1,batch-0001,FootyStats,Canada Canadian Premier League,2025,14236,league-matches,1,600,,,117,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14236:league-teams:p1,batch-0001,FootyStats,Canada Canadian Premier League,2025,14236,league-teams,1,,stats,1793810810,8,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14236:league-tables:p1,batch-0001,FootyStats,Canada Canadian Premier League,2025,14236,league-tables,1,,,1793810812,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14236:league-season:p1,batch-0001,FootyStats,Canada Canadian Premier League,2025,14236,league-season,1,,,1793810814,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16741:league-matches:p1,batch-0001,FootyStats,Canada Canadian Premier League,2026,16741,league-matches,1,600,,,116,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16741:league-teams:p1,batch-0001,FootyStats,Canada Canadian Premier League,2026,16741,league-teams,1,,stats,1793811230,8,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16741:league-tables:p1,batch-0001,FootyStats,Canada Canadian Premier League,2026,16741,league-tables,1,,,1793811232,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16741:league-season:p1,batch-0001,FootyStats,Canada Canadian Premier League,2026,16741,league-season,1,,,1793811234,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11103:league-matches:p1,batch-0001,FootyStats,Chile Primera División,2024,11103,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11103:league-teams:p1,batch-0001,FootyStats,Chile Primera División,2024,11103,league-teams,1,,stats,1793810405,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11103:league-tables:p1,batch-0001,FootyStats,Chile Primera División,2024,11103,league-tables,1,,,1793810407,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11103:league-season:p1,batch-0001,FootyStats,Chile Primera División,2024,11103,league-season,1,,,1793810409,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14116:league-matches:p1,batch-0001,FootyStats,Chile Primera División,2025,14116,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14116:league-teams:p1,batch-0001,FootyStats,Chile Primera División,2025,14116,league-teams,1,,stats,1793810818,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14116:league-tables:p1,batch-0001,FootyStats,Chile Primera División,2025,14116,league-tables,1,,,1793810821,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14116:league-season:p1,batch-0001,FootyStats,Chile Primera División,2025,14116,league-season,1,,,1793810822,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16615:league-matches:p1,batch-0001,FootyStats,Chile Primera División,2026,16615,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16615:league-teams:p1,batch-0001,FootyStats,Chile Primera División,2026,16615,league-teams,1,,stats,1793811239,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16615:league-tables:p1,batch-0001,FootyStats,Chile Primera División,2026,16615,league-tables,1,,,1793811241,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16615:league-season:p1,batch-0001,FootyStats,Chile Primera División,2026,16615,league-season,1,,,1793811242,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11217:league-matches:p1,batch-0001,FootyStats,China Chinese Super League,2024,11217,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11217:league-teams:p1,batch-0001,FootyStats,China Chinese Super League,2024,11217,league-teams,1,,stats,1793810414,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11217:league-tables:p1,batch-0001,FootyStats,China Chinese Super League,2024,11217,league-tables,1,,,1793810416,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11217:league-season:p1,batch-0001,FootyStats,China Chinese Super League,2024,11217,league-season,1,,,1793810417,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14153:league-matches:p1,batch-0001,FootyStats,China Chinese Super League,2025,14153,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14153:league-teams:p1,batch-0001,FootyStats,China Chinese Super League,2025,14153,league-teams,1,,stats,1793810827,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14153:league-tables:p1,batch-0001,FootyStats,China Chinese Super League,2025,14153,league-tables,1,,,1793810830,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14153:league-season:p1,batch-0001,FootyStats,China Chinese Super League,2025,14153,league-season,1,,,1793810831,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16789:league-matches:p1,batch-0001,FootyStats,China Chinese Super League,2026,16789,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16789:league-teams:p1,batch-0001,FootyStats,China Chinese Super League,2026,16789,league-teams,1,,stats,1793811247,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16789:league-tables:p1,batch-0001,FootyStats,China Chinese Super League,2026,16789,league-tables,1,,,1793811249,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16789:league-season:p1,batch-0001,FootyStats,China Chinese Super League,2026,16789,league-season,1,,,1793811251,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10997:league-matches:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2024,10997,league-matches,1,600,,,432,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10997:league-teams:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2024,10997,league-teams,1,,stats,1793810423,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10997:league-tables:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2024,10997,league-tables,1,,,1793810425,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10997:league-season:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2024,10997,league-season,1,,,1793810426,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14086:league-matches:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2025,14086,league-matches,1,600,,,452,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14086:league-teams:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2025,14086,league-teams,1,,stats,1793810836,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14086:league-tables:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2025,14086,league-tables,1,,,1793810838,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14086:league-season:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2025,14086,league-season,1,,,1793810840,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16614:league-matches:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2026,16614,league-matches,1,600,,,394,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16614:league-teams:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2026,16614,league-teams,1,,stats,1793811256,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16614:league-tables:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2026,16614,league-tables,1,,,1793811258,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16614:league-season:p1,batch-0001,FootyStats,Colombia Categoria Primera A,2026,16614,league-season,1,,,1793811259,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9542:league-matches:p1,batch-0001,FootyStats,Croatia Prva HNL,20232024,9542,league-matches,1,600,,,180,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9542:league-teams:p1,batch-0001,FootyStats,Croatia Prva HNL,20232024,9542,league-teams,1,,stats,1793810431,10,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9542:league-tables:p1,batch-0001,FootyStats,Croatia Prva HNL,20232024,9542,league-tables,1,,,1793810433,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9542:league-season:p1,batch-0001,FootyStats,Croatia Prva HNL,20232024,9542,league-season,1,,,1793810434,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12121:league-matches:p1,batch-0001,FootyStats,Croatia Prva HNL,20242025,12121,league-matches,1,600,,,180,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12121:league-teams:p1,batch-0001,FootyStats,Croatia Prva HNL,20242025,12121,league-teams,1,,stats,1793810845,10,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12121:league-tables:p1,batch-0001,FootyStats,Croatia Prva HNL,20242025,12121,league-tables,1,,,1793810847,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12121:league-season:p1,batch-0001,FootyStats,Croatia Prva HNL,20242025,12121,league-season,1,,,1793810849,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15053:league-matches:p1,batch-0001,FootyStats,Croatia Prva HNL,20252026,15053,league-matches,1,600,,,180,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15053:league-teams:p1,batch-0001,FootyStats,Croatia Prva HNL,20252026,15053,league-teams,1,,stats,1793811264,10,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15053:league-tables:p1,batch-0001,FootyStats,Croatia Prva HNL,20252026,15053,league-tables,1,,,1793811266,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15053:league-season:p1,batch-0001,FootyStats,Croatia Prva HNL,20252026,15053,league-season,1,,,1793811268,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17087:league-matches:p1,batch-0001,FootyStats,Croatia Prva HNL,20262027,17087,league-matches,1,600,,,180,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17087:league-teams:p1,batch-0001,FootyStats,Croatia Prva HNL,20262027,17087,league-teams,1,,stats,1793811640,10,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17087:league-tables:p1,batch-0001,FootyStats,Croatia Prva HNL,20262027,17087,league-tables,1,,,1793811641,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17087:league-season:p1,batch-0001,FootyStats,Croatia Prva HNL,20262027,17087,league-season,1,,,1793811643,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9592:league-matches:p1,batch-0001,FootyStats,Czech Republic First League,20232024,9592,league-matches,1,600,,,277,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9592:league-teams:p1,batch-0001,FootyStats,Czech Republic First League,20232024,9592,league-teams,1,,stats,1793810439,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9592:league-tables:p1,batch-0001,FootyStats,Czech Republic First League,20232024,9592,league-tables,1,,,1793810441,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9592:league-season:p1,batch-0001,FootyStats,Czech Republic First League,20232024,9592,league-season,1,,,1793810443,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12336:league-matches:p1,batch-0001,FootyStats,Czech Republic First League,20242025,12336,league-matches,1,600,,,276,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12336:league-teams:p1,batch-0001,FootyStats,Czech Republic First League,20242025,12336,league-teams,1,,stats,1793810853,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12336:league-tables:p1,batch-0001,FootyStats,Czech Republic First League,20242025,12336,league-tables,1,,,1793810855,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12336:league-season:p1,batch-0001,FootyStats,Czech Republic First League,20242025,12336,league-season,1,,,1793810857,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14973:league-matches:p1,batch-0001,FootyStats,Czech Republic First League,20252026,14973,league-matches,1,600,,,276,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14973:league-teams:p1,batch-0001,FootyStats,Czech Republic First League,20252026,14973,league-teams,1,,stats,1793811273,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14973:league-tables:p1,batch-0001,FootyStats,Czech Republic First League,20252026,14973,league-tables,1,,,1793811275,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14973:league-season:p1,batch-0001,FootyStats,Czech Republic First League,20252026,14973,league-season,1,,,1793811277,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17157:league-matches:p1,batch-0001,FootyStats,Czech Republic First League,20262027,17157,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17157:league-teams:p1,batch-0001,FootyStats,Czech Republic First League,20262027,17157,league-teams,1,,stats,1793811648,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17157:league-tables:p1,batch-0001,FootyStats,Czech Republic First League,20262027,17157,league-tables,1,,,1793811650,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17157:league-season:p1,batch-0001,FootyStats,Czech Republic First League,20262027,17157,league-season,1,,,1793811651,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9545:league-matches:p1,batch-0001,FootyStats,Denmark Superliga,20232024,9545,league-matches,1,600,,,193,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9545:league-teams:p1,batch-0001,FootyStats,Denmark Superliga,20232024,9545,league-teams,1,,stats,1793810447,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9545:league-tables:p1,batch-0001,FootyStats,Denmark Superliga,20232024,9545,league-tables,1,,,1793810449,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9545:league-season:p1,batch-0001,FootyStats,Denmark Superliga,20232024,9545,league-season,1,,,1793810451,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12132:league-matches:p1,batch-0001,FootyStats,Denmark Superliga,20242025,12132,league-matches,1,600,,,193,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12132:league-teams:p1,batch-0001,FootyStats,Denmark Superliga,20242025,12132,league-teams,1,,stats,1793810861,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12132:league-tables:p1,batch-0001,FootyStats,Denmark Superliga,20242025,12132,league-tables,1,,,1793810863,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12132:league-season:p1,batch-0001,FootyStats,Denmark Superliga,20242025,12132,league-season,1,,,1793810865,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15055:league-matches:p1,batch-0001,FootyStats,Denmark Superliga,20252026,15055,league-matches,1,600,,,193,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15055:league-teams:p1,batch-0001,FootyStats,Denmark Superliga,20252026,15055,league-teams,1,,stats,1793811281,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15055:league-tables:p1,batch-0001,FootyStats,Denmark Superliga,20252026,15055,league-tables,1,,,1793811283,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15055:league-season:p1,batch-0001,FootyStats,Denmark Superliga,20252026,15055,league-season,1,,,1793811285,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17091:league-matches:p1,batch-0001,FootyStats,Denmark Superliga,20262027,17091,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17091:league-teams:p1,batch-0001,FootyStats,Denmark Superliga,20262027,17091,league-teams,1,,stats,1793811656,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17091:league-tables:p1,batch-0001,FootyStats,Denmark Superliga,20262027,17091,league-tables,1,,,1793811658,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17091:league-season:p1,batch-0001,FootyStats,Denmark Superliga,20262027,17091,league-season,1,,,1793811660,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11157:league-matches:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2024,11157,league-matches,1,600,,,242,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11157:league-teams:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2024,11157,league-teams,1,,stats,1793810456,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11157:league-tables:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2024,11157,league-tables,1,,,1793810457,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11157:league-season:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2024,11157,league-season,1,,,1793810459,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15842:league-matches:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2025,15842,league-matches,1,600,,,312,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15842:league-teams:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2025,15842,league-teams,1,,stats,1793810870,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15842:league-tables:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2025,15842,league-tables,1,,,1793810872,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15842:league-season:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2025,15842,league-season,1,,,1793810874,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16714:league-matches:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2026,16714,league-matches,1,600,,,312,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16714:league-teams:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2026,16714,league-teams,1,,stats,1793811290,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16714:league-tables:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2026,16714,league-tables,1,,,1793811292,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16714:league-season:p1,batch-0001,FootyStats,Ecuador Primera Categoría Serie A,2026,16714,league-season,1,,,1793811293,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10652:league-matches:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20232024,10652,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10652:league-teams:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20232024,10652,league-teams,1,,stats,1793810464,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10652:league-tables:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20232024,10652,league-tables,1,,,1793810466,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10652:league-season:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20232024,10652,league-season,1,,,1793810468,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13704:league-matches:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20242025,13704,league-matches,1,600,,,225,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13704:league-teams:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20242025,13704,league-teams,1,,stats,1793810879,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13704:league-tables:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20242025,13704,league-tables,1,,,1793810881,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13704:league-season:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20242025,13704,league-season,1,,,1793810883,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15544:league-matches:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20252026,15544,league-matches,1,600,,,322,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15544:league-teams:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20252026,15544,league-teams,1,,stats,1793811298,21,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15544:league-tables:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20252026,15544,league-tables,1,,,1793811300,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15544:league-season:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20252026,15544,league-season,1,,,1793811302,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17689:league-matches:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20262027,17689,league-matches,1,600,,,190,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17689:league-teams:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20262027,17689,league-teams,1,,stats,1793811665,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17689:league-tables:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20262027,17689,league-tables,1,,,1793811666,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17689:league-season:p1,batch-0001,FootyStats,Egypt Egyptian Premier League,20262027,17689,league-season,1,,,1793811668,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9663:league-matches:p1,batch-0001,FootyStats,England Championship,20232024,9663,league-matches,1,600,,,557,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9663:league-teams:p1,batch-0001,FootyStats,England Championship,20232024,9663,league-teams,1,,stats,1793810473,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9663:league-tables:p1,batch-0001,FootyStats,England Championship,20232024,9663,league-tables,1,,,1793810475,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9663:league-season:p1,batch-0001,FootyStats,England Championship,20232024,9663,league-season,1,,,1793810477,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12451:league-matches:p1,batch-0001,FootyStats,England Championship,20242025,12451,league-matches,1,600,,,557,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12451:league-teams:p1,batch-0001,FootyStats,England Championship,20242025,12451,league-teams,1,,stats,1793810888,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12451:league-tables:p1,batch-0001,FootyStats,England Championship,20242025,12451,league-tables,1,,,1793810889,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12451:league-season:p1,batch-0001,FootyStats,England Championship,20242025,12451,league-season,1,,,1793810891,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14930:league-matches:p1,batch-0001,FootyStats,England Championship,20252026,14930,league-matches,1,600,,,558,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14930:league-teams:p1,batch-0001,FootyStats,England Championship,20252026,14930,league-teams,1,,stats,1793811307,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14930:league-tables:p1,batch-0001,FootyStats,England Championship,20252026,14930,league-tables,1,,,1793811309,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14930:league-season:p1,batch-0001,FootyStats,England Championship,20252026,14930,league-season,1,,,1793811311,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17184:league-matches:p1,batch-0001,FootyStats,England Championship,20262027,17184,league-matches,1,600,,,552,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17184:league-teams:p1,batch-0001,FootyStats,England Championship,20262027,17184,league-teams,1,,stats,1793811673,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17184:league-tables:p1,batch-0001,FootyStats,England Championship,20262027,17184,league-tables,1,,,1793811675,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17184:league-season:p1,batch-0001,FootyStats,England Championship,20262027,17184,league-season,1,,,1793811676,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9582:league-matches:p1,batch-0001,FootyStats,England EFL League One,20232024,9582,league-matches,1,600,,,557,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9582:league-teams:p1,batch-0001,FootyStats,England EFL League One,20232024,9582,league-teams,1,,stats,1793810482,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9582:league-tables:p1,batch-0001,FootyStats,England EFL League One,20232024,9582,league-tables,1,,,1793810484,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9582:league-season:p1,batch-0001,FootyStats,England EFL League One,20232024,9582,league-season,1,,,1793810485,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12446:league-matches:p1,batch-0001,FootyStats,England EFL League One,20242025,12446,league-matches,1,600,,,557,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12446:league-teams:p1,batch-0001,FootyStats,England EFL League One,20242025,12446,league-teams,1,,stats,1793810896,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12446:league-tables:p1,batch-0001,FootyStats,England EFL League One,20242025,12446,league-tables,1,,,1793810898,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12446:league-season:p1,batch-0001,FootyStats,England EFL League One,20242025,12446,league-season,1,,,1793810900,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14934:league-matches:p1,batch-0001,FootyStats,England EFL League One,20252026,14934,league-matches,1,600,,,557,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14934:league-teams:p1,batch-0001,FootyStats,England EFL League One,20252026,14934,league-teams,1,,stats,1793811316,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14934:league-tables:p1,batch-0001,FootyStats,England EFL League One,20252026,14934,league-tables,1,,,1793811319,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14934:league-season:p1,batch-0001,FootyStats,England EFL League One,20252026,14934,league-season,1,,,1793811320,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17180:league-matches:p1,batch-0001,FootyStats,England EFL League One,20262027,17180,league-matches,1,600,,,552,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17180:league-teams:p1,batch-0001,FootyStats,England EFL League One,20262027,17180,league-teams,1,,stats,1793811681,24,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17180:league-tables:p1,batch-0001,FootyStats,England EFL League One,20262027,17180,league-tables,1,,,1793811683,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17180:league-season:p1,batch-0001,FootyStats,England EFL League One,20262027,17180,league-season,1,,,1793811685,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9660:league-matches:p1,batch-0001,FootyStats,England Premier League,20232024,9660,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9660:league-teams:p1,batch-0001,FootyStats,England Premier League,20232024,9660,league-teams,1,,stats,1793810490,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9660:league-tables:p1,batch-0001,FootyStats,England Premier League,20232024,9660,league-tables,1,,,1793810492,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9660:league-season:p1,batch-0001,FootyStats,England Premier League,20232024,9660,league-season,1,,,1793810494,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12325:league-matches:p1,batch-0001,FootyStats,England Premier League,20242025,12325,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12325:league-teams:p1,batch-0001,FootyStats,England Premier League,20242025,12325,league-teams,1,,stats,1793810905,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12325:league-tables:p1,batch-0001,FootyStats,England Premier League,20242025,12325,league-tables,1,,,1793810907,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12325:league-season:p1,batch-0001,FootyStats,England Premier League,20242025,12325,league-season,1,,,1793810908,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15050:league-matches:p1,batch-0001,FootyStats,England Premier League,20252026,15050,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15050:league-teams:p1,batch-0001,FootyStats,England Premier League,20252026,15050,league-teams,1,,stats,1793811325,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15050:league-tables:p1,batch-0001,FootyStats,England Premier League,20252026,15050,league-tables,1,,,1793811327,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15050:league-season:p1,batch-0001,FootyStats,England Premier League,20252026,15050,league-season,1,,,1793811329,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17146:league-matches:p1,batch-0001,FootyStats,England Premier League,20262027,17146,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17146:league-teams:p1,batch-0001,FootyStats,England Premier League,20262027,17146,league-teams,1,,stats,1793811690,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17146:league-tables:p1,batch-0001,FootyStats,England Premier League,20262027,17146,league-tables,1,,,1793811691,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17146:league-season:p1,batch-0001,FootyStats,England Premier League,20262027,17146,league-season,1,,,1793811693,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9674:league-matches:p1,batch-0001,FootyStats,France Ligue 1,20232024,9674,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9674:league-teams:p1,batch-0001,FootyStats,France Ligue 1,20232024,9674,league-teams,1,,stats,1793810499,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9674:league-tables:p1,batch-0001,FootyStats,France Ligue 1,20232024,9674,league-tables,1,,,1793810501,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9674:league-season:p1,batch-0001,FootyStats,France Ligue 1,20232024,9674,league-season,1,,,1793810503,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12337:league-matches:p1,batch-0001,FootyStats,France Ligue 1,20242025,12337,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12337:league-teams:p1,batch-0001,FootyStats,France Ligue 1,20242025,12337,league-teams,1,,stats,1793810913,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12337:league-tables:p1,batch-0001,FootyStats,France Ligue 1,20242025,12337,league-tables,1,,,1793810915,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12337:league-season:p1,batch-0001,FootyStats,France Ligue 1,20242025,12337,league-season,1,,,1793810917,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14932:league-matches:p1,batch-0001,FootyStats,France Ligue 1,20252026,14932,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14932:league-teams:p1,batch-0001,FootyStats,France Ligue 1,20252026,14932,league-teams,1,,stats,1793811334,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14932:league-tables:p1,batch-0001,FootyStats,France Ligue 1,20252026,14932,league-tables,1,,,1793811336,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14932:league-season:p1,batch-0001,FootyStats,France Ligue 1,20252026,14932,league-season,1,,,1793811338,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17102:league-matches:p1,batch-0001,FootyStats,France Ligue 1,20262027,17102,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17102:league-teams:p1,batch-0001,FootyStats,France Ligue 1,20262027,17102,league-teams,1,,stats,1793811698,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17102:league-tables:p1,batch-0001,FootyStats,France Ligue 1,20262027,17102,league-tables,1,,,1793811699,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17102:league-season:p1,batch-0001,FootyStats,France Ligue 1,20262027,17102,league-season,1,,,1793811701,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9621:league-matches:p1,batch-0001,FootyStats,France Ligue 2,20232024,9621,league-matches,1,600,,,382,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9621:league-teams:p1,batch-0001,FootyStats,France Ligue 2,20232024,9621,league-teams,1,,stats,1793810508,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9621:league-tables:p1,batch-0001,FootyStats,France Ligue 2,20232024,9621,league-tables,1,,,1793810509,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9621:league-season:p1,batch-0001,FootyStats,France Ligue 2,20232024,9621,league-season,1,,,1793810511,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12338:league-matches:p1,batch-0001,FootyStats,France Ligue 2,20242025,12338,league-matches,1,600,,,308,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12338:league-teams:p1,batch-0001,FootyStats,France Ligue 2,20242025,12338,league-teams,1,,stats,1793810921,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12338:league-tables:p1,batch-0001,FootyStats,France Ligue 2,20242025,12338,league-tables,1,,,1793810923,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12338:league-season:p1,batch-0001,FootyStats,France Ligue 2,20242025,12338,league-season,1,,,1793810924,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14954:league-matches:p1,batch-0001,FootyStats,France Ligue 2,20252026,14954,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14954:league-teams:p1,batch-0001,FootyStats,France Ligue 2,20252026,14954,league-teams,1,,stats,1793811343,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14954:league-tables:p1,batch-0001,FootyStats,France Ligue 2,20252026,14954,league-tables,1,,,1793811345,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14954:league-season:p1,batch-0001,FootyStats,France Ligue 2,20252026,14954,league-season,1,,,1793811347,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17117:league-matches:p1,batch-0001,FootyStats,France Ligue 2,20262027,17117,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17117:league-teams:p1,batch-0001,FootyStats,France Ligue 2,20262027,17117,league-teams,1,,stats,1793811706,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17117:league-tables:p1,batch-0001,FootyStats,France Ligue 2,20262027,17117,league-tables,1,,,1793811708,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17117:league-season:p1,batch-0001,FootyStats,France Ligue 2,20262027,17117,league-season,1,,,1793811710,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9656:league-matches:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20232024,9656,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9656:league-teams:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20232024,9656,league-teams,1,,stats,1793810516,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9656:league-tables:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20232024,9656,league-tables,1,,,1793810518,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9656:league-season:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20232024,9656,league-season,1,,,1793810519,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12528:league-matches:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20242025,12528,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12528:league-teams:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20242025,12528,league-teams,1,,stats,1793810929,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12528:league-tables:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20242025,12528,league-tables,1,,,1793810931,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12528:league-season:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20242025,12528,league-season,1,,,1793810933,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14931:league-matches:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20252026,14931,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14931:league-teams:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20252026,14931,league-teams,1,,stats,1793811352,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14931:league-tables:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20252026,14931,league-tables,1,,,1793811354,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14931:league-season:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20252026,14931,league-season,1,,,1793811356,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17212:league-matches:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20262027,17212,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17212:league-teams:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20262027,17212,league-teams,1,,stats,1793811715,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17212:league-tables:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20262027,17212,league-tables,1,,,1793811716,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17212:league-season:p1,batch-0001,FootyStats,Germany 2. Bundesliga,20262027,17212,league-season,1,,,1793811718,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9655:league-matches:p1,batch-0001,FootyStats,Germany Bundesliga,20232024,9655,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9655:league-teams:p1,batch-0001,FootyStats,Germany Bundesliga,20232024,9655,league-teams,1,,stats,1793810524,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9655:league-tables:p1,batch-0001,FootyStats,Germany Bundesliga,20232024,9655,league-tables,1,,,1793810526,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9655:league-season:p1,batch-0001,FootyStats,Germany Bundesliga,20232024,9655,league-season,1,,,1793810528,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12529:league-matches:p1,batch-0001,FootyStats,Germany Bundesliga,20242025,12529,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12529:league-teams:p1,batch-0001,FootyStats,Germany Bundesliga,20242025,12529,league-teams,1,,stats,1793810937,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12529:league-tables:p1,batch-0001,FootyStats,Germany Bundesliga,20242025,12529,league-tables,1,,,1793810939,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12529:league-season:p1,batch-0001,FootyStats,Germany Bundesliga,20242025,12529,league-season,1,,,1793810941,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14968:league-matches:p1,batch-0001,FootyStats,Germany Bundesliga,20252026,14968,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14968:league-teams:p1,batch-0001,FootyStats,Germany Bundesliga,20252026,14968,league-teams,1,,stats,1793811361,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14968:league-tables:p1,batch-0001,FootyStats,Germany Bundesliga,20252026,14968,league-tables,1,,,1793811363,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14968:league-season:p1,batch-0001,FootyStats,Germany Bundesliga,20252026,14968,league-season,1,,,1793811365,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17210:league-matches:p1,batch-0001,FootyStats,Germany Bundesliga,20262027,17210,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17210:league-teams:p1,batch-0001,FootyStats,Germany Bundesliga,20262027,17210,league-teams,1,,stats,1793811724,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17210:league-tables:p1,batch-0001,FootyStats,Germany Bundesliga,20262027,17210,league-tables,1,,,1793811726,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17210:league-season:p1,batch-0001,FootyStats,Germany Bundesliga,20262027,17210,league-season,1,,,1793811727,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9889:league-matches:p1,batch-0001,FootyStats,Greece Super League,20232024,9889,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9889:league-teams:p1,batch-0001,FootyStats,Greece Super League,20232024,9889,league-teams,1,,stats,1793810533,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9889:league-tables:p1,batch-0001,FootyStats,Greece Super League,20232024,9889,league-tables,1,,,1793810535,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9889:league-season:p1,batch-0001,FootyStats,Greece Super League,20232024,9889,league-season,1,,,1793810536,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12734:league-matches:p1,batch-0001,FootyStats,Greece Super League,20242025,12734,league-matches,1,600,,,236,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12734:league-teams:p1,batch-0001,FootyStats,Greece Super League,20242025,12734,league-teams,1,,stats,1793810946,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12734:league-tables:p1,batch-0001,FootyStats,Greece Super League,20242025,12734,league-tables,1,,,1793810948,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12734:league-season:p1,batch-0001,FootyStats,Greece Super League,20242025,12734,league-season,1,,,1793810949,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15163:league-matches:p1,batch-0001,FootyStats,Greece Super League,20252026,15163,league-matches,1,600,,,236,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15163:league-teams:p1,batch-0001,FootyStats,Greece Super League,20252026,15163,league-teams,1,,stats,1793811370,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15163:league-tables:p1,batch-0001,FootyStats,Greece Super League,20252026,15163,league-tables,1,,,1793811372,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15163:league-season:p1,batch-0001,FootyStats,Greece Super League,20252026,15163,league-season,1,,,1793811374,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17356:league-matches:p1,batch-0001,FootyStats,Greece Super League,20262027,17356,league-matches,1,600,,,182,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17356:league-teams:p1,batch-0001,FootyStats,Greece Super League,20262027,17356,league-teams,1,,stats,1793811733,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17356:league-tables:p1,batch-0001,FootyStats,Greece Super League,20262027,17356,league-tables,1,,,1793811735,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17356:league-season:p1,batch-0001,FootyStats,Greece Super League,20262027,17356,league-season,1,,,1793811736,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9697:league-matches:p1,batch-0001,FootyStats,Italy Serie A,20232024,9697,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9697:league-teams:p1,batch-0001,FootyStats,Italy Serie A,20232024,9697,league-teams,1,,stats,1793810541,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9697:league-tables:p1,batch-0001,FootyStats,Italy Serie A,20232024,9697,league-tables,1,,,1793810543,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9697:league-season:p1,batch-0001,FootyStats,Italy Serie A,20232024,9697,league-season,1,,,1793810544,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12530:league-matches:p1,batch-0001,FootyStats,Italy Serie A,20242025,12530,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12530:league-teams:p1,batch-0001,FootyStats,Italy Serie A,20242025,12530,league-teams,1,,stats,1793810954,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12530:league-tables:p1,batch-0001,FootyStats,Italy Serie A,20242025,12530,league-tables,1,,,1793810956,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12530:league-season:p1,batch-0001,FootyStats,Italy Serie A,20242025,12530,league-season,1,,,1793810958,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15068:league-matches:p1,batch-0001,FootyStats,Italy Serie A,20252026,15068,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15068:league-teams:p1,batch-0001,FootyStats,Italy Serie A,20252026,15068,league-teams,1,,stats,1793811378,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15068:league-tables:p1,batch-0001,FootyStats,Italy Serie A,20252026,15068,league-tables,1,,,1793811380,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15068:league-season:p1,batch-0001,FootyStats,Italy Serie A,20252026,15068,league-season,1,,,1793811382,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17084:league-matches:p1,batch-0001,FootyStats,Italy Serie A,20262027,17084,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17084:league-teams:p1,batch-0001,FootyStats,Italy Serie A,20262027,17084,league-teams,1,,stats,1793811743,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17084:league-tables:p1,batch-0001,FootyStats,Italy Serie A,20262027,17084,league-tables,1,,,1793811745,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17084:league-season:p1,batch-0001,FootyStats,Italy Serie A,20262027,17084,league-season,1,,,1793811746,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9808:league-matches:p1,batch-0001,FootyStats,Italy Serie B,20232024,9808,league-matches,1,600,,,390,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9808:league-teams:p1,batch-0001,FootyStats,Italy Serie B,20232024,9808,league-teams,1,,stats,1793810549,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9808:league-tables:p1,batch-0001,FootyStats,Italy Serie B,20232024,9808,league-tables,1,,,1793810551,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9808:league-season:p1,batch-0001,FootyStats,Italy Serie B,20232024,9808,league-season,1,,,1793810553,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12621:league-matches:p1,batch-0001,FootyStats,Italy Serie B,20242025,12621,league-matches,1,600,,,392,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12621:league-teams:p1,batch-0001,FootyStats,Italy Serie B,20242025,12621,league-teams,1,,stats,1793810963,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12621:league-tables:p1,batch-0001,FootyStats,Italy Serie B,20242025,12621,league-tables,1,,,1793810965,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12621:league-season:p1,batch-0001,FootyStats,Italy Serie B,20242025,12621,league-season,1,,,1793810967,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15632:league-matches:p1,batch-0001,FootyStats,Italy Serie B,20252026,15632,league-matches,1,600,,,390,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15632:league-teams:p1,batch-0001,FootyStats,Italy Serie B,20252026,15632,league-teams,1,,stats,1793811387,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15632:league-tables:p1,batch-0001,FootyStats,Italy Serie B,20252026,15632,league-tables,1,,,1793811389,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15632:league-season:p1,batch-0001,FootyStats,Italy Serie B,20252026,15632,league-season,1,,,1793811391,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17404:league-matches:p1,batch-0001,FootyStats,Italy Serie B,20262027,17404,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17404:league-teams:p1,batch-0001,FootyStats,Italy Serie B,20262027,17404,league-teams,1,,stats,1793811751,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17404:league-tables:p1,batch-0001,FootyStats,Italy Serie B,20262027,17404,league-tables,1,,,1793811753,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17404:league-season:p1,batch-0001,FootyStats,Italy Serie B,20262027,17404,league-season,1,,,1793811754,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10994:league-matches:p1,batch-0001,FootyStats,Japan J1 League,2024,10994,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10994:league-teams:p1,batch-0001,FootyStats,Japan J1 League,2024,10994,league-teams,1,,stats,1793810558,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10994:league-tables:p1,batch-0001,FootyStats,Japan J1 League,2024,10994,league-tables,1,,,1793810560,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10994:league-season:p1,batch-0001,FootyStats,Japan J1 League,2024,10994,league-season,1,,,1793810561,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16242:league-matches:p1,batch-0001,FootyStats,Japan J1 League,2025,16242,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16242:league-teams:p1,batch-0001,FootyStats,Japan J1 League,2025,16242,league-teams,1,,stats,1793810972,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16242:league-tables:p1,batch-0001,FootyStats,Japan J1 League,2025,16242,league-tables,1,,,1793810974,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16242:league-season:p1,batch-0001,FootyStats,Japan J1 League,2025,16242,league-season,1,,,1793810976,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17115:league-matches:p1,batch-0001,FootyStats,Japan J1 League,20262027,17115,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17115:league-teams:p1,batch-0001,FootyStats,Japan J1 League,20262027,17115,league-teams,1,,stats,1793811396,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17115:league-tables:p1,batch-0001,FootyStats,Japan J1 League,20262027,17115,league-tables,1,,,1793811398,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17115:league-season:p1,batch-0001,FootyStats,Japan J1 League,20262027,17115,league-season,1,,,1793811399,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9525:league-matches:p1,batch-0001,FootyStats,Mexico Liga MX,20232024,9525,league-matches,1,600,,,340,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9525:league-teams:p1,batch-0001,FootyStats,Mexico Liga MX,20232024,9525,league-teams,1,,stats,1793810566,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9525:league-tables:p1,batch-0001,FootyStats,Mexico Liga MX,20232024,9525,league-tables,1,,,1793810568,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9525:league-season:p1,batch-0001,FootyStats,Mexico Liga MX,20232024,9525,league-season,1,,,1793810570,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12136:league-matches:p1,batch-0001,FootyStats,Mexico Liga MX,20242025,12136,league-matches,1,600,,,340,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12136:league-teams:p1,batch-0001,FootyStats,Mexico Liga MX,20242025,12136,league-teams,1,,stats,1793810981,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12136:league-tables:p1,batch-0001,FootyStats,Mexico Liga MX,20242025,12136,league-tables,1,,,1793810982,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12136:league-season:p1,batch-0001,FootyStats,Mexico Liga MX,20242025,12136,league-season,1,,,1793810984,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15234:league-matches:p1,batch-0001,FootyStats,Mexico Liga MX,20252026,15234,league-matches,1,600,,,337,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15234:league-teams:p1,batch-0001,FootyStats,Mexico Liga MX,20252026,15234,league-teams,1,,stats,1793811404,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15234:league-tables:p1,batch-0001,FootyStats,Mexico Liga MX,20252026,15234,league-tables,1,,,1793811406,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15234:league-season:p1,batch-0001,FootyStats,Mexico Liga MX,20252026,15234,league-season,1,,,1793811408,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17099:league-matches:p1,batch-0001,FootyStats,Mexico Liga MX,20262027,17099,league-matches,1,600,,,153,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17099:league-teams:p1,batch-0001,FootyStats,Mexico Liga MX,20262027,17099,league-teams,1,,stats,1793811759,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17099:league-tables:p1,batch-0001,FootyStats,Mexico Liga MX,20262027,17099,league-tables,1,,,1793811761,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17099:league-season:p1,batch-0001,FootyStats,Mexico Liga MX,20262027,17099,league-season,1,,,1793811763,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9653:league-matches:p1,batch-0001,FootyStats,Netherlands Eredivisie,20232024,9653,league-matches,1,600,,,309,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9653:league-teams:p1,batch-0001,FootyStats,Netherlands Eredivisie,20232024,9653,league-teams,1,,stats,1793810575,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9653:league-tables:p1,batch-0001,FootyStats,Netherlands Eredivisie,20232024,9653,league-tables,1,,,1793810576,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9653:league-season:p1,batch-0001,FootyStats,Netherlands Eredivisie,20232024,9653,league-season,1,,,1793810578,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12322:league-matches:p1,batch-0001,FootyStats,Netherlands Eredivisie,20242025,12322,league-matches,1,600,,,309,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12322:league-teams:p1,batch-0001,FootyStats,Netherlands Eredivisie,20242025,12322,league-teams,1,,stats,1793810989,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12322:league-tables:p1,batch-0001,FootyStats,Netherlands Eredivisie,20242025,12322,league-tables,1,,,1793810991,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12322:league-season:p1,batch-0001,FootyStats,Netherlands Eredivisie,20242025,12322,league-season,1,,,1793810992,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14936:league-matches:p1,batch-0001,FootyStats,Netherlands Eredivisie,20252026,14936,league-matches,1,600,,,309,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14936:league-teams:p1,batch-0001,FootyStats,Netherlands Eredivisie,20252026,14936,league-teams,1,,stats,1793811413,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14936:league-tables:p1,batch-0001,FootyStats,Netherlands Eredivisie,20252026,14936,league-tables,1,,,1793811416,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14936:league-season:p1,batch-0001,FootyStats,Netherlands Eredivisie,20252026,14936,league-season,1,,,1793811417,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17097:league-matches:p1,batch-0001,FootyStats,Netherlands Eredivisie,20262027,17097,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17097:league-teams:p1,batch-0001,FootyStats,Netherlands Eredivisie,20262027,17097,league-teams,1,,stats,1793811767,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17097:league-tables:p1,batch-0001,FootyStats,Netherlands Eredivisie,20262027,17097,league-tables,1,,,1793811769,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17097:league-season:p1,batch-0001,FootyStats,Netherlands Eredivisie,20262027,17097,league-season,1,,,1793811771,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17353:league-matches:p1,batch-0001,FootyStats,Norway Eliteserien,2024,17353,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17353:league-teams:p1,batch-0001,FootyStats,Norway Eliteserien,2024,17353,league-teams,1,,stats,1793810582,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17353:league-tables:p1,batch-0001,FootyStats,Norway Eliteserien,2024,17353,league-tables,1,,,1793810585,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17353:league-season:p1,batch-0001,FootyStats,Norway Eliteserien,2024,17353,league-season,1,,,1793810586,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16260:league-matches:p1,batch-0001,FootyStats,Norway Eliteserien,2025,16260,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16260:league-teams:p1,batch-0001,FootyStats,Norway Eliteserien,2025,16260,league-teams,1,,stats,1793810997,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16260:league-tables:p1,batch-0001,FootyStats,Norway Eliteserien,2025,16260,league-tables,1,,,1793810999,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16260:league-season:p1,batch-0001,FootyStats,Norway Eliteserien,2025,16260,league-season,1,,,1793811001,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16558:league-matches:p1,batch-0001,FootyStats,Norway Eliteserien,2026,16558,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16558:league-teams:p1,batch-0001,FootyStats,Norway Eliteserien,2026,16558,league-teams,1,,stats,1793811422,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16558:league-tables:p1,batch-0001,FootyStats,Norway Eliteserien,2026,16558,league-tables,1,,,1793811424,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16558:league-season:p1,batch-0001,FootyStats,Norway Eliteserien,2026,16558,league-season,1,,,1793811426,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11141:league-matches:p1,batch-0001,FootyStats,Paraguay Division Profesional,2024,11141,league-matches,1,600,,,264,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11141:league-teams:p1,batch-0001,FootyStats,Paraguay Division Profesional,2024,11141,league-teams,1,,stats,1793810591,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11141:league-tables:p1,batch-0001,FootyStats,Paraguay Division Profesional,2024,11141,league-tables,1,,,1793810593,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11141:league-season:p1,batch-0001,FootyStats,Paraguay Division Profesional,2024,11141,league-season,1,,,1793810595,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16333:league-matches:p1,batch-0001,FootyStats,Paraguay Division Profesional,2025,16333,league-matches,1,600,,,264,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16333:league-teams:p1,batch-0001,FootyStats,Paraguay Division Profesional,2025,16333,league-teams,1,,stats,1793811006,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16333:league-tables:p1,batch-0001,FootyStats,Paraguay Division Profesional,2025,16333,league-tables,1,,,1793811008,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16333:league-season:p1,batch-0001,FootyStats,Paraguay Division Profesional,2025,16333,league-season,1,,,1793811010,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16533:league-matches:p1,batch-0001,FootyStats,Paraguay Division Profesional,2026,16533,league-matches,1,600,,,264,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16533:league-teams:p1,batch-0001,FootyStats,Paraguay Division Profesional,2026,16533,league-teams,1,,stats,1793811430,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16533:league-tables:p1,batch-0001,FootyStats,Paraguay Division Profesional,2026,16533,league-tables,1,,,1793811432,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16533:league-season:p1,batch-0001,FootyStats,Paraguay Division Profesional,2026,16533,league-season,1,,,1793811433,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11062:league-matches:p1,batch-0001,FootyStats,Peru Primera División,2024,11062,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11062:league-teams:p1,batch-0001,FootyStats,Peru Primera División,2024,11062,league-teams,1,,stats,1793810600,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11062:league-tables:p1,batch-0001,FootyStats,Peru Primera División,2024,11062,league-tables,1,,,1793810602,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11062:league-season:p1,batch-0001,FootyStats,Peru Primera División,2024,11062,league-season,1,,,1793810603,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14912:league-matches:p1,batch-0001,FootyStats,Peru Primera División,2025,14912,league-matches,1,600,,,346,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14912:league-teams:p1,batch-0001,FootyStats,Peru Primera División,2025,14912,league-teams,1,,stats,1793811015,19,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14912:league-tables:p1,batch-0001,FootyStats,Peru Primera División,2025,14912,league-tables,1,,,1793811017,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14912:league-season:p1,batch-0001,FootyStats,Peru Primera División,2025,14912,league-season,1,,,1793811019,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16905:league-matches:p1,batch-0001,FootyStats,Peru Primera División,2026,16905,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16905:league-teams:p1,batch-0001,FootyStats,Peru Primera División,2026,16905,league-teams,1,,stats,1793811438,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16905:league-tables:p1,batch-0001,FootyStats,Peru Primera División,2026,16905,league-tables,1,,,1793811440,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16905:league-season:p1,batch-0001,FootyStats,Peru Primera División,2026,16905,league-season,1,,,1793811442,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9553:league-matches:p1,batch-0001,FootyStats,Poland Ekstraklasa,20232024,9553,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9553:league-teams:p1,batch-0001,FootyStats,Poland Ekstraklasa,20232024,9553,league-teams,1,,stats,1793810608,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9553:league-tables:p1,batch-0001,FootyStats,Poland Ekstraklasa,20232024,9553,league-tables,1,,,1793810610,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9553:league-season:p1,batch-0001,FootyStats,Poland Ekstraklasa,20232024,9553,league-season,1,,,1793810612,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12120:league-matches:p1,batch-0001,FootyStats,Poland Ekstraklasa,20242025,12120,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12120:league-teams:p1,batch-0001,FootyStats,Poland Ekstraklasa,20242025,12120,league-teams,1,,stats,1793811024,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12120:league-tables:p1,batch-0001,FootyStats,Poland Ekstraklasa,20242025,12120,league-tables,1,,,1793811026,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12120:league-season:p1,batch-0001,FootyStats,Poland Ekstraklasa,20242025,12120,league-season,1,,,1793811028,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15031:league-matches:p1,batch-0001,FootyStats,Poland Ekstraklasa,20252026,15031,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15031:league-teams:p1,batch-0001,FootyStats,Poland Ekstraklasa,20252026,15031,league-teams,1,,stats,1793811447,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15031:league-tables:p1,batch-0001,FootyStats,Poland Ekstraklasa,20252026,15031,league-tables,1,,,1793811450,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15031:league-season:p1,batch-0001,FootyStats,Poland Ekstraklasa,20252026,15031,league-season,1,,,1793811451,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17112:league-matches:p1,batch-0001,FootyStats,Poland Ekstraklasa,20262027,17112,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17112:league-teams:p1,batch-0001,FootyStats,Poland Ekstraklasa,20262027,17112,league-teams,1,,stats,1793811777,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17112:league-tables:p1,batch-0001,FootyStats,Poland Ekstraklasa,20262027,17112,league-tables,1,,,1793811779,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17112:league-season:p1,batch-0001,FootyStats,Poland Ekstraklasa,20262027,17112,league-season,1,,,1793811780,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9984:league-matches:p1,batch-0001,FootyStats,Portugal Liga NOS,20232024,9984,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9984:league-teams:p1,batch-0001,FootyStats,Portugal Liga NOS,20232024,9984,league-teams,1,,stats,1793810616,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9984:league-tables:p1,batch-0001,FootyStats,Portugal Liga NOS,20232024,9984,league-tables,1,,,1793810618,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9984:league-season:p1,batch-0001,FootyStats,Portugal Liga NOS,20232024,9984,league-season,1,,,1793810620,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12931:league-matches:p1,batch-0001,FootyStats,Portugal Liga NOS,20242025,12931,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12931:league-teams:p1,batch-0001,FootyStats,Portugal Liga NOS,20242025,12931,league-teams,1,,stats,1793811033,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12931:league-tables:p1,batch-0001,FootyStats,Portugal Liga NOS,20242025,12931,league-tables,1,,,1793811035,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12931:league-season:p1,batch-0001,FootyStats,Portugal Liga NOS,20242025,12931,league-season,1,,,1793811037,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15115:league-matches:p1,batch-0001,FootyStats,Portugal Liga NOS,20252026,15115,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15115:league-teams:p1,batch-0001,FootyStats,Portugal Liga NOS,20252026,15115,league-teams,1,,stats,1793811457,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15115:league-tables:p1,batch-0001,FootyStats,Portugal Liga NOS,20252026,15115,league-tables,1,,,1793811459,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15115:league-season:p1,batch-0001,FootyStats,Portugal Liga NOS,20252026,15115,league-season,1,,,1793811460,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17217:league-matches:p1,batch-0001,FootyStats,Portugal Liga NOS,20262027,17217,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17217:league-teams:p1,batch-0001,FootyStats,Portugal Liga NOS,20262027,17217,league-teams,1,,stats,1793811786,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17217:league-tables:p1,batch-0001,FootyStats,Portugal Liga NOS,20262027,17217,league-tables,1,,,1793811788,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17217:league-season:p1,batch-0001,FootyStats,Portugal Liga NOS,20262027,17217,league-season,1,,,1793811789,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9704:league-matches:p1,batch-0001,FootyStats,Portugal LigaPro,20232024,9704,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9704:league-teams:p1,batch-0001,FootyStats,Portugal LigaPro,20232024,9704,league-teams,1,,stats,1793810625,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9704:league-tables:p1,batch-0001,FootyStats,Portugal LigaPro,20232024,9704,league-tables,1,,,1793810627,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9704:league-season:p1,batch-0001,FootyStats,Portugal LigaPro,20232024,9704,league-season,1,,,1793810628,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12585:league-matches:p1,batch-0001,FootyStats,Portugal LigaPro,20242025,12585,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12585:league-teams:p1,batch-0001,FootyStats,Portugal LigaPro,20242025,12585,league-teams,1,,stats,1793811042,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12585:league-tables:p1,batch-0001,FootyStats,Portugal LigaPro,20242025,12585,league-tables,1,,,1793811044,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12585:league-season:p1,batch-0001,FootyStats,Portugal LigaPro,20242025,12585,league-season,1,,,1793811046,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15717:league-matches:p1,batch-0001,FootyStats,Portugal LigaPro,20252026,15717,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15717:league-teams:p1,batch-0001,FootyStats,Portugal LigaPro,20252026,15717,league-teams,1,,stats,1793811465,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15717:league-tables:p1,batch-0001,FootyStats,Portugal LigaPro,20252026,15717,league-tables,1,,,1793811468,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15717:league-season:p1,batch-0001,FootyStats,Portugal LigaPro,20252026,15717,league-season,1,,,1793811470,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17215:league-matches:p1,batch-0001,FootyStats,Portugal LigaPro,20262027,17215,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17215:league-teams:p1,batch-0001,FootyStats,Portugal LigaPro,20262027,17215,league-teams,1,,stats,1793811795,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17215:league-tables:p1,batch-0001,FootyStats,Portugal LigaPro,20262027,17215,league-tables,1,,,1793811796,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17215:league-season:p1,batch-0001,FootyStats,Portugal LigaPro,20262027,17215,league-season,1,,,1793811798,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10154:league-matches:p1,batch-0001,FootyStats,Qatar Stars League,20232024,10154,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10154:league-teams:p1,batch-0001,FootyStats,Qatar Stars League,20232024,10154,league-teams,1,,stats,1793810633,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10154:league-tables:p1,batch-0001,FootyStats,Qatar Stars League,20232024,10154,league-tables,1,,,1793810635,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10154:league-season:p1,batch-0001,FootyStats,Qatar Stars League,20232024,10154,league-season,1,,,1793810636,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12587:league-matches:p1,batch-0001,FootyStats,Qatar Stars League,20242025,12587,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12587:league-teams:p1,batch-0001,FootyStats,Qatar Stars League,20242025,12587,league-teams,1,,stats,1793811050,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12587:league-tables:p1,batch-0001,FootyStats,Qatar Stars League,20242025,12587,league-tables,1,,,1793811052,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12587:league-season:p1,batch-0001,FootyStats,Qatar Stars League,20242025,12587,league-season,1,,,1793811054,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15038:league-matches:p1,batch-0001,FootyStats,Qatar Stars League,20252026,15038,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15038:league-teams:p1,batch-0001,FootyStats,Qatar Stars League,20252026,15038,league-teams,1,,stats,1793811474,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15038:league-tables:p1,batch-0001,FootyStats,Qatar Stars League,20252026,15038,league-tables,1,,,1793811476,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15038:league-season:p1,batch-0001,FootyStats,Qatar Stars League,20252026,15038,league-season,1,,,1793811478,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17370:league-matches:p1,batch-0001,FootyStats,Qatar Stars League,20262027,17370,league-matches,1,600,,,66,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17370:league-teams:p1,batch-0001,FootyStats,Qatar Stars League,20262027,17370,league-teams,1,,stats,1793811803,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17370:league-tables:p1,batch-0001,FootyStats,Qatar Stars League,20262027,17370,league-tables,1,,,1793811805,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17370:league-season:p1,batch-0001,FootyStats,Qatar Stars League,20262027,17370,league-season,1,,,1793811807,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9622:league-matches:p1,batch-0001,FootyStats,Romania Liga I,20232024,9622,league-matches,1,600,,,317,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9622:league-teams:p1,batch-0001,FootyStats,Romania Liga I,20232024,9622,league-teams,1,,stats,1793810641,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9622:league-tables:p1,batch-0001,FootyStats,Romania Liga I,20232024,9622,league-tables,1,,,1793810643,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9622:league-season:p1,batch-0001,FootyStats,Romania Liga I,20232024,9622,league-season,1,,,1793810645,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12495:league-matches:p1,batch-0001,FootyStats,Romania Liga I,20242025,12495,league-matches,1,600,,,315,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12495:league-teams:p1,batch-0001,FootyStats,Romania Liga I,20242025,12495,league-teams,1,,stats,1793811058,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12495:league-tables:p1,batch-0001,FootyStats,Romania Liga I,20242025,12495,league-tables,1,,,1793811060,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12495:league-season:p1,batch-0001,FootyStats,Romania Liga I,20242025,12495,league-season,1,,,1793811062,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15015:league-matches:p1,batch-0001,FootyStats,Romania Liga I,20252026,15015,league-matches,1,600,,,317,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15015:league-teams:p1,batch-0001,FootyStats,Romania Liga I,20252026,15015,league-teams,1,,stats,1793811483,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15015:league-tables:p1,batch-0001,FootyStats,Romania Liga I,20252026,15015,league-tables,1,,,1793811484,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15015:league-season:p1,batch-0001,FootyStats,Romania Liga I,20252026,15015,league-season,1,,,1793811486,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17247:league-matches:p1,batch-0001,FootyStats,Romania Liga I,20262027,17247,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17247:league-teams:p1,batch-0001,FootyStats,Romania Liga I,20262027,17247,league-teams,1,,stats,1793811811,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17247:league-tables:p1,batch-0001,FootyStats,Romania Liga I,20262027,17247,league-tables,1,,,1793811814,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17247:league-season:p1,batch-0001,FootyStats,Romania Liga I,20262027,17247,league-season,1,,,1793811815,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9883:league-matches:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20232024,9883,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9883:league-teams:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20232024,9883,league-teams,1,,stats,1793810650,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9883:league-tables:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20232024,9883,league-tables,1,,,1793810652,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9883:league-season:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20232024,9883,league-season,1,,,1793810653,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12772:league-matches:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20242025,12772,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12772:league-teams:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20242025,12772,league-teams,1,,stats,1793811067,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12772:league-tables:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20242025,12772,league-tables,1,,,1793811069,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12772:league-season:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20242025,12772,league-season,1,,,1793811070,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15741:league-matches:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20252026,15741,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15741:league-teams:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20252026,15741,league-teams,1,,stats,1793811491,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15741:league-tables:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20252026,15741,league-tables,1,,,1793811493,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15741:league-season:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20252026,15741,league-season,1,,,1793811495,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17426:league-matches:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20262027,17426,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17426:league-teams:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20262027,17426,league-teams,1,,stats,1793811820,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17426:league-tables:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20262027,17426,league-tables,1,,,1793811822,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17426:league-season:p1,batch-0001,FootyStats,Saudi Arabia Professional League,20262027,17426,league-season,1,,,1793811824,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9636:league-matches:p1,batch-0001,FootyStats,Scotland Premiership,20232024,9636,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9636:league-teams:p1,batch-0001,FootyStats,Scotland Premiership,20232024,9636,league-teams,1,,stats,1793810658,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9636:league-tables:p1,batch-0001,FootyStats,Scotland Premiership,20232024,9636,league-tables,1,,,1793810660,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9636:league-season:p1,batch-0001,FootyStats,Scotland Premiership,20232024,9636,league-season,1,,,1793810662,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12455:league-matches:p1,batch-0001,FootyStats,Scotland Premiership,20242025,12455,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12455:league-teams:p1,batch-0001,FootyStats,Scotland Premiership,20242025,12455,league-teams,1,,stats,1793811075,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12455:league-tables:p1,batch-0001,FootyStats,Scotland Premiership,20242025,12455,league-tables,1,,,1793811077,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12455:league-season:p1,batch-0001,FootyStats,Scotland Premiership,20242025,12455,league-season,1,,,1793811078,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15000:league-matches:p1,batch-0001,FootyStats,Scotland Premiership,20252026,15000,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15000:league-teams:p1,batch-0001,FootyStats,Scotland Premiership,20252026,15000,league-teams,1,,stats,1793811500,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15000:league-tables:p1,batch-0001,FootyStats,Scotland Premiership,20252026,15000,league-tables,1,,,1793811502,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15000:league-season:p1,batch-0001,FootyStats,Scotland Premiership,20252026,15000,league-season,1,,,1793811503,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17148:league-matches:p1,batch-0001,FootyStats,Scotland Premiership,20262027,17148,league-matches,1,600,,,198,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17148:league-teams:p1,batch-0001,FootyStats,Scotland Premiership,20262027,17148,league-teams,1,,stats,1793811829,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17148:league-tables:p1,batch-0001,FootyStats,Scotland Premiership,20262027,17148,league-tables,1,,,1793811831,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17148:league-season:p1,batch-0001,FootyStats,Scotland Premiership,20262027,17148,league-season,1,,,1793811832,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10070:league-matches:p1,batch-0001,FootyStats,Serbia SuperLiga,20232024,10070,league-matches,1,600,,,296,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10070:league-teams:p1,batch-0001,FootyStats,Serbia SuperLiga,20232024,10070,league-teams,1,,stats,1793810667,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10070:league-tables:p1,batch-0001,FootyStats,Serbia SuperLiga,20232024,10070,league-tables,1,,,1793810669,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10070:league-season:p1,batch-0001,FootyStats,Serbia SuperLiga,20232024,10070,league-season,1,,,1793810671,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12138:league-matches:p1,batch-0001,FootyStats,Serbia SuperLiga,20242025,12138,league-matches,1,600,,,296,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12138:league-teams:p1,batch-0001,FootyStats,Serbia SuperLiga,20242025,12138,league-teams,1,,stats,1793811083,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12138:league-tables:p1,batch-0001,FootyStats,Serbia SuperLiga,20242025,12138,league-tables,1,,,1793811086,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12138:league-season:p1,batch-0001,FootyStats,Serbia SuperLiga,20242025,12138,league-season,1,,,1793811087,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15065:league-matches:p1,batch-0001,FootyStats,Serbia SuperLiga,20252026,15065,league-matches,1,600,,,296,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15065:league-teams:p1,batch-0001,FootyStats,Serbia SuperLiga,20252026,15065,league-teams,1,,stats,1793811508,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15065:league-tables:p1,batch-0001,FootyStats,Serbia SuperLiga,20252026,15065,league-tables,1,,,1793811510,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15065:league-season:p1,batch-0001,FootyStats,Serbia SuperLiga,20252026,15065,league-season,1,,,1793811512,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17119:league-matches:p1,batch-0001,FootyStats,Serbia SuperLiga,20262027,17119,league-matches,1,600,,,182,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17119:league-teams:p1,batch-0001,FootyStats,Serbia SuperLiga,20262027,17119,league-teams,1,,stats,1793811837,14,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17119:league-tables:p1,batch-0001,FootyStats,Serbia SuperLiga,20262027,17119,league-tables,1,,,1793811839,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17119:league-season:p1,batch-0001,FootyStats,Serbia SuperLiga,20262027,17119,league-season,1,,,1793811840,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9814:league-matches:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20232024,9814,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9814:league-teams:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20232024,9814,league-teams,1,,stats,1793810675,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9814:league-tables:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20232024,9814,league-tables,1,,,1793810677,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9814:league-season:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20232024,9814,league-season,1,,,1793810679,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13284:league-matches:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20242025,13284,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13284:league-teams:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20242025,13284,league-teams,1,,stats,1793811092,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13284:league-tables:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20242025,13284,league-tables,1,,,1793811094,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13284:league-season:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20242025,13284,league-season,1,,,1793811096,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15587:league-matches:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20252026,15587,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15587:league-teams:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20252026,15587,league-teams,1,,stats,1793811517,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15587:league-tables:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20252026,15587,league-tables,1,,,1793811519,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15587:league-season:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20252026,15587,league-season,1,,,1793811521,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17444:league-matches:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20262027,17444,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17444:league-teams:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20262027,17444,league-teams,1,,stats,1793811845,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17444:league-tables:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20262027,17444,league-tables,1,,,1793811847,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17444:league-season:p1,batch-0001,FootyStats,South Africa Premier Soccer League,20262027,17444,league-season,1,,,1793811848,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9665:league-matches:p1,batch-0001,FootyStats,Spain La Liga,20232024,9665,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9665:league-teams:p1,batch-0001,FootyStats,Spain La Liga,20232024,9665,league-teams,1,,stats,1793810684,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9665:league-tables:p1,batch-0001,FootyStats,Spain La Liga,20232024,9665,league-tables,1,,,1793810686,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9665:league-season:p1,batch-0001,FootyStats,Spain La Liga,20232024,9665,league-season,1,,,1793810687,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12316:league-matches:p1,batch-0001,FootyStats,Spain La Liga,20242025,12316,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12316:league-teams:p1,batch-0001,FootyStats,Spain La Liga,20242025,12316,league-teams,1,,stats,1793811100,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12316:league-tables:p1,batch-0001,FootyStats,Spain La Liga,20242025,12316,league-tables,1,,,1793811103,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12316:league-season:p1,batch-0001,FootyStats,Spain La Liga,20242025,12316,league-season,1,,,1793811104,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14956:league-matches:p1,batch-0001,FootyStats,Spain La Liga,20252026,14956,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14956:league-teams:p1,batch-0001,FootyStats,Spain La Liga,20252026,14956,league-teams,1,,stats,1793811525,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14956:league-tables:p1,batch-0001,FootyStats,Spain La Liga,20252026,14956,league-tables,1,,,1793811527,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14956:league-season:p1,batch-0001,FootyStats,Spain La Liga,20252026,14956,league-season,1,,,1793811529,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17199:league-matches:p1,batch-0001,FootyStats,Spain La Liga,20262027,17199,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17199:league-teams:p1,batch-0001,FootyStats,Spain La Liga,20262027,17199,league-teams,1,,stats,1793811853,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17199:league-tables:p1,batch-0001,FootyStats,Spain La Liga,20262027,17199,league-tables,1,,,1793811855,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17199:league-season:p1,batch-0001,FootyStats,Spain La Liga,20262027,17199,league-season,1,,,1793811857,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9675:league-matches:p1,batch-0001,FootyStats,Spain Segunda División,20232024,9675,league-matches,1,600,,,468,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9675:league-teams:p1,batch-0001,FootyStats,Spain Segunda División,20232024,9675,league-teams,1,,stats,1793810692,22,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9675:league-tables:p1,batch-0001,FootyStats,Spain Segunda División,20232024,9675,league-tables,1,,,1793810694,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9675:league-season:p1,batch-0001,FootyStats,Spain Segunda División,20232024,9675,league-season,1,,,1793810695,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12467:league-matches:p1,batch-0001,FootyStats,Spain Segunda División,20242025,12467,league-matches,1,600,,,468,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12467:league-teams:p1,batch-0001,FootyStats,Spain Segunda División,20242025,12467,league-teams,1,,stats,1793811109,22,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12467:league-tables:p1,batch-0001,FootyStats,Spain Segunda División,20242025,12467,league-tables,1,,,1793811111,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12467:league-season:p1,batch-0001,FootyStats,Spain Segunda División,20242025,12467,league-season,1,,,1793811113,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15066:league-matches:p1,batch-0001,FootyStats,Spain Segunda División,20252026,15066,league-matches,1,600,,,468,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15066:league-teams:p1,batch-0001,FootyStats,Spain Segunda División,20252026,15066,league-teams,1,,stats,1793811534,22,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15066:league-tables:p1,batch-0001,FootyStats,Spain Segunda División,20252026,15066,league-tables,1,,,1793811536,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15066:league-season:p1,batch-0001,FootyStats,Spain Segunda División,20252026,15066,league-season,1,,,1793811538,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17269:league-matches:p1,batch-0001,FootyStats,Spain Segunda División,20262027,17269,league-matches,1,600,,,462,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17269:league-teams:p1,batch-0001,FootyStats,Spain Segunda División,20262027,17269,league-teams,1,,stats,1793811862,22,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17269:league-tables:p1,batch-0001,FootyStats,Spain Segunda División,20262027,17269,league-tables,1,,,1793811864,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17269:league-season:p1,batch-0001,FootyStats,Spain Segunda División,20262027,17269,league-season,1,,,1793811865,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17350:league-matches:p1,batch-0001,FootyStats,Sweden Allsvenskan,2024,17350,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17350:league-teams:p1,batch-0001,FootyStats,Sweden Allsvenskan,2024,17350,league-teams,1,,stats,1793810700,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17350:league-tables:p1,batch-0001,FootyStats,Sweden Allsvenskan,2024,17350,league-tables,1,,,1793810703,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17350:league-season:p1,batch-0001,FootyStats,Sweden Allsvenskan,2024,17350,league-season,1,,,1793810704,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16263:league-matches:p1,batch-0001,FootyStats,Sweden Allsvenskan,2025,16263,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16263:league-teams:p1,batch-0001,FootyStats,Sweden Allsvenskan,2025,16263,league-teams,1,,stats,1793811118,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16263:league-tables:p1,batch-0001,FootyStats,Sweden Allsvenskan,2025,16263,league-tables,1,,,1793811120,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16263:league-season:p1,batch-0001,FootyStats,Sweden Allsvenskan,2025,16263,league-season,1,,,1793811121,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16576:league-matches:p1,batch-0001,FootyStats,Sweden Allsvenskan,2026,16576,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16576:league-teams:p1,batch-0001,FootyStats,Sweden Allsvenskan,2026,16576,league-teams,1,,stats,1793811543,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16576:league-tables:p1,batch-0001,FootyStats,Sweden Allsvenskan,2026,16576,league-tables,1,,,1793811545,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16576:league-season:p1,batch-0001,FootyStats,Sweden Allsvenskan,2026,16576,league-season,1,,,1793811546,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9580:league-matches:p1,batch-0001,FootyStats,Switzerland Super League,20232024,9580,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9580:league-teams:p1,batch-0001,FootyStats,Switzerland Super League,20232024,9580,league-teams,1,,stats,1793810709,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9580:league-tables:p1,batch-0001,FootyStats,Switzerland Super League,20232024,9580,league-tables,1,,,1793810711,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9580:league-season:p1,batch-0001,FootyStats,Switzerland Super League,20232024,9580,league-season,1,,,1793810713,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12326:league-matches:p1,batch-0001,FootyStats,Switzerland Super League,20242025,12326,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12326:league-teams:p1,batch-0001,FootyStats,Switzerland Super League,20242025,12326,league-teams,1,,stats,1793811126,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12326:league-tables:p1,batch-0001,FootyStats,Switzerland Super League,20242025,12326,league-tables,1,,,1793811128,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12326:league-season:p1,batch-0001,FootyStats,Switzerland Super League,20242025,12326,league-season,1,,,1793811129,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15047:league-matches:p1,batch-0001,FootyStats,Switzerland Super League,20252026,15047,league-matches,1,600,,,228,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15047:league-teams:p1,batch-0001,FootyStats,Switzerland Super League,20252026,15047,league-teams,1,,stats,1793811551,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15047:league-tables:p1,batch-0001,FootyStats,Switzerland Super League,20252026,15047,league-tables,1,,,1793811554,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15047:league-season:p1,batch-0001,FootyStats,Switzerland Super League,20252026,15047,league-season,1,,,1793811555,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17129:league-matches:p1,batch-0001,FootyStats,Switzerland Super League,20262027,17129,league-matches,1,600,,,132,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17129:league-teams:p1,batch-0001,FootyStats,Switzerland Super League,20262027,17129,league-teams,1,,stats,1793811870,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17129:league-tables:p1,batch-0001,FootyStats,Switzerland Super League,20262027,17129,league-tables,1,,,1793811871,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17129:league-season:p1,batch-0001,FootyStats,Switzerland Super League,20262027,17129,league-season,1,,,1793811873,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9913:league-matches:p1,batch-0001,FootyStats,Turkey Süper Lig,20232024,9913,league-matches,1,600,,,380,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9913:league-teams:p1,batch-0001,FootyStats,Turkey Süper Lig,20232024,9913,league-teams,1,,stats,1793810718,20,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9913:league-tables:p1,batch-0001,FootyStats,Turkey Süper Lig,20232024,9913,league-tables,1,,,1793810719,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9913:league-season:p1,batch-0001,FootyStats,Turkey Süper Lig,20232024,9913,league-season,1,,,1793810721,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12641:league-matches:p1,batch-0001,FootyStats,Turkey Süper Lig,20242025,12641,league-matches,1,600,,,342,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12641:league-teams:p1,batch-0001,FootyStats,Turkey Süper Lig,20242025,12641,league-teams,1,,stats,1793811134,19,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12641:league-tables:p1,batch-0001,FootyStats,Turkey Süper Lig,20242025,12641,league-tables,1,,,1793811137,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12641:league-season:p1,batch-0001,FootyStats,Turkey Süper Lig,20242025,12641,league-season,1,,,1793811138,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14972:league-matches:p1,batch-0001,FootyStats,Turkey Süper Lig,20252026,14972,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14972:league-teams:p1,batch-0001,FootyStats,Turkey Süper Lig,20252026,14972,league-teams,1,,stats,1793811560,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14972:league-tables:p1,batch-0001,FootyStats,Turkey Süper Lig,20252026,14972,league-tables,1,,,1793811562,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14972:league-season:p1,batch-0001,FootyStats,Turkey Süper Lig,20252026,14972,league-season,1,,,1793811563,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17265:league-matches:p1,batch-0001,FootyStats,Turkey Süper Lig,20262027,17265,league-matches,1,600,,,306,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17265:league-teams:p1,batch-0001,FootyStats,Turkey Süper Lig,20262027,17265,league-teams,1,,stats,1793811877,18,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17265:league-tables:p1,batch-0001,FootyStats,Turkey Süper Lig,20262027,17265,league-tables,1,,,1793811879,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17265:league-season:p1,batch-0001,FootyStats,Turkey Süper Lig,20262027,17265,league-season,1,,,1793811881,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10977:league-matches:p1,batch-0001,FootyStats,USA MLS,2024,10977,league-matches,1,600,,,522,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10977:league-teams:p1,batch-0001,FootyStats,USA MLS,2024,10977,league-teams,1,,stats,1793810726,29,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10977:league-tables:p1,batch-0001,FootyStats,USA MLS,2024,10977,league-tables,1,,,1793810728,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:10977:league-season:p1,batch-0001,FootyStats,USA MLS,2024,10977,league-season,1,,,1793810729,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13973:league-matches:p1,batch-0001,FootyStats,USA MLS,2025,13973,league-matches,1,600,,,540,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13973:league-teams:p1,batch-0001,FootyStats,USA MLS,2025,13973,league-teams,1,,stats,1793811143,30,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13973:league-tables:p1,batch-0001,FootyStats,USA MLS,2025,13973,league-tables,1,,,1793811146,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:13973:league-season:p1,batch-0001,FootyStats,USA MLS,2025,13973,league-season,1,,,1793811148,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16504:league-matches:p1,batch-0001,FootyStats,USA MLS,2026,16504,league-matches,1,600,,,510,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16504:league-teams:p1,batch-0001,FootyStats,USA MLS,2026,16504,league-teams,1,,stats,1793811569,30,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16504:league-tables:p1,batch-0001,FootyStats,USA MLS,2026,16504,league-tables,1,,,1793811571,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16504:league-season:p1,batch-0001,FootyStats,USA MLS,2026,16504,league-season,1,,,1793811573,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9699:league-matches:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20232024,9699,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9699:league-teams:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20232024,9699,league-teams,1,,stats,1793810735,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9699:league-tables:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20232024,9699,league-tables,1,,,1793810737,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9699:league-season:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20232024,9699,league-season,1,,,1793810738,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12483:league-matches:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20242025,12483,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12483:league-teams:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20242025,12483,league-teams,1,,stats,1793811153,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12483:league-tables:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20242025,12483,league-tables,1,,,1793811155,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12483:league-season:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20242025,12483,league-season,1,,,1793811156,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16213:league-matches:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20252026,16213,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16213:league-teams:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20252026,16213,league-teams,1,,stats,1793811578,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16213:league-tables:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20252026,16213,league-tables,1,,,1793811581,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16213:league-season:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20252026,16213,league-season,1,,,1793811582,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17191:league-matches:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20262027,17191,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17191:league-teams:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20262027,17191,league-teams,1,,stats,1793811886,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17191:league-tables:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20262027,17191,league-tables,1,,,1793811888,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17191:league-season:p1,batch-0001,FootyStats,Ukraine Ukrainian Premier League,20262027,17191,league-season,1,,,1793811890,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11209:league-matches:p1,batch-0001,FootyStats,Uruguay Primera División,2024,11209,league-matches,1,600,,,297,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11209:league-teams:p1,batch-0001,FootyStats,Uruguay Primera División,2024,11209,league-teams,1,,stats,1793810743,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11209:league-tables:p1,batch-0001,FootyStats,Uruguay Primera División,2024,11209,league-tables,1,,,1793810745,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:11209:league-season:p1,batch-0001,FootyStats,Uruguay Primera División,2024,11209,league-season,1,,,1793810747,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14626:league-matches:p1,batch-0001,FootyStats,Uruguay Primera División,2025,14626,league-matches,1,600,,,300,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14626:league-teams:p1,batch-0001,FootyStats,Uruguay Primera División,2025,14626,league-teams,1,,stats,1793811161,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14626:league-tables:p1,batch-0001,FootyStats,Uruguay Primera División,2025,14626,league-tables,1,,,1793811164,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:14626:league-season:p1,batch-0001,FootyStats,Uruguay Primera División,2025,14626,league-season,1,,,1793811165,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16708:league-matches:p1,batch-0001,FootyStats,Uruguay Primera División,2026,16708,league-matches,1,600,,,281,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16708:league-teams:p1,batch-0001,FootyStats,Uruguay Primera División,2026,16708,league-teams,1,,stats,1793811587,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16708:league-tables:p1,batch-0001,FootyStats,Uruguay Primera División,2026,16708,league-tables,1,,,1793811589,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:16708:league-season:p1,batch-0001,FootyStats,Uruguay Primera División,2026,16708,league-season,1,,,1793811590,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9565:league-matches:p1,batch-0001,FootyStats,Wales Welsh Premier League,20232024,9565,league-matches,1,600,,,195,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9565:league-teams:p1,batch-0001,FootyStats,Wales Welsh Premier League,20232024,9565,league-teams,1,,stats,1793810751,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9565:league-tables:p1,batch-0001,FootyStats,Wales Welsh Premier League,20232024,9565,league-tables,1,,,1793810753,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:9565:league-season:p1,batch-0001,FootyStats,Wales Welsh Premier League,20232024,9565,league-season,1,,,1793810755,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12339:league-matches:p1,batch-0001,FootyStats,Wales Welsh Premier League,20242025,12339,league-matches,1,600,,,196,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12339:league-teams:p1,batch-0001,FootyStats,Wales Welsh Premier League,20242025,12339,league-teams,1,,stats,1793811170,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12339:league-tables:p1,batch-0001,FootyStats,Wales Welsh Premier League,20242025,12339,league-tables,1,,,1793811172,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:12339:league-season:p1,batch-0001,FootyStats,Wales Welsh Premier League,20242025,12339,league-season,1,,,1793811174,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15226:league-matches:p1,batch-0001,FootyStats,Wales Welsh Premier League,20252026,15226,league-matches,1,600,,,195,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15226:league-teams:p1,batch-0001,FootyStats,Wales Welsh Premier League,20252026,15226,league-teams,1,,stats,1793811597,12,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15226:league-tables:p1,batch-0001,FootyStats,Wales Welsh Premier League,20252026,15226,league-tables,1,,,1793811600,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:15226:league-season:p1,batch-0001,FootyStats,Wales Welsh Premier League,20252026,15226,league-season,1,,,1793811601,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17221:league-matches:p1,batch-0001,FootyStats,Wales Welsh Premier League,20262027,17221,league-matches,1,600,,,240,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17221:league-teams:p1,batch-0001,FootyStats,Wales Welsh Premier League,20262027,17221,league-teams,1,,stats,1793811894,16,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17221:league-tables:p1,batch-0001,FootyStats,Wales Welsh Premier League,20262027,17221,league-tables,1,,,1793811896,,1,PLANNED_NOT_EXECUTED,True,False,False
+FS:17221:league-season:p1,batch-0001,FootyStats,Wales Welsh Premier League,20262027,17221,league-season,1,,,1793811898,,1,PLANNED_NOT_EXECUTED,True,False,False
