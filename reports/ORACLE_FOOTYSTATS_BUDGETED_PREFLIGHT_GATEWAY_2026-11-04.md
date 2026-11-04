@@ -25,8 +25,8 @@
 
 ## Validation evidence
 
-Latest targeted workflow run: **41865710751**  
-Job: **126699247801**  
+Latest targeted workflow run: **41865887561**  
+Job: **126699886190**  
 Workflow: **FootyStats Budgeted Preflight Contract Tests**
 
 The job log contains successful completion output for:
@@ -35,9 +35,9 @@ The job log contains successful completion output for:
 - 9 rolling-hour request-budget tests;
 - 8 endpoint pagination-contract tests;
 - 7 budgeted preflight tests;
-- 11 workflow/legacy-path contract tests.
+- 12 workflow/legacy-path contract tests, including the post-preflight manifest integration.
 
-**Total: 41 unit/contract tests reported OK in the job log.** The GitHub run/job metadata reader still reports this run as queued with no final conclusion, despite the completed test and cleanup log entries. Therefore, treat the test output as observed log evidence, but do not label the Actions run formally completed until its final conclusion is available.
+**Total: 42 unit/contract tests reported OK in the job log.** The GitHub run/job metadata reader still reports this run as queued with no final conclusion, despite the completed test and cleanup log entries. Therefore, treat the test output as observed log evidence, but do not label the Actions run formally completed until its final conclusion is available.
 
 ## Provider-call and ledger status
 
@@ -77,4 +77,4 @@ This preflight is sanitized and does not write raw data to the protected private
 - H2H, recent form and home/away form are derived from the full exact chronological match spine; no per-fixture match-detail calls are planned for ingestion. The match-detail call remains a schema sample only.
 - It divides planned requests into batches capped at 1,500, but each actual batch must still be reserved against the live rolling ledger at execution time.
 - Manifest output is sanitized planning metadata only; `api_requests_made=0`, `raw_payloads_written=false`, and `private_raw_archive_write_required=true`.
-- The central preflight workflow now runs this offline planner after the preflight attempt and commits/uploads the sanitized request manifest and coverage summary. It does not authorize private archive writes or execute the raw ingestion plan.
+- The central preflight workflow now runs this offline planner after the preflight attempt and commits/uploads the sanitized request manifest and coverage summary. The integration is covered by the latest 42-test targeted log. It does not authorize private archive writes or execute the raw ingestion plan.
