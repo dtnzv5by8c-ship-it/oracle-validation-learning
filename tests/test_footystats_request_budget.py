@@ -29,6 +29,30 @@ class FootyStatsRollingRequestBudgetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "budget exhausted"):
             reserve_block(ledger, self.now, 1, "batch-2")
 
+    def test_global_limit_cannot_exceed_hard_1800_request_ceiling(self):
+        with self.assertRaisesRegex(ValueError, "hard 1800-request ceiling"):
+            reserve_block(empty_ledger(), self.now, 10, "too-high", global_limit=1801)
+
+    def test_reserved_headroom_cannot_be_reduced_below_300(self):
+        with self.assertRaisesRegex(ValueError, "at least 300"):
+            reserve_block(empty_ledger(), self.now, 10, "low-headroom", reserved_headroom=299)
+        ledger = empty_ledger()
+        ledger["reserved_headroom"] = 299
+        with self.assertRaisesRegex(ValueError, "at least 300"):
+            validate_ledger(ledger)
+
+    def test_provider_limit_below_required_headroom_stops_before_requests(self):
+        with self.assertRaisesRegex(ValueError, "cannot preserve required 300-request headroom"):
+            reserve_block(empty_ledger(), self.now, 10, "provider-too-low", request_limit=250)
+
+    def test_higher_headroom_reduces_operational_allocation(self):
+        ledger, count = reserve_block(
+            empty_ledger(), self.now, 1800, "larger-headroom", reserved_headroom=400
+        )
+        self.assertEqual(count, 1400)
+        self.assertEqual(ledger["reserved_headroom"], 400)
+        validate_ledger(ledger)
+
     def test_lower_provider_limit_is_binding(self):
         ledger, count = reserve_block(empty_ledger(), self.now, 1500, "batch-low", request_limit=1000)
         self.assertEqual(count, 700)
