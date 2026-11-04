@@ -302,7 +302,9 @@ def check_provider_limit(meta: dict[str, Any], ledger_path: Path) -> None:
     if observed is None:
         return
     effective = min(DEFAULT_GLOBAL_LIMIT, int(observed))
-    headroom = min(DEFAULT_HEADROOM, max(0, effective - 1))
+    if effective <= DEFAULT_HEADROOM:
+        raise PreflightError("PROVIDER_REQUEST_LIMIT_CANNOT_PRESERVE_300_HEADROOM")
+    headroom = DEFAULT_HEADROOM
     usage = active_usage(read_ledger(ledger_path), now_utc())["active_total"]
     if usage + headroom > effective:
         raise PreflightError("PROVIDER_REQUEST_LIMIT_BELOW_ACTIVE_RESERVATION")
