@@ -25,7 +25,7 @@ class SnapshotValidatorTests(unittest.TestCase):
             {"id": 1, "selected_season_id": "1", "competition_id": "1",
              "homeID": 10, "awayID": 11, "home_name": "Home", "away_name": "Away",
              "date_unix": epoch(future_kickoff), "kickoff_utc": future_kickoff,
-             "status": "incomplete", "window_class": "FUTURE_14D", "no_home_away": 0,
+             "status": "incomplete", "window_class": "FUTURE_20D", "no_home_away": 0,
              "homeGoalCount": 0, "awayGoalCount": 0, "totalGoalCount": 0},
             {"id": 2, "selected_season_id": "1", "competition_id": "1",
              "homeID": 10, "awayID": 11, "home_name": "Home", "away_name": "Away",
@@ -37,7 +37,7 @@ class SnapshotValidatorTests(unittest.TestCase):
             "diagnostic": "BOUNDED_SELECTED50_CURRENT_FIXTURE_SNAPSHOT",
             "retrieved_utc": "2026-10-28T12:00:00+00:00",
             "window_start_utc": "2026-09-28T12:00:00+00:00",
-            "window_end_utc": "2026-11-11T12:00:00+00:00",
+            "window_end_utc": "2026-11-17T12:00:00+00:00",
             "selected_leagues": 50, "requests_planned": 50, "requests_attempted": 50,
             "http_200_success": 50, "request_failures": 0, "seasons_needing_pagination": [],
             "production_eligibility": "NOT_GRANTED", "betting_eligibility": "NOT_GRANTED",
@@ -46,7 +46,7 @@ class SnapshotValidatorTests(unittest.TestCase):
             "request_interval_seconds": 2.1,
             "raw_provider_payload_persisted": False, "api_key_persisted": False,
             "production_ledger_written": False, "per_season": seasons, "fixture_rows": rows,
-            "future_14d_fixture_rows": 1, "recent_completed_30d_rows": 1,
+            "future_20d_fixture_rows": 1, "recent_completed_30d_rows": 1,
         }
 
     def run_validation(self, data):
@@ -117,7 +117,7 @@ class SnapshotValidatorTests(unittest.TestCase):
 
     def test_kickoff_outside_declared_window_fails(self):
         data = self.build()
-        data["fixture_rows"][0]["kickoff_utc"] = "2026-11-12T00:00:00+00:00"
+        data["fixture_rows"][0]["kickoff_utc"] = "2026-11-18T00:00:00+00:00"
         data["fixture_rows"][0]["date_unix"] = epoch(data["fixture_rows"][0]["kickoff_utc"])
         self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
@@ -212,7 +212,7 @@ class SnapshotValidatorTests(unittest.TestCase):
 
     def test_snapshot_workflow_is_branch_guarded_and_commit_pinned(self):
         workflow = Path(".github/workflows/oracle-selected50-current-fixture-snapshot.yml").read_text(encoding="utf-8")
-        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" ]]'
+        guard = '[[ "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" ]]'
         self.assertIn(guard, workflow)
         guard_position = workflow.index("Enforce governed research branch before any provider access")
         provider_position = workflow.index("Run paced sequential league-matches requests")
