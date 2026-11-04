@@ -171,3 +171,13 @@ Additional commits:
 
 
 Latest branch checkpoint after report-window correction: `f46515817187f32cea28753e60de44d18fb2ef1a`. The contract-test workflow is configured on governed-branch non-document pushes, but its push-run result is not available from the connected workflow reader. No tests are reported as passing until that run is inspected.
+
+
+## 2026-11-04 CI isolation correction
+
+- Live branch review found the offline Selected-50 contract-test workflow required both `FOOTYSTATS_API_KEY` and `ORACLE_PRIVATE_REPO_TOKEN` before running tests, despite its job having read-only contents permission and the tested suites being offline. This created a credential-dependent CI gate unrelated to the test contract and contradicted the explicit no-provider-call design.
+- Removed the credential-presence step from `.github/workflows/oracle-selected50-contract-tests.yml`. The offline test workflow now has no secret references and does not require provider or private-repository credentials. Provider/API secrets remain separately gated in workflows that actually access those sources.
+- Commit: `82a991558dc23e3b88752e034b60b4b81b7aa442` — `ci: remove provider credentials from offline contract tests`.
+- Verified the committed diff removes only the secret-check step; the test commands, read-only permissions, and test dependencies are unchanged. The workflow file was re-fetched after commit and contains zero `secrets.` references.
+- Push-triggered contract-test execution is expected from this workflow-file change, but its result has not yet been independently retrieved. Do not claim CI passed until the actual Actions run is inspected.
+- No provider API calls, paid credits, private archive reads, production model changes, or probability changes were made.
