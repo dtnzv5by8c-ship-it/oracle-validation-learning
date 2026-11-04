@@ -74,6 +74,31 @@ jobs:
           print("PASS: 49 provider leagues, 756 unique season IDs; research-only registry.")
           PY
 
+      - name: Build provider-driven historical season plan (offline)
+        run: |
+          set -euo pipefail
+          mkdir -p data/footystats/historical-season-plan-2024-2026
+          python scripts/build_footystats_historical_season_plan.py \
+            --registry-json data/footystats/footystats-provider-season-registry-2026-11-04.json \
+            --start-date 2024-01-01 \
+            --end-date 2026-11-04 \
+            --plan-csv data/footystats/historical-season-plan-2024-2026/season-plan.csv \
+            --excluded-csv data/footystats/historical-season-plan-2024-2026/excluded-seasons.csv \
+            --summary-json data/footystats/historical-season-plan-2024-2026/summary.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary=json.loads(Path("data/footystats/historical-season-plan-2024-2026/summary.json").read_text())
+          assert summary["catalogue_provider_season_count"] == 756
+          assert summary["planned_provider_season_count"] == 182
+          assert summary["planned_provider_league_count"] == 49
+          assert summary["excluded_provider_season_count"] == 574
+          assert summary["all_catalogue_rows_accounted_for"] is True
+          assert summary["api_requests_made"] == 0
+          assert summary["production_eligible"] is False and summary["betting_eligible"] is False
+          print("PASS: 182 historical provider seasons across 49 selected leagues; all 756 catalogue rows accounted for.")
+          PY
+
       - name: Record catalogue provenance
         run: |
           cat > data/footystats/FOOTYSTATS_CATALOGUE_PROVENANCE.md <<'EOF'
@@ -91,7 +116,7 @@ jobs:
           - Production/betting eligibility: false
           EOF
 
-      - name: Commit verified provider catalogue and registry
+      - name: Commit verified provider catalogue, registry and historical plan
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -107,7 +132,7 @@ jobs:
       - name: Upload staged catalogue evidence
         uses: actions/upload-artifact@v4
         with:
-          name: footystats-provider-catalogue-registry
+          name: footystats-provider-catalogue-registry-and-historical-plan
           path: data/footystats/
           if-no-files-found: error
           retention-days: 30
