@@ -67,6 +67,7 @@ class FootyStatsFullIngestionManifestTests(unittest.TestCase):
         self.assertEqual(sum(1 for row in tasks if row["endpoint"] == "league-matches"), 2)
         self.assertTrue(all(row["max_per_page"] == 600 for row in tasks if row["endpoint"] == "league-matches"))
         self.assertEqual(sum(1 for row in tasks if row["endpoint"] == "league-teams"), 1)
+        self.assertEqual([row["max_per_page"] for row in tasks if row["endpoint"] == "league-teams"], [50])
         self.assertEqual(sum(1 for row in tasks if row["endpoint"] == "league-tables"), 1)
         self.assertEqual(sum(1 for row in tasks if row["endpoint"] == "league-season"), 1)
         self.assertEqual([batch["task_count"] for batch in batches], [3, 2])
@@ -109,6 +110,30 @@ class FootyStatsFullIngestionManifestTests(unittest.TestCase):
         broken = preflight_row()
         broken["league_matches"]["expected_page_count"] = 3
         tasks, coverage, batches, summary = manifest.build_manifest(plan_rows(), {"101": broken}, 1500)
+        self.assertEqual(tasks, [])
+        self.assertEqual(coverage[0]["ingestion_plan_status"], "BLOCKED_INCOMPLETE_PREFLIGHT_EVIDENCE")
+
+    def test_short_preflight_page_is_blocked_even_when_page_complete_flag_is_true(self):
+        broken = preflight_row()
+        broken["league_matches"]["returned_rows"] = 599
+        broken["league_matches"]["match_identity_fields"] = {
+            key: 599 for key in ("id", "homeID", "awayID", "date_unix", "status")
+        }
+        broken["league_matches"]["unique_match_ids_on_page"] = 599
+        tasks, coverage, batches, summary = manifest.build_manifest(
+            plan_rows(), {"101": broken}, 1500
+        )
+        self.assertEqual(tasks, [])
+        self.assertEqual(coverage[0]["ingestion_plan_status"], "BLOCKED_INCOMPLETE_PREFLIGHT_EVIDENCE")
+
+    def test_single_page_must_be_marked_all_pages_retrieved(self):
+        broken = preflight_row()
+        broken["league_matches"]["expected_page_count"] = 1
+        broken["league_matches"]["total_results"] = 600
+        broken["league_matches"]["all_pages_retrieved"] = False
+        tasks, coverage, batches, summary = manifest.build_manifest(
+            plan_rows(), {"101": broken}, 1500
+        )
         self.assertEqual(tasks, [])
         self.assertEqual(coverage[0]["ingestion_plan_status"], "BLOCKED_INCOMPLETE_PREFLIGHT_EVIDENCE")
 
