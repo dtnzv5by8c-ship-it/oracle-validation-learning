@@ -12,7 +12,7 @@
   "xg_policy": "Quarantine xG from prediction/backtest/betting unless fixture-linked capture timestamp and immutable revision/hash evidence prove point-in-time availability before kickoff.",
   "production_and_betting_policy": "Research/report-only. production_eligible=false and betting_eligible=false. Do not modify Oracle V1.6 model logic or probabilities.",
   "weekly_workflow": ".github/workflows/oracle-selected50-market-intelligence-repair.yml",
-  "weekly_run_instructions": "From the governed research branch, manually dispatch the workflow weekly after a successful runtime run. Confirm private archive read. Keep the pinned archive tag unchanged unless a separately reviewed archive release and SHA are approved. Supply the current successful runtime_run_id. Workflow verifies archive/runtime provenance, rebuilds the workbook, runs all QA, adds LLM Data Dictionary and Report Configuration tabs, and uploads the artifact. Before dispatch, ensure the GitHub Actions repository secret FOOTYSTATS_API_KEY is configured; the results step retrieves completed scores only and does not alter predictions.",
+  "weekly_run_instructions": "From the governed research branch, manually dispatch the report workflow after a successful Selected-50 runtime run. Set confirm_private_archive_read=true, retain the pinned archive tag, and provide the current successful runtime_run_id (no stale default is supplied). The report makes zero FootyStats results API calls by default and writes an explicit NOT_RETRIEVED_NO_CREDIT_APPROVAL Actual Results register. Set confirm_results_provider_credit_usage=true only after explicit bounded approval and verified credit budget; then FOOTYSTATS_API_KEY is required and actual results are fetched. All report outputs remain research-only.",
   "required_inputs": "confirm_private_archive_read=true; private_archive_release_tag=research-selected50-footystats-history-40375285207; runtime_run_id=<current successful governed Selected-50 runtime run>",
   "output_artifact": "oracle-selected50-market-intelligence-repair",
   "reproducibility_rule": "All report-generation scripts, tests, workflow, selected-season manifest and this configuration are version-controlled in oracle-validation-learning. Reuse the workflow; do not recreate workbook manually. Update config only through reviewed commits.",
@@ -27,6 +27,7 @@
       "oracle_selected50_actual_results.csv",
       "oracle_selected50_actual_results_qa.json"
     ],
-    "eligibility": "Report-only; production_eligible=false; betting_eligible=false; prediction_probabilities_modified=false"
+    "eligibility": "Opt-in only: confirm_results_provider_credit_usage=true is required before any results API call. Default false produces a zero-call NOT_RETRIEVED_NO_CREDIT_APPROVAL register. production_eligible=false; betting_eligible=false; prediction_probabilities_modified=false.",
+    "credit_control": "Separate explicit workflow_dispatch boolean approval required; provider API calls are zero unless confirm_results_provider_credit_usage=true."
   }
 }
