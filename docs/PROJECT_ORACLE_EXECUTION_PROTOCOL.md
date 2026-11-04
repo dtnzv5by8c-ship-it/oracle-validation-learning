@@ -570,3 +570,16 @@ Latest governed-branch workflow listing at protocol update: [{"id":41203873334,"
 - QA and the workbook show the actual inclusive start/end dates and calendar-day count. For Run #181 this is 6–24 November, 19 days.
 - This is report metadata/coverage labelling only. It does not change runtime selection, model inputs, probabilities, production logic or eligibility.
 - Regression tests added. CI result remains unverified pending inspection of the push-triggered contract-test run.
+
+
+## 16. 2026-11-04 live workflow registration and CI isolation
+
+- Live governed branch tip recovered and confirmed current after commit `3418004fafa99d4c73710bda7738c7b69eedebae`; subsequent work is recorded below.
+- The manual OMI repair workflow on the governed branch had advanced beyond the default-branch copy. Registered the exact governed workflow content on `main` per the workflow-dispatch protocol.
+- Default-branch registration commit: `05513b9040021da07d635ccdbbd1afd09412b3b9`.
+- Verified the workflow blob SHA is identical on `main` and `research/oracle-50-league-readiness-audit`: `77d99c2484001b5df3a053c31beddee624a0e456`.
+- Current manual OMI repair inputs: `confirm_private_archive_read=true`; pinned archive tag `research-selected50-footystats-history-40375285207`; runtime run ID `41795266381`; `confirm_results_provider_credit_usage=false`. Results-provider calls remain separately opt-in and must stay false unless explicitly approved.
+- The offline contract-test workflow previously demanded `FOOTYSTATS_API_KEY` and `ORACLE_PRIVATE_REPO_TOKEN` even though it performs no provider/private-repository access. Removed that credential check in commit `82a991558dc23e3b88752e034b60b4b81b7aa442`; verified the workflow now contains no secret references. Checkpoint documentation commit: `3418004fafa99d4c73710bda7738c7b69eedebae`.
+- CI result for the credential-isolation change is not yet visible through the connected status reader (empty status list). Do not report tests as passed until an actual Actions run is inspected.
+- No workflow dispatch action is available through the connected GitHub toolset. After the manual dispatch, inspect the actual run, jobs, logs and artifact. Do not substitute an older runtime ID.
+- No provider API calls, paid credits, archive writes, Oracle V1.6 logic changes or production probability changes were made by this registration/CI correction.
