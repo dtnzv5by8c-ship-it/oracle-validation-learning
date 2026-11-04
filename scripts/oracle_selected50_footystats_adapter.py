@@ -118,8 +118,16 @@ def adapt(snapshot: dict[str, Any], now: datetime | None = None) -> tuple[list[d
     if not isinstance(rows, list) or not isinstance(seasons, list):
         raise ValueError("snapshot must contain fixture_rows and per_season lists")
     season_ids = {str(x.get("selected_season_id") or "") for x in seasons if isinstance(x, dict)}
+    expected_ids_raw = snapshot.get("catalogue_season_ids")
+    if not isinstance(expected_ids_raw, list) or not expected_ids_raw:
+        raise ValueError("snapshot must include the complete catalogue_season_ids list used to plan retrieval")
+    expected_ids = {str(x).strip() for x in expected_ids_raw}
+    if "" in expected_ids or len(expected_ids) != len(expected_ids_raw):
+        raise ValueError("catalogue_season_ids must be nonblank and unique")
     if not seasons or len(season_ids) != len(seasons) or "" in season_ids:
         raise ValueError("provider catalogue guard failed: expected a non-empty per-season list with unique, nonblank FootyStats season IDs")
+    if season_ids != expected_ids:
+        raise ValueError(f"source retrieval coverage mismatch: expected {len(expected_ids)} catalogue seasons; received {len(season_ids)} per-season records")
     successful = {
         str(x.get("selected_season_id"))
         for x in seasons
