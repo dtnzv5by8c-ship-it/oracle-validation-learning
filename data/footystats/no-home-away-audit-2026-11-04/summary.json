@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "diagnostic": "FOOTYSTATS_NO_HOME_AWAY_AGGREGATE_COVERAGE_AUDIT",
+  "generated_utc": "2026-11-04T18:51:57.617111Z",
+  "source_file": "data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv",
+  "source_sha256": "1de6de240b1e2bd3e134850477198d8fcaf3159c40d03f7c0c8fe3c28ee92789",
+  "provider_season_count": 182,
+  "provider_league_count": 49,
+  "page_1_match_rows_returned": 54546,
+  "page_1_no_home_away_rows": 6398,
+  "page_1_no_home_away_rate_pct": 11.73,
+  "seasons_with_any_no_home_away_rows": 73,
+  "leagues_with_any_no_home_away_rows": 31,
+  "seasons_with_all_page_1_rows_no_home_away": 14,
+  "matches_page_counts_observed": [
+    1
+  ],
+  "single_page_pagination_metadata_consistent_all_seasons": true,
+  "fixture_level_records_inspected": 0,
+  "fixture_level_ids_available_in_source": false,
+  "root_cause_resolved": false,
+  "venue_split_policy": "QUARANTINE_FLAGGED_FIXTURES; DO_NOT_INFER_HOME_AWAY; NONFLAGGED_ROWS_ARE_NOT_AUTOMATICALLY_CERTIFIED",
+  "interpretation": "Counts describe provider no_home_away flags in sanitized page-1 season aggregates only. They do not identify fixture-level causes, establish neutral-venue semantics, or certify team-side assignments.",
+  "api_requests_made": 0,
+  "raw_provider_payloads_read": false,
+  "production_logic_changed": false,
+  "production_eligible": false,
+  "betting_eligible": false
+}
