@@ -711,13 +711,13 @@ The first dynamic-adapter change removed the fixed-50 constraint but also weaken
 - The helper validates a 1,800 global rolling-hour ceiling, 300 reserved headroom, lower provider limits, timezone-aware timestamps, durable reservations and actual request events. An unfinalized reservation remains conservatively counted for two hours, preventing a crash from undercounting requests.
 - Legacy direct-call workflows have been disabled on both the default branch and the governed research branch: selected-50 identity probe, current-fixture snapshot, provider schema diagnostic, bounded endpoint probe, one-call identity probe and cross-season identity stability probe.
 - The Market Intelligence repair workflow is now zero-call for results retrieval; direct results-provider calls are rejected there. The centralized budgeted workflow must be the only path for future FootyStats requests.
-- The new budget helper and legacy-workflow shutdown are under CI regression testing. The helper is not yet wired into an executing ingestion workflow; do not claim global request enforcement is live until that integration passes.
+- The budget helper is integrated into the single manual-dispatch endpoint-preflight gateway. The gateway has not yet been dispatched against FootyStats, so the code-level controls are implemented and offline-tested but have not yet been exercised against live provider responses.
 
 ### Data handling and remaining gates
 
 - No authenticated FootyStats fixture/team/table/season/match-detail requests were made during this implementation run. The only recent provider request in the ledger is the already verified catalogue retrieval.
 - Raw provider payloads must not be committed to the public research repository. The protected private archive write path remains gated and must not be bypassed. User approval of API credits does not by itself change the private archive write policy.
-- The next implementation step is a single centralized, resumable endpoint-preflight/ingestion workflow that uses the rolling ledger and stores only sanitized coverage outputs in the public research branch. Full raw historical ingestion and fixture-level OMI reconstruction require the approved private data destination.
+- The next execution step is to manually dispatch the central sanitized endpoint preflight. Full raw historical ingestion and fixture-level OMI reconstruction require the approved private data destination; no raw-data writer is enabled in this public research lane.
 - Oracle V1.6 production logic, probabilities, thresholds, calibration, ledgers and betting eligibility remain unchanged. All new outputs remain research-only with production_eligible=false and betting_eligible=false.
 
 
@@ -756,6 +756,15 @@ For each selected provider season, the runner performs a bounded schema/field pr
 5. `match` details/H2H for one exact fixture ID sampled from the returned match page, where available.
 
 The current 182-season plan therefore has a maximum expected preflight cost of 910 requests before any budget adjustment. The default workflow reservation is 1,000 requests, below the 1,500 operational ceiling. The runner round-robins seasons across leagues so early batches cover the widest league spread.
+
+### Offline full-ingestion manifest
+- `scripts/build_footystats_full_ingestion_manifest.py` consumes the season plan plus sanitized preflight reports. It requires exact provider season ID, league name and season label agreement; it never performs fuzzy matching.
+- It creates one row per required page for `league-matches` and `league-teams`, plus one current-snapshot `league-tables` and `league-season` request per preflight-verified season.
+- It retains a coverage row for every planned season, including explicit blocked states where preflight evidence is absent or incomplete.
+- H2H, recent form and home/away form are planned to be derived from the complete exact chronological match spine, avoiding unnecessary per-fixture match-detail requests. The sample match-detail call remains a preflight-only schema check.
+- It splits planned work into batches of at most 1,500 requests. The future executor must still reserve each batch against the live rolling ledger immediately before making requests.
+- The manifest is an offline plan only: `api_requests_made=0`, `raw_payloads_written=false`, `private_raw_archive_write_required=true`. It does not authorize or execute private archive writes.
+- Fixture-time historical standings remain unverified; the preflight's current `max_time` snapshot cannot be substituted for per-fixture standings.
 
 ### Data handling and interpretation
 - Raw API payloads remain in memory only and are not written to the public repository or uploaded as artifacts.
