@@ -82,6 +82,12 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(sum(len(rows) for rows in by_season.values()), 0)
         self.assertEqual(sum(len(rows) for rows in by_pair.values()), 0)
 
+    def test_empty_archive_history_does_not_claim_index_pass(self):
+        _, trace, summary = market_report.build_report([runtime_row()], [])
+        self.assertEqual(summary["archive_index_gate"], "BLOCKED_NO_HISTORY_ROWS")
+        self.assertEqual(summary["archive_index_qa"]["rows_indexed"], 0)
+        self.assertEqual(trace[0]["join_status"], "NO_EXACT_ARCHIVE_MATCH")
+
     def test_archive_index_qa_accounts_for_invalid_and_missing_exact_identity_fields(self):
         naive = archive_row("NAIVE", "2025-08-01T12:00:00", "H", "A", 2, 1)
         no_fixture = archive_row("", "2025-08-02T12:00:00+00:00", "H", "A", 1, 0)
