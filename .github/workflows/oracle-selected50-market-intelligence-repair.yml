@@ -192,7 +192,7 @@ jobs:
           test -s runtime-artifact/extracted/current_snapshot_candidate_trace.csv
           test -s runtime-artifact/extracted/oracle_selected50_snapshot_artifact_metadata.json
           python - <<'PY'
-          import csv, hashlib, json, os
+          import csv, datetime as dt, hashlib, json, os
           from pathlib import Path
           root = Path("runtime-artifact/extracted")
           report = root / "oracle_selected50_prediction_report.csv"
@@ -220,8 +220,23 @@ jobs:
               snapshot_trace = list(csv.DictReader(f))
           governed_ids = {r.get("selected_id", "").strip() for r in schedule if r.get("selected_id", "").strip()}
           report_ids = {r.get("selected_id", "").strip() for r in rows if r.get("selected_id", "").strip()}
-          if len(rows) != 434 or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
+          if not rows or len(schedule) != 50 or len(governed_ids) != 50 or not report_ids.issubset(governed_ids):
               raise SystemExit(f"FAIL: runtime rows/schedule scope mismatch: rows={len(rows)}, schedule_rows={len(schedule)}, unique_governed_ids={len(governed_ids)}, report_ids={len(report_ids)}")
+          start_dates = {str(r.get("report_start_date_utc") or "").strip() for r in schedule}
+          end_dates = {str(r.get("report_end_date_utc_inclusive") or "").strip() for r in schedule}
+          if len(start_dates) != 1 or len(end_dates) != 1 or not next(iter(start_dates)) or not next(iter(end_dates)):
+              raise SystemExit("FAIL: schedule coverage does not declare one consistent report date window")
+          report_start = dt.date.fromisoformat(next(iter(start_dates)))
+          report_end = dt.date.fromisoformat(next(iter(end_dates)))
+          if report_end < report_start:
+              raise SystemExit("FAIL: schedule coverage report date window is reversed")
+          for row in rows:
+              fixture_date = dt.date.fromisoformat(str(row.get("date_utc") or "")[:10])
+              if not report_start <= fixture_date <= report_end:
+                  raise SystemExit(f"FAIL: runtime fixture {row.get('fixture_id')} falls outside declared report window: {fixture_date}")
+          scheduled_count = sum(int(r.get("upcoming_fixture_count_report_window") or 0) for r in schedule)
+          if scheduled_count != len(rows):
+              raise SystemExit(f"FAIL: schedule fixture count does not reconcile to runtime report: schedule={scheduled_count}, report={len(rows)}")
           expected_snapshot_sha = str(provenance.get("snapshot_file_sha256") or "")
           expected_snapshot_time = str(provenance.get("snapshot_retrieved_utc") or "")
           expected_archive_sha = str(provenance.get("source_archive_sha256") or "")
