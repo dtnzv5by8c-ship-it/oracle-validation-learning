@@ -143,13 +143,28 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
                 self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
                 self.assertNotIn("api.football-data-api.com", content)
 
-    def test_preflight_script_never_persists_provider_payloads_or_changes_production(self):
+    def test_preflight_and_checkpoint_scripts_are_offline_safe_with_respect_to_raw_storage(self):
         script = (ROOT / "scripts" / "footystats_budgeted_endpoint_preflight.py").read_text(encoding="utf-8")
         self.assertIn('"raw_payloads_persisted": False', script)
         self.assertIn('"production_eligible": False', script)
         self.assertIn('"betting_eligible": False', script)
         self.assertIn("QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE", script)
         self.assertNotIn("write_text(json.dumps(payload", script)
+        checkpoint_script = (ROOT / "scripts" / "footystats_ingestion_checkpoint.py").read_text(encoding="utf-8")
+        self.assertNotIn("api.football-data-api.com", checkpoint_script)
+        self.assertNotIn("urlopen(", checkpoint_script)
+        self.assertIn('"dispatch_allowed": False', checkpoint_script)
+        self.assertIn("private_archive_write_verified", checkpoint_script)
+
+    def test_gateway_builds_resumable_checkpoint_after_manifest_and_before_commit(self):
+        manifest_step = self.content.index("Build offline full historical ingestion manifest")
+        resume_step = self.content.index("Build offline resumable ingestion checkpoint plan")
+        commit_step = self.content.index("Commit sanitized report and finalized request ledger")
+        self.assertLess(manifest_step, resume_step)
+        self.assertLess(resume_step, commit_step)
+        self.assertIn("footystats_ingestion_checkpoint.py", self.content)
+        self.assertIn("--receipts-jsonl", self.content)
+        self.assertIn("--max-batch-requests 1500", self.content)
 
     def test_gateway_builds_offline_manifest_after_preflight(self):
         self.assertIn("Build offline full historical ingestion manifest", self.content)
