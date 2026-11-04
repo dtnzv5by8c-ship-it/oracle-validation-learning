@@ -1562,8 +1562,8 @@ def main():
         if any(r["production_eligible"] != "NO" for r in provider_season_year_rows):
             raise RuntimeError("Provider season-year coverage attempted to grant production eligibility")
         qa={"status":"RESEARCH_RUNTIME_BUILT","selected_leagues":50,"selected_groups_with_match_rows":len(present_comps),
-            "report_horizon_days":inclusive_report_horizon_days(report_start_text, report_end_text),
-            "report_start_date_utc":report_start_text,"report_end_date_utc_inclusive":report_end_text,
+            "report_horizon_days":inclusive_report_horizon_days(report_start_date, report_end_date),
+            "report_start_date_utc":report_start_date,"report_end_date_utc_inclusive":report_end_date,
             "minimum_lead_time_minutes":15,
             "future_fixture_competitions_with_predictions":len(set(r["league"] for r in predictions)),
             "future_fixture_candidates_in_report_horizon":len(future),
