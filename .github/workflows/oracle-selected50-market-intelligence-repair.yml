@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
-        description: "Confirm read-only use of the existing pinned private archive; no provider API calls"
+        description: "Confirm read-only use of the pinned private archive; results-provider calls have a separate opt-in approval"
         required: true
         default: false
         type: boolean
