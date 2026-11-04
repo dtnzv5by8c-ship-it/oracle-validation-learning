@@ -97,8 +97,8 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             fixture("MISSING-STATUS", status=""),
             fixture("HISTORICAL", kickoff=now - timedelta(hours=1)),
             fixture("BEYOND", kickoff=now + timedelta(days=8)),
-            fixture("BEYOND-FLAGGED", kickoff=now + timedelta(days=8), no_home_away=1),
-            fixture("BEYOND-SUSPENDED", kickoff=now + timedelta(days=9), status="suspended"),
+            fixture("BEYOND-FLAGGED", kickoff=now + timedelta(days=21), no_home_away=1),
+            fixture("BEYOND-SUSPENDED", kickoff=now + timedelta(days=22), status="suspended"),
             fixture("BAD-TIME", kickoff_utc="not-a-timestamp"),
         ]
         snapshot = {"retrieved_utc": iso(now - timedelta(minutes=5)), "per_season": seasons, "fixture_rows": fixture_rows}
@@ -133,16 +133,16 @@ class SnapshotOverlayContractTests(unittest.TestCase):
                 trace_rows = list(csv.DictReader(trace_file))
             by_id = {row["fixture_id"]: row for row in trace_rows if row["fixture_id"]}
 
-            self.assertEqual(qa["candidate_rows_added"], 1)
+            self.assertEqual(qa["candidate_rows_added"], 2)
             self.assertEqual(qa["unsupported_archive_rows_not_staged"], 2)
             self.assertIn("DOCUMENTED_FIELD_SEMANTICS", qa["no_home_away_flag_semantics"])
             self.assertIn("no_home_away=1", qa["no_home_away_flag_semantics"])
             self.assertIn("remain quarantined", qa["no_home_away_flag_semantics"])
             by_league = {f'{row["country"]} | {row["competition"]}': row for row in qa["no_home_away_flag_by_league"]}
-            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_7d"], 7)
-            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_beyond_7d"], 3)
-            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true_beyond_7d"], 1)
-            self.assertEqual(by_league["Country 00 | League 00"]["status_not_eligible_for_future_fixture_beyond_7d"], 1)
+            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_in_20d"], 7)
+            self.assertEqual(by_league["Country 00 | League 00"]["future_rows_beyond_20d"], 3)
+            self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true_beyond_20d"], 1)
+            self.assertEqual(by_league["Country 00 | League 00"]["status_not_eligible_for_future_fixture_beyond_20d"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_true"], 1)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_false"], 5)
             self.assertEqual(by_league["Country 00 | League 00"]["no_home_away_unknown"], 1)
@@ -165,16 +165,16 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             self.assertEqual(by_id["SUSPENDED-FUTURE"]["trace_reason"], "NONSTANDARD_STATUS")
             self.assertEqual(by_id["MISSING-STATUS"]["trace_reason"], "MISSING_STATUS")
             self.assertEqual(by_id["HISTORICAL"]["trace_outcome"], "HISTORICAL_NOT_STAGED")
-            self.assertEqual(by_id["BEYOND"]["trace_outcome"], "BEYOND_7D_NOT_STAGED")
+            self.assertEqual(by_id["BEYOND"]["trace_outcome"], "BEYOND_20D_NOT_STAGED")
             self.assertEqual(by_id["BEYOND-FLAGGED"]["trace_outcome"], "QUARANTINED_INVALID_OR_NONSTANDARD")
             self.assertIn("NO_HOME_AWAY_FLAGGED", by_id["BEYOND-FLAGGED"]["trace_reason"])
-            self.assertIn("OUTSIDE_7D_STAGING_HORIZON", by_id["BEYOND-FLAGGED"]["trace_reason"])
+            self.assertIn("OUTSIDE_20D_STAGING_HORIZON", by_id["BEYOND-FLAGGED"]["trace_reason"])
             self.assertEqual(by_id["BEYOND-SUSPENDED"]["trace_outcome"], "QUARANTINED_INVALID_OR_NONSTANDARD")
             self.assertIn("NONSTANDARD_STATUS", by_id["BEYOND-SUSPENDED"]["trace_reason"])
             self.assertIn("OUTSIDE_7D_STAGING_HORIZON", by_id["BEYOND-SUSPENDED"]["trace_reason"])
-            self.assertEqual(qa["future_rows_beyond_7d_not_staged"], 1)
-            self.assertEqual(qa["future_rows_beyond_7d_total"], 3)
-            self.assertEqual(qa["future_rows_beyond_7d_quarantined"], 2)
+            self.assertEqual(qa["future_rows_beyond_20d_not_staged"], 1)
+            self.assertEqual(qa["future_rows_beyond_20d_total"], 3)
+            self.assertEqual(qa["future_rows_beyond_20d_quarantined"], 2)
             self.assertEqual(by_id["BAD-TIME"]["trace_outcome"], "QUARANTINED_INVALID_KICKOFF")
             self.assertEqual(by_id["FUTURE-1"]["production_eligible"], "NO")
             self.assertEqual(by_id["FUTURE-1"]["canonical_fixture_join_status"], "NOT_VERIFIED")
