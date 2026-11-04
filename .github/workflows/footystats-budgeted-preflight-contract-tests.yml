@@ -70,17 +70,21 @@ jobs:
 
       - name: Dry-run resumable planner against committed ingestion manifest
         run: |
-          mkdir -p "${RUNNER_TEMP}/footystats-resume-plan"
-          : > "${RUNNER_TEMP}/footystats-empty-receipts.jsonl"
-          python scripts/footystats_ingestion_checkpoint.py \\
-            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \\
-            --receipts-jsonl "${RUNNER_TEMP}/footystats-empty-receipts.jsonl" \\
-            --output-dir "${RUNNER_TEMP}/footystats-resume-plan" \\
+          set -euo pipefail
+          OUTPUT_DIR="${RUNNER_TEMP}/footystats-resume-plan"
+          RECEIPTS_FILE="${RUNNER_TEMP}/footystats-empty-receipts.jsonl"
+          mkdir -p "${OUTPUT_DIR}"
+          : > "${RECEIPTS_FILE}"
+          python scripts/footystats_ingestion_checkpoint.py \
+            --manifest data/footystats/full-ingestion-manifest/ingestion-request-manifest.csv \
+            --receipts-jsonl "${RECEIPTS_FILE}" \
+            --output-dir "${OUTPUT_DIR}" \
             --max-batch-requests 1500
-          python - <<'PY'
+          OUTPUT_DIR="${OUTPUT_DIR}" python - <<'PY'
           import json
+          import os
           from pathlib import Path
-          summary = json.loads((Path("${RUNNER_TEMP}") / "footystats-resume-plan" / "summary.json").read_text())
+          summary = json.loads((Path(os.environ["OUTPUT_DIR"]) / "summary.json").read_text())
           assert summary["planned_task_count"] == 728, summary
           assert summary["pending_task_count"] == 728, summary
           assert summary["next_batch_task_count"] == 728, summary
@@ -88,6 +92,5 @@ jobs:
           assert summary["central_budget_reservation_required"] is True, summary
           assert summary["production_eligible"] is False and summary["betting_eligible"] is False, summary
           PY
-
       - name: Test central workflow and legacy-path isolation
         run: python -m unittest discover -s tests -p "test_footystats_ingestion_workflow_contract.py" -v
