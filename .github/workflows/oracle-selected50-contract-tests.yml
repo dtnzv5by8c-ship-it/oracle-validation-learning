@@ -94,6 +94,8 @@ jobs:
         run: python -m unittest discover -s tests -p "test_selected50_unqueried_actual_results.py" -v
       - name: Run offline safety contract tests
         run: python -m unittest discover -s tests -p "test_footystats_selected50_bounded_probe_contract.py" -v
+      - name: Verify all legacy FootyStats API paths are blocked
+        run: python -m unittest discover -s tests -p "test_footystats_ingestion_workflow_contract.py" -v
       - name: Run research score-settlement contract tests
         run: python -m unittest discover -s tests -p "test_score_market_settlement.py" -v
       - name: Run paired H2H chronology and output-contract tests (research only)
