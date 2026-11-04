@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "${REPORT_DIR}"
+          mkdir -p "${REPORT_DIR}" data/footystats/full-ingestion-manifest
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${LEDGER_PATH}" "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
@@ -151,11 +151,11 @@ jobs:
           git rebase FETCH_HEAD
           git push origin "HEAD:${GOVERNED_BRANCH}"
 
-      - name: Upload sanitized endpoint preflight report only
+      - name: Upload sanitized preflight report and ingestion manifest
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: footystats-sanitized-endpoint-preflight-${{ github.run_id }}
+          name: footystats-sanitized-preflight-and-ingestion-plan-${{ github.run_id }}
           path: |
             data/footystats/endpoint-preflight/footystats-preflight-run-${{ github.run_id }}.json
             data/footystats/full-ingestion-manifest/*.csv
