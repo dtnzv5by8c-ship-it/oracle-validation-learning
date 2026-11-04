@@ -7,6 +7,8 @@ on:
       - research/oracle-50-league-readiness-audit
     paths-ignore:
       - "**/*.md"
+      - "data/footystats/rolling-request-ledger.json"
+      - "data/footystats/endpoint-preflight/**"
 
 permissions:
   contents: read
