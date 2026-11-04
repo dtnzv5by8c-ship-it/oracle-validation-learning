@@ -103,9 +103,18 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${LEDGER_PATH}" "${PLAN_DIR}/season-plan.csv" "${PLAN_DIR}/excluded-seasons.csv" "${PLAN_DIR}/summary.json"
           git commit -m "ops: reserve FootyStats budget for run ${GITHUB_RUN_ID}"
-          git fetch origin "${GOVERNED_BRANCH}"
-          git rebase FETCH_HEAD
-          git push origin "HEAD:${GOVERNED_BRANCH}"
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            git rebase "origin/${GOVERNED_BRANCH}"
+            if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+              pushed=true
+              break
+            fi
+            echo "Research branch advanced during push (attempt ${attempt}/5); retrying fetch/rebase/push without force."
+            sleep $((attempt * 2))
+          done
+          [[ "${pushed}" == "true" ]] || { echo "::error::Could not safely publish reservation after five attempts; stopping before provider access."; exit 1; }
 
       - name: Run sanitized endpoint and field preflight
         id: preflight
@@ -150,9 +159,18 @@ jobs:
             exit 0
           fi
           git commit -m "data: save sanitized FootyStats preflight run ${GITHUB_RUN_ID}"
-          git fetch origin "${GOVERNED_BRANCH}"
-          git rebase FETCH_HEAD
-          git push origin "HEAD:${GOVERNED_BRANCH}"
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            git rebase "origin/${GOVERNED_BRANCH}"
+            if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+              pushed=true
+              break
+            fi
+            echo "Research branch advanced during final report push (attempt ${attempt}/5); retrying fetch/rebase/push without force."
+            sleep $((attempt * 2))
+          done
+          [[ "${pushed}" == "true" ]] || { echo "::error::Could not safely publish sanitized report after five attempts; artifact remains available."; exit 1; }
 
       - name: Upload sanitized preflight report and ingestion manifest
         if: always()
