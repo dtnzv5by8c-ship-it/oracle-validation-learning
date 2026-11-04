@@ -181,3 +181,16 @@ Latest branch checkpoint after report-window correction: `f46515817187f32cea2875
 - Verified the committed diff removes only the secret-check step; the test commands, read-only permissions, and test dependencies are unchanged. The workflow file was re-fetched after commit and contains zero `secrets.` references.
 - Push-triggered contract-test execution is expected from this workflow-file change, but its result has not yet been independently retrieved. Do not claim CI passed until the actual Actions run is inspected.
 - No provider API calls, paid credits, private archive reads, production model changes, or probability changes were made.
+
+
+## 2026-11-04 OMI Run #282 failure analysis and correction
+
+- OMI repair Run #282 (41842793576) correctly verified the pinned archive SHA-256 and exact runtime artifact identity, and completed the archive-wide inventory plus xG manifest audit with zero provider API calls.
+- The row-level history provenance audit loaded all 59,049 archived match records across 200 mapped seasons and audited 41 blocked team-side rows. It reported all_side_history_counts_reconcile=true, zero runtime/archive count mismatches, five-match minimum unchanged, zero imputation, and production/betting eligibility false.
+- The workflow then failed on a stale hard-coded assertion expecting exactly 25 blocked team-side rows. The runtime's current missing-feature scope is dynamic; 41 was the correctly derived current count. This was a workflow QA assertion defect, not a history reconciliation failure.
+- Corrected .github/workflows/oracle-selected50-market-intelligence-repair.yml to independently derive the expected blocked-side count from the exact runtime CSV missing_required_features fields and compare it with the audit output. No fixed fixture/side count remains.
+- Correction commit: 7b8f7e1867d25fa2aa202fa79d5ef421e1d0872e — fix: derive history audit gate from runtime blocked sides.
+- Run #282 produced only oracle-selected50-join-diagnostics artifact because report-build steps were correctly skipped after the failed gate. No workbook was produced by that run.
+- xG remains quarantined: the archive manifest is season-level; zero fixture-linked capture timestamps, hashes or revision candidates were found. Do not use these xG fields as verified pre-match inputs.
+- Results-provider credit approval remained false; the zero-call Actual Results register was not reached in Run #282. Do not claim results retrieval.
+- Next: rerun OMI repair using the same approved pinned archive and exact runtime run 41795266381, on the governed branch at the corrected workflow commit. Keep confirm_results_provider_credit_usage=false. Inspect all subsequent QA gates and artifacts; report only after the workbook and QA are uploaded. No production model logic/probabilities or eligibility were changed.
