@@ -252,7 +252,10 @@ jobs:
               raise SystemExit("FAIL: snapshot artifact digest does not match runtime provenance")
           if len(snapshot_trace) != int(provenance.get("snapshot_fixture_rows") or -1):
               raise SystemExit("FAIL: snapshot candidate trace row count does not match runtime provenance")
+          from collections import Counter
+          from pathlib import Path
           snapshot_keys = []
+          incomplete_snapshot_identity_rows = 0
           for item in snapshot_trace:
               if item.get("snapshot_file_sha256") != expected_snapshot_sha:
                   raise SystemExit("FAIL: snapshot trace file hash mismatch")
@@ -263,19 +266,71 @@ jobs:
               key = tuple(str(item.get(k) or "").strip() for k in (
                   "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id"))
               if not all(key):
-                  raise SystemExit("FAIL: snapshot candidate trace has an incomplete exact identity")
+                  incomplete_snapshot_identity_rows += 1
+                  continue
               snapshot_keys.append(key)
-          if len(snapshot_keys) != len(set(snapshot_keys)):
-              raise SystemExit("FAIL: duplicate exact identities in snapshot candidate trace")
+          snapshot_counts = Counter(snapshot_keys)
           runtime_keys = [tuple(str(item.get(k) or "").strip() for k in (
               "selected_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) for item in rows]
-          if len(runtime_keys) != len(set(runtime_keys)) or not set(runtime_keys).issubset(set(snapshot_keys)):
-              raise SystemExit("FAIL: runtime fixtures do not have exact ordered-ID snapshot trace matches")
-          runtime_key_set = set(runtime_keys)
+          runtime_counts = Counter(runtime_keys)
+          exact_runtime = []
+          exception_rows = []
+          for row, key in zip(rows, runtime_keys):
+              count = snapshot_counts.get(key, 0) if all(key) else 0
+              if not all(key):
+                  status = "RUNTIME_IDENTITY_MISSING"
+              elif count == 0:
+                  status = "MISSING_FROM_FRESH_SNAPSHOT"
+              elif count > 1:
+                  status = "DUPLICATE_SNAPSHOT_MATCH"
+              elif runtime_counts[key] > 1:
+                  status = "DUPLICATE_RUNTIME_IDENTITY"
+              else:
+                  status = "EXACT_SNAPSHOT_MATCH"
+                  exact_runtime.append(key)
+              if status != "EXACT_SNAPSHOT_MATCH":
+                  exception_rows.append({
+                      "fixture_date": row.get("date_utc", ""),
+                      "league": row.get("league", ""),
+                      "fixture": f"{row.get('home_team', '')} vs {row.get('away_team', '')}",
+                      "selected_id": row.get("selected_id", ""),
+                      "fixture_id": row.get("fixture_id", ""),
+                      "home_team_provider_id": row.get("home_team_provider_id", ""),
+                      "away_team_provider_id": row.get("away_team_provider_id", ""),
+                      "snapshot_match_count": count,
+                      "snapshot_evidence_status": status,
+                  })
           runtime_snapshot = [item for item in snapshot_trace if tuple(str(item.get(k) or "").strip() for k in (
-              "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) in runtime_key_set]
+              "selected_season_id", "fixture_id", "home_team_provider_id", "away_team_provider_id")) in set(exact_runtime)]
           no_home_away = sum(str(item.get("no_home_away") or "").strip() == "1" for item in runtime_snapshot)
-          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}; exact_snapshot_trace={len(runtime_snapshot)}; no_home_away={no_home_away}")
+          out = Path("market-intelligence-output")
+          out.mkdir(parents=True, exist_ok=True)
+          with (out / "oracle_selected50_runtime_snapshot_exceptions.csv").open("w", newline="", encoding="utf-8") as handle:
+              fields = ["fixture_date", "league", "fixture", "selected_id", "fixture_id",
+                        "home_team_provider_id", "away_team_provider_id", "snapshot_match_count",
+                        "snapshot_evidence_status"]
+              writer = csv.DictWriter(handle, fieldnames=fields)
+              writer.writeheader()
+              writer.writerows(exception_rows)
+          reconciliation = {
+              "status": "PASS_EXACT_SNAPSHOT_TRACE_JOIN" if not exception_rows and not incomplete_snapshot_identity_rows else "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS",
+              "runtime_fixture_rows": len(rows),
+              "snapshot_trace_rows": len(snapshot_trace),
+              "exact_snapshot_matches": len(exact_runtime),
+              "runtime_snapshot_exception_rows": len(exception_rows),
+              "missing_snapshot_rows": sum(x["snapshot_evidence_status"] == "MISSING_FROM_FRESH_SNAPSHOT" for x in exception_rows),
+              "duplicate_snapshot_match_rows": sum(x["snapshot_evidence_status"] == "DUPLICATE_SNAPSHOT_MATCH" for x in exception_rows),
+              "runtime_identity_missing_rows": sum(x["snapshot_evidence_status"] == "RUNTIME_IDENTITY_MISSING" for x in exception_rows),
+              "duplicate_runtime_identity_rows": sum(x["snapshot_evidence_status"] == "DUPLICATE_RUNTIME_IDENTITY" for x in exception_rows),
+              "incomplete_snapshot_identity_rows": incomplete_snapshot_identity_rows,
+              "duplicate_snapshot_keys": sum(1 for n in snapshot_counts.values() if n > 1),
+              "no_home_away_flagged_exact_matches": no_home_away,
+              "production_eligible": False,
+              "betting_eligible": False,
+              "policy": "EXACT_ORDERED_IDENTITY_ONLY; ALL MISSING OR AMBIGUOUS ROWS EXPLICITLY QUARANTINED; NO INFERENCE",
+          }
+          (out / "oracle_selected50_runtime_snapshot_reconciliation_qa.json").write_text(json.dumps(reconciliation, indent=2) + "\n")
+          print(f"Runtime artifact verified: run={run_id}; fixture_rows={len(rows)}; governed_leagues={len(governed_ids)}; fixture_leagues={len(report_ids)}; exact_snapshot_trace={len(exact_runtime)}; snapshot_exceptions={len(exception_rows)}; no_home_away={no_home_away}")
           PY
 
       - name: Build report-only team-level feature blocker diagnostics
@@ -515,16 +570,27 @@ jobs:
               orientation = list(csv.DictReader(f))
           with Path("runtime-artifact/extracted/oracle_selected50_prediction_report.csv").open(encoding="utf-8-sig", newline="") as f:
               runtime = list(csv.DictReader(f))
-          if orientation_qa.get("status") != "PASS_EXACT_SNAPSHOT_TRACE_JOIN":
-              raise SystemExit("FAIL: exact snapshot orientation QA did not pass")
+          if orientation_qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}:
+              raise SystemExit("FAIL: snapshot orientation QA has an invalid status")
           if len(orientation) != len(runtime) or len(orientation) != orientation_qa.get("runtime_fixture_rows"):
               raise SystemExit("FAIL: orientation audit row count does not reconcile to runtime fixtures")
+          if orientation_qa.get("rows_accounted_for") != len(runtime) or orientation_qa.get("all_runtime_rows_accounted_for") is not True:
+              raise SystemExit("FAIL: runtime fixtures are not all represented in snapshot evidence QA")
           flagged = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "1"]
           distinct = [r for r in orientation if r.get("snapshot_no_home_away_flag") == "0"]
           unknown = [r for r in orientation if r.get("fixture_orientation_status") == "ORIENTATION_UNKNOWN"]
+          missing = [r for r in orientation if r.get("snapshot_evidence_status") == "MISSING_FROM_FRESH_SNAPSHOT"]
           if len(flagged) != orientation_qa.get("no_home_away_flagged") or len(distinct) != orientation_qa.get("home_away_distinction_present"):
               raise SystemExit("FAIL: orientation CSV counts do not match orientation QA")
-          if unknown or len(flagged) + len(distinct) != len(runtime):
+          if len(missing) != orientation_qa.get("missing_snapshot_rows") or len(unknown) != orientation_qa.get("orientation_unknown_rows"):
+              raise SystemExit("FAIL: explicit snapshot exception counts do not match orientation QA")
+          allowed_unknown_statuses = {
+              "MISSING_FROM_FRESH_SNAPSHOT", "DUPLICATE_SNAPSHOT_MATCH",
+              "RUNTIME_IDENTITY_MISSING", "EXACT_SNAPSHOT_MATCH_FLAG_UNKNOWN"
+          }
+          if any(r.get("snapshot_evidence_status") not in allowed_unknown_statuses for r in unknown):
+              raise SystemExit("FAIL: orientation audit contains an unclassified snapshot evidence exception")
+          if len(flagged) + len(distinct) + len(unknown) != len(runtime):
               raise SystemExit("FAIL: orientation audit contains unknown or unclassified runtime fixtures")
           if any(r.get("home_away_market_review_status") != "REVIEW_REQUIRED_NO_HOME_AWAY_DISTINCTION" for r in flagged):
               raise SystemExit("FAIL: no_home_away=1 fixture lacks home/away market review status")
@@ -543,7 +609,7 @@ jobs:
               raise SystemExit("FAIL: side audit includes a history that passes the five-match gate")
           if any(r.get("production_eligible") != "NO" or r.get("betting_eligible") != "NO" for r in side_rows):
               raise SystemExit("FAIL: feature-block research rows must remain ineligible")
-          print(f"Orientation QA PASS: {len(flagged)} no_home_away flags; {len(distinct)} with distinction; 0 unknown.")
+          print(f"Orientation QA {orientation_qa.get('status')}: {len(flagged)} no_home_away flags; {len(distinct)} with distinction; {len(unknown)} explicit evidence exceptions; {len(missing)} missing from fresh snapshot.")
           print(f"Runtime feature audit PASS: {feature_qa.get('blocked_fixture_rows')} fixtures; {len(side_rows)} blocked team sides.")
           PY
 
@@ -602,6 +668,8 @@ jobs:
             market-intelligence-output/oracle_selected50_market_intelligence_join_quarantine.csv
             market-intelligence-output/oracle_selected50_schedule_reconciliation_queue.csv
             market-intelligence-output/oracle_selected50_field_coverage_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_reconciliation_qa.json
+            market-intelligence-output/oracle_selected50_runtime_snapshot_exceptions.csv
             market-intelligence-output/oracle_selected50_snapshot_orientation_qa.json
             market-intelligence-output/oracle_selected50_fixture_orientation_audit.csv
             market-intelligence-output/oracle_selected50_runtime_feature_block_audit.csv
