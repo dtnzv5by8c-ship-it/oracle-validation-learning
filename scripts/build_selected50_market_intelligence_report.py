@@ -1698,6 +1698,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "archive_raw_record_sha256": item.get("archive_raw_record_sha256", ""),
             "production_eligible": item.get("production_eligible", ""),
             "betting_eligible": item.get("betting_eligible", ""),
+            "snapshot_evidence_status": orientation_item.get("snapshot_evidence_status", "RUNTIME_IDENTITY_MISSING"),
             "snapshot_no_home_away_flag": orientation_item.get("snapshot_no_home_away_flag", "NOT_AVAILABLE_SNAPSHOT_TRACE_NOT_SUPPLIED"),
             "fixture_orientation_status": orientation_item.get("fixture_orientation_status", "ORIENTATION_UNKNOWN"),
             "home_away_market_review_status": orientation_item.get("home_away_market_review_status", "REVIEW_REQUIRED_ORIENTATION_UNVERIFIED"),
