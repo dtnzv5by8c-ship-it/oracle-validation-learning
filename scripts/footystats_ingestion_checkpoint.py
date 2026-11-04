@@ -19,6 +19,15 @@ from datetime import datetime, timezone
 
 ENDPOINTS = {"league-matches", "league-teams", "league-tables", "league-season"}
 PAGED_ENDPOINTS = {"league-matches", "league-teams"}
+REQUIRED_FIELDS_BY_ENDPOINT = {
+    "league-matches": {"id", "homeID", "awayID", "date_unix", "status"},
+    "league-teams": {"id", "name_or_alias"},
+    "league-tables": {
+        "league_table", "all_matches_table_overall",
+        "all_matches_table_home", "all_matches_table_away", "specific_tables",
+    },
+    "league-season": {"total_goals", "home_teams_goals", "away_teams_goals"},
+}
 FAILURE_CODES = {
     "HTTP_401", "HTTP_403", "HTTP_429", "PROVIDER_SUCCESS_FALSE",
     "TRANSPORT_FAILURE", "TRANSPORT_TIMEOUT", "MALFORMED_RESPONSE",
@@ -109,11 +118,18 @@ def read_manifest(path: Path) -> list[dict[str, str]]:
             raise ValueError("manifest task must remain production-ineligible")
         if str(task.get("betting_eligible", "")).lower() not in {"false", "0"}:
             raise ValueError("manifest task must remain betting-ineligible")
-        parse_int(task.get("page"), "manifest.page", 1)
-        parse_int(task.get("expected_page_count"), "manifest.expected_page_count", 1)
+        page = parse_int(task.get("page"), "manifest.page", 1)
+        page_count = parse_int(task.get("expected_page_count"), "manifest.expected_page_count", 1)
+        if page > page_count:
+            raise ValueError(f"manifest page exceeds expected page count for task {task_id}")
+        if task["endpoint"] not in PAGED_ENDPOINTS and (page != 1 or page_count != 1):
+            raise ValueError(f"single-response endpoint has invalid page metadata for task {task_id}")
         if task["endpoint"] in PAGED_ENDPOINTS:
             parse_int(task.get("max_per_page"), "manifest.max_per_page", 1)
             parse_int(task.get("expected_total_results"), "manifest.expected_total_results", 0)
+        expected_task_id = f"FS:{task['provider_season_id']}:{task['endpoint']}:p{page}"
+        if task_id != expected_task_id:
+            raise ValueError(f"manifest task ID does not match exact provider season/endpoint/page: {task_id}")
     return tasks
 
 
@@ -201,6 +217,26 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         raise ValueError("required_fields_missing must be an explicit list")
     if missing:
         raise ValueError("REQUIRED_FIELD_GAP:" + ";".join(str(x) for x in missing))
+    present = receipt.get("required_fields_present")
+    if not isinstance(present, list):
+        raise ValueError("required_fields_present must be an explicit list")
+    required_fields = REQUIRED_FIELDS_BY_ENDPOINT[task["endpoint"]]
+    if not required_fields.issubset({str(field) for field in present}):
+        absent = sorted(required_fields - {str(field) for field in present})
+        raise ValueError("REQUIRED_FIELD_PRESENCE_UNVERIFIED:" + ";".join(absent))
+
+    if task["endpoint"] == "league-matches":
+        completed_rows = parse_int(receipt.get("completed_match_rows"), "receipt.completed_match_rows", 0)
+        goal_gaps = parse_int(receipt.get("completed_match_goal_field_gaps"), "receipt.completed_match_goal_field_gaps", 0)
+        if goal_gaps > 0:
+            raise ValueError("COMPLETED_MATCH_GOAL_FIELD_GAP")
+        if completed_rows > 0:
+            goal_fields = {"homeGoalCount", "awayGoalCount", "totalGoalCount"}
+            if not goal_fields.issubset({str(field) for field in present}):
+                raise ValueError("COMPLETED_MATCH_GOAL_FIELDS_UNVERIFIED")
+        no_home_away_rows = parse_int(receipt.get("no_home_away_rows"), "receipt.no_home_away_rows", 0)
+        if no_home_away_rows > parse_int(receipt.get("returned_rows"), "receipt.returned_rows", 0):
+            raise ValueError("no_home_away_rows exceeds returned page rows")
 
     if task["endpoint"] in PAGED_ENDPOINTS:
         total = parse_int(task.get("expected_total_results"), "manifest.expected_total_results", 0)
@@ -217,6 +253,9 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         expected_rows = min(per_page, max(0, total - ((page - 1) * per_page)))
         if returned != expected_rows:
             raise ValueError(f"page row count mismatch: expected {expected_rows}, received {returned}")
+        unique_ids = parse_int(receipt.get("unique_ids_on_page"), "receipt.unique_ids_on_page", 0)
+        if unique_ids != returned:
+            raise ValueError("provider IDs are not unique on the returned page")
 
     xg_missing = receipt.get("xg_fields_missing")
     if not isinstance(xg_missing, list):
@@ -251,6 +290,9 @@ def build_resume_plan(
     duplicate_receipts = 0
     receipt_conflicts = 0
     xg_missing_counts: Counter[str] = Counter()
+    no_home_away_rows_total = 0
+    completed_match_rows_total = 0
+    completed_match_goal_gap_rows_total = 0
 
     for task in tasks:
         task_id = str(task["task_id"])
@@ -268,6 +310,10 @@ def build_resume_plan(
                 try:
                     task_status, reason, xg_missing = validate_receipt(task, task_receipts[0])
                     xg_missing_counts.update(xg_missing)
+                    if task["endpoint"] == "league-matches":
+                        no_home_away_rows_total += int(task_receipts[0]["no_home_away_rows"])
+                        completed_match_rows_total += int(task_receipts[0]["completed_match_rows"])
+                        completed_match_goal_gap_rows_total += int(task_receipts[0]["completed_match_goal_field_gaps"])
                 except ValueError as exc:
                     task_status = "BLOCKED_RECEIPT_VALIDATION"
                     reason = str(exc)
@@ -319,6 +365,15 @@ def build_resume_plan(
         "private_raw_archive_write_required": True,
         "raw_payloads_written_to_public_repository": False,
         "xg_missing_field_counts": dict(sorted(xg_missing_counts.items())),
+        "no_home_away_rows_in_completed_receipts": no_home_away_rows_total,
+        "completed_match_rows_in_completed_receipts": completed_match_rows_total,
+        "completed_match_goal_field_gap_rows": completed_match_goal_gap_rows_total,
+        "h2h_status": "DERIVE_ONLY_FROM_EXACT_CHRONOLOGICAL_MATCH_SPINE",
+        "recent_form_status": "DERIVE_ONLY_WITH_STRICT_PRE_KICKOFF_CUTOFF",
+        "home_away_form_status": "DERIVE_ONLY_FROM_EXACT_ORDERED_HOME_AWAY_IDS; NO_HOME_AWAY_ROWS_EXCLUDED",
+        "fixture_time_standings_status": "NOT_VERIFIED_REQUIRES_AS_OF_RECONSTRUCTION",
+        "xg_usage_status": "QUARANTINED_NO_POINT_IN_TIME_CAPTURE_AND_REVISION_PROVENANCE",
+        "full_history_ingested": False,
         "production_eligible": False,
         "betting_eligible": False,
     }
