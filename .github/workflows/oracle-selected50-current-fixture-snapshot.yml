@@ -1,101 +1,18 @@
-name: Oracle Selected-50 Current Fixture Snapshot (Research Only)
+name: DISABLED — Legacy FootyStats request path (oracle-selected50-current-fixture-snapshot)
 
 on:
   workflow_dispatch:
-    inputs:
-      confirm_provider_credit_usage:
-        description: "Confirm approval for at most 50 FootyStats league-matches requests"
-        required: true
-        type: boolean
-        default: false
-      confirm_monthly_credit_budget_checked:
-        description: "Confirm FootyStats credit budget was checked and is sufficient for at most 50 requests"
-        required: true
-        type: boolean
-        default: false
-      report_end_date:
-        description: "Inclusive UTC report end date (YYYY-MM-DD); snapshot includes the full day"
-        required: true
-        type: string
-        default: "2026-11-24"
 
 permissions:
   contents: read
 
 jobs:
-  current-fixture-snapshot:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 1
     steps:
-      - name: Enforce governed research branch before any provider access
+      - name: Refuse legacy provider request path
         shell: bash
         run: |
-          set -euo pipefail
-          [[ "${GITHUB_REF}" == "refs/heads/research/oracle-50-league-readiness-audit" || "${GITHUB_REF}" == "refs/heads/research/oracle-omi-20day-snapshot" || "${GITHUB_REF}" == "refs/heads/research/selected50-explicit-report-end-date" ]] || {
-            echo "::error::Dispatch this provider workflow from research/oracle-50-league-readiness-audit; zero provider requests made."
-            exit 1
-          }
-
-      - name: Checkout this workflow revision
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Checkout the same immutable workflow commit for the research script
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          path: research-source
-          persist-credentials: false
-
-      - name: Enforce both explicit confirmations
-        env:
-          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_provider_credit_usage }}
-          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ inputs.confirm_monthly_credit_budget_checked }}
-        run: |
-          if [ "$CONFIRM_PROVIDER_CREDIT_USAGE" != "true" ]; then
-            echo "::error::Provider-credit approval required; no request made."
-            exit 1
-          fi
-          if [ "$CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED" != "true" ]; then
-            echo "::error::Monthly credit confirmation required; no request made."
-            exit 1
-          fi
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Validate report end date before provider access
-        env:
-          REPORT_END_DATE: ${{ inputs.report_end_date }}
-        run: |
-          python - <<'PY'
-          import os
-          from datetime import date
-          value = os.environ["REPORT_END_DATE"]
-          parsed = date.fromisoformat(value)
-          if parsed.isoformat() != value:
-              raise SystemExit("report_end_date must be YYYY-MM-DD")
-          PY
-
-      - name: Run paced sequential league-matches requests; stop after first provider failure
-        working-directory: research-source
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          REPORT_END_DATE: ${{ inputs.report_end_date }}
-        run: python scripts/oracle_selected50_current_fixture_probe.py
-
-      - name: Validate sanitized snapshot contract
-        working-directory: research-source
-        run: python scripts/validate_selected50_current_fixture_snapshot.py oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
-
-      - name: Upload sanitized current fixture snapshot or failure diagnostic
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: oracle-selected50-current-fixture-snapshot
-          path: research-source/oracle-selected50-current-fixture-snapshot/current-fixture-snapshot.json
-          if-no-files-found: warn
-          retention-days: 14
+          echo "::error::This legacy FootyStats request workflow is disabled. All provider requests must use the single governed ingestion workflow with the global rolling-hour request ledger."
+          exit 1
