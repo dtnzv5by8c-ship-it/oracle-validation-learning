@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Research-only, fail-closed overlay of fresh FootyStats fixtures onto the historical archive.
 
-Only future, standard home/away fixtures inside the next 20 days are staged.
+Only future, standard home/away fixtures through the snapshot declared inclusive report-end boundary are staged.
 No predictions are produced here. Production model logic and probabilities are untouched.
 """
 import argparse, csv, hashlib, json, math, zipfile
@@ -145,6 +145,9 @@ def main():
         raise SystemExit("FAIL: selected season IDs must be 50 unique nonblank values")
     if any(x.get("http_status")!=200 or x.get("provider_success") is not True for x in seasons):
         raise SystemExit("FAIL: one or more selected-season provider requests did not succeed")
+    report_window_end=parse_utc(snap.get("window_end_utc"))
+    if report_window_end is None:
+        raise SystemExit("FAIL: snapshot report window end missing or invalid")
     fixture_rows=snap.get("fixture_rows")
     if not isinstance(fixture_rows,list):
         raise SystemExit("FAIL: snapshot fixture_rows must be a list")
@@ -179,7 +182,7 @@ def main():
         status=str(row.get("status") or "").strip().lower()
         flag=no_home_away_flag(row.get("no_home_away"))
         meta=season_meta_by_id.get(sid,{})
-        within_20d = ko <= now+timedelta(days=20)
+        within_20d = ko <= report_window_end
         if not within_20d:
             beyond_total+=1
         league_key=f"{meta.get('country', '')} | {meta.get('competition', '')}"
@@ -229,7 +232,7 @@ def main():
         if not within_20d:
             beyond+=1
             trace["trace_outcome"]="BEYOND_20D_NOT_STAGED"
-            trace["trace_reason"]="KICKOFF_AFTER_TWENTY_DAY_STAGING_HORIZON"
+            trace["trace_reason"]="KICKOFF_AFTER_DECLARED_REPORT_END"
             continue
         trace["trace_outcome"]="ELIGIBLE_FOR_ARCHIVE_TARGET_RESOLUTION"
         trace["trace_reason"]="VALID_FUTURE_STANDARD_FIXTURE_WITH_SOURCE_TEAM_IDS"
