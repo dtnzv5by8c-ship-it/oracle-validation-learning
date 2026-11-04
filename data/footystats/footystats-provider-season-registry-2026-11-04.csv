@@ -1,0 +1,757 @@
+provider,provider_country,provider_league_name,provider_season_label,provider_season_id,provider_competition_id,catalogue_scope,mapping_status
+FootyStats,,Argentina Primera División,2015,116,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2016,115,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,20162017,17316,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,20172018,196,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,20182019,1712,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,20192020,2366,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,20202021,5220,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2021,5586,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2022,7892,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2023,8595,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2024,11212,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2025,15746,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Argentina Primera División,2026,16571,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20092010,4326,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20102011,4319,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20112012,4310,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20122013,4303,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20132014,99,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20142015,98,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20152016,97,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20162017,96,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20172018,192,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20182019,1555,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20192020,2640,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20202021,5361,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20212022,6639,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20222023,8008,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20232024,10505,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20242025,13703,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20252026,16036,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Australia A-League,20262027,17326,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20132014,92,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20142015,91,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20152016,90,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20162017,89,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20172018,190,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20182019,1556,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20192020,4384,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20202021,4861,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20212022,6008,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20222023,7890,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20232024,9954,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20242025,12472,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20252026,14923,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Austria Bundesliga,20262027,17181,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20152016,112,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20162017,82,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20172018,184,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20182019,1537,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20192020,2262,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20202021,4567,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20212022,6079,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20222023,7544,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20232024,9577,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20242025,12137,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20252026,14937,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Belgium Pro League,20262027,17171,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2013,582,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2014,581,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2015,580,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2016,101,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2017,100,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2018,1198,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2019,1936,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2020,3817,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2021,5713,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2022,7097,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2023,9035,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2024,11321,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2025,14231,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Brazil Serie A,2026,16544,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20132014,695,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20142015,694,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20152016,692,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20162017,691,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20172018,690,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20182019,1547,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20192020,2285,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20202021,4574,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20212022,6012,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20222023,7483,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20232024,9551,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20242025,13863,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20252026,15056,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Bulgaria First League,20262027,17088,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2019,2047,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2020,3801,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2021,6003,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2022,7112,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2023,8946,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2024,11121,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2025,14236,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Canada Canadian Premier League,2026,16741,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,20132014,498,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,20142015,497,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,20152016,496,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,20162017,495,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2017,494,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2018,1053,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2019,1869,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2020,3646,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2021,5682,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2022,7036,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2023,8833,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2024,11103,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2025,14116,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Chile Primera División,2026,16615,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2010,4337,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2011,4330,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2012,4313,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2013,4306,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2014,129,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2015,128,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2016,127,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2017,152,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2018,1072,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2019,1871,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2020,4382,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2021,5728,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2022,7356,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2023,9186,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2024,11217,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2025,14153,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,China Chinese Super League,2026,16789,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2013,483,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2014,482,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2015,481,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2016,480,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2017,479,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2018,1069,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2019,1828,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2020,3638,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2021,5421,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2022,6905,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2023,8936,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2024,10997,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2025,14086,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Colombia Categoria Primera A,2026,16614,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20132014,404,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20142015,403,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20152016,402,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20162017,401,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20172018,397,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20182019,1557,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20192020,2278,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20202021,4660,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20212022,5956,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20222023,7457,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20232024,9542,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20242025,12121,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20252026,15053,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Croatia Prva HNL,20262027,17087,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20092010,4335,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20102011,4328,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20112012,4314,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20122013,4308,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20132014,541,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20142015,540,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20152016,539,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20162017,538,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20172018,537,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20182019,1545,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20192020,2268,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20202021,4801,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20212022,5938,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20222023,7586,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20232024,9592,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20242025,12336,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20252026,14973,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Czech Republic First League,20262027,17157,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20132014,565,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20142015,564,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20152016,563,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20162017,562,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20172018,561,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20182019,1538,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20192020,2245,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20202021,4642,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20212022,5961,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20222023,7426,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20232024,9545,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20242025,12132,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20252026,15055,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Denmark Superliga,20262027,17091,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2013,847,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2014,846,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2015,845,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2016,844,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2017,843,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2018,1093,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2019,1872,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2020,3553,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2021,5580,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2022,7038,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2023,8934,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2024,11157,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2025,15842,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ecuador Primera Categoría Serie A,2026,16714,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20142015,212,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20152016,211,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20162017,210,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20172018,218,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20182019,1673,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20192020,2889,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20202021,5342,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20212022,6752,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20222023,8520,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20232024,10652,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20242025,13704,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20252026,15544,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Egypt Egyptian Premier League,20262027,17689,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20082009,8031,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20092010,3147,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20102011,3146,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20112012,3143,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20122013,3141,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20132014,27,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20142015,26,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20152016,25,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20162017,22,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20172018,165,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20182019,1624,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20192020,2187,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20202021,4912,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20212022,6089,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20222023,7593,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20232024,9663,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20242025,12451,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20252026,14930,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Championship,20262027,17184,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20092010,3951,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20102011,4923,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20112012,3952,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20122013,3950,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20132014,31,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20142015,30,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20152016,29,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20162017,28,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20172018,166,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20182019,1564,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20192020,2191,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20202021,4845,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20212022,6017,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20222023,7570,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20232024,9582,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20242025,12446,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20252026,14934,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England EFL League One,20262027,17180,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20072008,3137,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20082009,3131,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20092010,3125,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20102011,3121,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20112012,3119,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20122013,246,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20132014,12,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20142015,11,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20152016,10,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20162017,9,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20172018,161,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20182019,1625,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20192020,2012,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20202021,4759,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20212022,6135,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20222023,7704,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20232024,9660,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20242025,12325,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20252026,15050,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,England Premier League,20262027,17146,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20092010,4199,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20102011,4193,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20112012,4136,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20122013,4127,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20132014,67,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20142015,66,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20152016,75,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20162017,65,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20172018,180,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20182019,1508,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20192020,2392,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20202021,4505,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20212022,6019,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20222023,7500,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20232024,9674,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20242025,12337,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20252026,14932,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 1,20262027,17102,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20122013,4185,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20132014,4164,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20142015,76,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20152016,74,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20162017,73,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20172018,181,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20182019,1579,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20192020,2396,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20202021,4645,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20212022,6018,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20222023,7501,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20232024,9621,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20242025,12338,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20252026,14954,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,France Ligue 2,20262027,17117,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20102011,4200,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20112012,4195,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20122013,4168,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20132014,4131,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20142015,85,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20152016,84,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20162017,83,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20172018,188,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20182019,1578,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20192020,4388,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20202021,4676,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20212022,6020,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20222023,7499,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20232024,9656,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20242025,12528,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20252026,14931,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany 2. Bundesliga,20262027,17212,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20062007,4629,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20072008,4628,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20082009,4624,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20092010,4140,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20102011,4133,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20112012,4123,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20122013,4105,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20132014,7,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20142015,5,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20152016,4,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20162017,3,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20172018,177,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20182019,1636,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20192020,4392,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20202021,4673,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20212022,6192,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20222023,7664,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20232024,9655,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20242025,12529,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20252026,14968,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Germany Bundesliga,20262027,17210,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20132014,934,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20142015,933,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20152016,209,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20162017,208,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20172018,207,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20182019,1752,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20192020,2667,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20202021,4957,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20212022,6282,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20222023,7954,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20232024,9889,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20242025,12734,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20252026,15163,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Greece Super League,20262027,17356,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20082009,3941,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20092010,3942,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20102011,11181,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20112012,3940,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20122013,3945,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20132014,71,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20142015,70,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20152016,69,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20162017,68,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20172018,182,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20182019,1680,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20192020,2588,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20202021,4889,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20212022,6198,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20222023,7608,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20232024,9697,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20242025,12530,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20252026,15068,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie A,20262027,17084,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20092010,3946,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20102011,3948,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20112012,3949,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20122013,81,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20132014,80,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20142015,79,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20152016,78,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20162017,77,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20172018,183,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20182019,1749,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20192020,2642,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20202021,4972,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20212022,6205,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20222023,7864,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20232024,9808,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20242025,12621,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20252026,15632,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Italy Serie B,20262027,17404,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2012,254,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2013,253,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2014,252,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2015,251,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2016,250,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2017,162,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2018,1071,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2019,1864,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2020,3686,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2021,5434,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2022,6935,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2023,8810,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2024,10994,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,2025,16242,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Japan J1 League,20262027,17115,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20122013,312,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20132014,311,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20142015,310,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20152016,309,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20162017,308,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20172018,307,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20182019,1582,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20192020,2270,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20202021,4507,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20212022,6038,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20222023,7425,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20232024,9525,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20242025,12136,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20252026,15234,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Mexico Liga MX,20262027,17099,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20112012,4234,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20122013,4226,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20132014,54,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20142015,53,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20152016,52,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20162017,51,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20172018,178,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20182019,1585,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20192020,2272,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20202021,4746,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20212022,5951,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20222023,7482,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20232024,9653,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20242025,12322,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20252026,14936,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Netherlands Eredivisie,20262027,17097,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2010,4244,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2011,4242,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2012,4237,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2013,4231,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2014,4224,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2015,45,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2016,44,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2017,46,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2018,993,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2019,1839,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2020,3695,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2021,5496,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2022,7048,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2023,8739,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2024,17353,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2025,16260,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Norway Eliteserien,2026,16558,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2014,1105,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2015,1104,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2016,1101,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2017,1100,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2018,1099,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2019,1843,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2020,3643,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2021,5503,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2022,6960,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2023,8783,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2024,11141,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2025,16333,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Paraguay Division Profesional,2026,16533,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2013,616,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2014,615,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2015,614,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2016,613,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2017,612,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2018,1125,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2019,1881,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2020,3702,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2021,5627,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2022,6966,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2023,8837,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2024,11062,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2025,14912,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Peru Primera División,2026,16905,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20092010,3972,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20102011,3974,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20112012,3975,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20122013,3973,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20132014,257,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20142015,279,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20152016,256,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20162017,278,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20172018,255,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20182019,1589,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20192020,2328,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20202021,4760,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20212022,5948,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20222023,7428,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20232024,9553,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20242025,12120,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20252026,15031,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Poland Ekstraklasa,20262027,17112,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20102011,4238,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20112012,4232,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20122013,4225,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20132014,18,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20142015,17,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20152016,14,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20162017,13,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20172018,173,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20182019,1593,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20192020,2321,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20202021,4885,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20212022,6117,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20222023,7731,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20232024,9984,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20242025,12931,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20252026,15115,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal Liga NOS,20262027,17217,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20092010,4322,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20102011,4309,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20122013,4291,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20142015,4284,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20152016,966,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20162017,965,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20172018,174,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20182019,1594,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20192020,2320,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20202021,4886,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20212022,6116,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20222023,7732,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20232024,9704,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20242025,12585,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20252026,15717,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Portugal LigaPro,20262027,17215,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20132014,811,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20142015,837,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20152016,810,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20162017,809,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20172018,808,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20182019,1595,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20192020,2472,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20202021,4849,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20212022,6312,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20222023,9213,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20232024,10154,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20242025,12587,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20252026,15038,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Qatar Stars League,20262027,17370,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20132014,1090,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20142015,1089,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20152016,1088,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20162017,1087,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20172018,1086,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20182019,1596,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20192020,2312,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20202021,4764,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20212022,6037,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20222023,7663,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20232024,9622,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20242025,12495,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20252026,15015,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Romania Liga I,20262027,17247,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20132014,927,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20142015,919,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20152016,918,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20162017,917,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20172018,18053,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20182019,1599,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20192020,2518,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20202021,5193,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20212022,6212,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20222023,8089,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20232024,9883,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20242025,12772,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20252026,15741,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Saudi Arabia Professional League,20262027,17426,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20122013,223,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20132014,169,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20142015,168,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20152016,167,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20162017,2,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20172018,164,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20182019,1600,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20192020,2361,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20202021,4478,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20212022,5992,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20222023,7494,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20232024,9636,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20242025,12455,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20252026,15000,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Scotland Premiership,20262027,17148,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20132014,420,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20142015,419,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20152016,418,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20162017,417,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20172018,416,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20182019,1604,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20192020,2254,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20202021,4533,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20212022,6046,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20222023,7492,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20232024,10070,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20242025,12138,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20252026,15065,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Serbia SuperLiga,20262027,17119,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20132014,281,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20142015,280,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20152016,269,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20162017,268,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20172018,267,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20182019,1684,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20192020,2327,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20202021,5225,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20212022,6311,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20222023,7851,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20232024,9814,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20242025,13284,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20252026,15587,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,South Africa Premier Soccer League,20262027,17444,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20082009,3637,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20092010,3636,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20102011,3632,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20112012,3631,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20122013,38,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20132014,37,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20142015,36,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20152016,35,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20162017,34,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20172018,171,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20182019,1677,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20192020,2319,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20202021,4944,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20212022,6211,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20222023,7665,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20232024,9665,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20242025,12316,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20252026,14956,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain La Liga,20262027,17199,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20092010,4249,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20102011,4245,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20112012,4167,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20122013,43,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20132014,42,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20142015,41,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20152016,40,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20162017,39,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20172018,172,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20182019,1670,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20192020,2415,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20202021,17978,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20212022,6120,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20222023,7592,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20232024,9675,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20242025,12467,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20252026,15066,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Spain Segunda División,20262027,17269,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2010,4329,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2011,4315,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2013,4307,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2014,107,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2015,106,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2016,105,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2017,104,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2018,994,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2019,1848,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2020,3703,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2021,5505,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2022,7064,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2023,8737,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2024,17350,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2025,16263,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Sweden Allsvenskan,2026,16576,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20122013,140,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20132014,139,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20142015,138,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20152016,137,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20162017,136,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20172018,186,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20182019,1610,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20192020,2249,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20202021,4906,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20212022,6044,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20222023,7504,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20232024,9580,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20242025,12326,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20252026,15047,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Switzerland Super League,20262027,17129,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20142015,21,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20152016,20,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20162017,19,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20172018,175,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20182019,1614,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20192020,2648,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20202021,4840,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20212022,6125,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20222023,7768,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20232024,9913,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20242025,12641,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20252026,14972,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Turkey Süper Lig,20262027,17265,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2010,4241,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2011,4235,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2012,4227,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2013,24,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2014,23,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2015,16,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2016,1,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2017,163,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2018,1076,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2019,1846,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2020,4473,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2021,5674,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2022,6969,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2023,8777,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2024,10977,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2025,13973,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,USA MLS,2026,16504,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20132014,364,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20142015,363,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20152016,362,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20162017,361,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20172018,360,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20182019,1618,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20192020,2317,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20202021,4751,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20212022,5943,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20222023,8222,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20232024,9699,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20242025,12483,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20252026,16213,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Ukraine Ukrainian Premier League,20262027,17191,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,20132014,857,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,20142015,856,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,20152016,855,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2016,854,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2017,853,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2018,1095,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2019,1905,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2020,3789,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2021,5809,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2022,7067,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2023,8937,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2024,11209,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2025,14626,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Uruguay Primera División,2026,16708,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20132014,475,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20142015,474,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20152016,473,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20162017,472,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20172018,471,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20182019,1617,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20192020,2318,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20202021,4958,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20212022,6043,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20222023,7620,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20232024,9565,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20242025,12339,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20252026,15226,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
+FootyStats,,Wales Welsh Premier League,20262027,17221,,chosen_leagues_only,PROVIDER_NATIVE_IDENTITY
