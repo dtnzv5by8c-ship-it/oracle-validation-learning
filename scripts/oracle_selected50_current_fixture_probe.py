@@ -11,7 +11,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -57,8 +57,16 @@ if not key:
 
 now = datetime.now(timezone.utc)
 now_ts = int(now.timestamp())
+report_end_raw = os.environ.get("REPORT_END_DATE", "2026-11-24").strip()
+try:
+    report_end_date = date.fromisoformat(report_end_raw)
+except ValueError:
+    raise SystemExit("REPORT_END_DATE must be a valid YYYY-MM-DD date; zero requests made.")
+report_end = datetime.combine(report_end_date, time.max, tzinfo=timezone.utc)
+if report_end <= now:
+    raise SystemExit("REPORT_END_DATE must be today or a future UTC date; zero requests made.")
 past_cutoff = now_ts - int(timedelta(days=30).total_seconds())
-future_cutoff = now_ts + int(timedelta(days=20).total_seconds())
+future_cutoff = int(report_end.timestamp())
 
 fields = (
     "id", "homeID", "awayID", "home_name", "away_name", "season", "status",
@@ -90,7 +98,7 @@ def not_attempted_row(item):
         "retry_after_header": None,
         "rate_limit_detected": False,
         "matches_in_window": 0,
-        "future_20d_count": 0,
+        "future_report_window_count": 0,
         "recent_completed_30d_count": 0,
         "schedule_status": "NOT_ATTEMPTED_AFTER_STOP",
     }
@@ -117,7 +125,7 @@ for index, item in enumerate(selected):
         "retry_after_header": None,
         "rate_limit_detected": False,
         "matches_in_window": 0,
-        "future_20d_count": 0,
+        "future_report_window_count": 0,
         "recent_completed_30d_count": 0,
         "schedule_status": "UNVERIFIED",
     }
@@ -180,12 +188,12 @@ for index, item in enumerate(selected):
                     "kickoff_utc": datetime.fromtimestamp(
                         kickoff_epoch, tz=timezone.utc
                     ).isoformat(),
-                    "window_class": "FUTURE_20D" if kickoff_epoch >= now_ts else "RECENT_30D",
+                    "window_class": "FUTURE_TO_REPORT_END" if kickoff_epoch >= now_ts else "RECENT_30D",
                 })
                 all_window_matches.append(clean)
                 result["matches_in_window"] += 1
                 if kickoff_epoch >= now_ts:
-                    result["future_20d_count"] += 1
+                    result["future_report_window_count"] += 1
                 elif str(match.get("status", "")).lower() == "complete":
                     result["recent_completed_30d_count"] += 1
 
@@ -252,9 +260,12 @@ unattempted_season_ids = [
 
 summary = {
     "diagnostic": "BOUNDED_SELECTED50_CURRENT_FIXTURE_SNAPSHOT",
+    "snapshot_started_utc": now.isoformat(),
+    "snapshot_started_utc": now.isoformat(),
     "retrieved_utc": datetime.now(timezone.utc).isoformat(),
     "window_start_utc": datetime.fromtimestamp(past_cutoff, tz=timezone.utc).isoformat(),
-    "window_end_utc": datetime.fromtimestamp(future_cutoff, tz=timezone.utc).isoformat(),
+    "window_end_utc": report_end.isoformat(),
+    "report_end_date_utc_inclusive": report_end_date.isoformat(),
     "endpoint": "league-matches",
     "selected_leagues": len(selected),
     "requests_planned": len(selected),
@@ -278,11 +289,11 @@ summary = {
     "complete_one_page_responses": sum(
         1 for row in results if row["schedule_status"] == "ONE_PAGE_RESPONSE"
     ),
-    "seasons_with_future_20d_fixtures": sum(
-        1 for row in results if row["future_20d_count"] > 0
+    "seasons_with_fixtures_in_report_window": sum(
+        1 for row in results if row["future_report_window_count"] > 0
     ),
-    "future_20d_fixture_rows": sum(
-        1 for row in all_window_matches if row["window_class"] == "FUTURE_20D"
+    "future_report_window_fixture_rows": sum(
+        1 for row in all_window_matches if row["window_class"] == "FUTURE_TO_REPORT_END"
     ),
     "recent_completed_30d_rows": sum(
         1 for row in all_window_matches
@@ -318,7 +329,7 @@ print(json.dumps([
             "country", "competition", "selected_season_id",
             "provider_comp_master_id_observed", "request_attempted",
             "http_status", "provider_success", "returned_match_count",
-            "max_page", "future_20d_count", "recent_completed_30d_count",
+            "max_page", "future_report_window_count", "recent_completed_30d_count",
             "schedule_status", "error_class", "retry_after_header",
         )
     }

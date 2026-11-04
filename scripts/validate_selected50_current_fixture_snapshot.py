@@ -69,9 +69,12 @@ def validate(path):
     if d.get("production_ledger_written") is not False:
         errors.append("production ledger must not be written")
 
+    snapshot_started = parse_aware(d.get("snapshot_started_utc"))
     retrieved = parse_aware(d.get("retrieved_utc"))
     window_start = parse_aware(d.get("window_start_utc"))
     window_end = parse_aware(d.get("window_end_utc"))
+    if snapshot_started is None:
+        errors.append("snapshot_started_utc must be a valid ISO timestamp with an explicit timezone")
     if retrieved is None:
         errors.append("retrieved_utc must be a valid ISO timestamp with an explicit timezone")
     if window_start is None:
@@ -81,8 +84,22 @@ def validate(path):
     if window_start is not None and window_end is not None:
         if window_end <= window_start:
             errors.append("window_end_utc must be later than window_start_utc")
-        elif abs((window_end - window_start).total_seconds() - 50 * 86400) > 2:
-            errors.append("declared window must span 30 days backward and 20 days forward")
+        elif snapshot_started is not None and abs((snapshot_started - window_start).total_seconds() - 30 * 86400) > 2:
+            errors.append("historical window must span 30 days backward from snapshot start")
+        if snapshot_started is not None and retrieved is not None and retrieved < snapshot_started:
+            errors.append("retrieved_utc cannot precede snapshot_started_utc")
+        report_end_date = str(d.get("report_end_date_utc_inclusive") or "").strip()
+        if not report_end_date:
+            errors.append("report_end_date_utc_inclusive is required")
+        elif window_end is not None:
+            try:
+                expected_end = dt.datetime.combine(dt.date.fromisoformat(report_end_date), dt.time.max, tzinfo=dt.timezone.utc)
+                if abs((window_end - expected_end).total_seconds()) > 1:
+                    errors.append("window_end_utc must equal the inclusive end of report_end_date_utc_inclusive")
+            except ValueError:
+                errors.append("report_end_date_utc_inclusive must be YYYY-MM-DD")
+        if snapshot_started is not None and not (window_start < snapshot_started < window_end):
+            errors.append("snapshot_started_utc must fall inside the declared snapshot window")
         if retrieved is not None and not (window_start < retrieved < window_end):
             errors.append("retrieved_utc must fall inside the declared snapshot window")
 
@@ -121,7 +138,7 @@ def validate(path):
     statuses = Counter()
     no_home = 0
     missing_fields = Counter()
-    window_boundary = window_end - dt.timedelta(days=20) if window_end is not None else None
+    window_boundary = retrieved if retrieved is not None else None
 
     for i, row in enumerate(rows):
         if not isinstance(row, dict):
@@ -146,7 +163,7 @@ def validate(path):
             if row.get(field) in (None, ""):
                 missing_fields[field] += 1
         cls = row.get("window_class")
-        if cls not in ("FUTURE_20D", "RECENT_30D"):
+        if cls not in ("FUTURE_TO_REPORT_END", "RECENT_30D"):
             errors.append(f"row {i}: invalid window_class {cls!r}")
         classes[str(cls)] += 1
 
@@ -162,7 +179,7 @@ def validate(path):
             if kickoff < window_start or kickoff > window_end:
                 errors.append(f"row {i}: kickoff_utc is outside the declared snapshot window")
             if window_boundary is not None:
-                expected_class = "FUTURE_20D" if kickoff >= window_boundary else "RECENT_30D"
+                expected_class = "FUTURE_TO_REPORT_END" if kickoff >= window_boundary else "RECENT_30D"
                 if cls != expected_class:
                     errors.append(f"row {i}: window_class disagrees with kickoff_utc and declared window")
 
@@ -194,14 +211,14 @@ def validate(path):
             if kickoff is not None and retrieved is not None and kickoff > retrieved:
                 errors.append(f"row {i}: completed status conflicts with a future kickoff")
 
-    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "FUTURE_20D")
+    future = sum(1 for row in rows if isinstance(row, dict) and row.get("window_class") == "FUTURE_TO_REPORT_END")
     recent_complete = sum(
         1 for row in rows
         if isinstance(row, dict)
         and row.get("window_class") == "RECENT_30D"
         and str(row.get("status", "")).lower() == "complete"
     )
-    if future != d.get("future_20d_fixture_rows"):
+    if future != d.get("future_report_window_fixture_rows"):
         errors.append("future fixture count does not match summary")
     if recent_complete != d.get("recent_completed_30d_rows"):
         errors.append("recent completed count does not match summary")
@@ -213,7 +230,7 @@ def validate(path):
         "errors": errors,
         "selected_seasons": len(seasons) if isinstance(seasons, list) else 0,
         "fixture_rows": len(rows),
-        "future_20d_rows": future,
+        "future_report_window_rows": future,
         "recent_completed_30d_rows": recent_complete,
         "no_home_away_rows": no_home,
         "duplicate_match_ids": len(rows) - len(seen),
