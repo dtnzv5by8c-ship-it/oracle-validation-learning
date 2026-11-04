@@ -102,7 +102,7 @@ class SnapshotOverlayContractTests(unittest.TestCase):
             fixture("OUTSIDE-20D", kickoff=now + timedelta(days=23)),
             fixture("BAD-TIME", kickoff_utc="not-a-timestamp"),
         ]
-        snapshot = {"retrieved_utc": iso(now - timedelta(minutes=5)), "window_end_utc": iso(now + timedelta(days=24)), "per_season": seasons, "fixture_rows": fixture_rows}
+        snapshot = {"retrieved_utc": iso(now - timedelta(minutes=5)), "window_end_utc": iso(now + timedelta(days=20)), "per_season": seasons, "fixture_rows": fixture_rows}
 
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
