@@ -33,6 +33,15 @@ The 2,587 trace rows reconcile to:
 - Future rows beyond declared report window: 0.
 The 145 quarantine count is not a generic provider failure: most are deliberately held out because the provider's no_home_away flag indicates no standard home/away distinction. Keep these quarantined for home/away-dependent markets; do not force them into standard fixtures.
 
+
+## Runtime-fixture to snapshot-trace reconciliation
+A direct join of all 756 governed runtime fixture IDs to the 2,587-row snapshot trace yields:
+- 752 of 756 runtime fixture IDs are present in the trace, with ordered provider home/away team IDs matching exactly on all 752.
+- Of those 752: 631 are refreshed exact-ID/ordered-team-ID rows; 119 are present but deliberately quarantined by the overlay; 2 are present but classified HISTORICAL_NOT_STAGED.
+- 4 runtime fixture IDs are absent from the fresh snapshot trace: 8573945, 8574013 and 8574015 (Portugal LigaPro), plus 8409563 (Brazil Serie A).
+- Therefore 631 is the number of runtime fixtures actually refreshed and eligible for overlay staging, not 750. A prior summary that called 750 exact snapshot matches was incorrect and is superseded by this row-level reconciliation.
+- No provider values are imputed for the four absent fixtures. The 119 quarantined and 2 not-staged fixtures remain explicit exceptions pending root-cause review.
+
 ## Feature-blocked fixture diagnosis
 All 40 blocked fixtures fail the runtime's strict 20-feature contract. The supplied runtime report shows:
 - 22 fixtures have missing home-side feature groups.
