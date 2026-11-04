@@ -23,6 +23,16 @@ on:
         required: true
         default: "0"
         type: string
+      report_start_date:
+        description: "Inclusive UTC report start date (YYYY-MM-DD)"
+        required: true
+        default: "2026-11-06"
+        type: string
+      report_end_date:
+        description: "Inclusive UTC report end date (YYYY-MM-DD)"
+        required: true
+        default: "2026-11-24"
+        type: string
 
 permissions:
   actions: read
@@ -183,6 +193,8 @@ jobs:
 
       - name: Test snapshot-disabled artifact contract
         run: python -m unittest discover -s tests -p 'test_selected50_runtime_workflow_contract.py' -v
+      - name: Test explicit inclusive report window
+        run: python -m unittest discover -s tests -p 'test_selected50_report_window.py' -v
 
       - name: Test composite-market target against settlement contract
         run: python -m unittest discover -s tests -p 'test_selected50_combo_target_contract.py' -v
@@ -205,9 +217,14 @@ jobs:
       - name: Build isolated Selected-50 research runtime, features, backtest and report
         env:
           ORACLE_ARCHIVE: private-download/oracle-selected50-runtime-selected.zip
+          ORACLE_REPORT_START_DATE: ${{ inputs.report_start_date }}
+          ORACLE_REPORT_END_DATE: ${{ inputs.report_end_date }}
         run: python scripts/build_selected50_research_runtime.py
 
       - name: Validate walk-forward metrics, league gates and governed report outputs
+        env:
+          ORACLE_REPORT_START_DATE: ${{ inputs.report_start_date }}
+          ORACLE_REPORT_END_DATE: ${{ inputs.report_end_date }}
         run: python scripts/validate_selected50_runtime_outputs.py
 
       - name: Record exact snapshot-to-runtime provenance

@@ -27,6 +27,26 @@ OUT.mkdir(exist_ok=True)
 PRIMARY_START = dt.datetime(2025, 3, 20, tzinfo=dt.timezone.utc).timestamp()
 PRIMARY_END = dt.datetime(2026, 9, 21, tzinfo=dt.timezone.utc).timestamp()
 NOW = dt.datetime.now(dt.timezone.utc).timestamp()
+
+def resolve_report_window(now_utc=None):
+    """Resolve an explicit UTC calendar-date report window; end date is inclusive."""
+    start_text = os.environ.get("ORACLE_REPORT_START_DATE", "2026-11-06").strip()
+    end_text = os.environ.get("ORACLE_REPORT_END_DATE", "2026-11-24").strip()
+    try:
+        start_date = dt.date.fromisoformat(start_text)
+        end_date = dt.date.fromisoformat(end_text)
+    except ValueError as exc:
+        raise SystemExit("Report start/end must be valid ISO dates (YYYY-MM-DD).") from exc
+    if end_date < start_date:
+        raise SystemExit("Report end date must be on or after report start date.")
+    start_utc = dt.datetime.combine(start_date, dt.time.min, tzinfo=dt.timezone.utc)
+    end_exclusive_utc = dt.datetime.combine(end_date + dt.timedelta(days=1), dt.time.min, tzinfo=dt.timezone.utc)
+    if now_utc is not None:
+        now_dt = dt.datetime.fromtimestamp(now_utc, dt.timezone.utc) if isinstance(now_utc, (int, float)) else now_utc
+        if start_utc <= now_dt:
+            # Include only upcoming fixtures; never include fixtures already kicked off.
+            start_utc = max(start_utc, now_dt + dt.timedelta(minutes=15))
+    return start_utc.timestamp(), end_exclusive_utc.timestamp(), start_date.isoformat(), end_date.isoformat()
 FINISHED = {"complete","completed","finished","full time","full-time","ft","ended","played"}
 CANCELLED = {"cancelled","canceled","abandoned","postponed","suspended","void"}
 FEATURES = [
@@ -1068,13 +1088,12 @@ def main():
         )
         if h2h_paired_chronology_qa["status"] != "PASS_H2H_PAIRED_OUTPUT_CHRONOLOGY":
             raise SystemExit("H2H paired prediction chronology/integrity audit failed; fail closed.")
-        # Decision report horizon: next seven days only. Exclude fixtures with less than 15 minutes of lead time.
-        report_start=NOW+15*60
-        report_end=NOW+7*24*60*60
-        future=[r for r in matches if report_start < r["kickoff_unix"] <= report_end
+        # Explicit UTC calendar-date report window. End date is inclusive.
+        report_start, report_end_exclusive, report_start_date, report_end_date = resolve_report_window(NOW)
+        future=[r for r in matches if report_start <= r["kickoff_unix"] < report_end_exclusive
                 and not r["finished"] and str(r["status"]).strip().lower() not in CANCELLED]
-        # Explicit 50-competition schedule coverage. Absence from the seven-day window
-        # is not treated as missing data; it is flagged for schedule/freshness reconciliation.
+        # Explicit 50-competition schedule coverage. Absence from the requested date
+        # window is not treated as missing data; it remains visible for reconciliation.
         schedule_coverage=[]
         for selected_id, sel in sorted(selected_by_id.items(), key=lambda kv: (kv[1].get("country",""),kv[1].get("competition_name",""))):
             comp_rows=[r for r in matches if str(r["competition_id"])==selected_id]
@@ -1086,10 +1105,11 @@ def main():
                  "provider_competition_id_status":provider_parent_id_by_selected.get(str(selected_id), ("", "UNAVAILABLE_IN_ARCHIVE_MANIFEST"))[1],
                 "country":sel.get("country",""),"competition_name":sel.get("competition_name",""),
                 "archive_match_rows":len(comp_rows),"completed_match_rows":sum(1 for r in comp_rows if r["finished"]),
-                "upcoming_fixture_count_7d":len(comp_future),
+                "upcoming_fixture_count_report_window":len(comp_future),
+                "report_start_date_utc":report_start_date,"report_end_date_utc_inclusive":report_end_date,
                 "first_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[0],dt.timezone.utc).isoformat() if future_times else "",
                 "last_upcoming_kickoff_utc":dt.datetime.fromtimestamp(future_times[-1],dt.timezone.utc).isoformat() if future_times else "",
-                "schedule_coverage_status":"FIXTURES_FOUND" if comp_future else "NO_FIXTURE_IN_7D_HORIZON_CHECK_SCHEDULE_FRESHNESS",
+                "schedule_coverage_status":"FIXTURES_FOUND" if comp_future else "NO_FIXTURE_IN_REQUESTED_REPORT_WINDOW_CHECK_SCHEDULE_FRESHNESS",
                 "production_eligible":"NO"
             })
         # One pooled model per market, trained only on completed records before each target kickoff.
@@ -1238,7 +1258,7 @@ def main():
         governed_qa_path.write_text(json.dumps(governed_report_qa, indent=2) + "\n", encoding="utf-8")
         schedule_path=OUT/"oracle_selected50_schedule_coverage.csv"
         with schedule_path.open("w",newline="",encoding="utf-8") as sf:
-            scols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","archive_match_rows","completed_match_rows","upcoming_fixture_count_7d","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
+            scols=["selected_id","selected_id_type","provider_competition_id","provider_competition_id_status","country","competition_name","archive_match_rows","completed_match_rows","report_start_date_utc","report_end_date_utc_inclusive","upcoming_fixture_count_report_window","first_upcoming_kickoff_utc","last_upcoming_kickoff_utc","schedule_coverage_status","production_eligible"]
             sw=csv.DictWriter(sf,fieldnames=scols);sw.writeheader();sw.writerows(schedule_coverage)
         # Additional rolling-origin walk-forward diagnostics. Each fold trains only on
         # completed, fully-featured matches strictly before the fold's test start.

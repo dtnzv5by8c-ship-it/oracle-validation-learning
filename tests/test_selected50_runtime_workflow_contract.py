@@ -57,6 +57,16 @@ class Selected50RuntimeWorkflowContractTests(unittest.TestCase):
         self.assertIn("fail-closed sentinel", run_id.group("body"))
 
 
+    def test_runtime_exposes_explicit_inclusive_report_window(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("report_start_date:", text)
+        self.assertIn("report_end_date:", text)
+        self.assertIn('default: "2026-11-06"', text)
+        self.assertIn('default: "2026-11-24"', text)
+        self.assertIn("ORACLE_REPORT_START_DATE: ${{ inputs.report_start_date }}", text)
+        self.assertIn("ORACLE_REPORT_END_DATE: ${{ inputs.report_end_date }}", text)
+
+
     def test_runtime_pins_the_intended_archive_release_and_asset_digest(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         expected_tag = "research-selected50-footystats-history-40375285207"
