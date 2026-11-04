@@ -62,10 +62,44 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
 
     def test_archive_history_ignores_naive_kickoff_timestamps(self):
         naive = archive_row("NAIVE", "2025-08-01T12:00:00", "H", "A", 2, 1)
-        by_team, by_season, by_pair, _, _ = market_report.build_indexes([naive])
+        by_team, by_season, by_pair, _, _, qa = market_report.build_indexes([naive])
         self.assertEqual(sum(len(rows) for rows in by_team.values()), 0)
         self.assertEqual(sum(len(rows) for rows in by_season.values()), 0)
         self.assertEqual(sum(len(rows) for rows in by_pair.values()), 0)
+
+    def test_archive_index_qa_accounts_for_invalid_and_missing_exact_identity_fields(self):
+        naive = archive_row("NAIVE", "2025-08-01T12:00:00", "H", "A", 2, 1)
+        no_fixture = archive_row("", "2025-08-02T12:00:00+00:00", "H", "A", 1, 0)
+        no_home_id = archive_row("NO-HOME", "2025-08-03T12:00:00+00:00", "", "A", 1, 0)
+        same_team = archive_row("SAME", "2025-08-04T12:00:00+00:00", "H", "H", 1, 0)
+        by_team, by_season, by_pair, _, _, qa = market_report.build_indexes(
+            [naive, no_fixture, no_home_id, same_team]
+        )
+        self.assertEqual(qa["candidate_rows"], 4)
+        self.assertEqual(qa["invalid_or_naive_kickoff_rows"], 1)
+        self.assertEqual(qa["missing_fixture_id_rows"], 1)
+        self.assertEqual(qa["missing_home_team_id_rows"], 1)
+        self.assertEqual(qa["same_home_away_team_id_rows"], 1)
+        self.assertEqual(qa["rows_indexed"], 0)
+        self.assertEqual(qa["rows_quarantined"], 4)
+        self.assertEqual(sum(len(rows) for rows in by_team.values()), 0)
+        self.assertEqual(sum(len(rows) for rows in by_season.values()), 0)
+        self.assertEqual(sum(len(rows) for rows in by_pair.values()), 0)
+
+    def test_archive_index_deduplicates_exact_rows_and_quarantines_conflicting_fixture_ids(self):
+        exact = archive_row("DUP", "2025-08-01T12:00:00+00:00", "H", "A", 2, 1)
+        exact_duplicate = dict(exact)
+        conflict_a = archive_row("CONFLICT", "2025-08-02T12:00:00+00:00", "H", "B", 2, 0)
+        conflict_b = archive_row("CONFLICT", "2025-08-02T12:00:00+00:00", "H", "B", 1, 0)
+        by_team, by_season, by_pair, duplicates, h2h_qa, qa = market_report.build_indexes(
+            [exact, exact_duplicate, conflict_a, conflict_b]
+        )
+        self.assertEqual(qa["exact_duplicate_rows_deduplicated"], 1)
+        self.assertEqual(qa["conflicting_fixture_identity_groups"], 1)
+        self.assertEqual(qa["conflicting_fixture_identity_rows_quarantined"], 2)
+        self.assertEqual(qa["rows_indexed"], 1)
+        self.assertEqual(duplicates, 3)
+        self.assertEqual(sum(len(rows) for rows in by_season.values()), 1)
 
     def test_snapshot_orientation_uses_exact_ordered_identity_and_quarantines_unknowns(self):
         runtime = runtime_row()
@@ -462,6 +496,14 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["away_away_form_n"], 3)
         self.assertEqual(trace[0]["home_at_home_form"], "WDWW")
         self.assertEqual(trace[0]["away_away_form"], "WLL")
+
+    def test_no_home_away_history_is_excluded_from_venue_splits_but_retained_for_overall_form(self):
+        neutral = archive_row("F8", "2026-10-27T12:00:00+00:00", "H", "R", 1, 0)
+        neutral["no_home_away"] = "1"
+        _, trace, _ = market_report.build_report([runtime_row()], self.archive + [neutral])
+        self.assertEqual(trace[0]["home_form_n"], 5)
+        self.assertEqual(trace[0]["home_at_home_form_n"], 4)
+        self.assertEqual(trace[0]["home_at_home_no_home_away_excluded_n"], 1)
 
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
