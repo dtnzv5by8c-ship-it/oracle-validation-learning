@@ -1,0 +1,42 @@
+name: FootyStats Existing Archive ID Scope Audit
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - scripts/audit_footystats_existing_archive_id_scope.py
+      - tests/test_footystats_existing_archive_id_scope.py
+      - data/run56_selected50_archive_evidence.csv
+      - data/run56_selected50_archive_feature_coverage.csv
+      - data/oracle-identity-settlement-evidence-register-2026-10-28.csv
+      - data/footystats/current-catalogue-reconciliation-2026-11-04/current-catalogue-provider-to-oracle-candidate-crosswalk.csv
+      - data/footystats/historical-season-plan-2024-2026/season-plan.csv
+      - .github/workflows/footystats-existing-archive-id-scope-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-existing-archive-id-scope-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline audit regression tests
+        run: python -m unittest discover -s tests -p "test_footystats_existing_archive_id_scope.py" -v
+      - name: Rebuild sanitized archive scope audit
+        run: python scripts/audit_footystats_existing_archive_id_scope.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: footystats-existing-archive-id-scope-audit
+          path: data/footystats/existing-archive-id-scope-audit-2026-11-04/
+          if-no-files-found: error
