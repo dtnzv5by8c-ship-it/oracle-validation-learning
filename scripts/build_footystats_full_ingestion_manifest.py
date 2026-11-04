@@ -161,19 +161,35 @@ def build_manifest(
 
         status = str(preflight.get("season_status") or "")
         base["preflight_status"] = status
+        if (
+            preflight.get("provider_league_name") != league
+            or preflight.get("provider_season_label") != label
+        ):
+            base["ingestion_plan_status"] = "BLOCKED_EXACT_SEASON_IDENTITY_MISMATCH"
+            blocked_count += 1
+            coverage.append(base)
+            continue
         try:
             matches_total, match_pages = page_contract(preflight, "league_matches")
             teams_total, team_pages = page_contract(preflight, "league_teams")
             if not isinstance(preflight.get("league_tables"), dict):
                 raise ValueError("league-tables response not verified")
+            if preflight["league_tables"].get("response_status") != "SUCCESS_SHAPE_VERIFIED":
+                raise ValueError("league-tables response shape is not verified")
             if not isinstance(preflight.get("league_season"), dict):
                 raise ValueError("league-season response not verified")
+            if preflight["league_season"].get("response_status") != "SUCCESS_SHAPE_VERIFIED":
+                raise ValueError("league-season response shape is not verified")
             match_meta = preflight.get("league_matches_response")
             team_meta = preflight.get("league_teams_response")
             table_meta = preflight.get("league_tables_response")
             season_meta = preflight.get("league_season_response")
-            if not all(isinstance(meta, dict) and meta.get("http_status") == 200 for meta in (match_meta, team_meta, table_meta, season_meta)):
-                raise ValueError("one or more endpoint response metadata records are not successful")
+            expected_endpoints = ("league-matches", "league-teams", "league-tables", "league-season")
+            if not all(
+                isinstance(meta, dict) and meta.get("http_status") == 200 and meta.get("endpoint") == endpoint
+                for meta, endpoint in zip((match_meta, team_meta, table_meta, season_meta), expected_endpoints)
+            ):
+                raise ValueError("one or more endpoint response metadata records are not successful or exact")
             team_max_time = response_max_time(preflight, "league_teams_response")
             table_max_time = response_max_time(preflight, "league_tables_response")
             season_max_time = response_max_time(preflight, "league_season_response")
