@@ -291,6 +291,8 @@ def validate_receipt(
         raise ValueError("archive verifier receipt lacks a private object identifier")
     if not str(archive_claims.get("archive_object_version_id") or "").strip():
         raise ValueError("archive verifier receipt lacks an immutable object version")
+    if not str(archive_claims.get("archive_receipt_object_id") or "").strip():
+        raise ValueError("archive verifier receipt lacks a private receipt object identifier")
     parse_int(archive_claims.get("archive_object_size_bytes"), "archive_verification.archive_object_size_bytes", 1)
     parse_utc(archive_claims.get("verified_at_utc"))
     if archive_claims.get("response_metadata_sha256") != response_metadata_digest(receipt):
@@ -504,6 +506,8 @@ def build_resume_plan(
         "next_batch_task_count": len(next_batch),
         "execution_gate": "STOPPED_REQUIRES_OPERATOR_REVIEW" if gate_blocked else "READY_FOR_CENTRAL_BUDGET_RESERVATION",
         "dispatch_allowed": False,
+        "receipt_authentication": "REQUIRES_HMAC_AUTHENTICATED_PRIVATE_ARCHIVE_READBACK_AND_CENTRAL_LEDGER_ATTESTATIONS",
+        "receipt_verification_keys_required_for_success": True,
         "central_budget_reservation_required": True,
         "private_raw_archive_write_required": True,
         "raw_payloads_written_to_public_repository": False,
