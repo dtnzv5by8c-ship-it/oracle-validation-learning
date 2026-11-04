@@ -142,6 +142,7 @@ def receipt_signature(receipt: dict[str, Any]) -> str:
 
 def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str, str, list[str]]:
     """Return task status, reason and xG-missing fields without exposing hashes."""
+    reject_sensitive_fields(receipt)
     expected_identity = {
         "task_id": str(task["task_id"]),
         "provider": "FootyStats",
@@ -174,6 +175,17 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         raise ValueError("successful receipt must attest verified response shape")
     if receipt.get("page_complete") is not True:
         raise ValueError("successful receipt must attest a complete response page")
+    if receipt.get("request_gateway") != "central_footystats_gateway":
+        raise ValueError("successful receipt must attest use of the central FootyStats gateway")
+    if not str(receipt.get("budget_reservation_id") or "").strip():
+        raise ValueError("successful receipt lacks the central budget reservation ID")
+    if receipt.get("budget_ledger_attested") is not True:
+        raise ValueError("successful receipt lacks durable rolling-ledger attestation")
+    if receipt.get("global_rolling_hour_limit") != 1800:
+        raise ValueError("successful receipt must attest the hard 1800-request rolling-hour ceiling")
+    headroom = receipt.get("reserved_headroom")
+    if isinstance(headroom, bool) or not isinstance(headroom, int) or headroom < 300:
+        raise ValueError("successful receipt must attest at least 300 requests of headroom")
     if receipt.get("private_archive_write_verified") is not True:
         raise ValueError("successful receipt lacks verified private archive write")
     if receipt.get("raw_payload_stored_privately") is not True:
@@ -206,9 +218,9 @@ def validate_receipt(task: dict[str, str], receipt: dict[str, Any]) -> tuple[str
         if returned != expected_rows:
             raise ValueError(f"page row count mismatch: expected {expected_rows}, received {returned}")
 
-    xg_missing = receipt.get("xg_fields_missing", [])
+    xg_missing = receipt.get("xg_fields_missing")
     if not isinstance(xg_missing, list):
-        raise ValueError("xg_fields_missing must be an explicit list")
+        raise ValueError("xg_fields_missing must be an explicit list; xG remains quarantined without provenance")
     return "COMPLETE_VERIFIED_PRIVATE_ARCHIVE", "EXACT_TASK_AND_PRIVATE_ARCHIVE_RECEIPT_VERIFIED", [
         str(field) for field in xg_missing
     ]
