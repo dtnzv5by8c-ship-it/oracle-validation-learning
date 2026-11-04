@@ -10,6 +10,7 @@ on:
       - "scripts/audit_footystats_no_home_away_coverage.py"
       - "tests/test_footystats_no_home_away_coverage.py"
       - "data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv"
+      - "data/footystats/no-home-away-audit-2026-11-04/**"
 
 permissions:
   contents: read
@@ -64,6 +65,26 @@ jobs:
           assert s["api_requests_made"] == 0 and s["raw_provider_payloads_read"] is False, s
           assert s["production_eligible"] is False and s["betting_eligible"] is False, s
           print("PASS: aggregate no_home_away counts reconcile; no fixture identity or root cause inferred.")
+          PY
+
+      - name: Verify committed sanitized rollups against regenerated output
+        env:
+          OUT: ${{ runner.temp }}/footystats-no-home-away-audit
+        run: |
+          python - <<'PY'
+          import csv, json, os
+          from pathlib import Path
+          out=Path(os.environ["OUT"])
+          committed=Path("data/footystats/no-home-away-audit-2026-11-04")
+          for name in ("season-summary.csv", "league-summary.csv"):
+              with (out/name).open(encoding="utf-8", newline="") as a, (committed/name).open(encoding="utf-8-sig", newline="") as b:
+                  left=list(csv.DictReader(a)); right=list(csv.DictReader(b))
+              assert left == right, f"committed {name} differs from regenerated output"
+          a=json.loads((out/"summary.json").read_text(encoding="utf-8"))
+          b=json.loads((committed/"summary.json").read_text(encoding="utf-8"))
+          a.pop("generated_utc", None); b.pop("generated_utc", None)
+          assert a == b, "committed summary differs from regenerated output"
+          print("PASS: committed season, league and JSON rollups exactly reconcile to the offline builder.")
           PY
 
       - name: Upload sanitized aggregate audit
