@@ -1956,7 +1956,7 @@ def main():
     write_csv(out_dir / "oracle_selected50_fixture_orientation_audit.csv", orientation_rows,
               ["Fixture Date", "League", "Fixture", "fixture_id", "selected_id",
                "provider_season_id", "home_team_id", "away_team_id",
-               "snapshot_no_home_away_flag", "fixture_orientation_status",
+               "snapshot_evidence_status", "snapshot_no_home_away_flag", "fixture_orientation_status",
                "home_away_market_review_status", "snapshot_row_number",
                "snapshot_retrieved_utc", "snapshot_file_sha256",
                "production_eligible", "betting_eligible"])
