@@ -58,3 +58,48 @@
 
 ## Continuation rule
 Continue from the live research branch and this checkpoint. Preserve all previous artifacts and snapshots. Do not restart or redesign Project Oracle. Do not modify production logic. Prioritise evidence-backed mapping and historical coverage from 2024 onward, and stop only at verified completion or a genuine access/data-integrity blocker.
+
+## Evening automation continuation — central FootyStats gateway implemented (2026-11-04)
+
+### Latest live state
+- Branch HEAD after this update: `c7493b9f721b910522f6db71b9625882f5abcbc5`.
+- The provider catalogue reconciliation confirms 49 selected leagues, 756 catalogue season records and 182 2024-forward season partitions.
+- Important canonical mapping distinction: the current reconciliation has 44 exact-name country/competition pairs versus the prior manifest, 22 human-review-only canonical ID candidates, 22 no-match rows in the protected 27-league registry, five newly selected leagues not assessed against that registry, six prior selected leagues absent, **zero approved Oracle canonical mappings**, and zero verified provider parent competition IDs. Do not report canonical league mapping as complete.
+- The current FootyStats selected catalogue is the source of truth for this research lane; do not silently force it to 50.
+
+### New central endpoint preflight implementation
+- Added `scripts/footystats_budgeted_endpoint_preflight.py`.
+- Added `.github/workflows/footystats-global-budgeted-endpoint-preflight.yml`, manual-dispatch only, serialized by `footystats-global-api-gateway`.
+- Added `.github/workflows/footystats-budgeted-preflight-contract-tests.yml` for fast isolated contract testing.
+- Added `tests/test_footystats_budgeted_endpoint_preflight.py` and central gateway/legacy path assertions in `tests/test_footystats_ingestion_workflow_contract.py`.
+- Updated `.github/workflows/oracle-selected50-contract-tests.yml` to include the new preflight tests.
+- Updated `docs/PROJECT_ORACLE_EXECUTION_PROTOCOL.md` Section 10, plus:
+  - `reports/ORACLE_FOOTYSTATS_BUDGETED_PREFLIGHT_GATEWAY_2026-11-04.md`
+  - `reports/oracle-footystats-current-catalogue-reconciliation-2026-11-04.md`
+
+### Request and data controls
+- Absolute FootyStats ceiling: 1,800 requests in any rolling 60 minutes.
+- Operational cap: 1,500 with 300 headroom.
+- Durable timestamp-only reservation is committed before any provider call; the ledger is `data/footystats/rolling-request-ledger.json`.
+- A lower provider `request_limit` is binding. `request_remaining` is never treated as monthly credit evidence.
+- No retries; stop and checkpoint on 429/401/403, provider failure, transport error, malformed response, pagination failure or identity mismatch.
+- The preflight keeps raw responses in memory and writes only sanitized field/pagination metadata and response hashes. It does not write raw payloads to the public repository or protected private archive.
+- The current ledger still has only the earlier catalogue request timestamp (2026-11-04T14:34:00Z) and no active reservations. No new provider API request was made by this implementation run.
+- Full raw-data ingestion remains gated until the protected private archive write path is explicitly authorized and validated.
+
+### Test evidence and limitation
+- Targeted workflow run `41864509844`, job `126695135837`.
+- The job log records successful py_compile and:
+  - 9 request-budget tests passed;
+  - 8 endpoint pagination tests passed;
+  - 7 sanitized preflight tests passed;
+  - 11 workflow/legacy-isolation tests passed.
+- Total: 35 tests reported OK in the job log. The GitHub run/job metadata reader still reports queued/no final conclusion despite the completed test and cleanup log entries. Do not label the Actions run formally completed until a final conclusion is retrievable.
+
+### Next execution
+1. Manually dispatch **FootyStats Global Budgeted Endpoint Preflight (Research Only)** with `confirm_provider_api_usage=true`, `max_seasons=182`, `max_requests=1000`. The available GitHub connector can inspect runs/logs but cannot dispatch workflows.
+2. Inspect the sanitized per-season endpoint/field report. It checks matches page 1, teams page 1, tables, season and one exact match-details/H2H sample where available. It does not claim full pagination or full ingestion.
+3. Resolve canonical mapping candidates and the six legacy exclusions/five new competitions with explicit owner approval.
+4. Validate protected private archive write authorization before building/running full raw historical ingestion.
+5. Keep standings fixture-time validity, H2H chronology, recent/home-away form and xG provenance as separate fail-closed gates.
+6. Preserve frozen Oracle V1.6 production logic/probabilities and research/betting eligibility false.
