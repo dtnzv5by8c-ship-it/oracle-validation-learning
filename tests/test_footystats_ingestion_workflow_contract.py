@@ -3,6 +3,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INGESTION = ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml"
+OMI_REPAIR = ROOT / ".github" / "workflows" / "oracle-selected50-market-intelligence-repair.yml"
 PROTECTED_WRITE_WORKFLOWS = (
     ROOT / ".github" / "workflows" / "audit-private-footystats-history-h2h.yml",
     ROOT / ".github" / "workflows" / "build-oracle-league-acquisition-tracker.yml",
@@ -72,6 +73,18 @@ class ProtectedRepositoryWriteWorkflowContractTests(unittest.TestCase):
                 content = path.read_text(encoding="utf-8")
                 for marker in forbidden:
                     self.assertNotIn(marker, content)
+
+
+class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
+    def test_omi_report_repair_cannot_make_direct_provider_requests(self):
+        content = OMI_REPAIR.read_text(encoding="utf-8")
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("api.football-data-api.com", content)
+        self.assertNotIn("reconcile_selected50_actual_results_footystats.py", content)
+        self.assertIn("all FootyStats requests must use the governed global rolling-hour budget workflow", content)
+        self.assertIn("write_selected50_unqueried_actual_results.py", content)
+
 
 
 if __name__ == "__main__":
