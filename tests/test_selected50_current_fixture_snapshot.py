@@ -25,7 +25,7 @@ class SnapshotValidatorTests(unittest.TestCase):
             {"id": 1, "selected_season_id": "1", "competition_id": "1",
              "homeID": 10, "awayID": 11, "home_name": "Home", "away_name": "Away",
              "date_unix": epoch(future_kickoff), "kickoff_utc": future_kickoff,
-             "status": "incomplete", "window_class": "FUTURE_20D", "no_home_away": 0,
+             "status": "incomplete", "window_class": "REPORT_WINDOW", "no_home_away": 0,
              "homeGoalCount": 0, "awayGoalCount": 0, "totalGoalCount": 0},
             {"id": 2, "selected_season_id": "1", "competition_id": "1",
              "homeID": 10, "awayID": 11, "home_name": "Home", "away_name": "Away",
@@ -37,7 +37,10 @@ class SnapshotValidatorTests(unittest.TestCase):
             "diagnostic": "BOUNDED_SELECTED50_CURRENT_FIXTURE_SNAPSHOT",
             "retrieved_utc": "2026-10-28T12:00:00+00:00",
             "window_start_utc": "2026-09-28T12:00:00+00:00",
-            "window_end_utc": "2026-11-17T12:00:00+00:00",
+            "window_end_utc": "2026-11-17T23:59:59.999999+00:00",
+            "report_start_date_utc": "2026-10-28",
+            "report_end_date_utc_inclusive": "2026-11-17",
+            "report_end_utc_inclusive": "2026-11-17T23:59:59.999999+00:00",
             "selected_leagues": 50, "requests_planned": 50, "requests_attempted": 50,
             "http_200_success": 50, "request_failures": 0, "seasons_needing_pagination": [],
             "production_eligibility": "NOT_GRANTED", "betting_eligibility": "NOT_GRANTED",
@@ -46,7 +49,7 @@ class SnapshotValidatorTests(unittest.TestCase):
             "request_interval_seconds": 2.1,
             "raw_provider_payload_persisted": False, "api_key_persisted": False,
             "production_ledger_written": False, "per_season": seasons, "fixture_rows": rows,
-            "future_20d_fixture_rows": 1, "recent_completed_30d_rows": 1,
+            "report_window_fixture_rows": 1, "recent_completed_30d_rows": 1,
         }
 
     def run_validation(self, data):
@@ -119,6 +122,16 @@ class SnapshotValidatorTests(unittest.TestCase):
         data = self.build()
         data["fixture_rows"][0]["kickoff_utc"] = "2026-11-18T00:00:00+00:00"
         data["fixture_rows"][0]["date_unix"] = epoch(data["fixture_rows"][0]["kickoff_utc"])
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_snapshot_cutoff_must_cover_end_of_report_date(self):
+        data = self.build()
+        data["window_end_utc"] = "2026-11-17T12:00:00+00:00"
+        self.assertEqual(self.run_validation(data)["status"], "FAIL")
+
+    def test_report_end_date_must_match_inclusive_timestamp(self):
+        data = self.build()
+        data["report_end_utc_inclusive"] = "2026-11-17T12:00:00+00:00"
         self.assertEqual(self.run_validation(data)["status"], "FAIL")
 
     def test_window_class_must_match_kickoff(self):
