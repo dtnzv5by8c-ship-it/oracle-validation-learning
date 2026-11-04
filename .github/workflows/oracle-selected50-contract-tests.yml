@@ -75,6 +75,57 @@ jobs:
             ${{ runner.temp }}/footystats-historical-plan/summary.json
           if-no-files-found: error
           retention-days: 30
+      - name: Compile and test exact current-catalogue to legacy-50 reconciliation
+        run: |
+          python -m py_compile scripts/reconcile_footystats_current_catalogue_to_legacy50.py
+          python -m unittest discover -s tests -p "test_footystats_current_catalogue_reconciliation.py" -v
+      - name: Build exact current-catalogue mapping and historical-season crosswalk (offline)
+        run: |
+          set -euo pipefail
+          OUT_DIR="$RUNNER_TEMP/footystats-current-catalogue-crosswalk"
+          mkdir -p "$OUT_DIR"
+          python scripts/reconcile_footystats_current_catalogue_to_legacy50.py \
+            --catalogue data/footystats/footystats-provider-season-registry-2026-11-04.csv \
+            --season-plan data/footystats/historical-season-plan-2024-2026/season-plan.csv \
+            --legacy50-manifest reports/oracle-footystats-selected-50-league-manifest-2026-10-24.md \
+            --prior-canonical-crosswalk reports/oracle-selected50-canonical-candidate-crosswalk-2026-10-27.csv \
+            --history-start 2024-01-01 \
+            --history-end 2026-11-04 \
+            --out-csv "$OUT_DIR/current-catalogue-provider-to-oracle-candidate-crosswalk.csv" \
+            --out-json "$OUT_DIR/current-catalogue-reconciliation-summary.json"
+          python - <<'PY'
+          import csv, json, os
+          from pathlib import Path
+          out=Path(os.environ["RUNNER_TEMP"]) / "footystats-current-catalogue-crosswalk"
+          summary=json.loads((out / "current-catalogue-reconciliation-summary.json").read_text())
+          with (out / "current-catalogue-provider-to-oracle-candidate-crosswalk.csv").open(encoding="utf-8", newline="") as f:
+              rows=list(csv.DictReader(f))
+          assert summary["current_provider_league_count"] == 49
+          assert summary["current_catalogue_season_row_count"] == 756
+          assert summary["historical_plan_season_row_count"] == 182
+          assert summary["exact_legacy_country_competition_matches"] == 44
+          assert summary["legacy50_leagues_absent_from_current_selected_catalogue_count"] == 6
+          assert summary["new_current_catalogue_leagues_not_in_legacy50_count"] == 5
+          assert summary["canonical_candidate_requires_human_approval_count"] == 22
+          assert summary["no_match_in_current_protected_27_registry_count"] == 22
+          assert summary["not_assessed_against_current_protected_registry_count"] == 5
+          assert summary["historical_ledger_code_candidate_count"] == 24
+          assert summary["approved_oracle_canonical_mappings"] == 0
+          assert summary["api_requests_made"] == 0
+          assert summary["production_eligible"] is False and summary["betting_eligible"] is False
+          assert len(rows) == 49
+          assert all(r["provider_parent_competition_id"] == "" for r in rows)
+          print("PASS: 49 current provider leagues reconciled; 182 historical season partitions linked; no canonical ID promoted.")
+          PY
+      - name: Upload current provider-to-Oracle candidate crosswalk
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-current-catalogue-to-oracle-candidate-crosswalk
+          path: |
+            ${{ runner.temp }}/footystats-current-catalogue-crosswalk/current-catalogue-provider-to-oracle-candidate-crosswalk.csv
+            ${{ runner.temp }}/footystats-current-catalogue-crosswalk/current-catalogue-reconciliation-summary.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Test dynamic FootyStats season adapter
         run: python -m unittest discover -s tests -p "test_oracle_selected50_footystats_adapter.py" -v
       - name: Compile and test FootyStats endpoint pagination contracts
