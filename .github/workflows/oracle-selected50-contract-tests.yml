@@ -37,20 +37,22 @@ jobs:
           python -m py_compile scripts/build_footystats_historical_season_plan.py
           python -m unittest discover -s tests -p "test_footystats_historical_season_plan.py" -v
       - name: Build and verify the 2024-to-current provider season plan (offline)
+        env:
+          PLAN_DIR: ${{ runner.temp }}/footystats-historical-plan
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/footystats-historical-plan"
+          mkdir -p "$PLAN_DIR"
           python scripts/build_footystats_historical_season_plan.py \
             --registry-json data/footystats/footystats-provider-season-registry-2026-11-04.json \
             --start-date 2024-01-01 \
             --end-date 2026-11-04 \
-            --plan-csv "$RUNNER_TEMP/footystats-historical-plan/season-plan.csv" \
-            --excluded-csv "$RUNNER_TEMP/footystats-historical-plan/excluded-seasons.csv" \
-            --summary-json "$RUNNER_TEMP/footystats-historical-plan/summary.json"
+            --plan-csv "$PLAN_DIR/season-plan.csv" \
+            --excluded-csv "$PLAN_DIR/excluded-seasons.csv" \
+            --summary-json "$PLAN_DIR/summary.json"
           python - <<'PY'
-          import json
+          import json, os
           from pathlib import Path
-          summary=json.loads(Path("$RUNNER_TEMP/footystats-historical-plan/summary.json").read_text())
+          summary=json.loads((Path(os.environ["PLAN_DIR"]) / "summary.json").read_text())
           assert summary["catalogue_provider_season_count"] == 756
           assert summary["planned_provider_season_count"] == 182
           assert summary["planned_provider_league_count"] == 49
