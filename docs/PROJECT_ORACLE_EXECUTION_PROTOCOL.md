@@ -783,3 +783,28 @@ The current 182-season plan therefore has a maximum expected preflight cost of 9
 - Default inputs: `confirm_provider_api_usage=true` (already covered by the user's explicit API approval), `max_seasons=182`, `max_requests=1000`.
 - The connected GitHub actions interface available to this execution can inspect runs and logs but cannot dispatch a new workflow. A repository owner must select this exact workflow and click **Run workflow** to start the live preflight. No API request is made before that manual dispatch.
 - This preflight does not write to the protected private archive. Full raw historical ingestion remains gated until the protected private archive write path is explicitly authorized and validated.
+
+## 10. 2026-11-04 FootyStats central gateway and cross-branch blocker
+
+### Research-branch gateway
+- The provider-led selected catalogue has been staged with provenance. The current selected catalogue contains 49 unique leagues, 756 season records and 756 unique provider season IDs.
+- The current-date historical plan contains 182 provider season rows intersecting 2024-01-01 through the current date. Fixture kickoff filters must enforce the exact date window.
+- The single research-branch provider gateway is `.github/workflows/footystats-global-budgeted-endpoint-preflight.yml`. It is manual-only, uses concurrency group `footystats-global-api-gateway`, commits a durable reservation before provider access, and writes only sanitized preflight metadata/ledger to the public research repository.
+- The offline full-ingestion manifest planner expands verified preflight pagination metadata into exact-ID match/team page tasks and current league-table/season snapshot tasks. It is a plan only; it does not execute full raw ingestion.
+- The provider preflight costs at most five calls per season (match page 1, team page 1, league tables, league season and one match-details/H2H sample when available). At 182 seasons the maximum expected preflight is 910 requests; default reservation is 1,000.
+- User-approved hard ceiling: 1,800 requests per rolling 60 minutes. Operational maximum: 1,500, preserving 300 requests of headroom. All FootyStats workflows must share one ledger and fail-closed reservation mechanism. No retries after 429, 401, 403, provider success=false, transport failure or malformed response. `request_remaining` is not monthly-credit evidence.
+- Raw provider payloads must not be committed to the public research repository. Full raw ingestion remains blocked until the protected private archive write path is explicitly authorized and validated. The sanitized preflight is not a substitute for full ingestion.
+- xG remains quarantined until fixture-level point-in-time capture and revision provenance is established. Current-snapshot standings do not prove fixture-time standings. H2H/recent/home-away form require a complete exact chronological match spine.
+
+### Cross-branch safety blocker (read-only audit 2026-11-04)
+- The governed research branch has disabled stubs for legacy direct provider workflows, and the research-branch contract tests assert that only the central gateway may reference the FootyStats API host/secret.
+- A read-only inspection of default branch `main` found six active legacy provider workflows that still contain direct API-host/secret references: `footystats-api-catalogue-audit.yml`, `footystats-api-endpoint-coverage-audit.yml`, `footystats-full-selected-league-historical-ingestion.yml`, `footystats-full-universe-catalogue-transfer.yml`, `footystats-historical-season-coverage-audit.yml`, and `oracle-selected50-footystats-live-ingestion.yml`. Two of these also have push triggers on the workflow file.
+- The central gateway workflow file is not present on `main`. GitHub's manual workflow-dispatch entrypoint therefore is not registered on the default branch. The connected GitHub tool surface for this execution has no workflow-dispatch action.
+- The user has instructed all implementation work to remain on the governed research branch. Do not modify `main`, disable its workflows, or register the central gateway there without explicit user authorization. Until the six default-branch legacy paths are disabled/routed and the central gateway is registered, do not make any FootyStats API requests: the global rolling-hour ceiling cannot be guaranteed across those bypass paths.
+- Durable audit report: `reports/FOOTYSTATS_CROSS_BRANCH_PROVIDER_GATE_AUDIT_2026-11-04.md`.
+- No provider requests were made during the cross-branch audit. The research-branch ledger showed one earlier catalogue request timestamp (`2026-11-04T14:34:00Z`) and zero active reservations.
+
+### Latest test/workflow evidence at this checkpoint
+- Budgeted preflight contract job `41866548931` / job `126702151154` emitted successful output for 42 tests (6 ingestion-manifest, 9 request-budget, 8 pagination, 7 preflight, 12 workflow-contract tests). GitHub run metadata was still `in_progress` at last check; do not claim a formal Actions success until a completed conclusion is available.
+- A preceding planner contract run `41866509488` failed because a test expected an obsolete artifact-step label. The workflow's artifact step was renamed when the ingestion manifest was added; the later commit `cf33e155a95927df42e7cca28b660697cc9ba62d` updated the assertion. The rerun is `41866549120`; inspect its final conclusion before declaring the planner contract green.
+- Preserve production Oracle V1.6 logic, probabilities, thresholds, calibration, ledgers and eligibility. All new research outputs remain `production_eligible=false` and `betting_eligible=false`.
