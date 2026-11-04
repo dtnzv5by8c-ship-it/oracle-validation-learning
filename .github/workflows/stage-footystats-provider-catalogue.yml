@@ -125,8 +125,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "Catalogue registry already current."
           else
-            git commit -m "data: stage verified FootyStats provider catalogue and season registry"
-            git push origin research/oracle-50-league-readiness-audit
+            git commit -m "data: stage verified FootyStats provider catalogue, registry and historical plan"
+            git fetch origin research/oracle-50-league-readiness-audit
+            git rebase origin/research/oracle-50-league-readiness-audit
+            git push origin HEAD:research/oracle-50-league-readiness-audit
           fi
 
       - name: Upload staged catalogue evidence
