@@ -166,6 +166,7 @@ class FootyStatsBudgetedEndpointPreflightTests(unittest.TestCase):
         self.assertEqual(report["season_results"][0]["season_status"], "ENDPOINT_PREFLIGHT_COMPLETE")
         self.assertEqual(report["season_results"][0]["league_matches"]["page_1_rows_in_window"], 1)
         self.assertTrue(report["season_results"][0]["match_detail"]["h2h_field_present"])
+        self.assertIn("xg_against_avg_overall", report["season_results"][0]["league_teams"]["team_stats_field_names"])
         self.assertEqual(
             report["season_results"][0]["xg_usage_status"],
             "QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE",
