@@ -56,6 +56,17 @@ def snapshot_provenance():
 
 
 class Selected50MarketIntelligenceTests(unittest.TestCase):
+    def test_parse_dt_requires_explicit_timezone(self):
+        self.assertIsNone(market_report.parse_dt("2026-10-31T18:00:00"))
+        self.assertIsNotNone(market_report.parse_dt("2026-10-31T18:00:00Z"))
+
+    def test_archive_history_ignores_naive_kickoff_timestamps(self):
+        naive = archive_row("NAIVE", "2025-08-01T12:00:00", "H", "A", 2, 1)
+        by_team, by_season, by_pair, _, _ = market_report.build_indexes([naive])
+        self.assertEqual(sum(len(rows) for rows in by_team.values()), 0)
+        self.assertEqual(sum(len(rows) for rows in by_season.values()), 0)
+        self.assertEqual(sum(len(rows) for rows in by_pair.values()), 0)
+
     def test_snapshot_orientation_uses_exact_ordered_identity_and_quarantines_unknowns(self):
         runtime = runtime_row()
         archive_summary = {"archive_sha256": "archive-sha"}
@@ -283,7 +294,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(market_report.h2h_average_total_goals({"h2h_meetings_detail": "[]"}),
                          "NO_VERIFIED_PRIOR_H2H")
 
-    def test_h2h_bridges_provider_team_id_changes_with_exact_team_names(self):
+    def test_h2h_does_not_bridge_changed_provider_team_ids_by_matching_names(self):
         prior = archive_row("OLD-ID-MEETING", "2025-08-01T12:00:00+00:00",
                             "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
                             season="S0", selected_id="S1")
@@ -292,12 +303,12 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         target = archive_row("F100", "2026-10-31T18:00:00+00:00",
                              "H", "A", 0, 0, season="S1", selected_id="S1")
         report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
-        self.assertEqual(trace[0]["h2h_n"], 1)
-        self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_NORMALIZED_TEAM_NAMES")
-        self.assertIn("OLD-ID-MEETING", trace[0]["h2h_source_fixture_ids"])
-        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(trace[0]["h2h_match_basis"], "NO_VERIFIED_PAIR_MATCH")
+        self.assertNotIn("OLD-ID-MEETING", trace[0]["h2h_source_fixture_ids"])
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
 
-    def test_h2h_bridges_team_id_changes_across_selected_divisions_in_same_country(self):
+    def test_h2h_does_not_bridge_changed_ids_across_selected_divisions_by_name(self):
         prior = archive_row("OLD-DIVISION-ID", "2025-08-01T12:00:00+00:00",
                             "OLD-HOME-ID", "OLD-AWAY-ID", 2, 1,
                             season="S2", league="Lower Division", selected_id="S2")
@@ -306,11 +317,11 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         target = archive_row("F100", "2026-10-31T18:00:00+00:00",
                              "H", "A", 0, 0, season="S1", selected_id="S1")
         report, trace, _ = market_report.build_report([runtime_row()], [prior, target])
-        self.assertEqual(trace[0]["h2h_n"], 1)
-        self.assertEqual(trace[0]["h2h_match_basis"], "EXACT_NORMALIZED_TEAM_NAMES")
-        self.assertEqual(report[0]["H2H Last 5 Summary"], "W")
+        self.assertEqual(trace[0]["h2h_n"], 0)
+        self.assertEqual(trace[0]["h2h_match_basis"], "NO_VERIFIED_PAIR_MATCH")
+        self.assertEqual(report[0]["H2H Last 5 Summary"], "NO_VERIFIED_PRIOR_H2H")
 
-    def test_h2h_falls_back_to_prior_exact_ids_when_name_candidates_are_after_cutoff(self):
+    def test_h2h_uses_prior_exact_ids_even_when_names_differ_and_a_future_name_pair_exists(self):
         future_name_match = archive_row("FUTURE-NAME", "2026-11-02T12:00:00+00:00",
                                         "OLD-H", "OLD-A", 1, 0,
                                         season="S0", selected_id="S1")
