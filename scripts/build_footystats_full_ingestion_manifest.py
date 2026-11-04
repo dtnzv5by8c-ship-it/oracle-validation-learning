@@ -28,8 +28,15 @@ COVERAGE_FIELDS = [
     "preflight_status", "matches_total_results", "matches_per_page",
     "matches_page_count", "teams_total_results", "teams_per_page",
     "teams_page_count", "tables_endpoint_verified", "season_endpoint_verified",
-    "planned_ingestion_requests", "ingestion_plan_status",
-    "production_eligible", "betting_eligible",
+    "page_1_match_rows_returned", "page_1_match_rows_in_history_window",
+    "page_1_match_rows_outside_history_window", "page_1_completed_match_rows",
+    "page_1_completed_match_goal_field_gaps", "page_1_no_home_away_rows",
+    "match_ids_unique", "team_ids_unique", "table_required_fields_complete",
+    "season_goal_fields_complete", "team_xg_aggregate_fields_complete",
+    "h2h_field_present", "h2h_temporal_status", "recent_form_status",
+    "home_away_form_status", "standings_temporal_status", "xg_usage_status",
+    "required_field_gap_reasons", "planned_ingestion_requests",
+    "ingestion_plan_status", "production_eligible", "betting_eligible",
 ]
 BATCH_FIELDS = ["batch_id", "task_count", "first_task_id", "last_task_id", "status"]
 
@@ -106,8 +113,17 @@ def page_contract(season: dict[str, Any], key: str) -> tuple[int, int]:
     expected_pages = max(1, (total_i + per_page_i - 1) // per_page_i)
     if pages_i != expected_pages:
         raise ValueError(f"{key} expected_page_count conflicts with total/per_page")
-    if item.get("fetched_pages") != 1:
-        raise ValueError(f"{key} page-1 preflight evidence is missing")
+    if item.get("fetched_pages") != 1 or item.get("page_complete") is not True:
+        raise ValueError(f"{key} page-1 preflight evidence is incomplete")
+    returned = item.get("returned_rows")
+    if isinstance(returned, bool):
+        raise ValueError(f"{key} returned_rows is invalid")
+    try:
+        returned_i = int(returned)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError(f"{key} returned_rows is invalid") from None
+    if returned_i < 0 or returned_i > per_page_i or returned_i > total_i:
+        raise ValueError(f"{key} returned_rows conflicts with total/per_page")
     return total_i, pages_i
 
 
@@ -149,6 +165,24 @@ def build_manifest(
             "teams_page_count": "",
             "tables_endpoint_verified": False,
             "season_endpoint_verified": False,
+            "page_1_match_rows_returned": 0,
+            "page_1_match_rows_in_history_window": 0,
+            "page_1_match_rows_outside_history_window": 0,
+            "page_1_completed_match_rows": 0,
+            "page_1_completed_match_goal_field_gaps": 0,
+            "page_1_no_home_away_rows": 0,
+            "match_ids_unique": False,
+            "team_ids_unique": False,
+            "table_required_fields_complete": False,
+            "season_goal_fields_complete": False,
+            "team_xg_aggregate_fields_complete": False,
+            "h2h_field_present": False,
+            "h2h_temporal_status": "NOT_VERIFIED",
+            "recent_form_status": "NOT_ASSESSED",
+            "home_away_form_status": "NOT_ASSESSED",
+            "standings_temporal_status": "NOT_VERIFIED",
+            "xg_usage_status": "QUARANTINED",
+            "required_field_gap_reasons": "",
             "planned_ingestion_requests": 0,
             "ingestion_plan_status": "BLOCKED_NO_COMPLETE_PREFLIGHT",
             "production_eligible": False,
@@ -172,6 +206,64 @@ def build_manifest(
         try:
             matches_total, match_pages = page_contract(preflight, "league_matches")
             teams_total, team_pages = page_contract(preflight, "league_teams")
+            match_page = preflight["league_matches"]
+            team_page = preflight["league_teams"]
+            match_rows = int(match_page["returned_rows"])
+            team_rows = int(team_page["returned_rows"])
+            required_match_identity = {"id", "homeID", "awayID", "date_unix", "status"}
+            match_identity = match_page.get("match_identity_fields", {})
+            if not required_match_identity.issubset(match_identity) or any(
+                int(match_identity.get(field, -1)) != match_rows for field in required_match_identity
+            ):
+                raise ValueError("match identity fields are incomplete")
+            if int(match_page.get("unique_match_ids_on_page", -1)) != match_rows:
+                raise ValueError("match IDs are not unique on the preflight page")
+            required_team_identity = {"id", "name_or_alias"}
+            team_identity = team_page.get("team_identity_fields", {})
+            if not required_team_identity.issubset(team_identity) or any(
+                int(team_identity.get(field, -1)) != team_rows for field in required_team_identity
+            ):
+                raise ValueError("team identity fields are incomplete")
+            if int(team_page.get("unique_team_ids_on_page", -1)) != team_rows:
+                raise ValueError("team IDs are not unique on the preflight page")
+            no_home_away_rows = int(match_page.get("no_home_away_rows", -1))
+            completed_rows = int(match_page.get("completed_match_rows", -1))
+            goal_gaps = int(match_page.get("completed_rows_missing_any_goal_field", -1))
+            in_window = int(match_page.get("page_1_rows_in_window", -1))
+            out_window = int(match_page.get("page_1_rows_outside_window", -1))
+            if not (0 <= no_home_away_rows <= match_rows and 0 <= completed_rows <= match_rows
+                    and 0 <= goal_gaps <= completed_rows and in_window >= 0
+                    and out_window >= 0 and in_window + out_window == match_rows):
+                raise ValueError("match field/temporal coverage counts are invalid")
+            goal_presence = match_page.get("completed_goal_field_presence", {})
+            required_goal_fields = {"homeGoalCount", "awayGoalCount", "totalGoalCount"}
+            goal_fields_complete = required_goal_fields.issubset(goal_presence) and all(
+                int(goal_presence.get(field, -1)) == completed_rows for field in required_goal_fields
+            ) and goal_gaps == 0
+            table_presence = preflight.get("table_field_presence", {})
+            required_table_fields = {
+                "all_matches_table_away", "all_matches_table_home",
+                "all_matches_table_overall", "league_table", "specific_tables",
+            }
+            table_fields_complete = required_table_fields.issubset(table_presence) and all(
+                table_presence.get(field) is True for field in required_table_fields
+            )
+            season_fields = set(preflight.get("league_season", {}).get("data_field_names", []))
+            required_season_fields = {"total_goals", "home_teams_goals", "away_teams_goals", "xg_avg"}
+            season_goal_fields_complete = required_season_fields.issubset(season_fields)
+            team_stats_fields = set(team_page.get("team_stats_field_names", []))
+            required_team_xg_fields = {
+                "xg_for_avg_home", "xg_for_avg_away",
+                "xg_against_avg_home", "xg_against_avg_away",
+            }
+            team_xg_fields_complete = required_team_xg_fields.issubset(team_stats_fields)
+            match_detail = preflight.get("match_detail", {})
+            h2h_field_present = match_detail.get("h2h_field_present") is True
+            sample_xg_fields = match_detail.get("xg_field_presence", {})
+            sample_xg_fields_complete = all(
+                sample_xg_fields.get(field) is True
+                for field in ("team_a_xg_prematch", "team_b_xg_prematch", "total_xg_prematch")
+            )
             if not isinstance(preflight.get("league_tables"), dict):
                 raise ValueError("league-tables response not verified")
             if preflight["league_tables"].get("response_status") != "SUCCESS_SHAPE_VERIFIED":
@@ -208,7 +300,38 @@ def build_manifest(
             "teams_page_count": team_pages,
             "tables_endpoint_verified": True,
             "season_endpoint_verified": True,
+            "page_1_match_rows_returned": match_rows,
+            "page_1_match_rows_in_history_window": in_window,
+            "page_1_match_rows_outside_history_window": out_window,
+            "page_1_completed_match_rows": completed_rows,
+            "page_1_completed_match_goal_field_gaps": goal_gaps,
+            "page_1_no_home_away_rows": no_home_away_rows,
+            "match_ids_unique": True,
+            "team_ids_unique": True,
+            "table_required_fields_complete": table_fields_complete,
+            "season_goal_fields_complete": season_goal_fields_complete,
+            "team_xg_aggregate_fields_complete": team_xg_fields_complete,
+            "h2h_field_present": h2h_field_present,
+            "h2h_temporal_status": preflight.get("h2h_temporal_status", "NOT_VERIFIED"),
+            "recent_form_status": preflight.get("recent_form_status", "NOT_ASSESSED"),
+            "home_away_form_status": preflight.get("home_away_form_status", "NOT_ASSESSED"),
+            "standings_temporal_status": preflight.get("standings_temporal_status", "NOT_VERIFIED"),
+            "xg_usage_status": preflight.get("xg_usage_status", "QUARANTINED"),
         })
+        field_gaps = []
+        if not goal_fields_complete:
+            field_gaps.append("COMPLETED_MATCH_GOAL_FIELDS")
+        if not table_fields_complete:
+            field_gaps.append("REQUIRED_TABLE_FIELDS")
+        if not season_goal_fields_complete:
+            field_gaps.append("SEASON_GOAL_OR_XG_AGGREGATE_FIELDS")
+        if not team_xg_fields_complete:
+            field_gaps.append("TEAM_XG_AGGREGATE_FIELDS")
+        if not h2h_field_present:
+            field_gaps.append("SAMPLE_H2H_FIELD")
+        if not sample_xg_fields_complete:
+            field_gaps.append("SAMPLE_FIXTURE_XG_FIELDS")
+        base["required_field_gap_reasons"] = ";".join(field_gaps)
 
         season_tasks: list[dict[str, Any]] = []
         for page in range(1, match_pages + 1):
@@ -219,7 +342,7 @@ def build_manifest(
                 "provider_season_id": sid,
                 "endpoint": "league-matches",
                 "page": page,
-                "max_per_page": 1000,
+                "max_per_page": int(match_page["per_page"]),
                 "include": "",
                 "max_time_unix": "",
                 "expected_total_results": matches_total,
@@ -267,7 +390,10 @@ def build_manifest(
             })
 
         base["planned_ingestion_requests"] = len(season_tasks)
-        base["ingestion_plan_status"] = "PLANNED_REQUIRES_PRIVATE_RAW_ARCHIVE"
+        base["ingestion_plan_status"] = (
+            "PLANNED_WITH_REQUIRED_FIELD_GAPS_QUARANTINED"
+            if field_gaps else "PLANNED_REQUIRES_PRIVATE_RAW_ARCHIVE"
+        )
         coverage.append(base)
         completed_count += 1
         for task in season_tasks:
@@ -302,6 +428,21 @@ def build_manifest(
         "seasons_blocked_or_not_preflighted": blocked_count,
         "planned_request_count": len(tasks),
         "planned_batches": len(batches),
+        "page_1_match_rows_returned": sum(int(row["page_1_match_rows_returned"] or 0) for row in coverage),
+        "page_1_match_rows_in_history_window": sum(int(row["page_1_match_rows_in_history_window"] or 0) for row in coverage),
+        "page_1_match_rows_outside_history_window": sum(int(row["page_1_match_rows_outside_history_window"] or 0) for row in coverage),
+        "page_1_completed_match_rows": sum(int(row["page_1_completed_match_rows"] or 0) for row in coverage),
+        "page_1_completed_match_goal_field_gaps": sum(int(row["page_1_completed_match_goal_field_gaps"] or 0) for row in coverage),
+        "page_1_no_home_away_rows": sum(int(row["page_1_no_home_away_rows"] or 0) for row in coverage),
+        "seasons_with_any_no_home_away_rows": sum(1 for row in coverage if int(row["page_1_no_home_away_rows"] or 0) > 0),
+        "seasons_with_all_page_1_rows_no_home_away": sum(1 for row in coverage if int(row["page_1_match_rows_returned"] or 0) > 0 and int(row["page_1_no_home_away_rows"] or 0) == int(row["page_1_match_rows_returned"] or 0)),
+        "seasons_with_required_field_gaps": sum(1 for row in coverage if row["required_field_gap_reasons"]),
+        "seasons_with_h2h_field_present": sum(1 for row in coverage if row["h2h_field_present"] is True),
+        "seasons_with_h2h_temporal_order_unverified": sum(1 for row in coverage if row["h2h_temporal_status"] != "VERIFIED"),
+        "seasons_with_recent_form_unverified": sum(1 for row in coverage if row["recent_form_status"] != "VERIFIED"),
+        "seasons_with_home_away_form_unverified": sum(1 for row in coverage if row["home_away_form_status"] != "VERIFIED"),
+        "seasons_with_fixture_time_standings_unverified": sum(1 for row in coverage if row["standings_temporal_status"] != "VERIFIED"),
+        "seasons_with_fixture_level_xg_quarantined": sum(1 for row in coverage if str(row["xg_usage_status"]).startswith("QUARANTINED")),
         "max_requests_per_batch": max_requests_per_batch,
         "absolute_requests_per_rolling_hour": 1800,
         "operational_requests_per_rolling_hour": 1500,
