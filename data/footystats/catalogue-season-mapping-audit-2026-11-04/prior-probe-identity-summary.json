@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "diagnostic": "FOOTYSTATS_PRIOR_IDENTITY_PROBE_TO_CURRENT_49_CATALOGUE_EXACT_ID_RECONCILIATION",
+  "scope": "offline_sanitized_identity_metadata_only",
+  "prior_identity_probe_rows": 50,
+  "current_catalogue_crosswalk_rows": 49,
+  "current_leagues_with_exact_prior_selected_season_id_probe": 44,
+  "exact_country_matches": 44,
+  "exact_competition_name_matches": 44,
+  "exact_country_plus_competition_composite_matches_current_provider_league_name": 44,
+  "exact_comp_master_value_matches": 44,
+  "new_current_catalogue_leagues_without_prior_probe": 5,
+  "new_current_catalogue_league_names_without_prior_probe": [
+    "Bulgaria First League",
+    "Egypt Egyptian Premier League",
+    "Portugal Liga NOS",
+    "Qatar Stars League",
+    "Wales Welsh Premier League"
+  ],
+  "legacy_probe_ids_absent_from_current_selected_catalogue": 6,
+  "legacy_probe_ids_absent_from_current_selected_catalogue_details": [
+    {
+      "prior_probe_country": "Finland",
+      "prior_probe_competition_name": "Veikkausliiga",
+      "prior_probe_season_id": "16572",
+      "prior_probe_comp_master_id": "125",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    },
+    {
+      "prior_probe_country": "India",
+      "prior_probe_competition_name": "Indian Super League",
+      "prior_probe_season_id": "17964",
+      "prior_probe_comp_master_id": "169",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    },
+    {
+      "prior_probe_country": "Republic of Ireland",
+      "prior_probe_competition_name": "Premier Division",
+      "prior_probe_season_id": "16537",
+      "prior_probe_comp_master_id": "264",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    },
+    {
+      "prior_probe_country": "Russia",
+      "prior_probe_competition_name": "Russian Premier League",
+      "prior_probe_season_id": "17178",
+      "prior_probe_comp_master_id": "268",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    },
+    {
+      "prior_probe_country": "South Korea",
+      "prior_probe_competition_name": "K League 1",
+      "prior_probe_season_id": "16627",
+      "prior_probe_comp_master_id": "294",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    },
+    {
+      "prior_probe_country": "Venezuela",
+      "prior_probe_competition_name": "Primera División",
+      "prior_probe_season_id": "16617",
+      "prior_probe_comp_master_id": "339",
+      "current_catalogue_presence": "NOT_PRESENT_IN_CURRENT_49_SELECTED_CATALOGUE",
+      "evidence_date": "2026-10-29",
+      "disposition": "LEGACY_SELECTED50_ONLY; DO_NOT_ASSUME_PROVIDER_DISCONTINUED; OWNER_DECISION_REQUIRED"
+    }
+  ],
+  "comp_master_parent_semantics_verified": false,
+  "comp_master_cross_season_stability_verified": false,
+  "provider_parent_competition_ids_verified": 0,
+  "approved_canonical_mappings": 0,
+  "all_current_mappings_remain_unapproved": true,
+  "api_requests_made": 0,
+  "raw_payloads_read": false,
+  "production_logic_changed": false,
+  "production_eligible": false,
+  "betting_eligible": false
+}
