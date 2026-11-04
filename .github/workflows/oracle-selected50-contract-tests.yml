@@ -32,6 +32,44 @@ jobs:
         run: python -m py_compile scripts/build_footystats_provider_registry.py scripts/oracle_selected50_footystats_adapter.py
       - name: Test dynamic FootyStats provider registry
         run: python -m unittest discover -s tests -p "test_footystats_provider_registry.py" -v
+      - name: Compile and test provider-driven historical season planner
+        run: |
+          python -m py_compile scripts/build_footystats_historical_season_plan.py
+          python -m unittest discover -s tests -p "test_footystats_historical_season_plan.py" -v
+      - name: Build and verify the 2024-to-current provider season plan (offline)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/footystats-historical-plan"
+          python scripts/build_footystats_historical_season_plan.py \
+            --registry-json data/footystats/footystats-provider-season-registry-2026-11-04.json \
+            --start-date 2024-01-01 \
+            --end-date 2026-11-04 \
+            --plan-csv "$RUNNER_TEMP/footystats-historical-plan/season-plan.csv" \
+            --excluded-csv "$RUNNER_TEMP/footystats-historical-plan/excluded-seasons.csv" \
+            --summary-json "$RUNNER_TEMP/footystats-historical-plan/summary.json"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary=json.loads(Path("$RUNNER_TEMP/footystats-historical-plan/summary.json").read_text())
+          assert summary["catalogue_provider_season_count"] == 756
+          assert summary["planned_provider_season_count"] == 182
+          assert summary["planned_provider_league_count"] == 49
+          assert summary["excluded_provider_season_count"] == 574
+          assert summary["all_catalogue_rows_accounted_for"] is True
+          assert summary["api_requests_made"] == 0
+          assert summary["production_eligible"] is False and summary["betting_eligible"] is False
+          print("PASS: 182 provider seasons / 49 leagues intersect 2024-01-01 through 2026-11-04; all 756 catalogue rows accounted for.")
+          PY
+      - name: Upload offline FootyStats historical season plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-historical-season-plan-2024-to-2026
+          path: |
+            ${{ runner.temp }}/footystats-historical-plan/season-plan.csv
+            ${{ runner.temp }}/footystats-historical-plan/excluded-seasons.csv
+            ${{ runner.temp }}/footystats-historical-plan/summary.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Test dynamic FootyStats season adapter
         run: python -m unittest discover -s tests -p "test_oracle_selected50_footystats_adapter.py" -v
       - name: Compile OMI report, history audit and no-call actuals placeholder
