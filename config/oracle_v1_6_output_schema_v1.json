@@ -69,7 +69,9 @@
     "DC_AWAY_governed_status",
     "DC_AWAY_block_reason",
     "COMBO_HOME_governed_status",
-    "COMBO_HOME_block_reason"
+    "COMBO_HOME_block_reason",
+    "COMBO_AWAY_governed_status",
+    "COMBO_AWAY_block_reason"
   ],
   "header_sequence_sha256": "4899b305eda7e156e3e1b2d398b02cac869b1df21e378fecaf991074012c22f7",
   "source_provenance": {
