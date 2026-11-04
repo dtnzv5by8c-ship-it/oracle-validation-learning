@@ -1742,7 +1742,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
          "history_cutoff_utc", "home_evidence_risk_pct", "away_evidence_risk_pct",
          "home_form_n", "away_form_n", "h2h_n", "h2h_scope", "archive_source_file", "archive_source_row",
          "archive_raw_record_sha256", "production_eligible", "betting_eligible",
-         "snapshot_no_home_away_flag", "fixture_orientation_status", "home_away_market_review_status",
+         "snapshot_evidence_status", "snapshot_no_home_away_flag", "fixture_orientation_status", "home_away_market_review_status",
          "snapshot_row_number", "snapshot_retrieved_utc", "snapshot_file_sha256",
          "runtime_feature_support_status", "runtime_prediction_block_reason", "runtime_missing_required_features",
          "runtime_home_recent5_n", "runtime_away_recent5_n", "runtime_home_history_gate",
