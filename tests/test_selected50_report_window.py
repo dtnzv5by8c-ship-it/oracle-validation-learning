@@ -23,6 +23,13 @@ class Selected50ReportWindowTests(unittest.TestCase):
         self.assertEqual(dt.datetime.fromtimestamp(start, dt.timezone.utc), dt.datetime(2026, 11, 6, 0, 0, tzinfo=dt.timezone.utc))
         self.assertEqual(dt.datetime.fromtimestamp(end_exclusive, dt.timezone.utc), dt.datetime(2026, 11, 25, 0, 0, tzinfo=dt.timezone.utc))
 
+    def test_inclusive_report_horizon_days_reflects_declared_date_span(self):
+        from build_selected50_research_runtime import inclusive_report_horizon_days
+        self.assertEqual(inclusive_report_horizon_days("2026-11-06", "2026-11-24"), 19)
+        self.assertEqual(inclusive_report_horizon_days("2026-11-24", "2026-11-24"), 1)
+        with self.assertRaises(ValueError):
+            inclusive_report_horizon_days("2026-11-25", "2026-11-24")
+
     def test_started_window_excludes_less_than_fifteen_minutes_lead(self):
         os.environ["ORACLE_REPORT_START_DATE"] = "2026-11-04"
         os.environ["ORACLE_REPORT_END_DATE"] = "2026-11-24"
