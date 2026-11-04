@@ -48,6 +48,18 @@ jobs:
               )
           PY
 
+      - name: Install report-only regression dependencies
+        run: python -m pip install --disable-pip-version-check openpyxl scikit-learn
+      - name: Compile OMI report, history audit and no-call actuals placeholder
+        run: python -m py_compile scripts/build_selected50_market_intelligence_report.py scripts/audit_selected50_row_level_history_provenance.py scripts/write_selected50_unqueried_actual_results.py scripts/build_selected50_research_runtime.py
+      - name: Test explicit snapshot evidence exceptions in OMI report
+        run: python -m unittest discover -s tests -p "test_selected50_market_intelligence_report.py" -v
+      - name: Test venue-specific historical form provenance
+        run: python -m unittest discover -s tests -p "test_selected50_row_level_history_provenance.py" -v
+      - name: Test inclusive runtime report horizon
+        run: python -m unittest discover -s tests -p "test_selected50_report_window.py" -v
+      - name: Test zero-call actual-results placeholder
+        run: python -m unittest discover -s tests -p "test_selected50_unqueried_actual_results.py" -v
       - name: Run offline safety contract tests
         run: python -m unittest discover -s tests -p "test_footystats_selected50_bounded_probe_contract.py" -v
       - name: Run research score-settlement contract tests
