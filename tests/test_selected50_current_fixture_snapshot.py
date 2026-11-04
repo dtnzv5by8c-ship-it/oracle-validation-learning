@@ -35,7 +35,8 @@ class SnapshotValidatorTests(unittest.TestCase):
         ]
         return {
             "diagnostic": "BOUNDED_SELECTED50_CURRENT_FIXTURE_SNAPSHOT",
-            "retrieved_utc": "2026-10-28T12:00:00+00:00",
+            "snapshot_started_utc": "2026-10-28T12:00:00+00:00",
+            "retrieved_utc": "2026-10-28T12:00:03+00:00",
             "window_start_utc": "2026-09-28T12:00:00+00:00",
             "window_end_utc": "2026-11-17T23:59:59.999999+00:00",
             "report_end_date_utc_inclusive": "2026-11-17",
