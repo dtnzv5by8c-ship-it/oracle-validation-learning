@@ -719,3 +719,14 @@ The first dynamic-adapter change removed the fixed-50 constraint but also weaken
 - Raw provider payloads must not be committed to the public research repository. The protected private archive write path remains gated and must not be bypassed. User approval of API credits does not by itself change the private archive write policy.
 - The next implementation step is a single centralized, resumable endpoint-preflight/ingestion workflow that uses the rolling ledger and stores only sanitized coverage outputs in the public research branch. Full raw historical ingestion and fixture-level OMI reconstruction require the approved private data destination.
 - Oracle V1.6 production logic, probabilities, thresholds, calibration, ledgers and betting eligibility remain unchanged. All new outputs remain research-only with production_eligible=false and betting_eligible=false.
+
+
+### Current run evidence and committed outputs
+
+- The offline historical plan is now committed under data/footystats/historical-season-plan-2024-2026/ (182-row plan CSV, 574-row excluded CSV and complete summary JSON).
+- Human-readable summary: reports/oracle-footystats-historical-season-plan-2024-2026.md.
+- Staging workflow run 41856521492 completed successfully and committed the plan in commit cadc2c269e3babb28df436102f315d057770db7c.
+- Historical plan dry-run run 41856565640 completed successfully.
+- Oracle Identity & Settlement Evidence Tests run 41856565537 completed successfully.
+- Oracle Selected-50 Safety Contract Tests run 41856565437 completed every substantive test step successfully, including historical planning, pagination contracts, global request-budget tests, legacy API path shutdown and current snapshot validator tests; final GitHub job cleanup was still pending when this checkpoint was written.
+- The latest research branch contains the new plan, endpoint contract audit, request budget helper, rolling request ledger and disabled legacy provider workflows. No production files were changed.
