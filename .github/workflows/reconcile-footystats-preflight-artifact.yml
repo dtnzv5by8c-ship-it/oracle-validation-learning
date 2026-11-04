@@ -1,0 +1,176 @@
+name: Reconcile Sanitized FootyStats Preflight Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Completed central preflight run ID whose sanitized artifact should be reconciled"
+        required: true
+        default: "41869437030"
+        type: string
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/reconcile-footystats-preflight-artifact.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: footystats-preflight-artifact-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GOVERNED_BRANCH: research/oracle-50-league-readiness-audit
+      SOURCE_RUN_ID: ${{ inputs.source_run_id || '41869437030' }}
+      PLAN_CSV: data/footystats/historical-season-plan-2024-2026/season-plan.csv
+      OUTPUT_DIR: data/footystats/full-ingestion-manifest
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download only the sanitized preflight artifact from the completed source run
+        uses: actions/download-artifact@v4
+        with:
+          name: footystats-sanitized-preflight-and-ingestion-plan-${{ env.SOURCE_RUN_ID }}
+          path: /tmp/footystats-preflight-artifact
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+
+      - name: Verify source run evidence and no-raw-payload contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="/tmp/footystats-preflight-artifact/endpoint-preflight/footystats-preflight-run-${SOURCE_RUN_ID}.json"
+          test -s "$REPORT"
+          python - "$REPORT" "$SOURCE_RUN_ID" <<'PY'
+          import json, sys
+          from pathlib import Path
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          expected_run = int(sys.argv[2])
+          if report.get("run_id") != expected_run:
+              raise SystemExit("FAIL: sanitized preflight run ID does not match requested source run")
+          if report.get("run_status") != "ENDPOINT_PREFLIGHT_BATCH_COMPLETE":
+              raise SystemExit("FAIL: source preflight did not complete")
+          if report.get("failure_code") is not None:
+              raise SystemExit("FAIL: source preflight contains a failure code")
+          if report.get("raw_payloads_persisted") is not False:
+              raise SystemExit("FAIL: raw provider payloads must not be reconciled into the public research repository")
+          if report.get("full_pagination_completed") is not False:
+              raise SystemExit("FAIL: this artifact is endpoint preflight only, not full ingestion")
+          budget = report.get("request_budget", {})
+          if budget.get("requests_attempted_this_run") != 910:
+              raise SystemExit("FAIL: unexpected provider request count for source run")
+          if budget.get("actual_requests_in_rolling_hour_after_run") != 910:
+              raise SystemExit("FAIL: request budget evidence does not reconcile to 910 calls")
+          seasons = report.get("season_results", [])
+          if len(seasons) != 182 or any(x.get("season_status") != "ENDPOINT_PREFLIGHT_COMPLETE" for x in seasons):
+              raise SystemExit("FAIL: expected 182 completed endpoint preflights")
+          for season in seasons:
+              for key in ("league_matches_response", "league_teams_response", "league_tables_response", "league_season_response", "match_detail_response"):
+                  if (season.get(key) or {}).get("http_status") != 200:
+                      raise SystemExit(f"FAIL: non-200 response in {key} for season {season.get('provider_season_id')}")
+          print("Verified source run", expected_run, "with 910 successful preflight calls, 182 seasons, no raw payload persistence.")
+          PY
+
+      - name: Compile and test the corrected manifest builder
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_footystats_full_ingestion_manifest.py
+          python -m unittest discover -s tests -p "test_build_footystats_full_ingestion_manifest.py" -v
+
+      - name: Rebuild manifest from verified endpoint metadata using actual provider page size
+        run: |
+          set -euo pipefail
+          python scripts/build_footystats_full_ingestion_manifest.py \
+            --plan-csv "${PLAN_CSV}" \
+            --preflight-dir /tmp/footystats-preflight-artifact/endpoint-preflight \
+            --output-dir "${OUTPUT_DIR}" \
+            --max-requests-per-batch 1500
+
+      - name: Enforce manifest coverage, pagination and governance invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          out = Path("data/footystats/full-ingestion-manifest")
+          summary = json.loads((out / "summary.json").read_text())
+          tasks = list(csv.DictReader((out / "ingestion-request-manifest.csv").open(newline="", encoding="utf-8-sig")))
+          coverage = list(csv.DictReader((out / "season-ingestion-coverage.csv").open(newline="", encoding="utf-8-sig")))
+          if summary.get("planned_provider_season_count") != 182:
+              raise SystemExit("FAIL: planned provider season count mismatch")
+          if summary.get("seasons_with_complete_endpoint_preflight") != 182 or summary.get("seasons_blocked_or_not_preflighted") != 0:
+              raise SystemExit("FAIL: endpoint preflight coverage mismatch")
+          if summary.get("planned_request_count") != 728 or summary.get("planned_batches") != 1:
+              raise SystemExit("FAIL: expected 728 bounded ingestion tasks in one planned batch")
+          if summary.get("page_1_match_rows_returned") != 54546:
+              raise SystemExit("FAIL: page-1 match row count mismatch")
+          if summary.get("page_1_match_rows_in_history_window") != 42426:
+              raise SystemExit("FAIL: in-window match row count mismatch")
+          if summary.get("page_1_match_rows_outside_history_window") != 12120:
+              raise SystemExit("FAIL: out-of-window match row count mismatch")
+          if summary.get("page_1_completed_match_goal_field_gaps") != 0:
+              raise SystemExit("FAIL: completed match goal-field gaps detected")
+          if summary.get("page_1_no_home_away_rows") != 6398 or summary.get("seasons_with_any_no_home_away_rows") != 73:
+              raise SystemExit("FAIL: no_home_away field coverage mismatch")
+          match_tasks = [r for r in tasks if r["endpoint"] == "league-matches"]
+          if len(match_tasks) != 182 or any(int(r["max_per_page"]) != 600 for r in match_tasks):
+              raise SystemExit("FAIL: manifest must use observed provider page size 600")
+          if len(coverage) != 182:
+              raise SystemExit("FAIL: season coverage rows mismatch")
+          if summary.get("api_requests_made") != 0 or summary.get("raw_payloads_written") is not False:
+              raise SystemExit("FAIL: manifest planning must not make provider calls or persist raw payloads")
+          if summary.get("production_eligible") is not False or summary.get("betting_eligible") is not False:
+              raise SystemExit("FAIL: research manifest must remain ineligible")
+          print("Manifest verified: 182 seasons, 728 planned tasks, page size 600, 6,398 no_home_away rows, all eligibility false.")
+          PY
+
+      - name: Commit corrected sanitized manifest with bounded push-conflict retry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${OUTPUT_DIR}/"
+          if git diff --cached --quiet; then
+            echo "No manifest changes to commit."
+            exit 0
+          fi
+          git commit -m "data: reconcile sanitized FootyStats preflight manifest ${SOURCE_RUN_ID}"
+          for attempt in 1 2 3; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            git rebase FETCH_HEAD
+            if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+              echo "Manifest reconciliation push succeeded on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Push conflict on attempt ${attempt}; retrying bounded rebase."
+            sleep 2
+          done
+          echo "::error::Unable to commit sanitized manifest after three bounded push attempts."
+          exit 1
+
+      - name: Upload reconciled manifest artifact
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-reconciled-manifest-${{ env.SOURCE_RUN_ID }}
+          path: data/footystats/full-ingestion-manifest/
+          if-no-files-found: error
+          retention-days: 30
