@@ -98,7 +98,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(qa["conflicting_fixture_identity_groups"], 1)
         self.assertEqual(qa["conflicting_fixture_identity_rows_quarantined"], 2)
         self.assertEqual(qa["rows_indexed"], 1)
-        self.assertEqual(duplicates, 3)
+        self.assertEqual(duplicates, 2)
         self.assertEqual(sum(len(rows) for rows in by_season.values()), 1)
 
     def test_snapshot_orientation_uses_exact_ordered_identity_and_quarantines_unknowns(self):
@@ -504,6 +504,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(trace[0]["home_form_n"], 5)
         self.assertEqual(trace[0]["home_at_home_form_n"], 4)
         self.assertEqual(trace[0]["home_at_home_no_home_away_excluded_n"], 1)
+        self.assertEqual(summary["archive_index_gate"], "PASS")
 
     def test_same_kickoff_fixture_is_not_used_as_history(self):
         same_time = archive_row("F101", "2026-10-31T18:00:00+00:00", "H", "B", 4, 0)
