@@ -548,7 +548,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertFalse(any("COMBO" in h and row[h] not in ("", market_report.UNAVAILABLE)
                              for h in row))
 
-    def test_xlsx_has_exact_locked_38_column_schema_and_research_only_trace(self):
+    def test_xlsx_has_exact_68_column_runtime_output_and_38_column_analyst_summary(self):
         report, trace, _ = market_report.build_report([runtime_row()], self.archive)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "report.xlsx"
