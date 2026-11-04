@@ -1,0 +1,9 @@
+# FootyStats preflight checkpoint — 2026-11-04
+
+Run 41869437030 completed its endpoint-preflight phase for 182 of 182 planned provider seasons across 49 selected provider leagues. It attempted 910 API requests against a 1,000-request reservation. The endpoint-preflight step and offline manifest build succeeded. The overall GitHub Actions run failed only during the final push because the research branch advanced concurrently; artifact upload succeeded (artifact 13345457575; SHA-256 99b438f33dc8e84774000ce64d02d5225dee2949ddfef41c2fc644751c6730eb).
+
+The sanitized report records HTTP 200 for league-matches, league-season, league-tables, league-teams and one match-detail sample for each planned season. It reports 54,546 league-matches rows returned in the preflight page samples and 6,398 rows flagged no_home_away. The report does not certify full pagination, historical fixture-time standings, recent form, home/away form or H2H chronology. xG remains quarantined because point-in-time capture and revision provenance are unverified. The manifest plans 728 future ingestion requests; these have not been executed. Raw payloads were not persisted.
+
+Next steps: reconcile the latest research branch without force-push; inspect all pagination metadata and exact match/team identity; investigate no_home_away rows; validate the protected private raw archive and provider monthly credits before ingestion; then run controlled checkpointed batches. Never put raw provider payloads in the public repository.
+
+All research outputs remain production_eligible=false and betting_eligible=false. Oracle V1.6 production logic, probabilities, thresholds, calibration and ledgers remain unchanged.
