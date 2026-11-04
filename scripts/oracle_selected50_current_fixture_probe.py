@@ -58,7 +58,7 @@ if not key:
 now = datetime.now(timezone.utc)
 now_ts = int(now.timestamp())
 past_cutoff = now_ts - int(timedelta(days=30).total_seconds())
-future_cutoff = now_ts + int(timedelta(days=14).total_seconds())
+future_cutoff = now_ts + int(timedelta(days=20).total_seconds())
 
 fields = (
     "id", "homeID", "awayID", "home_name", "away_name", "season", "status",
@@ -90,7 +90,7 @@ def not_attempted_row(item):
         "retry_after_header": None,
         "rate_limit_detected": False,
         "matches_in_window": 0,
-        "future_14d_count": 0,
+        "future_20d_count": 0,
         "recent_completed_30d_count": 0,
         "schedule_status": "NOT_ATTEMPTED_AFTER_STOP",
     }
@@ -117,7 +117,7 @@ for index, item in enumerate(selected):
         "retry_after_header": None,
         "rate_limit_detected": False,
         "matches_in_window": 0,
-        "future_14d_count": 0,
+        "future_20d_count": 0,
         "recent_completed_30d_count": 0,
         "schedule_status": "UNVERIFIED",
     }
@@ -180,12 +180,12 @@ for index, item in enumerate(selected):
                     "kickoff_utc": datetime.fromtimestamp(
                         kickoff_epoch, tz=timezone.utc
                     ).isoformat(),
-                    "window_class": "FUTURE_14D" if kickoff_epoch >= now_ts else "RECENT_30D",
+                    "window_class": "FUTURE_20D" if kickoff_epoch >= now_ts else "RECENT_30D",
                 })
                 all_window_matches.append(clean)
                 result["matches_in_window"] += 1
                 if kickoff_epoch >= now_ts:
-                    result["future_14d_count"] += 1
+                    result["future_20d_count"] += 1
                 elif str(match.get("status", "")).lower() == "complete":
                     result["recent_completed_30d_count"] += 1
 
@@ -278,11 +278,11 @@ summary = {
     "complete_one_page_responses": sum(
         1 for row in results if row["schedule_status"] == "ONE_PAGE_RESPONSE"
     ),
-    "seasons_with_future_14d_fixtures": sum(
-        1 for row in results if row["future_14d_count"] > 0
+    "seasons_with_future_20d_fixtures": sum(
+        1 for row in results if row["future_20d_count"] > 0
     ),
-    "future_14d_fixture_rows": sum(
-        1 for row in all_window_matches if row["window_class"] == "FUTURE_14D"
+    "future_20d_fixture_rows": sum(
+        1 for row in all_window_matches if row["window_class"] == "FUTURE_20D"
     ),
     "recent_completed_30d_rows": sum(
         1 for row in all_window_matches
@@ -318,7 +318,7 @@ print(json.dumps([
             "country", "competition", "selected_season_id",
             "provider_comp_master_id_observed", "request_attempted",
             "http_status", "provider_success", "returned_match_count",
-            "max_page", "future_14d_count", "recent_completed_30d_count",
+            "max_page", "future_20d_count", "recent_completed_30d_count",
             "schedule_status", "error_class", "retry_after_header",
         )
     }
