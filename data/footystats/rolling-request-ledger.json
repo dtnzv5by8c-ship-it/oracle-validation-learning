@@ -1,18 +1,21 @@
 {
-  "schema_version": 1,
-  "provider": "FootyStats",
+  "actual_requests": [],
   "global_limit_per_rolling_hour": 1800,
-  "reserved_headroom": 300,
-  "actual_requests": [
-    {
-      "timestamp_utc": "2026-11-04T14:34:00Z",
-      "source": "verified league-list catalogue retrieval run 41848820573"
-    }
-  ],
-  "reservations": [],
   "notes": [
     "User-approved hard ceiling is 1,800 requests in any rolling 60-minute period.",
     "Operational reservation ceiling is 1,500 requests per rolling hour, retaining 300 requests of headroom.",
     "This ledger contains request timestamps only; it contains no API keys or provider payloads."
-  ]
+  ],
+  "provider": "FootyStats",
+  "reservations": [
+    {
+      "expires_at_utc": "2026-11-04T18:38:58.787518Z",
+      "reservation_id": "gha-41869437030-1",
+      "reserved_at_utc": "2026-11-04T16:38:58.787518Z",
+      "reserved_count": 1000,
+      "status": "RESERVED_FAIL_CLOSED"
+    }
+  ],
+  "reserved_headroom": 300,
+  "schema_version": 1
 }
