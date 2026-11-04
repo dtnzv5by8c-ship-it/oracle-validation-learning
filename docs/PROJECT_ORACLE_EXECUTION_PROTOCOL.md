@@ -845,3 +845,8 @@ No production model logic, probabilities, thresholds, calibration, ledgers or el
 ### OMI compatibility audit CI follow-up — 2026-11-04T17:04Z
 
 After the compatibility audit was committed, report-repair CI Run `41873707538` completed successfully. Its five test groups reported 15 + 14 + 5 + 5 + 11 = 50 passing tests. Private-archive consent, archive download, report rebuild and workbook upload remained skipped; no FootyStats API calls or model predictions were made. Diagnostic artifact ID: `13345092932`. This validates the existing report-only CI contracts, not the Book4 95-column migration or historical ingestion.
+
+
+### Complete FootyStats workflow inventory — 2026-11-04T17:05Z
+
+A read-only scan of 19 default-branch workflow files matching FootyStats/H2H/archive/Market Intelligence found only the central gateway workflow containing `FOOTYSTATS_API_KEY`. No workflow YAML in this inventory contains the FootyStats API hostname. The six retired legacy workflows plus the bounded-probe and one-call identity-probe workflows are fail-closed; private-history H2H audit is disabled; archive-feature audit is archive-only; Market Intelligence repair explicitly rejects direct results-provider opt-in; H2H reporting uses generic HTTP but no FootyStats host or credential; exact-ID H2H tests make no provider calls. One residual standalone script `scripts/oracle_selected50_one_season_identity_probe.py` still contains a direct host/secret reference but is not invoked by any workflow found in the inventory; do not execute it. Workflow-level FootyStats bypass paths are closed. Keep the script quarantined until a separately approved cleanup.
