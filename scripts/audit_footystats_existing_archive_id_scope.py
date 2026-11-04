@@ -164,10 +164,10 @@ def build_audit(crosswalk, archive_evidence, feature_coverage, settlement_regist
         })
         output.append(item)
 
-    if set(features) != ingested_ids:
-        raise ValueError("Run56 feature IDs do not exactly equal ingested archive IDs")
     if not ingested_ids.issubset(set(legacy_ids)):
         raise ValueError("Run56 ingested IDs absent from current exact crosswalk")
+    if set(features) != ingested_ids:
+        raise ValueError("Run56 feature IDs do not exactly equal ingested archive IDs")
 
     settlement_fields = set(settlement_register[0]) if settlement_register else set()
     fs_ids = [str(r.get("footystats_fixture_id") or "").strip() for r in settlement_register]
