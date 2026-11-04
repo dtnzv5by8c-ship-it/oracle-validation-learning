@@ -53,14 +53,14 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
             archive_row("H4", 1000, home="H", away="Q", source_row=4),
             archive_row("H5", 400, home="H", away="R", status="incomplete", source_row=5),
         ]
-        sides, details, qa = audit([runtime_row(home_recent5_n="3")], rows, {"L"})
+        sides, details, qa = audit([runtime_row(home_recent5_n="2")], rows, {"L"})
         side = sides[0]
-        self.assertEqual(side["reconstructed_history_count"], 3)
-        self.assertEqual(side["runtime_history_count"], "3")
+        self.assertEqual(side["reconstructed_history_count"], 2)
+        self.assertEqual(side["runtime_history_count"], "2")
         self.assertEqual(side["history_count_reconciles"], "YES")
-        self.assertEqual(side["included_history_match_ids"], "H1;H2;H3")
+        self.assertEqual(side["included_history_match_ids"], "H1;H2")
         decisions = {d["historical_fixture_id"]: d["history_decision"] for d in details}
-        self.assertEqual(decisions["H3"], "INCLUDED_IN_RUNTIME_HISTORY")
+        self.assertEqual(decisions["H3"], "WRONG_VENUE_ORIENTATION")
         self.assertEqual(decisions["H4"], "AFTER_CUTOFF")
         self.assertEqual(decisions["H5"], "REQUIRED_FEATURE_MISSING")
         self.assertTrue(qa["all_side_history_counts_reconcile"])
@@ -149,6 +149,30 @@ class RowLevelHistoryProvenanceTests(unittest.TestCase):
         self.assertEqual(side["home_sot5_numeric_count"], 2)
         self.assertEqual(side["home_sot5"], "PARTIAL_NUMERIC_SOURCE_VALUES_2_OF_5")
 
+
+    def test_home_and_away_histories_are_venue_oriented(self):
+        rows = [
+            archive_row("HOME-ONLY", 100, home="H", away="X", source_row=1),
+            archive_row("HOME-WRONG-VENUE", 200, home="X", away="H", source_row=2),
+            archive_row("AWAY-ONLY", 300, home="Y", away="A", source_row=3),
+            archive_row("AWAY-WRONG-VENUE", 400, home="A", away="Y", source_row=4),
+        ]
+        target = runtime_row(
+            home_recent5_n="1",
+            away_recent5_n="1",
+            missing_required_features="home_gf5;away_gf5",
+        )
+        sides, details, qa = audit([target], rows, {"L"})
+        by_side = {item["side"]: item for item in sides}
+        self.assertEqual(by_side["home"]["included_history_match_ids"], "HOME-ONLY")
+        self.assertEqual(by_side["away"]["included_history_match_ids"], "AWAY-ONLY")
+        self.assertEqual(by_side["home"]["reconstructed_history_count"], 1)
+        self.assertEqual(by_side["away"]["reconstructed_history_count"], 1)
+        decisions = {(d["target_side"], d["historical_fixture_id"]): d["history_decision"] for d in details}
+        self.assertEqual(decisions[("home", "HOME-WRONG-VENUE")], "WRONG_VENUE_ORIENTATION")
+        self.assertEqual(decisions[("away", "AWAY-WRONG-VENUE")], "WRONG_VENUE_ORIENTATION")
+        self.assertEqual(qa["venue_history_scope"],
+                         "HOME_SIDE_COUNTS_ONLY_MATCHES_WHERE_TARGET_TEAM_IS_HOME; AWAY_SIDE_COUNTS_ONLY_MATCHES_WHERE_TARGET_TEAM_IS_AWAY")
 
     def test_csv_writer_accepts_feature_columns_varying_by_side(self):
         import csv
