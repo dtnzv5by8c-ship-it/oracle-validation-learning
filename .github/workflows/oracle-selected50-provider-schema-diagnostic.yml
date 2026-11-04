@@ -1,56 +1,18 @@
-name: Oracle Selected-50 Provider ID Schema Diagnostic
+name: DISABLED — Legacy FootyStats request path (oracle-selected50-provider-schema-diagnostic)
 
 on:
   workflow_dispatch:
-    inputs:
-      confirm_provider_credit_usage:
-        description: "Confirm this run may consume exactly one FootyStats API request"
-        required: true
-        default: false
-        type: boolean
-      confirm_monthly_credit_budget_checked:
-        description: "Confirm the current monthly FootyStats credit balance was checked and is sufficient for one request; request_remaining is not monthly-credit evidence"
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: read
 
 jobs:
-  schema-diagnostic:
+  disabled:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 1
     steps:
-      - name: Checkout research scope manifest
-        uses: actions/checkout@v4
-        with:
-          ref: research/oracle-50-league-readiness-audit
-
-      - name: Run one-call, read-only schema diagnostic
+      - name: Refuse legacy provider request path
         shell: bash
-        env:
-          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-          CONFIRM_PROVIDER_CREDIT_USAGE: ${{ github.event.inputs.confirm_provider_credit_usage }}
-          CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED: ${{ github.event.inputs.confirm_monthly_credit_budget_checked }}
         run: |
-          set -euo pipefail
-          echo "Provider-credit confirmation received: ${CONFIRM_PROVIDER_CREDIT_USAGE:-unset}"
-          echo "Monthly-credit confirmation received: ${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-unset}"
-          if [ "${CONFIRM_PROVIDER_CREDIT_USAGE:-false}" != "true" ]; then
-            echo "::error::Explicit provider-credit confirmation is required; no request made."
-            exit 1
-          fi
-          if [ "${CONFIRM_MONTHLY_CREDIT_BUDGET_CHECKED:-false}" != "true" ]; then
-            echo "::error::Current monthly FootyStats credit balance has not been explicitly confirmed; no request made."
-            exit 1
-          fi
-          python scripts/oracle_selected50_provider_schema_diagnostic.py
-
-      - name: Upload sanitized schema summary only
-        uses: actions/upload-artifact@v4
-        with:
-          name: oracle-selected50-schema-diagnostic
-          path: oracle-selected50-schema-diagnostic/schema-diagnostic-summary.json
-          if-no-files-found: error
-          retention-days: 7
+          echo "::error::This legacy FootyStats request workflow is disabled. All provider requests must use the single governed ingestion workflow with the global rolling-hour request ledger."
+          exit 1
