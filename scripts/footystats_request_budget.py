@@ -47,6 +47,9 @@ def validate_ledger(ledger: dict[str, Any]) -> None:
         raise ValueError("request ledger provider must be FootyStats")
     if ledger.get("global_limit_per_rolling_hour") != DEFAULT_GLOBAL_LIMIT:
         raise ValueError("request ledger global rolling-hour limit must remain 1800")
+    headroom = ledger.get("reserved_headroom")
+    if isinstance(headroom, bool) or not isinstance(headroom, int) or headroom < DEFAULT_HEADROOM:
+        raise ValueError("request ledger must preserve at least 300 requests of headroom")
     if not isinstance(ledger.get("actual_requests"), list) or not isinstance(ledger.get("reservations"), list):
         raise ValueError("request ledger must contain actual_requests and reservations lists")
     seen_reservations: set[str] = set()
@@ -112,12 +115,12 @@ def reserve_block(
 ) -> tuple[dict[str, Any], int]:
     if isinstance(requested_count, bool) or not isinstance(requested_count, int) or requested_count < 1:
         raise ValueError("requested_count must be a positive integer")
-    if isinstance(global_limit, bool) or not isinstance(global_limit, int) or global_limit < 1:
-        raise ValueError("global_limit must be a positive integer")
+    if isinstance(global_limit, bool) or not isinstance(global_limit, int) or global_limit < 1 or global_limit > DEFAULT_GLOBAL_LIMIT:
+        raise ValueError("global_limit must be between 1 and the hard 1800-request ceiling")
     if request_limit is not None and (isinstance(request_limit, bool) or not isinstance(request_limit, int) or request_limit < 1):
         raise ValueError("provider request_limit must be a positive integer when supplied")
-    if isinstance(reserved_headroom, bool) or not isinstance(reserved_headroom, int) or reserved_headroom < 0:
-        raise ValueError("reserved_headroom must be a non-negative integer")
+    if isinstance(reserved_headroom, bool) or not isinstance(reserved_headroom, int) or reserved_headroom < DEFAULT_HEADROOM:
+        raise ValueError("reserved_headroom must be at least 300 requests")
     if isinstance(ttl_seconds, bool) or not isinstance(ttl_seconds, int) or ttl_seconds < 1:
         raise ValueError("ttl_seconds must be a positive integer")
     if not isinstance(reservation_id, str) or not reservation_id.strip():
@@ -129,7 +132,13 @@ def reserve_block(
     if any(item["reservation_id"] == reservation_id for item in current["reservations"]):
         raise ValueError(f"reservation already exists: {reservation_id}")
     effective_limit = min(global_limit, request_limit) if request_limit is not None else global_limit
-    headroom = min(reserved_headroom, max(0, effective_limit - 1))
+    headroom = max(reserved_headroom, current["reserved_headroom"])
+    if effective_limit <= headroom:
+        raise ValueError(
+            f"provider/global request limit {effective_limit} cannot preserve required "
+            f"{headroom}-request headroom; stop before provider access"
+        )
+    current["reserved_headroom"] = headroom
     usage = active_usage(current, now)["active_total"]
     available = max(0, effective_limit - headroom - usage)
     count = min(requested_count, available)
