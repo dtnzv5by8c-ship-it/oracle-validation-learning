@@ -17,3 +17,12 @@ Before publishing any workbook, compare the complete A:CQ header sequence agains
 
 ## Evidence limitation
 This contract locks the sheet layout; it does not assert that every field is populated. Population requires the corresponding verified runtime, pinned archive, H2H, goal research, or actual-results evidence. Missing data must remain explicitly marked and covered by per-column QA.
+
+
+## Frozen Oracle V1.6 runtime output sheet
+
+The reference master workbook also contains a distinct `Oracle V1.6 Output` sheet with exactly 68 columns (A:BP). Its header sequence is locked in `config/oracle_v1_6_output_schema_v1.json`, including the SHA-256 of the ordered header list. The reference used for structural inspection was `MASTER_OMI_REPORT_06_to_24_NOV_2026_ALL_50_LEAGUES_RUN183.xlsx` (Library version 1). That workbook is a structural reference only; its fixture data is not the source for new reporting.
+
+The report builder must copy the 68-column source runtime CSV into `Oracle V1.6 Output` using the exact header sequence and source row values. Any missing, additional, duplicate or reordered runtime header fails closed. It must not recalculate or reformat production probabilities. The previous 38-column human-readable view is a derived research view and is now named `Oracle V1.6 Analyst Summary`; it must never be presented as the frozen production output.
+
+The 95-column Book4 `OMI Report` and `Market Intelligence` schemas remain separate contracts. No sheet may be used as a substitute for another. Structural compatibility does not establish historical-data completeness or authorize production/betting eligibility.
