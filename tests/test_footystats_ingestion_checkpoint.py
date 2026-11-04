@@ -173,6 +173,8 @@ class FootyStatsIngestionCheckpointTests(unittest.TestCase):
         self.assertEqual(summary["execution_gate"], "READY_FOR_CENTRAL_BUDGET_RESERVATION")
         self.assertFalse(summary["dispatch_allowed"])
         self.assertTrue(summary["central_budget_reservation_required"])
+        self.assertEqual(summary["receipt_authentication"], "REQUIRES_HMAC_AUTHENTICATED_PRIVATE_ARCHIVE_READBACK_AND_CENTRAL_LEDGER_ATTESTATIONS")
+        self.assertTrue(summary["receipt_verification_keys_required_for_success"])
         self.assertFalse(summary["production_eligible"])
         self.assertFalse(summary["betting_eligible"])
         self.assertTrue(all(row["requires_central_budget_reservation"] for row in next_batch))
