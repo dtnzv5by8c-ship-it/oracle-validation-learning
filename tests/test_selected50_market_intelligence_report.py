@@ -63,6 +63,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             [runtime], [snapshot_row("1")], snapshot_provenance(), archive_summary
         )
         item = orientation[("S1", "F100", "H", "A")]
+        self.assertEqual(item["snapshot_evidence_status"], "EXACT_SNAPSHOT_MATCH")
         self.assertEqual(item["snapshot_no_home_away_flag"], "1")
         self.assertEqual(item["fixture_orientation_status"], "NO_HOME_AWAY_DISTINCTION")
         self.assertEqual(item["home_away_market_review_status"],
@@ -86,24 +87,47 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                          "ORIENTATION_UNKNOWN")
         self.assertEqual(swapped_qa["exact_snapshot_matches"], 0)
 
-    def test_snapshot_orientation_release_gate_rejects_unknown_or_incomplete_rows(self):
+    def test_snapshot_orientation_release_gate_requires_accounting_and_allows_explicit_review_exceptions(self):
         runtime = runtime_row()
-        orientation, qa = market_report.build_snapshot_orientation_map(
-            [runtime], [snapshot_row("1")], snapshot_provenance(),
-            {"archive_sha256": "archive-sha"}
+        archive_summary = {"archive_sha256": "archive-sha"}
+        _, qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("1")], snapshot_provenance(), archive_summary
         )
         self.assertTrue(market_report.require_snapshot_orientation_qa(qa))
 
-        _, unknown_qa = market_report.build_snapshot_orientation_map(
-            [runtime], [snapshot_row("unknown")], snapshot_provenance(),
-            {"archive_sha256": "archive-sha"}
+        _, unknown_flag_qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("unknown")], snapshot_provenance(), archive_summary
         )
-        with self.assertRaisesRegex(ValueError, "SNAPSHOT_ORIENTATION_QA_BLOCKED"):
-            market_report.require_snapshot_orientation_qa(unknown_qa)
+        self.assertEqual(unknown_flag_qa["status"], "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS")
+        self.assertEqual(unknown_flag_qa["unknown_snapshot_flag_rows"], 1)
+        self.assertTrue(market_report.require_snapshot_orientation_qa(unknown_flag_qa))
+
+        missing_row = dict(snapshot_row("0"), fixture_id="NOT-THE-RUNTIME-FIXTURE")
+        missing, missing_qa = market_report.build_snapshot_orientation_map(
+            [runtime], [missing_row], snapshot_provenance(), archive_summary
+        )
+        item = missing[("S1", "F100", "H", "A")]
+        self.assertEqual(item["snapshot_evidence_status"], "MISSING_FROM_FRESH_SNAPSHOT")
+        self.assertEqual(item["home_away_market_review_status"], "REVIEW_REQUIRED_MISSING_FROM_FRESH_SNAPSHOT")
+        self.assertEqual(missing_qa["missing_snapshot_rows"], 1)
+        self.assertEqual(missing_qa["rows_accounted_for"], 1)
+        self.assertTrue(market_report.require_snapshot_orientation_qa(missing_qa))
+
+        duplicated, duplicate_qa = market_report.build_snapshot_orientation_map(
+            [runtime], [snapshot_row("0"), snapshot_row("1")], snapshot_provenance(),
+            archive_summary
+        )
+        self.assertEqual(duplicated[("S1", "F100", "H", "A")]["snapshot_evidence_status"],
+                         "DUPLICATE_SNAPSHOT_MATCH")
+        self.assertEqual(duplicate_qa["duplicate_snapshot_match_rows"], 1)
+        self.assertTrue(market_report.require_snapshot_orientation_qa(duplicate_qa))
 
         inconsistent = dict(qa, no_home_away_flagged=0)
         with self.assertRaisesRegex(ValueError, "SNAPSHOT_ORIENTATION_QA_BLOCKED"):
             market_report.require_snapshot_orientation_qa(inconsistent)
+        unaccounted = dict(qa, rows_accounted_for=0, all_runtime_rows_accounted_for=False)
+        with self.assertRaisesRegex(ValueError, "SNAPSHOT_ORIENTATION_QA_BLOCKED"):
+            market_report.require_snapshot_orientation_qa(unaccounted)
 
     def test_runtime_feature_block_audit_counts_sides_without_relaxing_gate(self):
         rows = [
