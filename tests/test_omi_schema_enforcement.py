@@ -17,10 +17,22 @@ class TestOmiSchemaEnforcement(unittest.TestCase):
             omi = wb.active
             omi.title = "OMI Report"
             market = wb.create_sheet("Market Intelligence")
-            omi.append(["Fixture ID", "Fixture Date", "League"])
-            omi.append(["1001", "2026-11-04", "Test League"])
-            market.append(["Fixture ID", "Fixture Date", "League"])
-            market.append(["1001", "old", "old"])
+            source_headers = [""] * 95
+            source_headers[0] = "Fixture Date"
+            source_headers[38] = "Fixture ID"
+            source_headers[1] = "League"
+            omi.append(source_headers)
+            market.append(source_headers)
+            source_row = [""] * 95
+            source_row[0] = "2026-11-04"
+            source_row[1] = "Test League"
+            source_row[38] = "1001"
+            omi.append(source_row)
+            target_row = [""] * 95
+            target_row[0] = "old"
+            target_row[1] = "old"
+            target_row[38] = "1001"
+            market.append(target_row)
             wb.save(path)
             result = enforce(path, SCHEMA)
             self.assertEqual(result["status"], "PASS")
@@ -29,7 +41,7 @@ class TestOmiSchemaEnforcement(unittest.TestCase):
                 ws = check[name]
                 self.assertEqual([ws.cell(1, c).value for c in range(1, 96)], schema["headers"])
                 self.assertEqual(ws.cell(2, 1).value, "2026-11-04")
-                self.assertEqual(ws.cell(2, 39).value, "1001") if schema["headers"][38] == "Fixture ID" else None
+                self.assertEqual(ws.cell(2, 39).value, "1001")
 
     def test_refuses_mismatched_fixture_sets(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -37,8 +49,12 @@ class TestOmiSchemaEnforcement(unittest.TestCase):
             wb = Workbook()
             omi = wb.active; omi.title = "OMI Report"
             market = wb.create_sheet("Market Intelligence")
-            omi.append(["Fixture ID"]); omi.append(["A"])
-            market.append(["Fixture ID"]); market.append(["B"])
+            source_headers = [""] * 95
+            source_headers[38] = "Fixture ID"
+            omi.append(source_headers); market.append(source_headers)
+            source_row = [""] * 95; source_row[38] = "A"
+            target_row = [""] * 95; target_row[38] = "B"
+            omi.append(source_row); market.append(target_row)
             wb.save(path)
             with self.assertRaises(ValueError):
                 enforce(path, SCHEMA)
