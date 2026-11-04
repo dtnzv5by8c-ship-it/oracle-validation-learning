@@ -57,7 +57,7 @@ jobs:
           set -euo pipefail
           [[ "${CONFIRM_PROVIDER_API_USAGE}" == "true" ]] || { echo "::error::Provider API use was not confirmed; no request will be made."; exit 1; }
           [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || { echo "::error::FOOTYSTATS_API_KEY secret is missing; no request will be made."; exit 1; }
-          [[ "${MAX_SEASONS}" =~ ^[0-9]+$ ]] && (( MAX_SEASONS >= 1 && MAX_SEASONS <= 182 )) || { echo "::error::max_seasons must be 1..182."; exit 1; }
+          [[ "${MAX_SEASONS}" =~ ^[0-9]+$ ]] && (( MAX_SEASONS >= 1 && MAX_SEASONS <= 1000 )) || { echo "::error::max_seasons must be 1..1000."; exit 1; }
           [[ "${MAX_REQUESTS}" =~ ^[0-9]+$ ]] && (( MAX_REQUESTS >= 1 && MAX_REQUESTS <= 1500 )) || { echo "::error::max_requests must be 1..1500."; exit 1; }
           echo "Provider access approved; request cap validated. API key value is not printed."
 
@@ -93,6 +93,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "${REPORT_DIR}"
           git fetch origin "${GOVERNED_BRANCH}"
           git rebase FETCH_HEAD
           git config user.name "github-actions[bot]"
