@@ -60,9 +60,13 @@ class KickoffEvidenceRegisterTests(unittest.TestCase):
         self.assertEqual(result["authoritative_runtime_corroborations"], 0)
         self.assertEqual(result["schedule_auto_corrections"], 0)
 
-    def test_fixture_set_mismatch_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "fixture identity set mismatch"):
-            validate([queue_row("1")], [evidence_row("2")])
+    def test_partial_fixture_scope_is_explicitly_review_required(self):
+        result = validate([queue_row("1")], [evidence_row("2")])
+        self.assertEqual(result["status"], "REVIEW_REQUIRED_EVIDENCE_REGISTER_SCOPE_MISMATCH")
+        self.assertEqual(result["validated_in_scope_evidence_rows"], 0)
+        self.assertEqual(result["uncovered_queue_fixture_ids"], ["1"])
+        self.assertEqual(result["out_of_scope_evidence_fixture_ids"], ["2"])
+        self.assertEqual(result["schedule_auto_corrections"], 0)
 
     def test_timezone_conversion_mismatch_fails_closed(self):
         row = evidence_row()
