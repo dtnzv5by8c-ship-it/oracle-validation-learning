@@ -14,7 +14,7 @@ FEATURES = (
     "win_draw_probability","fixture_team_ids","pagination","chronology","freshness"
 )
 REQUIRED = ("league_id","league_name","provider_league_id","provider_league_name",
-            "season_start","season_end") + FEATURES
+            "provider_season_id","season_start","season_end") + FEATURES
 
 def truth(v: str) -> bool:
     return str(v).strip().upper() in {"1","TRUE","PASS","READY","YES","OK"}
@@ -28,6 +28,16 @@ def validate(rows, expected_leagues=60):
         errors.append("blank_league_id")
     if len(set(ids))!=len(ids):
         errors.append("duplicate_league_id")
+    provider_ids=[str(r.get("provider_league_id","")).strip() for r in rows]
+    if any(not x for x in provider_ids):
+        errors.append("blank_provider_league_id")
+    if len(set(provider_ids))!=len(provider_ids):
+        errors.append("duplicate_provider_league_id")
+    season_ids=[str(r.get("provider_season_id","")).strip() for r in rows]
+    if any(not x for x in season_ids):
+        errors.append("blank_provider_season_id")
+    if len(set(season_ids))!=len(season_ids):
+        errors.append("duplicate_provider_season_id")
     for i,r in enumerate(rows,1):
         missing=[k for k in REQUIRED if not str(r.get(k,"")).strip()]
         if missing:
@@ -35,7 +45,7 @@ def validate(rows, expected_leagues=60):
         try:
             start=int(str(r.get("season_start",""))[:4])
             end=str(r.get("season_end","")).strip().lower()
-            if start < 2024: errors.append(f"row{i}:season_start_before_2024")
+            if start != 2024: errors.append(f"row{i}:season_start_must_be_2024")
             if end not in {"current"}:
                 end_year=int(end[:4])
                 if end_year < start: errors.append(f"row{i}:season_end_before_start")
