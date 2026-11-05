@@ -1,0 +1,39 @@
+name: Oracle Private Gateway Receipt Contract
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/validate_private_gateway_receipt.py"
+      - "tests/test_private_gateway_receipt.py"
+      - ".github/workflows/oracle-private-gateway-receipt-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Run offline contract regression
+        run: |
+          set -euo pipefail
+          python3 tests/test_private_gateway_receipt.py
+      - name: Compile contract
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/validate_private_gateway_receipt.py
+      - name: Confirm no provider secret is required
+        run: |
+          set -euo pipefail
+          if grep -n "FOOTYSTATS_API_KEY\|ORACLE_PRIVATE_REPO_TOKEN" scripts/validate_private_gateway_receipt.py tests/test_private_gateway_receipt.py; then
+            echo "::error::Provider/private credentials must not be embedded in the offline contract."
+            exit 1
+          fi
+          echo "PASS: offline contract has no provider/private credentials."
