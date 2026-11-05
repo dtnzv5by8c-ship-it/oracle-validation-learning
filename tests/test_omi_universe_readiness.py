@@ -8,7 +8,7 @@ s=importlib.util.spec_from_file_location("v",P); v=importlib.util.module_from_sp
 
 class TestOmiUniverseReadiness(unittest.TestCase):
     def test_manifest_requires_exact_governed_count_and_unique_ids(self):
-        rows=[{"league_id":str(i),"league_name":f"L{i}","season":"2024"} for i in range(60)]
+        rows=[{"league_id":str(i),"league_name":f"L{i}","provider_league_id":str(1000+i),"provider_league_name":f"P{i}","season":"2024"} for i in range(60)]
         self.assertEqual(v.validate_manifest(rows,60),[])
         rows[1]["league_id"]="0"
         self.assertTrue(v.validate_manifest(rows,60))
@@ -36,5 +36,11 @@ class TestOmiUniverseReadiness(unittest.TestCase):
         e,_=v.validate_omi([row],{"S1"})
         self.assertTrue(any("history_cutoff" in x for x in e))
         self.assertTrue(any("bad_probability" in x for x in e))
+
+    def test_missing_required_feature_blocks(self):
+        row={k:"" for k in v.REQUIRED}
+        row.update({"Fixture Date":"2026-11-05T18:00:00+00:00","Fixture ID":"F1","Provider Season ID":"S1","Home Team ID":"H","Away Team ID":"A","History Cutoff UTC":"2026-11-05T12:00:00+00:00","retrieved_utc":"2026-11-05T17:00:00+00:00"})
+        e,_=v.validate_omi([row],{"S1"})
+        self.assertTrue(any("missing_feature:Recent Form (5)" in x for x in e))
 
 if __name__=="__main__": unittest.main()
