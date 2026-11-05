@@ -6,8 +6,11 @@ on:
       confirm_provider_api_usage:
         description: "Confirm the bounded 20-season delta preflight may use the approved FootyStats API credential (maximum 100 provider requests)."
         required: true
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
 
 permissions:
   contents: write
