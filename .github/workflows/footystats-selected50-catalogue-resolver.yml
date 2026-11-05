@@ -29,8 +29,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${FOOTYSTATS_API_KEY:-}"
-          python - <<'PY'
-          import csv,json,re,os,hashlib
+          python -c 'import sys; exec(sys.stdin.read())' <<'PY'
+          import csv,json,re,os
           from pathlib import Path
           from urllib.parse import urlencode
           from urllib.request import Request,urlopen
@@ -39,14 +39,19 @@ jobs:
           req=Request('https://api.football-data-api.com/league-list?'+urlencode({'key':os.environ['FOOTYSTATS_API_KEY'],'chosen_leagues_only':'false'}),headers={'User-Agent':'Oracle-Selected50-Catalogue-Resolver/1.0'})
           with urlopen(req,timeout=60) as resp: payload=json.loads(resp.read().decode('utf-8'))
           if payload.get('success') is not True or not isinstance(payload.get('data'),list): raise SystemExit('Full provider catalogue failed; fail-closed.')
-          aliases={'Republic of Ireland':['Ireland'],'South Korea':['South Korea','Korea Republic'],'USA':['USA','United States'],'Czech Republic':['Czech Republic','Czechia']}
+          aliases={'Republic of Ireland':['Ireland','Republic of Ireland'],'South Korea':['South Korea','Korea Republic','Korea'],'USA':['USA','United States'],'Czech Republic':['Czech Republic','Czechia']}
           def norm(s): return re.sub(r'[^a-z0-9]+','',str(s).lower())
           resolved=[]; failures=[]
           for row in selected:
             c=row['country'].strip(); comp=row['competition_name'].strip(); aliases_for=aliases.get(c,[c]); candidates=[]
             for league in payload['data']:
               name=str(league.get('name') or '').strip()
-              if any(norm(name)==norm(a+' '+comp) for a in aliases_for): candidates.append(league)
+              lname=str(league.get('league_name') or '').strip()
+              lcountry=str(league.get('country') or '').strip()
+              country_ok=any(norm(lcountry)==norm(a) for a in aliases_for)
+              name_ok=any(norm(name)==norm(a+' '+comp) for a in aliases_for)
+              league_name_ok=norm(lname)==norm(comp)
+              if name_ok or (country_ok and league_name_ok): candidates.append(league)
             if len(candidates)!=1:
               failures.append({'selected_id':row['selected_id'],'country':c,'competition_name':comp,'candidates':[x.get('name') for x in candidates]})
               continue
