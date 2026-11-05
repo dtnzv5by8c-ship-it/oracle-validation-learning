@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Standard-library regression tests for the Master OMI exact-ID join contract."""
-import csv, json, subprocess, sys, tempfile
+import csv, subprocess, sys, tempfile
 from pathlib import Path
 
 SCRIPT=Path(__file__).resolve().parents[1]/"scripts"/"validate_master_omi_join_contract.py"
@@ -29,6 +29,8 @@ def main():
     bad=[dict(x) for x in f]; bad.append(dict(bad[0])); run(o,bad,a,False)
     bad=[dict(x) for x in f]; bad[0]["home_team_id"]="H9"; run(o,bad,a,False)
     bad=[dict(x) for x in o]; bad[0]["win_probability"]="101"; run(bad,f,a,False)
+    bad=[dict(x) for x in a]; bad[0]["result"]="DRAW"; run(o,f,bad,False)
+    bad=[dict(x) for x in a]; bad[0]["actual_home_goals"]="-1"; run(o,f,bad,False)
     print("PASS: Master OMI exact-ID join contract regression suite")
 
 if __name__=="__main__": main()
