@@ -10,14 +10,11 @@
   "provider": "FootyStats",
   "reservations": [
     {
-      "expires_at_utc": "2026-11-04T18:38:58.787518Z",
-      "reservation_id": "gha-41869437030-1",
-      "reserved_at_utc": "2026-11-04T16:38:58.787518Z",
-      "reserved_count": 1000,
-      "status": "COMPLETED_CONSERVATIVE_HOLD_UNTIL_EXPIRY",
-      "observed_actual_requests": 910,
-      "audit_artifact_id": 13345457575,
-      "audit_artifact_sha256": "99b438f33dc8e84774000ce64d02d5225dee2949ddfef41c2fc644751c6730eb"
+      "reservation_id": "delta-1793892547-42055414397-1",
+      "reserved_at_epoch": 1793892547.3409932,
+      "expires_at_epoch": 1793896147.3409932,
+      "reserved_count": 100,
+      "status": "RESERVED"
     }
   ],
   "reserved_headroom": 300,
@@ -47,5 +44,6 @@
       "request_timestamp_audit_file": "data/footystats/request-audit/footystats-run-41869437030-timestamps.json",
       "reconciled_at_utc": "2026-11-04T17:44:24Z"
     }
-  ]
+  ],
+  "last_updated_epoch": 1793892547.3409932
 }
