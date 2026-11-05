@@ -2,11 +2,6 @@ name: FootyStats Selected-50 Delta Endpoint Preflight (Central Public Gateway)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - research/oracle-50-league-readiness-audit
-    paths:
-      - ".github/workflows/footystats-selected50-delta-endpoint-preflight.yml"
 
 permissions:
   contents: write
@@ -101,7 +96,9 @@ jobs:
           results=[]; timestamps=[]; count=[0]
           def call(endpoint,params):
               if count[0]>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
-              if sum(1 for t in timestamps if time.time()-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
+              now=time.time()
+              if sum(1 for t in timestamps if now-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
+              timestamps.append(now); count[0]+=1
               q=dict(params); q["key"]=key
               try:
                   req=Request("https://api.football-data-api.com/"+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-Selected50-Delta-Preflight/1.0"})
@@ -109,7 +106,7 @@ jobs:
               except HTTPError as e:
                   raise RuntimeError(f"Provider HTTP {e.code}; fail-closed.")
               if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
-              count[0]+=1; timestamps.append(time.time()); return payload
+              return payload
           for sid in d["missing"]:
               row=meta[sid]
               matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
@@ -155,6 +152,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$LEDGER_PATH" data/footystats/delta-preflight/selected50-delta-preflight-results.json data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json 2>/dev/null || true
+          git add -A data/footystats/delta-preflight
           git commit -m "data: save Selected-50 delta endpoint preflight evidence" || true
           git fetch origin "$GOVERNED_BRANCH"
           git rebase "origin/$GOVERNED_BRANCH" || { git rebase --abort || true; }
