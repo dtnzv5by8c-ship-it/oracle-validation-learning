@@ -110,21 +110,36 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("production_eligible", content)
         self.assertIn("betting_eligible", content)
 
-    def test_only_approved_central_gateway_can_reference_provider_secret_or_host(self):
+    def test_selected50_delta_gateway_is_retired_after_provider_transport_417(self):
+        content = DELTA_GATEWAY.read_text(encoding="utf-8")
+        trigger = content.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\n  push:", trigger)
+        self.assertIn("DISABLED", content)
+        self.assertIn("HTTP 417", content)
+        self.assertIn("No FootyStats API credential is read", content)
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("api.football-data-api.com", content)
+        self.assertNotIn("group: footystats-global-api-gateway", content)
+        self.assertIn("exit 1", content)
+
+    def test_only_non_provider_workflows_may_reference_provider_secret_or_host(self):
         workflow_dir = ROOT / ".github" / "workflows"
         provider_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api.com")
         for path in workflow_dir.glob("*.yml"):
             content = path.read_text(encoding="utf-8")
-            if path == DELTA_GATEWAY:
-                self.assertIn("secrets.FOOTYSTATS_API_KEY", content)
-                self.assertIn("api.football-data-api.com", content)
-                self.assertIn("group: footystats-global-api-gateway", content)
-                self.assertIn('MAX_REQUESTS: "100"', content)
+            if path == DELTA_GATEWAY or path == RETIRED_GATEWAY:
+                for marker in provider_patterns:
+                    self.assertNotIn(marker, content)
                 continue
+            # The public research repository must not contain provider credentials
+            # or direct provider hosts in workflows. Provider access belongs behind
+            # the separately controlled private archive transport gate.
             for marker in provider_patterns:
                 with self.subTest(workflow=path.name, marker=marker):
                     self.assertNotIn(marker, content)
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
