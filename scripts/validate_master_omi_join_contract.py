@@ -13,7 +13,7 @@ REQUIRED_ORACLE = [
     "win_probability","draw_probability"
 ]
 REQUIRED_FEATURES = [
-    "fixture_id","recent_form_home","recent_form_away","league_position_home",
+    "fixture_id","home_team_id","away_team_id","recent_form_home","recent_form_away","league_position_home",
     "league_position_away","h2h_count","home_xg","away_xg","btts_probability"
 ]
 REQUIRED_ACTUALS = ["fixture_id","actual_home_goals","actual_away_goals","result"]
