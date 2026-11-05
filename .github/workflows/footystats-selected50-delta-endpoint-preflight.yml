@@ -113,7 +113,7 @@ jobs:
           timestamps_path=Path("data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json")
           results=[]; timestamps=[]; count=[0]
           def persist_timestamps():
-              timestamps_path.write_text(json.dumps(timestamps,indent=2)+"\\n")
+              timestamps_path.write_text(json.dumps(timestamps,indent=2)+"\n")
           def call(endpoint,params):
               if count[0]>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
               now=time.time()
@@ -126,7 +126,7 @@ jobs:
               fd,body_path=tempfile.mkstemp(prefix="oracle-fs-body-",suffix=".json")
               os.close(fd)
               try:
-                  cmd=["curl","--silent","--show-error","--location","--http1.1",
+                  cmd=["curl","--silent","--show-error","--location","--http1.0",
                        "-H","Accept: application/json","-H","Expect:","-A","Project-Oracle-Selected50-Gateway/2.1",
                        "-G","https://api.football-data-api.com/"+endpoint]
                   for k,v in q.items():
