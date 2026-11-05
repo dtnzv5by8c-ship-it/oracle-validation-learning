@@ -27,6 +27,7 @@ def main():
     bad=[dict(x) for x in f]; bad[0]["feature_asof_utc"]="2026-11-01T19:00:00+00:00"; run(o,bad,a,False)
     bad=[dict(x) for x in f]; bad[0]["fixture_id"]="F2"; run(o,bad,a,False)
     bad=[dict(x) for x in f]; bad.append(dict(bad[0])); run(o,bad,a,False)
+    bad=[dict(x) for x in f]; bad[0]["home_team_id"]="H9"; run(o,bad,a,False)
     bad=[dict(x) for x in o]; bad[0]["win_probability"]="101"; run(bad,f,a,False)
     print("PASS: Master OMI exact-ID join contract regression suite")
 
