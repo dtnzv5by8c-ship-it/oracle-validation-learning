@@ -64,7 +64,7 @@ def validate_manifest(rows, expected_universe=60):
         if y and y < 2024: errors.append(f"season_before_2024:{season}")
     return errors
 
-def validate_omi(rows, manifest_ids):
+def validate_omi(rows, manifest_season_ids):
     errors=[]; stats={"rows":len(rows),"missing_required":0,"duplicate_identity":0,
                      "bad_probability":0,"bad_chronology":0,"missing_feature":0,
                      "stale_or_missing_retrieved":0,"invalid_actuals":0}
@@ -79,7 +79,7 @@ def validate_omi(rows, manifest_ids):
             errors.append(f"row{i}:missing_identity"); stats["missing_required"]+=1
         if key in seen: errors.append(f"row{i}:duplicate_identity"); stats["duplicate_identity"]+=1
         seen.add(key)
-        if str(r.get("Provider Season ID") or "").strip() not in manifest_ids:
+        if str(r.get("Provider Season ID") or "").strip() not in manifest_season_ids:
             errors.append(f"row{i}:season_not_in_manifest")
         kickoff=dt(r.get("Fixture Date"))
         cutoff=dt(r.get("History Cutoff UTC"))
@@ -119,7 +119,7 @@ def main():
     with open(a.manifest,encoding="utf-8-sig",newline="") as f: manifest=list(csv.DictReader(f))
     with open(a.omi,encoding="utf-8-sig",newline="") as f: omi=list(csv.DictReader(f))
     me=validate_manifest(manifest,a.expected_leagues)
-    ids={str(r.get("league_id") or r.get("selected_id") or "").strip() for r in manifest}
+    ids={str(r.get("provider_season_id") or r.get("season_id") or "").strip() for r in manifest if str(r.get("provider_season_id") or r.get("season_id") or "").strip()}
     oe,stats=validate_omi(omi,ids)
     result={"status":"PASS" if not me and not oe else "BLOCK","expected_leagues":a.expected_leagues,
             "manifest_errors":me,"omi_errors":oe,"stats":stats,
