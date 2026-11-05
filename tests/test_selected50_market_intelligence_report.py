@@ -889,5 +889,33 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
             workbook.close()
 
 
+    def test_oracle_v16_output_workbook_header_sequence_matches_locked_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "schema.xlsx"
+            market_report.write_xlsx(path, [runtime_row()], [], {}, [], [])
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            sheet = workbook["Oracle V1.6 Output"]
+            observed = [cell.value for cell in sheet[1]]
+            self.assertEqual(observed, market_report.ORACLE_V1_6_OUTPUT_HEADERS)
+            self.assertEqual(len(observed), 68)
+            self.assertEqual(sheet.max_column, 68)
+            workbook.close()
+
+    def test_book4_market_intelligence_is_exactly_95_columns_and_precedes_supporting_tabs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "schema.xlsx"
+            market_report.write_xlsx(path, [runtime_row()], [], {}, [], [])
+            workbook = load_workbook(path, read_only=True, data_only=True)
+            self.assertEqual(workbook.sheetnames[:3],
+                             ["Oracle V1.6 Output", "Oracle V1.6 Analyst Summary", "Market Intelligence"])
+            mi = workbook["Market Intelligence"]
+            self.assertEqual(mi.max_column, 95)
+            self.assertEqual(
+                [cell.value for cell in mi[1]],
+                json.loads((Path(__file__).resolve().parents[1] / "config" /
+                            "omi_market_intelligence_schema_v1.json").read_text(encoding="utf-8"))["headers"]
+            )
+            workbook.close()
+
 if __name__ == "__main__":
     unittest.main()
