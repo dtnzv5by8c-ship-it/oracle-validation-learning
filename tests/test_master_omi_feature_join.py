@@ -19,6 +19,6 @@ def main():
     x=base(); x["fixture_id"]=""; run([x],False)
     x=base(); y=base(); y["fixture_id"]="F1"; run([x,y],False)
     x=base(); x["actual_result"]=""; run([x],False)
-    x=base(); x["provider_season_id"]=""; run([x],False)
+    x=base(); x["provider_season_id"]=""; run([x],False)\n    x=base(); x["actual_home_goals"]="-1"; run([x],False)\n    x=base(); x["actual_result"]="DRAW"; run([x],False)\n    x=base(); x["kickoff_utc"]="not-a-timestamp"; run([x],False)
     print("PASS: Master OMI feature-join regression suite")
 if __name__=="__main__": main()
