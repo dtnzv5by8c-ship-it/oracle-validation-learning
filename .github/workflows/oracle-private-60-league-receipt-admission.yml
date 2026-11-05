@@ -1,0 +1,86 @@
+name: Oracle Private 60-League Receipt Admission
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/validate_private_gateway_receipt.py"
+      - ".github/workflows/oracle-private-60-league-receipt-admission.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-private-60-league-receipt-admission
+  cancel-in-progress: false
+
+jobs:
+  admission:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Validate private repository and receipt locator
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+          RECEIPT_PATH: gateway/receipts/footystats-60-league-latest.json
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing; admission remains BLOCKED."
+            exit 1
+          fi
+          repo_json="$(gh api "repos/$TARGET_REPO" --jq '[.full_name, (.private|tostring)] | @tsv' 2>/dev/null)" || {
+            echo "::error::Private Oracle repository could not be read; admission remains BLOCKED."
+            exit 1
+          }
+          IFS=$'\t' read -r full_name is_private <<< "$repo_json"
+          [[ "$is_private" == "true" ]] || {
+            echo "::error::Target repository is not private; admission remains BLOCKED."
+            exit 1
+          }
+          gh api "repos/$TARGET_REPO/contents/$RECEIPT_PATH?ref=main" > /tmp/receipt_meta.json 2>/dev/null || {
+            echo "::error::No approved 60-league private gateway receipt is present at the governed locator; admission remains BLOCKED."
+            exit 1
+          }
+          python3 - <<'PY'
+          import base64, json
+          from pathlib import Path
+          meta=json.loads(Path("/tmp/receipt_meta.json").read_text())
+          if meta.get("type") != "file" or not meta.get("content"):
+              raise SystemExit("Receipt locator is not a readable private file; admission remains BLOCKED.")
+          Path("/tmp/receipt.json").write_bytes(base64.b64decode(meta["content"]))
+          print("PASS: private repository and governed receipt locator are reachable.")
+          PY
+
+      - name: Validate receipt without publishing provider data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/validate_private_gateway_receipt.py \
+            --receipt /tmp/receipt.json \
+            --out /tmp/receipt-validation.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path("/tmp/receipt-validation.json").read_text())
+          if result.get("status") != "PASS":
+              raise SystemExit("Receipt validator did not PASS; admission remains BLOCKED.")
+          if result.get("governance",{}).get("provider_called") is not False:
+              raise SystemExit("Provider-call governance invariant violated.")
+          if result.get("governance",{}).get("raw_provider_data_public") is not False:
+              raise SystemExit("Raw-provider-data governance invariant violated.")
+          if result.get("governance",{}).get("production_eligible") is not False:
+              raise SystemExit("Production eligibility governance invariant violated.")
+          if result.get("governance",{}).get("betting_eligible") is not False:
+              raise SystemExit("Betting eligibility governance invariant violated.")
+          print("PASS: private 60-league receipt satisfies the fail-closed admission contract.")
+          PY
