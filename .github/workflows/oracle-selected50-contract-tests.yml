@@ -32,6 +32,8 @@ jobs:
 
       - name: Install report-only regression dependencies
         run: python -m pip install --disable-pip-version-check openpyxl scikit-learn
+      - name: Run governed 60-league registry admission contract
+        run: python -m unittest discover -s tests -p "test_60_league_registry_admission.py" -v
       - name: Compile dynamic FootyStats provider registry and adapter
         run: python -m py_compile scripts/build_footystats_provider_registry.py scripts/oracle_selected50_footystats_adapter.py
       - name: Test dynamic FootyStats provider registry
