@@ -99,7 +99,7 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("secrets.FOOTYSTATS_API_KEY", content)
         self.assertIn("chosen_leagues_only", content)
         self.assertIn("'false'", content)
-        self.assertIn("api_calls_this_run':1", content.replace('"api_calls_this_run":1','api_calls_this_run':1))
+        self.assertIn('api_calls_this_run\':1', content.replace('"api_calls_this_run":1', "api_calls_this_run\':1"))
         self.assertIn("raw_provider_payload_persisted", content)
         self.assertIn("production_eligible", content)
         self.assertIn("betting_eligible", content)
