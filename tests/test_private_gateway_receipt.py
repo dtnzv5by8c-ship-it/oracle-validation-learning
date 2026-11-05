@@ -2,11 +2,13 @@
 import hashlib, json, tempfile
 from pathlib import Path
 import importlib.util
+from datetime import datetime, timezone, timedelta
 p=Path("scripts/validate_private_gateway_receipt.py")
 spec=importlib.util.spec_from_file_location("gateway",p)
 m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 
 def base():
+    recent=(datetime.now(timezone.utc)-timedelta(minutes=5)).isoformat().replace("+00:00","Z")
     return {
       "schema_version":1,"gateway_id":"approved-private-gateway-v1",
       "provider":"FootyStats","archive_ref":"private://oracle/60/batch-001.zip",
@@ -16,7 +18,8 @@ def base():
       "raw_provider_payload_persisted_publicly":False,"credentials_persisted_publicly":False,
       "production_eligible":False,"betting_eligible":False,"transport_status":"PASS",
       "auth_status":"PASS","rate_limit_status":"PASS","receipt_status":"VERIFIED_PRIVATE_ARCHIVE","transport_mode":"private_archive",
-      "transport_evidence_ref":"private://oracle/gateway/transport-evidence-001"
+      "transport_evidence_ref":"private://oracle/gateway/transport-evidence-001",
+      "transport_verified_at_utc":recent
     }
 
 with tempfile.TemporaryDirectory() as td:
@@ -43,4 +46,8 @@ with tempfile.TemporaryDirectory() as td:
     assert "transport_evidence_ref_not_private" in m.validate(bad,a)
     bad=dict(r); bad["historical_end"]="2027-01-01"
     assert "historical_end_out_of_range" in m.validate(bad,a)
+    bad=dict(r); bad["transport_verified_at_utc"]=(datetime.now(timezone.utc)-timedelta(days=2)).isoformat().replace("+00:00","Z")
+    assert "transport_proof_stale" in m.validate(bad,a)
+    bad=dict(r); bad["transport_verified_at_utc"]=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat().replace("+00:00","Z")
+    assert "transport_verified_timestamp_in_future" in m.validate(bad,a)
 print("PASS: private gateway receipt contract regression tests")
