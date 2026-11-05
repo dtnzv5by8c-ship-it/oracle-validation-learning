@@ -10,7 +10,7 @@ FEATURES=list(m.FEATURES)
 def row(i, ready=True):
     r={"league_id":f"L{i}","league_name":f"League {i}",
        "provider_league_id":f"P{i}","provider_league_name":f"Provider {i}",
-       "season_start":"2024","season_end":"current"}
+       "provider_season_id":f"S{i}","season_start":"2024","season_end":"current"}
     r.update({f:"PASS" if ready else "" for f in FEATURES})
     return r
 
@@ -23,7 +23,16 @@ assert "duplicate_league_id" in m.validate(bad)
 bad=[row(i) for i in range(60)]; bad[3]["xg_goals"]=""
 assert any("xg_goals" in e for e in m.validate(bad))
 bad=[row(i) for i in range(60)]; bad[4]["season_start"]="2023"
-assert "season_start_before_2024" in m.validate(bad)
+assert "season_start_must_be_2024" in m.validate(bad)
 bad=[row(i) for i in range(60)]; bad[5]["provider_league_id"]=""
 assert any("provider_league_id" in e for e in m.validate(bad))
 print("PASS: 60-league feature readiness matrix regression tests")
+
+# Provider-season identity is mandatory and unique.
+bad=[row(i) for i in range(60)]; bad[6]["provider_season_id"]=""
+assert "blank_provider_season_id" in m.validate(bad)
+bad=[row(i) for i in range(60)]; bad[7]["provider_season_id"]=bad[0]["provider_season_id"]
+assert "duplicate_provider_season_id" in m.validate(bad)
+bad=[row(i) for i in range(60)]; bad[8]["provider_league_id"]=bad[0]["provider_league_id"]
+assert "duplicate_provider_league_id" in m.validate(bad)
+print("PASS: provider identity hardening cases")
