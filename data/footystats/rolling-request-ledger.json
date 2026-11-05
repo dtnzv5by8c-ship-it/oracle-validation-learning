@@ -17,6 +17,13 @@
       "expires_at_epoch": 1793900725.8936474,
       "reserved_count": 100,
       "status": "RESERVED"
+    },
+    {
+      "reservation_id": "delta-1793898098-42070473567-1",
+      "reserved_at_epoch": 1793898098.3835301,
+      "expires_at_epoch": 1793901698.3835301,
+      "reserved_count": 100,
+      "status": "RESERVED"
     }
   ],
   "reserved_headroom": 300,
@@ -57,5 +64,5 @@
       "betting_eligible": false
     }
   ],
-  "last_updated_epoch": 1793897125.8936474
+  "last_updated_epoch": 1793898098.3835301
 }
