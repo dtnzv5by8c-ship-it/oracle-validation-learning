@@ -1,0 +1,38 @@
+{
+  "schema_name": "OMI Master Reporting Extension",
+  "schema_version": 1,
+  "purpose": "Append-only reporting contract for the 60-league Master OMI pipeline. Does not alter the locked 95-column Book4 baseline or Oracle V1.6 runtime output.",
+  "first_column": "CT",
+  "append_only": true,
+  "required_headers": [
+    "oracle_win_probability",
+    "oracle_draw_probability",
+    "confidence_score_pct",
+    "risk_score_pct",
+    "backtest_sample_n",
+    "backtest_hit_rate_pct",
+    "backtest_brier_score",
+    "backtest_log_loss",
+    "backtest_scope",
+    "backtest_asof_utc"
+  ],
+  "field_rules": {
+    "oracle_win_probability": "0..100, copied unchanged from governed Oracle output",
+    "oracle_draw_probability": "0..100, copied unchanged from governed Oracle output",
+    "confidence_score_pct": "0..100, reporting-only score; must have provenance",
+    "risk_score_pct": "0..100, reporting-only score; must have provenance",
+    "backtest_sample_n": "non-negative integer",
+    "backtest_hit_rate_pct": "0..100 when backtest_sample_n > 0",
+    "backtest_brier_score": "non-negative when backtest_sample_n > 0",
+    "backtest_log_loss": "non-negative when backtest_sample_n > 0",
+    "backtest_scope": "non-empty when backtest metrics are present",
+    "backtest_asof_utc": "timezone-aware timestamp when backtest metrics are present"
+  },
+  "governance": {
+    "oracle_v1_6_recalculation": false,
+    "probability_mutation": false,
+    "production_eligibility": false,
+    "betting_eligibility": false,
+    "baseline_schema_mutation": false
+  }
+}
