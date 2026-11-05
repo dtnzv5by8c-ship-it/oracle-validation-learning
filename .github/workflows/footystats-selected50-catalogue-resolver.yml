@@ -75,25 +75,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cp /tmp/selected50-resolver-artifact/data/footystats/selected50-full-ingestion-manifest.csv data/footystats/selected50-full-ingestion-manifest.csv
-          cp /tmp/selected50-resolver-artifact/data/footystats/selected50-provider-season-registry.json data/footystats/selected50-provider-season-registry.json
-          cp /tmp/selected50-resolver-artifact/data/footystats/selected50-catalogue-resolution-summary.json data/footystats/selected50-catalogue-resolution-summary.json
+          cp /tmp/selected50-resolver-artifact/selected50-full-ingestion-manifest.csv data/footystats/selected50-full-ingestion-manifest.csv
+          cp /tmp/selected50-resolver-artifact/selected50-provider-season-registry.json data/footystats/selected50-provider-season-registry.json
+          cp /tmp/selected50-resolver-artifact/selected50-catalogue-resolution-summary.json data/footystats/selected50-catalogue-resolution-summary.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f data/footystats/selected50-full-ingestion-manifest.csv data/footystats/selected50-provider-season-registry.json data/footystats/selected50-catalogue-resolution-summary.json
           if git diff --cached --quiet; then
-            echo 'Sanitized Selected-50 plan already persisted; no commit required.'
+            echo 'Sanitized Selected-50 plan already persisted; no plan commit required.'
           else
             git commit -m 'data: persist verified Selected-50 ingestion plan'
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              git fetch origin "${GOVERNED_BRANCH}"
+              git rebase "origin/${GOVERNED_BRANCH}" || { git rebase --abort || true; sleep $((attempt*2)); continue; }
+              if git push origin "HEAD:${GOVERNED_BRANCH}"; then
+                pushed=1
+                break
+              fi
+              sleep $((attempt*2))
+            done
+            [[ "$pushed" == "1" ]] || { echo '::error::Could not publish the verified Selected-50 plan safely.'; exit 1; }
           fi
-          for attempt in 1 2 3 4 5; do
-            git fetch origin "${GOVERNED_BRANCH}"
-            git rebase "origin/${GOVERNED_BRANCH}" || { git rebase --abort || true; sleep $((attempt*2)); continue; }
-            git push origin "HEAD:${GOVERNED_BRANCH}" && exit 0
-            sleep $((attempt*2))
-          done
-          echo '::error::Could not publish the verified Selected-50 plan safely.'
-          exit 1
 
       - name: Write promotion receipt
         shell: bash
