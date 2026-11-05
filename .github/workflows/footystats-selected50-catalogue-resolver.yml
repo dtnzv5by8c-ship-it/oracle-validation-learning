@@ -1,0 +1,103 @@
+name: FootyStats Selected-50 Catalogue Resolver (Public, 1 API Call)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: footystats-selected50-catalogue-resolver
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      GOVERNED_BRANCH: research/oracle-50-league-readiness-audit
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+          fetch-depth: 0
+
+      - name: Resolve full provider catalogue and build exact Selected-50 plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${FOOTYSTATS_API_KEY:-}"
+          python - <<'PY'
+          import csv,json,re,os,hashlib
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          root=Path('.')
+          selected=list(csv.DictReader(open('data/oracle-footystats-selected-50-season-id-manifest.csv',encoding='utf-8')))
+          req=Request('https://api.football-data-api.com/league-list?'+urlencode({'key':os.environ['FOOTYSTATS_API_KEY'],'chosen_leagues_only':'false'}),headers={'User-Agent':'Oracle-Selected50-Catalogue-Resolver/1.0'})
+          with urlopen(req,timeout=60) as resp: payload=json.loads(resp.read().decode('utf-8'))
+          if payload.get('success') is not True or not isinstance(payload.get('data'),list): raise SystemExit('Full provider catalogue failed; fail-closed.')
+          aliases={'Republic of Ireland':['Ireland'],'South Korea':['South Korea','Korea Republic'],'USA':['USA','United States'],'Czech Republic':['Czech Republic','Czechia']}
+          def norm(s): return re.sub(r'[^a-z0-9]+','',str(s).lower())
+          resolved=[]; failures=[]
+          for row in selected:
+            c=row['country'].strip(); comp=row['competition_name'].strip(); aliases_for=aliases.get(c,[c]); candidates=[]
+            for league in payload['data']:
+              name=str(league.get('name') or '').strip()
+              if any(norm(name)==norm(a+' '+comp) for a in aliases_for): candidates.append(league)
+            if len(candidates)!=1:
+              failures.append({'selected_id':row['selected_id'],'country':c,'competition_name':comp,'candidates':[x.get('name') for x in candidates]})
+              continue
+            league=candidates[0]
+            for s in league.get('season',[]) or []:
+              label=str(s.get('year') or '').strip(); sid=str(s.get('id') or '').strip(); years=[int(x) for x in re.findall(r'20\\d{2}',label)]
+              if sid and years and any(2024<=y<=2026 for y in years):
+                resolved.append({'selected_id':row['selected_id'],'country':c,'competition_name':comp,'provider_league_name':league['name'],'provider_season_label':label,'provider_season_id':sid})
+          if failures or len(set(x['selected_id'] for x in resolved))!=50: 
+            Path('data/footystats/selected50-catalogue-resolution-failures.json').write_text(json.dumps(failures,indent=2))
+            raise SystemExit(f'Exact Selected-50 resolution failed: {len(failures)} league failures; resolved groups={len(set(x["selected_id"] for x in resolved))}.')
+          if len({x['provider_season_id'] for x in resolved})!=len(resolved): raise SystemExit('Duplicate provider season IDs; fail-closed.')
+          tasks=[]
+          for x in sorted(resolved,key=lambda z:(z['provider_league_name'],z['provider_season_label'],z['provider_season_id'])):
+            sid=x['provider_season_id']
+            for endpoint in ('league-matches','league-teams','league-tables','league-season'):
+              tasks.append({'task_id':f'FS:{sid}:{endpoint}:p1','batch_id':'batch-0001','selected_id':x['selected_id'],'provider':'FootyStats','provider_league_name':x['provider_league_name'],'provider_season_label':x['provider_season_label'],'provider_season_id':sid,'endpoint':endpoint,'page':1,'max_per_page':1000 if endpoint=='league-matches' else '','include':'stats' if endpoint=='league-teams' else '','max_time_unix':1794009599 if endpoint!='league-matches' else '','expected_total_results':'','expected_page_count':'','request_status':'PLANNED_NOT_EXECUTED','raw_storage_required':True,'production_eligible':False,'betting_eligible':False})
+          out=Path('data/footystats'); out.mkdir(parents=True,exist_ok=True)
+          fields=list(tasks[0].keys())
+          with (out/'selected50-full-ingestion-manifest.csv').open('w',newline='',encoding='utf-8') as f: w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(tasks)
+          registry={'schema_version':'1.0','source_of_truth':'FootyStats','catalogue_scope':'full_provider_catalogue','selected_league_count':50,'resolved_provider_season_count':len(resolved),'resolved_leagues':sorted({x['provider_league_name'] for x in resolved}),'production_eligible':False,'betting_eligible':False}
+          (out/'selected50-provider-season-registry.json').write_text(json.dumps(registry,indent=2,ensure_ascii=False)+'\n')
+          summary={'selected_leagues':50,'resolved_provider_seasons':len(resolved),'planned_requests':len(tasks),'api_calls_this_run':1,'raw_provider_payload_persisted':False,'production_eligible':False,'betting_eligible':False}
+          (out/'selected50-catalogue-resolution-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
+          print(json.dumps(summary,indent=2))
+
+      - name: Commit sanitized Selected-50 plan to governed research branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/footystats/selected50-full-ingestion-manifest.csv data/footystats/selected50-provider-season-registry.json data/footystats/selected50-catalogue-resolution-summary.json data/footystats/selected50-catalogue-resolution-failures.json 2>/dev/null || true
+          git commit -m "data: resolve exact FootyStats Selected-50 catalogue" || true
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "${GOVERNED_BRANCH}"
+            git rebase "origin/${GOVERNED_BRANCH}" || { git rebase --abort || true; sleep $((attempt*2)); continue; }
+            git push origin "HEAD:${GOVERNED_BRANCH}" && exit 0
+            sleep $((attempt*2))
+          done
+          echo '::error::Could not publish the sanitized Selected-50 plan safely.'
+          exit 1
+
+      - name: Upload sanitized resolver evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: footystats-selected50-catalogue-resolver-${{ github.run_id }}
+          path: |
+            data/footystats/selected50-full-ingestion-manifest.csv
+            data/footystats/selected50-provider-season-registry.json
+            data/footystats/selected50-catalogue-resolution-summary.json
+            data/footystats/selected50-catalogue-resolution-failures.json
+          if-no-files-found: warn
+          retention-days: 30
