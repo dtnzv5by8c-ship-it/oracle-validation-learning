@@ -2,8 +2,10 @@ import pathlib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-INGESTION = ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml"
+LEGACY_INGESTION = ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml"
 OMI_REPAIR = ROOT / ".github" / "workflows" / "oracle-selected50-market-intelligence-repair.yml"
+RESOLVER = ROOT / ".github" / "workflows" / "footystats-selected50-catalogue-resolver.yml"
+RETIRED_GATEWAY = ROOT / ".github" / "workflows" / "footystats-global-budgeted-endpoint-preflight.yml"
 PROTECTED_WRITE_WORKFLOWS = (
     ROOT / ".github" / "workflows" / "audit-private-footystats-history-h2h.yml",
     ROOT / ".github" / "workflows" / "build-oracle-league-acquisition-tracker.yml",
@@ -11,35 +13,34 @@ PROTECTED_WRITE_WORKFLOWS = (
 
 
 class FootyStatsIngestionWorkflowContractTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.workflow = INGESTION.read_text(encoding="utf-8")
-
     def test_legacy_ingestion_is_manual_only_and_fail_closed(self):
-        trigger = self.workflow.split("permissions:", 1)[0]
+        workflow = LEGACY_INGESTION.read_text(encoding="utf-8")
+        trigger = workflow.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotIn("\n  push:", trigger)
-        self.assertIn("DISABLED", self.workflow)
-        self.assertIn("Refuse legacy ingestion path", self.workflow)
-        self.assertIn("exit 1", self.workflow)
+        self.assertIn("DISABLED", workflow)
+        self.assertIn("Refuse legacy ingestion path", workflow)
+        self.assertIn("exit 1", workflow)
 
     def test_legacy_workflow_cannot_read_provider_or_private_destination_secrets(self):
-        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", self.workflow)
-        self.assertNotIn("secrets.ORACLE_PRIVATE_REPO_TOKEN", self.workflow)
-        self.assertNotIn("FOOTYSTATS_API_KEY", self.workflow)
-        self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.workflow)
+        workflow = LEGACY_INGESTION.read_text(encoding="utf-8")
+        for marker in ("secrets.FOOTYSTATS_API_KEY", "secrets.ORACLE_PRIVATE_REPO_TOKEN",
+                       "FOOTYSTATS_API_KEY", "ORACLE_PRIVATE_REPO_TOKEN"):
+            self.assertNotIn(marker, workflow)
 
     def test_legacy_workflow_cannot_call_provider_or_write_protected_repository(self):
-        self.assertNotIn("api.football-data-api.com", self.workflow)
-        self.assertNotIn("gh release create", self.workflow)
-        self.assertNotIn("gh release upload", self.workflow)
-        self.assertNotIn("gh release download", self.workflow)
-        self.assertNotIn("oracle-football-data", self.workflow.split("run: |", 1)[-1].split("exit 1", 1)[0].replace("This legacy ingestion workflow is disabled. It must not call FootyStats or write to oracle-football-data.", ""))
+        workflow = LEGACY_INGESTION.read_text(encoding="utf-8")
+        self.assertNotIn("api.football-data-api.com", workflow)
+        self.assertNotIn("gh release create", workflow)
+        self.assertNotIn("gh release upload", workflow)
+        self.assertNotIn("gh release download", workflow)
+        self.assertNotIn("oracle-football-data", workflow)
 
     def test_disabled_workflow_uses_read_only_permissions(self):
-        self.assertIn("permissions:", self.workflow)
-        self.assertIn("contents: read", self.workflow)
-        self.assertNotIn("contents: write", self.workflow)
+        workflow = LEGACY_INGESTION.read_text(encoding="utf-8")
+        self.assertIn("permissions:", workflow)
+        self.assertIn("contents: read", workflow)
+        self.assertNotIn("contents: write", workflow)
 
 
 class ProtectedRepositoryWriteWorkflowContractTests(unittest.TestCase):
@@ -57,21 +58,15 @@ class ProtectedRepositoryWriteWorkflowContractTests(unittest.TestCase):
 
     def test_protected_repository_workflows_cannot_read_secrets_or_write_releases(self):
         forbidden = (
-            "secrets.ORACLE_PRIVATE_REPO_TOKEN",
-            "secrets.FOOTYSTATS_API_KEY",
-            "ORACLE_PRIVATE_REPO_TOKEN",
-            "FOOTYSTATS_API_KEY",
-            "gh release download",
-            "gh release create",
-            "gh release upload",
-            "api.football-data-api.com",
-            "git push",
-            "contents: write",
+            "secrets.ORACLE_PRIVATE_REPO_TOKEN", "secrets.FOOTYSTATS_API_KEY",
+            "ORACLE_PRIVATE_REPO_TOKEN", "FOOTYSTATS_API_KEY",
+            "gh release download", "gh release create", "gh release upload",
+            "api.football-data-api.com", "git push", "contents: write",
         )
         for path in PROTECTED_WRITE_WORKFLOWS:
-            with self.subTest(workflow=path.name):
-                content = path.read_text(encoding="utf-8")
-                for marker in forbidden:
+            content = path.read_text(encoding="utf-8")
+            for marker in forbidden:
+                with self.subTest(workflow=path.name, marker=marker):
                     self.assertNotIn(marker, content)
 
 
@@ -85,95 +80,49 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("all FootyStats requests must use the governed global rolling-hour budget workflow", content)
         self.assertIn("write_selected50_unqueried_actual_results.py", content)
 
-
-
-class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
-    def setUp(self):
-        self.central = ROOT / ".github" / "workflows" / "footystats-global-budgeted-endpoint-preflight.yml"
-        self.content = self.central.read_text(encoding="utf-8")
-
-    def test_single_central_gateway_is_manual_and_serialized(self):
-        trigger = self.content.split("permissions:", 1)[0]
+    def test_retired_global_gateway_is_fail_closed(self):
+        content = RETIRED_GATEWAY.read_text(encoding="utf-8")
+        trigger = content.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
         self.assertNotIn("\n  push:", trigger)
-        self.assertNotIn("\n  schedule:", trigger)
-        self.assertIn("group: footystats-global-api-gateway", self.content)
-        self.assertIn("cancel-in-progress: false", self.content)
-        self.assertIn("confirm_provider_api_usage:", self.content)
-        self.assertIn("default: true", self.content)
-        self.assertIn("max_requests:", self.content)
-        self.assertIn("default: 1000", self.content)
-        self.assertIn("<= 1500", self.content)
+        self.assertNotIn("api.football-data-api.com", content)
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
+        self.assertIn("exit 1", content)
 
-    def test_reservation_is_committed_before_the_only_api_executor(self):
-        reserve_step = self.content.index("Reserve global rolling-hour request budget before any provider call")
-        commit_step = self.content.index("Commit durable reservation before provider access")
-        execute_step = self.content.index("Run sanitized endpoint and field preflight")
-        self.assertLess(reserve_step, commit_step)
-        self.assertLess(commit_step, execute_step)
-        self.assertIn("footystats_budgeted_endpoint_preflight.py reserve", self.content)
-        self.assertIn("footystats_budgeted_endpoint_preflight.py execute", self.content)
+    def test_selected50_resolver_is_the_single_public_provider_caller(self):
+        content = RESOLVER.read_text(encoding="utf-8")
+        trigger = content.split("permissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", trigger)
+        self.assertNotIn("\n  push:", trigger)
+        self.assertIn("group: footystats-selected50-catalogue-resolver", content)
+        self.assertIn("cancel-in-progress: false", content)
+        self.assertIn("secrets.FOOTYSTATS_API_KEY", content)
+        self.assertIn("chosen_leagues_only", content)
+        self.assertIn("'false'", content)
+        self.assertIn("api_calls_this_run':1", content.replace('"api_calls_this_run":1','api_calls_this_run':1))
+        self.assertIn("raw_provider_payload_persisted", content)
+        self.assertIn("production_eligible", content)
+        self.assertIn("betting_eligible", content)
 
-    def test_gateway_uses_bounded_safe_push_retries_without_force(self):
-        self.assertEqual(self.content.count("for attempt in 1 2 3 4 5"), 2)
-        self.assertIn("git rebase --abort", self.content)
-        self.assertIn("stopping before provider access", self.content)
-        self.assertIn("artifact upload remains available", self.content)
-        self.assertNotIn("git push --force", self.content)
-        self.assertNotIn("git push -f", self.content)
+    def test_resolver_requires_exact_50_and_uses_correct_year_parser(self):
+        content = RESOLVER.read_text(encoding="utf-8")
+        self.assertIn("len(set(x['selected_id'] for x in resolved))!=50", content)
+        self.assertIn("re.findall(r'20\\d{2}',label)", content)
+        self.assertIn("len({x['provider_season_id'] for x in resolved})!=len(resolved)", content)
+        self.assertIn("PLANNED_NOT_EXECUTED", content)
+        self.assertIn("raw_storage_required", content)
 
-    def test_gateway_writes_only_sanitized_ledger_and_preflight_outputs(self):
-        self.assertIn("contents: write", self.content)
-        self.assertIn("rolling-request-ledger.json", self.content)
-        self.assertIn("endpoint-preflight", self.content)
-        self.assertIn("Upload sanitized preflight report and ingestion manifest", self.content)
-        self.assertNotIn("ORACLE_PRIVATE_REPO_TOKEN", self.content)
-        self.assertNotIn("gh release create", self.content)
-        self.assertNotIn("gh release upload", self.content)
-        self.assertNotIn("oracle-football-data", self.content)
-
-    def test_only_the_central_workflow_may_reference_footystats_api_secret_or_host(self):
+    def test_only_resolver_references_public_footystats_api_secret_or_host(self):
         workflow_dir = ROOT / ".github" / "workflows"
-        allowed = self.central.resolve()
+        allowed = RESOLVER.resolve()
+        private_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api.com")
         for path in workflow_dir.glob("*.yml"):
-            content = path.read_text(encoding="utf-8")
             if path.resolve() == allowed:
                 continue
-            with self.subTest(workflow=path.name):
-                self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
-                self.assertNotIn("api.football-data-api.com", content)
-
-    def test_preflight_and_checkpoint_scripts_are_offline_safe_with_respect_to_raw_storage(self):
-        script = (ROOT / "scripts" / "footystats_budgeted_endpoint_preflight.py").read_text(encoding="utf-8")
-        self.assertIn('"raw_payloads_persisted": False', script)
-        self.assertIn('"production_eligible": False', script)
-        self.assertIn('"betting_eligible": False', script)
-        self.assertIn("QUARANTINED_NO_FIXTURE_LEVEL_CAPTURE_AND_REVISION_PROVENANCE", script)
-        self.assertNotIn("write_text(json.dumps(payload", script)
-        checkpoint_script = (ROOT / "scripts" / "footystats_ingestion_checkpoint.py").read_text(encoding="utf-8")
-        self.assertNotIn("api.football-data-api.com", checkpoint_script)
-        self.assertNotIn("urlopen(", checkpoint_script)
-        self.assertIn('"dispatch_allowed": False', checkpoint_script)
-        self.assertIn("private_archive_write_verified", checkpoint_script)
-
-    def test_gateway_builds_resumable_checkpoint_after_manifest_and_before_commit(self):
-        manifest_step = self.content.index("Build offline full historical ingestion manifest")
-        resume_step = self.content.index("Build offline resumable ingestion checkpoint plan")
-        commit_step = self.content.index("Commit sanitized report and finalized request ledger")
-        self.assertLess(manifest_step, resume_step)
-        self.assertLess(resume_step, commit_step)
-        self.assertIn("footystats_ingestion_checkpoint.py", self.content)
-        self.assertIn("--receipts-jsonl", self.content)
-        self.assertIn("--max-batch-requests 1500", self.content)
-
-    def test_gateway_builds_offline_manifest_after_preflight(self):
-        self.assertIn("Build offline full historical ingestion manifest", self.content)
-        self.assertIn("build_footystats_full_ingestion_manifest.py", self.content)
-        self.assertIn("full-ingestion-manifest", self.content)
-        planner = (ROOT / "scripts" / "build_footystats_full_ingestion_manifest.py").read_text(encoding="utf-8")
-        self.assertIn('"api_requests_made": 0', planner)
-        self.assertIn('"raw_payloads_written": False', planner)
-        self.assertIn('"private_raw_archive_write_required": True', planner)
+            content = path.read_text(encoding="utf-8")
+            for marker in private_patterns:
+                with self.subTest(workflow=path.name, marker=marker):
+                    self.assertNotIn(marker, content)
 
 
 if __name__ == "__main__":
