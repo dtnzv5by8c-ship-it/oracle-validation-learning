@@ -9,7 +9,10 @@ immutable artifact digest, and safety controls.
 """
 from __future__ import annotations
 import argparse, hashlib, json
+from datetime import date, datetime, timezone
 from pathlib import Path
+
+MAX_BOUNDED_REQUESTS = 100
 
 REQUIRED = {
     "schema_version","gateway_id","provider","archive_ref","archive_sha256",
@@ -35,9 +38,21 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if receipt.get("universe_name") != "Oracle-60-League": e.append("universe_not_60_league")
     if receipt.get("expected_leagues") != 60: e.append("expected_leagues_not_60")
     if str(receipt.get("historical_start")) != "2024-01-01": e.append("historical_start_not_2024")
-    if receipt.get("historical_end") not in ("current", None) and not str(receipt.get("historical_end","")).startswith("2026-"): e.append("historical_end_not_current")
-    if not receipt.get("gateway_id"): e.append("gateway_id_missing")
-    if not receipt.get("archive_ref"): e.append("archive_ref_missing")
+    historical_end = str(receipt.get("historical_end") or "").strip()
+    if historical_end != "current":
+        try:
+            end_date = date.fromisoformat(historical_end)
+            start_date = date.fromisoformat("2024-01-01")
+            today = datetime.now(timezone.utc).date()
+            if end_date < start_date or end_date > today:
+                e.append("historical_end_out_of_range")
+        except ValueError:
+            e.append("historical_end_invalid")
+    if not str(receipt.get("gateway_id") or "").startswith("approved-private-gateway"):
+        e.append("gateway_id_not_approved")
+    archive_ref = str(receipt.get("archive_ref") or "").strip()
+    if not archive_ref.startswith("private://"):
+        e.append("archive_ref_not_private")
     if not receipt.get("batch_id"): e.append("batch_id_missing")
     for k in ("requested_rows","received_rows","request_count"):
         try:
@@ -45,7 +60,11 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
         except (TypeError,ValueError): e.append(k+"_invalid")
     if int(receipt.get("received_rows",0) or 0) > int(receipt.get("requested_rows",0) or 0):
         e.append("received_rows_exceeds_requested_rows")
+    if int(receipt.get("requested_rows",0) or 0) <= 0: e.append("requested_rows_not_positive")
+    if int(receipt.get("received_rows",0) or 0) <= 0: e.append("received_rows_not_positive")
     if int(receipt.get("request_count",0) or 0) <= 0: e.append("request_count_not_bounded_positive")
+    elif int(receipt.get("request_count",0) or 0) > MAX_BOUNDED_REQUESTS:
+        e.append("request_count_exceeds_bounded_limit")
     if receipt.get("raw_provider_payload_persisted_publicly") is not False: e.append("raw_provider_payload_public_visibility_not_false")
     if receipt.get("credentials_persisted_publicly") is not False: e.append("credentials_public_visibility_not_false")
     if receipt.get("production_eligible") is not False: e.append("production_eligible_must_be_false")
