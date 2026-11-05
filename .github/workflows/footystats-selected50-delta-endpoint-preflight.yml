@@ -95,7 +95,7 @@ jobs:
       - name: Run exact 20-season delta endpoint and field preflight
         shell: bash
         env:
-          FOOTYSTATS_API_KEY: \${{ secrets.FOOTYSTATS_API_KEY }}
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
         run: |
           set -euo pipefail
           python - /tmp/delta-seasons.json "$SELECTED_PLAN" "$MAX_REQUESTS" <<'PY'
