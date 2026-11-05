@@ -124,32 +124,50 @@ jobs:
               # Use the same Python urllib transport that powered the prior
               # 910-request FootyStats preflight. Keep provider payloads in memory
               # only and publish sanitized status/field evidence.
-              from urllib.error import HTTPError, URLError
+              # Use curl over HTTP/1.1 with an explicit empty Expect header.
+              # This avoids intermediary/proxy 417 responses seen with the previous
+              # urllib transport while keeping the provider payload runner-private.
               from urllib.parse import urlencode
-              from urllib.request import Request, urlopen
+              import hashlib,subprocess,tempfile
               query=dict(q)
               url="https://api.football-data-api.com/"+endpoint+"?"+urlencode(query)
-              request=Request(url, headers={"Accept":"application/json","User-Agent":"Project-Oracle-Research/1.0"})
-              try:
-                  with urlopen(request, timeout=30) as response:
-                      status=int(getattr(response,"status",200))
-                      body=response.read()
-              except HTTPError as exc:
-                  status=int(exc.code)
-                  body=b""
-              except (URLError, TimeoutError, OSError) as exc:
-                  raise RuntimeError(f"Provider transport failure ({type(exc).__name__}); fail-closed.")
-              if status != 200:
-                  category="UNEXPECTED_PROVIDER_STATUS"
-                  if status in (401,403):
-                      category="AUTHENTICATION_OR_ENTITLEMENT"
-                  elif status==417:
-                      category="UPSTREAM_EXPECTATION_OR_PROXY"
-                  elif 400 <= status < 500:
-                      category="PROVIDER_CLIENT_REQUEST_REJECTION"
-                  elif status >= 500:
-                      category="PROVIDER_UPSTREAM_FAILURE"
-                  raise RuntimeError(f"Provider HTTP {status} ({category}); fail-closed.")
+              with tempfile.TemporaryDirectory() as td:
+                  body_path=Path(td)/"body"
+                  header_path=Path(td)/"headers"
+                  proc=subprocess.run(
+                      ["curl","--silent","--show-error","--http1.1","--connect-timeout","10",
+                       "--max-time","30","--retry","0","-H","Accept: application/json",
+                       "-H","User-Agent: Project-Oracle-Research/1.0","-H","Expect:",
+                       "-D",str(header_path),"-o",str(body_path),"-w","%{http_code}",url],
+                      text=True,capture_output=True,check=False
+                  )
+                  if proc.returncode!=0:
+                      raise RuntimeError(f"Provider transport failure (curl_exit_{proc.returncode}); fail-closed.")
+                  status=int(proc.stdout.strip() or "0")
+                  body=body_path.read_bytes() if body_path.exists() else b""
+                  if status != 200:
+                      # Never publish provider body. Record only non-sensitive transport metadata.
+                      headers={}
+                      if header_path.exists():
+                          for line in header_path.read_text(errors="replace").splitlines():
+                              if ":" in line:
+                                  k,v=line.split(":",1)
+                                  if k.lower() in {"server","via","content-type","content-length","x-request-id","cf-ray"}:
+                                      headers[k.lower()]=v.strip()
+                      digest=hashlib.sha256(body).hexdigest()
+                      category="UNEXPECTED_PROVIDER_STATUS"
+                      if status in (401,403):
+                          category="AUTHENTICATION_OR_ENTITLEMENT"
+                      elif status==417:
+                          category="UPSTREAM_EXPECTATION_OR_PROXY"
+                      elif 400 <= status < 500:
+                          category="PROVIDER_CLIENT_REQUEST_REJECTION"
+                      elif status >= 500:
+                          category="PROVIDER_UPSTREAM_FAILURE"
+                      raise RuntimeError(
+                          f"Provider HTTP {status} ({category}); fail-closed; "
+                          f"body_sha256={digest}; body_bytes={len(body)}; transport_headers={headers}"
+                      )
               try:
                   payload=json.loads(body.decode("utf-8"))
               except (UnicodeDecodeError, json.JSONDecodeError):
