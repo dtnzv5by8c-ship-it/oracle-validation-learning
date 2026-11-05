@@ -10,13 +10,11 @@
   "provider": "FootyStats",
   "reservations": [
     {
-      "reservation_id": "delta-1793892547-42055414397-1",
-      "reserved_at_epoch": 1793892547.3409932,
-      "expires_at_epoch": 1793896147.3409932,
+      "reservation_id": "delta-1793892706-42055869598-1",
+      "reserved_at_epoch": 1793892706.7101653,
+      "expires_at_epoch": 1793896306.7101653,
       "reserved_count": 100,
-      "status": "ABORTED_NO_PROVIDER_REQUESTS",
-      "observed_actual_requests": 0,
-      "aborted_at_utc": "2026-11-05T15:29:09Z"
+      "status": "RESERVED"
     }
   ],
   "reserved_headroom": 300,
@@ -47,5 +45,5 @@
       "reconciled_at_utc": "2026-11-04T17:44:24Z"
     }
   ],
-  "last_updated_epoch": 1793892549
+  "last_updated_epoch": 1793892706.7101653
 }
