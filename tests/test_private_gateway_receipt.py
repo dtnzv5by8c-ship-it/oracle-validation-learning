@@ -30,4 +30,12 @@ with tempfile.TemporaryDirectory() as td:
     assert "raw_provider_payload_public_visibility_not_false" in m.validate(bad,a)
     bad=dict(r); bad["archive_sha256"]="1"*64
     assert "archive_sha256_mismatch" in m.validate(bad,a)
+    bad=dict(r); bad["archive_ref"]="https://public.example/archive.zip"
+    assert "archive_ref_not_private" in m.validate(bad,a)
+    bad=dict(r); bad["gateway_id"]="public-gateway-v1"
+    assert "gateway_id_not_approved" in m.validate(bad,a)
+    bad=dict(r); bad["request_count"]=101
+    assert "request_count_exceeds_bounded_limit" in m.validate(bad,a)
+    bad=dict(r); bad["historical_end"]="2027-01-01"
+    assert "historical_end_out_of_range" in m.validate(bad,a)
 print("PASS: private gateway receipt contract regression tests")
