@@ -50,8 +50,13 @@ def validate_manifest(rows, expected_universe=60):
     if any(not x for x in ids): errors.append("blank_league_id")
     if len(set(ids))!=len(ids): errors.append("duplicate_league_id")
     for r in rows:
-        for k in ("league_id","league_name"):
-            if not str(r.get(k) or r.get("selected_id" if k=="league_id" else "league") or "").strip():
+        for k, aliases in {
+            "league_id": ("league_id","selected_id"),
+            "league_name": ("league_name","league"),
+            "provider_league_id": ("provider_league_id","provider_competition_id","provider_id"),
+            "provider_league_name": ("provider_league_name","provider_competition_name"),
+        }.items():
+            if not any(str(r.get(a) or "").strip() for a in aliases):
                 errors.append(f"missing_{k}")
         season=str(r.get("season") or r.get("season_start_year") or "")
         try: y=int(season[:4])
@@ -86,7 +91,9 @@ def validate_omi(rows, manifest_ids):
                 errors.append(f"row{i}:bad_probability:{f}"); stats["bad_probability"]+=1
         for f in ("Recent Form (5)","League Position","H2H Last-5",
                   "Home Expected Goals Lambda","Away Expected Goals Lambda"):
-            if not str(r.get(f) or "").strip(): stats["missing_feature"]+=1
+            if not str(r.get(f) or "").strip():
+            stats["missing_feature"]+=1
+            errors.append(f"row{i}:missing_feature:{f}")
         rt=dt(r.get("retrieved_utc"))
         if not rt: errors.append(f"row{i}:missing_or_invalid_retrieved_utc"); stats["stale_or_missing_retrieved"]+=1
         for f in ("actual_home_goals","actual_away_goals","actual_total_goals"):
