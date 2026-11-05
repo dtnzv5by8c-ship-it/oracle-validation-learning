@@ -16,7 +16,9 @@
       "reserved_at_epoch": 1793901291.3624456,
       "expires_at_epoch": 1793904891.3624456,
       "reserved_count": 100,
-      "status": "RESERVED"
+      "status": "ABORTED",
+      "observed_actual_requests": 1,
+      "completed_at_epoch": 1793901293.0705
     }
   ],
   "reserved_headroom": 300,
