@@ -1,0 +1,16 @@
+name: Oracle OMI 60-League Readiness Contract
+on:
+  push:
+    branches: [research/oracle-50-league-readiness-audit]
+    paths:
+      - "scripts/validate_omi_universe_readiness.py"
+      - "tests/test_omi_universe_readiness.py"
+      - "config/omi_market_intelligence_schema_v1.json"
+  workflow_dispatch:
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run offline OMI readiness unit tests
+        run: python tests/test_omi_universe_readiness.py
