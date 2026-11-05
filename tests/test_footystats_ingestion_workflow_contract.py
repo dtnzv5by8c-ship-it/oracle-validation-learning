@@ -110,12 +110,18 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertIn("production_eligible", content)
         self.assertIn("betting_eligible", content)
 
-    def test_only_private_controlled_workflow_can_reference_provider_secret_or_host(self):
+    def test_only_approved_central_gateway_can_reference_provider_secret_or_host(self):
         workflow_dir = ROOT / ".github" / "workflows"
-        private_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api")
+        provider_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api.com")
         for path in workflow_dir.glob("*.yml"):
             content = path.read_text(encoding="utf-8")
-            for marker in private_patterns:
+            if path == DELTA_GATEWAY:
+                self.assertIn("secrets.FOOTYSTATS_API_KEY", content)
+                self.assertIn("api.football-data-api.com", content)
+                self.assertIn("group: footystats-global-api-gateway", content)
+                self.assertIn('MAX_REQUESTS: "100"', content)
+                continue
+            for marker in provider_patterns:
                 with self.subTest(workflow=path.name, marker=marker):
                     self.assertNotIn(marker, content)
 
