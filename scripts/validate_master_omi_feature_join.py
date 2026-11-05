@@ -5,7 +5,7 @@ This contract validates reporting completeness only. It never calls providers,
 recalculates Oracle probabilities, or changes Oracle V1.6 logic.
 """
 from __future__ import annotations
-import argparse,csv,json
+import argparse,csv,json\nfrom datetime import datetime
 from pathlib import Path
 
 FEATURE_FIELDS=(
