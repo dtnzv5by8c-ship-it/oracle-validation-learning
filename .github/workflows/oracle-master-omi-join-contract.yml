@@ -1,0 +1,42 @@
+name: Oracle Master OMI Exact-ID Join Contract
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/validate_master_omi_join_contract.py"
+      - "tests/test_master_omi_join_contract.py"
+      - ".github/workflows/oracle-master-omi-join-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Run standard-library regression suite
+        run: python tests/test_master_omi_join_contract.py
+      - name: Run synthetic end-to-end contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          cat > "$tmp/oracle.csv" <<'CSV'
+fixture_id,league_id,season_id,kickoff_utc,home_team_id,away_team_id,win_probability,draw_probability
+F1,L1,S1,2026-11-01T18:00:00+00:00,H1,A1,61,24
+CSV
+          cat > "$tmp/features.csv" <<'CSV'
+fixture_id,home_team_id,away_team_id,recent_form_home,recent_form_away,league_position_home,league_position_away,h2h_count,home_xg,away_xg,btts_probability,feature_asof_utc
+F1,H1,A1,WWDWL,LDWLL,2,9,5,1.72,1.03,58,2026-11-01T17:00:00+00:00
+CSV
+          cat > "$tmp/actuals.csv" <<'CSV'
+fixture_id,actual_home_goals,actual_away_goals,result
+F1,2,1,HOME
+CSV
+          python scripts/validate_master_omi_join_contract.py             --oracle "$tmp/oracle.csv"             --features "$tmp/features.csv"             --actuals "$tmp/actuals.csv"             --out "$tmp/joined.csv"
