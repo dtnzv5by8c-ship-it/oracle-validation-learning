@@ -1,0 +1,28 @@
+name: Oracle Selected-50 Historical Readiness Contract
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - 'scripts/validate_selected50_historical_readiness_contract.py'
+      - 'tests/test_selected50_historical_readiness_contract.py'
+      - 'data/oracle-footystats-selected-50-season-id-manifest.csv'
+      - 'reports/oracle-50-league-provider-canonical-crosswalk-readiness-2026-10-25-r17.csv'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  historical-readiness-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run fail-closed contract tests
+        run: |
+          python -m pytest -q tests/test_selected50_historical_readiness_contract.py
+          python scripts/validate_selected50_historical_readiness_contract.py
