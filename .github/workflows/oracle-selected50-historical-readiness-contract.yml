@@ -5,6 +5,7 @@ on:
     branches:
       - research/oracle-50-league-readiness-audit
     paths:
+      - '.github/workflows/oracle-selected50-historical-readiness-contract.yml'
       - 'scripts/validate_selected50_historical_readiness_contract.py'
       - 'tests/test_selected50_historical_readiness_contract.py'
       - 'data/oracle-footystats-selected-50-season-id-manifest.csv'
