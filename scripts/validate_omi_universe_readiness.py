@@ -92,8 +92,8 @@ def validate_omi(rows, manifest_ids):
         for f in ("Recent Form (5)","League Position","H2H Last-5",
                   "Home Expected Goals Lambda","Away Expected Goals Lambda"):
             if not str(r.get(f) or "").strip():
-            stats["missing_feature"]+=1
-            errors.append(f"row{i}:missing_feature:{f}")
+                stats["missing_feature"]+=1
+                errors.append(f"row{i}:missing_feature:{f}")
         rt=dt(r.get("retrieved_utc"))
         if not rt: errors.append(f"row{i}:missing_or_invalid_retrieved_utc"); stats["stale_or_missing_retrieved"]+=1
         for f in ("actual_home_goals","actual_away_goals","actual_total_goals"):
