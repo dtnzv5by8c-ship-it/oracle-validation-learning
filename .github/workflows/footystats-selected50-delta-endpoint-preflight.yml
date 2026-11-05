@@ -121,47 +121,42 @@ jobs:
               timestamps.append(now); count[0]+=1
               persist_timestamps()
               q=dict(params); q["key"]=key
-              # Mirror the documented FootyStats GET contract: HTTP/1.1, no custom
-              # expectation/header negotiation, and ordinary query-string encoding.
-              # Capture status and a sanitized error classification separately from
-              # the response body so provider payloads never enter public logs.
-              fd,body_path=tempfile.mkstemp(prefix="oracle-fs-body-",suffix=".json")
-              os.close(fd)
-              fd,header_path=tempfile.mkstemp(prefix="oracle-fs-headers-",suffix=".txt")
-              os.close(fd)
+              # Use the same Python urllib transport that powered the prior
+              # 910-request FootyStats preflight. Keep provider payloads in memory
+              # only and publish sanitized status/field evidence.
+              from urllib.error import HTTPError, URLError
+              from urllib.parse import urlencode
+              from urllib.request import Request, urlopen
+              query=dict(q)
+              url="https://api.football-data-api.com/"+endpoint+"?"+urlencode(query)
+              request=Request(url, headers={"Accept":"application/json","User-Agent":"Project-Oracle-Research/1.0"})
               try:
-                  cmd=["curl","--silent","--show-error","--location","--http1.1",
-                       "-H","Accept: application/json","-H","Expect:",
-                       "-G","https://api.football-data-api.com/"+endpoint]
-                  for k,v in q.items():
-                      cmd += ["--data-urlencode",f"{k}={v}"]
-                  cmd += ["--connect-timeout","20","--max-time","60",
-                          "-D",header_path,"-o",body_path,"-w","%{http_code}"]
-                  proc=subprocess.run(cmd,text=True,capture_output=True,check=False)
-                  if proc.returncode != 0:
-                      raise RuntimeError(f"Provider transport/curl failure rc={proc.returncode}; fail-closed.")
-                  status_text=proc.stdout.strip()
-                  try: status=int(status_text)
-                  except ValueError: raise RuntimeError("Provider HTTP status was not captured; fail-closed.")
-                  if status != 200:
-                      body=Path(body_path).read_text(encoding="utf-8",errors="replace").lower()
-                      if status in (401,403) or "invalid api key" in body or "authentication" in body:
-                          category="AUTHENTICATION_OR_ENTITLEMENT"
-                      elif status==417:
-                          category="UPSTREAM_EXPECTATION_OR_PROXY"
-                      elif 400 <= status < 500:
-                          category="PROVIDER_CLIENT_REQUEST_REJECTION"
-                      elif status >= 500:
-                          category="PROVIDER_UPSTREAM_FAILURE"
-                      else:
-                          category="UNEXPECTED_PROVIDER_STATUS"
-                      raise RuntimeError(f"Provider HTTP {status} ({category}); fail-closed.")
-                  body=Path(body_path).read_text(encoding="utf-8",errors="replace")
-                  try: payload=json.loads(body)
-                  except json.JSONDecodeError: raise RuntimeError("Provider returned malformed JSON; fail-closed.")
-                  if not isinstance(payload,dict) or payload.get("success") is not True:
-                      raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
-                  return payload
+                  with urlopen(request, timeout=30) as response:
+                      status=int(getattr(response,"status",200))
+                      body=response.read()
+              except HTTPError as exc:
+                  status=int(exc.code)
+                  body=b""
+              except (URLError, TimeoutError, OSError) as exc:
+                  raise RuntimeError(f"Provider transport failure ({type(exc).__name__}); fail-closed.")
+              if status != 200:
+                  category="UNEXPECTED_PROVIDER_STATUS"
+                  if status in (401,403):
+                      category="AUTHENTICATION_OR_ENTITLEMENT"
+                  elif status==417:
+                      category="UPSTREAM_EXPECTATION_OR_PROXY"
+                  elif 400 <= status < 500:
+                      category="PROVIDER_CLIENT_REQUEST_REJECTION"
+                  elif status >= 500:
+                      category="PROVIDER_UPSTREAM_FAILURE"
+                  raise RuntimeError(f"Provider HTTP {status} ({category}); fail-closed.")
+              try:
+                  payload=json.loads(body.decode("utf-8"))
+              except (UnicodeDecodeError, json.JSONDecodeError):
+                  raise RuntimeError("Provider returned malformed JSON; fail-closed.")
+              if not isinstance(payload,dict) or payload.get("success") is not True:
+                  raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
+              return payload
               finally:
                   for path in (body_path,header_path):
                       try: os.unlink(path)
