@@ -157,10 +157,6 @@ jobs:
               if not isinstance(payload,dict) or payload.get("success") is not True:
                   raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
               return payload
-              finally:
-                  for path in (body_path,header_path):
-                      try: os.unlink(path)
-                      except FileNotFoundError: pass
           for sid in d["missing"]:
               row=meta[sid]
               matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
