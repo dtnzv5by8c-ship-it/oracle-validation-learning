@@ -4,6 +4,7 @@
 - Repository: `dtnzv5by8c-ship-it/oracle-validation-learning`
 - Branch: `research/oracle-50-league-readiness-audit`
 - Starting checkpoint: `22fb80653fd64227624f9ae1a841ea20f915533c`
+- Final implementation checkpoint: `9c489c97b8cd01f8b862b501bd75a0b806561fc4`
 - Governed universe: 50 selected league/season IDs; existing plan remains 182 provider seasons / 728 planned endpoint tasks.
 - Oracle V1.6 production logic, probabilities, thresholds, calibration and governance were not changed.
 
@@ -37,7 +38,7 @@ The contract is intentionally expected to remain BLOCKED at this checkpoint beca
 - the per-season historical evidence layer has not yet been admitted;
 - canonical crosswalk rows are still research candidates rather than blanket production approvals.
 
-The selected-50 dry-run planner and existing safety contract suite continue to pass their completed checks; the current provider transport blocker remains HTTP 417/Cloudflare and is not bypassed.
+The selected-50 dry-run planner and existing safety contract suite passed on the implementation checkpoint; the new historical-readiness contract also passed. The first contract workflow attempt failed only because the runner image did not include pytest; that dependency was removed and the corrected run passed. The current provider transport blocker remains HTTP 417/Cloudflare and is not bypassed.
 
 ## Admission sequence
 Do not dispatch the 728-task historical ingestion yet.
