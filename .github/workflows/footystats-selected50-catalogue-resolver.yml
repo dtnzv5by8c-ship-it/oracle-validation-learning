@@ -57,7 +57,7 @@ jobs:
               continue
             league=candidates[0]
             for s in league.get('season',[]) or []:
-              label=str(s.get('year') or '').strip(); sid=str(s.get('id') or '').strip(); years=[int(x) for x in re.findall(r'20\\d{2}',label)]
+              label=str(s.get('year') or '').strip(); sid=str(s.get('id') or '').strip(); years=[int(x) for x in re.findall(r'20\d{2}',label)]
               if sid and years and any(2024<=y<=2026 for y in years):
                 resolved.append({'selected_id':row['selected_id'],'country':c,'competition_name':comp,'provider_league_name':league['name'],'provider_season_label':label,'provider_season_id':sid})
           if failures or len(set(x['selected_id'] for x in resolved))!=50: 
