@@ -77,6 +77,8 @@ jobs:
           git add "$LEDGER_PATH"
           git commit -m "ops: reserve 100-call Selected-50 delta preflight $GITHUB_RUN_ID"
           git push
+          mkdir -p data/footystats/delta-preflight
+          printf '[]\n' > data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json
 
       - name: Run exact 20-season delta endpoint and field preflight
         shell: bash
@@ -96,10 +98,9 @@ jobs:
           d=json.loads(Path(delta_path).read_text())
           plan=list(csv.DictReader(Path(plan_path).open(encoding="utf-8")))
           meta={r["provider_season_id"]:r for r in plan if r["endpoint"]=="league-matches"}
-          results=[]; timestamps=[]; count=0
+          results=[]; timestamps=[]; count=[0]
           def call(endpoint,params):
-              nonlocal count
-              if count>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
+              if count[0]>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
               if sum(1 for t in timestamps if time.time()-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
               q=dict(params); q["key"]=key
               try:
@@ -108,7 +109,7 @@ jobs:
               except HTTPError as e:
                   raise RuntimeError(f"Provider HTTP {e.code}; fail-closed.")
               if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
-              count+=1; timestamps.append(time.time()); return payload
+              count[0]+=1; timestamps.append(time.time()); return payload
           for sid in d["missing"]:
               row=meta[sid]
               matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
@@ -128,10 +129,10 @@ jobs:
               detail_ok=isinstance(detail,dict) and isinstance(detail.get("data"),(dict,list))
               results.append({"provider_season_id":sid,"provider_league_name":row["provider_league_name"],"provider_season_label":row["provider_season_label"],"matches_page_count":max_page,"matches_row_count":len(md),"match_identity_fields_complete":match_field_complete,"match_ids_unique":len(ids)==len(set(ids)),"team_rows":len(td),"team_identity_fields_complete":team_field_complete,"match_detail_sample_success":detail_ok,"required_endpoint_fields_viable":bool(match_field_complete and team_field_complete and ids and detail_ok)})
           out=Path("data/footystats/delta-preflight"); out.mkdir(parents=True,exist_ok=True)
-          summary={"status":"PASS_SELECTED50_DELTA_PREFLIGHT_RESEARCH_ONLY","selected50_seasons":182,"prior_preflight_seasons":182,"delta_seasons":20,"endpoint_checks_per_season":5,"provider_requests":count,"required_endpoint_field_viable_seasons":sum(1 for r in results if r["required_endpoint_fields_viable"]),"production_eligible":False,"betting_eligible":False,"raw_provider_payload_persisted":False}
+          summary={"status":"PASS_SELECTED50_DELTA_PREFLIGHT_RESEARCH_ONLY","selected50_seasons":182,"prior_preflight_seasons":182,"delta_seasons":20,"endpoint_checks_per_season":5,"provider_requests":count[0],"required_endpoint_field_viable_seasons":sum(1 for r in results if r["required_endpoint_fields_viable"]),"production_eligible":False,"betting_eligible":False,"raw_provider_payload_persisted":False}
           (out/"selected50-delta-preflight-results.json").write_text(json.dumps({"summary":summary,"results":results},indent=2)+"\n")
           (out/"selected50-delta-preflight-timestamps.json").write_text(json.dumps(timestamps,indent=2)+"\n")
-          if count!=100 or summary["required_endpoint_field_viable_seasons"]!=20: raise SystemExit("Delta preflight did not establish all required endpoint/field gates.")
+          if count[0]!=100 or summary["required_endpoint_field_viable_seasons"]!=20: raise SystemExit("Delta preflight did not establish all required endpoint/field gates.")
           print(json.dumps(summary,indent=2))
           PY
 
