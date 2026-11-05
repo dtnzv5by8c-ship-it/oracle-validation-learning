@@ -89,36 +89,30 @@ class CentralFootyStatsBudgetWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
         self.assertIn("exit 1", content)
 
-    def test_selected50_resolver_is_the_single_public_provider_caller(self):
+    def test_selected50_plan_promoter_is_zero_call_and_persists_verified_plan(self):
         content = RESOLVER.read_text(encoding="utf-8")
         trigger = content.split("permissions:", 1)[0]
         self.assertIn("workflow_dispatch:", trigger)
-        self.assertNotIn("\n  push:", trigger)
-        self.assertIn("group: footystats-selected50-catalogue-resolver", content)
-        self.assertIn("cancel-in-progress: false", content)
-        self.assertIn("secrets.FOOTYSTATS_API_KEY", content)
-        self.assertIn("chosen_leagues_only", content)
-        self.assertIn("'false'", content)
-        self.assertIn("'api_calls_this_run':1", content)
-        self.assertIn("raw_provider_payload_persisted", content)
+        self.assertIn("\n  push:", trigger)
+        self.assertIn("group: footystats-global-plan-promotion", content)
+        self.assertIn("actions: read", content)
+        self.assertNotIn("secrets.FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("FOOTYSTATS_API_KEY", content)
+        self.assertNotIn("api.football-data-api.com", content)
+        self.assertIn('SOURCE_RUN_ID: "42009600284"', content)
+        self.assertIn("SOURCE_ARTIFACT:", content)
+        self.assertIn("gh run download", content)
+        self.assertIn("len(rows)==728", content)
+        self.assertIn("len({r[\"selected_id\"] for r in rows})==50", content)
+        self.assertIn("len({r[\"provider_season_id\"] for r in rows})==182", content)
+        self.assertIn("PLANNED_NOT_EXECUTED", content)
         self.assertIn("production_eligible", content)
         self.assertIn("betting_eligible", content)
 
-    def test_resolver_requires_exact_50_and_uses_correct_year_parser(self):
-        content = RESOLVER.read_text(encoding="utf-8")
-        self.assertIn("len(set(x['selected_id'] for x in resolved))!=50", content)
-        self.assertIn("re.findall(r'20\\d{2}',label)", content)
-        self.assertIn("len({x['provider_season_id'] for x in resolved})!=len(resolved)", content)
-        self.assertIn("PLANNED_NOT_EXECUTED", content)
-        self.assertIn("raw_storage_required", content)
-
-    def test_only_resolver_references_public_footystats_api_secret_or_host(self):
+    def test_only_private_controlled_workflow_can_reference_provider_secret_or_host(self):
         workflow_dir = ROOT / ".github" / "workflows"
-        allowed = RESOLVER.resolve()
-        private_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api.com")
+        private_patterns = ("secrets.FOOTYSTATS_API_KEY", "api.football-data-api")
         for path in workflow_dir.glob("*.yml"):
-            if path.resolve() == allowed:
-                continue
             content = path.read_text(encoding="utf-8")
             for marker in private_patterns:
                 with self.subTest(workflow=path.name, marker=marker):
