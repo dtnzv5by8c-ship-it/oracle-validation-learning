@@ -35,3 +35,8 @@ No provider data was used or fabricated. The historical 2024-current gateway/arc
 
 ## Next action
 When a validated upstream batch is admitted, join the extension to the exact Fixture ID spine, validate confidence/risk provenance and backtest scope, then publish only after the existing 95-column OMI and 68-column Oracle V1.6 contracts pass.
+
+## Test evidence
+The exact committed validator logic was exercised against the regression cases: valid row PASS; confidence 101 BLOCK; risk -1 BLOCK; Oracle win probability 101 BLOCK; zero backtest sample with blank backtest metadata PASS; non-zero sample with missing scope BLOCK; blank Fixture ID BLOCK; duplicate Fixture ID BLOCK. Result: `PASS: OMI reporting extension regression suite`.
+
+A dedicated GitHub Actions workflow was also added at `.github/workflows/oracle-60-league-omi-reporting-extension.yml` to run the same regression suite on changes.
