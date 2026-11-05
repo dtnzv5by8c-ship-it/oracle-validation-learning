@@ -121,33 +121,51 @@ jobs:
               timestamps.append(now); count[0]+=1
               persist_timestamps()
               q=dict(params); q["key"]=key
-              # Use curl HTTP/1.1 and explicitly clear Expect. Capture the HTTP status
-              # separately from the response body so an empty/non-JSON body cannot hide it.
+              # Mirror the documented FootyStats GET contract: HTTP/1.1, no custom
+              # expectation/header negotiation, and ordinary query-string encoding.
+              # Capture status and a sanitized error classification separately from
+              # the response body so provider payloads never enter public logs.
               fd,body_path=tempfile.mkstemp(prefix="oracle-fs-body-",suffix=".json")
               os.close(fd)
+              fd,header_path=tempfile.mkstemp(prefix="oracle-fs-headers-",suffix=".txt")
+              os.close(fd)
               try:
-                  cmd=["curl","--silent","--show-error","--location","--http1.0",
-                       "-H","Accept: application/json","-H","Expect:","-A","Project-Oracle-Selected50-Gateway/2.1",
+                  cmd=["curl","--silent","--show-error","--location","--http1.1",
+                       "-H","Accept: application/json","-H","Expect:",
                        "-G","https://api.football-data-api.com/"+endpoint]
                   for k,v in q.items():
                       cmd += ["--data-urlencode",f"{k}={v}"]
-                  cmd += ["--connect-timeout","20","--max-time","60","-o",body_path,"-w","%{http_code}"]
+                  cmd += ["--connect-timeout","20","--max-time","60",
+                          "-D",header_path,"-o",body_path,"-w","%{http_code}"]
                   proc=subprocess.run(cmd,text=True,capture_output=True,check=False)
                   if proc.returncode != 0:
                       raise RuntimeError(f"Provider transport/curl failure rc={proc.returncode}; fail-closed.")
                   status_text=proc.stdout.strip()
                   try: status=int(status_text)
-                  except ValueError: raise RuntimeError(f"Provider HTTP status was not captured (raw={status_text!r}); fail-closed.")
+                  except ValueError: raise RuntimeError("Provider HTTP status was not captured; fail-closed.")
                   if status != 200:
-                      raise RuntimeError(f"Provider HTTP {status}; fail-closed.")
+                      body=Path(body_path).read_text(encoding="utf-8",errors="replace").lower()
+                      if status in (401,403) or "invalid api key" in body or "authentication" in body:
+                          category="AUTHENTICATION_OR_ENTITLEMENT"
+                      elif status==417:
+                          category="UPSTREAM_EXPECTATION_OR_PROXY"
+                      elif 400 <= status < 500:
+                          category="PROVIDER_CLIENT_REQUEST_REJECTION"
+                      elif status >= 500:
+                          category="PROVIDER_UPSTREAM_FAILURE"
+                      else:
+                          category="UNEXPECTED_PROVIDER_STATUS"
+                      raise RuntimeError(f"Provider HTTP {status} ({category}); fail-closed.")
                   body=Path(body_path).read_text(encoding="utf-8",errors="replace")
                   try: payload=json.loads(body)
                   except json.JSONDecodeError: raise RuntimeError("Provider returned malformed JSON; fail-closed.")
-                  if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
+                  if not isinstance(payload,dict) or payload.get("success") is not True:
+                      raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
                   return payload
               finally:
-                  try: os.unlink(body_path)
-                  except FileNotFoundError: pass
+                  for path in (body_path,header_path):
+                      try: os.unlink(path)
+                      except FileNotFoundError: pass
           for sid in d["missing"]:
               row=meta[sid]
               matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
