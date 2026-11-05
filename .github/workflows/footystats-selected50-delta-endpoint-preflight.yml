@@ -2,6 +2,12 @@ name: FootyStats Selected-50 Delta Endpoint Preflight (Central Public Gateway)
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_provider_api_usage:
+        description: "Confirm the bounded 20-season delta preflight may use the approved FootyStats API credential (maximum 100 provider requests)."
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -26,6 +32,17 @@ jobs:
         with:
           ref: research/oracle-50-league-readiness-audit
           fetch-depth: 0
+
+      - name: Verify explicit API-use confirmation
+        shell: bash
+        env:
+          CONFIRM_PROVIDER_API_USAGE: ${{ inputs.confirm_provider_api_usage }}
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRM_PROVIDER_API_USAGE" != "true" ]]; then
+            echo "Provider API usage was not explicitly confirmed; zero provider requests will be made."
+            exit 1
+          fi
 
       - name: Compute exact Selected-50 preflight delta offline
         shell: bash
@@ -136,6 +153,8 @@ jobs:
       - name: Finalize budget and publish sanitized delta evidence
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
           python - "$LEDGER_PATH" data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json <<'PY'
@@ -146,14 +165,22 @@ jobs:
           actual=json.loads(ts.read_text()) if ts.exists() else []
           for r in data.get("reservations",[]):
               if r.get("reservation_id")==os.environ.get("RESERVATION_ID"):
-                  r["status"]="COMPLETED"; r["observed_actual_requests"]=len(actual); r["completed_at_epoch"]=time.time()
+                  r["status"]="COMPLETED" if os.environ.get("JOB_STATUS")=="success" else "ABORTED"
+                  r["observed_actual_requests"]=len(actual)
+                  r["completed_at_epoch"]=time.time()
           p.write_text(json.dumps(data,indent=2)+"\n")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$LEDGER_PATH" data/footystats/delta-preflight/selected50-delta-preflight-results.json data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json 2>/dev/null || true
-          git add -A data/footystats/delta-preflight
-          git commit -m "data: save Selected-50 delta endpoint preflight evidence" || true
+          if [[ -z "${RESERVATION_ID:-}" ]]; then
+            echo "No request reservation was created; nothing to finalize."
+            exit 0
+          fi
+          git add -A "$LEDGER_PATH" data/footystats/delta-preflight
+          git commit -m "data: save Selected-50 delta endpoint preflight evidence" || {
+            echo "Expected finalization commit was not created; failing closed."
+            exit 1
+          }
           git fetch origin "$GOVERNED_BRANCH"
-          git rebase "origin/$GOVERNED_BRANCH" || { git rebase --abort || true; }
-          git push origin "HEAD:$GOVERNED_BRANCH" || true
+          git rebase "origin/$GOVERNED_BRANCH"
+          git push origin "HEAD:$GOVERNED_BRANCH"
