@@ -102,7 +102,7 @@ jobs:
         run: |
           set -euo pipefail
           python - /tmp/delta-seasons.json "$SELECTED_PLAN" "$MAX_REQUESTS" <<'PY'
-          import csv,json,os,sys,time,subprocess
+          import csv,json,os,sys,time,subprocess,tempfile
           from pathlib import Path
           delta_path,plan_path,max_req=sys.argv[1],sys.argv[2],int(sys.argv[3])
           key=os.environ.get("FOOTYSTATS_API_KEY","").strip()
@@ -110,34 +110,44 @@ jobs:
           d=json.loads(Path(delta_path).read_text())
           plan=list(csv.DictReader(Path(plan_path).open(encoding="utf-8")))
           meta={r["provider_season_id"]:r for r in plan if r["endpoint"]=="league-matches"}
+          timestamps_path=Path("data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json")
           results=[]; timestamps=[]; count=[0]
+          def persist_timestamps():
+              timestamps_path.write_text(json.dumps(timestamps,indent=2)+"\\n")
           def call(endpoint,params):
               if count[0]>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
               now=time.time()
               if sum(1 for t in timestamps if now-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
               timestamps.append(now); count[0]+=1
+              persist_timestamps()
               q=dict(params); q["key"]=key
-              # FootyStats/proxy 417s can be triggered by an implicit HTTP Expect header.
-              # Use curl HTTP/1.1 and explicitly clear Expect so the central gateway sends
-              # a deterministic GET without 100-continue negotiation.
-              cmd=["curl","--silent","--show-error","--location","--http1.1",
-                   "-H","Accept: application/json","-H","Expect:","-A","Project-Oracle-Selected50-Gateway/2.0",
-                   "-G","https://api.football-data-api.com/"+endpoint]
-              for k,v in q.items():
-                  cmd += ["--data-urlencode",f"{k}={v}"]
-              cmd += ["--connect-timeout","20","--max-time","60","-w","\\n__HTTP_STATUS__:%{http_code}"]
-              proc=subprocess.run(cmd,text=True,capture_output=True,check=False)
-              if proc.returncode != 0:
-                  raise RuntimeError(f"Provider transport/curl failure rc={proc.returncode}; fail-closed.")
-              body,status_line=proc.stdout.rsplit("\\n__HTTP_STATUS__:",1) if "\\n__HTTP_STATUS__:" in proc.stdout else (proc.stdout,"")
-              try: status=int(status_line.strip())
-              except ValueError: raise RuntimeError("Provider HTTP status was not captured; fail-closed.")
-              if status != 200:
-                  raise RuntimeError(f"Provider HTTP {status}; fail-closed.")
-              try: payload=json.loads(body)
-              except json.JSONDecodeError: raise RuntimeError("Provider returned malformed JSON; fail-closed.")
-              if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
-              return payload
+              # Use curl HTTP/1.1 and explicitly clear Expect. Capture the HTTP status
+              # separately from the response body so an empty/non-JSON body cannot hide it.
+              fd,body_path=tempfile.mkstemp(prefix="oracle-fs-body-",suffix=".json")
+              os.close(fd)
+              try:
+                  cmd=["curl","--silent","--show-error","--location","--http1.1",
+                       "-H","Accept: application/json","-H","Expect:","-A","Project-Oracle-Selected50-Gateway/2.1",
+                       "-G","https://api.football-data-api.com/"+endpoint]
+                  for k,v in q.items():
+                      cmd += ["--data-urlencode",f"{k}={v}"]
+                  cmd += ["--connect-timeout","20","--max-time","60","-o",body_path,"-w","%{http_code}"]
+                  proc=subprocess.run(cmd,text=True,capture_output=True,check=False)
+                  if proc.returncode != 0:
+                      raise RuntimeError(f"Provider transport/curl failure rc={proc.returncode}; fail-closed.")
+                  status_text=proc.stdout.strip()
+                  try: status=int(status_text)
+                  except ValueError: raise RuntimeError(f"Provider HTTP status was not captured (raw={status_text!r}); fail-closed.")
+                  if status != 200:
+                      raise RuntimeError(f"Provider HTTP {status}; fail-closed.")
+                  body=Path(body_path).read_text(encoding="utf-8",errors="replace")
+                  try: payload=json.loads(body)
+                  except json.JSONDecodeError: raise RuntimeError("Provider returned malformed JSON; fail-closed.")
+                  if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
+                  return payload
+              finally:
+                  try: os.unlink(body_path)
+                  except FileNotFoundError: pass
           for sid in d["missing"]:
               row=meta[sid]
               matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
