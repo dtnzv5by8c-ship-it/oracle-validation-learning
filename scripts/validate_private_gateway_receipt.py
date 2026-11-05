@@ -5,14 +5,15 @@ This is a research/admission contract only. It never calls FootyStats, never rea
 provider credentials, never publishes raw provider payloads, and never changes Oracle
 V1.6. A receipt is admissible only when an approved private archive/gateway proves the
 bounded batch identity, 60-league scope, 2024-current window, provider identity,
-immutable artifact digest, and safety controls.
+immutable artifact digest, recent transport verification, and safety controls.
 """
 from __future__ import annotations
 import argparse, hashlib, json
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 MAX_BOUNDED_REQUESTS = 100
+MAX_TRANSPORT_PROOF_AGE = timedelta(hours=24)
 
 REQUIRED = {
     "schema_version","gateway_id","provider","archive_ref","archive_sha256",
@@ -20,7 +21,8 @@ REQUIRED = {
     "batch_id","requested_rows","received_rows","request_count",
     "raw_provider_payload_persisted_publicly","credentials_persisted_publicly",
     "production_eligible","betting_eligible","transport_status","auth_status",
-    "rate_limit_status","receipt_status","transport_mode","transport_evidence_ref"
+    "rate_limit_status","receipt_status","transport_mode","transport_evidence_ref",
+    "transport_verified_at_utc"
 }
 
 def sha256(path: Path) -> str:
@@ -48,6 +50,18 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
                 e.append("historical_end_out_of_range")
         except ValueError:
             e.append("historical_end_invalid")
+    verified_raw = str(receipt.get("transport_verified_at_utc") or "").strip()
+    verified_at = None
+    if verified_raw:
+        try:
+            verified_at = datetime.fromisoformat(verified_raw.replace("Z","+00:00"))
+            if verified_at.tzinfo is None: e.append("transport_verified_timestamp_not_utc")
+            else:
+                now = datetime.now(timezone.utc)
+                if verified_at > now + timedelta(minutes=5): e.append("transport_verified_timestamp_in_future")
+                elif now - verified_at > MAX_TRANSPORT_PROOF_AGE: e.append("transport_proof_stale")
+        except ValueError:
+            e.append("transport_verified_timestamp_invalid")
     if not str(receipt.get("gateway_id") or "").startswith("approved-private-gateway"):
         e.append("gateway_id_not_approved")
     archive_ref = str(receipt.get("archive_ref") or "").strip()
