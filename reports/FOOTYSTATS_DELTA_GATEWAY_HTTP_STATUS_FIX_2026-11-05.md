@@ -37,3 +37,13 @@ The repair does not alter Oracle V1.6 production logic, probabilities, threshold
 2. Manual dispatch of the repaired Delta Gateway with `confirm_provider_api_usage=true`.
 3. Inspect all 100 provider requests across all 20 delta seasons and all five endpoint checks per season.
 4. Only after all gates pass, prepare the private archive receipt and historical-ingestion authorization checkpoint.
+
+
+## Post-repair validation
+- Research checkpoint commit: `b71623846452930da54d9f64756e40d33aa8e151`
+- Safety contract tests: run `42067220795` — SUCCESS; all 63 substantive test/compile/upload steps completed successfully.
+- Dry-run planner: run `42067216963` — SUCCESS; no provider calls.
+- These runs validate the research-side contracts and planner after the repair; they do not constitute a successful provider delta preflight.
+
+## Current blocker
+The repaired main gateway has not yet been dispatched after commit `2ea024ffe37bfc5ad392d38c2c21b6af15528188`. The available GitHub integration has no workflow-dispatch write operation, so the next provider-facing step requires one manual GitHub Actions dispatch with `confirm_provider_api_usage=true`. No 910-request preflight has been rerun.
