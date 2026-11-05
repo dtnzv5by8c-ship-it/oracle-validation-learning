@@ -63,3 +63,13 @@ When an approved private gateway becomes available, the first permitted action i
 **60-league manifest → one bounded private gateway smoke batch → immutable archive → SHA-256 receipt → contract validation → fixture/team/pagination/chronology checks → feature coverage checks → next bounded batch.**
 
 The receipt contract must pass before any broad 2024-current ingestion is admitted.
+
+## Follow-up hardening — 2026-11-05
+
+The private gateway receipt contract was hardened without opening the provider gate. The validator now requires a private archive reference (private://), an approved gateway identifier, a positive bounded batch, and a request count no greater than 100. Historical end dates must be either current or a valid UTC date within the 2024-to-today window; the previous fixed-prefix check was removed. Regression coverage now includes public archive references, unapproved gateway IDs, excessive request counts, and future historical end dates.
+
+The change remains offline-only: no FootyStats call, credential read, raw-provider publication, Oracle V1.6 change, or broad ingestion dispatch was performed. The gateway receipt remains BLOCKED until a real 60-league private archive receipt is evidenced and its SHA-256 is verified.
+
+## Next action
+
+Use the approved private route for a single bounded 60-league smoke batch when available, validate its receipt immediately, then run the existing fixture/team ID, pagination, kickoff chronology, feature-coverage and freshness contracts before admitting any further 2024-current ingestion.
