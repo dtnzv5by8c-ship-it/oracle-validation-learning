@@ -48,6 +48,11 @@ def pct(v, label):
     if not 0 <= x <= 100:
         raise ValueError(f"{label}: probability outside 0..100: {x}")
 
+def nonnegative_int(v, label):
+    x=int(v)
+    if x < 0:
+        raise ValueError(f"{label}: negative value: {x}")
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--oracle", required=True)
@@ -67,20 +72,30 @@ def main():
     require_fields(features,REQUIRED_FEATURES,"features")
     require_fields(actuals,REQUIRED_ACTUALS,"actuals")
 
+    kickoff_by_fixture={}
     for r in oracle:
         pct(r["win_probability"],"win_probability")
         pct(r["draw_probability"],"draw_probability")
+        kickoff_by_fixture[r["fixture_id"]]=parse_ts(r["kickoff_utc"])
+
     for r in features:
         pct(r["btts_probability"],"btts_probability")
         try:
-            parse_ts(r.get("feature_asof_utc", r.get("kickoff_utc")))
+            feature_ts=parse_ts(r.get("feature_asof_utc", r.get("kickoff_utc")))
         except Exception as e:
             raise ValueError(f"features: invalid feature_asof_utc for {r['fixture_id']}: {e}")
-    for r in oracle:
-        k=parse_ts(r["kickoff_utc"])
-        for key in ("feature_asof_utc","h2h_asof_utc","league_position_asof_utc"):
-            if present(r.get(key)) and parse_ts(r[key]) > k:
-                raise ValueError(f"oracle: {key} after kickoff for {r['fixture_id']}")
+        if r["fixture_id"] in kickoff_by_fixture and feature_ts > kickoff_by_fixture[r["fixture_id"]]:
+            raise ValueError(f"features: feature_asof_utc after kickoff for {r['fixture_id']}")
+        for key in ("h2h_asof_utc","league_position_asof_utc"):
+            if present(r.get(key)) and r["fixture_id"] in kickoff_by_fixture and parse_ts(r[key]) > kickoff_by_fixture[r["fixture_id"]]:
+                raise ValueError(f"features: {key} after kickoff for {r['fixture_id']}")
+
+    for r in actuals:
+        nonnegative_int(r["actual_home_goals"],"actual_home_goals")
+        nonnegative_int(r["actual_away_goals"],"actual_away_goals")
+        expected = "HOME" if int(r["actual_home_goals"]) > int(r["actual_away_goals"]) else "AWAY" if int(r["actual_home_goals"]) < int(r["actual_away_goals"]) else "DRAW"
+        if str(r["result"]).strip().upper() != expected:
+            raise ValueError(f"actuals: result/score mismatch for {r['fixture_id']}: expected {expected}")
 
     overlap_oracle_features=oid & fid
     overlap_oracle_actuals=oid & aid
