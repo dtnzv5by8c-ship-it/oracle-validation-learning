@@ -102,11 +102,8 @@ jobs:
         run: |
           set -euo pipefail
           python - /tmp/delta-seasons.json "$SELECTED_PLAN" "$MAX_REQUESTS" <<'PY'
-          import csv,json,os,sys,time
+          import csv,json,os,sys,time,subprocess
           from pathlib import Path
-          from urllib.parse import urlencode
-          from urllib.request import Request,urlopen
-          from urllib.error import HTTPError
           delta_path,plan_path,max_req=sys.argv[1],sys.argv[2],int(sys.argv[3])
           key=os.environ.get("FOOTYSTATS_API_KEY","").strip()
           if not key: raise SystemExit("FOOTYSTATS_API_KEY missing; zero provider requests made.")
@@ -120,11 +117,25 @@ jobs:
               if sum(1 for t in timestamps if now-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
               timestamps.append(now); count[0]+=1
               q=dict(params); q["key"]=key
-              try:
-                  req=Request("https://api.football-data-api.com/"+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-Selected50-Delta-Preflight/1.0"})
-                  with urlopen(req,timeout=60) as resp: payload=json.loads(resp.read().decode("utf-8"))
-              except HTTPError as e:
-                  raise RuntimeError(f"Provider HTTP {e.code}; fail-closed.")
+              # FootyStats/proxy 417s can be triggered by an implicit HTTP Expect header.
+              # Use curl HTTP/1.1 and explicitly clear Expect so the central gateway sends
+              # a deterministic GET without 100-continue negotiation.
+              cmd=["curl","--silent","--show-error","--location","--http1.1",
+                   "-H","Accept: application/json","-H","Expect:","-A","Project-Oracle-Selected50-Gateway/2.0",
+                   "-G","https://api.football-data-api.com/"+endpoint]
+              for k,v in q.items():
+                  cmd += ["--data-urlencode",f"{k}={v}"]
+              cmd += ["--connect-timeout","20","--max-time","60","-w","\\n__HTTP_STATUS__:%{http_code}"]
+              proc=subprocess.run(cmd,text=True,capture_output=True,check=False)
+              if proc.returncode != 0:
+                  raise RuntimeError(f"Provider transport/curl failure rc={proc.returncode}; fail-closed.")
+              body,status_line=proc.stdout.rsplit("\\n__HTTP_STATUS__:",1) if "\\n__HTTP_STATUS__:" in proc.stdout else (proc.stdout,"")
+              try: status=int(status_line.strip())
+              except ValueError: raise RuntimeError("Provider HTTP status was not captured; fail-closed.")
+              if status != 200:
+                  raise RuntimeError(f"Provider HTTP {status}; fail-closed.")
+              try: payload=json.loads(body)
+              except json.JSONDecodeError: raise RuntimeError("Provider returned malformed JSON; fail-closed.")
               if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
               return payload
           for sid in d["missing"]:
