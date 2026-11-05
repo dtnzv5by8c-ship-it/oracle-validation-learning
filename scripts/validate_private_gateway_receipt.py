@@ -20,7 +20,7 @@ REQUIRED = {
     "batch_id","requested_rows","received_rows","request_count",
     "raw_provider_payload_persisted_publicly","credentials_persisted_publicly",
     "production_eligible","betting_eligible","transport_status","auth_status",
-    "rate_limit_status","receipt_status"
+    "rate_limit_status","receipt_status","transport_mode","transport_evidence_ref"
 }
 
 def sha256(path: Path) -> str:
@@ -70,6 +70,8 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if receipt.get("production_eligible") is not False: e.append("production_eligible_must_be_false")
     if receipt.get("betting_eligible") is not False: e.append("betting_eligible_must_be_false")
     if receipt.get("transport_status") != "PASS": e.append("transport_not_pass")
+    if receipt.get("transport_mode") not in {"controlled_gateway","private_archive","private_mirror"}: e.append("transport_mode_not_approved")
+    if not str(receipt.get("transport_evidence_ref") or "").startswith("private://"): e.append("transport_evidence_ref_not_private")
     if receipt.get("auth_status") != "PASS": e.append("auth_not_pass")
     if receipt.get("rate_limit_status") != "PASS": e.append("rate_limit_not_pass")
     if receipt.get("receipt_status") != "VERIFIED_PRIVATE_ARCHIVE": e.append("receipt_status_not_verified")
