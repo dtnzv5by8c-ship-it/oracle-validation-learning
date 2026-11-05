@@ -1,0 +1,27 @@
+name: Oracle 60-League Feature Readiness Contract
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/validate_60_league_feature_readiness.py"
+      - "tests/test_60_league_feature_readiness.py"
+      - ".github/workflows/oracle-60-league-feature-readiness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Run offline regression
+        run: python3 tests/test_60_league_feature_readiness.py
+      - name: Compile validator
+        run: python3 -m py_compile scripts/validate_60_league_feature_readiness.py
