@@ -5,6 +5,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 LEGACY_INGESTION = ROOT / ".github" / "workflows" / "oracle-selected50-footystats-live-ingestion.yml"
 OMI_REPAIR = ROOT / ".github" / "workflows" / "oracle-selected50-market-intelligence-repair.yml"
 RESOLVER = ROOT / ".github" / "workflows" / "footystats-selected50-catalogue-resolver.yml"
+DELTA_GATEWAY = ROOT / ".github" / "workflows" / "footystats-selected50-delta-endpoint-preflight.yml"
 RETIRED_GATEWAY = ROOT / ".github" / "workflows" / "footystats-global-budgeted-endpoint-preflight.yml"
 PROTECTED_WRITE_WORKFLOWS = (
     ROOT / ".github" / "workflows" / "audit-private-footystats-history-h2h.yml",
