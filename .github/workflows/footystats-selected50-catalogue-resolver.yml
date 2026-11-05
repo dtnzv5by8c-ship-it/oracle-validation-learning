@@ -42,15 +42,15 @@ jobs:
           mkdir -p /tmp/selected50-resolver-artifact
           gh run download "${SOURCE_RUN_ID}"             --repo "${GITHUB_REPOSITORY}"             --name "${SOURCE_ARTIFACT}"             --dir /tmp/selected50-resolver-artifact
           find /tmp/selected50-resolver-artifact -maxdepth 2 -type f -print
-          test -s /tmp/selected50-resolver-artifact/data/footystats/selected50-full-ingestion-manifest.csv
-          test -s /tmp/selected50-resolver-artifact/data/footystats/selected50-provider-season-registry.json
-          test -s /tmp/selected50-resolver-artifact/data/footystats/selected50-catalogue-resolution-summary.json
+          test -s /tmp/selected50-resolver-artifact/selected50-full-ingestion-manifest.csv
+          test -s /tmp/selected50-resolver-artifact/selected50-provider-season-registry.json
+          test -s /tmp/selected50-resolver-artifact/selected50-catalogue-resolution-summary.json
 
       - name: Validate verified 50-league 182-season 728-task plan offline
         shell: bash
         run: |
           set -euo pipefail
-          python - /tmp/selected50-resolver-artifact/data/footystats/selected50-full-ingestion-manifest.csv             /tmp/selected50-resolver-artifact/data/footystats/selected50-provider-season-registry.json             /tmp/selected50-resolver-artifact/data/footystats/selected50-catalogue-resolution-summary.json <<'PY'
+          python - /tmp/selected50-resolver-artifact/selected50-full-ingestion-manifest.csv             /tmp/selected50-resolver-artifact/selected50-provider-season-registry.json             /tmp/selected50-resolver-artifact/selected50-catalogue-resolution-summary.json <<'PY'
           import csv,json,sys
           manifest,registry,summary=sys.argv[1:]
           rows=list(csv.DictReader(open(manifest,encoding="utf-8")))
@@ -81,8 +81,11 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f data/footystats/selected50-full-ingestion-manifest.csv data/footystats/selected50-provider-season-registry.json data/footystats/selected50-catalogue-resolution-summary.json
-          git diff --cached --quiet && { echo 'Sanitized Selected-50 plan already persisted; no commit required.'; exit 0; }
-          git commit -m 'data: persist verified Selected-50 ingestion plan'
+          if git diff --cached --quiet; then
+            echo 'Sanitized Selected-50 plan already persisted; no commit required.'
+          else
+            git commit -m 'data: persist verified Selected-50 ingestion plan'
+          fi
           for attempt in 1 2 3 4 5; do
             git fetch origin "${GOVERNED_BRANCH}"
             git rebase "origin/${GOVERNED_BRANCH}" || { git rebase --abort || true; sleep $((attempt*2)); continue; }
