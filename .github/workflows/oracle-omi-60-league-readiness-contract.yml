@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/validate_omi_universe_readiness.py"
       - "tests/test_omi_universe_readiness.py"
+      - "scripts/validate_60_league_registry_admission.py"
+      - "tests/test_60_league_registry_admission.py"
       - "config/omi_market_intelligence_schema_v1.json"
       - "scripts/validate_gateway_receipt.py"
       - "tests/test_gateway_receipt.py"
@@ -16,5 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run offline OMI readiness unit tests
         run: python tests/test_omi_universe_readiness.py
+      - name: Run offline 60-league registry admission tests
+        run: python tests/test_60_league_registry_admission.py
       - name: Run offline private gateway receipt safety tests
         run: python tests/test_gateway_receipt.py
