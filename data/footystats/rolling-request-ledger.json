@@ -1,5 +1,7 @@
 {
-  "actual_requests": [],
+  "actual_requests": [
+    1793892708.5601578
+  ],
   "global_limit_per_rolling_hour": 1800,
   "notes": [
     "User-approved hard ceiling is 1,800 requests in any rolling 60-minute period.",
@@ -14,7 +16,10 @@
       "reserved_at_epoch": 1793892706.7101653,
       "expires_at_epoch": 1793896306.7101653,
       "reserved_count": 100,
-      "status": "RESERVED"
+      "status": "ABORTED_PROVIDER_HTTP_401",
+      "observed_actual_requests": 1,
+      "first_request_epoch": 1793892708.5601578,
+      "last_request_epoch": 1793892708.5601578
     }
   ],
   "reserved_headroom": 300,
@@ -43,7 +48,17 @@
       "request_timestamp_sha256": "e4a80de8ee3c849ad8f0614a0a589bdaca5df917bff2dfa1b2c8ab4c9154354f",
       "request_timestamp_audit_file": "data/footystats/request-audit/footystats-run-41869437030-timestamps.json",
       "reconciled_at_utc": "2026-11-04T17:44:24Z"
+    },
+    {
+      "run_id": "42055869598",
+      "status": "ABORTED_PROVIDER_HTTP_401",
+      "actual_requests": 1,
+      "reserved_requests": 100,
+      "provider_http_status": 401,
+      "api_payload_persisted": false,
+      "production_eligible": false,
+      "betting_eligible": false
     }
   ],
-  "last_updated_epoch": 1793892706.7101653
+  "last_updated_epoch": 1793892709
 }
