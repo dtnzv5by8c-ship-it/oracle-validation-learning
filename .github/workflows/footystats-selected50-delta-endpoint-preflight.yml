@@ -124,7 +124,7 @@ jobs:
               # Use the same Python urllib transport that powered the prior
               # 910-request FootyStats preflight. Keep provider payloads in memory
               # only and publish sanitized status/field evidence.
-              # Use curl over HTTP/1.1 with an explicit empty Expect header.
+              # Use curl over HTTP/2 with no Expect header and a browser-compatible User-Agent.
               # This avoids intermediary/proxy 417 responses seen with the previous
               # urllib transport while keeping the provider payload runner-private.
               from urllib.parse import urlencode
@@ -135,9 +135,9 @@ jobs:
                   body_path=Path(td)/"body"
                   header_path=Path(td)/"headers"
                   proc=subprocess.run(
-                      ["curl","--silent","--show-error","--http1.1","--connect-timeout","10",
+                      ["curl","--silent","--show-error","--http2","--connect-timeout","10",
                        "--max-time","30","--retry","0","-H","Accept: application/json",
-                       "-H","User-Agent: Project-Oracle-Research/1.0","-H","Expect:",
+                       "-H","Accept-Encoding: gzip","-A","Mozilla/5.0 (Project-Oracle-Research)","-H","Expect:",
                        "-D",str(header_path),"-o",str(body_path),"-w","%{http_code}",url],
                       text=True,capture_output=True,check=False
                   )
