@@ -1,0 +1,16 @@
+name: Oracle 60-League OMI Reporting Extension Contract
+on:
+  push:
+    paths:
+      - 'config/omi_master_reporting_extension_v1.json'
+      - 'scripts/validate_omi_reporting_extension.py'
+      - 'tests/test_omi_reporting_extension.py'
+      - '.github/workflows/oracle-60-league-omi-reporting-extension.yml'
+  workflow_dispatch:
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reporting extension regression
+        run: python3 tests/test_omi_reporting_extension.py
