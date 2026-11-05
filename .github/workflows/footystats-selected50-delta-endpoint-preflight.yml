@@ -1,0 +1,160 @@
+name: FootyStats Selected-50 Delta Endpoint Preflight (Central Public Gateway)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - ".github/workflows/footystats-selected50-delta-endpoint-preflight.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: footystats-global-api-gateway
+  cancel-in-progress: false
+
+jobs:
+  delta-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GOVERNED_BRANCH: research/oracle-50-league-readiness-audit
+      MAX_REQUESTS: "100"
+      LEDGER_PATH: data/footystats/rolling-request-ledger.json
+      SELECTED_PLAN: data/footystats/selected50-full-ingestion-manifest.csv
+      PRIOR_PREFLIGHT: data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+          fetch-depth: 0
+
+      - name: Compute exact Selected-50 preflight delta offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          selected=list(csv.DictReader(Path("data/footystats/selected50-full-ingestion-manifest.csv").open(encoding="utf-8")))
+          prior=list(csv.DictReader(Path("data/footystats/full-ingestion-manifest/season-ingestion-coverage.csv").open(encoding="utf-8")))
+          selected_ids={r["provider_season_id"] for r in selected if r.get("provider_season_id")}
+          prior_ids={r["provider_season_id"] for r in prior if r.get("provider_season_id")}
+          missing=sorted(selected_ids-prior_ids)
+          extra=sorted(prior_ids-selected_ids)
+          if len(selected_ids)!=182: raise SystemExit(f"Selected-50 plan must contain 182 seasons; found {len(selected_ids)}")
+          if len(prior_ids)!=182: raise SystemExit(f"Prior preflight must contain 182 seasons; found {len(prior_ids)}")
+          if len(missing)!=20: raise SystemExit(f"Expected exactly 20 new Selected-50 seasons requiring delta preflight; found {len(missing)}")
+          if len(extra)!=20: raise SystemExit(f"Expected exactly 20 prior-only seasons; found {len(extra)}")
+          Path("/tmp/delta-seasons.json").write_text(json.dumps({"missing":missing,"extra_prior_only":extra},indent=2)+"\n")
+          print(f"Selected-50 delta: {len(missing)} seasons x 5 endpoint checks = 100 requests.")
+          PY
+
+      - name: Reserve exactly 100 requests before provider access
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$LEDGER_PATH" "$MAX_REQUESTS" <<'PY'
+          import json,sys,time,os
+          from pathlib import Path
+          p=Path(sys.argv[1]); requested=int(sys.argv[2]); now=time.time()
+          data=json.loads(p.read_text()) if p.exists() else {"schema_version":1,"global_limit_per_rolling_hour":1800,"operational_limit_per_run":1500,"reservations":[]}
+          recent=[r for r in data.get("reservations",[]) if float(r.get("expires_at_epoch",0))>now and r.get("status")=="RESERVED"]
+          reserved=sum(int(r.get("reserved_count",0)) for r in recent)
+          if reserved+requested>1800: raise SystemExit(f"Rolling-hour budget would exceed 1800: existing={reserved}, requested={requested}")
+          rid=f'delta-{int(now)}-{os.environ["GITHUB_RUN_ID"]}-{os.environ["GITHUB_RUN_ATTEMPT"]}'
+          recent.append({"reservation_id":rid,"reserved_at_epoch":now,"expires_at_epoch":now+3600,"reserved_count":requested,"status":"RESERVED"})
+          data["reservations"]=recent; data["last_updated_epoch"]=now
+          p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(data,indent=2)+"\n")
+          Path("/tmp/reservation-id").write_text(rid)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "RESERVATION_ID=$(cat /tmp/reservation-id)" >> "$GITHUB_ENV"
+          git add "$LEDGER_PATH"
+          git commit -m "ops: reserve 100-call Selected-50 delta preflight $GITHUB_RUN_ID"
+          git push
+
+      - name: Run exact 20-season delta endpoint and field preflight
+        shell: bash
+        env:
+          FOOTYSTATS_API_KEY: \${{ secrets.FOOTYSTATS_API_KEY }}
+        run: |
+          set -euo pipefail
+          python - /tmp/delta-seasons.json "$SELECTED_PLAN" "$MAX_REQUESTS" <<'PY'
+          import csv,json,os,sys,time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          from urllib.error import HTTPError
+          delta_path,plan_path,max_req=sys.argv[1],sys.argv[2],int(sys.argv[3])
+          key=os.environ.get("FOOTYSTATS_API_KEY","").strip()
+          if not key: raise SystemExit("FOOTYSTATS_API_KEY missing; zero provider requests made.")
+          d=json.loads(Path(delta_path).read_text())
+          plan=list(csv.DictReader(Path(plan_path).open(encoding="utf-8")))
+          meta={r["provider_season_id"]:r for r in plan if r["endpoint"]=="league-matches"}
+          results=[]; timestamps=[]; count=0
+          def call(endpoint,params):
+              nonlocal count
+              if count>=max_req: raise RuntimeError("100-request delta cap reached; fail-closed.")
+              if sum(1 for t in timestamps if time.time()-t<3600)>=1800: raise RuntimeError("1800 rolling-hour ceiling reached; fail-closed.")
+              q=dict(params); q["key"]=key
+              try:
+                  req=Request("https://api.football-data-api.com/"+endpoint+"?"+urlencode(q),headers={"User-Agent":"Oracle-Selected50-Delta-Preflight/1.0"})
+                  with urlopen(req,timeout=60) as resp: payload=json.loads(resp.read().decode("utf-8"))
+              except HTTPError as e:
+                  raise RuntimeError(f"Provider HTTP {e.code}; fail-closed.")
+              if not isinstance(payload,dict) or payload.get("success") is not True: raise RuntimeError(f"Provider success=false for {endpoint}; fail-closed.")
+              count+=1; timestamps.append(time.time()); return payload
+          for sid in d["missing"]:
+              row=meta[sid]
+              matches=call("league-matches",{"season_id":sid,"page":1,"max_per_page":600})
+              md=matches.get("data") if isinstance(matches.get("data"),list) else []
+              pager=matches.get("pager") if isinstance(matches.get("pager"),dict) else {}
+              max_page=int(pager.get("max_page") or 1)
+              ids=[str(x.get("id")) for x in md if isinstance(x,dict) and x.get("id") is not None]
+              required_match_fields=["id","homeID","awayID","date_unix","status"]
+              match_field_complete=all(all(k in x for k in required_match_fields) for x in md)
+              teams=call("league-teams",{"season_id":sid,"page":1,"include":"stats"})
+              td=teams.get("data") if isinstance(teams.get("data"),list) else []
+              team_field_complete=all(isinstance(x,dict) and x.get("id") is not None for x in td)
+              call("league-tables",{"season_id":sid,"max_time_unix":1794009599})
+              call("league-season",{"season_id":sid,"max_time_unix":1794009599})
+              sample_id=ids[0] if ids else None
+              detail=call("match",{"match_id":sample_id}) if sample_id else None
+              detail_ok=isinstance(detail,dict) and isinstance(detail.get("data"),(dict,list))
+              results.append({"provider_season_id":sid,"provider_league_name":row["provider_league_name"],"provider_season_label":row["provider_season_label"],"matches_page_count":max_page,"matches_row_count":len(md),"match_identity_fields_complete":match_field_complete,"match_ids_unique":len(ids)==len(set(ids)),"team_rows":len(td),"team_identity_fields_complete":team_field_complete,"match_detail_sample_success":detail_ok,"required_endpoint_fields_viable":bool(match_field_complete and team_field_complete and ids and detail_ok)})
+          out=Path("data/footystats/delta-preflight"); out.mkdir(parents=True,exist_ok=True)
+          summary={"status":"PASS_SELECTED50_DELTA_PREFLIGHT_RESEARCH_ONLY","selected50_seasons":182,"prior_preflight_seasons":182,"delta_seasons":20,"endpoint_checks_per_season":5,"provider_requests":count,"required_endpoint_field_viable_seasons":sum(1 for r in results if r["required_endpoint_fields_viable"]),"production_eligible":False,"betting_eligible":False,"raw_provider_payload_persisted":False}
+          (out/"selected50-delta-preflight-results.json").write_text(json.dumps({"summary":summary,"results":results},indent=2)+"\n")
+          (out/"selected50-delta-preflight-timestamps.json").write_text(json.dumps(timestamps,indent=2)+"\n")
+          if count!=100 or summary["required_endpoint_field_viable_seasons"]!=20: raise SystemExit("Delta preflight did not establish all required endpoint/field gates.")
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Finalize budget and publish sanitized delta evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$LEDGER_PATH" data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json <<'PY'
+          import json,sys,time,os
+          from pathlib import Path
+          p=Path(sys.argv[1]); ts=Path(sys.argv[2])
+          data=json.loads(p.read_text()) if p.exists() else {"schema_version":1,"global_limit_per_rolling_hour":1800,"operational_limit_per_run":1500,"reservations":[]}
+          actual=json.loads(ts.read_text()) if ts.exists() else []
+          for r in data.get("reservations",[]):
+              if r.get("reservation_id")==os.environ.get("RESERVATION_ID"):
+                  r["status"]="COMPLETED"; r["observed_actual_requests"]=len(actual); r["completed_at_epoch"]=time.time()
+          p.write_text(json.dumps(data,indent=2)+"\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$LEDGER_PATH" data/footystats/delta-preflight/selected50-delta-preflight-results.json data/footystats/delta-preflight/selected50-delta-preflight-timestamps.json 2>/dev/null || true
+          git commit -m "data: save Selected-50 delta endpoint preflight evidence" || true
+          git fetch origin "$GOVERNED_BRANCH"
+          git rebase "origin/$GOVERNED_BRANCH" || { git rebase --abort || true; }
+          git push origin "HEAD:$GOVERNED_BRANCH" || true
