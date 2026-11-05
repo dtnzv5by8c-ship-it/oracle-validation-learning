@@ -1,7 +1,6 @@
 name: DISABLED — Oracle Selected-50 FootyStats Ingestion (protected destination guard)
 
-# This legacy workflow previously called FootyStats and published raw archive
-# data to dtnzv5by8c-ship-it/oracle-football-data. That write path is prohibited
+# This legacy workflow previously called FootyStats and published raw archive data to a protected private repository. That write path is prohibited
 # for this research workflow. Keep this manual-only fail-closed stub to prevent
 # an accidental reactivation; use a separate sanitized research-only diagnostic
 # that makes no writes to the protected repository.
@@ -20,6 +19,6 @@ jobs:
       - name: Refuse legacy ingestion path
         shell: bash
         run: |
-          echo "::error::This legacy ingestion workflow is disabled. It must not call FootyStats or write to oracle-football-data."
+          echo "::error::This legacy ingestion workflow is disabled. It must not call FootyStats or write to the protected private repository."
           echo "Use a separately reviewed, sanitized research-only diagnostic with explicit provider-credit confirmation."
           exit 1
