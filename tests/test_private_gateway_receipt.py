@@ -15,7 +15,8 @@ def base():
       "batch_id":"batch-001","requested_rows":10,"received_rows":10,"request_count":1,
       "raw_provider_payload_persisted_publicly":False,"credentials_persisted_publicly":False,
       "production_eligible":False,"betting_eligible":False,"transport_status":"PASS",
-      "auth_status":"PASS","rate_limit_status":"PASS","receipt_status":"VERIFIED_PRIVATE_ARCHIVE"
+      "auth_status":"PASS","rate_limit_status":"PASS","receipt_status":"VERIFIED_PRIVATE_ARCHIVE","transport_mode":"private_archive",
+      "transport_evidence_ref":"private://oracle/gateway/transport-evidence-001"
     }
 
 with tempfile.TemporaryDirectory() as td:
@@ -36,6 +37,10 @@ with tempfile.TemporaryDirectory() as td:
     assert "gateway_id_not_approved" in m.validate(bad,a)
     bad=dict(r); bad["request_count"]=101
     assert "request_count_exceeds_bounded_limit" in m.validate(bad,a)
+    bad=dict(r); bad["transport_mode"]="public_http"
+    assert "transport_mode_not_approved" in m.validate(bad,a)
+    bad=dict(r); bad["transport_evidence_ref"]="https://public.example/evidence"
+    assert "transport_evidence_ref_not_private" in m.validate(bad,a)
     bad=dict(r); bad["historical_end"]="2027-01-01"
     assert "historical_end_out_of_range" in m.validate(bad,a)
 print("PASS: private gateway receipt contract regression tests")
