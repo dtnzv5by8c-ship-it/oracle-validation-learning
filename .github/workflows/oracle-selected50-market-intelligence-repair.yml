@@ -3,14 +3,11 @@ name: Oracle Selected-50 Market Intelligence Report Repair
 on:
   workflow_dispatch:
     inputs:
-      confirm_private_archive_read:
-        description: "Explicitly confirm read-only use of the pinned private archive"
+      archive_read_consent:
+        description: "Type READ_ONLY_ARCHIVE_APPROVED to confirm the pinned private archive will be read-only"
         required: true
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
+        default: "READ_ONLY_ARCHIVE_APPROVED"
+        type: string
       private_archive_release_tag:
         description: "Pinned private archive release tag"
         required: true
@@ -90,12 +87,12 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          CONFIRM_PRIVATE_ARCHIVE_READ: ${{ inputs.confirm_private_archive_read }}
+          ARCHIVE_READ_CONSENT: ${{ inputs.archive_read_consent }}
           CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE: ${{ inputs.confirm_results_provider_credit_usage }}
         run: |
           set -euo pipefail
           [[ "$GITHUB_REF_NAME" == "research/oracle-50-league-readiness-audit" ]] || { echo "::error::Run this workflow from the governed research branch only."; exit 1; }
-          [[ "$CONFIRM_PRIVATE_ARCHIVE_READ" == "true" ]] || { echo "::error::Explicit read-only archive confirmation required."; exit 1; }
+          [[ "$ARCHIVE_READ_CONSENT" == "READ_ONLY_ARCHIVE_APPROVED" ]] || { echo "::error::Explicit read-only archive confirmation required. Type READ_ONLY_ARCHIVE_APPROVED exactly."; exit 1; }
           [[ -n "${GH_TOKEN:-}" ]] || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
           if [[ "$CONFIRM_RESULTS_PROVIDER_CREDIT_USAGE" == "true" ]]; then
             echo "::error::Direct results-provider calls are disabled here; all FootyStats requests must use the governed global rolling-hour budget workflow."
