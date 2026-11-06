@@ -32,8 +32,8 @@ def test_duplicate_league_blocks():
     assert any("duplicate_league_id" in e for e in errors)
 
 def test_wrong_scope_blocks():
-    errors,_=m.plan([row(i) for i in range(49)],60,20)
-    assert any("league_count=59" in e for e in errors)
+    errors,_=m.plan([row(i) for i in range(49)],50,20)
+    assert any("league_count=49" in e for e in errors)
 
 def test_missing_provider_season_blocks():
     rows=[row(i) for i in range(60)]
