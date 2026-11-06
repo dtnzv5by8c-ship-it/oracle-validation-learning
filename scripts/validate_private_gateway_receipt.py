@@ -31,6 +31,17 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda:f.read(1024*1024),b""): h.update(chunk)
     return h.hexdigest()
 
+def _nonnegative_int(receipt: dict, key: str, errors: list[str]) -> int | None:
+    raw = receipt.get(key, -1)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        errors.append(key + "_invalid")
+        return None
+    if value < 0:
+        errors.append(key + "_negative")
+    return value
+
 def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     e=[]
     missing=sorted(REQUIRED-set(receipt))
@@ -68,17 +79,16 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if not archive_ref.startswith("private://"):
         e.append("archive_ref_not_private")
     if not receipt.get("batch_id"): e.append("batch_id_missing")
-    for k in ("requested_rows","received_rows","request_count"):
-        try:
-            if int(receipt.get(k,-1)) < 0: e.append(k+"_negative")
-        except (TypeError,ValueError): e.append(k+"_invalid")
-    if int(receipt.get("received_rows",0) or 0) > int(receipt.get("requested_rows",0) or 0):
+    requested_rows = _nonnegative_int(receipt, "requested_rows", e)
+    received_rows = _nonnegative_int(receipt, "received_rows", e)
+    request_count = _nonnegative_int(receipt, "request_count", e)
+    if requested_rows is not None and received_rows is not None and received_rows > requested_rows:
         e.append("received_rows_exceeds_requested_rows")
-    if int(receipt.get("requested_rows",0) or 0) <= 0: e.append("requested_rows_not_positive")
-    if int(receipt.get("received_rows",0) or 0) <= 0: e.append("received_rows_not_positive")
-    if int(receipt.get("request_count",0) or 0) <= 0: e.append("request_count_not_bounded_positive")
-    elif int(receipt.get("request_count",0) or 0) > MAX_BOUNDED_REQUESTS:
-        e.append("request_count_exceeds_bounded_limit")
+    if requested_rows is not None and requested_rows <= 0: e.append("requested_rows_not_positive")
+    if received_rows is not None and received_rows <= 0: e.append("received_rows_not_positive")
+    if request_count is not None:
+        if request_count <= 0: e.append("request_count_not_bounded_positive")
+        elif request_count > MAX_BOUNDED_REQUESTS: e.append("request_count_exceeds_bounded_limit")
     if receipt.get("raw_provider_payload_persisted_publicly") is not False: e.append("raw_provider_payload_public_visibility_not_false")
     if receipt.get("credentials_persisted_publicly") is not False: e.append("credentials_public_visibility_not_false")
     if receipt.get("production_eligible") is not False: e.append("production_eligible_must_be_false")
