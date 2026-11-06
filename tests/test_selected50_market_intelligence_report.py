@@ -169,6 +169,7 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
         self.assertEqual(qa["runtime_fixture_rows"], 1)
         self.assertEqual(qa["rows_accounted_for"], 1)
         self.assertEqual(qa["orientation_unknown_rows"], 1)
+        self.assertEqual(qa["missing_snapshot_rows"], 0)
         self.assertEqual(item["snapshot_evidence_status"], "NOT_CONSUMED_OVERLAY_DISABLED")
         self.assertEqual(item["fixture_orientation_status"], "ORIENTATION_UNKNOWN")
         self.assertEqual(item["home_away_market_review_status"],
