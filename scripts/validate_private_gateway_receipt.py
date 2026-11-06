@@ -39,7 +39,12 @@ def _nonnegative_int(receipt: dict, key: str, errors: list[str]) -> int | None:
         errors.append(key + "_invalid")
         return None
     if isinstance(raw, str):
-        if not raw.strip() or raw.strip() != str(int(raw.strip())):
+        try:
+            canonical = str(int(raw.strip()))
+        except (TypeError, ValueError):
+            errors.append(key + "_invalid")
+            return None
+        if not raw.strip() or raw.strip() != canonical:
             errors.append(key + "_invalid")
             return None
     value = int(raw)
