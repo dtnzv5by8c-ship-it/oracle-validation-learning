@@ -48,7 +48,7 @@ def test_non_2024_start_blocks():
     assert any("season_start_must_be_2024" in e for e in errors)
 
 def test_batch_size_over_20_blocks():
-    errors,_=m.plan([row(i) for i in range(60)],50,21)
+    errors,_=m.plan([row(i) for i in range(50)],50,21)
     assert any("max_per_batch_must_be_1_to_20" in e for e in errors)
 
 if __name__=="__main__":
