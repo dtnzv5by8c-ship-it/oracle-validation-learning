@@ -76,7 +76,7 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if verified_raw:
         try:
             verified_at = datetime.fromisoformat(verified_raw.replace("Z","+00:00"))
-            if verified_at.tzinfo is None: e.append("transport_verified_timestamp_not_utc")
+            if verified_at.tzinfo is None or verified_at.utcoffset() != timedelta(0): e.append("transport_verified_timestamp_not_utc")
             else:
                 now = datetime.now(timezone.utc)
                 if verified_at > now + timedelta(minutes=5): e.append("transport_verified_timestamp_in_future")
