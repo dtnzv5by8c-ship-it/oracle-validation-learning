@@ -261,18 +261,29 @@ jobs:
           expected_snapshot_sha = str(provenance.get("snapshot_file_sha256") or "")
           expected_snapshot_time = str(provenance.get("snapshot_retrieved_utc") or "")
           expected_archive_sha = str(provenance.get("source_archive_sha256") or "")
-          if str(snapshot_meta.get("artifact_id")) != str(provenance.get("snapshot_artifact_id")):
-              raise SystemExit("FAIL: snapshot artifact ID does not match runtime provenance")
-          if str(snapshot_meta.get("artifact_workflow_run_id")) != str(provenance.get("snapshot_run_id")):
-              raise SystemExit("FAIL: snapshot run ID does not match runtime provenance")
-          if str(snapshot_meta.get("artifact_head_branch")) != str(provenance.get("snapshot_artifact_head_branch")):
-              raise SystemExit("FAIL: snapshot artifact branch does not match runtime provenance")
-          if str(snapshot_meta.get("artifact_head_sha")) != str(provenance.get("snapshot_artifact_head_sha")):
-              raise SystemExit("FAIL: snapshot artifact commit does not match runtime provenance")
-          if str(snapshot_meta.get("artifact_zip_sha256", "")).removeprefix("sha256:") != str(provenance.get("snapshot_artifact_zip_sha256", "")).removeprefix("sha256:"):
-              raise SystemExit("FAIL: snapshot artifact digest does not match runtime provenance")
-          if len(snapshot_trace) != int(provenance.get("snapshot_fixture_rows") or -1):
-              raise SystemExit("FAIL: snapshot candidate trace row count does not match runtime provenance")
+          snapshot_overlay_enabled = provenance.get("snapshot_consumption_verified") is True
+          if snapshot_overlay_enabled:
+              if str(snapshot_meta.get("artifact_id")) != str(provenance.get("snapshot_artifact_id")):
+                  raise SystemExit("FAIL: snapshot artifact ID does not match runtime provenance")
+              if str(snapshot_meta.get("artifact_workflow_run_id")) != str(provenance.get("snapshot_run_id")):
+                  raise SystemExit("FAIL: snapshot run ID does not match runtime provenance")
+              if str(snapshot_meta.get("artifact_head_branch")) != str(provenance.get("snapshot_artifact_head_branch")):
+                  raise SystemExit("FAIL: snapshot artifact branch does not match runtime provenance")
+              if str(snapshot_meta.get("artifact_head_sha")) != str(provenance.get("snapshot_artifact_head_sha")):
+                  raise SystemExit("FAIL: snapshot artifact commit does not match runtime provenance")
+              if str(snapshot_meta.get("artifact_zip_sha256", "")).removeprefix("sha256:") != str(provenance.get("snapshot_artifact_zip_sha256", "")).removeprefix("sha256:"):
+                  raise SystemExit("FAIL: snapshot artifact digest does not match runtime provenance")
+              if len(snapshot_trace) != int(provenance.get("snapshot_fixture_rows") or -1):
+                  raise SystemExit("FAIL: snapshot candidate trace row count does not match runtime provenance")
+          else:
+              if provenance.get("snapshot_consumption_status") != "NOT_CONSUMED_OVERLAY_DISABLED":
+                  raise SystemExit("FAIL: runtime has no verified snapshot overlay but does not declare the required historical-only status")
+              if snapshot_meta.get("status") != "NOT_RUN_SNAPSHOT_OVERLAY_DISABLED":
+                  raise SystemExit("FAIL: historical-only runtime snapshot metadata is inconsistent")
+              snapshot_trace = []
+              expected_snapshot_sha = ""
+              expected_snapshot_time = ""
+              print("Historical-only runtime: current-fixture snapshot overlay was intentionally disabled; snapshot reconciliation will remain NOT_RETRIEVED and research-only.")
           from collections import Counter
           from pathlib import Path
           snapshot_keys = []
