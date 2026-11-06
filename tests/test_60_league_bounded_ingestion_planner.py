@@ -22,7 +22,7 @@ def test_fifty_rows_plan_into_three_bounded_batches():
 def test_duplicate_provider_season_blocks():
     rows=[row(i) for i in range(50)]
     rows[1]["provider_season_id"]=rows[0]["provider_season_id"]
-    errors,_=m.plan(rows,60,20)
+    errors,_=m.plan(rows,50,20)
     assert any("duplicate_provider_season_id" in e for e in errors)
 
 def test_duplicate_league_blocks():
