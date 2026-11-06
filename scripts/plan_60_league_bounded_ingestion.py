@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic offline planner for bounded 50-league historical ingestion.
 
-Consumes only an approved 60-league season manifest. It never calls a provider,
+Consumes only the governed 50-league season manifest. It never calls a provider,
 creates credentials, or admits data. The output is a sequence of bounded batches
 that can be submitted to the private gateway only after its receipt contract passes.
 """
