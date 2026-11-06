@@ -43,7 +43,7 @@ def validate_kickoff(v):
     except (TypeError, ValueError):
         return False
 
-def validate(rows, expected_leagues=60, require_complete=False):
+def validate(rows, expected_leagues=50, require_complete=False):
     errors = []
     if not rows:
         return ["empty_master_omi"]
@@ -104,7 +104,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--expected-leagues", type=int, default=60)
+    ap.add_argument("--expected-leagues", type=int, default=50)
     ap.add_argument("--require-complete", action="store_true")
     a = ap.parse_args()
     with open(a.input, encoding="utf-8-sig", newline="") as f:
