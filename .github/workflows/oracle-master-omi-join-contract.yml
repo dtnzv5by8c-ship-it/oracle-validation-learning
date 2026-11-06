@@ -1,6 +1,6 @@
 name: Oracle Master OMI Exact-ID Join Contract
 
-on:
+"on":
   push:
     branches:
       - research/oracle-50-league-readiness-audit
@@ -17,11 +17,12 @@ jobs:
   contract:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout governed branch
+        uses: actions/checkout@v4
         with:
           ref: research/oracle-50-league-readiness-audit
       - name: Run standard-library regression suite
-        run: python tests/test_master_omi_join_contract.py
+        run: python3 tests/test_master_omi_join_contract.py
       - name: Run synthetic end-to-end contract
         shell: bash
         run: |
@@ -39,4 +40,4 @@ CSV
 fixture_id,actual_home_goals,actual_away_goals,result
 F1,2,1,HOME
 CSV
-          python scripts/validate_master_omi_join_contract.py             --oracle "$tmp/oracle.csv"             --features "$tmp/features.csv"             --actuals "$tmp/actuals.csv"             --out "$tmp/joined.csv"
+          python3 scripts/validate_master_omi_join_contract.py             --oracle "$tmp/oracle.csv"             --features "$tmp/features.csv"             --actuals "$tmp/actuals.csv"             --out "$tmp/joined.csv"
