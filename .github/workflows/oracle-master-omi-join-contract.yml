@@ -16,11 +16,12 @@ permissions:
 jobs:
   contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout governed branch
         uses: actions/checkout@v4
         with:
-          ref: research/oracle-50-league-readiness-audit
+          ref: ${{ github.sha }}
       - name: Run standard-library regression suite
         run: python3 tests/test_master_omi_join_contract.py
       - name: Run synthetic end-to-end contract
