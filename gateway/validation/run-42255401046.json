@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "errors": [],
+  "governance": {
+    "oracle_v1_6_modified": false,
+    "provider_called": false,
+    "raw_provider_data_public": false,
+    "production_eligible": false,
+    "betting_eligible": false,
+    "fail_closed": true
+  },
+  "artifact_verified_sha256": "2a6d85223a49534a590ff6fc0f2e7cf13bb76c3638d8eed49e98f87eac9007c8",
+  "validated_at_utc": "2026-11-06T16:55:00Z",
+  "note": "Local fail-closed validation against the private Run 42255401046 artifact. No raw payloads copied to the public repository."
+}
