@@ -32,12 +32,17 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 def _nonnegative_int(receipt: dict, key: str, errors: list[str]) -> int | None:
-    raw = receipt.get(key, -1)
-    try:
-        value = int(raw)
-    except (TypeError, ValueError):
+    raw = receipt.get(key, None)
+    # JSON booleans are integers in Python; reject them explicitly. Also reject
+    # floats/strings that merely coerce to integers so receipt counts stay exact.
+    if isinstance(raw, bool) or not isinstance(raw, (int, str)):
         errors.append(key + "_invalid")
         return None
+    if isinstance(raw, str):
+        if not raw.strip() or raw.strip() != str(int(raw.strip())):
+            errors.append(key + "_invalid")
+            return None
+    value = int(raw)
     if value < 0:
         errors.append(key + "_negative")
     return value
