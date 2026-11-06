@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic offline planner for bounded 60-league historical ingestion.
+"""Deterministic offline planner for bounded 50-league historical ingestion.
 
 Consumes only an approved 60-league season manifest. It never calls a provider,
 creates credentials, or admits data. The output is a sequence of bounded batches
@@ -13,7 +13,7 @@ REQUIRED=("league_id","league_name","provider_league_id","provider_season_id",
           "season_start","season_end")
 MAX_SEASONS_PER_BATCH=20
 
-def plan(rows, expected_leagues=60, max_per_batch=MAX_SEASONS_PER_BATCH):
+def plan(rows, expected_leagues=50, max_per_batch=MAX_SEASONS_PER_BATCH):
     errors=[]
     if len(rows)!=expected_leagues:
         errors.append(f"league_count={len(rows)} expected={expected_leagues}")
@@ -55,7 +55,7 @@ def plan(rows, expected_leagues=60, max_per_batch=MAX_SEASONS_PER_BATCH):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--manifest",required=True); ap.add_argument("--out",required=True)
-    ap.add_argument("--expected-leagues",type=int,default=60)
+    ap.add_argument("--expected-leagues",type=int,default=50)
     ap.add_argument("--max-per-batch",type=int,default=MAX_SEASONS_PER_BATCH)
     a=ap.parse_args()
     with open(a.manifest,encoding="utf-8-sig",newline="") as f:
