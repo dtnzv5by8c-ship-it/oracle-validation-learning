@@ -42,9 +42,9 @@ def test_missing_provider_season_blocks():
     assert any("missing_fields:provider_season_id" in e for e in errors)
 
 def test_non_2024_start_blocks():
-    rows=[row(i) for i in range(60)]
+    rows=[row(i) for i in range(50)]
     rows[2]["season_start"]="2025-01-01"
-    errors,_=m.plan(rows,60,20)
+    errors,_=m.plan(rows,50,20)
     assert any("season_start_must_be_2024" in e for e in errors)
 
 def test_batch_size_over_20_blocks():
