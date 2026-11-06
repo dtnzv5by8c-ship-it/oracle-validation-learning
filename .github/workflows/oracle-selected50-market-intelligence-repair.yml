@@ -4,10 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       confirm_private_archive_read:
-        description: "Confirm read-only use of the pinned private archive; results-provider calls have a separate opt-in approval"
+        description: "Explicitly confirm read-only use of the pinned private archive"
         required: true
-        default: false
-        type: boolean
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
       private_archive_release_tag:
         description: "Pinned private archive release tag"
         required: true
