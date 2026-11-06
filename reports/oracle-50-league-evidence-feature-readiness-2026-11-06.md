@@ -2,79 +2,134 @@
 
 ## Gate result
 
-**RED / NOT READY.** The governed 50-league universe is confirmed at control-plane level, but the current public research branch does not expose enough fixture-level admitted evidence to certify any league READY for OMI or Visual Intelligence.
+**RED / NOT READY — but the evidence gate has materially advanced.**
 
-### Controlled universe
-- Target: 50 leagues
-- Provider seasons: 182
-- Endpoint tasks: 728
-- Controlled task accounting: 728/728
-- Completed: 648
-- Quarantined HTTP-417: 80
-- Pending: 0
-- Task accounting: 100%
-- Production eligibility: false
-- Betting eligibility: false
+The exact governed **50-league / 182-season / 728-task** roster has now been reconciled from the pinned Selected-50 manifest and the completed private archive checkpoints.
 
-### Important evidence boundary
+### Acquisition reconciliation
 
-The latest private gateway receipt confirms a 100-request batch with 8,367 requested/received rows and transport/auth/rate-limit PASS. It does **not** prove full row-level admission for the complete 728-task universe.
+- Governed leagues: **50/50**
+- Provider seasons: **182/182**
+- Endpoint tasks: **728/728 accounted for**
+- Completed endpoint tasks: **648**
+- Quarantined HTTP-417 tasks: **80**
+- Pending tasks: **0**
+- Fully acquired leagues at task level: **44/50**
+- Fully blocked leagues: **6/50**
+- Acquired provider seasons: **162/182**
+- Blocked provider seasons: **20/182**
+- Production eligible: **false**
+- Betting eligible: **false**
 
-The public branch contains older 49-league feature/provenance audits. Those audits explicitly state that the 49-league/182-season preflight is metadata-only and does not certify fixture-level historical coverage. Therefore those older 49-league metrics are not promoted into the current 50-league readiness gate.
+The 80 blocked tasks map exactly to the 20 seasons belonging to:
+- Finland Veikkausliiga
+- India Indian Super League
+- Republic of Ireland Premier Division
+- Russia Russian Premier League
+- South Korea K League 1
+- Venezuela Primera División
+
+No further private acquisition was triggered.
+
+## Historical fixture evidence recovered from existing private artifacts
+
+The existing private artifacts were reconciled read-only; no new provider calls were made.
+
+For the 648 completed endpoint tasks:
+
+- Unique fixture IDs: **49,949**
+- Completed/settled-status fixtures: **43,618**
+- Completed-status coverage: **87.33%**
+- Kickoff timestamp present/valid: **100%**
+- Provider fixture/team IDs present: **100%**
+- Completed-match score fields valid: **100%**
+- 1X2 odds non-zero coverage: **99.74%**
+- BTTS odds non-zero coverage: **99.34%**
+- O/U 2.5 odds non-zero coverage: **99.85%**
+- Prematch-labelled xG values non-zero for both teams: **93.28%**
+- Explicit home/away flag: **86.64%**
+- Strict chronological 5-match form available for both teams: **92.60%**
+- Strict chronological 8-match form available for both teams: **88.23%**
+- Strict pre-kickoff H2H prior meeting available: **75.33%**
+
+These are **evidence/availability measurements only**. They are not production eligibility or betting accuracy claims.
+
+### Archive deduplication control
+
+The downloaded private artifacts contain overlapping copies of some payloads from repeated/continued runs. Across raw artifact observations there were 56,407 match rows, resolving to **49,949 unique provider fixture IDs**. The 6,458 repeated observations had no conflicting core fixture identity/score fields.
+
+Therefore the readiness matrix uses **unique fixture IDs**, not duplicated archive observations.
 
 ## Feature gate
 
-| Feature | Current disposition |
-|---|---|
-| Exact fixture/team/league identity | BLOCKED |
-| Kickoff chronology | BLOCKED |
-| Final result/settlement | BLOCKED |
-| Recent form 3/5/8 | BLOCKED |
-| Home/away form | BLOCKED |
-| H2H pre-kickoff | BLOCKED |
-| Goals / BTTS / O1.5 / O2.5 / O3.5 | BLOCKED |
-| Fixture-time standings | BLOCKED |
-| xG point-in-time provenance | BLOCKED / QUARANTINED |
-| 1X2 / BTTS / O/U odds provenance | BLOCKED |
-| Sample size | BLOCKED |
-| Freshness | PARTIAL at metadata level only |
-| Source/provenance | PARTIAL |
-| OMI eligibility | BLOCKED |
-| Visual Intelligence eligibility | BLOCKED |
+| Feature | Evidence status | Production admission |
+|---|---|---|
+| Exact provider fixture/team/league identity | GREEN at provider-ID level | BLOCKED pending canonical Oracle bridge |
+| Kickoff chronology | GREEN structurally | BLOCKED pending full historical admission |
+| Final result / score | GREEN for completed rows | BLOCKED pending settlement contract admission |
+| Recent form 3/5/8 | STRONG coverage | BLOCKED pending full point-in-time admission |
+| Home/Away form | PARTIAL — 86.64% explicit orientation | BLOCKED |
+| H2H | STRONG research coverage — 75.33% have prior meeting | BLOCKED pending canonical/chronology admission |
+| Goals / BTTS / Over markets | GREEN structurally for settled rows | BLOCKED pending admission |
+| Fixture-time standings | NOT YET PROVEN | BLOCKED |
+| xG values | 93.28% non-zero prematch-labelled | BLOCKED — point-in-time provenance not proven |
+| 1X2 / BTTS / O/U odds | >99% structural coverage | BLOCKED — point-in-time provenance not proven |
+| Sample size | Available for acquired spine | BLOCKED until feature eligibility is gated |
+| Freshness | Retrieval evidence exists | BLOCKED for historical pre-kickoff admission |
+| Source/provenance | Strong private source lineage | PARTIAL |
+| OMI eligibility | NOT_GRANTED | BLOCKED |
+| Visual Intelligence eligibility | NOT_GRANTED | BLOCKED |
 
-## League status
+## League classification
 
-The machine-readable matrix contains 50 rows. Only 27 league identities are explicitly recoverable from the current public evidence set (22 named candidate mappings + 5 new catalogue entries). The remaining 23 roster positions are retained as unresolved Selected-50 identities rather than guessed.
+- **READY: 0**
+- **PARTIAL: 44**
+- **BLOCKED: 6**
 
-Accordingly:
-- READY: 0
-- PARTIAL: 0
-- BLOCKED: 50
+The 44 PARTIAL leagues have complete endpoint-task acquisition and substantial fixture/feature coverage, but cannot be promoted to READY because the remaining governance gates are feature provenance and point-in-time admission, not raw data availability.
 
-This is deliberately conservative. It is not a claim that the 648 completed private tasks contain no usable data; it means that the evidence currently available to the research admission layer is insufficient to certify those rows.
+The 6 BLOCKED leagues have no admitted historical provider payloads because all 80 associated endpoint tasks are quarantined HTTP-417.
 
-## Exact blockers
+## Major blockers remaining
 
-1. The exact current 50-league roster is not exposed in the public research branch.
-2. The 22 identifiable candidate canonical mappings have zero approved mappings.
-3. Five current catalogue leagues remain not assessed against the protected registry.
-4. Fixture-level provider/team IDs and chronological match spine are not exposed in sanitized research evidence.
-5. Point-in-time xG provenance is not proven; xG remains quarantined.
-6. Fixture-time standings are not proven.
-7. Odds provenance is not proven.
-8. The 80 HTTP-417 tasks remain quarantined.
-9. Full-row admission from the private archive into the research evidence layer is not yet demonstrated.
+1. **Fixture-time standings** — historical as-of-kickoff table truth still needs certification.
+2. **xG provenance** — the prematch fields are populated, but the provider response does not prove that those values were frozen before kickoff.
+3. **Odds provenance** — high structural coverage, but point-in-time capture/effective-time evidence is not yet certified.
+4. **Canonical Oracle identity bridge** — provider IDs are exact, but the remaining canonical mapping decisions must remain fail-closed.
+5. **Settlement admission** — completed status and scores are present, but the final prediction-to-settlement contract must be applied before backtesting.
+6. **Home/away orientation** — 86.64% explicit coverage; the remainder cannot be imputed.
+7. **Six HTTP-417 leagues** — remain quarantined and must not be silently promoted.
+
+## OMI / Visual Intelligence decision
+
+**OMI: NOT READY.**
+
+The underlying data is now demonstrably much stronger than the previous metadata-only state, but OMI cannot consume it as production/historical truth until the point-in-time and identity gates above are closed.
+
+**Visual Intelligence: NOT READY for production admission.**
+
+The feature framework can now be populated from the admitted research spine, but production-grade Visual Intelligence must remain fail-closed until the same provenance gates pass.
 
 ## Governance
 
-No production model logic, probabilities, thresholds, calibration or governance was changed. No private acquisition was triggered.
+- Oracle V1.6 production logic: **UNCHANGED**
+- Oracle probabilities: **UNCHANGED**
+- Calibration: **UNCHANGED**
+- Thresholds: **UNCHANGED**
+- Production ledger: **UNCHANGED**
+- Private provider budget: **no new acquisition run**
+- Raw provider payloads: **remain private**
+- Public branch contains only sanitized evidence/matrix outputs
+- Betting eligibility: **NOT_GRANTED**
 
-The 80 HTTP-417 tasks remain separate and must not be silently promoted.
+## Next single target
 
-## Next gate
+**POINT-IN-TIME FEATURE ADMISSION GATE.**
 
-**Single next target: private-to-research evidence reconciliation.**
+Focus only on proving, from the already-acquired private evidence:
 
-Bring only sanitized, hash-backed admission metadata from the completed 648 private tasks into the research branch: exact league/season/task identity, row counts, fixture-ID counts, kickoff coverage, result/status coverage and feature-level availability. Do not publish raw payloads.
+**fixture-time standings + xG chronology/provenance + odds chronology/provenance + exact canonical identity + settlement eligibility.**
 
-Once that evidence is available, regenerate this matrix from actual admitted evidence and then proceed directly to OMI/Visual Intelligence readiness.
+Do not acquire more data. Do not redesign Oracle. Do not change production logic.
+
+Once this gate is closed, move directly to **OMI admission → Visual Intelligence → historical backtest → risk profiles**.
