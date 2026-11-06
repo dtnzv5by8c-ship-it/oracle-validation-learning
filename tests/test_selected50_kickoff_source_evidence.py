@@ -34,6 +34,23 @@ def evidence_row(fid="1"):
 
 
 class KickoffEvidenceRegisterTests(unittest.TestCase):
+    def test_empty_current_queue_is_a_clean_report_only_state(self):
+        result = validate([], [evidence_row("historical-1")])
+        self.assertEqual(result["status"], "PASS_NO_CURRENT_SCHEDULE_DISCREPANCIES")
+        self.assertEqual(result["queue_rows"], 0)
+        self.assertEqual(result["validated_in_scope_evidence_rows"], 0)
+        self.assertEqual(result["out_of_scope_evidence_count"], 1)
+        self.assertEqual(result["schedule_auto_corrections"], 0)
+        self.assertFalse(result["production_eligible"])
+        self.assertFalse(result["betting_eligible"])
+
+    def test_empty_queue_and_empty_evidence_is_also_valid(self):
+        result = validate([], [])
+        self.assertEqual(result["status"], "PASS_NO_CURRENT_SCHEDULE_DISCREPANCIES")
+        self.assertEqual(result["queue_rows"], 0)
+        self.assertEqual(result["evidence_rows"], 0)
+        self.assertTrue(result["exact_fixture_id_set_match"])
+
     def test_exact_join_and_timezone_conversion_pass(self):
         result = validate([queue_row()], [evidence_row()])
         self.assertEqual(result["status"], "PASS_REPORT_ONLY_KICKOFF_EVIDENCE_REGISTER")
