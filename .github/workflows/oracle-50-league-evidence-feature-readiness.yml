@@ -1,0 +1,29 @@
+name: Oracle 50-League Evidence Feature Readiness Matrix
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - 'reports/oracle-50-league-evidence-feature-readiness-2026-11-06.csv'
+      - 'reports/oracle-50-league-evidence-feature-readiness-2026-11-06.md'
+      - 'tests/test_50_league_evidence_feature_readiness_matrix.py'
+      - '.github/workflows/oracle-50-league-evidence-feature-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate 50-league matrix
+        run: python tests/test_50_league_evidence_feature_readiness_matrix.py
