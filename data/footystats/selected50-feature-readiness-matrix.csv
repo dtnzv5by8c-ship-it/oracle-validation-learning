@@ -1,0 +1,21 @@
+feature,required_for_omi,acquisition_evidence,payload_level_validation,point_in_time_provenance,coverage_state,missingness_state,recoverability,deterministic_classification,downstream_admission
+settled_match_identity,true,partial,blocked,not_applicable,partial,unknown,recoverable,PARTIAL,BLOCKED
+home_away_team_identity,true,partial,blocked,not_applicable,partial,unknown,recoverable,PARTIAL,BLOCKED
+chronology,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+recent_form,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+home_away_splits,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+H2H_exact_history,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+goals_for_against,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+total_goal_distribution,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+BTTS,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+Over_1_5,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+Over_2_5,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+Over_3_5,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+xG,true,partial,blocked,required,blocked,unverified,recoverable_if_private_payload_contains_xg_with_timestamp, BLOCKED,BLOCKED
+standings_position,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+odds_point_in_time,true,partial,blocked,required,blocked,unverified,recoverable_if_timestamped_prices_exist, BLOCKED,BLOCKED
+settlement_status,true,partial,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+sample_size,true,verified_metadata,blocked,not_applicable,partial,unknown,recoverable,PARTIAL,BLOCKED
+duplicates_gaps,true,verified_task_metadata,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+data_quality_flags,true,verified_metadata,blocked,required,partial,unknown,recoverable,PARTIAL,BLOCKED
+provenance,true,verified_receipt,partial,required,partial,unverified_row_level_provenance,recoverable,PARTIAL,BLOCKED
