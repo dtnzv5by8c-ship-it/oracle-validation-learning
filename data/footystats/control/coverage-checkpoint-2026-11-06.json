@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "checkpoint_type": "ORACLE_50_LEAGUE_HISTORICAL_VALIDATION",
+  "checkpoint_at_utc": "2026-11-06T18:16:00Z",
+  "universe": "Oracle-50-League",
+  "manifest_blob_sha": "6a916c962bfbcad1cfb429e23c26e0aef9b3a611",
+  "planned_leagues": 50,
+  "planned_provider_seasons": 182,
+  "planned_endpoint_tasks": 728,
+  "validated_task_ids": 648,
+  "validated_provider_seasons": 162,
+  "represented_leagues": 44,
+  "task_coverage_pct": 89.01098901098901,
+  "season_coverage_pct": 89.01098901098901,
+  "blocked_tasks": 80,
+  "blocked_provider_seasons": 20,
+  "blocked_leagues": 6,
+  "blocked_reason": "Provider HTTP 417; fail-closed; no promotion",
+  "evidence_classification": "PARTIAL",
+  "production_eligible": false,
+  "betting_eligible": false,
+  "oracle_v1_6_modified": false,
+  "notes": [
+    "648 unique task IDs reconcile exactly to the immutable 728-task manifest; 80 manifest tasks remain blocked.",
+    "162 provider seasons are represented by admitted task checkpoints; 20 seasons are fully blocked by provider 417.",
+    "44 of 50 selected leagues have represented task coverage; 6 selected leagues remain fully blocked.",
+    "Raw private payloads remain private. Public repository contains control-plane metadata only.",
+    "Payload-level validation of the downloaded successful artifacts found zero task/payload SHA or pager inconsistencies; 32,400 match rows in the validation sample had complete settled identity/goal/BTTS/Over/1X2 odds keys.",
+    "xG is not admitted: fixture-level xG revision provenance remains quarantined. Fixture-time standings, H2H temporal order and recent/home-away form are not yet fully validated; therefore downstream feature readiness is PARTIAL, not READY."
+  ]
+}
