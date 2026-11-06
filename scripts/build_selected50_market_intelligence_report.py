@@ -1673,7 +1673,7 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     source_headers = list(runtime_source_headers or [])
     if source_headers and source_headers != output_headers and source_headers != PREDICTION_RUNTIME_HEADERS:
         raise ValueError(
-            "Runtime source header sequence does not match either the locked 68-column "
+            "Runtime source header sequence does not exactly match either the locked 68-column "
             "Oracle V1.6 Output schema or the locked 57-column Selected-50 prediction runtime schema."
         )
     if source_headers == PREDICTION_RUNTIME_HEADERS:
