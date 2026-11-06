@@ -48,8 +48,51 @@ def source_timezone(value: str):
 
 
 def validate(queue_rows: list[dict[str, str]], evidence_rows: list[dict[str, str]]) -> dict:
-    if not queue_rows or not evidence_rows:
-        raise ValueError("queue and evidence register must both contain rows")
+    # An empty reconciliation queue is a valid report-only state: it means the
+    # current run produced no kickoff discrepancies requiring source review.
+    # Historical evidence rows must not be re-applied to a clean current queue.
+    if not queue_rows:
+        return {
+            "status": "PASS_NO_CURRENT_SCHEDULE_DISCREPANCIES",
+            "queue_rows": 0,
+            "evidence_rows": len(evidence_rows),
+            "validated_in_scope_evidence_rows": 0,
+            "uncovered_queue_fixture_count": 0,
+            "uncovered_queue_fixture_ids": [],
+            "out_of_scope_evidence_count": len(evidence_rows),
+            "out_of_scope_evidence_fixture_ids": sorted(
+                {
+                    str(row.get("fixture_id") or "").strip()
+                    for row in evidence_rows
+                    if str(row.get("fixture_id") or "").strip()
+                }
+            ),
+            "exact_fixture_id_set_match": False if evidence_rows else True,
+            "unique_fixture_ids": len({
+                str(row.get("fixture_id") or "").strip()
+                for row in evidence_rows
+                if str(row.get("fixture_id") or "").strip()
+            }) == len(evidence_rows),
+            "source_status_counts": dict(sorted(Counter(
+                str(row.get("external_source_status") or "").strip()
+                for row in evidence_rows
+            ).items())) if evidence_rows else {},
+            "authoritative_runtime_corroborations": 0,
+            "authoritative_archive_corroborations": 0,
+            "unresolved_or_conflicted_sources": 0,
+            "schedule_auto_corrections": 0,
+            "original_queue_rows_still_review_required": 0,
+            "production_eligible": False,
+            "betting_eligible": False,
+            "network_calls_made": 0,
+            "interpretation": (
+                "No current schedule discrepancies were emitted by the report run. "
+                "Any persisted evidence-register rows are historical/out-of-scope for "
+                "this run and are not used to alter, certify, or correct the schedule."
+            ),
+        }
+    if not evidence_rows:
+        raise ValueError("evidence register must contain rows when the queue contains review-required fixtures")
 
     def keyed(rows, label):
         result = {}
