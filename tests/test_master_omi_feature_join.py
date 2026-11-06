@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import csv
+import json
 import subprocess
 import sys
 import tempfile
@@ -37,6 +38,9 @@ def run(rows, ok, complete=False):
             capture_output=True, text=True
         )
         assert (r.returncode == 0) == ok, (r.stdout, r.stderr)
+        payload = json.loads(o.read_text())
+        assert "feature_coverage" in payload
+        assert payload["fully_ready_rows"] == (len(rows) if ok else 0)
 
 def main():
     run([base()], True)
