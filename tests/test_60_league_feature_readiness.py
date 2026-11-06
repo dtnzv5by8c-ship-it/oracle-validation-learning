@@ -18,7 +18,7 @@ rows=[row(i) for i in range(50)]
 assert m.validate(rows,50)==[]
 bad=[row(i) for i in range(49)]
 assert any("league_count" in e for e in m.validate(bad,50))
-bad=[row(i) for i in range(60)]; bad[1]["league_id"]=bad[0]["league_id"]
+bad=[row(i) for i in range(50)]; bad[1]["league_id"]=bad[0]["league_id"]
 assert "duplicate_league_id" in m.validate(bad)
 bad=[row(i) for i in range(60)]; bad[3]["xg_goals"]=""
 assert any("xg_goals" in e for e in m.validate(bad))
