@@ -155,6 +155,28 @@ class Selected50MarketIntelligenceTests(unittest.TestCase):
                          "ORIENTATION_UNKNOWN")
         self.assertEqual(swapped_qa["exact_snapshot_matches"], 0)
 
+    def test_snapshot_orientation_historical_only_runtime_is_explicitly_review_only(self):
+        runtime = runtime_row()
+        provenance = {
+            "snapshot_consumption_verified": False,
+            "snapshot_consumption_status": "NOT_CONSUMED_OVERLAY_DISABLED",
+        }
+        orientation, qa = market_report.build_snapshot_orientation_map(
+            [runtime], [], provenance, {"archive_sha256": "archive-sha"}
+        )
+        item = orientation[("S1", "F100", "H", "A")]
+        self.assertEqual(qa["status"], "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE")
+        self.assertEqual(qa["runtime_fixture_rows"], 1)
+        self.assertEqual(qa["rows_accounted_for"], 1)
+        self.assertEqual(qa["orientation_unknown_rows"], 1)
+        self.assertEqual(item["snapshot_evidence_status"], "NOT_CONSUMED_OVERLAY_DISABLED")
+        self.assertEqual(item["fixture_orientation_status"], "ORIENTATION_UNKNOWN")
+        self.assertEqual(item["home_away_market_review_status"],
+                         "REVIEW_REQUIRED_ORIENTATION_UNVERIFIED")
+        self.assertFalse(qa["production_eligible"])
+        self.assertFalse(qa["betting_eligible"])
+        self.assertTrue(market_report.require_snapshot_orientation_qa(qa))
+
     def test_snapshot_orientation_release_gate_requires_accounting_and_allows_explicit_review_exceptions(self):
         runtime = runtime_row()
         archive_summary = {"archive_sha256": "archive-sha"}
