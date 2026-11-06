@@ -14,10 +14,10 @@ on:
         default: "research-selected50-footystats-history-40375285207"
         type: string
       runtime_run_id:
-        description: "Current successful Selected-50 runtime run ID; never reuse a prior run"
+        description: "Current successful Selected-50 runtime run ID; enter digits only; never reuse a prior run"
         required: true
-        default: ""
-        type: string
+        default: 0
+        type: number
       confirm_results_provider_credit_usage:
         description: "Explicitly approve FootyStats API calls for completed-results reconciliation; false writes a zero-call NOT_RETRIEVED register"
         required: true
@@ -158,10 +158,17 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          RUNTIME_RUN_ID: ${{ inputs.runtime_run_id }}
+          RUNTIME_RUN_ID_RAW: ${{ inputs.runtime_run_id }}
         run: |
           set -euo pipefail
-          [[ "$RUNTIME_RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::Runtime run ID must be numeric."; exit 1; }
+          # GitHub may serialize workflow-dispatch numeric inputs as strings. Normalize
+          # harmless whitespace before strict digits-only validation.
+          RUNTIME_RUN_ID="$(printf '%s' "${RUNTIME_RUN_ID_RAW:-}" | tr -d '[:space:]')"
+          if [[ -z "$RUNTIME_RUN_ID" || ! "$RUNTIME_RUN_ID" =~ ^[0-9]+$ || "$RUNTIME_RUN_ID" == "0" ]]; then
+            echo "::error::Runtime run ID must contain digits only and be greater than zero."
+            exit 1
+          fi
+          echo "RUNTIME_RUN_ID=$RUNTIME_RUN_ID" >> "$GITHUB_ENV"
           mkdir -p runtime-artifact
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUNTIME_RUN_ID" > runtime-artifact/run.json
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUNTIME_RUN_ID/artifacts" > runtime-artifact/artifacts.json
