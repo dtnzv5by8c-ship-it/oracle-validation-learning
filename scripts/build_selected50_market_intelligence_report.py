@@ -1124,8 +1124,38 @@ def require_snapshot_orientation_qa(qa):
     duplicates = int(qa.get("duplicate_snapshot_keys", -1))
     incomplete = int(qa.get("incomplete_snapshot_identity_rows", -1))
     accounted = int(qa.get("rows_accounted_for", -1))
+    status = qa.get("status")
+    historical_only = status == "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE"
+    if historical_only:
+        # A deliberately disabled snapshot overlay is not a "missing snapshot" event.
+        # Every runtime row is explicitly accounted for as orientation-unknown evidence.
+        historical_ok = (
+            expected >= 0
+            and accounted == expected
+            and qa.get("all_runtime_rows_accounted_for") is True
+            and exact_identity == 0
+            and exact == 0
+            and missing == 0
+            and duplicate == 0
+            and identity_missing == 0
+            and unknown_flag == 0
+            and unknown == expected
+            and qa.get("snapshot_trace_rows") == 0
+            and qa.get("snapshot_trace_rows_expected") == 0
+            and qa.get("snapshot_trace_row_count_match") is True
+            and duplicates == 0
+            and incomplete == 0
+            and qa.get("production_eligible") is False
+            and qa.get("betting_eligible") is False
+        )
+        if not historical_ok:
+            raise ValueError(
+                "SNAPSHOT_ORIENTATION_QA_BLOCKED: historical-only accounting contract failed; "
+                f"runtime={expected}; unknown={unknown}; missing={missing}; accounted={accounted}"
+            )
+        return True
     if (
-        qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS", "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE"}
+        status not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}
         or expected < 0
         or accounted != expected
         or qa.get("all_runtime_rows_accounted_for") is not True
