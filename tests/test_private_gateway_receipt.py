@@ -56,4 +56,6 @@ with tempfile.TemporaryDirectory() as td:
     assert "transport_proof_stale" in m.validate(bad,a)
     bad=dict(r); bad["transport_verified_at_utc"]=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat().replace("+00:00","Z")
     assert "transport_verified_timestamp_in_future" in m.validate(bad,a)
+    bad=dict(r); bad["transport_verified_at_utc"]="2026-11-06T05:00:00+02:00"
+    assert "transport_verified_timestamp_not_utc" in m.validate(bad,a)
 print("PASS: private gateway receipt contract regression tests")
