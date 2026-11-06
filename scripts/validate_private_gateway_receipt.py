@@ -4,7 +4,7 @@
 This is a research/admission contract only. It never calls FootyStats, never reads
 provider credentials, never publishes raw provider payloads, and never changes Oracle
 V1.6. A receipt is admissible only when an approved private archive/gateway proves the
-bounded batch identity, 60-league scope, 2024-current window, provider identity,
+bounded batch identity, 50-league scope, 2024-current window, provider identity,
 immutable artifact digest, recent transport verification, and safety controls.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ MAX_TRANSPORT_PROOF_AGE = timedelta(hours=24)
 
 REQUIRED = {
     "schema_version","gateway_id","provider","archive_ref","archive_sha256",
-    "universe_name","expected_leagues","historical_start","historical_end",
+    "universe_name","undefined","historical_start","historical_end",
     "batch_id","requested_rows","received_rows","request_count",
     "raw_provider_payload_persisted_publicly","credentials_persisted_publicly",
     "production_eligible","betting_eligible","transport_status","auth_status",
@@ -58,8 +58,8 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if missing: e.append("missing_fields:"+",".join(missing))
     if receipt.get("schema_version") != 1: e.append("schema_version_not_1")
     if receipt.get("provider") != "FootyStats": e.append("provider_not_footystats")
-    if receipt.get("universe_name") != "Oracle-60-League": e.append("universe_not_60_league")
-    if receipt.get("expected_leagues") != 60: e.append("expected_leagues_not_60")
+    if receipt.get("universe_name") != "Oracle-50-League": e.append("universe_not_60_league")
+    if receipt.get("expected_leagues") != 50: e.append("expected_leagues_not_50")
     if str(receipt.get("historical_start")) != "2024-01-01": e.append("historical_start_not_2024")
     historical_end = str(receipt.get("historical_end") or "").strip()
     if historical_end != "current":
