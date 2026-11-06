@@ -52,6 +52,27 @@ def load_oracle_v1_6_output_headers():
 
 
 ORACLE_V1_6_OUTPUT_HEADERS = load_oracle_v1_6_output_headers()
+
+# The runtime artifact intentionally contains two related report contracts:
+# - oracle_selected50_prediction_report.csv: 57-column research prediction source
+# - oracle_selected50_governed_fixture_report.csv: locked 68-column governed view
+# The repair workflow consumes the 57-column prediction source for diagnostics.
+# Governed-only fields must therefore be explicit NOT_AVAILABLE values rather than
+# being inferred or fabricated during the 68-column workbook projection.
+GOVERNED_ONLY_RUNTIME_HEADERS = [
+    "governed_prediction_status", "governed_block_reason",
+    "BTTS_governed_status", "BTTS_block_reason",
+    "DC_HOME_governed_status", "DC_HOME_block_reason",
+    "DC_AWAY_governed_status", "DC_AWAY_block_reason",
+    "COMBO_HOME_governed_status", "COMBO_HOME_block_reason",
+    "COMBO_AWAY_governed_status", "COMBO_AWAY_block_reason",
+]
+PREDICTION_RUNTIME_HEADERS = [
+    header for header in ORACLE_V1_6_OUTPUT_HEADERS
+    if header not in GOVERNED_ONLY_RUNTIME_HEADERS
+] + ["combo_probability_status"]
+RUNTIME_FIELD_UNAVAILABLE = "NOT_AVAILABLE_FROM_RUNTIME_REPORT"
+
 SUPPORTED = {
     "BTTS Yes": "BTTS_probability_pct",
     "Home 1X": "DC_HOME_probability_pct",
@@ -1649,8 +1670,19 @@ def base_row(runtime, league_name, join_status):
 def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=None, xg_audit_rows=None, league_coverage_rows=None, coverage_summary_rows=None, xg_provenance_rows=None, runtime_rows=None, snapshot_orientation_by_key=None, runtime_source_headers=None):
     runtime_rows = runtime_rows or []
     output_headers = ORACLE_V1_6_OUTPUT_HEADERS
-    if runtime_source_headers is not None and list(runtime_source_headers) != output_headers:
-        raise ValueError("Runtime source header sequence does not exactly match the locked 68-column Oracle V1.6 Output schema.")
+    source_headers = list(runtime_source_headers or [])
+    if source_headers and source_headers != output_headers and source_headers != PREDICTION_RUNTIME_HEADERS:
+        raise ValueError(
+            "Runtime source header sequence does not match either the locked 68-column "
+            "Oracle V1.6 Output schema or the locked 57-column Selected-50 prediction runtime schema."
+        )
+    if source_headers == PREDICTION_RUNTIME_HEADERS:
+        # Promote the 57-column runtime source to the 68-column workbook projection
+        # only by adding explicit unavailable markers for governed-only fields.
+        # Never derive governed status from prediction_status or other proxies.
+        for runtime_row_item in runtime_rows:
+            for header in GOVERNED_ONLY_RUNTIME_HEADERS:
+                runtime_row_item.setdefault(header, RUNTIME_FIELD_UNAVAILABLE)
     for row_number, runtime_row_item in enumerate(runtime_rows, 1):
         missing = [header for header in output_headers if header not in runtime_row_item]
         if missing:
