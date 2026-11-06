@@ -1,0 +1,26 @@
+name: Oracle Master OMI Regression
+
+on:
+  push:
+    branches:
+      - research/oracle-50-league-readiness-audit
+    paths:
+      - "scripts/validate_master_omi_feature_join.py"
+      - "tests/test_master_omi_feature_join.py"
+      - ".github/workflows/oracle-master-omi-regression.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout governed research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+      - name: Run Master OMI feature-join regression
+        run: python3 tests/test_master_omi_feature_join.py
