@@ -58,9 +58,9 @@ def main():
     x = base(); x["kickoff_utc"] = "not-a-timestamp"; run([x], False)
     x = base(); x["kickoff_utc"] = "2026-11-05T20:00:00"; run([x], False)
 
-    # Explicit universe completeness mode: 59 unique leagues must block.
+    # Explicit universe completeness mode: 49 unique leagues must block.
     rows = []
-    for n in range(59):
+    for n in range(49):
         x = base(); x["fixture_id"] = f"F{n}"; x["league_id"] = f"L{n}"
         rows.append(x)
     run(rows, False, complete=True)
