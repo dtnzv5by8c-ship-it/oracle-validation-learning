@@ -904,8 +904,58 @@ def _optional_count(value):
 
 def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenance, archive_summary):
     """Join orientation only by exact ordered identity; retain missing evidence as row-level exceptions."""
+    snapshot_overlay_verified = runtime_provenance.get("snapshot_consumption_verified") is True
+    snapshot_overlay_status = str(runtime_provenance.get("snapshot_consumption_status") or "").strip()
+    if not snapshot_rows and not snapshot_overlay_verified:
+        # Historical-only runtime: current-snapshot overlay was intentionally disabled.
+        # Preserve fail-closed semantics by emitting explicit unknown orientation evidence;
+        # never infer home/away from historical rows or fixture names.
+        orientation_by_key = {}
+        for runtime in runtime_rows:
+            key = runtime_key(runtime)
+            orientation_by_key[key] = {
+                "snapshot_evidence_status": "NOT_CONSUMED_OVERLAY_DISABLED",
+                "snapshot_no_home_away_flag": "NOT_AVAILABLE",
+                "fixture_orientation_status": "ORIENTATION_UNKNOWN",
+                "home_away_market_review_status": "REVIEW_REQUIRED_ORIENTATION_UNVERIFIED",
+                "snapshot_row_number": "NOT_AVAILABLE",
+                "snapshot_retrieved_utc": "NOT_AVAILABLE",
+                "snapshot_file_sha256": "NOT_AVAILABLE",
+            }
+        qa = {
+            "status": "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE",
+            "runtime_fixture_rows": len(runtime_rows),
+            "snapshot_trace_rows": 0,
+            "snapshot_trace_rows_expected": 0,
+            "snapshot_trace_row_count_match": True,
+            "rows_accounted_for": len(runtime_rows),
+            "all_runtime_rows_accounted_for": True,
+            "exact_identity_matches": 0,
+            "exact_snapshot_matches": 0,
+            "missing_snapshot_rows": len(runtime_rows),
+            "duplicate_snapshot_match_rows": 0,
+            "runtime_identity_missing_rows": 0,
+            "unknown_snapshot_flag_rows": 0,
+            "no_home_away_flagged": 0,
+            "home_away_distinction_present": 0,
+            "orientation_unknown_rows": len(runtime_rows),
+            "duplicate_runtime_keys": len(runtime_rows) - len({runtime_key(row) for row in runtime_rows}),
+            "duplicate_snapshot_keys": 0,
+            "incomplete_snapshot_identity_rows": 0,
+            "snapshot_artifact_id": "NOT_CONSUMED",
+            "snapshot_run_id": "0",
+            "snapshot_file_sha256": "NOT_CONSUMED",
+            "snapshot_retrieved_utc": "NOT_CONSUMED",
+            "production_eligible": False,
+            "betting_eligible": False,
+            "interpretation": (
+                "Historical-only runtime explicitly disabled the current-fixture snapshot overlay. "
+                "Orientation is unknown and remains review-required; no home/away inference is permitted."
+            ),
+        }
+        return orientation_by_key, qa
     if not snapshot_rows:
-        raise ValueError("Snapshot candidate trace is required for the v1.4 orientation audit.")
+        raise ValueError("Snapshot candidate trace is required when snapshot overlay is enabled.")
     expected_snapshot_sha = str(runtime_provenance.get("snapshot_file_sha256") or "").strip()
     expected_archive_sha = str(archive_summary.get("archive_sha256") or "").strip()
     expected_retrieved = str(runtime_provenance.get("snapshot_retrieved_utc") or "").strip()
@@ -1054,7 +1104,7 @@ def require_snapshot_orientation_qa(qa):
     incomplete = int(qa.get("incomplete_snapshot_identity_rows", -1))
     accounted = int(qa.get("rows_accounted_for", -1))
     if (
-        qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}
+        qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS", "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE"}
         or expected < 0
         or accounted != expected
         or qa.get("all_runtime_rows_accounted_for") is not True
