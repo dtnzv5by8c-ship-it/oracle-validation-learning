@@ -11,9 +11,9 @@ def base():
     recent=(datetime.now(timezone.utc)-timedelta(minutes=5)).isoformat().replace("+00:00","Z")
     return {
       "schema_version":1,"gateway_id":"approved-private-gateway-v1",
-      "provider":"FootyStats","archive_ref":"private://oracle/60/batch-001.zip",
-      "archive_sha256":"0"*64,"universe_name":"Oracle-60-League",
-      "expected_leagues":60,"historical_start":"2024-01-01","historical_end":"current",
+      "provider":"FootyStats","archive_ref":"private://oracle/50/batch-001.zip",
+      "archive_sha256":"0"*64,"universe_name":"Oracle-50-League",
+      "expected_leagues":50,"historical_start":"2024-01-01","historical_end":"current",
       "batch_id":"batch-001","requested_rows":10,"received_rows":10,"request_count":1,
       "raw_provider_payload_persisted_publicly":False,"credentials_persisted_publicly":False,
       "production_eligible":False,"betting_eligible":False,"transport_status":"PASS",
@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory() as td:
     r=base(); r["archive_sha256"]=hashlib.sha256(a.read_bytes()).hexdigest()
     assert m.validate(r,a)==[]
     bad=dict(r); bad["expected_leagues"]=49
-    assert "expected_leagues_not_60" in m.validate(bad,a)
+    assert "expected_leagues_not_50" in m.validate(bad,a)
     bad=dict(r); bad["transport_status"]="BLOCKED_417"
     assert "transport_not_pass" in m.validate(bad,a)
     bad=dict(r); bad["raw_provider_payload_persisted_publicly"]=True
