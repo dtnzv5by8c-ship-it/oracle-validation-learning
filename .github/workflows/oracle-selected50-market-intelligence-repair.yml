@@ -168,6 +168,9 @@ jobs:
             echo "::error::Runtime run ID must contain digits only and be greater than zero."
             exit 1
           fi
+          # GITHUB_ENV only affects later steps; export here because this step has
+          # multiple inline Python checks that read RUNTIME_RUN_ID immediately.
+          export RUNTIME_RUN_ID
           echo "RUNTIME_RUN_ID=$RUNTIME_RUN_ID" >> "$GITHUB_ENV"
           mkdir -p runtime-artifact
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUNTIME_RUN_ID" > runtime-artifact/run.json
