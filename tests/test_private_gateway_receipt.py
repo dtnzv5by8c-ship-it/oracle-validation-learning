@@ -40,6 +40,12 @@ with tempfile.TemporaryDirectory() as td:
     assert "gateway_id_not_approved" in m.validate(bad,a)
     bad=dict(r); bad["request_count"]=101
     assert "request_count_exceeds_bounded_limit" in m.validate(bad,a)
+    bad=dict(r); bad["request_count"]="not-a-number"
+    assert "request_count_invalid" in m.validate(bad,a)
+    bad=dict(r); bad["requested_rows"]="NaN"
+    assert "requested_rows_invalid" in m.validate(bad,a)
+    bad=dict(r); bad["received_rows"]="NaN"
+    assert "received_rows_invalid" in m.validate(bad,a)
     bad=dict(r); bad["transport_mode"]="public_http"
     assert "transport_mode_not_approved" in m.validate(bad,a)
     bad=dict(r); bad["transport_evidence_ref"]="https://public.example/evidence"
