@@ -16,8 +16,8 @@ on:
       runtime_run_id:
         description: "Current successful Selected-50 runtime run ID; enter digits only; never reuse a prior run"
         required: true
-        default: 0
-        type: number
+        default: ""
+        type: string
       confirm_results_provider_credit_usage:
         description: "Explicitly approve FootyStats API calls for completed-results reconciliation; false writes a zero-call NOT_RETRIEVED register"
         required: true
