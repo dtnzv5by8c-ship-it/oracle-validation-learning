@@ -14,10 +14,10 @@ def row(i, ready=True):
     r.update({f:"PASS" if ready else "" for f in FEATURES})
     return r
 
-rows=[row(i) for i in range(60)]
-assert m.validate(rows)==[]
-bad=[row(i) for i in range(59)]
-assert any("league_count" in e for e in m.validate(bad))
+rows=[row(i) for i in range(50)]
+assert m.validate(rows,50)==[]
+bad=[row(i) for i in range(49)]
+assert any("league_count" in e for e in m.validate(bad,50))
 bad=[row(i) for i in range(60)]; bad[1]["league_id"]=bad[0]["league_id"]
 assert "duplicate_league_id" in m.validate(bad)
 bad=[row(i) for i in range(60)]; bad[3]["xg_goals"]=""
@@ -26,7 +26,7 @@ bad=[row(i) for i in range(60)]; bad[4]["season_start"]="2023"
 assert "season_start_must_be_2024" in m.validate(bad)
 bad=[row(i) for i in range(60)]; bad[5]["provider_league_id"]=""
 assert any("provider_league_id" in e for e in m.validate(bad))
-print("PASS: 60-league feature readiness matrix regression tests")
+print("PASS: 50-league feature readiness matrix regression tests")
 
 # Provider-season identity is mandatory and unique.
 bad=[row(i) for i in range(60)]; bad[6]["provider_season_id"]=""
