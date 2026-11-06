@@ -953,7 +953,7 @@ def build_snapshot_orientation_map(runtime_rows, snapshot_rows, runtime_provenan
             "all_runtime_rows_accounted_for": True,
             "exact_identity_matches": 0,
             "exact_snapshot_matches": 0,
-            "missing_snapshot_rows": len(runtime_rows),
+            "missing_snapshot_rows": 0,
             "duplicate_snapshot_match_rows": 0,
             "runtime_identity_missing_rows": 0,
             "unknown_snapshot_flag_rows": 0,
