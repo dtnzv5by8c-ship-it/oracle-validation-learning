@@ -621,7 +621,11 @@ jobs:
               orientation = list(csv.DictReader(f))
           with Path("runtime-artifact/extracted/oracle_selected50_prediction_report.csv").open(encoding="utf-8-sig", newline="") as f:
               runtime = list(csv.DictReader(f))
-          if orientation_qa.get("status") not in {"PASS_EXACT_SNAPSHOT_TRACE_JOIN", "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS"}:
+          if orientation_qa.get("status") not in {
+              "PASS_EXACT_SNAPSHOT_TRACE_JOIN",
+              "REVIEW_REQUIRED_SNAPSHOT_EVIDENCE_GAPS",
+              "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE",
+          }:
               raise SystemExit("FAIL: snapshot orientation QA has an invalid status")
           if len(orientation) != len(runtime) or len(orientation) != orientation_qa.get("runtime_fixture_rows"):
               raise SystemExit("FAIL: orientation audit row count does not reconcile to runtime fixtures")
@@ -639,6 +643,8 @@ jobs:
               "MISSING_FROM_FRESH_SNAPSHOT", "DUPLICATE_SNAPSHOT_MATCH",
               "RUNTIME_IDENTITY_MISSING", "EXACT_SNAPSHOT_MATCH_FLAG_UNKNOWN"
           }
+          if orientation_qa.get("status") == "HISTORICAL_ONLY_NO_SNAPSHOT_TRACE":
+              allowed_unknown_statuses = {"NOT_CONSUMED_OVERLAY_DISABLED"}
           if any(r.get("snapshot_evidence_status") not in allowed_unknown_statuses for r in unknown):
               raise SystemExit("FAIL: orientation audit contains an unclassified snapshot evidence exception")
           if len(flagged) + len(distinct) + len(unknown) != len(runtime):
