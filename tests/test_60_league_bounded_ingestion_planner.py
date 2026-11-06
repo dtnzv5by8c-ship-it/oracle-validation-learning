@@ -26,9 +26,9 @@ def test_duplicate_provider_season_blocks():
     assert any("duplicate_provider_season_id" in e for e in errors)
 
 def test_duplicate_league_blocks():
-    rows=[row(i) for i in range(60)]
+    rows=[row(i) for i in range(50)]
     rows[1]["league_id"]=rows[0]["league_id"]
-    errors,_=m.plan(rows,60,20)
+    errors,_=m.plan(rows,50,20)
     assert any("duplicate_league_id" in e for e in errors)
 
 def test_wrong_scope_blocks():
