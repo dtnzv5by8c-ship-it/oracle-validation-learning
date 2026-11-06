@@ -1,0 +1,20 @@
+name: Oracle 60-League Bounded Ingestion Planner
+
+on:
+  push:
+    paths:
+      - "scripts/plan_60_league_bounded_ingestion.py"
+      - "tests/test_60_league_bounded_ingestion_planner.py"
+      - ".github/workflows/oracle-60-league-bounded-ingestion-planner.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  planner-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run bounded ingestion planner regression tests
+        run: python tests/test_60_league_bounded_ingestion_planner.py
