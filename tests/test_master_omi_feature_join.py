@@ -23,7 +23,7 @@ def base():
         + ["PASS"] * 10 + ["2","1","HOME"]
     ))
 
-def run(rows, ok):
+def run(rows, ok, complete=False):
     with tempfile.TemporaryDirectory() as td:
         p = Path(td)
         i = p / "x.csv"
@@ -33,7 +33,7 @@ def run(rows, ok):
             w.writeheader()
             w.writerows(rows)
         r = subprocess.run(
-            [sys.executable, str(SCRIPT), "--input", str(i), "--out", str(o)],
+            [sys.executable, str(SCRIPT), "--input", str(i), "--out", str(o)] + ([ "--require-complete" ] if complete else []),
             capture_output=True, text=True
         )
         assert (r.returncode == 0) == ok, (r.stdout, r.stderr)
@@ -53,6 +53,13 @@ def main():
     x = base(); x["actual_result"] = "INVALID"; run([x], False)
     x = base(); x["kickoff_utc"] = "not-a-timestamp"; run([x], False)
     x = base(); x["kickoff_utc"] = "2026-11-05T20:00:00"; run([x], False)
+
+    # Explicit universe completeness mode: 59 unique leagues must block.
+    rows = []
+    for n in range(59):
+        x = base(); x["fixture_id"] = f"F{n}"; x["league_id"] = f"L{n}"
+        rows.append(x)
+    run(rows, False, complete=True)
 
     print("PASS: Master OMI feature-join regression suite")
 
