@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed validator for the append-only Master OMI reporting extension."""
 from __future__ import annotations
-import argparse,csv,json
+import argparse,csv,json,math
 from datetime import datetime
 from pathlib import Path
 
@@ -17,6 +17,7 @@ def present(v): return v is not None and str(v).strip() != ""
 def pct(v, field):
     try: x=float(v)
     except (TypeError,ValueError): raise ValueError(f"{field}: invalid")
+    if not math.isfinite(x): raise ValueError(f"{field}: non_finite")
     if not 0 <= x <= 100: raise ValueError(f"{field}: outside_0_100")
     return x
 
@@ -29,6 +30,7 @@ def nonneg_int(v, field):
 def nonneg_float(v, field):
     try: x=float(v)
     except (TypeError,ValueError): raise ValueError(f"{field}: invalid")
+    if not math.isfinite(x): raise ValueError(f"{field}: non_finite")
     if x < 0: raise ValueError(f"{field}: negative")
     return x
 
@@ -53,7 +55,8 @@ def validate(rows):
                 nonneg_float(r["backtest_log_loss"],"backtest_log_loss")
                 if not present(r["backtest_scope"]): raise ValueError("backtest_scope: missing")
                 try:
-                    datetime.fromisoformat(str(r["backtest_asof_utc"]).replace("Z","+00:00"))
+                    dt=datetime.fromisoformat(str(r["backtest_asof_utc"]).replace("Z","+00:00"))
+                    if dt.tzinfo is None: raise ValueError
                 except ValueError:
                     raise ValueError("backtest_asof_utc: invalid")
         except ValueError as e:
