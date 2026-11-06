@@ -36,3 +36,14 @@ assert "duplicate_provider_season_id" in m.validate(bad,50)
 bad=[row(i) for i in range(50)]; bad[8]["provider_league_id"]=bad[0]["provider_league_id"]
 assert "duplicate_provider_league_id" in m.validate(bad,50)
 print("PASS: provider identity hardening cases")
+
+# Readiness classification must distinguish READY, PARTIAL and BLOCKED.
+matrix = m.readiness_matrix(rows)
+assert all(x["status"] == "READY" for x in matrix)
+partial = row(20); partial["xg_goals"] = ""; partial["btts"] = ""
+assert m.classify_league(partial)["status"] == "PARTIAL"
+blocked = row(21); blocked["provider_season_id"] = ""
+assert m.classify_league(blocked)["status"] == "BLOCKED"
+counts = {s: sum(1 for x in matrix if x["status"] == s) for s in ("READY", "PARTIAL", "BLOCKED")}
+assert counts == {"READY": 50, "PARTIAL": 0, "BLOCKED": 0}
+print("PASS: READY/PARTIAL/BLOCKED classification")
