@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline 60-league feature-readiness matrix contract.
+"""Offline 50-league feature-readiness matrix contract.
 
 Consumes only a canonical manifest/readiness CSV. It does not call providers,
 calculate Oracle probabilities, or change production logic. A league is READY
@@ -19,7 +19,7 @@ REQUIRED = ("league_id","league_name","provider_league_id","provider_league_name
 def truth(v: str) -> bool:
     return str(v).strip().upper() in {"1","TRUE","PASS","READY","YES","OK"}
 
-def validate(rows, expected_leagues=60):
+def validate(rows, expected_leagues=50):
     errors=[]
     ids=[str(r.get("league_id","")).strip() for r in rows]
     if len(rows)!=expected_leagues:
@@ -59,7 +59,7 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--matrix",required=True)
     ap.add_argument("--out",required=True)
-    ap.add_argument("--expected-leagues",type=int,default=60)
+    ap.add_argument("--expected-leagues",type=int,default=50)
     a=ap.parse_args()
     with open(a.matrix,encoding="utf-8-sig",newline="") as f:
         rows=list(csv.DictReader(f))
