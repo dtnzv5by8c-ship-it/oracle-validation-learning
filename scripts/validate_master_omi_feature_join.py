@@ -89,6 +89,17 @@ def validate(rows, expected_leagues=60, require_complete=False):
                 errors.append(f"row{i}:actual_result_score_mismatch")
     return errors
 
+def feature_coverage(rows):
+    total = len(rows)
+    return {
+        f: {
+            "ready_rows": sum(1 for r in rows if truth(r.get(f))),
+            "total_rows": total,
+            "coverage_pct": round((sum(1 for r in rows if truth(r.get(f))) / total) * 100, 2) if total else 0.0,
+        }
+        for f in FEATURE_FIELDS
+    }
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
@@ -102,6 +113,9 @@ def main():
     result = {
         "status": "PASS" if not errors else "BLOCK",
         "rows": len(rows),
+        "league_count": len({str(r.get("league_id", "")).strip() for r in rows if present(r.get("league_id"))}),
+        "feature_coverage": feature_coverage(rows),
+        "fully_ready_rows": sum(1 for r in rows if all(truth(r.get(f)) for f in FEATURE_FIELDS)),
         "errors": errors,
         "required_feature_families": [
             "recent_form","h2h","league_position","xg_goals","btts","win_draw_probability"
