@@ -43,7 +43,7 @@ def validate_kickoff(v):
     except (TypeError, ValueError):
         return False
 
-def validate(rows, expected_leagues=60):
+def validate(rows, expected_leagues=60, require_complete=False):
     errors = []
     if not rows:
         return ["empty_master_omi"]
@@ -60,6 +60,8 @@ def validate(rows, expected_leagues=60):
     leagues = {str(r.get("league_id","")).strip() for r in rows if present(r.get("league_id"))}
     if len(leagues) > expected_leagues:
         errors.append(f"league_count_exceeds_{expected_leagues}")
+    if require_complete and len(leagues) != expected_leagues:
+        errors.append(f"league_count_incomplete:{len(leagues)}/{expected_leagues}")
     for i, r in enumerate(rows, 1):
         for f in IDENTITY_FIELDS:
             if not present(r.get(f)):
@@ -92,10 +94,11 @@ def main():
     ap.add_argument("--input", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--expected-leagues", type=int, default=60)
+    ap.add_argument("--require-complete", action="store_true")
     a = ap.parse_args()
     with open(a.input, encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
-    errors = validate(rows, a.expected_leagues)
+    errors = validate(rows, a.expected_leagues, a.require_complete)
     result = {
         "status": "PASS" if not errors else "BLOCK",
         "rows": len(rows),
