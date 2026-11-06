@@ -36,9 +36,9 @@ def test_wrong_scope_blocks():
     assert any("league_count=49" in e for e in errors)
 
 def test_missing_provider_season_blocks():
-    rows=[row(i) for i in range(60)]
+    rows=[row(i) for i in range(50)]
     rows[4]["provider_season_id"]=""
-    errors,_=m.plan(rows,60,20)
+    errors,_=m.plan(rows,50,20)
     assert any("missing_fields:provider_season_id" in e for e in errors)
 
 def test_non_2024_start_blocks():
