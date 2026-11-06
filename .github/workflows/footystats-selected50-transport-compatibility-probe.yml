@@ -1,0 +1,75 @@
+name: FootyStats Selected-50 Transport Compatibility Probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: footystats-selected50-transport-compatibility-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      TEST_SEASON_ID: "16571"
+    steps:
+      - name: Validate secret presence without exposing it
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${FOOTYSTATS_API_KEY:-}" ]] || {
+            echo "::error::FOOTYSTATS_API_KEY secret is missing; zero provider requests made."
+            exit 1
+          }
+
+      - name: Probe league-matches with explicit Expect suppression
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+          body="$tmpdir/body.json"
+          status="$tmpdir/status.txt"
+
+          curl --silent --show-error --location --http1.1             --connect-timeout 15             --max-time 45             --retry 0             -H "Accept: application/json"             -H "User-Agent: Project-Oracle-Selected50-Transport-Probe/1.0"             -H "Expect:"             -G "https://api.football-data-api.com/league-matches"             --data-urlencode "key=${FOOTYSTATS_API_KEY}"             --data-urlencode "season_id=${TEST_SEASON_ID}"             --data-urlencode "page=1"             --data-urlencode "max_per_page=1"             -o "$body"             -w "%{http_code}|%{http_version}|%{time_total}" > "$status"
+
+          IFS='|' read -r http_status http_version total_time < "$status"
+
+          python3 - "$body" "$http_status" "$http_version" "$total_time" <<'PY'
+          import json,sys
+          body_path,status,http_version,total_time=sys.argv[1:]
+          try:
+              payload=json.load(open(body_path,encoding="utf-8"))
+          except Exception:
+              raise SystemExit(f"BLOCK: provider returned non-JSON response; http_status={status}; http_version={http_version}")
+
+          if status != "200":
+              raise SystemExit(f"BLOCK: FootyStats transport still failing; http_status={status}; http_version={http_version}")
+
+          if not isinstance(payload,dict) or payload.get("success") is not True:
+              raise SystemExit("BLOCK: FootyStats responded but success=true was not established.")
+
+          data=payload.get("data")
+          pager=payload.get("pager")
+          count=len(data) if isinstance(data,list) else (1 if isinstance(data,dict) else 0)
+          print(json.dumps({
+              "status":"PASS",
+              "endpoint":"league-matches",
+              "season_id":"16571",
+              "http_status":int(status),
+              "http_version":http_version,
+              "response_total_seconds":float(total_time),
+              "success":True,
+              "returned_rows":count,
+              "pager_present":isinstance(pager,dict),
+              "raw_provider_payload_persisted":False,
+              "production_eligible":False,
+              "betting_eligible":False,
+              "expect_header_suppressed":True
+          }, indent=2))
+          PY
