@@ -62,6 +62,8 @@ def validate(rows, expected_leagues=60, require_complete=False):
         errors.append(f"league_count_exceeds_{expected_leagues}")
     if require_complete and len(leagues) != expected_leagues:
         errors.append(f"league_count_incomplete:{len(leagues)}/{expected_leagues}")
+    if require_complete and len(leagues) != expected_leagues:
+        errors.append(f"league_count_incomplete:{len(leagues)}/{expected_leagues}")
     for i, r in enumerate(rows, 1):
         for f in IDENTITY_FIELDS:
             if not present(r.get(f)):
@@ -94,6 +96,7 @@ def main():
     ap.add_argument("--input", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--expected-leagues", type=int, default=60)
+    ap.add_argument("--require-complete", action="store_true")
     ap.add_argument("--require-complete", action="store_true")
     a = ap.parse_args()
     with open(a.input, encoding="utf-8-sig", newline="") as f:
