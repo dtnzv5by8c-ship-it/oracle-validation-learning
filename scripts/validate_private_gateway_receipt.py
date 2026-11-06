@@ -58,7 +58,7 @@ def validate(receipt: dict, artifact: Path|None=None) -> list[str]:
     if missing: e.append("missing_fields:"+",".join(missing))
     if receipt.get("schema_version") != 1: e.append("schema_version_not_1")
     if receipt.get("provider") != "FootyStats": e.append("provider_not_footystats")
-    if receipt.get("universe_name") != "Oracle-50-League": e.append("universe_not_60_league")
+    if receipt.get("universe_name") != "Oracle-50-League": e.append("universe_not_50_league")
     if receipt.get("expected_leagues") != 50: e.append("expected_leagues_not_50")
     if str(receipt.get("historical_start")) != "2024-01-01": e.append("historical_start_not_2024")
     historical_end = str(receipt.get("historical_end") or "").strip()
