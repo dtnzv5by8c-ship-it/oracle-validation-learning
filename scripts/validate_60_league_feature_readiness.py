@@ -19,6 +19,37 @@ REQUIRED = ("league_id","league_name","provider_league_id","provider_league_name
 def truth(v: str) -> bool:
     return str(v).strip().upper() in {"1","TRUE","PASS","READY","YES","OK"}
 
+
+def classify_league(row):
+    """Classify a league without admitting incomplete data."""
+    identity_ok = all(str(row.get(k, "")).strip() for k in (
+        "league_id", "league_name", "provider_league_id", "provider_league_name",
+        "provider_season_id", "season_start", "season_end"
+    ))
+    season_start = str(row.get("season_start", "")).strip()
+    season_end = str(row.get("season_end", "")).strip().lower()
+    window_ok = season_start[:4] == "2024" and (
+        season_end == "current" or season_end[:4].isdigit()
+    )
+    ready_features = [f for f in FEATURES if truth(row.get(f, ""))]
+    if identity_ok and window_ok and len(ready_features) == len(FEATURES):
+        status = "READY"
+    elif identity_ok and window_ok and ready_features:
+        status = "PARTIAL"
+    else:
+        status = "BLOCKED"
+    return {
+        "league_id": str(row.get("league_id", "")).strip(),
+        "league_name": str(row.get("league_name", "")).strip(),
+        "status": status,
+        "ready_feature_count": len(ready_features),
+        "required_feature_count": len(FEATURES),
+        "missing_features": [f for f in FEATURES if f not in ready_features],
+    }
+
+def readiness_matrix(rows):
+    return [classify_league(r) for r in rows]
+
 def validate(rows, expected_leagues=50):
     errors=[]
     ids=[str(r.get("league_id","")).strip() for r in rows]
@@ -65,9 +96,12 @@ def main():
         rows=list(csv.DictReader(f))
     errors=validate(rows,a.expected_leagues)
     ready=sum(1 for r in rows if all(truth(r.get(f,"")) for f in FEATURES))
+    matrix = readiness_matrix(rows)
+    status_counts = {s: sum(1 for x in matrix if x["status"] == s) for s in ("READY", "PARTIAL", "BLOCKED")}
     result={"status":"PASS" if not errors else "BLOCK",
             "expected_leagues":a.expected_leagues,"rows":len(rows),
-            "fully_ready_leagues":ready,"errors":errors,
+            "fully_ready_leagues":ready,"status_counts":status_counts,
+            "readiness_matrix":matrix,"errors":errors,
             "required_features":list(FEATURES),
             "governance":{"provider_called":False,"oracle_v1_6_modified":False,
                           "probabilities_recalculated":False,"fail_closed":True}}
