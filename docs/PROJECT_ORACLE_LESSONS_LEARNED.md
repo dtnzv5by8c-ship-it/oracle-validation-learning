@@ -108,3 +108,6 @@ A repair is not complete merely because the publication adapter references a new
 
 ## 2026-11-07 — Optional evidence artifacts must be persisted conditionally
 A governed evidence workflow must not assume every optional artifact exists. In prospective cycle #434, stages 01–16 passed and stage 17 failed solely because `FEATURE_SNAPSHOT_VALUES.csv` was absent. The correct control is conditional staging, not fabrication of an empty artifact. Snapshot completeness remains a separate evidence gate.
+
+## 2026-11-07 — Validate workflow YAML after shell-block edits
+A workflow persistence repair can fail before execution if multiline shell edits break YAML indentation. After modifying GitHub Actions shell blocks, inspect the persisted workflow structure before relying on a triggered run as evidence. Run #436 demonstrated that no-job workflow failure is a control/configuration failure, not a model failure.
