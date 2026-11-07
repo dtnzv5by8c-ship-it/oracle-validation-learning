@@ -40,3 +40,7 @@ The provider receipt field `57fe9e...` must be resolved as a repository referenc
 - Never rerun the completed Selected-50 Market Intelligence repair without a newly proven defect.
 - Never reacquire batch 42255401046.
 - Do not create another reconciliation loop for the already-resolved manifest issue.
+
+
+## 2026-11-07 completed-task evidence lesson
+The 648 completed-task population is now proven by deterministic set reconciliation, not by summed checkpoint counts: union 11 private completion checkpoints to 648 unique task IDs, then compare against the current 728-task manifest and 80-task blocked registry. The exact result is 648 completed + 80 quarantined + 0 pending, with zero overlap, zero missing manifest IDs and zero completed IDs outside the manifest. Duplicate checkpoint rows must never be counted as additional completion.
