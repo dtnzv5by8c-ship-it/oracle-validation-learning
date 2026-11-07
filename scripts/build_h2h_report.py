@@ -199,13 +199,18 @@ def main():
             home_known=team(h) in team_presence.get(league,set())
             away_known=team(a) in team_presence.get(league,set())
             other_leagues=sorted(x for x in pair_leagues.get(pair,set()) if x and x!=league)
+            # Fixture league identity is supplied by the governed fixture feed.
+            # Absence from the historical archive is not an unresolved fixture identity:
+            # it means the archive contains no *verified same-league H2H* for this pair.
+            # A pair found under another league code is also not evidence of a current-league
+            # H2H and must not block the report. Preserve the diagnostic reason in the detail.
             if other_leagues:
-                diagnosis="POSSIBLE_LEAGUE_CODE_MISMATCH"
-                detail="Same canonical team pair exists in other league code(s): "+",".join(other_leagues)
+                diagnosis="NO_VERIFIED_HISTORICAL_H2H"
+                detail="No verified same-league H2H in archive; same canonical team pair exists only under other league code(s): "+",".join(other_leagues)
             elif not home_known or not away_known:
-                diagnosis="TEAM_NOT_FOUND_IN_LEAGUE_ARCHIVE"
+                diagnosis="NO_VERIFIED_HISTORICAL_H2H"
                 missing=";".join(name for name,known in ((h,home_known),(a,away_known)) if not known)
-                detail="Team(s) absent from historical records for this league after canonical alias reconciliation: "+missing
+                detail="No verified same-league H2H in archive; team(s) absent from historical records for this league after canonical alias reconciliation: "+missing
             else:
                 diagnosis="NO_HISTORICAL_H2H"
                 detail="Both teams appear in this league archive, but no prior meeting was found within archive coverage."
