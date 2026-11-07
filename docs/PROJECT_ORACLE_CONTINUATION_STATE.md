@@ -544,3 +544,14 @@ OpenFoot coverage evidence confirms stable competition IDs and season labels; it
 Checkpoint: `docs/checkpoints/2026-11-07-50-league-source-registry-milestone.md` (commit `fe12add538ac373a3d78b82922ffb2f9db839ea7`).
 
 Next highest-value action: probe the explicit 49 current-season competition IDs plus the Greece data-gated path for the governed upcoming window, persist per-league source evidence, and reconcile the resulting fixture board exactly to the 50-league registry. Keep fail-closed behavior for missing/ambiguous sources. Do not publish predictions until that reconciliation passes.
+
+
+## Major milestone — downstream 50-league prediction scope audit — 2026-11-07
+The next downstream control gap is now confirmed: `scripts/oracle_four_model_predict.py` still contains a hardcoded 27-league `ACTIVE` allow-list and filters incoming fixtures with `league_code.isin(ACTIVE)`.
+
+This means a 50-league fixture board would not currently flow end-to-end into the prediction batch. The finding is separate from the fixture-ingestion registry gap and has been recorded without changing production code.
+
+Audit: `reports/oracle-50-league-downstream-scope-audit-2026-11-07.md`
+Checkpoint: `docs/checkpoints/2026-11-07-50-league-downstream-scope-audit.md` (commit `0c4db381529a0ed370a0e7dc506bbacd36474e25`).
+
+Control rule: do not simply expand the production allow-list yet. First validate actual current-season fixture responses for the canonical source registry. Then update downstream scope as a controlled data/universe configuration change, preserving strict missing-state gates and all Oracle V1.6 model/calibration/governance logic.
