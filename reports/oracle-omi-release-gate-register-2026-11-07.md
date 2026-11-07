@@ -214,3 +214,37 @@ Betting eligibility: FALSE.
 
 ### Single highest-value next action
 When Run #57 completes, consume only its persisted/reconciled artifact and update G07/H2H market-readiness classifications. Until then, no H2H reconstruction is justified.
+
+
+## 2026-11-07 17:57 SAST — H2H execution dependency refresh
+
+### Finding
+The previously observed H2H execution has advanced to Run #62 on public `main`, but it is still in progress. OMI therefore has no completed H2H artifact to consume and no release classification can be promoted from it.
+
+### Evidence
+- H2H Run #62: `Oracle H2H Reporting`, Actions run `42387447956`.
+- Head SHA: `4bb9924d0ee720e812b551a40254db1a072ef1a2`.
+- Current status: `in_progress`.
+- Archive extension, development-only challenger settlement audit and research-only chronological H2H incremental-value experiment have passed according to the canonical continuation state.
+- Final H2H build, identity classification, report/audit artifact and quality gates are not yet complete.
+- The run is on public `main`; no artifact has yet been persisted/reconciled into this governed research branch.
+- H2H remains supporting evidence and is non-blocking for fixture/prediction eligibility; genuine no-H2H and small-sample H2H cases remain reporting-quality states only.
+
+### Root Cause
+H2H evidence production is still executing on a separate public path. OMI cannot consume an in-progress run as validated evidence.
+
+### Impact
+G07 remains PARTIAL/candidate-level. No OMI release gate is closed by Run #62 until the final artifact is completed and reconciled.
+
+### Fix
+No workflow was launched, no duplicate run was created, no provider/API call was made, and no H2H history was inferred. OMI records the live dependency only.
+
+### Validation
+- Live H2H run inspected at 17:57 SAST.
+- Run #62 confirmed `in_progress`.
+- Existing OMI report and continuation state were read before update.
+- Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
+- Production and betting eligibility remain FALSE.
+
+### Next OMI action
+Consume Run #62 only after successful completion and persisted/reconciled artifact validation; then update G07 and affected market/league readiness classifications.
