@@ -111,3 +111,37 @@ The OMI report's earlier 12:01 bridge counts were stale relative to the live res
 - 1 CODE_NAMESPACE_CONFLICT.
 
 The report has been corrected to reflect the live bridge. No mapping was inferred or promoted, and the CODE_NAMESPACE_CONFLICT remains fail-closed. The source-validation gate remains PASS (50/50 reconciliation; 26 READY / 24 DATA_GATED; 299 fixtures), but this does not establish production prediction eligibility.
+
+
+## 2026-11-07 15:03 SAST — prospective 50-league scope dependency consumed
+
+### Finding
+The Validation lane has now established the canonical 50-league prospective source registry, but the downstream prediction scope remains a separate control-plane blocker. OMI therefore cannot classify the current prospective fixture universe as production-ready even where source evidence is current.
+
+### Evidence
+- Canonical prospective registry: `data/prospective/oracle_50_league_fixture_source_registry.csv`
+- 50/50 governed league identities represented.
+- 49/50 have explicit current-season OpenFoot catalogue mappings.
+- Greece Super League (GRC1) is explicitly `CURRENT_SEASON_NOT_VERIFIED` because the catalogue only exposes 2024/25; no fixture availability is inferred.
+- Downstream scope audit confirms `scripts/oracle_four_model_predict.py` still applies the legacy 27-league ACTIVE allow-list.
+- Therefore a validated 50-league source board cannot yet flow end-to-end into prediction publication for all governed leagues.
+- The existing 50-league universe remains intact; DATA_GATED/UNVERIFIED leagues are not removed.
+
+### Root Cause
+Historical 50-league identity validation, prospective source registration, and prediction-engine scope are separate controls. The source registry is now 50-league governed, while the downstream prediction scope remains on the legacy 27-league configuration.
+
+### Impact
+- Add release gate **G23 — 50-league prospective downstream scope**: **BLOCKED**.
+- G01 live fixture identity remains **PARTIAL/BLOCKED for production scope** until the canonical 50-league board is reconciled through the downstream scope control.
+- G15 current-feed freshness is **PARTIAL**: source-window freshness is evidenced, but prediction-time feature freshness is not.
+- No current fixture is promoted into Oracle V1.6 production evidence from this registry alone.
+
+### Fix
+OMI will consume the downstream scope reconciliation once the Validation/Evidence lanes establish it. No production allow-list, prediction logic, probability, threshold, calibration or governance change is made by OMI.
+
+### Validation
+The source registry and downstream-scope audit were read from the live branch at HEAD `b1d6468c5a1e6b642c7a711bdb874d7437cfecd7`. This update is reporting/control-plane only. The 50-league universe remains represented and fail-closed.
+
+### Current OMI release decision
+Production eligibility: FALSE.
+Betting eligibility: FALSE.
