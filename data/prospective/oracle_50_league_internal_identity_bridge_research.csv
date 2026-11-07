@@ -37,7 +37,7 @@ ROU1,Romania Liga I,17247,comp_superliga_ro,ROU,scripts/build_oracle_team_dna_v2
 RUS1,Russia Russian Premier League,17178,comp_premier_league_rus,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 SAU1,Saudi Arabia Professional League,17426,comp_saudi_pro_league_sau,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 SCO1,Scotland Premiership,17148,comp_scottish_prem_sco,SC0,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
-SRB1,Serbia SuperLiga,17119,comp_superliga_srb,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+SRB1,Serbia SuperLiga,17119,comp_superliga_srb,SRB,config/data_config.json futpythontrader_sources + sofascore_sources; exact internal code identity, EVIDENCE_EXACT_UNIQUE,FALSE
 RSA1,South Africa Premier Soccer League,17444,comp_psl_rsa,RSA,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal South African Premier Division,CROSS-NAMESPACE_NAME_VARIANT,TRUE
 KOR1,South Korea K League 1,16627,comp_k_league_1_kor,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 ES1,Spain La Liga,17199,comp_laliga_es,SP1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
