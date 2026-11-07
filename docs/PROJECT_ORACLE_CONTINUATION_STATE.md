@@ -645,3 +645,17 @@ Nolan explicitly requires immediate notification whenever a blocker exists or th
 - Checkpoint: `docs/checkpoints/2026-11-07-operator-escalation-and-immediate-blocker-reporting.md`
 - Checkpoint commit: `b8bcf660f8973b80422f68b4daa406ee21984057`
 - Validation: workflow run `42361333640` independently inspected; at inspection it was in progress with source validation step running and reconciliation/persistence pending. Oracle V1.6 untouched.
+
+
+## Major milestone — first genuine 50-league live source validation completed, persistence race remains — 2026-11-07
+Run 42361333640 completed the live 50-league OpenFoot validation and exact reconciliation: 50 governed leagues, 26 READY, 24 DATA_GATED, 0 SOURCE_ERROR, 299 fixtures in window; reconciliation PASS with zero missing, unexpected or duplicate league IDs. The run then failed only when persisting the two sanitized artifacts because the governed research branch had advanced concurrently and rejected the direct push.
+
+Finding → Evidence → Root Cause → Impact → Fix → Validation:
+- Finding: live source validation itself and board reconciliation pass; canonical evidence persistence failed.
+- Evidence: workflow logs show validator COMPLETE and reconciliation PASS; both artifact files were created locally before the push rejection.
+- Root Cause: moving research branch was concurrently updated by Oracle control-plane automation; old workflow used a direct push without fetch/rebase.
+- Impact: source-validation gate remains fail-closed because canonical artifacts are not yet persisted/re-read from GitHub.
+- Fix: hardened workflow persistence in commit b5987ca1194469e65e61296157cf1f2b75acaf89 with fetch/rebase and three bounded push retries, never force-pushing.
+- Validation: workflow definition committed on main; checkpoint docs/checkpoints/2026-11-07-50-league-live-source-validation-persistence-race.md commit 6b23180a5edcc7c6b6ad21754caa2da7df8925cd. A new execution using the hardened workflow is required; the failed run must not be rerun as-is.
+
+Immediate operator blocker: the current GitHub toolset does not expose workflow dispatch. If immediate execution is required before the next scheduled run, Nolan must manually use Actions → Oracle 50-League Live Fixture Source Validation → Run workflow → main. The next scheduled execution is at minute 07 of the next hour. This limitation must be surfaced immediately rather than waiting for another prompt.
