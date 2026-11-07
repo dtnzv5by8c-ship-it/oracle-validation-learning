@@ -96,3 +96,9 @@ The corrected truth builder now emits settlement/event-truth provenance, but liv
 
 ## 2026-11-07 — Prediction IDs do not equal production evidence
 The historical 2026-10-09 through 2026-10-17 archive contains 210 immutable challenger rows across 42 fixtures with prediction/fixture identity, timestamps, feature snapshot IDs, source manifest hashes and pre-match state hashes. This proves ledger-level identity and chronology, but not production scoreability. Blank calibrated probabilities and non-production model/calibration fields keep the population research/shadow only. Feature snapshot contents and verified settlement must still be independently admissible.
+
+## 2026-11-07 — Feature snapshot IDs are not feature snapshots
+A prospective prediction row may contain a non-empty feature_snapshot_id and pre_match_state_hash while still lacking an immutable capture of the actual feature vector used at prediction time. The current prospective publication adapter hashes fixture/model/probability/timestamp/cutoff/source metadata into the feature_snapshot_id, while `archive/FEATURE_SNAPSHOT_MANIFEST.csv` remains empty. Treat such IDs as metadata identities only until the actual feature inputs are materialized and bound to the prediction.
+
+## 2026-11-07 — Workflow commit is not necessarily model-code provenance
+Do not populate `model_code_sha` from the workflow `GITHUB_SHA` unless that commit is proven to contain the exact prediction-engine revision. A workflow may be triggered by a settlement, reporting or governance-only commit. Production evidence requires the actual model-engine revision to be captured separately and immutably.
