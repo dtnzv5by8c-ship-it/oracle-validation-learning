@@ -315,7 +315,7 @@ The correction was made without running a private GitHub Actions workflow, prese
 
 ## Remaining release blockers
 1. 80 HTTP-417 tasks remain quarantined across 20 provider-season partitions because the FootyStats account diagnostic confirmed an entitlement/league-selection gap. Do not repeat the exhausted transport experiment until entitlement changes.
-2. Historical 2026-10-09 through 2026-10-17 prediction fixtures still require independently verified result truth; do not infer them from current/future snapshots.
+2. Historical 2026-10-09 and 2026-10-10 Bundesliga result truth is independently reconfirmed (Dortmund 2-2 Bremen; Mainz 3-4 Leverkusen). The broader 2026-10-09 through 2026-10-17 production linkage still requires exact prediction-ID/feature-snapshot/result linkage.
 3. The canonical append-only settlement ledger still contains 25 pre-correction rows with blank provenance; the corrected truth builder is exercised, but a fresh corrected settlement append is still required.
 4. xG numeric values exist but point-in-time capture timestamps are not verified.
 5. Timestamped odds provenance is not verified.
