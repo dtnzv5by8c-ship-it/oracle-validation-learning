@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 — Manifest compatibility gate closed by direct artifact verification
+Last updated: 2026-11-07 — Evidence/backtest lane handoff: immutable prediction-settlement chain is highest-value remaining gate
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -93,12 +93,14 @@ Research-only OMI integration consumed the completed Selected-50 Repair #360 art
 OMI decision: production/betting remains FAIL-CLOSED. The next OMI dependency is the canonical prediction/fixture bridge plus immutable pre-kickoff feature snapshot and verified settlement evidence owned by the Evidence/Validation lanes. No production probability is changed or inferred.
 
 ## Immediate next work — priority order
-1. Reconcile/validate evidence supporting the 648 completed-task population; do not redo manifest work.
-2. Determine whether approved private FootyStats recovery can resolve the exact 20 quarantined provider-season partitions without repeating completed tasks or exceeding budget.
-3. Build/validate immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage.
-4. Close xG and odds point-in-time provenance where evidence permits.
-5. Advance OMI/Visual Intelligence/release gates from validated evidence.
-6. Keep all production and betting gates fail-closed until genuinely satisfied.
+1. Build/validate the immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage using existing evidence only.
+2. Establish production scoreability: admissible production probability strings, model/version identity, feature-release hash, prediction timestamp, exact fixture/market identity, and verified settlement source.
+3. Run leakage-safe chronological backtests only on admissible prediction/settlement pairs; report sample size, accuracy, Brier, log loss, calibration and AUC only where statistically appropriate.
+4. Quantify market/league/confidence/risk-band evidence with explicit minimum-sample and provenance gates; keep small or unverified cohorts excluded.
+5. Close xG and odds point-in-time provenance only where existing evidence supports it; never infer historical availability.
+6. Hand validated evidence to OMI/Visual Intelligence/release readiness; keep production and betting gates fail-closed.
+
+The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED/VERIFIED and must not be repeated. The 80 HTTP-417 tasks remain quarantined unless existing evidence proves a deterministic recovery path; no provider/API acquisition is justified by the exhausted queue alone.
 
 ## Do not repeat
 - Do not rerun ingestion #92 as a generic full-universe run.
