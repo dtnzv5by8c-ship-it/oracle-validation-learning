@@ -596,3 +596,18 @@ The live 50-league source validator now has a deterministic identity-reconciliat
 - Checkpoint: `docs/checkpoints/2026-11-07-50-league-fixture-board-reconciliation-control.md`
 
 Important: this is a control-plane/research milestone only. The live source-validation gate is still **NOT PASSED** until a genuine scheduled/manual workflow execution produces the validation artifact and the reconciliation returns PASS. Do not expand the private production 27-league allow-list before that evidence exists. Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
+
+
+## Major milestone — 50-league code namespace reconciliation audit — 2026-11-07
+A live inspection of the private prediction engine confirmed that the canonical 50-league source registry and the legacy prediction-engine league-code namespace are not directly interchangeable.
+
+- Production engine file: `scripts/oracle_four_model_predict.py`
+- Legacy ACTIVE namespace: 27 codes.
+- Canonical governed source registry: 50 source codes.
+- Direct code-string intersection: only `CRO`.
+- 49/50 governed source identities therefore require an explicit evidence-backed identity bridge before downstream production scope can be safely advanced.
+- Research audit: `reports/oracle-50-league-code-namespace-reconciliation-audit-2026-11-07.md`
+- Checkpoint: `docs/checkpoints/2026-11-07-50-league-code-namespace-reconciliation.md`
+- Audit commit: `3bc236c84261462da5e47add2779b050d7d1e56a`
+
+This is a data/universe configuration control, not a model-logic change. Do not blindly substitute canonical source codes for legacy engine codes. The next implementation step is to derive and validate an exact one-to-one identity bridge from existing fixture/database metadata and governed source identities. Unmapped identities must remain explicitly fail-closed.
