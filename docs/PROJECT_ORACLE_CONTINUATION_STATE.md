@@ -169,6 +169,41 @@ Commit: `6e60be6d97cd3c4019e950f4ed0c38e8b1ff3d5c`.
 
 Next action: FootyStats account owner/support must enable the exact 20 provider seasons for this account. No further recovery calls should be made until entitlement is confirmed. Once access is granted, perform one low-volume, single-season endpoint validation before any wider recovery. Production/betting eligibility remains false.
 
+## Major milestone — current private prediction archive AUDIT — 2026-11-07
+A direct audit of the current private `oracle-football-data/main` canonical archive found that `archive/PREDICTION_LEDGER.csv` is **not header-only**.
+
+Current evidence:
+- 555 prediction rows
+- 555 unique prediction IDs
+- 111 unique fixtures
+- 5 model/market rows per fixture
+- fixture dates 2026-10-09 through 2026-11-15
+- 555/555 model status = CHALLENGER
+- 320 CHALLENGER_OUTPUT + 235 NO_BET
+- 555/555 prediction timestamps present
+- 555/555 feature snapshot IDs present
+- 555/555 source manifest hashes present
+- 555/555 pre-match state hashes present
+- 555/555 model code SHAs present
+- 555/555 calibration IDs present
+- 555/555 chronology checks pass: prediction timestamp < kickoff
+- 555 unique feature snapshots
+- 2 source manifest hashes
+- canonical `archive/SETTLEMENT_LEDGER.csv` remains header-only
+
+This corrects older validation snapshots that described the current prediction ledger as header-only or 210 rows. Those were earlier-state observations and must not be repeated as the current state.
+
+The 555 rows are **CHALLENGER-only** and therefore do not establish Oracle V1.6 production performance. The current highest-value evidence blocker is now the missing canonical settlement linkage, not absence of prospective prediction capture.
+
+The private repository already contains the governed prospective chain:
+`prepare_prospective_four_market_publication.py` -> `publish_prediction_run.py` -> `build_prospective_settlement_truth.py` -> `settle_prediction_run.py` -> `feed_learning_ledgers.py`, orchestrated by `.github/workflows/oracle_prospective_learning.yml`.
+
+Checkpoint:
+`docs/checkpoints/2026-11-07-current-private-prediction-archive-audit.md`
+Commit: `ed1aed7daf31773dbca72db18d6d3a1c12b2d142`.
+
+Next evidence work: determine why 555 prospective prediction rows have not produced canonical settlement rows, using current workflow/result evidence and exact prediction IDs. Do not modify Oracle V1.6 or promote challenger evidence.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
