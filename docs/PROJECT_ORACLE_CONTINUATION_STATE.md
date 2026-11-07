@@ -638,3 +638,10 @@ Finding → Evidence → Root Cause → Impact → Fix → Validation:
 
 The live 50-league fixture-source validation gate remains NOT PASSED because the scheduled validator artifact has not yet been produced. Do not expand the private 27-league prediction allow-list before that evidence exists.
 
+
+
+## Governance control — immediate operator blocker escalation — 2026-11-07
+Nolan explicitly requires immediate notification whenever a blocker exists or the assistant cannot execute a required workflow; do not wait for another prompt. Every continuation lane must state the exact blocker and operator action as soon as it is known, distinguish assistant-executed actions from operator-required actions, and never claim a workflow is running without live run evidence. When a workflow is already running, inspect its live status/jobs/logs/artifacts and report actionable findings without asking for unnecessary reruns.
+- Checkpoint: `docs/checkpoints/2026-11-07-operator-escalation-and-immediate-blocker-reporting.md`
+- Checkpoint commit: `b8bcf660f8973b80422f68b4daa406ee21984057`
+- Validation: workflow run `42361333640` independently inspected; at inspection it was in progress with source validation step running and reconciliation/persistence pending. Oracle V1.6 untouched.
