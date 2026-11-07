@@ -128,15 +128,60 @@ for group in ALIAS_GROUPS:
     for p in parts: ALIASES[p]=canonical
 
 def _team_forms(s):
-    raw=str(s or '').strip().lower()
-    n=norm(raw)
+    n=norm(s)
     forms={n}
-    expanded=n
-    for a,b in (("utd","united"),("untd","united"),("manu","manchesterunited")):
-        expanded=expanded.replace(a,b)
+    expanded=n.replace("utd","united").replace("untd","united").replace("manu","manchesterunited")
     forms.add(expanded)
-    stripped=re.sub(r'^(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks|club)', '', expanded)
-    stripped=re.sub(r'(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks)
+    stripped=re.sub(r"^(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks|club)", "", expanded)
+    stripped=re.sub(r"(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks)$", "", stripped)
+    if stripped: forms.add(stripped)
+    return {x for x in forms if x}
+
+def _fuzzy_score(query,candidate):
+    import difflib
+    best=0.0
+    for a in _team_forms(query):
+        for b in _team_forms(candidate):
+            if a==b: return 1.0
+            best=max(best,difflib.SequenceMatcher(None,a,b).ratio())
+            if len(a)>=6 and (a in b or b in a): best=max(best,0.90)
+    return best
+
+def build_fuzzy_index(match_rows):
+    by_league=defaultdict(list)
+    seen=set()
+    for r in match_rows:
+        league=r.get("league_code","") or ""
+        for raw in (r.get("home_team",""),r.get("away_team","")):
+            key=(league,norm(raw))
+            if league and raw and key not in seen:
+                seen.add(key)
+                by_league[league].append(raw)
+    return by_league
+
+def team(s, league="", fuzzy_index=None):
+    k=norm(s)
+    exact=ALIASES.get(k,k)
+    if not fuzzy_index or not league:
+        return exact
+    candidates=fuzzy_index.get(league,[])
+    for raw in candidates:
+        if ALIASES.get(norm(raw),norm(raw))==exact:
+            return exact
+    scored=[]
+    for raw in candidates:
+        score=_fuzzy_score(s,raw)
+        if score>=0.88:
+            scored.append((score,ALIASES.get(norm(raw),norm(raw)),raw))
+    scored.sort(reverse=True)
+    if not scored:
+        return exact
+    best=scored[0]
+    second=scored[1] if len(scored)>1 else None
+    if best[0]>=0.93 or (best[0]>=0.88 and (second is None or best[0]-second[0]>=0.06)):
+        return best[1]
+    return exact
+
 def rows(p):
     with p.open(newline="",encoding="utf-8-sig") as f:return list(csv.DictReader(f))
 def rate(n,d):return round(100*n/d,1) if d else ""
@@ -157,6 +202,7 @@ def main():
     ms,us,fs=rows(MATCHES),rows(ONEUP),rows(FIXTURES)
     if not ms or not fs:raise SystemExit("Historical matches or fixtures source is empty")
     fuzzy_index=build_fuzzy_index(ms)
+    fuzzy_index=build_fuzzy_index(ms)
     needed={"date","home_team","away_team","home_goals","away_goals"}
     if not needed.issubset(ms[0]):raise SystemExit("Unexpected matches.csv columns")
     latest=max(r["date"][:10] for r in ms if r.get("date"))
@@ -169,14 +215,14 @@ def main():
         if r.get("home_team") and r.get("away_team"):
             league_key=r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),"")
             pair_key=tuple(sorted((team(r["home_team"],league_key,fuzzy_index),team(r["away_team"],league_key,fuzzy_index))))
-            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
+            hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"],league_key,fuzzy_index),team(r["away_team"],league_key,fuzzy_index),hg,ag))
             team_presence[league_key].update((team(r["home_team"],league_key,fuzzy_index),team(r["away_team"],league_key,fuzzy_index)))
             team_leagues[team(r["home_team"],league_key,fuzzy_index)].add(league_key)
             team_leagues[team(r["away_team"],league_key,fuzzy_index)].add(league_key)
             pair_leagues[pair_key].add(league_key)
     for r in us:
         if r.get("home_team") and r.get("away_team"):
-            truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
+            truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"],r.get("league_code",""),fuzzy_index),team(r["away_team"],r.get("league_code",""),fuzzy_index)))) )].append(r)
     out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
         h,a=f.get("home_team",""),f.get("away_team","")
@@ -349,11 +395,11 @@ def main():
         except (ValueError,TypeError):continue
         if r.get("home_team") and r.get("away_team"):
             league_key=r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),"")
-            pair_key=tuple(sorted((team(r["home_team"]),team(r["away_team"]))))
+            pair_key=tuple(sorted((team(r["home_team"],league_key,fuzzy_index),team(r["away_team"],league_key,fuzzy_index))))
             hist[(league_key,pair_key)].append((r["date"][:10],team(r["home_team"]),team(r["away_team"]),hg,ag))
-            team_presence[league_key].update((team(r["home_team"]),team(r["away_team"])))
-            team_leagues[team(r["home_team"])].add(league_key)
-            team_leagues[team(r["away_team"])].add(league_key)
+            team_presence[league_key].update((team(r["home_team"],league_key,fuzzy_index),team(r["away_team"],league_key,fuzzy_index)))
+            team_leagues[team(r["home_team"],league_key,fuzzy_index)].add(league_key)
+            team_leagues[team(r["away_team"],league_key,fuzzy_index)].add(league_key)
             pair_leagues[pair_key].add(league_key)
     for r in us:
         if r.get("home_team") and r.get("away_team"):
@@ -361,13 +407,13 @@ def main():
     out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
         h,a=f.get("home_team",""),f.get("away_team","")
-        pair=tuple(sorted((team(h),team(a))))
         league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),"")
+        pair=tuple(sorted((team(h,league,fuzzy_index),team(a,league,fuzzy_index))))
         date=f.get("date","")[:10]
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
         for d,mh,ma,gh,ga in games:
-            x,y=(gh,ga) if mh==team(h) else (ga,gh)
+            x,y=(gh,ga) if mh==team(h,league,fuzzy_index) else (ga,gh)
             hw+=x>y; dr+=x==y; aw+=x<y; bt+=gh>0 and ga>0
             total=gh+ga; o15+=total>=2; o25+=total>=3; u35+=total<=3
         ts=[r for r in truth[(league,pair)] if not date or r.get("match_date","")[:10]<date]
@@ -375,7 +421,7 @@ def main():
         if ts:
             hv=av=0
             for r in ts:
-                if team(r["home_team"])==team(h): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
+                if team(r["home_team"],league,fuzzy_index)==team(h,league,fuzzy_index): hv+=int(float(r.get("home_1up") or 0)); av+=int(float(r.get("away_1up") or 0))
                 else: hv+=int(float(r.get("away_1up") or 0)); av+=int(float(r.get("home_1up") or 0))
             h1=rate(hv,len(ts)); a1=rate(av,len(ts))
         rates={"BTTS Yes":rate(bt,n),"Over 1.5":rate(o15,n),"Over 2.5":rate(o25,n),"Under 3.5":rate(u35,n)}
@@ -384,8 +430,8 @@ def main():
         if n>=MIN_SAMPLE: status="MATCHED"
         elif n: status="MATCHED - SMALL SAMPLE"
         else:
-            home_known=team(h) in team_presence.get(league,set())
-            away_known=team(a) in team_presence.get(league,set())
+            home_known=team(h,league,fuzzy_index) in team_presence.get(league,set())
+            away_known=team(a,league,fuzzy_index) in team_presence.get(league,set())
             other_leagues=sorted(x for x in pair_leagues.get(pair,set()) if x and x!=league)
             # Fixture league identity is supplied by the governed fixture feed.
             # Absence from the historical archive is not an unresolved fixture identity:
@@ -405,7 +451,7 @@ def main():
             status=diagnosis
             record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,
                     "home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,
-                    "home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h),set()) if x and x!=league)),
+                    "home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h,league,fuzzy_index),set()) if x and x!=league)),
                     "away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a),set()) if x and x!=league)),
                     "other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
             diagnostics.append(record)
