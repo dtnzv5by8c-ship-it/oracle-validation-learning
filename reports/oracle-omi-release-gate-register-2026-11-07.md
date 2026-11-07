@@ -1,6 +1,6 @@
 # Oracle OMI / Visual Intelligence — Final Release Gate Register
 
-Date: 2026-11-07
+Date: 2026-11-07 — latest evidence refresh 12:01 SAST
 Scope: research-only OMI/release-readiness consumption of already validated upstream evidence.
 
 ## Baseline
@@ -63,3 +63,38 @@ Consume the next canonical Evidence/Validation outputs; join them to this matrix
 Production eligibility: FALSE.
 Betting eligibility: FALSE.
 No production probability, threshold, calibration or governance change was made.
+
+
+## 2026-11-07 12:01 SAST — live-source and identity-bridge update
+
+The upstream live 50-league fixture-source gate is now canonically persisted and PASS. This supersedes the earlier OMI statement that live source validation was still pending, but it does not close downstream identity or production-evidence gates.
+
+### Current live 50-league source evidence
+- Governed registry: 50/50 league identities represented.
+- Validation rows: 50/50; exact reconciliation PASS; missing IDs 0; unexpected IDs 0; duplicate IDs 0.
+- Current governed window: 2026-11-07 through 2026-11-21.
+- Live fixtures verified: 299 across 26 leagues classified READY.
+- 24 leagues are DATA_GATED because no usable fixture evidence was returned in the governed window; these remain represented and fail-closed.
+- Greece Super League is DATA_GATED because current-season source evidence is not verified; the catalogue only exposed 2024/25.
+- This source gate is evidence-backed and does not imply that all 50 leagues are prediction-ready.
+
+### Current internal identity bridge
+The research-only bridge contains exactly 50 governed identities:
+- 19 EVIDENCE_EXACT_UNIQUE mappings — admissible for downstream identity work.
+- 4 CROSS-NAMESPACE_NAME_VARIANT — fail-closed pending explicit identity evidence.
+- 1 NAME_VARIANT_UNVERIFIED — fail-closed.
+- 26 UNMAPPED — fail-closed.
+
+Therefore OMI cannot yet treat the 299 current fixtures as an Oracle V1.6 production fixture universe. The source namespace is validated, but only 19/50 identities currently have an evidence-backed internal Oracle code mapping. No production ACTIVE allow-list was changed.
+
+### Updated OMI interpretation
+- G01 fixture identity: PARTIAL / gated for live production scope. The historical #360 archive joins remain READY for their 717 fixtures, while the current 50-league source board has only 19/50 identities mapped exactly into the internal namespace.
+- G15 recency/freshness: PARTIAL as source freshness evidence, not production-ready. The live source artifact is timestamped and covers 2026-11-07 to 2026-11-21, but candidate-level feature freshness and prediction-time cutoffs remain unproven.
+- G02/G04/G11/G13/G16/G18/G19/G20 remain unchanged and blocked/unverified as previously recorded.
+- The 50-league universe remains intact: the 24 DATA_GATED leagues are not removed or silently dropped.
+
+### Exact next OMI dependency
+Consume the next validated downstream fixture/prediction evidence only after the identity bridge and prediction-engine scope controls are reconciled. Then join exact fixture ID + market key + model-engine revision + feature snapshot to this matrix. Do not reconstruct production probabilities from challenger rows and do not infer missing league mappings.
+
+Production eligibility: FALSE.
+Betting eligibility: FALSE.
