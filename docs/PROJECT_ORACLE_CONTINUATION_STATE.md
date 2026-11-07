@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 10:xx SAST — provenance correction exercised; settlement append gate remains open
+Last updated: 2026-11-07 10:xx SAST — prospective persistence race fixed; fresh governed cycle pending
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -170,30 +170,27 @@ Commit: `6e60be6d97cd3c4019e950f4ed0c38e8b1ff3d5c`.
 Next action: FootyStats account owner/support must enable the exact 20 provider seasons for this account. No further recovery calls should be made until entitlement is confirmed. Once access is granted, perform one low-volume, single-season endpoint validation before any wider recovery. Production/betting eligibility remains false.
 
 ## Major milestone — current private prediction archive AUDIT — 2026-11-07
-A direct audit of the current private `oracle-football-data/main` canonical archive found that `archive/PREDICTION_LEDGER.csv` is **not header-only**.
+A direct audit of the current private `oracle-football-data/main` canonical archive established that the prediction ledger is populated and later governed executions expanded the archive beyond the earlier 555-row snapshot.
 
-Current evidence:
+Historical snapshot (superseded, retained for auditability):
 - 555 prediction rows
-- 555 unique prediction IDs
 - 111 unique fixtures
 - 5 model/market rows per fixture
-- fixture dates 2026-10-09 through 2026-11-15
-- 555/555 model status = CHALLENGER
-- 320 CHALLENGER_OUTPUT + 235 NO_BET
-- 555/555 prediction timestamps present
-- 555/555 feature snapshot IDs present
-- 555/555 source manifest hashes present
-- 555/555 pre-match state hashes present
-- 555/555 model code SHAs present
-- 555/555 calibration IDs present
-- 555/555 chronology checks pass: prediction timestamp < kickoff
-- 555 unique feature snapshots
-- 2 source manifest hashes
-- canonical `archive/SETTLEMENT_LEDGER.csv` remains header-only
+- fixture dates included 2026-10-09 through 2026-11-15
+- all audited rows were CHALLENGER-only
+- prediction timestamps, feature snapshot IDs, source manifest hashes, pre-match state hashes, model code SHAs and calibration IDs were present
+- chronology checks passed
+- canonical settlement ledger was then header-only
 
-This corrects older validation snapshots that described the current prediction ledger as header-only or 210 rows. Those were earlier-state observations and must not be repeated as the current state.
+Current governed state supersedes that snapshot:
+- Private prediction archive: **900 CHALLENGER rows**
+- Canonical settlement ledger: **25 settled rows across 5 fixtures**
+- Prospective shadow gate: **COLLECTING**
+- Production readiness: **HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE**
+- Automatic promotion: false
+- Production change made: false
 
-The 555 rows are **CHALLENGER-only** and therefore do not establish Oracle V1.6 production performance. The current highest-value evidence blocker is now verified settlement provenance and production scoreability, not absence of prospective prediction capture.
+The 900-row archive remains CHALLENGER-only and therefore does not establish Oracle V1.6 production performance. The key remaining evidence problem is admissible prediction-to-feature-to-settlement linkage and prospective sample maturity, not absence of prediction capture.
 
 The private repository already contains the governed prospective chain:
 `prepare_prospective_four_market_publication.py` -> `publish_prediction_run.py` -> `build_prospective_settlement_truth.py` -> `settle_prediction_run.py` -> `feed_learning_ledgers.py`, orchestrated by `.github/workflows/oracle_prospective_learning.yml`.
@@ -202,7 +199,7 @@ Checkpoint:
 `docs/checkpoints/2026-11-07-current-private-prediction-archive-audit.md`
 Commit: `ed1aed7daf31773dbca72db18d6d3a1c12b2d142`.
 
-Next evidence work: determine why 555 prospective prediction rows have not produced canonical settlement rows, using current workflow/result evidence and exact prediction IDs. Do not modify Oracle V1.6 or promote challenger evidence.
+Do not treat the older 555-row snapshot as current state.
 
 ## Major milestone — prospective settlement blocker root cause identified — 2026-11-07
 Direct audit of the current private prediction archive against `database/current_matches.csv` found:
@@ -273,6 +270,29 @@ Checkpoint: `docs/checkpoints/2026-11-07-settlement-provenance-admission-gate.md
 The live private prediction archive was audited for 2026-10-09 through 2026-10-17: 210 prediction rows across 42 fixtures, with prediction IDs, fixture IDs, kickoff/prediction timestamps, data/event cutoffs, feature snapshot IDs, source manifest hashes and pre-match state hashes present. Chronology is structurally valid. However all 210 rows are explicitly CHALLENGER evidence; calibrated probability is blank and model-code/calibration fields are not production-admissible. Therefore the identity chain exists at ledger level but cannot be promoted as Oracle V1.6 production evidence. Feature snapshot contents and verified settlement still require admissible linkage.
 
 Checkpoint: `docs/checkpoints/2026-11-07-historical-prediction-chain-audit.md`
+
+## Major milestone — prospective persistence race fixed — 2026-11-07
+Private Oracle Prospective Learning Cycle run #430 (`42354024509`) completed stages 01–16 successfully but failed only in stage 17, Persist prospective evidence.
+
+Root cause:
+- the dedicated current-data workflow advanced `main` from `ee77a592` to `645b698` while the learning cycle was running;
+- the learning cycle attempted `git pull --rebase origin main`;
+- `data/current_source_manifest.json` had changed concurrently, causing a rebase conflict and exit code 1.
+
+This was a Git persistence race, not a prediction, settlement, provenance, model, or production-readiness failure.
+
+Repair:
+- private workflow commit `82d024f4913311d8d9d45394c8b8cdf14b1cee08`;
+- shared current-data staging files are no longer committed by the learning cycle;
+- persistence now fetches latest `origin/main`;
+- a rebase race is handled by rebuilding the evidence commit on the latest `main`;
+- Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance were not changed.
+
+Checkpoint:
+`docs/checkpoints/2026-11-07-prospective-persistence-race-fixed.md`
+Commit: `1be6f7a41253e43c0ecec1dbe7bab495a9657e9b`.
+
+The workflow-file repair automatically triggers a fresh prospective cycle. Do not manually rerun failed run #430.
 
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
