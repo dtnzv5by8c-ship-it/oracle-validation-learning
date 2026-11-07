@@ -330,11 +330,7 @@ def main():
     (OUT/"h2h_audit.json").write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2))
 if __name__=="__main__":main()
-, '', stripped)
-    if stripped: forms.add(stripped)
-    return {x for x in forms if x}
 
-def _fuzzy_score(query,candidate):
     import difflib
     best=0.0
     for a in _team_forms(query):
