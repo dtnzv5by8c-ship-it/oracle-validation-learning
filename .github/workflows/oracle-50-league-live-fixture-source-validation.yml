@@ -33,11 +33,14 @@ jobs:
           WINDOW_END: "2026-11-21"
         run: python scripts/validate_oracle_50_league_live_fixture_sources.py
 
+      - name: Reconcile governed 50-league validation board
+        run: python scripts/reconcile_oracle_50_league_fixture_source_validation.py
+
       - name: Persist sanitized validation evidence
         run: |
           git config user.name "oracle-validation-bot"
           git config user.email "oracle-validation-bot@users.noreply.github.com"
-          git add artifacts/oracle_50_league_live_fixture_source_validation.json
+          git add artifacts/oracle_50_league_live_fixture_source_validation.json artifacts/oracle_50_league_fixture_source_reconciliation.json
           if git diff --cached --quiet; then
             echo "No evidence change to persist."
             exit 0
