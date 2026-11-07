@@ -842,3 +842,41 @@ Consume the next genuinely new governed prospective fixture/prediction evidence 
 - 299 live fixtures classified: 185 existing Oracle internal identity; 29 workbook team-pair confirmed; 37 one-team workbook match; 46 no workbook team match; 2 workbook teams found in different competitions.
 - This workbook is now a retained identity evidence source and must be referenced before repeating team→league discovery work.
 - Research-only: do not promote workbook matches directly into production internal namespaces; production admission remains fail-closed until governed identity/provenance gates are satisfied.
+
+
+## 2026-11-07 — Continuous Build Control: 50-league integration admission handoff
+
+### Finding
+The source-validation gate is closed, but downstream integration still lacked one canonical control artifact combining source readiness, internal identity status, live fixture count and retained workbook identity evidence. Creating this control prevents the validation and evidence/OMI lanes from operating on different league-admission interpretations.
+
+### Evidence
+- Live source reconciliation: 50/50 governed leagues, 26 READY, 24 DATA_GATED, 299 fixtures, production_eligible=false, betting_eligible=false.
+- Live internal identity bridge: 20 EVIDENCE_EXACT_UNIQUE; 24 UNMAPPED; 4 CROSS-NAMESPACE_NAME_VARIANT; 1 NAME_VARIANT_UNVERIFIED; 1 CODE_NAMESPACE_CONFLICT.
+- Retained Leagues Revision v4 evidence: 872 team records across 45 competition tables; 299 live fixtures reconciled into 185 existing internal identities, 29 workbook team-pair confirmations, 37 one-team matches, 46 no workbook matches and 2 workbook competition conflicts.
+- New research/control artifact: data/prospective/oracle_50_league_integration_admission_matrix.csv.
+- New dated checkpoint: docs/checkpoints/2026-11-07-50-league-integration-admission-control.md.
+
+### Root Cause
+The source namespace and internal Oracle namespace are separate evidence layers. Previous downstream work had the necessary components, but no single controlled handoff matrix prevented inconsistent admission decisions. Cross-file namespace conflicts such as N1 make implicit promotion unsafe.
+
+### Impact
+The 50-league universe can now be handed from source validation to downstream evidence/OMI using explicit states without changing Oracle V1.6 or silently dropping governed leagues. Production admission remains fail-closed.
+
+### Fix
+Added the research-only 50-league integration admission matrix and documented the controlled admission sequence: source identity → internal namespace → fixture/team identity → immutable pre-kickoff feature snapshot → engine revision → xG/odds provenance → settlement linkage → sample/freshness gates → OMI release evidence. No production code, probabilities, thresholds, calibration or betting governance changed.
+
+### Validation
+Both new artifacts were created on the governed research branch. The matrix was generated from the live 50-league bridge, live fixture/source reconciliation and retained workbook reconciliation. Exact internal codes are only carried where the bridge already marks them evidence-backed; unresolved/conflicted mappings remain FALSE for production admission.
+
+### Remaining blockers
+1. 30/50 internal identity mappings remain non-admissible.
+2. Downstream prediction scope remains blocked for unresolved/conflicted identities.
+3. Immutable prediction-to-feature snapshot evidence remains incomplete until a fresh eligible cohort produces non-empty snapshot artifacts.
+4. Point-in-time xG provenance remains blocked.
+5. Timestamped odds provenance remains blocked.
+6. Verified settlement/prediction-to-feature-to-settlement linkage remains incomplete for a fresh cohort.
+7. Prospective sample/freshness gates remain open.
+8. 80 HTTP-417 tasks remain quarantined by confirmed provider entitlement gap.
+
+### Single highest-value next action
+Hand the new admission matrix to the evidence/OMI lane and, on the next genuinely new eligible prospective cohort, verify non-empty immutable feature snapshots plus exact fixture/market/model-engine linkage and settlement provenance. Do not expand production scope from the matrix alone.
