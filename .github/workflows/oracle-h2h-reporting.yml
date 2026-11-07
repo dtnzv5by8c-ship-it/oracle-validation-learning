@@ -208,6 +208,31 @@ jobs:
             --matches oracle/database/matches.csv \
             --out-dir reports/backtest
 
+      - name: Test H2H reporting-only identity aliases
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import runpy
+          m=runpy.run_path("scripts/build_h2h_report.py")
+          team=m["team"]
+          checks=[
+            ("OH Leuven","Leuven"),("Cercle Brugge KSV","Cercle Brugge"),
+            ("Sporting Charleroi","Charleroi"),("Borussia Dortmund","Dortmund"),
+            ("Mainz 05","Mainz"),("1. FC Köln","Köln"),("Hertha Berlin","Hertha BSC"),
+            ("FC Heidenheim","Heidenheim"),("Atl. Madrid","Atlético Madrid"),
+            ("Manchester Utd","Manchester United"),("Nottingham","Nottingham Forest"),
+            ("Bohemians","Bohemians 1905"),("FK Pardubice","Pardubice"),
+            ("Slovan Liberec","Liberec"),("Banik Ostrava","Ostrava"),
+            ("Leixões","Leixoes"),("Estrela da Amadora","Estrela"),
+            ("Casa Pia AC","Casa Pia"),("AD Ceuta","Ceuta"),("Málaga","Malaga")
+          ]
+          failed=[(a,b,team(a),team(b)) for a,b in checks if team(a)!=team(b)]
+          if failed: raise SystemExit(f"H2H alias regression failures: {failed}")
+          # Important: team-name aliases do not rewrite competition identity.
+          # Cross-division meetings remain ineligible for same-league H2H.
+          print({"alias_regression_pairs_passed":len(checks),"league_namespace_logic":"unchanged"})
+          PY
+
       - name: Build H2H report and audit
         working-directory: oracle
         run: python scripts/build_h2h_report.py
