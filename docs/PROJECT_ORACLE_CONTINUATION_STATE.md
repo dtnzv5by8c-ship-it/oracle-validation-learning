@@ -1258,3 +1258,49 @@ OMI refreshed the release-gate register only. No duplicate workflow, provider/AP
 
 ### Single highest-value next action
 Consume Run #62 only after successful completion and persisted/reconciled artifact validation; then update G07 and affected market/league readiness classifications.
+
+## OMI & Release Readiness — 2026-11-07 20:00 SAST
+
+### Finding
+The highest-value OMI blocker is an upstream prospective evidence/recovery-contract defect. The latest private prospective cycle #443 failed at publication governance before evidence persistence; OMI cannot promote its transient outputs.
+
+### Evidence
+- Run #443: 42398165797; head 35704245d83804e8b35c570b0f6f1d1b170ae97c; terminal failure.
+- Stages 01–12 passed; stage 13 publication governance failed; stages 14–18 were skipped.
+- Exact failure: recovery artifact hash mismatch for database/prematch_team_state.csv.
+- Observed SHA-256: 77fc03b51df7c93e4b25974ce59ac6e4b736b9e2d75deb9fd633015f5e8c4ffd.
+- Expected SHA-256: 1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78.
+- Dataset-identity validation failed on the same artifact mismatch; no separate model defect was established.
+- Public branch HEAD after this milestone: 55049a77f5f8983f1d7246ba42a0db28027e1bbf.
+- H2H remains closed/non-blocking after Run #64; no H2H work was repeated.
+
+### Root Cause
+The prospective compatibility run changed persisted pre-match team-state content relative to the recovery metadata expected by the historical challenger-evaluation contract. This is an evidence/recovery-control integration defect.
+
+### Impact
+The fresh run did not reach evidence persistence, so immutable feature manifest/values, exact prediction-to-snapshot/model-engine linkage and a new verified settlement append remain unproven. Production scoreability, xG/odds provenance, freshness/sample gates and 50-league downstream admission remain fail-closed.
+
+### Fix
+OMI made no private code change and did not rerun the failed cycle. The exact defect was documented in checkpoint docs/checkpoints/2026-11-07-omi-prospective-evidence-gate-audit-2000.md and in the OMI release-gate register. The upstream Evidence/Prospective lane owns the compatibility repair and next controlled execution.
+
+### Validation
+- Live branch HEAD inspected before writing.
+- Continuation state, lessons and latest checkpoints consumed.
+- Private run #443 jobs/logs inspected directly.
+- No duplicate workflow, provider/API acquisition, H2H rerun or production-model change.
+- Checkpoint and OMI report were written and will be re-read from live GitHub.
+
+### Remaining blockers
+1. Repair prematch-team-state recovery-hash compatibility without weakening the identity contract.
+2. Complete one fresh governed prospective cycle through evidence persistence.
+3. Prove immutable snapshot manifest/values and exact prediction → fixture → market → snapshot → model-engine SHA linkage.
+4. Prove a new settlement append with explicit provenance.
+5. Close point-in-time xG and timestamped odds provenance.
+6. Complete remaining 50-league identity/scope admission evidence.
+7. Maintain 80 HTTP-417 tasks in quarantine until entitlement changes.
+
+### Highest-value next action
+Upstream Evidence/Prospective lane: correct the recovery-hash compatibility defect and execute exactly one fresh controlled cycle; OMI then consumes only persisted, independently auditable evidence.
+
+Production eligibility: FALSE.
+Betting eligibility: FALSE.
