@@ -40,3 +40,13 @@ The file was written to main and must be re-read from live GitHub before the nex
 
 ## Highest-value next action
 Allow the already-running Run #54 to complete. Then inspect its H2H artifacts and quality gates. If it passes the alias suite and produces a materially improved unresolved identity rate, hand off to the Validation/Evidence lanes for the next admissible prospective cohort; do not repeat specialist work in Continuous Build Control.
+
+## H2H non-blocking history classification — 2026-11-07
+- User decision: genuine no-prior-H2H fixtures and H2H samples below five meetings must not block the Oracle build.
+- Run #56 proved exact 145/145 Fixture ID joining and an initial 22/145 unresolved diagnostic rate.
+- Review of the 22 rows showed they are not necessarily unresolved fixture identities: 3 were pairs found only under another league code; the remainder had one or both teams absent from the historical archive for the governed fixture league. These are valid "no verified same-league H2H in archive" cases when the governed fixture feed already establishes the current league identity.
+- Reporting-only fix commit: f73f2139a74ae3cfe1fc4d07288728041a04dac6.
+- The H2H builder now classifies archive absence/cross-league-only pair history as NO_VERIFIED_HISTORICAL_H2H rather than a blocking unresolved identity. It preserves the diagnostic reason in the detail field.
+- This does NOT fabricate H2H history and does not assert the teams never met; it only states that no verified same-league H2H is available in the governed historical archive.
+- Minimum H2H sample of 5 remains a reporting-quality label only. It does not block the build or promote a market from small-sample evidence.
+- Run #57 is currently validating the corrected classification. Expected result: unresolved identity rate materially reduced (target 0 if all 22 are reclassified), exact Fixture ID join remains unchanged, no production Oracle V1.6 changes.
