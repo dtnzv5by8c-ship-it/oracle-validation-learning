@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 — HTTP-417 recovery attempt #1 completed with zero recoveries; 80 tasks remain quarantined
+Last updated: 2026-11-07 — settlement provenance control corrected; prospective evidence remains fail-closed
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -283,16 +283,39 @@ The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED
 - OMI lane: consolidated OMI/Visual Intelligence/release reporting.
 - All lanes must read this state + lessons, inspect live HEAD, reconcile intervening commits, and checkpoint every major milestone.
 
+## Major milestone — settlement provenance control corrected — 2026-11-07
+The latest private prospective cycle produced 25 settled CHALLENGER rows across 5 fixtures. Direct inspection of the live settlement chain showed that final-score truth was correctly derived from completed `database/current_matches.csv` rows, but the builder did not emit `settlement_source` or `event_truth_source`. The downstream settlement script already preserves those fields.
+
+Controlled correction:
+- Private repo `oracle-football-data`, branch `main`
+- File: `scripts/build_prospective_settlement_truth.py`
+- Commit: `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7`
+- Final-score settlement provenance is now explicitly emitted as `FotMob governed current-match feed: database/current_matches.csv`.
+- Final-score markets explicitly mark event-truth provenance as `NOT_REQUIRED_FINAL_SCORE_MARKETS`.
+- M1UP/event chronology remains blank and data-gated; no first-goal truth is inferred.
+
+This is an evidence/provenance correction only. Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance are unchanged.
+
+The correction was made without running a private GitHub Actions workflow, preserving the 3,000-minute private Actions budget. The next legitimate prospective cycle will exercise the corrected builder. No duplicate manual run is requested.
+
+## Current prospective evidence after run 428
+- Private prediction archive: 885 CHALLENGER rows.
+- Canonical settlement ledger: 25 settled rows across 5 fixtures.
+- Prospective shadow gate: COLLECTING; 5 settled observations per governed model, below the 100-row / 8-day minimum.
+- Production readiness: HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE.
+- No automatic promotion; production models remain on the existing governed benchmark.
+
+## Remaining release blockers
+1. 80 HTTP-417 tasks remain quarantined across 20 provider-season partitions because the FootyStats account diagnostic confirmed an entitlement/league-selection gap. Do not repeat the exhausted transport experiment until entitlement changes.
+2. Historical 2026-10-09 through 2026-10-17 prediction fixtures still require independently verified result truth; do not infer them from current/future snapshots.
+3. xG numeric values exist but point-in-time capture timestamps are not verified.
+4. Timestamped odds provenance is not verified.
+5. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
+6. Per-market prospective sample and observation-window gates remain open.
+7. OMI/Visual Intelligence production readiness remains blocked until the canonical probability bridge, point-in-time features, verified settlement and current-feed freshness gates are satisfied.
+
+## Resource-control rule
+Private `oracle-football-data` Actions are scarce (3,000 minutes/month). Use the public `oracle-validation-learning` repository for research, validation, reconciliation, reporting and non-sensitive computation whenever private credentials/provider access are not required. Do not launch duplicate private workflows.
+
 ## Definition of done
 Production prediction readiness requires genuinely satisfied identity, chronology, point-in-time feature provenance, prediction/settlement linkage and required market/league gates. Missing/quarantined evidence remains excluded. Fail-closed remains active until gates pass.
-
-
-## Major milestone — current settlement evidence re-audited — 2026-11-07 08:59 SAST
-The latest private `archive/SETTLEMENT_LEDGER.csv` now contains 25 settled rows for 5 fixtures, all linked to CHALLENGER predictions. The 25-row cohort has complete prediction-side chronology and provenance fields, but `settlement_source` and `event_truth_source` are blank on every row. Therefore the cohort is research/shadow evidence only and does not satisfy verified settlement provenance for production scoring.
-
-Research-only metrics on the 25 settled rows: aggregate accuracy 68.00%, Brier 0.217340, log loss 0.624606, AUC 0.588235. These values are descriptive and not production Oracle performance. Market cohorts are n=5 each and therefore insufficient for production conclusions; AUC is not estimable for markets with a single outcome class. Confidence/risk-band metrics are unavailable because all 25 settled rows have blank band/risk-band fields.
-
-Checkpoint: `docs/checkpoints/2026-11-07-evidence-backtest-control-0859.md`
-Commit: `d0232f93b18a38ac24ff02209d6768f278a31c8b`.
-
-The next evidence task is to establish settlement-source/event-truth provenance for the existing settled cohort using existing private evidence only. No new acquisition is justified by this gap.
