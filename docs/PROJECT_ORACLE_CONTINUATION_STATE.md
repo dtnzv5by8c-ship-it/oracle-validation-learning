@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 09:55 SAST — provenance correction prepared; execution gate remains open
+Last updated: 2026-11-07 10:xx SAST — provenance correction exercised; settlement append gate remains open
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -49,7 +49,7 @@ Endpoints: `league-matches`, `league-teams`, `league-tables`, `league-season`.
 - 717 runtime fixtures had exact archive joins in that artifact.
 - Chronological expanding-window research backtests exist but are research-only.
 - Canonical settlement ledger now contains 25 settled CHALLENGER rows across 5 fixtures; settlement_source and event_truth_source remain blank, so settlement provenance is incomplete and production admission remains blocked.
-- Current private prediction archive contains 885 CHALLENGER rows across 177 fixtures; 25 rows across 5 fixtures now have SETTLED status, but remain research/shadow because settlement provenance is incomplete.
+- Current private prediction archive contains 900 CHALLENGER rows; 25 rows across 5 fixtures have SETTLED status, but remain research/shadow because the canonical append-only settlement ledger still contains pre-correction blank provenance.
 - xG numeric values exist, but point-in-time capture timestamps are not verified.
 - Timestamped odds provenance is not verified.
 - Production/betting eligibility remains false.
@@ -256,12 +256,13 @@ OMI release gates remain: canonical fixture/probability bridge; immutable pre-ki
 
 Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged. Production/betting remain fail-closed.
 
-## Major milestone — provenance correction prepared but not yet exercised — 2026-11-07 09:55 SAST
-The private builder correction `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7` is present, but the current persisted settlement ledger still shows blank settlement/event-truth provenance because the corrected builder has not yet been executed in a new prospective cycle. This is now the highest-value remaining evidence gate.
+## Major milestone — provenance correction exercised — 2026-11-07 10:xx SAST
+The controlled private builder correction `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7` has now been exercised by subsequent governed execution. The generated `research/four_model/outputs/prospective_settlement_truth.csv` contains explicit `settlement_source=FotMob governed current-match feed: database/current_matches.csv` and `event_truth_source=NOT_REQUIRED_FINAL_SCORE_MARKETS` for final-score markets.
 
-The required action is to run the existing governed `Oracle Prospective Learning Cycle` on private `main`. The available GitHub connector cannot dispatch a new workflow_dispatch cycle, so manual dispatch is genuinely required. No new provider acquisition is justified. After execution, re-audit exact prediction IDs, chronology, feature snapshot hashes, settlement source and event-truth source before any production claim.
+The canonical append-only settlement ledger was not rewritten and remains at 25 pre-correction settled rows with blank provenance. This is correct evidence preservation: the old rows are not retroactively mutated. The current generated truth artifact proves the correction works, but a new legitimate settlement append carrying the corrected provenance has not yet occurred.
 
-Checkpoint: `docs/checkpoints/2026-11-07-evidence-backtest-control-0955.md`
+Private evidence commit exercising the correction: `ff12451558e100fc2717985d2ed3ca8ee7596937`.
+Checkpoint: `docs/checkpoints/2026-11-07-provenance-correction-exercised.md`
 
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
@@ -305,8 +306,8 @@ This is an evidence/provenance correction only. Oracle V1.6 production logic, pr
 
 The correction was made without running a private GitHub Actions workflow, preserving the 3,000-minute private Actions budget. The next legitimate prospective cycle will exercise the corrected builder. No duplicate manual run is requested.
 
-## Current prospective evidence after run 428
-- Private prediction archive: 885 CHALLENGER rows.
+## Current prospective evidence after latest governed execution
+- Private prediction archive: 900 CHALLENGER rows.
 - Canonical settlement ledger: 25 settled rows across 5 fixtures.
 - Prospective shadow gate: COLLECTING; 5 settled observations per governed model, below the 100-row / 8-day minimum.
 - Production readiness: HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE.
@@ -315,6 +316,12 @@ The correction was made without running a private GitHub Actions workflow, prese
 ## Remaining release blockers
 1. 80 HTTP-417 tasks remain quarantined across 20 provider-season partitions because the FootyStats account diagnostic confirmed an entitlement/league-selection gap. Do not repeat the exhausted transport experiment until entitlement changes.
 2. Historical 2026-10-09 through 2026-10-17 prediction fixtures still require independently verified result truth; do not infer them from current/future snapshots.
+3. The canonical append-only settlement ledger still contains 25 pre-correction rows with blank provenance; the corrected truth builder is exercised, but a fresh corrected settlement append is still required.
+4. xG numeric values exist but point-in-time capture timestamps are not verified.
+5. Timestamped odds provenance is not verified.
+6. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
+7. Per-market prospective sample and observation-window gates remain open.
+8. OMI/Visual Intelligence production readiness remains blocked until the canonical probability bridge, point-in-time features, verified settlement and current-feed freshness gates are satisfied.
 3. xG numeric values exist but point-in-time capture timestamps are not verified.
 4. Timestamped odds provenance is not verified.
 5. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
