@@ -616,3 +616,43 @@ Public continuation state, lessons learned, latest private continuation state, a
 
 ### Highest-value next action
 Inspect Run #451 at terminal state when evidence becomes available; consume only its new durable artifacts, or diagnose only its first new failure. Do not duplicate Run #451 or rewrite Run #449.
+
+
+## Validation & Evidence Control — Run #451 terminal evidence audit — 2026-11-08 01:38 SAST
+
+### Finding
+Prospective Run #451 is now terminal SUCCESS. The prior 00:41 read-only state was stale because the accessible private workflow run had not yet been inspected directly. Run #451 completed all 18 substantive steps successfully and pushed its generated evidence to private main.
+
+### Evidence
+- Run #451: 42416983458, conclusion success, head 77768f4db2313f6ec4bceca787a96f0702983036.
+- Prospective job: 128537103510, conclusion success; all substantive steps 01–18 passed.
+- Engine Validation Run #593: 42416983460, conclusion success.
+- Evidence persistence created private commit e666e3b and pushed it to main.
+- Historical point-in-time leakage audit: PASS, 12,836 match rows / 12,836 state rows, 0 violations.
+- Publication governance and historical-state integrity: PASS.
+- Prospective shadow gate: COLLECTING; 16 settled observations/model over 1 sample day, below the 100-settled / 8-day governed minimum.
+- Production readiness: HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE; no production change made.
+
+### Root Cause
+Run #451 did not create a new snapshot cohort. Its publication manifest records candidate_rows=0, snapshots=0, duplicates_skipped=485, and kickoff_gated=25. Therefore the corrected run-ID and normalized-missingness publisher controls were not exercised on new snapshot rows. The existing three-row snapshot cohort remains the prior quarantined cohort: blank run_id and NaN feature values despite COMPLETE.
+
+### Impact
+The persistence path is now proven operational: the run successfully rebased/stashed/restored, committed and pushed evidence. However, the specific run-ID/missingness hardening remains execution-unproven on a genuinely new cohort. Production remains fail-closed.
+
+### Fix
+No new code or private workflow was triggered. No historical rows were rewritten. No H2H work, provider acquisition, model/probability/calibration/threshold/eligibility change or governance weakening was performed.
+
+### Validation
+Private workflow status, job steps, logs and pushed private main evidence were inspected directly. The latest private evidence commit is e666e3b. The public control-plane state is being updated to replace the stale IN_PROGRESS assertion with the terminal result and exact blocker classification.
+
+### Remaining blockers
+1. Fresh snapshot cohort required to prove corrected run-ID lineage and normalized missingness semantics.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission on a fresh cohort.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Prospective sample/freshness/market gates.
+6. Remaining 50-league downstream identity/scope admission evidence.
+7. Production probability/calibration bridge and final eligibility.
+
+### Highest-value next action
+Use the next naturally scheduled prospective cycle that contains at least one genuinely new, pre-kickoff, data-admissible fixture to test the corrected snapshot controls. Do not manually rerun Run #451 or backfill the quarantined Run #449 cohort.
