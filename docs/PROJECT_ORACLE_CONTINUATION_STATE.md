@@ -260,3 +260,28 @@ Allow Run #64 to complete, then inspect its actual H2H artifacts and quality gat
 - H2H is now accepted as an operational, supporting, non-blocking layer for this run/window. Do not continue spending cycles trying to achieve zero H2H exceptions. Retain no-H2H/low-sample statuses as transparent reporting diagnostics.
 - Next programme focus: return to private production repo only when necessary for genuine evidence capture: immutable pre-match feature snapshots, prediction-to-snapshot linkage, exact engine SHA, point-in-time xG provenance, timestamped odds provenance, verified settlement chain, prospective sample/freshness gates, OMI 50-league readiness.
 - Private Actions-minute control: Run #64 ran in public validation repo; private source checkout was read-only; no private production workflow executed. Treat stated 3,000 minutes as hard ceiling; use public repo for all research/diagnostics and inspect private active runs before any execution.
+
+## Continuous Build Control — H2H closed / prospective evidence handoff — 2026-11-07 19:20 SAST
+
+### Finding
+Run #64 is confirmed successful. H2H is closed as an operational, supporting, non-blocking layer. Integration control now moves to the existing prospective evidence cohort.
+
+### Evidence
+- Run #64: 42391142276; artifact oracle-h2h-report-64; 206/206 exact Fixture ID joins; 10.68% unresolved identity diagnostic; no H2H quality-gate failures.
+- Live protocol requires immutable prediction ID/Fixture ID, pre-kickoff timestamp, model commit, feature archive release and SHA-256, feature timing/source timing, and separately verified settlement rows.
+- Existing evidence control identifies manifest-hash compatibility discrepancy for batch 42255401046.
+
+### Root Cause
+H2H no longer blocks the programme. Prospective evidence remains inadmissible until manifest compatibility and immutable prediction/snapshot/settlement provenance are proven.
+
+### Impact
+Historical H2H can support reporting, but production scoreability/eligibility remains fail-closed.
+
+### Fix
+No production model or governance change. Updated lessons learned and created checkpoint docs/checkpoints/2026-11-07-continuous-build-control-h2h-closed.md.
+
+### Validation
+Checkpoint commit 406640805bf21574750eed9db156920bb6ed6b7e and lessons commit d1068b0aa7065f518c60d6b10573616bd9234ca8 were created on main. Live GitHub H2H artifact and protocol were re-read. No duplicate workflow launched.
+
+### Highest-value next action
+Resolve or evidence the existing batch 42255401046 manifest-hash compatibility discrepancy using existing research artifacts only; do not rerun exhausted acquisition or fabricate missing provenance.
