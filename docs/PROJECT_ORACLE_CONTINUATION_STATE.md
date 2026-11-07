@@ -880,3 +880,13 @@ Both new artifacts were created on the governed research branch. The matrix was 
 
 ### Single highest-value next action
 Hand the new admission matrix to the evidence/OMI lane and, on the next genuinely new eligible prospective cohort, verify non-empty immutable feature snapshots plus exact fixture/market/model-engine linkage and settlement provenance. Do not expand production scope from the matrix alone.
+
+
+## Major milestone — 50-league identity admission candidate board — 2026-11-07
+- Live 50-league source gate remains PASS: 50/50 reconciled, 299 live fixtures, 26 READY / 24 DATA_GATED.
+- Built `data/prospective/oracle_50_league_identity_admission_matrix.csv`: 19 PRODUCTION_READY_IDENTITY; 7 IDENTITY_CONFIRMED_NO_INTERNAL_CODE; 5 CONFLICT; 19 UNRESOLVED.
+- Built `data/prospective/oracle_50_league_fixture_admission_candidates.csv`: 299 fixtures represented exactly once; 158 CANDIDATE_FIXTURE_ADMISSION; 66 awaiting internal namespace; 62 unresolved; 13 conflicted.
+- Workbook `Leagues Revision v4.0(1).xlsx` remains retained identity evidence and must be referenced before repeating team-to-league discovery.
+- This is research/admission evidence only. Oracle V1.6 production logic, ACTIVE scope, probabilities, thresholds, calibration and betting governance remain unchanged. Production admission remains FAIL-CLOSED.
+- Checkpoint: `docs/checkpoints/2026-11-07-50-league-identity-admission-candidate-milestone.md`.
+- Next controlled action: use only the 158 candidate fixtures to validate immutable pre-kickoff feature snapshots and exact prediction-engine revision linkage; do not broaden production scope until evidence gates pass.
