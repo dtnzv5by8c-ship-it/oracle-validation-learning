@@ -43,7 +43,7 @@ KOR1,South Korea K League 1,16627,comp_k_league_1_kor,,canonical 50-league regis
 ES1,Spain La Liga,17199,comp_laliga_es,SP1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
 ES2,Spain Segunda División,17269,comp_segunda_es,SP2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal Segunda Division,CROSS-NAMESPACE_NAME_VARIANT,TRUE
 SWE1,Sweden Allsvenskan,16576,comp_allsvenskan_swe,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
-SUI1,Switzerland Super League,17129,comp_super_league_sui,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+SUI1,Switzerland Super League,17129,comp_super_league_sui,SWZ,config/data_config.json extra_all_seasons + canonical 50-league registry; exact internal code identity,EVIDENCE_EXACT_UNIQUE,FALSE
 TUR1,Turkey Süper Lig,17265,comp_super_lig_tr,T1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal Turkey Super Lig,CROSS-NAMESPACE_NAME_VARIANT,TRUE
 USA1,USA MLS,16504,comp_mls_usa,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 UKR1,Ukraine Ukrainian Premier League,17191,comp_premier_league_ukr,UKR,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
