@@ -673,3 +673,13 @@ Finding → Evidence → Root Cause → Impact → Fix → Validation:
 - Validation: run `42361725224` status SUCCESS; both artifacts re-read successfully from the governed research branch; `production_model_changed=false`, `production_eligible=false`, `betting_eligible=false`.
 
 Next highest-value blocker: exact one-to-one mapping from the canonical 50-league source namespace into the Oracle internal league-code namespace, followed by downstream 50-league fixture/prediction scope validation. Do not change the production `ACTIVE` allow-list until mapping and fixture identity gates are proven.
+
+
+## Identity bridge refinement — config-backed exact mappings — 2026-11-07
+Research-only bridge was refined using the live production repository config/data_config.json, without changing production code or model logic.
+- Belgium Pro League -> B1: exact unique mapping from config season_leagues.
+- Germany Bundesliga -> D1: exact unique mapping from config season_leagues; the prior false collision was caused by a stale/incorrect assumption that Denmark Superliga also owned D1. Denmark Superliga has no unique internal code in the current production config and remains UNMAPPED/fail-closed.
+- Germany 2. Bundesliga -> D2: exact unique mapping from config season_leagues.
+- Greece Super League -> G1: exact unique mapping from config season_leagues. This resolves internal namespace identity only; current live source-season readiness remains governed by the separate 50-league source validation artifact.
+Bridge commit: dac3eaddea19988f75bbc04972d5cd776b4cc3bc.
+Next: continue evidence-based mapping for remaining governed leagues from explicit production configuration/source mappings or leave them fail-closed; do not infer codes from name similarity. Production ACTIVE scope remains unchanged.
