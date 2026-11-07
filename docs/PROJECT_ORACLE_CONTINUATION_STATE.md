@@ -50,3 +50,12 @@ Allow the already-running Run #54 to complete. Then inspect its H2H artifacts an
 - This does NOT fabricate H2H history and does not assert the teams never met; it only states that no verified same-league H2H is available in the governed historical archive.
 - Minimum H2H sample of 5 remains a reporting-quality label only. It does not block the build or promote a market from small-sample evidence.
 - Run #57 is currently validating the corrected classification. Expected result: unresolved identity rate materially reduced (target 0 if all 22 are reclassified), exact Fixture ID join remains unchanged, no production Oracle V1.6 changes.
+
+## H2H team identity fuzzy-resolution enhancement — 2026-11-07
+- User identified a key real-world identity issue: the same club may appear as "Manchester United", "Manchester Utd", "Man Utd", etc.
+- Reporting-only H2H identity resolution now has a conservative fuzzy fallback in addition to explicit aliases.
+- Fuzzy matching is league-scoped, historical-archive-scoped, and ambiguity-gated. It never changes canonical Oracle Fixture IDs or production inputs.
+- Accepted automatically only at strong similarity (>=0.93) or >=0.88 with a >=0.06 margin over the next candidate. Ambiguous matches remain unresolved/no-history rather than being guessed.
+- Added token abbreviation forms so variants such as "Manchester Utd" can resolve to the same historical canonical team as "Manchester United".
+- Run #60 is the current validation execution for this change: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/42384750087
+- This is a reporting-only enhancement. Oracle V1.6 production model logic, probabilities, calibration, thresholds and betting eligibility are unchanged.
