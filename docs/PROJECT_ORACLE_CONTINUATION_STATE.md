@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 — Evidence/backtest lane handoff: immutable prediction-settlement chain is highest-value remaining gate
+Last updated: 2026-11-07 — HTTP-417 recovery attempt #1 completed with zero recoveries; 80 tasks remain quarantined
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -54,8 +54,6 @@ Endpoints: `league-matches`, `league-teams`, `league-tables`, `league-season`.
 - Timestamped odds provenance is not verified.
 - Production/betting eligibility remains false.
 
-
-
 ## Major milestone — 648 completed-task evidence VERIFIED — 2026-11-07
 The governed 648-completed population is now deterministically reconciled against the current 728-task manifest and private blocked registry.
 
@@ -92,9 +90,8 @@ Research-only OMI integration consumed the completed Selected-50 Repair #360 art
 
 OMI decision: production/betting remains FAIL-CLOSED. The next OMI dependency is the canonical prediction/fixture bridge plus immutable pre-kickoff feature snapshot and verified settlement evidence owned by the Evidence/Validation lanes. No production probability is changed or inferred.
 
-
 ## Major milestone — exact HTTP-417 recovery path prepared — 2026-11-07
-The 80 quarantined tasks now have a dedicated fail-closed recovery workflow in the private provider repository:
+The 80 quarantined tasks were given a dedicated fail-closed recovery workflow in the private provider repository:
 `.github/workflows/footystats-private-http417-recovery.yml`
 
 Private workflow commit: `632237a2533459af5593f2f683dd00060f66eea2`.
@@ -110,23 +107,38 @@ Design controls:
 - only independently validated recovered IDs are removed from quarantine;
 - production/betting eligibility remain false.
 
-Recovery workflow status: **READY — NOT YET EXECUTED**.
+## Major milestone — HTTP-417 recovery attempt #1: NO RECOVERY — 2026-11-07
+Nolan manually executed the targeted recovery workflow with approved FootyStats API access and a 500-request cap.
 
-The available GitHub connector cannot dispatch a newly-created `workflow_dispatch` workflow, so manual execution is now genuinely required. Nolan should run the private workflow with `confirm_provider_api_usage=true` and `max_requests=500`. Do **not** run the normal full historical ingestion workflow.
+Private recovery evidence commit: `e204520257429f984b2e0581f3ea2bc1ebb179d1`.
+Recovery identifier: `42345182566`.
+
+Result:
+- Target blocked tasks: 80
+- Provider requests actually used: 300
+- Recovered tasks: **0**
+- Remaining blocked tasks: **80**
+- Production eligible: false
+- Betting eligible: false
+
+The workflow completed successfully, but all tested transport variants continued to produce HTTP 417 / invalid provider responses. The blocked registry was not reduced.
 
 Checkpoint:
-`docs/checkpoints/2026-11-07-http417-recovery-workflow-prepared.md`
-Latest checkpoint-doc commit: `5fccbd82755951c2cb5b8a647c43885dd84a5c13`.
+`docs/checkpoints/2026-11-07-http417-recovery-attempt-1-no-recovery.md`
+Commit: `a9b09b64e35e4e8fb2575efef0fe03f8884b3c88`
+
+Interpretation: this is a successful **negative recovery result**, not a workflow failure. The current transport/parameter experiment is exhausted. Do not repeat the same 300-request experiment without new evidence of a materially different recovery mechanism.
 
 ## Immediate next work — priority order
-1. Build/validate the immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage using existing evidence only.
-2. Establish production scoreability: admissible production probability strings, model/version identity, feature-release hash, prediction timestamp, exact fixture/market identity, and verified settlement source.
-3. Run leakage-safe chronological backtests only on admissible prediction/settlement pairs; report sample size, accuracy, Brier, log loss, calibration and AUC only where statistically appropriate.
-4. Quantify market/league/confidence/risk-band evidence with explicit minimum-sample and provenance gates; keep small or unverified cohorts excluded.
-5. Close xG and odds point-in-time provenance only where existing evidence supports it; never infer historical availability.
-6. Hand validated evidence to OMI/Visual Intelligence/release readiness; keep production and betting gates fail-closed.
+1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
+2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
+3. Build/validate the immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage using existing evidence.
+4. Establish production scoreability: admissible production probability strings, model/version identity, feature-release hash, prediction timestamp, exact fixture/market identity, and verified settlement source.
+5. Run leakage-safe chronological backtests only on admissible prediction/settlement pairs; keep research/shadow metrics research-only.
+6. Close xG/odds point-in-time provenance only where evidence genuinely supports it.
+7. Hand validated evidence to OMI/Visual Intelligence/release readiness; keep production and betting gates fail-closed.
 
-The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED/VERIFIED and must not be repeated. The 80 HTTP-417 tasks remain quarantined unless existing evidence proves a deterministic recovery path; no provider/API acquisition is justified by the exhausted queue alone.
+The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED/VERIFIED and must not be repeated.
 
 ## Do not repeat
 - Do not rerun ingestion #92 as a generic full-universe run.
@@ -134,6 +146,7 @@ The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED
 - Do not rerun the completed Selected-50 Market Intelligence repair baseline.
 - Do not reacquire batch `42255401046`.
 - Do not repeat manifest compatibility reconciliation.
+- Do not repeat the identical HTTP-417 recovery transport experiment without new evidence.
 - Do not reinterpret research/shadow metrics as production accuracy.
 - Do not change Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility or governance.
 
