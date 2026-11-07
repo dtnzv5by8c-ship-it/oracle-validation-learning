@@ -47,3 +47,23 @@ Research-only consolidation from the existing Selected-50 OMI baseline. No acqui
 Consume the canonical Evidence/Validation prediction-to-fixture bridge and verified settlement outputs when they become available; then reconcile exact production probability strings and immutable pre-kickoff feature snapshots into this matrix. Do not rerun Selected-50 repair, acquisition, or shadow settlement merely to improve coverage.
 
 Production and betting eligibility remain false.
+
+
+## 2026-11-07 — prospective pre-match evidence cohort update
+
+The canonical Evidence/Validation lane now provides a research-only pre-match state readiness artifact for the exact private-feed bridge cohort. OMI consumes this artifact without treating it as a feature snapshot or production prediction ledger.
+
+- Exact private-feed bridge: 115 fixtures.
+- Engine status: 80 CONTROLLED, 10 WATCH, 25 NO_BET.
+- Engine-accepted pre-match state: 90/115; 25/115 fail-closed for missing/rejected state.
+- Four-market raw values: 450 across the 90 state-ready fixtures.
+- Feature snapshot status: 115/115 NOT_YET_MATERIALIZED.
+- No synthetic feature snapshots were created.
+- Current cohort includes future kickoffs through 2026-11-21; therefore it is a readiness cohort, not a settled-performance cohort.
+
+### OMI interpretation
+The 90 engine-accepted rows prove that the existing pre-match state spine can be consumed by the engine for those fixtures, but they do **not** prove immutable point-in-time feature capture. The 25 rejected rows remain fail-closed. Raw market values remain challenger/research evidence and are not converted into Oracle V1.6 production probability strings.
+
+This closes no production gate by itself. The next admissible evidence must contain the actual feature vector used at prediction time, immutable manifest/value records, exact prediction/fixture/market linkage, separate model-engine revision attribution, and verified settlement provenance where settlement is applicable.
+
+Production eligibility: FALSE. Betting eligibility: FALSE.
