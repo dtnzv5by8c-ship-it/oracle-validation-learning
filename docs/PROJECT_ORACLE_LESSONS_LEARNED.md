@@ -15,9 +15,17 @@ Last updated: 2026-11-07
 - A running equivalent workflow is not duplicated.
 
 ## Current specialist handoffs
-- Continuous Build Control: monitor Run #54 and integrate only proven safe reporting/configuration/documentation changes.
+- Continuous Build Control: H2H reporting is closed as an accepted non-blocking layer after Run #64; do not repeat H2H work unless new evidence identifies a regression. Focus integration control on the immutable prospective evidence handoff and manifest-hash compatibility gate.
 - Validation: resolve remaining 50-league identity and source-admission gates.
 - Evidence/OMI: establish immutable prospective feature/provenance and verified settlement evidence using admissible sources.
 
 ## Production readiness
 Production remains fail-closed until canonical 50-league source/identity, snapshot, xG, odds, freshness, market observation, prediction linkage and verified settlement gates pass.
+
+
+## Continuous Build Control — H2H closure and evidence handoff — 2026-11-07
+- Run #64 (42391142276) is confirmed SUCCESS with all 17 substantive steps passed and artifact `oracle-h2h-report-64`.
+- H2H is operational and non-blocking: 206/206 exact Fixture IDs, 10.68% unresolved identity diagnostic, no quality-gate failures.
+- Do not rerun H2H merely to reduce genuine no-history or low-sample cases.
+- Highest-value integration handoff is now the existing prospective evidence cohort: resolve the manifest-hash compatibility discrepancy for batch `42255401046`, then establish/verify immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement provenance.
+- This handoff remains research-only until production governance gates pass; no Oracle V1.6 production logic or governance changes are permitted.
