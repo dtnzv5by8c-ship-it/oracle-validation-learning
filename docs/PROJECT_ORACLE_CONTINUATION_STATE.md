@@ -1014,3 +1014,50 @@ Inspect the first completed governed prospective cycle after `8a744c2...`. If im
 - Private checkpoint: `docs/checkpoints/2026-11-07-historical-league-namespace-compatibility.md`, commit `5adf4e17904fdfedebb6654ef8b07c096a9328bf`.
 - Validation: live commit and diff were re-read. Runtime validation of the corrected commit is still open; do not treat code presence as execution evidence.
 - Next highest-value action: observe the push-triggered Prospective Learning Cycle for `02ffafe41a9f022fd0399fdb89c83920409fbb21`; if prediction reaches publication, audit immutable snapshot manifest/values and exact prediction-to-snapshot linkage.
+
+
+## Major milestone — fresh prospective settlement cohort re-audit — 2026-11-07 14:38 SAST
+
+### Finding
+A fresh prospective publication cohort is now present in the private Oracle archive, but it does not close the immutable feature-snapshot or verified-settlement evidence gates. The latest private main commit is the historical namespace compatibility checkpoint `5adf4e17904fdfedebb6654ef8b07c096a9328bf`.
+
+### Evidence
+- Current private prediction ledger: 900 rows; prediction/run/model-code fields are populated; calibrated_probability is blank on 900/900 rows.
+- Fresh run `ORC-20261104T120927Z-110D59`: 345 fixtures in RUN_REGISTRY; its published prediction rows are part of the current 900-row ledger.
+- Current settlement ledger: 25 SETTLED rows, all from `ORC-20261104T120927Z-110D59`.
+- All 25 fresh settlement rows have blank `settlement_source` and `event_truth_source`; they remain research/shadow evidence.
+- `archive/FEATURE_SNAPSHOT_MANIFEST.csv` remains header-only (0 rows).
+- `archive/FEATURE_SNAPSHOT_VALUES.csv` is absent.
+- `archive/PROBABILITY_ERROR_LEDGER.csv` contains 25 rows for the fresh settled cohort.
+- The 110D59 cohort predates private historical namespace fix `02ffafe41a9f022fd0399fdb89c83920409fbb21`; it is not post-fix execution evidence.
+- No provider/API acquisition, exhausted recovery, duplicate workflow or historical ledger rewrite was performed.
+
+### Root Cause
+The current prediction ledger contains feature_snapshot_id metadata but no persisted immutable feature vector manifest/values. The only fresh settled cohort predates the later namespace compatibility fix and its settlement provenance fields are blank. Code presence therefore remains distinct from execution evidence.
+
+### Impact
+Production scoreability, production calibration/accuracy/Brier/log-loss/AUC, confidence/risk-band evidence and final governed readiness remain fail-closed. Existing challenger/shadow metrics cannot be promoted.
+
+### Fix
+Research/control-plane evidence was reconciled only. No Oracle V1.6 production logic, probabilities, thresholds, calibration, governance or eligibility was changed. Existing append-only settlement rows were not rewritten.
+
+### Validation
+- Continuation state, lessons and latest dated evidence were read before action.
+- Private main commit history and current prediction/settlement/snapshot artifacts were re-read.
+- 900 prediction rows, 25 settlements, 0 snapshot-manifest rows and absent snapshot values were independently confirmed.
+- New checkpoint: `docs/checkpoints/2026-11-07-evidence-validation-control-1438.md`, commit `aefa757deb9157352e7df7b221a973553d9e5bad`.
+- No duplicate workflow launched and no provider/API call made.
+
+### Remaining blockers
+1. Immutable feature snapshot manifest/values remain non-admissible.
+2. Exact prediction-to-feature linkage remains unproven for a post-fix cohort.
+3. Verified settlement provenance remains blocked for the current settled cohort.
+4. Production calibrated probabilities remain unavailable in the canonical ledger.
+5. Point-in-time xG provenance remains blocked.
+6. Timestamped odds provenance remains blocked.
+7. 30/50 internal identity mappings remain fail-closed.
+8. 80 provider tasks remain quarantined.
+9. Prospective sample/freshness gates remain open.
+
+### Single highest-value next action
+Inspect the first genuinely completed prospective cycle that executes after `02ffafe41a9f022fd0399fdb89c83920409fbb21`. If it completes, validate non-empty FEATURE_SNAPSHOT_MANIFEST/VALUES, exact fixture/market/model-engine linkage, pre-kickoff chronology and settlement provenance. Do not treat 110D59 as post-fix evidence.
