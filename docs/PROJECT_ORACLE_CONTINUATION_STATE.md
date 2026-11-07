@@ -403,3 +403,27 @@ Private `oracle-football-data` Actions are scarce (3,000 minutes/month). Use the
 
 ## Definition of done
 Production prediction readiness requires genuinely satisfied identity, chronology, point-in-time feature provenance, prediction/settlement linkage and required market/league gates. Missing/quarantined evidence remains excluded. Fail-closed remains active until gates pass.
+
+
+## Major milestone — OMI final release-gate register — 2026-11-07 10:40 SAST
+The OMI lane consumed the authoritative continuation state, lessons learned, latest checkpoints and the existing Selected-50 Repair #360 artifact. No acquisition, provider/API call, repair rerun, settlement rerun or production-model change was performed.
+
+New research-only report:
+- reports/oracle-omi-release-gate-register-2026-11-07.md
+- Checkpoint: docs/checkpoints/2026-11-07-omi-final-release-gate-register-1040.md
+
+The report consolidates 22 release gates and explicitly separates READY, PARTIAL, BLOCKED, INSUFFICIENT SAMPLE and UNVERIFIED evidence. It does not infer production probabilities, H2H, point-in-time availability, xG provenance, odds provenance or settlement.
+
+Current release-critical blockers remain:
+1. Canonical Oracle V1.6 production probability -> fixture/market bridge.
+2. Immutable materialization of the actual pre-match feature vector used for each new challenger prediction.
+3. Correct prediction-engine code revision attribution, separate from workflow commit SHA.
+4. Point-in-time xG provenance.
+5. Timestamped odds provenance.
+6. Current-feed freshness/recency proof.
+7. Verified settlement append using corrected provenance plus immutable prediction/feature linkage.
+8. Per-market sample and observation-window gates.
+
+The 80 HTTP-417 tasks remain quarantined and excluded. The 900 historical challenger rows remain immutable research/shadow evidence; no retroactive feature snapshots are fabricated. Production and betting eligibility remain false.
+
+Next OMI action is deterministic consumption of the next canonical Evidence/Validation outputs and exact-ID/market-key reconciliation into the existing matrix. No manual OMI dispatch is required for this milestone.
