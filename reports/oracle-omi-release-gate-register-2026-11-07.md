@@ -145,3 +145,36 @@ The source registry and downstream-scope audit were read from the live branch at
 ### Current OMI release decision
 Production eligibility: FALSE.
 Betting eligibility: FALSE.
+
+
+## 2026-11-07 16:04 SAST — OMI evidence dependency audit
+
+### Finding
+A read-only audit of the latest canonical validation/evidence handover found no newly admissible post-repair prospective cohort. OMI therefore has no safe evidence-backed promotion to perform in this cycle.
+
+### Evidence
+- Latest canonical evidence checkpoint: `docs/checkpoints/2026-11-07-evidence-validation-control-1438.md`.
+- Current prediction archive remains challenger/shadow evidence with raw prediction metadata; `calibrated_probability` remains unavailable for the audited challenger population.
+- `archive/FEATURE_SNAPSHOT_MANIFEST.csv` remains header-only and `archive/FEATURE_SNAPSHOT_VALUES.csv` remains absent.
+- The corrected settlement-truth artifact carries explicit provenance, but the append-only settlement ledger still contains the historical 25 settled rows with blank provenance; those rows remain immutable and non-production.
+- No new completed prospective execution proving non-empty immutable snapshots and exact prediction-to-snapshot linkage was found in the available canonical evidence.
+
+### Root Cause
+The remaining OMI blocker is evidence maturity, not report logic: code-level snapshot/provenance repairs exist, but an independently auditable post-repair execution artifact has not yet been demonstrated.
+
+### Impact
+G02/G04/G16/G18/G19/G20 remain blocked or unverified. OMI cannot promote challenger probabilities, shadow settlement, populated feature IDs, xG values or odds values into production evidence merely because the fields exist or the repair code exists.
+
+### Fix
+No code, provider, workflow, model, probability, threshold, calibration or governance change was made. The OMI register is explicitly synchronized to the current evidence state and continues to fail closed.
+
+### Validation
+- Canonical continuation state and lessons learned were read before action.
+- Live OMI release-gate register and latest validation checkpoint were re-read.
+- No duplicate workflow launched.
+- No provider/API calls made.
+- No quarantined evidence promoted.
+- Production and betting eligibility remain false.
+
+### Single highest-value next action
+Consume the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and verify, in one chain, non-empty immutable snapshot manifest/values, exact fixture+market+model-engine linkage, pre-kickoff chronology and corrected settlement provenance. If that evidence is absent, no OMI reconstruction is justified.
