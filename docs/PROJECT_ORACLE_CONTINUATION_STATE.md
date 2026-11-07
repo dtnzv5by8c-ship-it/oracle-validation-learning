@@ -204,6 +204,22 @@ Commit: `ed1aed7daf31773dbca72db18d6d3a1c12b2d142`.
 
 Next evidence work: determine why 555 prospective prediction rows have not produced canonical settlement rows, using current workflow/result evidence and exact prediction IDs. Do not modify Oracle V1.6 or promote challenger evidence.
 
+## Major milestone — prospective settlement blocker root cause identified — 2026-11-07
+Direct audit of the current private prediction archive against `database/current_matches.csv` found:
+- 555 current challenger prediction rows / 111 unique fixtures.
+- Exact date + normalized home/away match joins: **0/111**.
+- Current truth snapshot covers 2026-10-30 through 2026-11-08.
+- Prediction dates include 2026-10-09 through 2026-10-17 (outside the current truth snapshot), plus 2026-11-06 through 2026-11-08.
+- Stored 2026-11-06 through 2026-11-08 rows are present but marked `finished=False` in the persisted snapshot, so the settlement builder correctly excludes them.
+- 2026-11-14 and 2026-11-15 predictions are future and must remain unsettled.
+
+Therefore the current zero-settlement result is a **result-truth freshness/coverage blocker**, not evidence that the prediction ledger or settlement rules are broken.
+
+Checkpoint: `docs/checkpoints/2026-11-07-prospective-settlement-root-cause.md`
+Commit: `57a4d8d8d9bac2b5aa0067de0cb7764e5f0fe61c`.
+
+The next safe action is to execute the existing governed `Oracle Prospective Learning Cycle` on private `main` so it refreshes current result truth and re-attempts exact settlement. Historical 2026-10-09 to 2026-10-17 rows still require an independently verified historical result source; they must not be inferred from current/future snapshots.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
