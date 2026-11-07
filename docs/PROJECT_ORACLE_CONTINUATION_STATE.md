@@ -833,3 +833,12 @@ The corrected report and checkpoint were re-read from the live governed branch a
 
 ### Single highest-value next action
 Consume the next genuinely new governed prospective fixture/prediction evidence and reconcile it by exact fixture ID + market key + model-engine revision + immutable feature snapshot; do not infer missing identity mappings or production probabilities.
+
+
+## 2026-11-07 — Leagues Revision v4 team identity evidence
+- User-provided source workbook: `Leagues Revision v4.0(1).xlsx`.
+- Parsed and persisted research lookup: `data/prospective/oracle_leagues_revision_v4_team_league_lookup.csv` (872 team records; 45 distinct competition tables).
+- Reconciled against live 50-league fixture crosswalk: `data/prospective/oracle_50_league_team_pair_workbook_reconciliation.csv`.
+- 299 live fixtures classified: 185 existing Oracle internal identity; 29 workbook team-pair confirmed; 37 one-team workbook match; 46 no workbook team match; 2 workbook teams found in different competitions.
+- This workbook is now a retained identity evidence source and must be referenced before repeating team→league discovery work.
+- Research-only: do not promote workbook matches directly into production internal namespaces; production admission remains fail-closed until governed identity/provenance gates are satisfied.
