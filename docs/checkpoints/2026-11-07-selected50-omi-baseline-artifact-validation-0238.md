@@ -13,7 +13,7 @@ Selected-50 Market Intelligence Report Repair workflow run **#360** completed su
 - artifact id: `13547044125`
 - artifact SHA-256: `91cf647eb7a19d2f3e263347194c76477f60a2de0cf9ff90afab38d6227e7dfc`
 
-The live research branch is now ahead of the repair commit by two research-only checkpoint commits; the repair commit is therefore an ancestor of the current branch state and is a valid downstream OMI baseline.
+The live research branch is now ahead of the repair commit by three research-only checkpoint commits; the repair commit is therefore an ancestor of the current branch state and is a valid downstream OMI baseline.
 
 ## Artifact inspection
 The workflow artifact was downloaded and inspected before any new work. It contains the rebuilt Market Intelligence workbook and the associated QA/evidence outputs, including:
