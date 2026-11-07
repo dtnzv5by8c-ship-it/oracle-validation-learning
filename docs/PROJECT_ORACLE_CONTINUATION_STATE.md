@@ -246,3 +246,17 @@ Checkpoint docs/checkpoints/2026-11-07-validation-evidence-control-1842.md was c
 
 ### Highest-value next action
 Allow Run #64 to complete, then inspect its actual H2H artifacts and quality gates. If it fails, diagnose the new failure from live logs rather than repeating the run.
+
+## H2H Reporting Run #64 — 15-day execution accepted — 2026-11-07
+- Manual workflow run #64: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/42391142276
+- Head SHA: 3d0e171a5343f5dd09bb20be7a4510da64142ff3; input upcoming_fixture_window=15.
+- All 17 substantive workflow steps passed. Run status SUCCESS.
+- Artifact oracle-h2h-report-64 (ID 13582932762), SHA-256 92ea1e35cb2d743ebf77ea1bde142fd2c92b73491594c98270be7b8628a2e933.
+- 206 fixtures, 206 unique Fixture IDs, exact ID join 206/206, zero unmatched IDs, no fuzzy ID matching, no Oracle probability changes.
+- H2H classification: 122 MATCHED with 5+ meetings; 43 MATCHED - SMALL SAMPLE; 22 NO_VERIFIED_HISTORICAL_H2H; 19 NO_HISTORICAL_H2H. Total no/low-H2H group 84 is non-blocking by user decision.
+- H2H audit: 22/206 unresolved-identity diagnostic = 10.68%, below 20%; quality gates no failures; PASS_WITH_REVIEW_ITEMS.
+- Archive: 75,849 records, 2018-07-20 to 2026-11-07, age 0 days; acquisition/merge duplicate count 0.
+- Checkpoint: docs/checkpoints/2026-11-07-h2h-run64-15-day-success.md, commit af1036737485d67ec24af2b3a8b005525b4c97b9.
+- H2H is now accepted as an operational, supporting, non-blocking layer for this run/window. Do not continue spending cycles trying to achieve zero H2H exceptions. Retain no-H2H/low-sample statuses as transparent reporting diagnostics.
+- Next programme focus: return to private production repo only when necessary for genuine evidence capture: immutable pre-match feature snapshots, prediction-to-snapshot linkage, exact engine SHA, point-in-time xG provenance, timestamped odds provenance, verified settlement chain, prospective sample/freshness gates, OMI 50-league readiness.
+- Private Actions-minute control: Run #64 ran in public validation repo; private source checkout was read-only; no private production workflow executed. Treat stated 3,000 minutes as hard ceiling; use public repo for all research/diagnostics and inspect private active runs before any execution.
