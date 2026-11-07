@@ -80,12 +80,12 @@ The upstream live 50-league fixture-source gate is now canonically persisted and
 
 ### Current internal identity bridge
 The research-only bridge contains exactly 50 governed identities:
-- 19 EVIDENCE_EXACT_UNIQUE mappings — admissible for downstream identity work.
+- 20 EVIDENCE_EXACT_UNIQUE mappings — admissible for downstream identity work.
 - 4 CROSS-NAMESPACE_NAME_VARIANT — fail-closed pending explicit identity evidence.
 - 1 NAME_VARIANT_UNVERIFIED — fail-closed.
-- 26 UNMAPPED — fail-closed.
+- 24 UNMAPPED — fail-closed.
 
-Therefore OMI cannot yet treat the 299 current fixtures as an Oracle V1.6 production fixture universe. The source namespace is validated, but only 19/50 identities currently have an evidence-backed internal Oracle code mapping. No production ACTIVE allow-list was changed.
+Therefore OMI cannot yet treat the 299 current fixtures as an Oracle V1.6 production fixture universe. The source namespace is validated, but 20/50 identities currently have an evidence-backed internal Oracle code mapping. No production ACTIVE allow-list was changed.
 
 ### Updated OMI interpretation
 - G01 fixture identity: PARTIAL / gated for live production scope. The historical #360 archive joins remain READY for their 717 fixtures, while the current 50-league source board has only 19/50 identities mapped exactly into the internal namespace.
@@ -98,3 +98,16 @@ Consume the next validated downstream fixture/prediction evidence only after the
 
 Production eligibility: FALSE.
 Betting eligibility: FALSE.
+
+
+## 2026-11-07 12:57 SAST — identity-bridge count reconciliation
+
+The OMI report's earlier 12:01 bridge counts were stale relative to the live research bridge after the Serbia exact mapping repair. A read-only re-audit of the live 50-row bridge found:
+- 50/50 governed identities represented exactly once.
+- 20 EVIDENCE_EXACT_UNIQUE.
+- 24 UNMAPPED.
+- 4 CROSS-NAMESPACE_NAME_VARIANT.
+- 1 NAME_VARIANT_UNVERIFIED.
+- 1 CODE_NAMESPACE_CONFLICT.
+
+The report has been corrected to reflect the live bridge. No mapping was inferred or promoted, and the CODE_NAMESPACE_CONFLICT remains fail-closed. The source-validation gate remains PASS (50/50 reconciliation; 26 READY / 24 DATA_GATED; 299 fixtures), but this does not establish production prediction eligibility.
