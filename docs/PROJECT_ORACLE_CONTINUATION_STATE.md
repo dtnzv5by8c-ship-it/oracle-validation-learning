@@ -890,3 +890,12 @@ Hand the new admission matrix to the evidence/OMI lane and, on the next genuinel
 - This is research/admission evidence only. Oracle V1.6 production logic, ACTIVE scope, probabilities, thresholds, calibration and betting governance remain unchanged. Production admission remains FAIL-CLOSED.
 - Checkpoint: `docs/checkpoints/2026-11-07-50-league-identity-admission-candidate-milestone.md`.
 - Next controlled action: use only the 158 candidate fixtures to validate immutable pre-kickoff feature snapshots and exact prediction-engine revision linkage; do not broaden production scope until evidence gates pass.
+
+
+## Major milestone — exact fixture/private feed bridge — 2026-11-07
+- Research-only artifact `data/prospective/oracle_50_league_fixture_private_feed_bridge.csv` created.
+- 115 of 158 candidate production-identity fixtures have an exact home+away+date bridge into the private `data/fixtures/oracle_upcoming_fixtures.csv` feed.
+- 115/115 private internal league codes match the proven internal Oracle namespace; 0 ambiguous matches.
+- This does not expand production ACTIVE scope or change Oracle V1.6 logic/governance.
+- Checkpoint: `docs/checkpoints/2026-11-07-exact-fixture-private-feed-bridge.md`.
+- Next controlled action: establish genuine pre-kickoff feature-state availability and immutable snapshot capture for this 115-fixture evidence cohort. Do not synthesize snapshots from historical aggregates.
