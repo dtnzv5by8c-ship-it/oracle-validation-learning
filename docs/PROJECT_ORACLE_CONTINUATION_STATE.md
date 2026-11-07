@@ -659,3 +659,17 @@ Finding → Evidence → Root Cause → Impact → Fix → Validation:
 - Validation: workflow definition committed on main; checkpoint docs/checkpoints/2026-11-07-50-league-live-source-validation-persistence-race.md commit 6b23180a5edcc7c6b6ad21754caa2da7df8925cd. A new execution using the hardened workflow is required; the failed run must not be rerun as-is.
 
 Immediate operator blocker: the current GitHub toolset does not expose workflow dispatch. If immediate execution is required before the next scheduled run, Nolan must manually use Actions → Oracle 50-League Live Fixture Source Validation → Run workflow → main. The next scheduled execution is at minute 07 of the next hour. This limitation must be surfaced immediately rather than waiting for another prompt.
+
+
+## Major milestone — 50-league live source gate PASSED — 2026-11-07
+Workflow run `42361725224` completed successfully using hardened workflow commit `b5987ca1194469e65e61296157cf1f2b75acaf89`.
+
+Finding → Evidence → Root Cause → Impact → Fix → Validation:
+- Finding: canonical live 50-league source validation and exact board reconciliation now have persisted evidence.
+- Evidence: validator artifact and reconciliation artifact are both readable from `research/oracle-50-league-readiness-audit`; 50 registry rows = 50 validation rows; missing IDs 0; unexpected IDs 0; duplicate IDs 0; classification 26 READY / 24 DATA_GATED; 299 fixtures in governed window; 0 SOURCE_ERROR.
+- Root Cause of prior failure: branch race during direct evidence push. Hardened persistence fixed it through fetch/rebase and bounded retry.
+- Impact: the live 50-league fixture-source gate is now PASSED. This does NOT by itself make the 50-league universe production-eligible, because downstream internal identity mapping, feature evidence, settlement evidence, freshness and sample gates remain open.
+- Fix: hardened workflow is now validated in a successful production-like execution.
+- Validation: run `42361725224` status SUCCESS; both artifacts re-read successfully from the governed research branch; `production_model_changed=false`, `production_eligible=false`, `betting_eligible=false`.
+
+Next highest-value blocker: exact one-to-one mapping from the canonical 50-league source namespace into the Oracle internal league-code namespace, followed by downstream 50-league fixture/prediction scope validation. Do not change the production `ACTIVE` allow-list until mapping and fixture identity gates are proven.
