@@ -28,7 +28,7 @@ The provider receipt field `57fe9e...` must be resolved as a repository referenc
 
 ## Current blockers
 - 80 HTTP-417 provider tasks remain quarantined after targeted recovery attempt #1.
-- Canonical production prediction → settlement ledger is header-only.
+- Canonical settlement ledger now contains 25 SETTLED CHALLENGER rows, but settlement_source and event_truth_source are blank; production-grade settlement provenance remains unverified.
 - xG point-in-time capture provenance is not verified.
 - Timestamped odds provenance is not verified.
 - Current schedule/feed freshness and current fixture joins need validation.
@@ -56,3 +56,7 @@ Targeted recovery attempt #1 completed successfully after 300 provider requests 
 
 ## 2026-11-07 current prediction archive lesson
 Always audit the current private `oracle-football-data/main` archive before relying on older validation snapshots. The current canonical `archive/PREDICTION_LEDGER.csv` contains 555 immutable prospective prediction rows across 111 fixtures and 5 model/market rows, all marked CHALLENGER, with complete prediction/provenance fields and 555/555 chronology passes. The canonical settlement ledger is still header-only. Older statements describing the current prediction ledger as header-only or 210 rows are stale and must not be repeated. The remaining evidence bottleneck is settlement linkage and scoreability, not prediction capture.
+
+
+## 2026-11-07 settlement provenance lesson
+The private settlement ledger has progressed from header-only to 25 SETTLED CHALLENGER rows across 5 fixtures. This is a meaningful evidence advance, but blank `settlement_source` and `event_truth_source` fields prevent production admission. Do not treat `SETTLED` status alone as verified settlement provenance. The 25-row metrics are research/shadow diagnostics only.
