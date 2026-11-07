@@ -92,6 +92,32 @@ Research-only OMI integration consumed the completed Selected-50 Repair #360 art
 
 OMI decision: production/betting remains FAIL-CLOSED. The next OMI dependency is the canonical prediction/fixture bridge plus immutable pre-kickoff feature snapshot and verified settlement evidence owned by the Evidence/Validation lanes. No production probability is changed or inferred.
 
+
+## Major milestone — exact HTTP-417 recovery path prepared — 2026-11-07
+The 80 quarantined tasks now have a dedicated fail-closed recovery workflow in the private provider repository:
+`.github/workflows/footystats-private-http417-recovery.yml`
+
+Private workflow commit: `632237a2533459af5593f2f683dd00060f66eea2`.
+
+Design controls:
+- exact blocked-registry IDs only;
+- no completed-task checkpoint reuse or reacquisition;
+- governed 728-task manifest subset validation;
+- 200/300/500/800 request caps;
+- controlled HTTP transport matrix;
+- endpoint-specific identity/data validation before admission;
+- private-only raw recovery payloads;
+- only independently validated recovered IDs are removed from quarantine;
+- production/betting eligibility remain false.
+
+Recovery workflow status: **READY — NOT YET EXECUTED**.
+
+The available GitHub connector cannot dispatch a newly-created `workflow_dispatch` workflow, so manual execution is now genuinely required. Nolan should run the private workflow with `confirm_provider_api_usage=true` and `max_requests=500`. Do **not** run the normal full historical ingestion workflow.
+
+Checkpoint:
+`docs/checkpoints/2026-11-07-http417-recovery-workflow-prepared.md`
+Latest checkpoint-doc commit: `5fccbd82755951c2cb5b8a647c43885dd84a5c13`.
+
 ## Immediate next work — priority order
 1. Build/validate the immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage using existing evidence only.
 2. Establish production scoreability: admissible production probability strings, model/version identity, feature-release hash, prediction timestamp, exact fixture/market identity, and verified settlement source.
