@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 — settlement provenance control corrected; prospective evidence remains fail-closed
+Last updated: 2026-11-07 09:55 SAST — provenance correction prepared; execution gate remains open
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -255,6 +255,13 @@ Production probability strings and the canonical Oracle V1.6 fixture/probability
 OMI release gates remain: canonical fixture/probability bridge; immutable pre-kickoff feature snapshots; point-in-time xG; timestamped odds; verified official settlement; prediction-to-feature-to-settlement linkage; per-market sample gates; and current-feed recency/freshness. Quarantined evidence remains excluded.
 
 Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged. Production/betting remain fail-closed.
+
+## Major milestone — provenance correction prepared but not yet exercised — 2026-11-07 09:55 SAST
+The private builder correction `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7` is present, but the current persisted settlement ledger still shows blank settlement/event-truth provenance because the corrected builder has not yet been executed in a new prospective cycle. This is now the highest-value remaining evidence gate.
+
+The required action is to run the existing governed `Oracle Prospective Learning Cycle` on private `main`. The available GitHub connector cannot dispatch a new workflow_dispatch cycle, so manual dispatch is genuinely required. No new provider acquisition is justified. After execution, re-audit exact prediction IDs, chronology, feature snapshot hashes, settlement source and event-truth source before any production claim.
+
+Checkpoint: `docs/checkpoints/2026-11-07-evidence-backtest-control-0955.md`
 
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
