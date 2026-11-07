@@ -506,3 +506,25 @@ Checkpoint: `docs/checkpoints/2026-11-07-prospective-cycle-438-exercised-attribu
 Control interpretation: the prediction-engine attribution gate is now code-validated and execution-exercised; the immutable feature-snapshot gate remains OPEN due to absence of new admissible prediction rows. The next useful evidence event is a governed cycle containing genuinely new future fixtures. Do not launch duplicate cycles merely to manufacture snapshots, and do not rewrite historical challenger evidence.
 
 Current production posture remains fail-closed: `production_eligible=false`, `betting_eligible=false`. The 80 HTTP-417 tasks remain quarantined. xG/odds point-in-time provenance and canonical prediction→snapshot→settlement linkage remain unresolved.
+
+
+## Major milestone — 50-league prospective fixture coverage gap quantified — 2026-11-07
+A live-state audit established a new release-critical mismatch: the governed historical universe contains exactly 50 selected leagues, but the prospective fixture-ingestion layer remains a legacy 27-league registry and the latest persisted fixture board contains only 14 unique league codes.
+
+Evidence:
+- `data/footystats/selected50-full-ingestion-manifest.csv`: exactly 50 selected leagues / 728 endpoint tasks.
+- Private receipt `gateway/receipts/footystats-50-league-latest.json`: Oracle-50-League, expected_leagues=50, historical private archive receipt; non-production/non-betting eligible.
+- `data/fixtures/oracle_upcoming_fixtures_manifest.json`: 27 targets, 14 `OK_FALLBACK`, 13 `SOURCE_ERROR`.
+- `data/fixtures/oracle_upcoming_fixtures.csv`: only 14 unique league codes currently persisted.
+- `scripts/ingest_upcoming_fixtures.py`: active registry is explicitly hardcoded to 27 leagues.
+
+Root cause: historical 50-league acquisition identity and prospective fixture coverage are separate controls; the prospective registry was never advanced to 50 leagues. The existing 27-league source/fallback path also has 13 current source errors.
+
+Impact: the prospective lane cannot claim governed 50-league fixture coverage, so 50-league production prediction readiness cannot be admitted. This is distinct from the already-closed 648/80 historical acquisition accounting and HTTP-417 quarantine.
+
+Next action: build the canonical 50-league prospective fixture registry from the existing governed identity set, verify explicit current-season source/competition identifiers, preserve fail-closed diagnostics, and require fixture-board reconciliation before prediction publication. Do not rerun generic ingestion or repeat FootyStats recovery merely to address this finding.
+
+Report: `reports/oracle-50-league-upcoming-coverage-audit-2026-11-07.md`
+Checkpoint: `docs/checkpoints/2026-11-07-50-league-prospective-coverage-gap.md` (commit `7afaf34352379587fcf3d7ca55585dc22f2961ad`).
+
+Production remains fail-closed; Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
