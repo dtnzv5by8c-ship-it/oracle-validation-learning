@@ -352,6 +352,20 @@ Run #434 is still executing the prior revision and has not reached publication. 
 Checkpoint: `docs/checkpoints/2026-11-07-feature-snapshot-capture-implementation-corrected.md`
 Commit: `0c8af2c9e5326a3e8af7d04b81999ba9be2a8191`.
 
+## Major milestone — prospective persistence snapshot guard corrected — 2026-11-07
+Prospective Learning Cycle #434 completed stages 01–16 and failed only at stage 17 because `archive/FEATURE_SNAPSHOT_VALUES.csv` did not exist:
+`fatal: pathspec 'archive/FEATURE_SNAPSHOT_VALUES.csv' did not match any files`.
+
+This was an evidence-persistence robustness defect, not a model/prediction/settlement failure. The artifact is optional when no complete feature-value rows are materialized; the workflow must not fabricate it.
+
+Private workflow correction:
+`da549a80db2b545a739b9301b050131611a5afd1`
+
+Stage 17 now conditionally stages the feature snapshot manifest/values files only when they actually exist, while retaining fail-closed evidence requirements. The feature-snapshot gate remains OPEN until a fresh governed execution proves non-empty immutable snapshots, complete admissible feature values, exact prediction-to-snapshot linkage, strict pre-kickoff status and exact prediction-engine code attribution.
+
+Checkpoint: `docs/checkpoints/2026-11-07-prospective-persistence-snapshot-guard-corrected.md`
+Commit: `f510381c6f9cd51413aa5a2167a832f15b126502`.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
