@@ -92,7 +92,6 @@ ALIAS_GROUPS=[
  "fkpardubice|pardubice",
  "borussiadortmund|dortmund",
  "mainz05|mainz",
- "fckoeln|koln|cologne",
  "herthaberlin|herthabsc",
  "fcnuernberg|nurnberg|nürnberg",
  "fcheidenheim|heidenheim",
