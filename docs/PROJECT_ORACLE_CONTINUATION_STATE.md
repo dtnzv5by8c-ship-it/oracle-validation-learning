@@ -1127,3 +1127,35 @@ No code or provider change was made in this run. Repeating ingestion, repair, se
 
 ### Single highest-value next action
 Audit the first genuinely completed prospective cycle after the persisted snapshot-capture and workflow-YAML corrections. Only if that cycle is absent or genuinely gated should a manual workflow dispatch be considered. Do not reacquire provider data for this evidence gap.
+
+
+## Major milestone — OMI evidence dependency audit — 2026-11-07 16:04 SAST
+
+### Finding
+A read-only OMI audit found no newly admissible post-repair prospective cohort. The release-gate report was synchronized to the latest canonical validation/evidence state; no production gate was closed.
+
+### Evidence
+- Latest validation/evidence checkpoint consumed: `docs/checkpoints/2026-11-07-evidence-validation-control-1438.md`.
+- Current challenger prediction evidence remains research/shadow; calibrated production probability is unavailable for the audited challenger population.
+- `archive/FEATURE_SNAPSHOT_MANIFEST.csv` remains header-only and `archive/FEATURE_SNAPSHOT_VALUES.csv` remains absent.
+- Corrected settlement truth carries explicit provenance, but the append-only ledger still contains the historical 25 settled rows with blank provenance; those rows remain immutable and non-production.
+- No completed post-repair cycle proving non-empty immutable snapshots and exact prediction-to-snapshot linkage was found in the canonical evidence available to OMI.
+
+### Root Cause
+The remaining blocker is evidence maturity rather than OMI report logic: code-level snapshot/provenance repairs exist, but independently auditable post-repair execution evidence has not yet been demonstrated.
+
+### Impact
+G02/G04/G16/G18/G19/G20 remain blocked or unverified. Production scoreability and betting eligibility remain fail-closed.
+
+### Fix
+Updated only the research/control-plane OMI release-gate report. No provider acquisition, workflow rerun, prediction-engine change, Oracle V1.6 logic/probability/threshold/calibration change, or governance change was made.
+
+### Validation
+- Canonical continuation state and lessons were read before action.
+- Live OMI report and latest evidence checkpoint were re-read.
+- New checkpoint created: `docs/checkpoints/2026-11-07-omi-evidence-audit-1604.md`.
+- No duplicate workflow or provider/API call.
+- Quarantined evidence excluded.
+
+### Single highest-value next action
+Consume the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and validate, end-to-end, immutable snapshot manifest/values, exact fixture+market+model-engine linkage, pre-kickoff chronology and corrected settlement provenance.
