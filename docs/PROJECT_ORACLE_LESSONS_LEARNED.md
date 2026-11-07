@@ -60,3 +60,19 @@ Always audit the current private `oracle-football-data/main` archive before rely
 
 ## 2026-11-07 settlement provenance lesson
 The private settlement ledger has progressed from header-only to 25 SETTLED CHALLENGER rows across 5 fixtures. This is a meaningful evidence advance, but blank `settlement_source` and `event_truth_source` fields prevent production admission. Do not treat `SETTLED` status alone as verified settlement provenance. The 25-row metrics are research/shadow diagnostics only.
+
+
+## 2026-11-07 — Settlement provenance must be emitted at truth-building time
+The current private prospective cycle settled 25 CHALLENGER rows, but the settlement ledger initially contained blank `settlement_source` and `event_truth_source` fields. The root cause was not settlement matching: `scripts/build_prospective_settlement_truth.py` derived final-score truth from completed `database/current_matches.csv` but omitted provenance fields. The downstream settlement script already preserves them.
+
+Control lesson:
+- Evidence provenance must be written by the truth builder at the moment truth is admitted.
+- Final-score markets may use explicit settlement-source provenance without inventing event chronology.
+- M1UP/event truth remains data-gated unless independently verified event chronology is available.
+- Do not classify a settled row as production-admissible solely because a final score exists; require provenance and immutable linkage.
+
+Controlled private fix: commit `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7`.
+No private workflow was run for the code-only correction; preserve the 3,000-minute monthly Actions budget.
+
+## 2026-11-07 — Current private prediction archive is the authoritative live state
+Older notes describing the private prediction ledger as header-only or 210/555 rows are historical snapshots. Always audit the current `main` archive before making claims about prediction or settlement volume. Latest observed state after run 428: 885 CHALLENGER prediction rows and 25 settled rows across 5 fixtures.
