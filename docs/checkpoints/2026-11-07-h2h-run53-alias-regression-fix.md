@@ -26,3 +26,6 @@ Do not weaken the unresolved identity gate. Keep cross-league historical matches
 
 ## Run #54 follow-up
 Run #54 failed the alias regression test again on `1. FC Köln` vs `Köln`. Cause: source normalizer produced `1fckoln`, but alias group did not include that exact normalized token. Added `1fckoln` to the canonical group in commit `eea3849e4712d0ccab404b693a82d89630aa5dcb`. Bohemians regression now passes in Run #54. Another push-triggered run will validate the corrected FC Köln alias. Report build and ID join remain untested in Run #54 because the alias test stopped the workflow early.
+
+## Run #55 root cause
+Run #55 still failed `1. FC Köln` vs `Köln` because the alias map contained two groups: the corrected `1fckoln|fckoeln|fckoln|koln|cologne` group was later overridden by the older `fckoeln|koln|cologne` group. This was an alias precedence/duplicate-definition defect, not a missing normalization. Removed the duplicate overriding group in commit `a2581f296fe37c89ba3898f963177425b8c44efb`. Next push-triggered run must re-execute the regression gate before H2H report generation.
