@@ -210,3 +210,39 @@ Fix: No code change or rerun. Read-only control audit only.
 Validation: Live state, lessons learned, H2H builder, and Actions run status were re-read. No duplicate workflow launched.
 
 Highest-value next action: allow Run #64 to execute, then inspect actual H2H artifacts and quality gates.
+
+
+## Validation & Evidence Control — 2026-11-07 18:42 SAST
+
+### Finding
+Live GitHub was re-audited. H2H Reporting Run #64 remains the active equivalent execution; no duplicate run is permitted.
+
+### Evidence
+- Live main HEAD at audit: badf8b7ee871c964c7cc425b4cc28c58e41e9550.
+- Run #64: 42391142276, head SHA 3d0e171a5343f5dd09bb20be7a45142ff3, IN_PROGRESS.
+- Active job: 128458844764 (h2h-report).
+- Current step: Extend and validate H2H historical archive. Earlier setup, checkout, dependency installation and fixture refresh steps passed.
+- H2H build, identity, scorecard and quality-gate outputs are not yet available.
+
+### Root Cause
+The highest-value H2H evidence is execution-dependent and the corrected equivalent workflow is already active. A duplicate execution would add no admissible evidence and consume Actions capacity.
+
+### Impact
+H2H identity/quality evidence remains unresolved pending Run #64 completion. Immutable production feature-snapshot, verified settlement, xG, odds and production scoreability gates remain open. Production remains fail-closed.
+
+### Fix
+No code, provider, acquisition, reconciliation, workflow rerun or production artifact change was made. This was an intentional read-only control audit.
+
+### Validation
+Checkpoint docs/checkpoints/2026-11-07-validation-evidence-control-1842.md was created at commit 460e16f4bea384bd09e189f8dcf3991a85a2474c. Live workflow status was re-read after checkpoint creation and Run #64 remains IN_PROGRESS.
+
+### Remaining blockers
+1. Run #64 must complete H2H build and quality gates.
+2. Immutable prediction-to-feature-snapshot evidence for an admissible production cohort remains incomplete.
+3. Verified settlement provenance remains incomplete.
+4. Point-in-time xG and timestamped odds provenance remain open.
+5. Production scoreability/calibration and eligibility remain fail-closed.
+6. 80 HTTP-417 provider tasks remain quarantined.
+
+### Highest-value next action
+Allow Run #64 to complete, then inspect its actual H2H artifacts and quality gates. If it fails, diagnose the new failure from live logs rather than repeating the run.
