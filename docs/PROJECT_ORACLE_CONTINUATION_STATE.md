@@ -910,3 +910,13 @@ Hand the new admission matrix to the evidence/OMI lane and, on the next genuinel
 - No synthetic feature snapshots created; feature snapshot status remains NOT_YET_MATERIALIZED.
 - Checkpoint: `docs/checkpoints/2026-11-07-115-fixture-pre-match-state-readiness.md`.
 - Next critical action: on a genuinely future-kickoff cycle, persist the actual accepted pre-match inputs into immutable FEATURE_SNAPSHOT_MANIFEST/VALUES evidence with source hashes and engine commit attribution.
+
+
+## Major milestone — pre-match state compatibility control — 2026-11-07
+- Identified and repaired a concrete schema/path gap: current staging produced `database/current_prematch_team_state.csv`, while the governed prediction engine and prospective snapshot publisher require `database/prematch_team_state.csv`.
+- Added production-repo data-only adapter `scripts/build_prediction_team_state_compatibility.py` (commit `4eb000e5f0a652cab5f1a469387081d319e9105e`). It preserves existing feature values and only maps the existing state spine into the engine's expected schema.
+- Current-data workflow now persists the compatibility view (commit `fdd448526b379952dcb6f43844ad2eb1dfdc8048`).
+- Prospective learning workflow now refreshes the pre-match state spine and compatibility view before prediction (commit `8a744c2e24a335f84aebbd2dee1e697abd5bc4cf`).
+- Checkpoint: `docs/checkpoints/2026-11-07-pre-match-state-compatibility-control.md`.
+- Live workflow execution has NOT been claimed as passed; the available GitHub control interface cannot dispatch workflows. Next scheduled/manual cycle must be inspected for non-empty immutable snapshot artifacts and exact engine attribution.
+- Oracle V1.6 logic, ACTIVE scope, probabilities, calibration, thresholds and betting governance remain unchanged; production remains FAIL-CLOSED.
