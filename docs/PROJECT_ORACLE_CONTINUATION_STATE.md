@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 10:xx SAST — prospective cycle 431 successful; persistence repair validated
+Last updated: 2026-11-07 10:xx SAST — prospective feature-snapshot capture gap confirmed
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -308,6 +308,36 @@ The canonical append-only 25 rows retain their original blank provenance by desi
 
 Checkpoint: `docs/checkpoints/2026-11-07-prospective-cycle-431-success.md`
 Commit: `b0825f9563dcf0ce71ecd3ad9827d82a252d5da5`
+
+## Major milestone — prospective feature-snapshot capture gap CONFIRMED — 2026-11-07
+A direct audit of private `oracle-football-data/main` after prospective cycle #431 identified a genuine evidence-control blocker.
+
+Live state:
+- private main HEAD: `85c630e677c1ac408672973e4f0c643d31a9fc19`
+- prediction archive: 900 CHALLENGER rows / 180 fixtures
+- canonical settlement ledger: 25 rows / 5 fixtures
+- `archive/FEATURE_SNAPSHOT_MANIFEST.csv`: header-only, 0 snapshot rows
+
+The current publication adapter generates `feature_snapshot_id` from metadata/probability/source hashes, but does not materialize the actual pre-match feature vector used by the prediction engine. Therefore the ID is not sufficient evidence of an immutable feature snapshot.
+
+Independent reconstruction against the locked historical prematch-state artifact found:
+- 175/180 prediction fixtures have both home and away pre-match states available before fixture date;
+- 4/180 have one side;
+- 1/180 has neither.
+
+This demonstrates that the underlying dataset is substantially available, but the exact feature vector was not captured as an immutable prediction-time artifact.
+
+A second provenance defect was confirmed: current prospective `model_code_sha` values are inherited from the workflow `GITHUB_SHA`. The latest batch uses `3fefb69ef0f72941ee0fdc0e0a571a2a62e175e7`, which is the settlement-provenance commit rather than the prediction-engine code revision. The prediction-engine file is unchanged at that commit and has blob SHA `fe28863f24609dad7536e9a6a964a864b9f4bb5b`.
+
+Decision:
+- classify this as an evidence/reporting-control blocker;
+- do not alter Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility or governance;
+- do not rewrite the 900 historical prediction rows;
+- repair future challenger evidence capture so actual feature vectors and the true prediction-engine revision are immutably bound to each prediction.
+
+Checkpoint:
+`docs/checkpoints/2026-11-07-prospective-feature-snapshot-capture-gap.md`
+Commit: `590d68f2264d4fdfba914961851c1afadea9a5d9`.
 
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
