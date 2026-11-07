@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 10:xx SAST — prospective persistence race fixed; fresh governed cycle pending
+Last updated: 2026-11-07 10:xx SAST — prospective cycle 431 successful; persistence repair validated
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -293,6 +293,21 @@ Checkpoint:
 Commit: `1be6f7a41253e43c0ecec1dbe7bab495a9657e9b`.
 
 The workflow-file repair automatically triggers a fresh prospective cycle. Do not manually rerun failed run #430.
+
+## Major milestone — prospective cycle 431 SUCCESS — 2026-11-07
+Private Oracle Prospective Learning Cycle 431 (`42354699246`) completed all 17 governed stages successfully on repaired workflow commit `82d024f4913311d8d9d45394c8b8cdf14b1cee08`.
+
+- Stage 17 persistence succeeded and pushed evidence commit `85c630e` without the previous rebase race.
+- Corrected settlement truth builder produced 25 truth rows with explicit FotMob settlement provenance and `NOT_REQUIRED_FINAL_SCORE_MARKETS` event-truth provenance.
+- Settlement append count was 0 because the 25 settlements were already present; no historical ledger rows were mutated.
+- Prediction rows: 900; settled rows: 25; shadow gate: COLLECTING; production readiness: HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE.
+- Point-in-time leakage audit: PASS, 12,836 matches / 12,836 state rows / 25,672 checked rows / 0 violations.
+- No provider acquisition or HTTP-417 recovery was run; quarantine remains 80 tasks.
+
+The canonical append-only 25 rows retain their original blank provenance by design. A future newly settled prediction must pass the hardened provenance admission gate to create the first corrected canonical append. No retroactive mutation is permitted.
+
+Checkpoint: `docs/checkpoints/2026-11-07-prospective-cycle-431-success.md`
+Commit: `b0825f9563dcf0ce71ecd3ad9827d82a252d5da5`
 
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
