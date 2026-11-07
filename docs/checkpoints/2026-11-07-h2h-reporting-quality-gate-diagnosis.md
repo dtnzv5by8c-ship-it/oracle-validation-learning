@@ -44,3 +44,8 @@ Not yet rerun after corrective mapping. The #51 artifacts are retained and must 
 - No fuzzy Fixture ID join.
 - No fabricated H2H or retroactive meetings.
 - Genuine no-H2H is valid report output, not a pipeline failure by itself.
+
+## Remediation commits
+- Reporting-only canonical alias reconciliation: 9b3d4ac744e30079c315cc38c055420917ae6b2d
+- Alias regression gate added to Oracle H2H Reporting workflow: 369d466fab0b6ea4285201f81e9e97cde2d8a998
+- Current H2H reporting workflow re-runs on push to main when the builder or workflow changes. The corrected run must be checked for the recalculated unresolved mapping rate; a green status is not assumed until its artifacts and logs are inspected.
