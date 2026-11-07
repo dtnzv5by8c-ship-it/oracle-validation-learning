@@ -1193,3 +1193,32 @@ No change made. Repeating completed ingestion, repair, reconciliation, OMI repor
 
 ### Single highest-value next action
 Inspect the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and, if present, validate immutable snapshot manifest/values, exact prediction-to-feature linkage, model-engine revision, pre-kickoff chronology and corrected settlement provenance. If no such cycle exists and workflow dispatch is genuinely gated, manual dispatch is the only meaningful action.
+
+
+## Major milestone — OMI H2H dependency audit — 2026-11-07 17:04 SAST
+
+### Finding
+A live GitHub audit found H2H Run #57 already in progress on public `main`. OMI did not launch a duplicate and did not consume incomplete H2H output.
+
+### Evidence
+- Run #57: `Oracle H2H Reporting`, Actions run `42384137240`, head `f73f2139a74ae3cfe1fc4d07288728041a04dac6`, status `in_progress` at audit time.
+- Run #56 remains the last completed H2H evidence: exact 145/145 Fixture ID join; 110 with prior H2H; 35 with no verified same-league H2H.
+- Reporting-only H2H classification now explicitly uses `NO_VERIFIED_HISTORICAL_H2H` for archive absence/cross-league-only cases; no H2H is fabricated.
+
+### Root Cause
+The new H2H evidence has not yet completed and has not been persisted/reconciled into the governed OMI branch.
+
+### Impact
+G07 remains PARTIAL/candidate-level. No release gate is closed by this audit.
+
+### Fix
+No workflow, acquisition, provider call, H2H inference, production-model change or evidence promotion was performed.
+
+### Validation
+- Continuation state, lessons, latest checkpoint and OMI register read before action.
+- Live Actions state checked; duplicate H2H run avoided.
+- New checkpoint: `docs/checkpoints/2026-11-07-omi-h2h-dependency-audit-1704.md`.
+- Checkpoint and control-plane changes are research-only.
+
+### Single highest-value next action
+Consume Run #57 only after successful completion and branch-persisted artifact reconciliation; then update OMI G07 and affected market/league classifications without changing production logic.
