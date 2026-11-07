@@ -611,3 +611,30 @@ A live inspection of the private prediction engine confirmed that the canonical 
 - Audit commit: `3bc236c84261462da5e47add2779b050d7d1e56a`
 
 This is a data/universe configuration control, not a model-logic change. Do not blindly substitute canonical source codes for legacy engine codes. The next implementation step is to derive and validate an exact one-to-one identity bridge from existing fixture/database metadata and governed source identities. Unmapped identities must remain explicitly fail-closed.
+
+## Major milestone — 50-league internal identity bridge research — 2026-11-07
+A research-only 50-row bridge now maps the canonical governed 50-league source registry toward the existing Oracle internal league-code namespace without changing production code.
+
+- Bridge: `data/prospective/oracle_50_league_internal_identity_bridge_research.csv`
+- Exactly 50/50 governed identities represented once.
+- 15 mappings have direct, unique evidence from the existing internal `LEAGUE_NAME_TO_CODE` mapping.
+- 26 remain UNMAPPED and fail-closed.
+- 4 are CROSS-NAMESPACE_NAME_VARIANT and remain fail-closed.
+- 2 are CODE_COLLISION (including D1 used by both Bundesliga and Denmark Superliga) and remain fail-closed.
+- 1 is CODE_NAMESPACE_UNVERIFIED (Germany 2. Bundesliga) and remains fail-closed.
+- 1 is NAME_VARIANT_UNVERIFIED (Croatia) and remains fail-closed.
+- 1 is UNVERIFIED (Greece) and remains fail-closed.
+- Research checkpoint: `docs/checkpoints/2026-11-07-50-league-internal-identity-bridge-research.md`
+- Bridge creation commit: `044fc3e7e153d79305b3fdc103c14071bf1d0225`
+- Checkpoint commit: `9799bc1dd3e1cc2ed4b1fb0c94cfc28e5aac4712`
+
+Finding → Evidence → Root Cause → Impact → Fix → Validation:
+- Finding: canonical 50-league identities cannot safely be substituted directly for legacy Oracle internal codes.
+- Evidence: live production mapping contains only a subset of identities and includes a D1 collision; bridge preserves all 50.
+- Root Cause: source/provider and legacy internal namespaces are distinct.
+- Impact: downstream 50-league scope expansion remains blocked until exact fixture identity and one-to-one mapping are proven.
+- Fix: research-only bridge with explicit fail-closed statuses.
+- Validation: 50 rows re-read from live branch; all governed identities represented exactly once; production `ACTIVE` list unchanged.
+
+The live 50-league fixture-source validation gate remains NOT PASSED because the scheduled validator artifact has not yet been produced. Do not expand the private 27-league prediction allow-list before that evidence exists.
+
