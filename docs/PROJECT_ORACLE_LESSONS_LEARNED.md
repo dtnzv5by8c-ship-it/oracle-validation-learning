@@ -105,3 +105,6 @@ Do not populate `model_code_sha` from the workflow `GITHUB_SHA` unless that comm
 
 ## 2026-11-07 — Code presence must be verified, not inferred from call sites
 A repair is not complete merely because the publication adapter references a new helper. Verify the persisted source contains the helper implementation, compile/execute it, and inspect the resulting artifact before closing an evidence gate. The feature-snapshot gate remains open until a fresh governed run produces non-empty snapshot artifacts and exact linkage.
+
+## 2026-11-07 — Optional evidence artifacts must be persisted conditionally
+A governed evidence workflow must not assume every optional artifact exists. In prospective cycle #434, stages 01–16 passed and stage 17 failed solely because `FEATURE_SNAPSHOT_VALUES.csv` was absent. The correct control is conditional staging, not fabrication of an empty artifact. Snapshot completeness remains a separate evidence gate.
