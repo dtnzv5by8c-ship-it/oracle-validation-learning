@@ -713,3 +713,45 @@ Highest-value next OMI action: consume the next validated downstream fixture/pre
 
 ## Major blocker — internal league-code namespace conflict discovered — 2026-11-07
 N1 is not a deterministic internal league identity across the live production repository. build_27_league_dna_lab.py assigns N1 to Norway Eliteserien, while restore_historical_match_spine.py and ingest_upcoming_fixtures.py assign N1 to Netherlands Eredivisie; readiness artifacts also conflict in their labeling. The research bridge has quarantined Netherlands Eredivisie -> N1 as CODE_NAMESPACE_CONFLICT/fail-closed in commit e0c7bdcc0eb8951d8b1b5bffe2a392ae42496797. Checkpoint: docs/checkpoints/2026-11-07-internal-namespace-conflict-n1.md, commit 99125d6ba0c2da7812d06e6cdfb0f8a0d1c4fd02. This is research-only; Oracle V1.6 and production ACTIVE scope remain unchanged. Next action: audit all internal codes for cross-file namespace conflicts before any 50-league expansion.
+
+
+## Control-plane update — 2026-11-07 12:20 SAST
+
+### Finding
+Live HEAD has advanced to `209fa8c03faff8e2da09447a5a9b4ba798415d02` (`Add config-backed Serbia internal identity`). The latest branch already contains the effective Market Intelligence archive-consent repair from `f084491b95be1df95d0d59b8d2d08d16ab6dbfbc`; the repair commit itself is not an ancestor, but its workflow content is present at live HEAD. No duplicate merge/cherry-pick is required.
+
+### Evidence
+- Selected-50 contract run `42362869527`: SUCCESS on exact HEAD.
+- Selected-50 dry-run planner run `42362869495`: SUCCESS on exact HEAD.
+- The 50-row internal identity bridge now has 20 `EVIDENCE_EXACT_UNIQUE` mappings after the Serbia repair.
+- Remaining bridge states are 26 `UNMAPPED`, 1 `NAME_VARIANT_UNVERIFIED`, 2 `CROSS-NAMESPACE_NAME_VARIANT`, and 1 `CODE_NAMESPACE_CONFLICT`; all remain fail-closed.
+- Live 50-league source validation remains passed from prior evidence: 50/50 registry reconciliation, 26 READY, 24 DATA_GATED, 0 SOURCE_ERROR.
+- No new provider/API acquisition was performed in this control run.
+- The 80 HTTP-417 tasks remain quarantined after the confirmed account entitlement/selected-league access gap.
+- Prospective evidence remains challenger/shadow only; immutable feature snapshot materialization, point-in-time xG, timestamped odds and verified settlement linkage remain open gates.
+
+### Root Cause
+The remaining blockers are evidence-chain and namespace-reconciliation controls, not Oracle V1.6 model logic. The production engine still has a legacy 27-league namespace and cannot safely consume the 50-league source namespace without exact evidence-backed mapping.
+
+### Impact
+Production and betting eligibility remain fail-closed. No production prediction scope expansion, probability change, calibration change or threshold change is justified.
+
+### Fix
+Integration/build-control performed no model or provider changes. The safe control action was to reconcile live branch content, validate the exact HEAD with the existing contract/planner runs, and preserve unresolved identities as explicit fail-closed states.
+
+### Validation
+Exact HEAD contract and dry-run workflows both passed. The current workflow configuration contains the repaired boolean archive-consent control and remains guarded against unapproved provider-result calls.
+
+### Remaining blockers
+1. 30/50 internal identity mappings remain non-admissible.
+2. Downstream 50-league prediction scope is still blocked behind exact identity/scope evidence.
+3. Immutable prediction-to-feature-snapshot capture is still incomplete.
+4. Point-in-time xG provenance is blocked.
+5. Timestamped odds provenance is blocked.
+6. Verified settlement provenance/immutable prediction-to-settlement chain is incomplete.
+7. No Oracle V1.6 production prediction cohort is available for production scoreability.
+8. 80 provider tasks remain quarantined pending account-side entitlement correction; do not repeat the exhausted transport experiment.
+
+### Single highest-value next action
+On the next genuinely new governed prospective fixture cohort, verify non-empty immutable feature snapshots, exact prediction-to-snapshot linkage, prediction-engine code attribution, pre-kickoff chronology and corrected settlement provenance. Continue evidence-backed identity reconciliation in parallel; do not assign any unproven internal codes.
+
