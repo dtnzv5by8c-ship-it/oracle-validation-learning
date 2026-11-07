@@ -539,3 +539,44 @@ The live private file was re-read after the commit and both controls were confir
 
 ### Highest-value next action
 Inspect the single controlled prospective execution triggered by the private fix. Do not backfill or rewrite the Run #449 evidence.
+
+
+## Validation & Evidence Control — prospective Run #450 non-proof + hardening — 2026-11-07 23:40 SAST
+
+### Finding
+Prospective Learning Cycle #450 completed successfully but did not exercise the corrected snapshot lineage/missingness controls because it generated zero new snapshot IDs. The existing three immutable snapshot rows were reused, so the prior quarantined defects remain unproven rather than repaired retroactively.
+
+### Evidence
+- Run #450: 42412139698, head 347bf2dce3ac0543ac0b1966f6cbdd25035daa9f, SUCCESS.
+- Job 128522382628 reported feature_snapshot_capture.snapshots = 0.
+- The live archive at the post-run evidence commit still contains three snapshot manifest rows with blank run_id and snapshot values containing nan feature values.
+- New private hardening commit: 77768f4db2313f6ec4bceca787a96f0702983036.
+- The live publisher now requires non-empty GITHUB_RUN_ID, validates pd.isna() on normalized numeric feature values, and persists the captured run ID.
+- Prospective Run #451: 42416983458 is IN_PROGRESS on the corrected commit. Engine Validation Run #593: 42416983460 is also IN_PROGRESS on the same commit.
+
+### Root Cause
+Run #450 reused existing immutable snapshot IDs, so the new controls had no new rows on which to execute. The previous missingness check also evaluated raw state values rather than the normalized numeric values used in the snapshot payload.
+
+### Impact
+Run #449 evidence remains quarantined. No production Oracle V1.6 logic, probabilities, thresholds, calibration, betting eligibility or governance was changed.
+
+### Fix
+Private commit 77768f4db2313f6ec4bceca787a96f0702983036 is an evidence-publisher hardening change only. No historical rows were rewritten and no provider/API acquisition was triggered.
+
+### Validation
+- Private source was re-read and the three controls are present.
+- No duplicate run was launched; Run #451 was triggered once by the controlled commit and is already active.
+- H2H remains closed/non-blocking after Run #64.
+
+### Remaining blockers
+1. Run #451 must produce a genuinely new snapshot cohort and prove run-ID lineage plus normalized missingness.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission remains incomplete.
+3. Verified prediction-to-settlement provenance remains incomplete for an admissible cohort.
+4. Point-in-time xG provenance remains open.
+5. Timestamped odds provenance remains open.
+6. Prospective sample/freshness/market gates remain collecting.
+7. Remaining 50-league downstream identity/scope evidence remains open where not already admitted.
+8. Production probability/calibration bridge and final production eligibility remain fail-closed.
+
+### Highest-value next action
+Allow Run #451 to reach terminal state and inspect only its new snapshot rows, run-ID lineage, normalized missingness, exact engine SHA linkage and settlement provenance. Do not duplicate Run #451 or backfill Run #449.
