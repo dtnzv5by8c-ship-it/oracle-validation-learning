@@ -899,3 +899,14 @@ Hand the new admission matrix to the evidence/OMI lane and, on the next genuinel
 - This does not expand production ACTIVE scope or change Oracle V1.6 logic/governance.
 - Checkpoint: `docs/checkpoints/2026-11-07-exact-fixture-private-feed-bridge.md`.
 - Next controlled action: establish genuine pre-kickoff feature-state availability and immutable snapshot capture for this 115-fixture evidence cohort. Do not synthesize snapshots from historical aggregates.
+
+
+## Major milestone — 115-fixture pre-match state readiness — 2026-11-07
+- Exact private-feed bridge: 115 fixtures.
+- Existing engine status: 80 CONTROLLED, 10 WATCH, 25 NO_BET.
+- Engine-accepted pre-match state: 90/115; 25/115 fail-closed for missing/rejected state.
+- Raw four-market values: 450 across the 90 state-ready fixtures.
+- Research artifact: `data/prospective/oracle_50_league_pre_match_state_readiness.csv`.
+- No synthetic feature snapshots created; feature snapshot status remains NOT_YET_MATERIALIZED.
+- Checkpoint: `docs/checkpoints/2026-11-07-115-fixture-pre-match-state-readiness.md`.
+- Next critical action: on a genuinely future-kickoff cycle, persist the actual accepted pre-match inputs into immutable FEATURE_SNAPSHOT_MANIFEST/VALUES evidence with source hashes and engine commit attribution.
