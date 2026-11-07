@@ -960,3 +960,48 @@ No production model, probability, threshold, calibration, governance or provider
 
 ### Single highest-value next action
 Inspect the first genuinely completed prospective cycle after `8a744c2...`; if completed, validate non-empty snapshot manifest/values, exact prediction linkage, actual engine revision, pre-kickoff chronology and corrected settlement provenance. If no such cycle exists, manual dispatch of the already-corrected prospective cycle is the only gated action; no new provider acquisition is justified.
+
+
+## Major milestone — OMI prospective pre-match readiness consumption — 2026-11-07 14:00 SAST
+
+### Finding
+OMI consumed the latest validated 115-fixture pre-match state readiness cohort without duplicating upstream acquisition, settlement or backtest work. The cohort is useful for readiness reporting but does not constitute immutable feature-snapshot evidence.
+
+### Evidence
+- Exact private-feed bridge: 115 fixtures.
+- Engine status: 80 CONTROLLED, 10 WATCH, 25 NO_BET.
+- Engine-accepted pre-match state: 90/115; 25/115 rejected/missing state.
+- Four-market raw values: 450 across the 90 state-ready fixtures.
+- Feature snapshot status: 115/115 NOT_YET_MATERIALIZED.
+- No synthetic feature snapshots were created.
+- Current cohort extends to 2026-11-21 and is therefore a readiness cohort, not a settled-performance cohort.
+- OMI report updated: `reports/oracle-omi-market-readiness-2026-11-07.md`.
+- Checkpoint: `docs/checkpoints/2026-11-07-omi-prospective-pre-match-readiness-1400.md`.
+
+### Root Cause
+The prospective workflow compatibility repair exists, but no completed governed cycle has yet produced admissible FEATURE_SNAPSHOT_MANIFEST/VALUES artifacts bound to prediction rows.
+
+### Impact
+The 90 accepted fixtures cannot be promoted to Oracle V1.6 production evidence. Raw challenger/research market values remain non-production. The 25 rejected fixtures remain fail-closed.
+
+### Fix
+OMI integrated the validated readiness cohort into the release report only. No production logic, probability, threshold, calibration, governance, provider data or quarantined evidence was changed.
+
+### Validation
+- Live OMI report was read before modification.
+- Updated OMI report was re-read from the governed branch.
+- New dated checkpoint was created on the governed branch.
+- No provider/API calls or duplicate workflows were launched.
+
+### Remaining blockers
+1. Immutable feature snapshot manifest/values.
+2. Exact prediction-to-feature linkage.
+3. Separate model-engine revision attribution.
+4. Point-in-time xG provenance.
+5. Timestamped odds provenance.
+6. Verified settlement provenance/linkage.
+7. 30/50 non-admissible internal identity mappings.
+8. Prospective freshness/sample gates.
+
+### Single highest-value next action
+Inspect the first completed governed prospective cycle after `8a744c2...`. If immutable snapshots exist, join them to OMI by exact fixture ID + market key + model-engine revision. If not, no additional OMI reconstruction is justified; the gated prospective execution is the only meaningful next step.
