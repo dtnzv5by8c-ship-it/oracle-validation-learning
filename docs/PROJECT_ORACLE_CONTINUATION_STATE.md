@@ -1005,3 +1005,12 @@ OMI integrated the validated readiness cohort into the release report only. No p
 
 ### Single highest-value next action
 Inspect the first completed governed prospective cycle after `8a744c2...`. If immutable snapshots exist, join them to OMI by exact fixture ID + market key + model-engine revision. If not, no additional OMI reconstruction is justified; the gated prospective execution is the only meaningful next step.
+
+
+## 2026-11-07 — Continuous build control: historical league namespace compatibility
+- Private Prospective Learning Cycle #440 (run `42369087996`, attempt 2) passed current pre-match state generation and the schema adapter but failed in the existing four-model training-state attachment with `home_btts5` missing.
+- Root cause: prospective state had been normalized to the Oracle internal namespace, while historical training matches were not deterministically normalized to the same namespace before `attach_training_state()`.
+- Controlled private fix: commit `02ffafe41a9f022fd0399fdb89c83920409fbb21`, using the existing governed `config/data_config.json` namespace. This is input/schema compatibility only; Oracle V1.6 formulas, probabilities, calibration, thresholds and governance remain unchanged.
+- Private checkpoint: `docs/checkpoints/2026-11-07-historical-league-namespace-compatibility.md`, commit `5adf4e17904fdfedebb6654ef8b07c096a9328bf`.
+- Validation: live commit and diff were re-read. Runtime validation of the corrected commit is still open; do not treat code presence as execution evidence.
+- Next highest-value action: observe the push-triggered Prospective Learning Cycle for `02ffafe41a9f022fd0399fdb89c83920409fbb21`; if prediction reaches publication, audit immutable snapshot manifest/values and exact prediction-to-snapshot linkage.
