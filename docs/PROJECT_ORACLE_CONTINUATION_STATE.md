@@ -55,6 +55,25 @@ Endpoints: `league-matches`, `league-teams`, `league-tables`, `league-season`.
 - Production/betting eligibility remains false.
 
 
+
+## Major milestone — 648 completed-task evidence VERIFIED — 2026-11-07
+The governed 648-completed population is now deterministically reconciled against the current 728-task manifest and private blocked registry.
+
+- 11 private completion checkpoints inspected.
+- 748 checkpoint rows contained 648 unique completed task IDs; 100 rows were duplicate IDs from repeated runs and were not double-counted.
+- Current governed manifest: 728 task IDs.
+- Private blocked registry: 80 task IDs.
+- Completed ∩ blocked: 0.
+- Manifest IDs missing from completed or blocked: 0.
+- Completed IDs outside manifest: 0.
+- Exact partition: **648 completed + 80 quarantined + 0 pending = 728**.
+
+Checkpoint:
+`docs/checkpoints/2026-11-07-648-completed-task-evidence-reconciled.md`
+Commit: `f6f36f33e5f19cd6bece19847e73b988e3ef8502`
+
+The 648 evidence gate is CLOSED/VERIFIED. Do not repeat this reconciliation or rerun ingestion to reproduce the count.
+
 ## Major milestone — OMI / Visual Intelligence consolidated readiness matrix
 Research-only OMI integration consumed the completed Selected-50 Repair #360 artifact without rerunning it or making provider/API calls.
 - 717 runtime fixtures; 717/717 exact archive joins; 0 unmatched/quarantined joins; 0 schedule discordance rows.
