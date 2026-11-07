@@ -44,3 +44,7 @@ The provider receipt field `57fe9e...` must be resolved as a repository referenc
 
 ## 2026-11-07 completed-task evidence lesson
 The 648 completed-task population is now proven by deterministic set reconciliation, not by summed checkpoint counts: union 11 private completion checkpoints to 648 unique task IDs, then compare against the current 728-task manifest and 80-task blocked registry. The exact result is 648 completed + 80 quarantined + 0 pending, with zero overlap, zero missing manifest IDs and zero completed IDs outside the manifest. Duplicate checkpoint rows must never be counted as additional completion.
+
+
+## 2026-11-07 HTTP-417 recovery lesson
+Do not reopen the exhausted full ingestion queue to recover quarantined provider tasks. Recovery must operate only on the exact blocked registry, use controlled transport/parameter variants, validate returned season/competition identity, and admit only independently validated task IDs. If no variant succeeds, retain quarantine rather than guessing or substituting another season/provider.
