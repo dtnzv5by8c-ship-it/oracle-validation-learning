@@ -1222,3 +1222,39 @@ No workflow, acquisition, provider call, H2H inference, production-model change 
 
 ### Single highest-value next action
 Consume Run #57 only after successful completion and branch-persisted artifact reconciliation; then update OMI G07 and affected market/league classifications without changing production logic.
+
+
+## Major milestone — OMI H2H execution dependency refresh — 2026-11-07 17:57 SAST
+
+### Finding
+The latest H2H execution is Run #62 on public `main`, and it remains in progress. OMI cannot consume incomplete output as release evidence.
+
+### Evidence
+- H2H Run #62: `42387447956`.
+- Head SHA: `4bb9924d0ee720e812b551a40254db1a072ef1a2`.
+- Status at 17:57 SAST: `in_progress`.
+- Archive extension passed.
+- Development-only challenger settlement audit passed.
+- Research-only chronological H2H incremental-value experiment passed.
+- Final H2H build, identity classification, report/audit artifact and quality gates remain incomplete.
+- The run is on public `main`; no completed Run #62 artifact has been persisted/reconciled into this governed research branch.
+- H2H remains supporting evidence and non-blocking for fixture/prediction eligibility.
+
+### Root Cause
+H2H evidence production is still executing on a separate public path. OMI cannot promote an in-progress execution.
+
+### Impact
+G07 remains PARTIAL/candidate-level. No OMI release gate is closed by Run #62. Production and betting eligibility remain false.
+
+### Fix
+OMI refreshed the release-gate register only. No duplicate workflow, provider/API call, H2H inference, acquisition, prediction-engine change or Oracle V1.6 production change was made.
+
+### Validation
+- Live Run #62 status inspected before write.
+- OMI report was updated and re-read from the governed branch.
+- Checkpoint created: `docs/checkpoints/2026-11-07-omi-h2h-execution-refresh-1757.md`.
+- Checkpoint was persisted successfully.
+- Oracle V1.6 logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
+
+### Single highest-value next action
+Consume Run #62 only after successful completion and persisted/reconciled artifact validation; then update G07 and affected market/league readiness classifications.
