@@ -22,7 +22,7 @@ The workflow is manually dispatched and:
 - removes only independently validated recovered task IDs from the blocked registry;
 - keeps production_eligible and betting_eligible false.
 
-FootyStats documentation confirms that the governed league endpoints use `season_id` to identify a league season and that league matches expose `competition_id` as the season ID; therefore the recovery workflow does not silently substitute another competition or season. citeturn711455view0turn256639search0turn711455view1
+FootyStats documentation confirms that the governed league endpoints use `season_id` to identify a league season and that league matches expose `competition_id` as the season ID; therefore the recovery workflow does not silently substitute another competition or season.
 
 ### Current status
 
