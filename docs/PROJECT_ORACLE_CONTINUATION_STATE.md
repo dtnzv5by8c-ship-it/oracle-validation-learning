@@ -683,3 +683,29 @@ Research-only bridge was refined using the live production repository config/dat
 - Greece Super League -> G1: exact unique mapping from config season_leagues. This resolves internal namespace identity only; current live source-season readiness remains governed by the separate 50-league source validation artifact.
 Bridge commit: dac3eaddea19988f75bbc04972d5cd776b4cc3bc.
 Next: continue evidence-based mapping for remaining governed leagues from explicit production configuration/source mappings or leave them fail-closed; do not infer codes from name similarity. Production ACTIVE scope remains unchanged.
+
+
+## Major milestone — OMI live-source evidence consumed — 2026-11-07 12:01 SAST
+The OMI lane consumed the canonically persisted 50-league live fixture-source validation and reconciliation artifacts without rerunning acquisition, repair or provider recovery.
+
+Finding → Evidence → Root Cause → Impact → Fix → Validation:
+- Finding: the live 50-league source gate is now closed, but downstream OMI production scope remains gated by internal identity mapping and evidence-chain controls.
+- Evidence: 50/50 registry rows reconciled to 50/50 validation rows; zero missing/unexpected/duplicate IDs; 26 leagues READY with 299 verified fixtures in the 2026-11-07 to 2026-11-21 window; 24 leagues DATA_GATED. The research identity bridge contains 19 exact unique mappings, 4 cross-namespace name variants, 1 unverified name variant and 26 unmapped identities.
+- Root Cause: source/provider namespace and Oracle internal namespace remain only partially reconciled; feature snapshot, production probability, xG/odds provenance and verified settlement gates are separate controls.
+- Impact: OMI may use the live source artifact as freshness/source evidence, but must not admit the 299 fixtures as a production Oracle V1.6 universe or expand the production ACTIVE allow-list.
+- Fix: updated reports/oracle-omi-release-gate-register-2026-11-07.md to consume the new source gate and explicitly classify live identity/freshness status without promoting evidence.
+- Validation: report was re-read from live GitHub after commit; source reconciliation artifact remains PASS; production_model_changed=false, production_eligible=false, betting_eligible=false.
+
+Current OMI release posture:
+- Historical Selected-50 OMI baseline #360 remains unchanged and is not rerun.
+- Live 50-league source validation: PASS.
+- Internal identity bridge: 19/50 exact, 31/50 fail-closed/non-exact.
+- Production probability bridge: BLOCKED.
+- Immutable feature snapshot: BLOCKED until a genuinely new eligible prediction produces non-empty snapshot artifacts.
+- Point-in-time xG: BLOCKED.
+- Timestamped odds: BLOCKED.
+- Verified settlement/prediction-to-feature-to-settlement chain: BLOCKED.
+- Per-market production sample/freshness/confidence: not yet admissible.
+- 80 HTTP-417 tasks remain quarantined and excluded.
+
+Highest-value next OMI action: consume the next validated downstream fixture/prediction evidence only after exact identity/scope reconciliation, then join exact fixture ID + market key + model-engine revision + feature snapshot into the existing readiness matrix. Do not infer mappings or production probabilities.
