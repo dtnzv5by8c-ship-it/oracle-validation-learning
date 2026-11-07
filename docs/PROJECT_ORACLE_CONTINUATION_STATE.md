@@ -264,6 +264,11 @@ The canonical append-only settlement ledger was not rewritten and remains at 25 
 Private evidence commit exercising the correction: `ff12451558e100fc2717985d2ed3ca8ee7596937`.
 Checkpoint: `docs/checkpoints/2026-11-07-provenance-correction-exercised.md`
 
+## Major milestone — settlement provenance admission gate hardened — 2026-11-07
+Live audit found that the corrected truth artifact carried provenance but the feeder did not itself reject blank provenance. Private `scripts/feed_learning_ledgers.py` was hardened at commit `ee77a592d71f00bf0033f7dc1f0f65f0873138a1` so any newly admitted `SETTLED` row missing `settlement_source` or `event_truth_source` now fails closed. Existing pre-correction ledger rows remain immutable and are not rewritten.
+
+Checkpoint: `docs/checkpoints/2026-11-07-settlement-provenance-admission-gate.md`
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
@@ -316,7 +321,7 @@ The correction was made without running a private GitHub Actions workflow, prese
 ## Remaining release blockers
 1. 80 HTTP-417 tasks remain quarantined across 20 provider-season partitions because the FootyStats account diagnostic confirmed an entitlement/league-selection gap. Do not repeat the exhausted transport experiment until entitlement changes.
 2. Historical 2026-10-09 and 2026-10-10 Bundesliga result truth is independently reconfirmed (Dortmund 2-2 Bremen; Mainz 3-4 Leverkusen). The broader 2026-10-09 through 2026-10-17 production linkage still requires exact prediction-ID/feature-snapshot/result linkage.
-3. The canonical append-only settlement ledger still contains 25 pre-correction rows with blank provenance; the corrected truth builder is exercised, but a fresh corrected settlement append is still required.
+3. The canonical append-only settlement ledger still contains 25 pre-correction rows with blank provenance; the corrected truth builder is exercised and the feeder is now fail-closed on missing provenance. A fresh corrected settlement append is still required.
 4. xG numeric values exist but point-in-time capture timestamps are not verified.
 5. Timestamped odds provenance is not verified.
 6. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
