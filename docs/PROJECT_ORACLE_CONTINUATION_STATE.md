@@ -555,3 +555,11 @@ Audit: `reports/oracle-50-league-downstream-scope-audit-2026-11-07.md`
 Checkpoint: `docs/checkpoints/2026-11-07-50-league-downstream-scope-audit.md` (commit `0c4db381529a0ed370a0e7dc506bbacd36474e25`).
 
 Control rule: do not simply expand the production allow-list yet. First validate actual current-season fixture responses for the canonical source registry. Then update downstream scope as a controlled data/universe configuration change, preserving strict missing-state gates and all Oracle V1.6 model/calibration/governance logic.
+
+## 50-league end-to-end scope lock
+- Governed Oracle universe is **50 leagues**, not 27, for the full Oracle prediction and intelligence stack.
+- The 50-league scope applies end-to-end across: fixture ingestion, all governed markets, Oracle predictions, Visual Intelligence/OMI, recent-form/current-team-state features, home/away splits, exact H2H, goals/goal rates, BTTS, Over/Under markets, DC/Combo markets, M1UP where event-truth gates permit, risk/confidence diagnostics, settlement/actuals, and downstream validation/reporting.
+- A league being data-gated or source-error does **not** remove it from the governed universe; it remains represented and fail-closed until evidence makes that league/market admissible.
+- No 27-league allow-list is an acceptable production scope for any end-to-end Oracle layer.
+- This scope statement is a control-plane requirement only; it does not alter Oracle V1.6 model logic, probabilities, thresholds, calibration, betting eligibility or governance.
+- Next controlled implementation: reconcile the canonical 50-league source registry to live fixture responses, then replace legacy 27-league downstream scope controls with the governed 50-league registry/codes while preserving strict missing-data gates.
