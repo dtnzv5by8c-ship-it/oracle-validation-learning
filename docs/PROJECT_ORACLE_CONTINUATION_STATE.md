@@ -580,3 +580,39 @@ Private commit 77768f4db2313f6ec4bceca787a96f0702983036 is an evidence-publisher
 
 ### Highest-value next action
 Allow Run #451 to reach terminal state and inspect only its new snapshot rows, run-ID lineage, normalized missingness, exact engine SHA linkage and settlement provenance. Do not duplicate Run #451 or backfill Run #449.
+
+## Validation & Evidence Control — 2026-11-08 00:41 SAST
+
+### Finding
+The latest live evidence does not yet prove terminal completion of Prospective Run #451. The last recorded private control-plane state still has Run #451 and Engine Validation Run #593 as IN_PROGRESS, and no later durable snapshot cohort or terminal result has been recorded.
+
+### Evidence
+- Latest discovered private control-plane commits: `522c3cedbeb2fa8e959c375d7b2e709c85c2b42e`, `2fbc326691b0ae2e04ab99b05973756a6e1ede86`, and `35e2ed64b96408c5e2ab970923891724701a5319`, all at approximately 00:01 SAST.
+- Private continuation state still records Run #451 `42416983458` IN_PROGRESS and Engine Validation Run #593 `42416983460` IN_PROGRESS.
+- Run #450 produced zero new snapshots, so Run #449 remains the only durable cohort and remains quarantined for run-ID/missingness defects.
+- Direct workflow-run access for the private run was not exposed through the available GitHub fetch path; no terminal status was inferred from that limitation.
+
+### Root Cause
+The acceptance test for the run-ID and normalized-missingness hardening is execution-dependent and has not yet been recorded as a durable terminal evidence milestone.
+
+### Impact
+Immutable production evidence remains HOLD. Production probability, verified settlement, xG, odds, prospective freshness/sample and final eligibility gates remain fail-closed.
+
+### Fix
+No code or workflow change. No duplicate private execution, provider acquisition, H2H work, model/probability/calibration/threshold change, or governance change.
+
+### Validation
+Public continuation state, lessons learned, latest private continuation state, and latest private commit history were re-read from live GitHub. Read-only checkpoint persisted at `docs/checkpoints/2026-11-08-validation-evidence-control-0041.md`.
+
+### Remaining blockers
+1. Terminal Run #451 evidence and durable fresh snapshot cohort.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission.
+3. Verified prediction-to-settlement provenance.
+4. Point-in-time xG provenance.
+5. Timestamped odds provenance.
+6. Prospective sample/freshness/market gates.
+7. Remaining 50-league downstream admission evidence.
+8. Production probability/calibration bridge and final eligibility.
+
+### Highest-value next action
+Inspect Run #451 at terminal state when evidence becomes available; consume only its new durable artifacts, or diagnose only its first new failure. Do not duplicate Run #451 or rewrite Run #449.
