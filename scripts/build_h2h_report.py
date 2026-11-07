@@ -233,8 +233,8 @@ def main():
     out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
         h,a=f.get("home_team",""),f.get("away_team","")
-        pair=tuple(sorted((team(h,league,fuzzy_index),team(a,league,fuzzy_index))))
         league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),"")
+        pair=tuple(sorted((team(h,league,fuzzy_index),team(a,league,fuzzy_index))))
         date=f.get("date","")[:10]
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
