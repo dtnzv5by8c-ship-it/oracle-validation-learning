@@ -23,3 +23,6 @@ Fix committed as `3d699e3c975964f12193fb5ffceacec46b6faec4`. A fresh push-trigge
 
 ## Governance
 Do not weaken the unresolved identity gate. Keep cross-league historical matches quarantined. No production Oracle V1.6 changes.
+
+## Run #54 follow-up
+Run #54 failed the alias regression test again on `1. FC Köln` vs `Köln`. Cause: source normalizer produced `1fckoln`, but alias group did not include that exact normalized token. Added `1fckoln` to the canonical group in commit `eea3849e4712d0ccab404b693a82d89630aa5dcb`. Bohemians regression now passes in Run #54. Another push-triggered run will validate the corrected FC Köln alias. Report build and ID join remain untested in Run #54 because the alias test stopped the workflow early.
