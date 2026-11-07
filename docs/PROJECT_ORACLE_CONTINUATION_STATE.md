@@ -366,6 +366,16 @@ Stage 17 now conditionally stages the feature snapshot manifest/values files onl
 Checkpoint: `docs/checkpoints/2026-11-07-prospective-persistence-snapshot-guard-corrected.md`
 Commit: `f510381c6f9cd51413aa5a2167a832f15b126502`.
 
+## Major milestone — prospective persistence YAML corrected — 2026-11-07
+The conditional feature-snapshot persistence change was initially mis-indented in the private workflow. Run #436 failed before job execution as a result. The workflow was corrected at private commit `2e9110ac2f0a076c797fc54de309f57caf41e439`.
+
+The normal and rebase-rebuild evidence staging paths now correctly conditionally stage `FEATURE_SNAPSHOT_MANIFEST.csv` and `FEATURE_SNAPSHOT_VALUES.csv` only when those artifacts exist. No empty evidence is fabricated.
+
+Feature-snapshot evidence remains OPEN pending a fresh governed execution through successful persistence and independent artifact/linkage verification.
+
+Checkpoint: `docs/checkpoints/2026-11-07-prospective-persistence-yaml-correction.md`
+Commit: `5cb79b6b539cc4107349cf8433e01078cfd4c76f`.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
