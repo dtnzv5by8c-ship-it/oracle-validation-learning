@@ -492,3 +492,17 @@ Control interpretation:
 - No production/betting evidence is promoted. production_eligible=false; betting_eligible=false.
 
 Highest-value next gate: allow the already-pending governed prospective cycle to execute on the repaired private main, then independently verify non-empty feature snapshot manifest/values, exact prediction-to-snapshot linkage, true prediction-engine commit attribution, pre-kickoff leakage status, and any newly admitted settlement provenance. Do not launch a duplicate cycle while the pending run is queued.
+
+
+## Major milestone — prospective cycle #438 exercised exact engine attribution — 2026-11-07
+Prospective Learning Cycle #438 (run `42357365453`) completed successfully on private HEAD `dd8464867467312a78f11f53745c6cbb6366ace0`. All 17 stages completed. The publication adapter emitted the exact prediction-engine commit attribution `model_engine_commit_sha=dd8464867467312a78f11f53745c6cbb6366ace0`, confirming the attribution repair is exercised in a governed execution.
+
+The cycle produced no new eligible future-kickoff prediction rows: 0 candidates, 36 kickoff-gated rows and 630 duplicates skipped. Consequently, feature-snapshot capture produced 0 new snapshots. `archive/FEATURE_SNAPSHOT_MANIFEST.csv` remains header-only and `archive/FEATURE_SNAPSHOT_VALUES.csv` remains absent. No retroactive or fabricated snapshots were created.
+
+The corrected settlement truth builder also executed successfully and emitted governed final-score provenance in `research/four_model/outputs/prospective_settlement_truth.csv`, but the canonical append-only settlement ledger remains at 25 pre-correction rows with blank provenance because there were no new eligible predictions to settle. Historical rows were not rewritten.
+
+Checkpoint: `docs/checkpoints/2026-11-07-prospective-cycle-438-exercised-attribution-no-eligible-new-fixtures.md` (commit `4c051828cc5dd191606c969b143938bb9c79ff0c`).
+
+Control interpretation: the prediction-engine attribution gate is now code-validated and execution-exercised; the immutable feature-snapshot gate remains OPEN due to absence of new admissible prediction rows. The next useful evidence event is a governed cycle containing genuinely new future fixtures. Do not launch duplicate cycles merely to manufacture snapshots, and do not rewrite historical challenger evidence.
+
+Current production posture remains fail-closed: `production_eligible=false`, `betting_eligible=false`. The 80 HTTP-417 tasks remain quarantined. xG/odds point-in-time provenance and canonical prediction→snapshot→settlement linkage remain unresolved.
