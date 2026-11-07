@@ -48,5 +48,8 @@ The 648 completed-task population is now proven by deterministic set reconciliat
 ## 2026-11-07 HTTP-417 recovery lesson
 Do not reopen the exhausted full ingestion queue to recover quarantined provider tasks. Recovery must operate only on the exact blocked registry, use controlled transport/parameter variants, validate returned season/competition identity, and admit only independently validated task IDs. If no variant succeeds, retain quarantine rather than guessing or substituting another season/provider.
 
+## 2026-11-07 HTTP-417 entitlement-gap lesson
+The two-call diagnostic compared the exact 20 blocked provider-season IDs against both the account's `chosen_leagues_only=true` catalogue and the full provider database catalogue. Both calls returned HTTP 200. All 20 IDs were absent from chosen-league access but present in the full provider catalogue. Therefore the current blocker is an account-side entitlement/selected-league access gap, not missing provider database coverage. Do not spend additional match/team/table/season API calls until FootyStats confirms those exact seasons are enabled. After the access change, test one low-volume season/endpoint before any wider recovery.
+
 ## 2026-11-07 HTTP-417 negative recovery lesson
 Targeted recovery attempt #1 completed successfully after 300 provider requests but recovered **0/80** tasks. All tested transport variants continued to produce HTTP 417 / invalid responses. This is a valid negative evidence result: the current recovery mechanism is exhausted and must not be repeated without a materially different provider-side or acquisition mechanism. The blocked registry remains authoritative at 80 tasks.
