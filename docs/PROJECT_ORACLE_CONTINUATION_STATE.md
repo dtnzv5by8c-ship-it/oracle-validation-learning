@@ -709,3 +709,7 @@ Current OMI release posture:
 - 80 HTTP-417 tasks remain quarantined and excluded.
 
 Highest-value next OMI action: consume the next validated downstream fixture/prediction evidence only after exact identity/scope reconciliation, then join exact fixture ID + market key + model-engine revision + feature snapshot into the existing readiness matrix. Do not infer mappings or production probabilities.
+
+
+## Major blocker — internal league-code namespace conflict discovered — 2026-11-07
+N1 is not a deterministic internal league identity across the live production repository. build_27_league_dna_lab.py assigns N1 to Norway Eliteserien, while restore_historical_match_spine.py and ingest_upcoming_fixtures.py assign N1 to Netherlands Eredivisie; readiness artifacts also conflict in their labeling. The research bridge has quarantined Netherlands Eredivisie -> N1 as CODE_NAMESPACE_CONFLICT/fail-closed in commit e0c7bdcc0eb8951d8b1b5bffe2a392ae42496797. Checkpoint: docs/checkpoints/2026-11-07-internal-namespace-conflict-n1.md, commit 99125d6ba0c2da7812d06e6cdfb0f8a0d1c4fd02. This is research-only; Oracle V1.6 and production ACTIVE scope remain unchanged. Next action: audit all internal codes for cross-file namespace conflicts before any 50-league expansion.
