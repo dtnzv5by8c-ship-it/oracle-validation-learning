@@ -339,6 +339,19 @@ Checkpoint:
 `docs/checkpoints/2026-11-07-prospective-feature-snapshot-capture-gap.md`
 Commit: `590d68f2264d4fdfba914961851c1afadea9a5d9`.
 
+## Major milestone — feature-snapshot capture implementation corrected — 2026-11-07
+A live audit found that the first feature-snapshot repair referenced the new capture routine but the helper implementation was not actually persisted in the publication adapter. The feature-snapshot evidence gate therefore remained open.
+
+Corrected private commit:
+`714b85c5f1e7cbef2f541b6b5db81a61c11d95c6`
+
+The corrected adapter now materializes the actual pre-match team-state feature inputs used by `oracle_four_model_predict.py`, writes immutable `FEATURE_SNAPSHOT_MANIFEST.csv` and `FEATURE_SNAPSHOT_VALUES.csv`, binds fixture-level prediction rows to the snapshot, and records the exact Git blob SHA of the prediction-engine file for model-code provenance.
+
+Run #434 is still executing the prior revision and has not reached publication. Run #435 was automatically queued from the corrected commit. The feature-snapshot gate remains OPEN until a fresh governed execution persists non-empty snapshot artifacts and exact prediction-to-snapshot linkage is independently verified.
+
+Checkpoint: `docs/checkpoints/2026-11-07-feature-snapshot-capture-implementation-corrected.md`
+Commit: `0c8af2c9e5326a3e8af7d04b81999ba9be2a8191`.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
