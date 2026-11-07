@@ -563,3 +563,16 @@ Control rule: do not simply expand the production allow-list yet. First validate
 - No 27-league allow-list is an acceptable production scope for any end-to-end Oracle layer.
 - This scope statement is a control-plane requirement only; it does not alter Oracle V1.6 model logic, probabilities, thresholds, calibration, betting eligibility or governance.
 - Next controlled implementation: reconcile the canonical 50-league source registry to live fixture responses, then replace legacy 27-league downstream scope controls with the governed 50-league registry/codes while preserving strict missing-data gates.
+
+## Major milestone — 50-league live fixture-source validator prepared — 2026-11-07
+A read-only validator has been added against the canonical 50-league prospective source registry. It probes the explicit current-season OpenFoot competition IDs for the governed window 2026-11-07 through 2026-11-21 and classifies every governed league as READY, DATA_GATED or SOURCE_ERROR. It preserves all 50 identities even when no usable fixture evidence is returned.
+
+- Script: `scripts/validate_oracle_50_league_live_fixture_sources.py`
+- Research workflow: `.github/workflows/oracle-50-league-live-fixture-source-validation.yml`
+- Scheduled execution is hosted from validation-repository default branch and checks out the governed `research/oracle-50-league-readiness-audit` branch before probing.
+- Evidence artifact: `artifacts/oracle_50_league_live_fixture_source_validation.json`
+- No FootyStats calls are made.
+- No Oracle V1.6 production code, probabilities, thresholds, calibration, betting eligibility or governance are changed.
+- The validator is intentionally read-only against Oracle data/model state; it only persists sanitized source-validation evidence.
+
+Validation is not yet considered passed until a real workflow execution produces the 50-league result artifact and exact board reconciliation is completed.
