@@ -178,3 +178,39 @@ No code, provider, workflow, model, probability, threshold, calibration or gover
 
 ### Single highest-value next action
 Consume the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and verify, in one chain, non-empty immutable snapshot manifest/values, exact fixture+market+model-engine linkage, pre-kickoff chronology and corrected settlement provenance. If that evidence is absent, no OMI reconstruction is justified.
+
+
+## 2026-11-07 17:04 SAST — H2H upstream dependency audit
+
+### Finding
+A new H2H reporting execution is currently in progress on the public `main` branch. OMI has not consumed or promoted its output because the run is not complete and its artifact is not yet persisted/reconciled into the governed research branch.
+
+### Evidence
+- H2H Run #57: `Oracle H2H Reporting`, GitHub Actions run `42384137240`.
+- Head commit: `f73f2139a74ae3cfe1fc4d07288728041a04dac6`.
+- Status at audit: `in_progress`.
+- The code change under test classifies archive absence/cross-league-only history as `NO_VERIFIED_HISTORICAL_H2H`; it does not fabricate H2H or change Oracle V1.6.
+- Run #56 remains the last completed H2H artifact available to OMI: exact Fixture ID join 145/145, with 110 fixtures having prior H2H and 35 having no verified same-league H2H.
+
+### Root Cause
+The latest H2H evidence is still executing on a separate public `main` path. The OMI governed branch cannot treat an in-progress run as validated evidence.
+
+### Impact
+G07 Exact H2H remains PARTIAL/candidate-level. No H2H readiness promotion or production admission is justified from Run #57 yet.
+
+### Fix
+No workflow was launched, no artifact was copied, and no H2H history was inferred. The existing OMI classifications remain fail-closed pending a completed persisted artifact.
+
+### Validation
+- Live branch artifacts were read before any write.
+- Actions state was inspected and Run #57 was confirmed already in progress.
+- No duplicate H2H run was launched.
+- No provider/API calls were made.
+- No Oracle V1.6 production logic, probability, threshold, calibration, betting eligibility or governance change was made.
+
+### Current release decision
+Production eligibility: FALSE.
+Betting eligibility: FALSE.
+
+### Single highest-value next action
+When Run #57 completes, consume only its persisted/reconciled artifact and update G07/H2H market-readiness classifications. Until then, no H2H reconstruction is justified.
