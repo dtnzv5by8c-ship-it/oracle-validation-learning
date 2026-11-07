@@ -1061,3 +1061,25 @@ Research/control-plane evidence was reconciled only. No Oracle V1.6 production l
 
 ### Single highest-value next action
 Inspect the first genuinely completed prospective cycle that executes after `02ffafe41a9f022fd0399fdb89c83920409fbb21`. If it completes, validate non-empty FEATURE_SNAPSHOT_MANIFEST/VALUES, exact fixture/market/model-engine linkage, pre-kickoff chronology and settlement provenance. Do not treat 110D59 as post-fix evidence.
+
+
+## Major milestone — OMI consumed canonical 50-league prospective scope dependency — 2026-11-07 15:03 SAST
+Finding: the Validation lane established the governed 50-league prospective source registry, but downstream prediction scope remains a separate legacy 27-league control.
+
+Evidence:
+- `data/prospective/oracle_50_league_fixture_source_registry.csv`: 50/50 governed identities represented.
+- 49/50 have explicit current-season OpenFoot catalogue mappings.
+- Greece Super League (GRC1) is `CURRENT_SEASON_NOT_VERIFIED`; no fixture availability is inferred.
+- Downstream scope audit confirms `scripts/oracle_four_model_predict.py` still applies the legacy 27-league ACTIVE allow-list.
+- OMI release-gate register now includes G23 — 50-league prospective downstream scope = BLOCKED.
+- 50 governed leagues remain represented; DATA_GATED/UNVERIFIED leagues are not dropped.
+
+Root Cause: prospective source registration and prediction-engine scope are separate controls; the former is now 50-league governed while the latter remains legacy 27-league.
+
+Impact: OMI cannot treat the current prospective board as an Oracle V1.6 production universe. G01 remains gated for live production scope; G15 is PARTIAL for source freshness but not candidate feature freshness.
+
+Fix: OMI updated `reports/oracle-omi-release-gate-register-2026-11-07.md` to consume and explicitly record the downstream scope dependency. No production code or model configuration was changed.
+
+Validation: report was written at prior live HEAD `b1d6468c5a1e6b642c7a711bdb874d7437cfecd7`, producing report commit `9a6806155abccb5bb36e60943a438ffff1d93d14`; the updated report was re-read from live GitHub. Production/betting eligibility remain false.
+
+Next OMI action: consume the first validated downstream 50-league fixture/prediction evidence only after the scope control and exact identity bridge are reconciled; join by exact fixture ID + market key + model-engine revision + immutable feature snapshot.
