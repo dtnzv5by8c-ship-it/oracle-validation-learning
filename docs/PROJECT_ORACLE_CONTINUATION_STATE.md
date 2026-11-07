@@ -322,11 +322,6 @@ The correction was made without running a private GitHub Actions workflow, prese
 6. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
 7. Per-market prospective sample and observation-window gates remain open.
 8. OMI/Visual Intelligence production readiness remains blocked until the canonical probability bridge, point-in-time features, verified settlement and current-feed freshness gates are satisfied.
-3. xG numeric values exist but point-in-time capture timestamps are not verified.
-4. Timestamped odds provenance is not verified.
-5. Immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement linkage must be demonstrated for production-admissible evidence.
-6. Per-market prospective sample and observation-window gates remain open.
-7. OMI/Visual Intelligence production readiness remains blocked until the canonical probability bridge, point-in-time features, verified settlement and current-feed freshness gates are satisfied.
 
 ## Resource-control rule
 Private `oracle-football-data` Actions are scarce (3,000 minutes/month). Use the public `oracle-validation-learning` repository for research, validation, reconciliation, reporting and non-sensitive computation whenever private credentials/provider access are not required. Do not launch duplicate private workflows.
