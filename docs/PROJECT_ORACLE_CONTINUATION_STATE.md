@@ -1,45 +1,65 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07
+Last updated: 2026-11-07 (post-run reconciliation)
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
 Complete governed 50-league historical/data readiness and downstream OMI release gates without changing Oracle V1.6 production logic.
 
-## Task-level ingestion state
-- Universe: 50 leagues
-- Provider-season partitions: 182
-- Governed endpoint tasks: 728
-- Completed: 648
-- Quarantined/provider-blocked: 80
-- Pending: 0
+## CRITICAL STATE DISTINCTION
+There are two separate ledgers and they must never be conflated.
+
+### A. Acquisition-plan accounting
+The private ingestion workflow's resolved Selected-50 plan reports:
+- 50 leagues
+- 182 provider-season partitions
+- 728 governed endpoint tasks
+- 648 completed
+- 80 quarantined/provider-blocked
+- 0 pending
 - Accounting: 648 + 80 + 0 = 728
 
-## Latest workflow finding
-Workflow: `FootyStats Private Historical Ingestion (Controlled Selected-50)`
-Latest observed run: #92
-Execution step returned exit code 1 because its resume logic encountered **0 pending governed tasks** and deliberately raised an error with “No pending governed tasks remain.”
+Latest ingestion run #92 exited code 1 only because the workflow treats “0 pending governed tasks remain” as an error. **Do not rerun it.**
 
-This is a workflow terminal-condition defect, not evidence that the 648 completed tasks were lost. **Do not rerun this same ingestion workflow simply to clear the red status.**
+### B. Governed validation evidence admission
+FootyStats private receipt:
+- batch `42255401046`
+- 8,367 rows
+- 100 requests
+- transport/auth/rate-limit PASS
+- manifest blob SHA `57fe9e1184b5035327feaa78307750e129c54bf3`
+- no task IDs
 
-## Next required work
-1. Validate/reconcile the 648 completed-task evidence.
-2. Produce explicit league/season/endpoint accounting for the 80 quarantined tasks and their root causes.
-3. Validate identity, pagination, chronology, freshness, 2024-current coverage and feature readiness.
-4. Determine feature/market readiness by league using only admissible evidence.
-5. Resolve downstream release gates: immutable pre-kickoff snapshots, point-in-time xG, timestamped odds, official settlement, prediction→settlement linkage, sample minimums and quarantined-data exclusion.
-6. Advance to OMI/release readiness only after the above gates are satisfied.
+Current Selected-50 governed manifest SHA:
+`6a916c962bfbcad1cfb429e23c26e0aef9b3a611`
+
+Because these SHAs differ and the receipt has no task IDs, the 100-request receipt is **valid private evidence but NOT currently admitted into the 728-task governed completion count**.
+
+## Immediate next objective
+Reconcile the receipt against the current manifest/task definitions without new provider acquisition:
+1. Identify the exact manifest/version that produced receipt SHA `57fe9e...`.
+2. Compare its league/season/task definitions to the current `6a916c...` manifest.
+3. Determine whether the 100 receipt tasks can be deterministically mapped to current tasks.
+4. If compatible, create an evidence-backed admission checkpoint; if incompatible, document the exact delta and keep the receipt quarantined from the task count.
+5. Reconcile the 80 quarantined tasks and their root causes.
+6. Then proceed to identity, pagination, chronology, freshness, point-in-time xG/odds/H2H/team-state provenance, settlement linkage and OMI/release gates.
+
+## Do not repeat
+- Do not rerun exhausted private ingestion workflow #92.
+- Do not rerun the disabled protected-repository audit transfer workflow.
+- Do not rerun the completed Selected-50 Market Intelligence repair baseline.
+- Do not start another provider batch before receipt/manifest reconciliation is resolved or a documented gap is proven.
 
 ## Production governance
-- Oracle V1.6 logic: frozen/unchanged.
+- Oracle V1.6 production logic: frozen/unchanged.
 - Production eligibility: FALSE until genuinely validated.
 - Betting eligibility: FALSE until genuinely validated.
-- No fabrication or inference of unavailable data.
+- No fabrication/inference of unavailable data.
 - Raw provider payloads remain private.
-- Do not repeat completed ingestion or old repair work.
+- Research metrics remain research-only unless immutable production evidence gates are satisfied.
 
 ## Persistence rule
-This file is the canonical handover reference. At every major milestone, update this file and create a dated checkpoint under `docs/checkpoints/`. New chats must read this state before proposing or running workflows.
+This file plus `docs/PROJECT_ORACLE_LESSONS_LEARNED.md` are the canonical handover system. After every major milestone, update this file and create a dated checkpoint. Every new chat/workflow must read these files first.
 
 ## User communication rule
 Only update Nolan at major milestones or when manual action is genuinely required.
