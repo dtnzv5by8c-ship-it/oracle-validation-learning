@@ -528,3 +528,19 @@ Report: `reports/oracle-50-league-upcoming-coverage-audit-2026-11-07.md`
 Checkpoint: `docs/checkpoints/2026-11-07-50-league-prospective-coverage-gap.md` (commit `7afaf34352379587fcf3d7ca55585dc22f2961ad`).
 
 Production remains fail-closed; Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
+
+
+## Major milestone — canonical 50-league prospective source registry established — 2026-11-07
+The Validation lane has now converted the existing governed 50-league identity set into an explicit prospective source registry without changing Oracle V1.6 production logic or touching the exhausted historical acquisition queue.
+
+New artifact:
+- `data/prospective/oracle_50_league_fixture_source_registry.csv`
+- 50/50 governed identities represented.
+- 49/50 have an explicit current-season OpenFoot catalogue mapping.
+- Greece Super League maps to `comp_super_league_grc`, but OpenFoot currently advertises only 2024/25 for that competition; it is therefore explicitly `CURRENT_SEASON_NOT_VERIFIED` and remains DATA_GATED.
+
+OpenFoot coverage evidence confirms stable competition IDs and season labels; its own documentation warns that coverage/fields vary by competition and that empty responses must not be interpreted as no data. No fixture availability is inferred from the catalogue alone.
+
+Checkpoint: `docs/checkpoints/2026-11-07-50-league-source-registry-milestone.md` (commit `fe12add538ac373a3d78b82922ffb2f9db839ea7`).
+
+Next highest-value action: probe the explicit 49 current-season competition IDs plus the Greece data-gated path for the governed upcoming window, persist per-league source evidence, and reconcile the resulting fixture board exactly to the 50-league registry. Keep fail-closed behavior for missing/ambiguous sources. Do not publish predictions until that reconciliation passes.
