@@ -180,3 +180,16 @@ Do not duplicate Run #61. The next controlled action is to obtain a genuinely ne
 6. Prospective evidence sample/freshness gates.
 7. OMI/Visual Intelligence release readiness.
 8. Production eligibility remains fail-closed until all gates pass.
+
+## H2H Run #62 failure diagnosis and corrected fix — 2026-11-07 18:12 SAST
+
+- Run #62: 42387447956 failed in "Build H2H report and audit".
+- Root cause: in `scripts/build_h2h_report.py`, the fixture loop referenced local variable `league` before assigning it:
+  `pair=...team(h,league,...)` preceded `league=...`.
+- The subsequent missing `reports/h2h/h2h_audit.json` error was downstream only; the report builder never completed.
+- Corrected commit: d038786d22801dc8ebe8f01de879c0eef61af60c
+- Correct fix: assign fixture league code/name mapping before constructing the canonical H2H team pair.
+- This is a reporting-only code fix. No Oracle V1.6 production logic, probabilities, calibration, thresholds, canonical Fixture IDs or betting governance changed.
+- Do NOT rerun the failed job from the old run because that would execute the old commit. A fresh run on the corrected main commit is required.
+- Preserve Actions-minute control: use public validation repo; do not spend private Actions minutes on this H2H repair.
+- Next validation target: fresh H2H run on d038786d...; inspect 145/145 fixture coverage, fuzzy identity results, no-H2H and <5-H2H classifications, then close H2H as non-blocking.
