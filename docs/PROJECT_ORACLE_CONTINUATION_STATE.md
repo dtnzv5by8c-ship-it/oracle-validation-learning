@@ -54,6 +54,25 @@ Endpoints: `league-matches`, `league-teams`, `league-tables`, `league-season`.
 - Timestamped odds provenance is not verified.
 - Production/betting eligibility remains false.
 
+
+## Major milestone — OMI / Visual Intelligence consolidated readiness matrix
+Research-only OMI integration consumed the completed Selected-50 Repair #360 artifact without rerunning it or making provider/API calls.
+- 717 runtime fixtures; 717/717 exact archive joins; 0 unmatched/quarantined joins; 0 schedule discordance rows.
+- 45 selected leagues represented by fixtures; 5 selected leagues have no fixtures in the inspected report horizon and remain UNVERIFIED, not READY.
+- Recent overall form: 1,398/1,434 team-side slots at full five-match depth (97.49%).
+- Venue/home-away form: 836/1,434 team-side slots at full five-match depth (58.30%).
+- Exact H2H: 604/717 fixtures have prior exact H2H history (84.24%); no H2H inference permitted.
+- Goal research: 699/717 (97.49%); BTTS: 678/717 (94.56%).
+- xG: 717/717 numeric, but 0/717 verified capture timestamps; production admission BLOCKED.
+- Odds: timestamped bookmaker/market provenance unavailable in the baseline; BLOCKED.
+- Actual settlement: 717/717 rows remain NOT_RETRIEVED_NO_CREDIT_APPROVAL; no production settlement promoted.
+- Runtime feature-block audit: 39 fixtures / 40 team-side histories blocked by minimum-history/required-feature gates.
+- Risk fields are diagnostic-ready for represented fixtures; confidence/recency and production performance remain UNVERIFIED.
+- Per-league matrix: reports/oracle-omi-release-readiness-matrix-2026-11-07.csv
+- Checkpoint: docs/checkpoints/2026-11-07-omi-release-readiness-0744.md
+
+OMI decision: production/betting remains FAIL-CLOSED. The next OMI dependency is the canonical prediction/fixture bridge plus immutable pre-kickoff feature snapshot and verified settlement evidence owned by the Evidence/Validation lanes. No production probability is changed or inferred.
+
 ## Immediate next work — priority order
 1. Reconcile/validate evidence supporting the 648 completed-task population; do not redo manifest work.
 2. Determine whether approved private FootyStats recovery can resolve the exact 20 quarantined provider-season partitions without repeating completed tasks or exceeding budget.
