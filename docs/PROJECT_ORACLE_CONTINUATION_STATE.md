@@ -48,8 +48,8 @@ Endpoints: `league-matches`, `league-teams`, `league-tables`, `league-season`.
 - Selected-50 Market Intelligence repair #360 is complete.
 - 717 runtime fixtures had exact archive joins in that artifact.
 - Chronological expanding-window research backtests exist but are research-only.
-- Canonical production settlement ledger remains header-only.
-- 210 challenger shadow market rows across 42 fixtures are research-only.
+- Canonical settlement ledger now contains 25 settled CHALLENGER rows across 5 fixtures; settlement_source and event_truth_source remain blank, so settlement provenance is incomplete and production admission remains blocked.
+- Current private prediction archive contains 885 CHALLENGER rows across 177 fixtures; 25 rows across 5 fixtures now have SETTLED status, but remain research/shadow because settlement provenance is incomplete.
 - xG numeric values exist, but point-in-time capture timestamps are not verified.
 - Timestamped odds provenance is not verified.
 - Production/betting eligibility remains false.
@@ -193,7 +193,7 @@ Current evidence:
 
 This corrects older validation snapshots that described the current prediction ledger as header-only or 210 rows. Those were earlier-state observations and must not be repeated as the current state.
 
-The 555 rows are **CHALLENGER-only** and therefore do not establish Oracle V1.6 production performance. The current highest-value evidence blocker is now the missing canonical settlement linkage, not absence of prospective prediction capture.
+The 555 rows are **CHALLENGER-only** and therefore do not establish Oracle V1.6 production performance. The current highest-value evidence blocker is now verified settlement provenance and production scoreability, not absence of prospective prediction capture.
 
 The private repository already contains the governed prospective chain:
 `prepare_prospective_four_market_publication.py` -> `publish_prediction_run.py` -> `build_prospective_settlement_truth.py` -> `settle_prediction_run.py` -> `feed_learning_ledgers.py`, orchestrated by `.github/workflows/oracle_prospective_learning.yml`.
@@ -285,3 +285,14 @@ The 648/80 acquisition reconciliation and manifest-compatibility gate are CLOSED
 
 ## Definition of done
 Production prediction readiness requires genuinely satisfied identity, chronology, point-in-time feature provenance, prediction/settlement linkage and required market/league gates. Missing/quarantined evidence remains excluded. Fail-closed remains active until gates pass.
+
+
+## Major milestone — current settlement evidence re-audited — 2026-11-07 08:59 SAST
+The latest private `archive/SETTLEMENT_LEDGER.csv` now contains 25 settled rows for 5 fixtures, all linked to CHALLENGER predictions. The 25-row cohort has complete prediction-side chronology and provenance fields, but `settlement_source` and `event_truth_source` are blank on every row. Therefore the cohort is research/shadow evidence only and does not satisfy verified settlement provenance for production scoring.
+
+Research-only metrics on the 25 settled rows: aggregate accuracy 68.00%, Brier 0.217340, log loss 0.624606, AUC 0.588235. These values are descriptive and not production Oracle performance. Market cohorts are n=5 each and therefore insufficient for production conclusions; AUC is not estimable for markets with a single outcome class. Confidence/risk-band metrics are unavailable because all 25 settled rows have blank band/risk-band fields.
+
+Checkpoint: `docs/checkpoints/2026-11-07-evidence-backtest-control-0859.md`
+Commit: `d0232f93b18a38ac24ff02209d6768f278a31c8b`.
+
+The next evidence task is to establish settlement-source/event-truth provenance for the existing settled cohort using existing private evidence only. No new acquisition is justified by this gap.
