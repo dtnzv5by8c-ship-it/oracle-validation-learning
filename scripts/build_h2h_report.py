@@ -128,10 +128,17 @@ for group in ALIAS_GROUPS:
     for p in parts: ALIASES[p]=canonical
 
 def _team_forms(s):
-    n=norm(s)
+    raw=str(s or "").strip().lower()
+    n=norm(raw)
     forms={n}
     expanded=n.replace("utd","united").replace("untd","united").replace("manu","manchesterunited")
     forms.add(expanded)
+    tokens=[norm(x) for x in re.findall(r"[a-z0-9]+",raw) if norm(x)]
+    expanded_tokens=[t.replace("utd","united").replace("untd","united") for t in tokens]
+    if len(expanded_tokens)>=2:
+        forms.add(expanded_tokens[0][:3]+expanded_tokens[-1])
+        forms.add("".join(expanded_tokens))
+        forms.add("".join(t[0] for t in expanded_tokens))
     stripped=re.sub(r"^(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks|club)", "", expanded)
     stripped=re.sub(r"(fc|afc|cf|ac|sc|fk|sk|nk|bk|sv|ks|kks)$", "", stripped)
     if stripped: forms.add(stripped)
