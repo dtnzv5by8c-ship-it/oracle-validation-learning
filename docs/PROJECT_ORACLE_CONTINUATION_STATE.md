@@ -220,6 +220,42 @@ Commit: `57a4d8d8d9bac2b5aa0067de0cb7764e5f0fe61c`.
 
 The next safe action is to execute the existing governed `Oracle Prospective Learning Cycle` on private `main` so it refreshes current result truth and re-attempts exact settlement. Historical 2026-10-09 to 2026-10-17 rows still require an independently verified historical result source; they must not be inferred from current/future snapshots.
 
+## Major milestone — OMI market release-readiness consolidation — 2026-11-07 08:43 SAST
+The OMI lane consumed the existing 50-league matrix and the completed Selected-50 Repair #360 baseline without rerunning repair or making provider/API calls.
+
+New report:
+`reports/oracle-omi-market-readiness-2026-11-07.md`
+Checkpoint:
+`docs/checkpoints/2026-11-07-omi-release-readiness-0843.md`
+
+Deterministic 50-league matrix accounting:
+- Fixture identity: 45 READY / 5 UNVERIFIED.
+- Chronology: 45 READY / 5 UNVERIFIED.
+- Recent overall form: 43 READY / 2 INSUFFICIENT SAMPLE / 5 UNVERIFIED.
+- Home/away: 15 READY / 19 PARTIAL / 11 INSUFFICIENT SAMPLE / 5 UNVERIFIED.
+- Exact H2H: 21 READY / 24 PARTIAL / 5 UNVERIFIED; no inferred H2H.
+- Goals/goal rates: 43 READY / 2 INSUFFICIENT SAMPLE / 5 UNVERIFIED.
+- BTTS: 31 READY / 14 PARTIAL / 5 UNVERIFIED.
+- Over 1.5: 43 READY / 2 INSUFFICIENT SAMPLE / 5 UNVERIFIED.
+- Over 2.5: 42 READY / 1 BLOCKED / 2 INSUFFICIENT SAMPLE / 5 UNVERIFIED.
+- Over 3.5: 45 BLOCKED / 5 UNVERIFIED.
+- xG: 1 READY / 44 BLOCKED / 5 UNVERIFIED; point-in-time provenance remains a production gate.
+- Standings/strength: 45 READY / 5 UNVERIFIED.
+- Odds provenance: 45 BLOCKED / 5 UNVERIFIED.
+- Sample size: 45 READY / 5 UNVERIFIED.
+- Recency: 50 UNVERIFIED.
+- Confidence: 50 UNVERIFIED for production.
+- Risk: 45 READY as diagnostics / 5 UNVERIFIED.
+- Actual results: 45 BLOCKED / 5 UNVERIFIED.
+- Leakage-safe production backtest: 50 UNVERIFIED.
+- Production eligibility: 50 BLOCKED.
+
+Production probability strings and the canonical Oracle V1.6 fixture/probability bridge are not present in the public OMI artifact; no probability was inferred or reconstructed. Team DNA and League DNA were not inferred from proxy fields and remain UNVERIFIED for production integration.
+
+OMI release gates remain: canonical fixture/probability bridge; immutable pre-kickoff feature snapshots; point-in-time xG; timestamped odds; verified official settlement; prediction-to-feature-to-settlement linkage; per-market sample gates; and current-feed recency/freshness. Quarantined evidence remains excluded.
+
+Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged. Production/betting remain fail-closed.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
