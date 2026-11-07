@@ -269,6 +269,11 @@ Live audit found that the corrected truth artifact carried provenance but the fe
 
 Checkpoint: `docs/checkpoints/2026-11-07-settlement-provenance-admission-gate.md`
 
+## Major milestone — historical prediction chain audit — 2026-11-07
+The live private prediction archive was audited for 2026-10-09 through 2026-10-17: 210 prediction rows across 42 fixtures, with prediction IDs, fixture IDs, kickoff/prediction timestamps, data/event cutoffs, feature snapshot IDs, source manifest hashes and pre-match state hashes present. Chronology is structurally valid. However all 210 rows are explicitly CHALLENGER evidence; calibrated probability is blank and model-code/calibration fields are not production-admissible. Therefore the identity chain exists at ledger level but cannot be promoted as Oracle V1.6 production evidence. Feature snapshot contents and verified settlement still require admissible linkage.
+
+Checkpoint: `docs/checkpoints/2026-11-07-historical-prediction-chain-audit.md`
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
