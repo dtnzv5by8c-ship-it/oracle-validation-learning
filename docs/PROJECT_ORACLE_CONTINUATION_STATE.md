@@ -496,3 +496,46 @@ Private GitHub files were re-read after the evidence commit. Prediction Fixture 
 
 ### Highest-value next action
 Resolve the persisted snapshot run-ID lineage and validate missingness semantics without consuming another private acquisition cycle; then advance xG/odds/settlement evidence independently.
+
+
+## Validation & Evidence Control — run-ID lineage + missingness control — 2026-11-07 22:38 SAST
+
+### Finding
+The durable Run #449 snapshot cohort exposed two concrete publisher defects: blank snapshot-manifest `run_id` and false `COMPLETE` missingness when required team-state feature values were NaN.
+
+### Evidence
+- Prior durable evidence commit: `b44e71c067455f9d0880ea936f298d30796313a6`.
+- 3 snapshot manifest rows had blank `run_id`.
+- Snapshot values contained NaN feature values despite `missingness_status=COMPLETE`.
+- Live publisher source confirmed `run_id` was read from rows before canonical publication assigned the run ID.
+- Live source confirmed missingness checked only state-row existence.
+
+### Root Cause
+Snapshot capture precedes canonical run-ID assignment, and the missingness predicate did not inspect required feature-value nullability.
+
+### Impact
+Execution-level snapshot lineage was incomplete and the prior missingness status could overstate data completeness. Existing evidence remains quarantined; no historical rows were rewritten.
+
+### Fix
+Private commit `347bf2dce3ac0543ac0b1966f6cbdd25035daa9f` now:
+- records the GitHub Actions workflow execution ID from `GITHUB_RUN_ID` when row-level run ID is unavailable;
+- classifies NaN required team-state values as missing;
+- prevents those rows from being emitted as COMPLETE feature-value snapshots.
+
+No Oracle V1.6 model/probability/calibration/threshold/eligibility/governance change was made.
+
+### Validation
+The live private file was re-read after the commit and both controls were confirmed present. Public checkpoint: `docs/checkpoints/2026-11-07-validation-evidence-control-2238.md`.
+
+### Remaining blockers
+1. Execution proof of the new run-ID and missingness controls.
+2. Production-calibrated probability bridge.
+3. Verified prediction-to-settlement linkage.
+4. Point-in-time xG provenance.
+5. Timestamped odds provenance.
+6. Prospective freshness/sample/market gates.
+7. Remaining 50-league downstream identity/scope admission.
+8. Production eligibility remains fail-closed.
+
+### Highest-value next action
+Inspect the single controlled prospective execution triggered by the private fix. Do not backfill or rewrite the Run #449 evidence.
