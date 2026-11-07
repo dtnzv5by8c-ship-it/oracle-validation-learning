@@ -1,0 +1,51 @@
+governed_code,governed_name,FootyStats_league_id,OpenFoot_competition_id,internal_oracle_code,evidence_source,mapping_status,fail_closed
+ARG1,Argentina Primera División,16571,comp_liga_profesional_arg,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+AUS1,Australia A-League,17326,comp_a_league_aus,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+AUT1,Austria Bundesliga,17181,comp_bundesliga_aut,AUT,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+BEL1,Belgium Pro League,17171,comp_pro_league_be,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+BRA1,Brazil Serie A,16544,comp_brasileirao_bra,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+CAN1,Canada Canadian Premier League,16741,comp_canadian_premier_league_can,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+CHI1,Chile Primera División,16615,comp_primera_division_chi,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+CHN1,China Chinese Super League,16789,comp_chinese_super_league_chn,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+COL1,Colombia Categoria Primera A,16614,comp_primera_a_col,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+CRO1,Croatia Prva HNL,17087,comp_hnl_cro,,existing internal mapping uses Croatia HNL; explicit cross-namespace identity not yet proven,NAME_VARIANT_UNVERIFIED,TRUE
+CZE1,Czech Republic First League,17157,comp_czech_first_league_cze,CZE,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+DNK1,Denmark Superliga,17091,comp_superliga_dnk,D1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; D1 also assigned to Bundesliga,CODE_COLLISION,TRUE
+ECU1,Ecuador Primera Categoría Serie A,16714,comp_ligapro_ecu,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+ENG2,England Championship,17184,comp_championship_eng,E1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+ENG3,England EFL League One,17180,comp_league_one_eng,E2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+EPL,England Premier League,17146,comp_premier_league_eng,E0,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+FIN1,Finland Veikkausliiga,16572,comp_veikkausliiga_fin,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+FR1,France Ligue 1,17102,comp_ligue_1_fr,F1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+FR2,France Ligue 2,17117,comp_ligue_2_fr,F2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+DE2,Germany 2. Bundesliga,17212,comp_2_bundesliga_de,,existing D2 is assigned to Denmark 1st Division; German mapping unproven,CODE_NAMESPACE_UNVERIFIED,TRUE
+DE1,Germany Bundesliga,17210,comp_bundesliga_de,D1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; D1 also assigned to Denmark Superliga,CODE_COLLISION,TRUE
+GRC1,Greece Super League,17356,comp_super_league_grc,,current season not verified and internal mapping absent,UNVERIFIED,TRUE
+IND1,India Indian Super League,17964,comp_indian_super_league_ind,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+IT1,Italy Serie A,17084,comp_serie_a_it,I1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+IT2,Italy Serie B,17404,comp_serie_b_it,I2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+JPN1,Japan J1 League,17115,comp_j1_league_jpn,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+MEX1,Mexico Liga MX,17099,comp_liga_mx_mex,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+NED1,Netherlands Eredivisie,17097,comp_eredivisie_nl,N1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+NOR1,Norway Eliteserien,16558,comp_eliteserien_nor,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+PAR1,Paraguay Division Profesional,16533,comp_primera_division_par,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+PER1,Peru Primera División,16905,comp_liga_1_per,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+POL1,Poland Ekstraklasa,17112,comp_ekstraklasa_pol,POL,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+POR2,Portugal LigaPro,17215,comp_segunda_liga_pt,POR2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name corresponds Liga Portugal 2,CROSS-NAMESPACE_NAME_VARIANT,TRUE
+IRL1,Republic of Ireland Premier Division,16537,comp_premier_division_irl,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+ROU1,Romania Liga I,17247,comp_superliga_ro,ROU,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+RUS1,Russia Russian Premier League,17178,comp_premier_league_rus,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+SAU1,Saudi Arabia Professional League,17426,comp_saudi_pro_league_sau,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+SCO1,Scotland Premiership,17148,comp_scottish_prem_sco,SC0,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+SRB1,Serbia SuperLiga,17119,comp_superliga_srb,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+RSA1,South Africa Premier Soccer League,17444,comp_psl_rsa,RSA,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal South African Premier Division,CROSS-NAMESPACE_NAME_VARIANT,TRUE
+KOR1,South Korea K League 1,16627,comp_k_league_1_kor,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+ES1,Spain La Liga,17199,comp_laliga_es,SP1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+ES2,Spain Segunda División,17269,comp_segunda_es,SP2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal Segunda Division,CROSS-NAMESPACE_NAME_VARIANT,TRUE
+SWE1,Sweden Allsvenskan,16576,comp_allsvenskan_swe,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+SUI1,Switzerland Super League,17129,comp_super_league_sui,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+TUR1,Turkey Süper Lig,17265,comp_super_lig_tr,T1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE; governed name differs from internal Turkey Super Lig,CROSS-NAMESPACE_NAME_VARIANT,TRUE
+USA1,USA MLS,16504,comp_mls_usa,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+UKR1,Ukraine Ukrainian Premier League,17191,comp_premier_league_ukr,UKR,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+URU1,Uruguay Primera División,16708,comp_primera_division_uru,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
+VEN1,Venezuela Primera División,16617,comp_primera_division_ven,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
