@@ -7,7 +7,7 @@ The live H2H reporting workflow already has an equivalent pending execution, so 
 - Oracle H2H Reporting Run #64: 42391142276.
 - Workflow: .github/workflows/oracle-h2h-reporting.yml.
 - Run #64 status: pending.
-- Run #64 head SHA: 3d0e171a5343f5dd09bb20be7a45191? (GitHub-reported run head is 3d0e171a5343f5dd09bb20be7a45142ff3; see live Actions record).
+- Run #64 head SHA: 3d0e171a5343f5dd09bb20be7a45142ff3 (GitHub-reported run head).
 - The live H2H builder was re-read from main and contains the corrected league initialization.
 - No duplicate H2H run was launched.
 
