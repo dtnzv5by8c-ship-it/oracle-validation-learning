@@ -324,3 +324,50 @@ The private prospective workflow now preserves the protected historical `prematc
 
 ### Highest-value next action
 Inspect the first fresh prospective execution after `35704245d83804e8b35c570b0f6f1d1b170ae97c`; if it completes, audit the snapshot artifacts and historical integrity gate immediately. If it fails, classify only the first new failure.
+
+
+## Continuous Build Control — 2026-11-07 20:19 SAST
+
+### Finding
+The first live execution of the historical-state preservation fix (private Prospective Learning Cycle #443) proved that the prior preservation point was still too late: the protected file was being copied after the current-state refresh had already mutated the canonical path. The workflow was then corrected to preserve the historical state immediately after fixture refresh and before `build_current_team_state.py`.
+
+### Evidence
+- Cycle #443: 42398165797, failed publication governance tests with `database/prematch_team_state.csv` SHA `77fc03b5...` instead of required `1932edf7...`.
+- The failed tests explicitly reported recovery artifact hash mismatch and canonical dataset state hash mismatch.
+- Live private workflow now preserves `database/prematch_team_state.csv` before the current-state refresh.
+- Corrected live workflow commit: `e726ee479be5bf747bbbd3910d84176e06eea6e4`.
+- An intermediate malformed YAML edit triggered Run #445 and failed immediately; this was corrected without rerunning that failed job.
+- Fresh controlled Run #446 is now active on `e726ee...`; no duplicate execution was launched.
+
+### Root Cause
+The earlier fix moved preservation ahead of the compatibility adapter but not ahead of the state-refresh step that itself mutates the protected historical path. A brief YAML edit also introduced a duplicated fixture step/missing command; this was immediately corrected.
+
+### Impact
+The intended historical recovery gate remained valid in principle but was not being supplied the immutable historical bytes during the prospective cycle. The intermediate malformed workflow caused one failed Actions run (#445) but did not change Oracle V1.6 logic or production governance.
+
+### Fix
+The workflow order is now explicitly:
+1. refresh upcoming fixtures;
+2. preserve and hash the protected historical `prematch_team_state.csv`;
+3. refresh current pre-match state;
+4. build the prediction-engine compatibility view;
+5. run prediction/publication;
+6. restore and verify the protected historical bytes before governance tests.
+
+No model logic, probability, calibration, threshold, eligibility or governance rule was changed.
+
+### Validation
+Live GitHub file re-read confirms the corrected order and valid commands. Run #446 is the first fresh execution against the corrected workflow. Production remains fail-closed pending terminal execution and evidence inspection.
+
+### Remaining blockers
+1. Run #446 must prove the recovery/hash fix live.
+2. Durable immutable feature snapshot manifest + values must be non-empty and linked to predictions.
+3. Exact prediction → fixture → market → snapshot → model-engine SHA linkage remains to be proven.
+4. Verified settlement provenance remains incomplete.
+5. Point-in-time xG and timestamped odds provenance remain open.
+6. Prospective sample/freshness/market gates remain open.
+7. Remaining 50-league identity/source admission evidence remains open where not already admitted.
+8. Production scoreability and eligibility remain fail-closed.
+
+### Highest-value next action
+Inspect Run #446 at terminal state. If the recovery/hash gate passes, immediately audit the immutable snapshot artifacts and exact engine SHA linkage; if it fails, classify only the first new failure.
