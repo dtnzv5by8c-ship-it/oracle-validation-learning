@@ -285,3 +285,42 @@ Checkpoint commit 406640805bf21574750eed9db156920bb6ed6b7e and lessons commit d1
 
 ### Highest-value next action
 Resolve or evidence the existing batch 42255401046 manifest-hash compatibility discrepancy using existing research artifacts only; do not rerun exhausted acquisition or fabricate missing provenance.
+
+## Validation & Evidence Control — recovery-hash compatibility fix — 2026-11-07 19:41 SAST
+
+### Finding
+The highest-value prospective evidence blocker was traced to a workflow-control collision: the prediction-engine compatibility adapter writes `database/prematch_team_state.csv`, while that same path is protected by the historical recovery/integrity contract.
+
+### Evidence
+- Historical baseline requires SHA-256 `1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78`.
+- Failed Cycle #442 observed SHA-256 `77fc03b51df7c93e4b25974ce59ac6e4b736b9e2d75deb9fd633015f5e8c4ffd`.
+- Compatibility adapter contract: `database/current_prematch_team_state.csv` → `database/prematch_team_state.csv`.
+
+### Root Cause
+A schema/namespace compatibility adapter reused a protected historical artifact path.
+
+### Impact
+The prediction path could consume the compatibility view, but the historical evidence gate saw a mutated protected artifact, preventing durable admission of the in-run snapshots.
+
+### Fix
+The private prospective workflow now preserves the protected historical `prematch_team_state.csv` and SHA before compatibility generation, restores the exact bytes immediately after immutable publication, and validates the restored SHA before governance and point-in-time integrity checks. This is workflow-only evidence control; Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance are unchanged.
+
+### Validation
+- Private fix commit: `35704245d83804e8b35c570b0f6f1d1b170ae97c`.
+- Live workflow YAML was re-read from the exact fix commit.
+- Public checkpoint: `docs/checkpoints/2026-11-07-validation-evidence-control-1941.md`, commit `4ba2d3b1845b2dd20ca2a55fc72c6116f84a1746`.
+- No provider/API acquisition or duplicate workflow was launched.
+- Execution proof remains pending.
+
+### Remaining blockers
+1. Fresh prospective execution proving the fix.
+2. Durable immutable feature snapshot manifest + values.
+3. Exact prediction → fixture → market → snapshot → model-engine SHA linkage.
+4. Verified settlement provenance/append.
+5. Point-in-time xG and timestamped odds.
+6. Prospective sample/freshness gates.
+7. Any remaining 50-league identity/source admission evidence.
+8. Production scoreability/calibration and eligibility remain fail-closed.
+
+### Highest-value next action
+Inspect the first fresh prospective execution after `35704245d83804e8b35c570b0f6f1d1b170ae97c`; if it completes, audit the snapshot artifacts and historical integrity gate immediately. If it fails, classify only the first new failure.
