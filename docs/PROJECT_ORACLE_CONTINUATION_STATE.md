@@ -413,3 +413,46 @@ Live GitHub run state and job steps were inspected directly. The active run has 
 
 ## Highest-value next action
 Do not launch another workflow. Inspect Run #447 at terminal state; if it succeeds, immediately audit persisted snapshots, exact engine SHA linkage, settlement provenance and governance outputs. If it fails, classify only the first new failure.
+
+
+## Continuous Build Control — prospective evidence execution #447 persistence diagnosis — 2026-11-07
+
+### Finding
+The corrected prospective execution proved the protected-state recovery control and completed every substantive evidence/governance stage. The only failure was the final persistence step.
+
+### Evidence
+- Private prospective run #447: 42401755467.
+- Head SHA: 7d1163b93f82a895b852483ac6c3047d9bae66b7.
+- Steps 04–17 completed successfully, including publication governance, historical-state integrity, prospective shadow gate and production-readiness gate.
+- Publication governance: 79 tests, **OK**.
+- Historical point-in-time audit: **PASS**, 12,836 match rows/state rows, 0 violations.
+- Prospective shadow gate: **COLLECTING**; 12 settled per model over 1 sample day versus required 100 settlements and 8 days.
+- Production readiness: **HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE**; 915 prediction rows, 60 settled rows; no production change made.
+- Immutable snapshot evidence was generated during the run, including `archive/FEATURE_SNAPSHOT_VALUES.csv`.
+- Step 18 failed after creating the evidence commit because `git rebase origin/main` was attempted with unstaged generated changes. The fallback then called `git rebase --abort` when no rebase was in progress, producing exit 128.
+- The failure is therefore an evidence-persistence control defect, not a prediction, governance, chronology, settlement or historical-integrity failure.
+
+### Root Cause
+The persistence step tried to rebase a working tree containing generated but intentionally unstaged files. The subsequent fallback assumed a rebase had started even though Git rejected the operation before creating a rebase state.
+
+### Impact
+The run produced the required evidence and passed the substantive gates, but the evidence commit was not pushed to the private main branch. Production remains fail-closed because persistence/admission is incomplete.
+
+### Fix
+Controlled workflow-only fix committed to private `oracle-football-data`:
+`b812815782b694bf7929d2dc330cb6051f1f6f97`.
+The persistence path now stashes generated working-tree changes before rebasing onto the latest main, then restores them, stages the governed evidence set and pushes the evidence commit. No Oracle V1.6 production logic, probabilities, thresholds, calibration, eligibility or governance was changed.
+
+### Validation
+The live private workflow file was re-read after the fix. No provider experiment, H2H rerun or model change was performed. The next execution is the first valid test of the persistence fix.
+
+### Remaining blockers
+1. Fresh execution must prove durable evidence persistence.
+2. Exact prediction → fixture → market → snapshot → model-engine SHA admission still requires final persisted evidence inspection.
+3. Point-in-time xG provenance and timestamped odds provenance remain open.
+4. Prospective sample/freshness gates remain collecting.
+5. 50-league identity/scope admission remains incomplete where not already evidenced.
+6. Production eligibility remains fail-closed.
+
+### Highest-value next action
+Inspect the next prospective execution triggered by the persistence-fix commit. If persistence succeeds, immediately audit the pushed snapshot manifest/values, exact engine SHA linkage and settlement chain; do not rerun completed specialist work.
