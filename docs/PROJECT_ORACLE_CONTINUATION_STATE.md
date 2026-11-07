@@ -199,7 +199,7 @@ Do not duplicate Run #61. The next controlled action is to obtain a genuinely ne
 
 Finding: Oracle H2H Reporting Run #64 is already pending on main, so no duplicate execution is permitted.
 
-Evidence: Run 42391142276 is pending on head 3d0e171a5343f5dd09bb20be7a45191?; the live H2H builder contains the corrected league initialization; scheduled 50-league source validation Run #4 completed successfully.
+Evidence: Run 42391142276 is pending on head 3d0e171a5343f5dd09bb20be7a45142ff3; the live H2H builder contains the corrected league initialization; scheduled 50-league source validation Run #4 completed successfully.
 
 Root Cause: Remaining H2H evidence is execution-dependent and the equivalent run is already queued.
 
