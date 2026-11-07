@@ -794,3 +794,42 @@ Current bridge and HEAD were re-read directly from GitHub after the audit. No wo
 
 ### Single highest-value next action
 On the next genuinely new governed prospective fixture cohort, verify non-empty immutable feature snapshots, exact prediction-to-snapshot linkage, actual model-engine revision, pre-kickoff chronology and corrected settlement provenance; continue identity reconciliation only from explicit authoritative evidence.
+
+
+## Control-plane update — 2026-11-07 12:57 SAST — OMI identity-bridge count reconciliation
+
+### Finding
+The OMI release-gate register and the continuation state had stale internal identity-bridge counts after the Serbia exact mapping repair. The live research bridge was re-read and independently reconciled before correction.
+
+### Evidence
+- Live bridge contains 50/50 governed identities exactly once.
+- Current mapping states: 20 EVIDENCE_EXACT_UNIQUE; 24 UNMAPPED; 4 CROSS-NAMESPACE_NAME_VARIANT; 1 NAME_VARIANT_UNVERIFIED; 1 CODE_NAMESPACE_CONFLICT.
+- Live 50-league source reconciliation remains PASS: 50/50 validation rows, zero missing/unexpected/duplicate IDs, 26 READY, 24 DATA_GATED, 299 fixtures in the governed window.
+- Corrected OMI report commit: 1543e95d0d8c29a73d7c858cf20cdb2778a86145.
+- Dated checkpoint: docs/checkpoints/2026-11-07-omi-identity-bridge-count-reconciliation-1257.md.
+- No provider/API acquisition, recovery, prediction-engine or Oracle V1.6 model change was performed.
+
+### Root Cause
+The report had retained the pre-Serbia-repair count of 19 exact / 26 unmapped while the live bridge had already advanced to 20 exact / 24 unmapped. The remaining unresolved mappings are still explicitly fail-closed.
+
+### Impact
+OMI release reporting now reflects the live evidence accurately. Production and betting eligibility remain false; no production scope expansion or probability reconstruction is justified.
+
+### Fix
+Updated the OMI release-gate register to 20 exact / 24 unmapped and documented the reconciliation in the dated checkpoint. No mapping was inferred or promoted.
+
+### Validation
+The corrected report and checkpoint were re-read from the live governed branch after their commits. The bridge counts were independently derived from the live 50-row bridge. Source reconciliation remains PASS. Oracle V1.6 production logic, probabilities, thresholds, calibration and governance remain unchanged.
+
+### Remaining blockers
+1. 30/50 internal identity mappings remain non-admissible.
+2. Downstream 50-league production scope remains blocked.
+3. Immutable prediction-to-feature snapshot capture remains incomplete.
+4. Production probability bridge remains blocked.
+5. Point-in-time xG and timestamped odds provenance remain blocked.
+6. Verified settlement/prediction-to-feature-to-settlement linkage remains incomplete.
+7. Current-feed candidate freshness and per-market sample gates remain open.
+8. 80 HTTP-417 provider tasks remain quarantined pending account-side entitlement correction; exhausted transport experiments must not be repeated.
+
+### Single highest-value next action
+Consume the next genuinely new governed prospective fixture/prediction evidence and reconcile it by exact fixture ID + market key + model-engine revision + immutable feature snapshot; do not infer missing identity mappings or production probabilities.
