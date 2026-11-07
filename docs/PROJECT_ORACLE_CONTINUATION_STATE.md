@@ -474,3 +474,21 @@ Private production repository commit: dd8464867467312a78f11f53745c6cbb6366ace0.
 Validation run #588: 42357365438 in progress. Prospective Learning Cycle #438: 42357365453 pending behind cycle #437. Existing historical 900 challenger rows remain immutable and were not rewritten.
 
 Checkpoint: docs/checkpoints/2026-11-07-exact-prediction-engine-commit-attribution.md.
+## Major milestone — evidence-control live re-audit after prediction-engine attribution repair — 2026-11-07 10:59 SAST
+The latest private evidence was re-audited after the exact prediction-engine commit-attribution repair dd8464867467312a78f11f53745c6cbb6366ace0.
+
+Verified private main state:
+- Private HEAD: dd8464867467312a78f11f53745c6cbb6366ace0.
+- Validation workflow run 42357365438 completed successfully; Python syntax/compile validation passed.
+- Prospective Learning Cycle 42357365453 is pending behind the preceding cycle; no duplicate/manual rerun was performed.
+- Prediction archive: 900 unique CHALLENGER prediction rows across 5 governed markets; no Oracle V1.6 production prediction rows.
+- Canonical settlement ledger: 25 unique SETTLED CHALLENGER rows across 5 fixtures; all 25 still have blank settlement_source and event_truth_source.
+- archive/FEATURE_SNAPSHOT_MANIFEST.csv remains header-only (0 persisted snapshot rows); FEATURE_SNAPSHOT_VALUES.csv is absent on private main.
+
+Control interpretation:
+- The prediction-engine attribution repair is code-validated but not yet exercised into a persisted non-empty feature-snapshot artifact. Feature-snapshot evidence gate remains OPEN.
+- Settlement provenance correction is exercised in the generated truth artifact, but the canonical append-only ledger remains unchanged at the 25 pre-correction rows. Do not rewrite historical rows. A fresh corrected settlement append is still required before the settlement provenance gate can close.
+- No new provider/API acquisition was performed. The 80 HTTP-417 tasks remain quarantined.
+- No production/betting evidence is promoted. production_eligible=false; betting_eligible=false.
+
+Highest-value next gate: allow the already-pending governed prospective cycle to execute on the repaired private main, then independently verify non-empty feature snapshot manifest/values, exact prediction-to-snapshot linkage, true prediction-engine commit attribution, pre-kickoff leakage status, and any newly admitted settlement provenance. Do not launch a duplicate cycle while the pending run is queued.
