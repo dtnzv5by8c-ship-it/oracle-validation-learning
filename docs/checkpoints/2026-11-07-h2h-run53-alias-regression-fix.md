@@ -29,3 +29,15 @@ Run #54 failed the alias regression test again on `1. FC Köln` vs `Köln`. Caus
 
 ## Run #55 root cause
 Run #55 still failed `1. FC Köln` vs `Köln` because the alias map contained two groups: the corrected `1fckoln|fckoeln|fckoln|koln|cologne` group was later overridden by the older `fckoeln|koln|cologne` group. This was an alias precedence/duplicate-definition defect, not a missing normalization. Removed the duplicate overriding group in commit `a2581f296fe37c89ba3898f963177425b8c44efb`. Next push-triggered run must re-execute the regression gate before H2H report generation.
+
+## Run #56 — H2H reporting gate passed
+- Run: https://github.com/dtnzv5by8c-ship-it/oracle-validation-learning/actions/runs/42381437445
+- Run #56 status: success; all 19 workflow steps succeeded, including team alias regressions, report build, exact-ID join, artifact upload and quality enforcement.
+- Artifact: oracle-h2h-report-56 (ID 13578018267).
+- H2H report generated for 145 fixtures. 110 have at least one prior H2H; 88 meet the five-meeting minimum; 22 are matched with smaller samples; 35 have zero prior same-league H2H, comprising 22 unresolved identity/code mapping cases and 13 genuine no-prior-meeting cases.
+- Unresolved team/league mapping rate: 22/145 = 15.17%, below the unchanged 20% threshold. Zero-H2H rate: 35/145 = 24.14%. Report status PASS_WITH_REVIEW_ITEMS.
+- Canonical exact Fixture ID join: 145/145 (100%), no unmatched IDs, no fuzzy matching, no Oracle probability changes and no production model changes.
+- Historical archive: 75,849 rows, date range 2018-07-20 to 2026-11-07, extension source OK with zero errors, 63,013 added records, zero duplicate keys after merge, latest archive age 0 days.
+- Remaining review items: 22 unresolved team/league identity rows; 13 genuine no-H2H cases; 57 fixtures have fewer than five H2H meetings; 30 fixtures have 1UP truth rows.
+- This closes the H2H reporting workflow quality gate for this 145-fixture run only. H2H evidence is contextual historical reporting; it is not standalone proof of market predictive value or production eligibility.
+- Oracle V1.6 production model logic, probabilities, thresholds, calibration and betting eligibility remain unchanged.
