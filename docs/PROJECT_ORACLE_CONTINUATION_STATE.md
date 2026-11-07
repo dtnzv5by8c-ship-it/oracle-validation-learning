@@ -148,6 +148,27 @@ Manual execution is required because the GitHub connector cannot dispatch a newl
 
 Production/betting eligibility remains false and Oracle V1.6 production logic/governance are unchanged.
 
+## Major milestone — HTTP-417 access diagnostic: ENTITLEMENT GAP CONFIRMED — 2026-11-07
+Nolan executed the two-call diagnostic on the private repository `main` branch.
+
+- Workflow run: `42346762971`
+- Workflow source commit: `afdde0f4226c9eba8dbe5bb44d133918e20025be`
+- Evidence persisted in private repo commit: `d8ba931c`
+- Exact result: both provider league-list calls returned HTTP 200.
+- Chosen-league account view contained 756 season IDs.
+- Full provider catalogue contained 11,653 season IDs.
+- All 20/20 blocked provider-season IDs were absent from chosen-league access but present in the full provider catalogue.
+- Classification: **ENTITLEMENT_OR_LEAGUE_SELECTION_GAP**.
+- Calls consumed: 2.
+- Blocked registry remains unchanged: 80 tasks.
+
+This establishes the current failure as an account-side chosen-league entitlement/selection gap, not a missing provider-database season. Exact league/season mapping was independently read from the full provider catalogue and matches the 20 blocked partitions recorded above.
+
+Checkpoint: `docs/checkpoints/2026-11-07-http417-access-diagnostic-entitlement-gap-confirmed.md`
+Commit: `6e60be6d97cd3c4019e950f4ed0c38e8b1ff3d5c`.
+
+Next action: FootyStats account owner/support must enable the exact 20 provider seasons for this account. No further recovery calls should be made until entitlement is confirmed. Once access is granted, perform one low-volume, single-season endpoint validation before any wider recovery. Production/betting eligibility remains false.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
