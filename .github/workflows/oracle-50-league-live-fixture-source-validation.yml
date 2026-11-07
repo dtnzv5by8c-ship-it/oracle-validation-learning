@@ -1,0 +1,46 @@
+name: Oracle 50-League Live Fixture Source Validation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout governed validation branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/oracle-50-league-readiness-audit
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependency
+        run: python -m pip install --upgrade pip requests
+
+      - name: Validate 50 governed league fixture sources
+        env:
+          OPENFOOT_API_KEY: ${{ secrets.OPENFOOT_API_KEY }}
+          WINDOW_START: "2026-11-07"
+          WINDOW_END: "2026-11-21"
+        run: python scripts/validate_oracle_50_league_live_fixture_sources.py
+
+      - name: Persist sanitized validation evidence
+        run: |
+          git config user.name "oracle-validation-bot"
+          git config user.email "oracle-validation-bot@users.noreply.github.com"
+          git add artifacts/oracle_50_league_live_fixture_source_validation.json
+          if git diff --cached --quiet; then
+            echo "No evidence change to persist."
+            exit 0
+          fi
+          git commit -m "Persist 50-league live fixture source validation"
+          git push origin HEAD:research/oracle-50-league-readiness-audit
