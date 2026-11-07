@@ -4,6 +4,7 @@ import csv, json, re, unicodedata, hashlib
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+
 ROOT=Path(__file__).resolve().parents[1]
 MATCHES=ROOT/"database/matches.csv"
 ONEUP=ROOT/"database/one_up_truth.csv"
@@ -16,56 +17,124 @@ MAX_ARCHIVE_AGE_DAYS=7
 def norm(s):
     s=unicodedata.normalize("NFKD",(s or "")).encode("ascii","ignore").decode().lower()
     return re.sub(r"[^a-z0-9]","",s)
-ALIASES={
- "rasenballsportleipzig":"rbleipzig","rbleipzig":"rbleipzig","manchesterunited":"manutd","manutd":"manutd","manchesterutd":"manutd",
- "parissaintgermain":"psg","psg":"psg","intermilan":"inter","internazionale":"inter",
- "borussiamgladbach":"borussiamonchengladbach","athleticclub":"athleticbilbao","athbilbao":"athleticbilbao","athleticbilbao":"athleticbilbao",
- "manchestercity":"mancity","mancity":"mancity","tottenhamhotspur":"tottenham","tottenham":"tottenham",
- "nottingham":"nottinghamforest","nottinghamforest":"nottinghamforest","sheffieldunited":"sheffutd","sheffutd":"sheffutd",
- "sheffieldwed":"sheffwed","sheffieldwednesday":"sheffwed","bayerleverkusen":"leverkusen","leverkusen":"leverkusen",
- "acmilan":"milan","milan":"milan","asroma":"roma","roma":"roma","realbetis":"betis","betis":"betis","fcbarcelona":"barcelona","barcelona":"barcelona",
- "gladbach":"borussiamonchengladbach","mgladbach":"borussiamonchengladbach","westhamunited":"westham","westham":"westham",
- "wolverhamptonwanderers":"wolves","wolves":"wolves","cambridgeunited":"cambridgeutd","cambridgeutd":"cambridgeutd",
- "dundeeunited":"dundeeutd","dundeeutd":"dundeeutd","fcemmen":"emmen","emmen":"emmen",
- "denhaag":"adodenhaag","adodenhaag":"adodenhaag","nijmegen":"necnijmegen","nec":"necnijmegen",
- "sittard":"fortunasittard","fortunasittard":"fortunasittard","goaheadeagles":"goaheadeagles","gajewagles":"goaheadeagles",
- "wolfsbergerac":"wolfsberger","wolfsberger":"wolfsberger","wsgtirol":"wsgtirol","tirol":"wsgtirol",
- "fcrapidbucuresti":"rapidbucuresti","rapidbucuresti":"rapidbucuresti",
- "univcraiova":"universitateacraiova","universitateacraiova":"universitateacraiova",
- "redstar":"redstarfc","redstarfc":"redstarfc","stetienne":"saintetienne","saintetienne":"saintetienne",
- "sheffieldwednesday":"sheffwed","stockportcounty":"stockport","stockport":"stockport",
- "austriavienna":"austriawien","austriawien":"austriawien",
- "liberec":"slovanliberec","slovanliberec":"slovanliberec",
- "plzen":"viktoriaplzen","viktoriaplzen":"viktoriaplzen",
- "ostrava":"banikostrava","banikostrava":"banikostrava",
- "brno":"zbrojovkabrno","zbrojovkabrno":"zbrojovkabrno",
- "hannover":"hannover96","hannover96":"hannover96",
- "sgdynamodresden":"dynamodresden","dynamodresden":"dynamodresden",
- "psveindhoven":"psv","psv":"psv",
- "fcgroningen":"groningen","groningen":"groningen",
- "fctwente":"twente","twente":"twente",
- "fcutrecht":"utrecht","utrecht":"utrecht",
- "peczwolle":"zwolle","zwolle":"zwolle",
- "gaeagles":"goaheadeagles","gajewagles":"goaheadeagles",
- "almerecity":"almerecity","fcvolendam":"volendam","volendam":"volendam",
- "legiawarsaw":"legiawarszawa","legiawarszawa":"legiawarszawa","legia":"legiawarszawa",
- "zaglebie":"zaglebie lubin".replace(" ",""),"zaglebie lubin".replace(" ",""):"zaglebie lubin".replace(" ",""),
- "jagielloniabialystok":"jagiellonia","jagiellonia":"jagiellonia",
- "corvinulhunedoara":"corvinul","corvinul":"corvinul",
- "deportivoalaves":"alaves","alaves":"alaves",
- "sportinggijon":"sportinggijon","gijon":"sportinggijon",
- "adceuta":"ceuta","ceuta":"ceuta","realoviedo":"oviedo","oviedo":"oviedo",
- "fcandorra":"andorra","andorra":"andorra","realvalladolid":"valladolid","valladolid":"valladolid",
- "gaziantepfk":"gaziantep","gaziantep":"gaziantep",
- "kasımpaşa":"kasimpasa","kasimpasa":"kasimpasa","samsunspor":"samsunspor"
-}
+
+# Explicit, symmetric, reporting-only identity aliases. Canonical team IDs are
+# used only for historical H2H lookup, never for fixture IDs or Oracle inputs.
+ALIAS_GROUPS=[
+ "rasenballsportleipzig|rbleipzig",
+ "manchesterunited|manutd|manchesterutd",
+ "parissaintgermain|psg",
+ "intermilan|internazionale|inter",
+ "borussiamgladbach|borussiamonchengladbach|gladbach|mgladbach",
+ "athleticclub|athbilbao|athleticbilbao",
+ "manchestercity|mancity",
+ "tottenhamhotspur|tottenham",
+ "nottingham|nottinghamforest",
+ "sheffieldunited|sheffutd",
+ "sheffieldwed|sheffieldwednesday|sheffwed",
+ "bayerleverkusen|leverkusen",
+ "acmilan|milan",
+ "asroma|roma",
+ "realbetis|betis",
+ "fcbarcelona|barcelona",
+ "westhamunited|westham",
+ "wolverhamptonwanderers|wolves",
+ "cambridgeunited|cambridgeutd",
+ "dundeeunited|dundeeutd",
+ "fcemmen|emmen",
+ "denhaag|adodenhaag",
+ "nijmegen|necnijmegen|nec",
+ "sittard|fortunasittard",
+ "wolfsbergerac|wolfsberger",
+ "fcrapidbucuresti|rapidbucuresti",
+ "univcraiova|universitateacraiova",
+ "redstar|redstarfc",
+ "stetienne|saintetienne",
+ "stockportcounty|stockport",
+ "austriavienna|austriawien",
+ "liberec|slovanliberec",
+ "plzen|viktoriaplzen",
+ "ostrava|banikostrava",
+ "brno|zbrojovkabrno",
+ "hannover|hannover96",
+ "sgdynamodresden|dynamodresden",
+ "psveindhoven|psv",
+ "fcgroningen|groningen",
+ "fctwente|twente",
+ "fcutrecht|utrecht",
+ "peczwolle|zwolle",
+ "gaeagles|goaheadeagles",
+ "almerecity|almerecity",
+ "fcvolendam|volendam",
+ "legiawarsaw|legiawarszawa|legia",
+ "zaglebie|zaglebielubin",
+ "jagielloniabialystok|jagiellonia",
+ "corvinulhunedoara|corvinul",
+ "deportivoalaves|alaves",
+ "sportinggijon|gijon",
+ "adceuta|ceuta",
+ "realoviedo|oviedo",
+ "fcandorra|andorra",
+ "realvalladolid|valladolid",
+ "gaziantepfk|gaziantep",
+ "kasimpasa|kasımpaşa",
+ "levanteud|levante",
+ # Additional variants identified from Run #51 diagnostics:
+ "ohleuven|leuven",
+ "cerclebruggeksv|cerclebrugge",
+ "sportingcharleroi|charleroi",
+ "clubbruggekv|clubbrugge",
+ "royaleunionsg|unionstgilloise|uniongilloise|unionsg",
+ "sttruiden|sinttruiden",
+ "zultewaregem|waregem",
+ "fkpardubice|pardubice",
+ "borussiadortmund|dortmund",
+ "mainz05|mainz",
+ "fckoeln|koln|cologne",
+ "herthaberlin|herthabsc",
+ "fcnuernberg|nurnberg|nürnberg",
+ "fcheidenheim|heidenheim",
+ "eintrachtfrankfurt|frankfurt",
+ "sheffieldutd|sheffieldunited|sheffutd",
+ "clermontfoot|clermont",
+ "paufootballclub|pau",
+ "jongutrecht|jongfcutrecht",
+ "denbosch|fcdenbosch",
+ "casapiaac|casapia",
+ "slaskwroclaw|slask",
+ "widzewlodz|widzew",
+ "pogon szczecin|pogonszczecin",
+ "academica|academico",
+ "felgueiras|fcfelgueiras",
+ "leixoes|leixoes",
+ "farense|scfarense",
+ "benficab|slbenficab",
+ "estreladaamadora|estrela",
+ "malaga|malagacf",
+ "racing santander|racingsantander",
+ "cadizcf|cadiz",
+ "cordoba|cordobacf",
+ "atlmad|atleticomadrid|atlmadrid",
+ "americafc|america",
+ "nacionalmadeira|nacional",
+ "academicodeviseu|academicodeviseu",
+ "amedspor|amed"
+]
+ALIASES={}
+for group in ALIAS_GROUPS:
+    parts=[norm(x) for x in group.split("|")]
+    canonical=parts[0]
+    for p in parts: ALIASES[p]=canonical
+
 def team(s):
-    k=norm(s); return ALIASES.get(k,k)
+    k=norm(s)
+    return ALIASES.get(k,k)
+
 def rows(p):
     with p.open(newline="",encoding="utf-8-sig") as f:return list(csv.DictReader(f))
 def rate(n,d):return round(100*n/d,1) if d else ""
 def slug(s):
-    # Must remain byte-for-byte consistent with the canonical Oracle publication adapter.
+    # Keep exact source team labels in the canonical Oracle Fixture ID.
     return re.sub(r"[^a-z0-9]+","-",str(s).lower()).strip("-")
 def fixture_id(r):
     required=("league_code","date","home_team","away_team")
@@ -73,6 +142,7 @@ def fixture_id(r):
         raise ValueError("Cannot form canonical Fixture ID: required governed fixture field missing")
     return f"{r['league_code']}-{r['date']}-{slug(r['home_team'])}-{slug(r['away_team'])}"
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+
 def main():
     now=datetime.now(timezone.utc)
     for p in (MATCHES,ONEUP,FIXTURES):
@@ -83,7 +153,6 @@ def main():
     if not needed.issubset(ms[0]):raise SystemExit("Unexpected matches.csv columns")
     latest=max(r["date"][:10] for r in ms if r.get("date"))
     age=(now.date()-datetime.strptime(latest,"%Y-%m-%d").date()).days
-    # The historical H2H archive is intentionally historical; do not mistake its last match date for fixture-feed freshness.
     league_name_to_code={norm(r.get("league","")):r.get("league_code","") for r in ms if r.get("league") and r.get("league_code")}
     hist=defaultdict(list); truth=defaultdict(list); team_presence=defaultdict(set); team_leagues=defaultdict(set); pair_leagues=defaultdict(set)
     for r in ms:
@@ -102,7 +171,10 @@ def main():
             truth[(r.get("league_code","") or league_name_to_code.get(norm(r.get("league","")),""),tuple(sorted((team(r["home_team"]),team(r["away_team"])))) )].append(r)
     out=[]; unmatched=[]; no_history=[]; diagnostics=[]
     for f in fs:
-        h,a=f.get("home_team",""),f.get("away_team",""); pair=tuple(sorted((team(h),team(a)))); league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),""); date=f.get("date","")[:10]
+        h,a=f.get("home_team",""),f.get("away_team","")
+        pair=tuple(sorted((team(h),team(a))))
+        league=f.get("league_code","") or league_name_to_code.get(norm(f.get("league","")),"")
+        date=f.get("date","")[:10]
         games=sorted([g for g in hist[(league,pair)] if not date or g[0]<date])
         n=len(games); hw=dr=aw=bt=o15=o25=u35=0
         for d,mh,ma,gh,ga in games:
@@ -120,26 +192,28 @@ def main():
         rates={"BTTS Yes":rate(bt,n),"Over 1.5":rate(o15,n),"Over 2.5":rate(o25,n),"Under 3.5":rate(u35,n)}
         eligible=[(k,v) for k,v in rates.items() if v!=""]
         best=max(eligible,key=lambda z:z[1]) if n>=MIN_SAMPLE and eligible else ("","")
-        if n>=MIN_SAMPLE:
-            status="MATCHED"
-        elif n:
-            status="MATCHED - SMALL SAMPLE"
+        if n>=MIN_SAMPLE: status="MATCHED"
+        elif n: status="MATCHED - SMALL SAMPLE"
         else:
             home_known=team(h) in team_presence.get(league,set())
             away_known=team(a) in team_presence.get(league,set())
             other_leagues=sorted(x for x in pair_leagues.get(pair,set()) if x and x!=league)
             if other_leagues:
                 diagnosis="POSSIBLE_LEAGUE_CODE_MISMATCH"
-                detail="Same normalized team pair exists in other league code(s): "+",".join(other_leagues)
+                detail="Same canonical team pair exists in other league code(s): "+",".join(other_leagues)
             elif not home_known or not away_known:
                 diagnosis="TEAM_NOT_FOUND_IN_LEAGUE_ARCHIVE"
                 missing=";".join(name for name,known in ((h,home_known),(a,away_known)) if not known)
-                detail="Team(s) absent from historical records for this league: "+missing
+                detail="Team(s) absent from historical records for this league after canonical alias reconciliation: "+missing
             else:
                 diagnosis="NO_HISTORICAL_H2H"
-                detail="Both teams appear in this league archive, but no prior meeting was found within the archive coverage window."
+                detail="Both teams appear in this league archive, but no prior meeting was found within archive coverage."
             status=diagnosis
-            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,"home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,"home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h),set()) if x and x!=league)),"away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a),set()) if x and x!=league)),"other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
+            record={"date":date,"league":league,"home_team":h,"away_team":a,"status":diagnosis,
+                    "home_team_found_in_league_archive":home_known,"away_team_found_in_league_archive":away_known,
+                    "home_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(h),set()) if x and x!=league)),
+                    "away_team_other_league_codes":";".join(sorted(x for x in team_leagues.get(team(a),set()) if x and x!=league)),
+                    "other_league_codes_with_pair":";".join(other_leagues),"diagnostic_detail":detail}
             diagnostics.append(record)
             if diagnosis=="NO_HISTORICAL_H2H": no_history.append(record)
             else: unmatched.append(record)
@@ -148,7 +222,13 @@ def main():
         note=f"Meetings={n}; latest H2H={last or 'none'}; latest archive result={latest}; 1UP truth rows={len(ts)}."
         if n<MIN_SAMPLE:note+=f" Fewer than {MIN_SAMPLE} H2H meetings: no best market promoted."
         if not ts:note+=" No matching 1UP truth rows; 1UP unavailable."
-        out.append({"fixture_id":fixture_id(f),"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,"H2H_Meetings":n,"H2H_Latest_Meeting":last,"H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "","H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),"H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,"H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,"H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
+        out.append({"fixture_id":fixture_id(f),"league_code":f.get("league_code",""),"date":date,"home_team":h,"away_team":a,
+                    "H2H_Meetings":n,"H2H_Latest_Meeting":last,
+                    "H2H_1X2_Rate":f"Home {rate(hw,n)}% / Draw {rate(dr,n)}% / Away {rate(aw,n)}%" if n else "",
+                    "H2H_BTTS_Yes_%":rate(bt,n),"H2H_Over_1_5_%":rate(o15,n),"H2H_Over_2_5_%":rate(o25,n),
+                    "H2H_Under_3_5_%":rate(u35,n),"H2H_Home_1UP_%":h1,"H2H_Away_1UP_%":a1,
+                    "H2H_Best_Supported_Market":best[0],"H2H_Risk_Profile":risk,"H2H_Evidence_Status":status,
+                    "H2H_Notes":note,"archive_latest_match_date":latest,"archive_age_days":age})
     OUT.mkdir(parents=True,exist_ok=True)
     diagnostic_fields=["date","league","home_team","away_team","status","home_team_found_in_league_archive","away_team_found_in_league_archive","home_team_other_league_codes","away_team_other_league_codes","other_league_codes_with_pair","diagnostic_detail"]
     for name,data,fields in [
@@ -158,13 +238,29 @@ def main():
         ("h2h_match_diagnostics.csv",diagnostics,diagnostic_fields)]:
         with (OUT/name).open("w",newline="",encoding="utf-8-sig") as f:
             w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(data)
-    unmatched_rate=round(len(unmatched)/len(fs),4) if fs else 1.0
+    unresolved_rate=round(len(unmatched)/len(fs),4) if fs else 1.0
+    zero_h2h_rate=round(len(diagnostics)/len(fs),4) if fs else 1.0
     sample_ge5=sum(int(r["H2H_Meetings"])>=MIN_SAMPLE for r in out)
     gate_failures=[]
-    if unmatched_rate>MAX_UNMATCHED_RATE: gate_failures.append(f"unmatched_rate {unmatched_rate:.1%} exceeds {MAX_UNMATCHED_RATE:.0%}")
+    if unresolved_rate>MAX_UNMATCHED_RATE:
+        gate_failures.append(f"unresolved_team_league_mapping_rate {unresolved_rate:.1%} exceeds {MAX_UNMATCHED_RATE:.0%}")
     if age>MAX_ARCHIVE_AGE_DAYS: gate_failures.append(f"historical archive is {age} days old; freshness limit is {MAX_ARCHIVE_AGE_DAYS}")
-    audit={"pipeline":"ORACLE-H2H-REPORTING-1.1","generated_utc":now.isoformat(),"source_files":{str(p.relative_to(ROOT)):{"sha256":sha(p),"bytes":p.stat().st_size} for p in (MATCHES,ONEUP,FIXTURES)},"historical_match_rows":len(ms),"fixtures_processed":len(fs),"fixtures_with_h2h":sum(int(r["H2H_Meetings"])>0 for r in out),"fixtures_unmatched":len(unmatched),"fixtures_without_historical_h2h":len(no_history),"fixtures_diagnosed_zero_h2h":len(diagnostics),"unmatched_rate":unmatched_rate,"unmatched_rate_definition":"unresolved team/league mapping cases only; genuine no-H2H cases reported separately","fixtures_with_minimum_5_h2h":sample_ge5,"fixtures_with_1up_truth":sum(bool(r["H2H_Home_1UP_%"]!="" or r["H2H_Away_1UP_%"]!="") for r in out),"latest_historical_match_date":latest,"archive_age_days":age,"quality_gates":{"max_unmatched_rate":MAX_UNMATCHED_RATE,"max_archive_age_days":MAX_ARCHIVE_AGE_DAYS,"failures":gate_failures},"minimum_h2h_sample":MIN_SAMPLE,"production_model_changed":False,"status":"FAIL_QUALITY_GATES" if gate_failures else ("PASS_WITH_REVIEW_ITEMS" if unmatched or sample_ge5<len(out) else "PASS")}
+    audit={"pipeline":"ORACLE-H2H-REPORTING-1.2","generated_utc":now.isoformat(),
+           "source_files":{str(p.relative_to(ROOT)):{"sha256":sha(p),"bytes":p.stat().st_size} for p in (MATCHES,ONEUP,FIXTURES)},
+           "historical_match_rows":len(ms),"fixtures_processed":len(fs),
+           "fixtures_with_h2h":sum(int(r["H2H_Meetings"])>0 for r in out),
+           "fixtures_unmatched":len(unmatched),"fixtures_without_historical_h2h":len(no_history),
+           "fixtures_diagnosed_zero_h2h":len(diagnostics),
+           "unresolved_team_league_mapping_rate":unresolved_rate,
+           "zero_h2h_rate":zero_h2h_rate,
+           "unmatched_rate_definition":"unresolved team/league identity mapping cases only; genuine no-H2H cases reported separately",
+           "fixtures_with_minimum_5_h2h":sample_ge5,
+           "fixtures_with_1up_truth":sum(bool(r["H2H_Home_1UP_%"]!="" or r["H2H_Away_1UP_%"]!="") for r in out),
+           "latest_historical_match_date":latest,"archive_age_days":age,
+           "quality_gates":{"max_unresolved_team_league_mapping_rate":MAX_UNMATCHED_RATE,
+                            "max_archive_age_days":MAX_ARCHIVE_AGE_DAYS,"failures":gate_failures},
+           "minimum_h2h_sample":MIN_SAMPLE,"production_model_changed":False,
+           "status":"FAIL_QUALITY_GATES" if gate_failures else ("PASS_WITH_REVIEW_ITEMS" if unmatched or sample_ge5<len(out) else "PASS")}
     (OUT/"h2h_audit.json").write_text(json.dumps(audit,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(audit,indent=2))
-    # Do not abort before artifacts are uploaded; workflow evaluates this audit after upload.
 if __name__=="__main__":main()
