@@ -102,3 +102,6 @@ A prospective prediction row may contain a non-empty feature_snapshot_id and pre
 
 ## 2026-11-07 — Workflow commit is not necessarily model-code provenance
 Do not populate `model_code_sha` from the workflow `GITHUB_SHA` unless that commit is proven to contain the exact prediction-engine revision. A workflow may be triggered by a settlement, reporting or governance-only commit. Production evidence requires the actual model-engine revision to be captured separately and immutably.
+
+## 2026-11-07 — Code presence must be verified, not inferred from call sites
+A repair is not complete merely because the publication adapter references a new helper. Verify the persisted source contains the helper implementation, compile/execute it, and inspect the resulting artifact before closing an evidence gate. The feature-snapshot gate remains open until a fresh governed run produces non-empty snapshot artifacts and exact linkage.
