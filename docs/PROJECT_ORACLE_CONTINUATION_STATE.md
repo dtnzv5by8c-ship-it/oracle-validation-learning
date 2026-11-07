@@ -576,3 +576,23 @@ A read-only validator has been added against the canonical 50-league prospective
 - The validator is intentionally read-only against Oracle data/model state; it only persists sanitized source-validation evidence.
 
 Validation is not yet considered passed until a real workflow execution produces the 50-league result artifact and exact board reconciliation is completed.
+
+
+## Major milestone — 50-league fixture board reconciliation control added — 2026-11-07
+The live 50-league source validator now has a deterministic identity-reconciliation control between raw provider evidence and any future downstream scope decision.
+
+- Reconciliation script: `scripts/reconcile_oracle_50_league_fixture_source_validation.py`
+- Required controls:
+  - exactly 50 governed registry rows
+  - exactly 50 validation rows
+  - exact governed league-ID set equality
+  - zero missing IDs
+  - zero unexpected IDs
+  - zero duplicate IDs
+- Output: `artifacts/oracle_50_league_fixture_source_reconciliation.json`
+- The default-branch scheduled validation workflow now runs the reconciliation immediately after live source validation and persists both sanitized artifacts.
+- Reconciliation commit: `0e03534b44dd0b6eaca56f19a3a61528ed1d5a01`
+- Workflow integration commit: `21363c4da6a336a542a0e44b9e9f279a6cb63228`
+- Checkpoint: `docs/checkpoints/2026-11-07-50-league-fixture-board-reconciliation-control.md`
+
+Important: this is a control-plane/research milestone only. The live source-validation gate is still **NOT PASSED** until a genuine scheduled/manual workflow execution produces the validation artifact and the reconciliation returns PASS. Do not expand the private production 27-league allow-list before that evidence exists. Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.
