@@ -26,7 +26,7 @@ IT1,Italy Serie A,17084,comp_serie_a_it,I1,scripts/build_oracle_team_dna_v2.py L
 IT2,Italy Serie B,17404,comp_serie_b_it,I2,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
 JPN1,Japan J1 League,17115,comp_j1_league_jpn,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 MEX1,Mexico Liga MX,17099,comp_liga_mx_mex,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
-NED1,Netherlands Eredivisie,17097,comp_eredivisie_nl,N1,scripts/build_oracle_team_dna_v2.py LEAGUE_NAME_TO_CODE,EVIDENCE_EXACT_UNIQUE,FALSE
+NED1,Netherlands Eredivisie,17097,comp_eredivisie_nl,N1,conflicting production namespace evidence: build_27_league_dna_lab.py assigns N1 to Norway while restore_historical_match_spine.py and ingest_upcoming_fixtures.py assign N1 to Netherlands,CODE_NAMESPACE_CONFLICT,TRUE
 NOR1,Norway Eliteserien,16558,comp_eliteserien_nor,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 PAR1,Paraguay Division Profesional,16533,comp_primera_division_par,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
 PER1,Peru Primera División,16905,comp_liga_1_per,,canonical 50-league registry + live internal mapping audit,UNMAPPED,TRUE
