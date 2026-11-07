@@ -100,3 +100,39 @@ Removed only the stray syntax fragment from `scripts/build_h2h_report.py`. No al
 
 ## Highest-value next action
 Allow Run #61 to complete, then inspect its actual H2H artifacts and gate result. Do not duplicate the run while it is active.
+
+
+## Validation & Evidence Control — 2026-11-07 17:36
+
+### Finding
+H2H Reporting Run #61 is now terminally failed; it is not an active/pending run and must not be treated as a live gate execution.
+
+### Evidence
+- Run #61: 42386373995, head commit 596f8c920e7fd6959005ffc78a8e403ccc925a51.
+- Job 128444530075 completed with failure.
+- Archive extension step passed; the failure occurred at "Build development-only prospective challenger settlement audit".
+- H2H build, identity gates, scorecards and research experiments were skipped after the upstream failure.
+- Current live main is a22d44dbe5ff11eab0fa5f355691332d2098a06c.
+
+### Root Cause
+Run #61 did not reach the H2H build/gate stage. The latest recorded cause remains the reporting-layer syntax correction path; no evidence exists that the H2H quality gate itself failed.
+
+### Impact
+No new H2H identity admission evidence is available. The governed 50-league identity/source gate remains unresolved where not already admitted. Production readiness remains fail-closed. No Oracle V1.6 production artifact was changed.
+
+### Fix
+No new code or workflow rerun was performed in this control cycle. The prior syntax correction was already exercised by Run #61 and the run outcome was recorded. A duplicate rerun is not justified without a new controlled trigger or explicit workflow dispatch capability.
+
+### Validation
+Live GitHub was re-read after the audit: Run #61 is completed/failure, no equivalent active run was found, and main remains at a22d44dbe5ff11eab0fa5f355691332d2098a06c. The current continuation state is being aligned to that evidence.
+
+### Remaining blockers
+1. H2H quality/identity evidence still needs a successful build run after the syntax repair.
+2. Immutable production prediction-to-feature-snapshot evidence remains incomplete.
+3. Point-in-time xG and timestamped odds provenance remain open.
+4. Verified settlement provenance remains incomplete for the challenger cohort.
+5. Production scoreability and eligibility remain false.
+6. 80 HTTP-417 provider tasks remain quarantined.
+
+### Highest-value next action
+Do not duplicate Run #61. The next controlled action is to obtain a genuinely new successful H2H execution against the corrected live code, while independently advancing immutable prediction/feature/settlement evidence if an admissible cohort becomes available. No provider acquisition is justified by this failure alone.
