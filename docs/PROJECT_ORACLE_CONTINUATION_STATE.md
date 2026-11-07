@@ -193,3 +193,20 @@ Do not duplicate Run #61. The next controlled action is to obtain a genuinely ne
 - Do NOT rerun the failed job from the old run because that would execute the old commit. A fresh run on the corrected main commit is required.
 - Preserve Actions-minute control: use public validation repo; do not spend private Actions minutes on this H2H repair.
 - Next validation target: fresh H2H run on d038786d...; inspect 145/145 fixture coverage, fuzzy identity results, no-H2H and <5-H2H classifications, then close H2H as non-blocking.
+
+
+## Continuous Build Control — 2026-11-07 18:23 SAST
+
+Finding: Oracle H2H Reporting Run #64 is already pending on main, so no duplicate execution is permitted.
+
+Evidence: Run 42391142276 is pending on head 3d0e171a5343f5dd09bb20be7a45191?; the live H2H builder contains the corrected league initialization; scheduled 50-league source validation Run #4 completed successfully.
+
+Root Cause: Remaining H2H evidence is execution-dependent and the equivalent run is already queued.
+
+Impact: H2H quality-gate evidence is not yet available; production remains fail-closed.
+
+Fix: No code change or rerun. Read-only control audit only.
+
+Validation: Live state, lessons learned, H2H builder, and Actions run status were re-read. No duplicate workflow launched.
+
+Highest-value next action: allow Run #64 to execute, then inspect actual H2H artifacts and quality gates.
