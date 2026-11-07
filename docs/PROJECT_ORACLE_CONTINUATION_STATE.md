@@ -1159,3 +1159,37 @@ Updated only the research/control-plane OMI release-gate report. No provider acq
 
 ### Single highest-value next action
 Consume the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and validate, end-to-end, immutable snapshot manifest/values, exact fixture+market+model-engine linkage, pre-kickoff chronology and corrected settlement provenance.
+
+
+## Major milestone — validation/evidence read-only audit — 2026-11-07 16:36 SAST
+
+### Finding
+No newly admissible post-repair prospective cohort was found. This run therefore made no evidence-changing code or data change.
+
+### Evidence
+- Live public branch HEAD: `08eab911f18388d5a43b03229fff02c596dd4c03`.
+- Latest public history remains the 16:04 OMI evidence dependency audit; no intervening validation/evidence commit was present.
+- Latest branch-triggered validation runs inspected are completed; no equivalent pending/running validation run was identified that could supply the missing prospective evidence.
+- FEATURE_SNAPSHOT_MANIFEST remains header-only and FEATURE_SNAPSHOT_VALUES remains absent according to the canonical state.
+- The 25 historical settled challenger rows remain immutable with blank canonical settlement provenance; corrected truth provenance is not promoted retroactively.
+
+### Root Cause
+The remaining blocker is execution evidence maturity: the repaired prospective chain has not yet produced a fresh, independently auditable immutable feature snapshot and settlement cohort.
+
+### Impact
+Production scoreability, production performance/calibration, confidence/risk-band evidence and governed production readiness remain fail-closed.
+
+### Fix
+No change made. Repeating completed ingestion, repair, reconciliation, OMI reporting, settlement rewriting or provider acquisition would not address the actual evidence gap.
+
+### Validation
+- Live HEAD inspected before action.
+- Continuation state, lessons and latest checkpoint read.
+- Recent branch history and Actions state inspected.
+- No duplicate workflow launched.
+- No provider/API call made.
+- Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance unchanged.
+- New checkpoint: `docs/checkpoints/2026-11-07-validation-evidence-control-1636.md`.
+
+### Single highest-value next action
+Inspect the first genuinely completed prospective cycle after the snapshot/YAML/namespace repairs and, if present, validate immutable snapshot manifest/values, exact prediction-to-feature linkage, model-engine revision, pre-kickoff chronology and corrected settlement provenance. If no such cycle exists and workflow dispatch is genuinely gated, manual dispatch is the only meaningful action.
