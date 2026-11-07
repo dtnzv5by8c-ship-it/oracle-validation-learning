@@ -456,3 +456,43 @@ The live private workflow file was re-read after the fix. No provider experiment
 
 ### Highest-value next action
 Inspect the next prospective execution triggered by the persistence-fix commit. If persistence succeeds, immediately audit the pushed snapshot manifest/values, exact engine SHA linkage and settlement chain; do not rerun completed specialist work.
+
+
+## Validation & Evidence Control — durable prospective snapshot persistence — 2026-11-07 21:39 SAST
+
+### Finding
+The durable prospective snapshot persistence gate is now producing non-empty immutable evidence on private main. The persistence failure from Run #447 is no longer the immediate blocker.
+
+### Evidence
+- Private evidence commit: `b44e71c067455f9d0880ea936f298d30796313a6`.
+- FEATURE_SNAPSHOT_MANIFEST.csv: 3 rows.
+- FEATURE_SNAPSHOT_VALUES.csv: 3 rows.
+- Corresponding prediction ledger rows: 15, covering 3 fixtures × 5 markets under run `ORC-20261107T193056Z-7E15A3`.
+- Exact model code SHA: `340d48e480ff55285a372fafa344fd39cdf4c360`.
+- Exact model-engine commit SHA: `b812815782b694bf7929d2dc330cb6051f1f6f97`.
+- All persisted manifest rows report leakage PASS and missingness COMPLETE.
+- Run #447 substantive publication governance and historical point-in-time integrity passed before the persistence defect; persistence is now durable in the private evidence commit.
+
+### Root Cause
+The prior immediate blocker was Step 18 evidence persistence sequencing. That has been corrected and durable evidence now exists. The remaining evidence-control issue is metadata completeness/semantic validation, not snapshot generation.
+
+### Impact
+The immutable snapshot gate has materially advanced but is not yet fully admissible for production. All three manifest rows have blank `run_id`, preventing complete execution-level lineage. Snapshot values also contain NaN fields despite `missingness_status=COMPLETE`; this requires semantic validation rather than assumption.
+
+### Fix
+No model, probability, threshold, calibration, eligibility or governance change. No duplicate private run or provider acquisition was triggered. The public control plane records the durable evidence and the remaining defects.
+
+### Validation
+Private GitHub files were re-read after the evidence commit. Prediction Fixture IDs and snapshot IDs align for the three persisted fixtures; model-engine SHA is explicit and consistent. Public checkpoint created at `docs/checkpoints/2026-11-07-validation-evidence-control-2139.md`.
+
+### Remaining blockers
+1. Exact prediction → fixture → market → snapshot → execution/run-ID linkage.
+2. Missingness semantic validation.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Prospective settlement/sample/freshness evidence.
+6. Remaining 50-league identity/scope admission evidence.
+7. Production scoreability/calibration and final eligibility.
+
+### Highest-value next action
+Resolve the persisted snapshot run-ID lineage and validate missingness semantics without consuming another private acquisition cycle; then advance xG/odds/settlement evidence independently.
