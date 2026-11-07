@@ -53,3 +53,6 @@ The two-call diagnostic compared the exact 20 blocked provider-season IDs agains
 
 ## 2026-11-07 HTTP-417 negative recovery lesson
 Targeted recovery attempt #1 completed successfully after 300 provider requests but recovered **0/80** tasks. All tested transport variants continued to produce HTTP 417 / invalid responses. This is a valid negative evidence result: the current recovery mechanism is exhausted and must not be repeated without a materially different provider-side or acquisition mechanism. The blocked registry remains authoritative at 80 tasks.
+
+## 2026-11-07 current prediction archive lesson
+Always audit the current private `oracle-football-data/main` archive before relying on older validation snapshots. The current canonical `archive/PREDICTION_LEDGER.csv` contains 555 immutable prospective prediction rows across 111 fixtures and 5 model/market rows, all marked CHALLENGER, with complete prediction/provenance fields and 555/555 chronology passes. The canonical settlement ledger is still header-only. Older statements describing the current prediction ledger as header-only or 210 rows are stale and must not be repeated. The remaining evidence bottleneck is settlement linkage and scoreability, not prediction capture.
