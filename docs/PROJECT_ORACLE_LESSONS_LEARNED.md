@@ -88,3 +88,7 @@ The private settlement truth-builder correction `3fefb69ef0f72941ee0fdc0e0a571a2
 The canonical append-only settlement ledger was not retroactively rewritten: its 25 pre-correction settled rows still have blank provenance. Do not mutate historical ledger rows merely to backfill a control field. Require a fresh legitimate settlement append using the corrected builder before calling the ledger provenance gate closed.
 
 The latest private production-readiness manifest reports 900 prediction rows and 25 settled rows; all remain CHALLENGER/shadow evidence and production promotion remains false.
+
+
+## 2026-11-07 — Settlement provenance admission must fail closed
+The corrected truth builder now emits settlement/event-truth provenance, but live audit showed that the downstream feeder could previously append a SETTLED row with blank provenance if stale/old truth reached it. The feeder was hardened in private commit `ee77a592d71f00bf0033f7dc1f0f65f0873138a1` to reject any newly admitted SETTLED row missing `settlement_source` or `event_truth_source`. Existing append-only historical rows are not rewritten. Provenance must therefore be enforced both at truth creation and at ledger admission.
