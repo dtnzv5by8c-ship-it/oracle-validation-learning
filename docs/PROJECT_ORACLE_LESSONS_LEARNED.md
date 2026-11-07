@@ -92,3 +92,7 @@ The latest private production-readiness manifest reports 900 prediction rows and
 
 ## 2026-11-07 — Settlement provenance admission must fail closed
 The corrected truth builder now emits settlement/event-truth provenance, but live audit showed that the downstream feeder could previously append a SETTLED row with blank provenance if stale/old truth reached it. The feeder was hardened in private commit `ee77a592d71f00bf0033f7dc1f0f65f0873138a1` to reject any newly admitted SETTLED row missing `settlement_source` or `event_truth_source`. Existing append-only historical rows are not rewritten. Provenance must therefore be enforced both at truth creation and at ledger admission.
+
+
+## 2026-11-07 — Prediction IDs do not equal production evidence
+The historical 2026-10-09 through 2026-10-17 archive contains 210 immutable challenger rows across 42 fixtures with prediction/fixture identity, timestamps, feature snapshot IDs, source manifest hashes and pre-match state hashes. This proves ledger-level identity and chronology, but not production scoreability. Blank calibrated probabilities and non-production model/calibration fields keep the population research/shadow only. Feature snapshot contents and verified settlement must still be independently admissible.
