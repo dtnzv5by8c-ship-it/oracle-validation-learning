@@ -23,6 +23,9 @@ This is the persistent anti-repetition register for Project Oracle. Read it toge
 ## 2026-11-07 reconciliation lesson
 The FootyStats provider recorded `57fe9e...` as its manifest blob/ref, while the exact GitHub manifest URL referenced by the provider resolves to actual blob SHA `6a916c...`. The manifest contents are identical and the 100 receipt task IDs match 100/100 current governed tasks. A differing provider-recorded SHA can therefore represent a ref/version identifier rather than a content mismatch. Always resolve the referenced artifact and compare content/task identity before declaring incompatibility.
 
+## 2026-11-07 manifest lesson
+The provider receipt field `57fe9e...` must be resolved as a repository reference before comparing it to a Git blob SHA. Direct retrieval at that reference and at the governed branch produced the same blob `6a916c...`, identical 116,108-byte content, and 100/100 task-ID matches. The manifest compatibility gate is closed. Do not reopen or repeat this reconciliation.
+
 ## Current blockers
 - 80 HTTP-417 provider tasks remain quarantined.
 - Canonical production prediction → settlement ledger is header-only.
