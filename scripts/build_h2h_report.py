@@ -26,7 +26,7 @@ ALIAS_GROUPS=[
  "parissaintgermain|psg",
  "intermilan|internazionale|inter",
  "borussiamgladbach|borussiamonchengladbach|gladbach|mgladbach",
- "1fckoln|fckoeln|koln|cologne",
+ "1fckoln|fckoeln|fckoln|koln|cologne",
  "bohemians|bohemians1905",
  "athleticclub|athbilbao|athleticbilbao",
  "manchestercity|mancity",
