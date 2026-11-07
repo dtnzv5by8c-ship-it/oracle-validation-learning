@@ -1,6 +1,6 @@
 # PROJECT ORACLE — CANONICAL CONTINUATION STATE
 
-Last updated: 2026-11-07 10:xx SAST — prospective feature-snapshot capture gap confirmed
+Last updated: 2026-11-07 10:xx SAST — exact prediction-engine commit attribution repair
 Governed branch: `research/oracle-50-league-readiness-audit`
 
 ## Current objective
@@ -464,3 +464,13 @@ Current release-critical blockers remain:
 The 80 HTTP-417 tasks remain quarantined and excluded. The 900 historical challenger rows remain immutable research/shadow evidence; no retroactive feature snapshots are fabricated. Production and betting eligibility remain false.
 
 Next OMI action is deterministic consumption of the next canonical Evidence/Validation outputs and exact-ID/market-key reconciliation into the existing matrix. No manual OMI dispatch is required for this milestone.
+
+
+## Major milestone — exact prediction-engine commit attribution repaired — 2026-11-07
+The prospective publication adapter now records model_engine_commit_sha separately from the existing model_code_sha Git blob SHA. This closes the identified attribution-control defect for newly generated challenger evidence without changing Oracle V1.6 production logic or governance.
+
+Private production repository commit: dd8464867467312a78f11f53745c6cbb6366ace0.
+
+Validation run #588: 42357365438 in progress. Prospective Learning Cycle #438: 42357365453 pending behind cycle #437. Existing historical 900 challenger rows remain immutable and were not rewritten.
+
+Checkpoint: docs/checkpoints/2026-11-07-exact-prediction-engine-commit-attribution.md.
