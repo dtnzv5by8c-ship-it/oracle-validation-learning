@@ -248,3 +248,26 @@ No workflow was launched, no duplicate run was created, no provider/API call was
 
 ### Next OMI action
 Consume Run #62 only after successful completion and persisted/reconciled artifact validation; then update G07 and affected market/league readiness classifications.
+
+## 2026-11-07 20:00 SAST — prospective evidence gate audit
+
+### Finding
+The latest private prospective cycle does not provide admissible OMI evidence because it failed before the evidence-persistence and production-readiness stages. The blocker is an upstream recovery-contract/hash defect, not an OMI reporting defect.
+
+### Evidence
+- Oracle Prospective Learning Cycle #443: run `42398165797`, head `35704245d83804e8b35c570b0f6f1d1b170ae97c`, terminal failure.
+- Stages 01–12 passed, including governed fixture refresh, protected historical-state preservation/restoration, prediction publication, chronology, current truth, settlement truth and learning-ledger feed.
+- Stage 13 publication governance failed; stages 14–18 were skipped.
+- Failure: `CHALLENGER_GATE_FAILURE: recovery artifact hash mismatch: database/prematch_team_state.csv`.
+- Observed SHA-256: `77fc03b51df7c93e4b25974ce59ac6e4b736b9e2d75deb9fd633015f5e8c4ffd`.
+- Expected SHA-256: `1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78`.
+- Dataset-identity validation failed on the same underlying artifact mismatch. This is one evidence/recovery-contract defect, not a model failure.
+
+### OMI decision
+Do not promote any transient Run #443 prediction, snapshot identifier, settlement or market result into production evidence. The feature-snapshot, exact prediction-to-snapshot-engine-SHA, verified-settlement and production-scoreability gates remain open.
+
+### Required upstream action
+Repair the recovery-hash compatibility defect without weakening or rewriting the historical identity contract, then run one fresh controlled prospective cycle. OMI will consume only persisted, independently auditable snapshot manifest/values and exact prediction/fixture/market/model linkage from that cycle.
+
+Production eligibility: FALSE.
+Betting eligibility: FALSE.
