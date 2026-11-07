@@ -136,3 +136,47 @@ Live GitHub was re-read after the audit: Run #61 is completed/failure, no equiva
 
 ### Highest-value next action
 Do not duplicate Run #61. The next controlled action is to obtain a genuinely new successful H2H execution against the corrected live code, while independently advancing immutable prediction/feature/settlement evidence if an admissible cohort becomes available. No provider acquisition is justified by this failure alone.
+
+## Control-plane update — H2H non-blocking + actions-minute protection — 2026-11-07 17:45 SAST
+
+### Current live H2H execution
+- Run #62: 42387447956
+- Head SHA: 4bb9924d0ee720e812b551a40254db1a072ef1a2
+- Status at checkpoint: IN_PROGRESS
+- Archive extension passed.
+- Development-only challenger settlement audit passed.
+- Research-only chronological H2H incremental-value experiment passed.
+- Final H2H build, identity classification, report/audit artifact and quality gates have not yet completed.
+- Do not start another H2H run while #62 is active.
+
+### Permanent H2H policy
+- Exact governed Fixture ID remains the primary fixture identity.
+- H2H is supporting evidence, not a prerequisite for fixture/prediction eligibility.
+- Genuine no-H2H fixtures are valid and non-blocking.
+- H2H sample <5 is a reporting-quality flag only and non-blocking.
+- Historical cross-division H2H must not be used as same-league H2H, but does not block the fixture.
+- Team-name variants are reconciled through explicit aliases and conservative league-scoped fuzzy matching.
+- Fuzzy matching is accepted only at strong similarity or a strong unique margin; ambiguous matches remain unresolved for H2H only.
+- No H2H fuzzy logic changes canonical Fixture IDs or Oracle V1.6 production inputs.
+
+### Saved milestone
+- Checkpoint: docs/checkpoints/2026-11-07-h2h-fuzzy-identity-nonblocking-control.md
+- Checkpoint commit: f679fb626607a8e1c4b105b2e9e68cf3e5727b09
+
+### Actions-minute protection
+- Public validation repository is the default for diagnostics, reconciliation, experiments and H2H work.
+- Private production repository workflows are reserved for controlled evidence requiring private data/credentials or final production validation.
+- Do not trigger private workflows merely to diagnose/report.
+- Inspect active/running workflows before any private execution and avoid duplicate runs.
+- The exact remaining private Actions billing balance is not exposed through the available GitHub control API; do not invent a number. Treat the user's stated 3,000-minute budget as a hard ceiling and conserve it.
+- Latest private Autonomous League Expansion run #263 completed successfully with substantive jobs skipped; no private run was active at last inspection.
+
+### Critical path after H2H
+1. Immutable pre-match feature snapshot cohort.
+2. Prediction-to-snapshot linkage and exact model-engine SHA.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Verified prediction-to-settlement chain.
+6. Prospective evidence sample/freshness gates.
+7. OMI/Visual Intelligence release readiness.
+8. Production eligibility remains fail-closed until all gates pass.
