@@ -29,3 +29,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Do not rerun H2H merely to reduce genuine no-history or low-sample cases.
 - Highest-value integration handoff is now the existing prospective evidence cohort: resolve the manifest-hash compatibility discrepancy for batch `42255401046`, then establish/verify immutable prediction → fixture → pre-kickoff feature snapshot → verified settlement provenance.
 - This handoff remains research-only until production governance gates pass; no Oracle V1.6 production logic or governance changes are permitted.
+
+
+## Continuous Build Control — prospective evidence persistence — 2026-11-07
+- Run #447 proved the protected historical-state correction: publication governance and historical integrity both passed.
+- The remaining failure was isolated to Step 18 evidence persistence. The evidence commit was created locally but the subsequent rebase failed because unstaged generated files remained; the fallback incorrectly assumed an active rebase.
+- Persistence was corrected in private workflow commit `b812815782b694bf7929d2dc330cb6051f1f6f97` by stashing generated working-tree changes before rebase and restoring them before staging/pushing.
+- This is integration/evidence plumbing only. Do not alter Oracle V1.6 model logic or production governance.
+- The next valid prospective execution should be used to prove persistence and then inspect the pushed immutable snapshot manifest/values and exact prediction-to-snapshot-to-engine linkage.
