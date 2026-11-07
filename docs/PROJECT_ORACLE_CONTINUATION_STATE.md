@@ -129,6 +129,25 @@ Commit: `a9b09b64e35e4e8fb2575efef0fe03f8884b3c88`
 
 Interpretation: this is a successful **negative recovery result**, not a workflow failure. The current transport/parameter experiment is exhausted. Do not repeat the same 300-request experiment without new evidence of a materially different recovery mechanism.
 
+## Major milestone — HTTP-417 access root-cause diagnostic PREPARED — 2026-11-07
+Because recovery attempt #1 exhausted the current transport matrix with 300/300 HTTP-417 responses and 0/80 recoveries, a materially different two-call provider-access diagnostic was prepared.
+
+Private diagnostic workflow: `.github/workflows/footystats-private-access-diagnostic.yml`
+Commit: `75b22ecadca933a32b3477bc1265bd870c5682cb`
+Checkpoint: `docs/checkpoints/2026-11-07-http417-access-root-cause-diagnostic-prepared.md`
+
+Diagnostic purpose: distinguish among account entitlement/selected-league restriction, provider database coverage gap, endpoint/transport problem, or inconclusive provider-list access.
+
+It makes only two provider calls:
+- `league-list?chosen_leagues_only=true`
+- `league-list`
+
+It compares the exact 20 blocked provider-season IDs against the account's chosen-access seasons and the provider database seasons. It does not call match/team/table/season recovery endpoints and does not admit any production data.
+
+Manual execution is required because the GitHub connector cannot dispatch a newly-created `workflow_dispatch` workflow. Recommended input: `confirm_provider_api_usage=true`.
+
+Production/betting eligibility remains false and Oracle V1.6 production logic/governance are unchanged.
+
 ## Immediate next work — priority order
 1. Keep all 80 HTTP-417 tasks quarantined; do not substitute other seasons/providers or infer missing data.
 2. Determine whether an evidence-backed alternative acquisition path exists for the exact 20 blocked provider-season partitions, without reopening the exhausted full ingestion queue.
