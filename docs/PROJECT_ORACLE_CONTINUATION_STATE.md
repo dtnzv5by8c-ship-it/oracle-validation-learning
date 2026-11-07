@@ -755,3 +755,42 @@ Exact HEAD contract and dry-run workflows both passed. The current workflow conf
 ### Single highest-value next action
 On the next genuinely new governed prospective fixture cohort, verify non-empty immutable feature snapshots, exact prediction-to-snapshot linkage, prediction-engine code attribution, pre-kickoff chronology and corrected settlement provenance. Continue evidence-backed identity reconciliation in parallel; do not assign any unproven internal codes.
 
+
+
+## Control-plane update — 2026-11-07 12:38 SAST
+
+### Finding
+A live evidence-control audit after the Serbia identity repair found no additional identity mapping that could be promoted safely from the currently admissible evidence. The exact source gate remains passed; downstream production scope remains fail-closed.
+
+### Evidence
+- Live HEAD inspected: `209fa8c03faff8e2da09447a5a9b4ba798415d02`.
+- 50-row internal identity bridge re-read from live GitHub: 20 `EVIDENCE_EXACT_UNIQUE`; 26 `UNMAPPED`; 1 `NAME_VARIANT_UNVERIFIED`; 2 `CROSS-NAMESPACE_NAME_VARIANT`; 1 `CODE_NAMESPACE_CONFLICT`.
+- Live source validation remains 50/50 reconciled, 26 READY, 24 DATA_GATED, 0 SOURCE_ERROR, 299 governed-window fixtures.
+- The 80 HTTP-417 tasks remain quarantined; no provider/API acquisition or recovery was attempted.
+- Prospective evidence remains challenger/shadow; immutable feature snapshot, verified settlement, xG/odds provenance and production scoreability remain open.
+
+### Root Cause
+Additional mappings cannot be inferred from league-name similarity because the production namespace has demonstrated cross-file code conflicts (including N1). Only explicit authoritative configuration or a verified bridge can close a mapping.
+
+### Impact
+No safe production universe expansion or probability bridge is justified. Production and betting eligibility remain fail-closed.
+
+### Fix
+No model, production, provider or workflow change was made. Existing evidence was audited and unresolved identities were preserved as explicit fail-closed states. A non-essential GitHub search for further mapping evidence encountered HTTP 429 rate limiting; no retry was made.
+
+### Validation
+Checkpoint: `docs/checkpoints/2026-11-07-evidence-validation-control-1238.md`.
+Checkpoint commit: `04de4fc25ca914646adb2c405e2731e887172cc2`.
+Current bridge and HEAD were re-read directly from GitHub after the audit. No workflow was launched and no provider/API calls were consumed.
+
+### Remaining blockers
+1. 30/50 internal identity mappings remain non-admissible.
+2. Immutable prediction-to-feature-snapshot capture/linkage remains incomplete.
+3. Verified settlement provenance/linkage remains incomplete.
+4. Point-in-time xG provenance remains blocked.
+5. Timestamped odds provenance remains blocked.
+6. No Oracle V1.6 production prediction cohort is scoreable.
+7. 80 provider tasks remain quarantined by confirmed account entitlement gap.
+
+### Single highest-value next action
+On the next genuinely new governed prospective fixture cohort, verify non-empty immutable feature snapshots, exact prediction-to-snapshot linkage, actual model-engine revision, pre-kickoff chronology and corrected settlement provenance; continue identity reconciliation only from explicit authoritative evidence.
