@@ -1,0 +1,51 @@
+ordinal,footystats_league_id,governed_league_name,source_code,openfoot_competition_id,openfoot_catalog_season,source_resolution_status
+01,16571,Argentina Primera División,ARG1,comp_liga_profesional_arg,2026,CATALOG_VERIFIED_CURRENT_SEASON
+02,17326,Australia A-League,AUS1,comp_a_league_aus,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+03,17181,Austria Bundesliga,AUT1,comp_bundesliga_aut,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+04,17171,Belgium Pro League,BEL1,comp_pro_league_be,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+05,16544,Brazil Serie A,BRA1,comp_brasileirao_bra,2026,CATALOG_VERIFIED_CURRENT_SEASON
+06,16741,Canada Canadian Premier League,CAN1,comp_canadian_premier_league_can,2026,CATALOG_VERIFIED_CURRENT_SEASON
+07,16615,Chile Primera División,CHI1,comp_primera_division_chi,2026,CATALOG_VERIFIED_CURRENT_SEASON
+08,16789,China Chinese Super League,CHN1,comp_chinese_super_league_chn,2026,CATALOG_VERIFIED_CURRENT_SEASON
+09,16614,Colombia Categoria Primera A,COL1,comp_primera_a_col,2026,CATALOG_VERIFIED_CURRENT_SEASON
+10,17087,Croatia Prva HNL,CRO1,comp_hnl_cro,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+11,17157,Czech Republic First League,CZE1,comp_czech_first_league_cze,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+12,17091,Denmark Superliga,DNK1,comp_superliga_dnk,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+13,16714,Ecuador Primera Categoría Serie A,ECU1,comp_ligapro_ecu,2026,CATALOG_VERIFIED_CURRENT_SEASON
+14,17184,England Championship,ENG2,comp_championship_eng,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+15,17180,England EFL League One,ENG3,comp_league_one_eng,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+16,17146,England Premier League,EPL,comp_premier_league_eng,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+17,16572,Finland Veikkausliiga,FIN1,comp_veikkausliiga_fin,2026,CATALOG_VERIFIED_CURRENT_SEASON
+18,17102,France Ligue 1,FR1,comp_ligue_1_fr,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+19,17117,France Ligue 2,FR2,comp_ligue_2_fr,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+20,17212,Germany 2. Bundesliga,DE2,comp_2_bundesliga_de,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+21,17210,Germany Bundesliga,DE1,comp_bundesliga_de,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+22,17356,Greece Super League,GRC1,comp_super_league_grc,2024/25,CURRENT_SEASON_NOT_VERIFIED
+23,17964,India Indian Super League,IND1,comp_indian_super_league_ind,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+24,17084,Italy Serie A,IT1,comp_serie_a_it,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+25,17404,Italy Serie B,IT2,comp_serie_b_it,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+26,17115,Japan J1 League,JPN1,comp_j1_league_jpn,2026,CATALOG_VERIFIED_CURRENT_SEASON
+27,17099,Mexico Liga MX,MEX1,comp_liga_mx_mex,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+28,17097,Netherlands Eredivisie,NED1,comp_eredivisie_nl,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+29,16558,Norway Eliteserien,NOR1,comp_eliteserien_nor,2026,CATALOG_VERIFIED_CURRENT_SEASON
+30,16533,Paraguay Division Profesional,PAR1,comp_primera_division_par,2026,CATALOG_VERIFIED_CURRENT_SEASON
+31,16905,Peru Primera División,PER1,comp_liga_1_per,2026,CATALOG_VERIFIED_CURRENT_SEASON
+32,17112,Poland Ekstraklasa,POL1,comp_ekstraklasa_pol,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+33,17215,Portugal LigaPro,POR2,comp_segunda_liga_pt,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+34,16537,Republic of Ireland Premier Division,IRL1,comp_premier_division_irl,2026,CATALOG_VERIFIED_CURRENT_SEASON
+35,17247,Romania Liga I,ROU1,comp_superliga_ro,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+36,17178,Russia Russian Premier League,RUS1,comp_premier_league_rus,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+37,17426,Saudi Arabia Professional League,SAU1,comp_saudi_pro_league_sau,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+38,17148,Scotland Premiership,SCO1,comp_scottish_prem_sco,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+39,17119,Serbia SuperLiga,SRB1,comp_superliga_srb,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+40,17444,South Africa Premier Soccer League,RSA1,comp_psl_rsa,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+41,16627,South Korea K League 1,KOR1,comp_k_league_1_kor,2026,CATALOG_VERIFIED_CURRENT_SEASON
+42,17199,Spain La Liga,ES1,comp_laliga_es,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+43,17269,Spain Segunda División,ES2,comp_segunda_es,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+44,16576,Sweden Allsvenskan,SWE1,comp_allsvenskan_swe,2026,CATALOG_VERIFIED_CURRENT_SEASON
+45,17129,Switzerland Super League,SUI1,comp_super_league_sui,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+46,17265,Turkey Süper Lig,TUR1,comp_super_lig_tr,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+47,16504,USA MLS,USA1,comp_mls_usa,2026,CATALOG_VERIFIED_CURRENT_SEASON
+48,17191,Ukraine Ukrainian Premier League,UKR1,comp_premier_league_ukr,2026/27,CATALOG_VERIFIED_CURRENT_SEASON
+49,16708,Uruguay Primera División,URU1,comp_primera_division_uru,2026,CATALOG_VERIFIED_CURRENT_SEASON
+50,16617,Venezuela Primera División,VEN1,comp_primera_division_ven,2026,CATALOG_VERIFIED_CURRENT_SEASON
