@@ -656,3 +656,44 @@ Private workflow status, job steps, logs and pushed private main evidence were i
 
 ### Highest-value next action
 Use the next naturally scheduled prospective cycle that contains at least one genuinely new, pre-kickoff, data-admissible fixture to test the corrected snapshot controls. Do not manually rerun Run #451 or backfill the quarantined Run #449 cohort.
+
+
+## Validation & Evidence Control — 2026-11-08 02:43 SAST
+
+### Finding
+The previously recorded prospective Run #451 status is terminal SUCCESS, and the prior continuation-state narrative is stale. Live GitHub evidence confirms completion. No new prospective snapshot cohort was produced, so the run-ID/missingness hardening was not execution-proven.
+
+### Evidence
+- Latest evidenced checkpoint: `docs/checkpoints/2026-11-08-validation-evidence-control-0138.md`.
+- Run #451: `42416983458`, SUCCESS on `77768f4db2313f6ec4bceca787a96f0702983036`.
+- Prospective job `128537103510`: SUCCESS; substantive steps 01–18 passed.
+- Engine Validation Run #593: `42416983460`, SUCCESS.
+- Persistence pushed private evidence commit `e666e3b`.
+- Point-in-time audit: 12,836/12,836 state rows reconciled; 0 leakage violations.
+- Publication: 0 candidate rows, 485 duplicates skipped, 25 kickoff-gated, 0 new snapshots.
+- Shadow gate: 16 settled/model, 1 sample day, minimum 100 settled and 8 days; production readiness remains `HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE`.
+
+### Root Cause
+Run #451 reused the existing immutable cohort. Consequently, the corrected run-ID and normalized missingness controls did not encounter fresh snapshot rows.
+
+### Impact
+The persistence pipeline and leakage controls are proven, but fresh-cohort immutable lineage/missingness evidence remains open. Existing Run #449 rows remain quarantined and must not be rewritten.
+
+### Fix
+No workflow rerun, provider retry, H2H work, model change, or governance change. The control state is being aligned to the terminal Run #451 evidence only.
+
+### Validation
+The terminal checkpoint and continuation state were re-read from live GitHub. No equivalent active workflow was launched. Production remains fail-closed.
+
+### Remaining blockers
+1. Fresh prospective snapshot cohort proving run-ID lineage and normalized missingness.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission on a fresh cohort.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Verified prediction-to-settlement provenance.
+6. Prospective sample/freshness/market gates.
+7. Remaining 50-league downstream identity/source admission evidence where not already proven.
+8. Production scoreability/calibration and final eligibility.
+
+### Highest-value next action
+Inspect the next naturally scheduled prospective cycle only when it contains genuinely new, pre-kickoff snapshot candidates. Use that cycle to prove run-ID lineage and normalized missingness. Do not rerun Run #451, rewrite Run #449, reopen H2H, or spend private Actions minutes without a fresh evidence-producing reason.
