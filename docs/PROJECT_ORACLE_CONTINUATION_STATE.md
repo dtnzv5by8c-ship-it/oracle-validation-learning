@@ -738,3 +738,43 @@ The latest continuation state, lessons learned, latest checkpoint list and termi
 
 ### Highest-value next action
 Inspect the next naturally scheduled prospective cycle only when it contains genuinely new, pre-kickoff, data-admissible snapshot candidates. Do not rerun Run #451, rewrite Run #449, reopen H2H, or spend private Actions minutes without a fresh evidence-producing reason.
+
+
+## Validation & Evidence Control — 2026-11-08 04:42 SAST
+
+### Finding
+The latest live 50-league fixture/source validation materially closes the source-scope reconciliation layer. All 50 governed leagues remain represented; 26 are READY and 24 are explicitly DATA_GATED. No source errors or reconciliation anomalies were reported.
+
+### Evidence
+- Run #6: 42430025045, SUCCESS, head cd8876464116383af90b0f4a89510ba359183efb.
+- Validation window: 2026-11-07 through 2026-11-21.
+- Governed leagues: 50; READY 26; DATA_GATED 24; SOURCE_ERROR 0.
+- Fixtures in window: 229; leagues with fixture evidence 26; without fixture evidence 24.
+- Scope reconciliation: PASS.
+- Reconciliation: READY 26 / DATA_GATED 24; missing/unexpected/duplicate classifications all zero.
+- Evidence persisted on research branch commit b016834 after successful bounded push.
+
+### Root Cause
+24 leagues remain DATA_GATED because current fixture/source evidence is not presently admissible for those leagues. They are retained in the governed universe rather than silently dropped.
+
+### Impact
+50-league source/scope reconciliation is evidenced, but universal production readiness is not. DATA_GATED leagues remain fail-closed. Immutable prospective snapshot lineage, xG, odds, verified settlement, prospective observation/freshness and production scoreability/calibration gates remain open.
+
+### Fix
+No model, probability, calibration, threshold, eligibility or governance change. No duplicate workflow, provider retry or H2H work was performed.
+
+### Validation
+Run #6 returned status=COMPLETE with governed_leagues=50 and scope_reconciliation_passed=true; reconciliation returned status=PASS with no missing, unexpected or duplicate classifications. Checkpoint persisted at docs/checkpoints/2026-11-08-validation-evidence-control-0442.md.
+
+### Remaining blockers
+1. Fresh prospective snapshot cohort proving run-ID lineage and normalized missingness.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission on a fresh cohort.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Verified prediction-to-settlement provenance.
+6. Prospective sample/freshness/market gates.
+7. 24 DATA_GATED leagues require admissible current-source evidence before becoming READY.
+8. Production scoreability/calibration and final eligibility.
+
+### Highest-value next action
+Use the next naturally scheduled prospective cycle with genuinely new, pre-kickoff, data-admissible fixtures to advance the immutable evidence chain. Do not rerun completed source validation without new evidence.
