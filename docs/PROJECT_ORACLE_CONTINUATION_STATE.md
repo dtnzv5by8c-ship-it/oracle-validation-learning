@@ -697,3 +697,44 @@ The terminal checkpoint and continuation state were re-read from live GitHub. No
 
 ### Highest-value next action
 Inspect the next naturally scheduled prospective cycle only when it contains genuinely new, pre-kickoff snapshot candidates. Use that cycle to prove run-ID lineage and normalized missingness. Do not rerun Run #451, rewrite Run #449, reopen H2H, or spend private Actions minutes without a fresh evidence-producing reason.
+
+
+## Validation & Evidence Control — 2026-11-08 03:35 SAST
+
+### Finding
+Live GitHub was re-audited against the latest public HEAD and latest evidence checkpoint. The canonical state is now behind the latest terminal Run #451 evidence and requires alignment; no new execution is justified.
+
+### Evidence
+- Public main HEAD at audit start: `9795fb112d32641f7dffeb31cf19aaf9414e05cd`.
+- Latest evidence checkpoint: `docs/checkpoints/2026-11-08-validation-evidence-control-0138.md`.
+- Run #451 `42416983458`: SUCCESS on `77768f4db2313f6ec4bceca787a96f0702983036`; substantive steps 01–18 passed.
+- Engine Validation Run #593 `42416983460`: SUCCESS.
+- Private evidence persistence commit: `e666e3b`.
+- Point-in-time audit: 12,836/12,836 state rows reconciled; 0 leakage violations.
+- Publication: 0 candidate rows, 485 duplicates skipped, 25 kickoff-gated, 0 new snapshots.
+- Shadow gate: 16 settled observations/model over 1 sample day versus 100 settled / 8 days minimum; production readiness remains `HOLD_PROSPECTIVE_AND_RESEARCH_EVIDENCE`.
+
+### Root Cause
+Run #451 reused the existing immutable cohort, so the corrected run-ID and normalized-missingness controls were not exercised on fresh snapshot rows. The existing Run #449 three-row cohort remains quarantined and must not be rewritten.
+
+### Impact
+Persistence and chronology/leakage controls are proven, but fresh-cohort immutable lineage/missingness proof remains open. xG, odds, verified settlement, prospective observation/freshness, remaining 50-league downstream admission and production scoreability/calibration gates remain open. Production stays fail-closed.
+
+### Fix
+No workflow rerun, provider retry, H2H work, model/probability/calibration/threshold change, or governance weakening. This is a read-only evidence-control alignment cycle.
+
+### Validation
+The latest continuation state, lessons learned, latest checkpoint list and terminal Run #451 checkpoint were re-read from live GitHub. No equivalent active workflow was launched. H2H remains closed/non-blocking after Run #64.
+
+### Remaining blockers
+1. Fresh prospective snapshot cohort proving run-ID lineage and normalized missingness semantics.
+2. Exact prediction → fixture → market → snapshot → execution/model-engine SHA admission on a fresh cohort.
+3. Point-in-time xG provenance.
+4. Timestamped odds provenance.
+5. Verified prediction-to-settlement provenance.
+6. Prospective sample/freshness/market gates.
+7. Remaining 50-league downstream identity/source admission evidence where not already proven.
+8. Production scoreability/calibration and final eligibility.
+
+### Highest-value next action
+Inspect the next naturally scheduled prospective cycle only when it contains genuinely new, pre-kickoff, data-admissible snapshot candidates. Do not rerun Run #451, rewrite Run #449, reopen H2H, or spend private Actions minutes without a fresh evidence-producing reason.
