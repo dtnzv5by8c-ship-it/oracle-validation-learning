@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-08T23:40:04.031091+00:00",
+  "generated_utc": "2026-11-09T06:11:34.949607+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -216,14 +216,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 2,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_col1_2026_20261109_alianza_fc_llaneros_fc",
-          "kickoff_at": "2026-11-09T01:15:00Z",
-          "home": "Alianza FC",
-          "away": "Llaneros FC"
-        },
         {
           "match_id": "match_fmb_col1_2026_20261110_junior_fc_cucuta",
           "kickoff_at": "2026-11-10T00:00:00Z",
@@ -1070,13 +1064,13 @@
       "fixtures": [
         {
           "match_id": "match_fmb_par1_2026_20261109_sportivo_san_lorenzo_rubio_nu",
-          "kickoff_at": "2026-11-09T20:00:00Z",
+          "kickoff_at": "2026-11-09T20:00:00.000Z",
           "home": "Sportivo San Lorenzo",
           "away": "Rubio Ñú"
         },
         {
           "match_id": "match_fmb_par1_2026_20261109_luqueno_2_de_mayo",
-          "kickoff_at": "2026-11-09T22:30:00Z",
+          "kickoff_at": "2026-11-09T22:30:00.000Z",
           "home": "Luqueño",
           "away": "2 de Mayo"
         },
@@ -1132,20 +1126,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 7,
+      "fixture_count_in_window": 6,
       "fixtures": [
-        {
-          "match_id": "match_fmb_per1_2026_20261109_universitario_de_deportes_club_deportivo_moquegua",
-          "kickoff_at": "2026-11-09T01:30:00Z",
-          "home": "Universitario de Deportes",
-          "away": "Club Deportivo Moquegua"
-        },
-        {
-          "match_id": "match_fmb_per1_2026_20261113_cd_ut_cajamarca_los_chankas",
-          "kickoff_at": "2026-11-13T18:00:00Z",
-          "home": "CD UT Cajamarca",
-          "away": "Los Chankas"
-        },
         {
           "match_id": "match_fmb_per1_2026_20261115_comerciantes_unidos_sport_boys",
           "kickoff_at": "2026-11-15T18:00:00Z",
@@ -1157,6 +1139,12 @@
           "kickoff_at": "2026-11-15T20:15:00Z",
           "home": "ADC Juan Pablo II",
           "away": "Deportivo Garcilaso"
+        },
+        {
+          "match_id": "match_fmb_per1_2026_20261116_cd_ut_cajamarca_los_chankas",
+          "kickoff_at": "2026-11-16T18:00:00Z",
+          "home": "CD UT Cajamarca",
+          "away": "Los Chankas"
         },
         {
           "match_id": "match_fmb_per1_2026_20261116_club_deportivo_moquegua_atletico_grau",
@@ -1803,7 +1791,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 153,
+    "fixtures_in_window": 151,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
