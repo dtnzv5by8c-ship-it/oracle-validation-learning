@@ -8,10 +8,10 @@
   "unexpected_league_ids": [],
   "duplicate_league_ids": [],
   "classification_counts": {
-    "DATA_GATED": 25,
-    "READY": 25
+    "DATA_GATED": 26,
+    "READY": 24
   },
-  "fixtures_in_window": 151,
+  "fixtures_in_window": 140,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -120,9 +120,9 @@
       "competition_id": "comp_primera_a_col",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "10",
@@ -373,7 +373,7 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 8,
+      "fixture_count_in_window": 6,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
@@ -457,7 +457,7 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 9,
+      "fixture_count_in_window": 1,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {

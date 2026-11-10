@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-09T17:25:17.299739+00:00",
+  "generated_utc": "2026-11-10T01:28:09.739330+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -215,21 +215,14 @@
       "competition_id": "comp_primera_a_col",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_col1_2026_20261110_junior_fc_cucuta",
-          "kickoff_at": "2026-11-10T00:00:00Z",
-          "home": "Junior FC",
-          "away": "Cúcuta"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "10",
@@ -244,31 +237,31 @@
       "fixtures": [
         {
           "match_id": "match_fmb_cro1_2026-27_20261121_dinamo_zagreb_nk_istra_1961",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T00:00:00Z",
           "home": "Dinamo Zagreb",
           "away": "NK Istra 1961"
         },
         {
           "match_id": "match_fmb_cro1_2026-27_20261121_nk_lokomotiva_hajduk_split",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T00:00:00Z",
           "home": "NK Lokomotiva",
           "away": "Hajduk Split"
         },
         {
           "match_id": "match_fmb_cro1_2026-27_20261121_rijeka_hnk_gorica",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T00:00:00Z",
           "home": "Rijeka",
           "away": "HNK Gorica"
         },
         {
           "match_id": "match_fmb_cro1_2026-27_20261121_rudes_nk_varazdin",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T00:00:00Z",
           "home": "Rudeš",
           "away": "NK Varaždin"
         },
         {
           "match_id": "match_fmb_cro1_2026-27_20261121_slaven_osijek",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T00:00:00Z",
           "home": "Slaven",
           "away": "Osijek"
         }
@@ -1060,20 +1053,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 8,
+      "fixture_count_in_window": 6,
       "fixtures": [
-        {
-          "match_id": "match_fmb_par1_2026_20261109_sportivo_san_lorenzo_rubio_nu",
-          "kickoff_at": "2026-11-09T20:00:00.000Z",
-          "home": "Sportivo San Lorenzo",
-          "away": "Rubio Ñú"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261109_luqueno_2_de_mayo",
-          "kickoff_at": "2026-11-09T22:30:00.000Z",
-          "home": "Luqueño",
-          "away": "2 de Mayo"
-        },
         {
           "match_id": "match_fmb_par1_2026_20261118_2_de_mayo_sportivo_san_lorenzo",
           "kickoff_at": "2026-11-18T00:00:00Z",
@@ -1296,61 +1277,13 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 9,
+      "fixture_count_in_window": 1,
       "fixtures": [
         {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_ahli_al_faisaly",
-          "kickoff_at": "2026-11-20T00:00:00Z",
+          "match_id": "match_fmb_sau1_2026-27_20261120_al_ahli_al_nassr_fc",
+          "kickoff_at": "2026-11-20T17:30:00Z",
           "home": "Al Ahli",
-          "away": "Al-Faisaly"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_hilal_al_diriyah",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al Hilal",
-          "away": "Al Diriyah"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_khaleej_al_ittihad",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al Khaleej",
-          "away": "Al Ittihad"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_nassr_fc_al_qadsiah",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al Nassr FC",
-          "away": "Al Qadsiah"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_riyadh_al_hazem",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al Riyadh",
-          "away": "Al Hazem"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_shabab_al_ettifaq",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al Shabab",
-          "away": "Al-Ettifaq"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_fayha_al_fateh_fc",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al-Fayha",
-          "away": "Al Fateh FC"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_al_taawoun_abha",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Al-Taawoun",
-          "away": "Abha"
-        },
-        {
-          "match_id": "match_fmb_sau1_2026-27_20261120_neom_sc_al_kholood",
-          "kickoff_at": "2026-11-20T00:00:00Z",
-          "home": "Neom SC",
-          "away": "Al Kholood"
+          "away": "Al Nassr FC"
         }
       ],
       "request": {
@@ -1788,12 +1721,12 @@
   ],
   "summary": {
     "governed_leagues": 50,
-    "ready": 25,
-    "data_gated": 25,
+    "ready": 24,
+    "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 151,
-    "leagues_with_fixture_evidence": 25,
-    "leagues_without_fixture_evidence": 25,
+    "fixtures_in_window": 140,
+    "leagues_with_fixture_evidence": 24,
+    "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
   },
   "status": "COMPLETE"
