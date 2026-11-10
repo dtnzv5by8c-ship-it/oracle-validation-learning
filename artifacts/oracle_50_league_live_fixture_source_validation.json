@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-10T01:28:09.739330+00:00",
+  "generated_utc": "2026-11-10T09:41:07.062452+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1053,43 +1053,19 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 2,
       "fixtures": [
         {
-          "match_id": "match_fmb_par1_2026_20261118_2_de_mayo_sportivo_san_lorenzo",
-          "kickoff_at": "2026-11-18T00:00:00Z",
-          "home": "2 de Mayo",
-          "away": "Sportivo San Lorenzo"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261118_nacional_cerro_porteno",
-          "kickoff_at": "2026-11-18T00:00:00Z",
-          "home": "Nacional",
-          "away": "Cerro Porteño"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261118_olimpia_sportivo_trinidense",
-          "kickoff_at": "2026-11-18T00:00:00Z",
-          "home": "Olimpia",
-          "away": "Sportivo Trinidense"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261118_recoleta_guarani",
-          "kickoff_at": "2026-11-18T00:00:00Z",
-          "home": "Recoleta",
-          "away": "Guaraní"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261118_rubio_nu_libertad",
-          "kickoff_at": "2026-11-18T00:00:00Z",
-          "home": "Rubio Ñú",
-          "away": "Libertad"
-        },
-        {
-          "match_id": "match_fmb_par1_2026_20261118_sportivo_ameliano_luqueno",
-          "kickoff_at": "2026-11-18T00:00:00Z",
+          "match_id": "match_fmb_par1_2026_20261120_sportivo_ameliano_luqueno",
+          "kickoff_at": "2026-11-20T20:30:00Z",
           "home": "Sportivo Ameliano",
           "away": "Luqueño"
+        },
+        {
+          "match_id": "match_fmb_par1_2026_20261120_recoleta_guarani",
+          "kickoff_at": "2026-11-20T23:00:00Z",
+          "home": "Recoleta",
+          "away": "Guaraní"
         }
       ],
       "request": {
@@ -1724,7 +1700,7 @@
     "ready": 24,
     "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 140,
+    "fixtures_in_window": 136,
     "leagues_with_fixture_evidence": 24,
     "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
