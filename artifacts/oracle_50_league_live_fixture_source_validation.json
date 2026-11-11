@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-10T23:13:24.306130+00:00",
+  "generated_utc": "2026-11-11T06:01:32.649450+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1737,16 +1737,16 @@
       "fixture_count_in_window": 2,
       "fixtures": [
         {
+          "match_id": "match_fmb_ven1_2026_20261112_academia_puerto_cabello_monagas_sc",
+          "kickoff_at": "2026-11-12T22:00:00Z",
+          "home": "Academia Puerto Cabello",
+          "away": "Monagas SC"
+        },
+        {
           "match_id": "match_fmb_ven1_2026_20261121_deportivo_tachira_caracas",
           "kickoff_at": "2026-11-21T21:30:00Z",
           "home": "Deportivo Táchira",
           "away": "Caracas"
-        },
-        {
-          "match_id": "match_fmb_ven1_2026_20261121_academia_puerto_cabello_monagas_sc",
-          "kickoff_at": "2026-11-21T23:30:00Z",
-          "home": "Academia Puerto Cabello",
-          "away": "Monagas SC"
         }
       ],
       "request": {
