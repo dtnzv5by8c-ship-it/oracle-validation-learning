@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-11T06:01:32.649450+00:00",
+  "generated_utc": "2026-11-11T14:08:28.053825+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -294,37 +294,19 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 5,
+      "fixture_count_in_window": 2,
       "fixtures": [
         {
-          "match_id": "match_fmb_cro1_2026-27_20261121_dinamo_zagreb_nk_istra_1961",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Dinamo Zagreb",
-          "away": "NK Istra 1961"
-        },
-        {
           "match_id": "match_fmb_cro1_2026-27_20261121_nk_lokomotiva_hajduk_split",
-          "kickoff_at": "2026-11-21T00:00:00Z",
+          "kickoff_at": "2026-11-21T14:00:00Z",
           "home": "NK Lokomotiva",
           "away": "Hajduk Split"
         },
         {
-          "match_id": "match_fmb_cro1_2026-27_20261121_rijeka_hnk_gorica",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Rijeka",
-          "away": "HNK Gorica"
-        },
-        {
           "match_id": "match_fmb_cro1_2026-27_20261121_rudes_nk_varazdin",
-          "kickoff_at": "2026-11-21T00:00:00Z",
+          "kickoff_at": "2026-11-21T17:00:00Z",
           "home": "Rudeš",
           "away": "NK Varaždin"
-        },
-        {
-          "match_id": "match_fmb_cro1_2026-27_20261121_slaven_osijek",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Slaven",
-          "away": "Osijek"
         }
       ],
       "request": {
@@ -1144,7 +1126,7 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 7,
       "fixtures": [
         {
           "match_id": "match_fmb_per1_2026_20261115_comerciantes_unidos_sport_boys",
@@ -1166,13 +1148,13 @@
         },
         {
           "match_id": "match_fmb_per1_2026_20261116_club_deportivo_moquegua_atletico_grau",
-          "kickoff_at": "2026-11-16T20:00:00Z",
+          "kickoff_at": "2026-11-16T20:15:00Z",
           "home": "Club Deportivo Moquegua",
           "away": "Atlético Grau"
         },
         {
           "match_id": "match_fmb_per1_2026_20261116_cusco_fc_asociacion_deportiva_tarma",
-          "kickoff_at": "2026-11-16T20:00:00Z",
+          "kickoff_at": "2026-11-16T20:15:00Z",
           "home": "Cusco FC",
           "away": "Asociación Deportiva Tarma"
         },
@@ -1181,6 +1163,12 @@
           "kickoff_at": "2026-11-18T20:00:00Z",
           "home": "Alianza Atlético",
           "away": "FBC Melgar"
+        },
+        {
+          "match_id": "match_fmb_per1_2026_20261121_alianza_lima_fc_cajamarca",
+          "kickoff_at": "2026-11-21T20:30:00Z",
+          "home": "Alianza Lima",
+          "away": "FC Cajamarca"
         }
       ],
       "request": {
@@ -1761,7 +1749,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 146,
+    "fixtures_in_window": 144,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
