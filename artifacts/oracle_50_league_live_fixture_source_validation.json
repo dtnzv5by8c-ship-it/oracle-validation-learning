@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-11T21:52:50.997539+00:00",
+  "generated_utc": "2026-11-12T02:55:14.649130+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -220,7 +220,7 @@
       "fixtures": [
         {
           "match_id": "match_fmb_col1_2026_20261112_deportivo_pasto_junior_fc",
-          "kickoff_at": "2026-11-12T22:00:00Z",
+          "kickoff_at": "2026-11-12T22:00:00.000Z",
           "home": "Deportivo Pasto",
           "away": "Junior FC"
         },
@@ -1660,7 +1660,7 @@
       "fixtures": [
         {
           "match_id": "match_fmb_uru1_2026_20261112_cerro_largo_club_atletico_progreso",
-          "kickoff_at": "2026-11-12T23:00:00Z",
+          "kickoff_at": "2026-11-12T23:00:00.000Z",
           "home": "Cerro Largo",
           "away": "Club Atlético Progreso"
         },
@@ -1726,7 +1726,7 @@
       "fixtures": [
         {
           "match_id": "match_fmb_ven1_2026_20261112_academia_puerto_cabello_monagas_sc",
-          "kickoff_at": "2026-11-12T22:00:00Z",
+          "kickoff_at": "2026-11-12T22:00:00.000Z",
           "home": "Academia Puerto Cabello",
           "away": "Monagas SC"
         },
