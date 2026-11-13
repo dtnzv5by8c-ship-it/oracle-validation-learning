@@ -256,3 +256,4 @@ jobs:
 # Diagnostic trigger checkpoint: evidence persistence rebase race repair.
 # Trigger checkpoint: current Team-State snapshot provenance alignment fix 6931405.
 # Trigger checkpoint: compatibility league-code preservation fix validated by current run 43506218490.
+# Trigger checkpoint: canonical-fixture duplicate gate fix 4724bce.
