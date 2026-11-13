@@ -223,6 +223,9 @@ jobs:
           for f in "${files[@]}"; do [ -f "$f" ] && git add "$f"; done
           if git diff --cached --quiet; then echo "No evidence changes"; exit 0; fi
           git commit -m "Record governed prospective OMI evidence from public runner"
+          # Generated staging/current inputs are deliberately not evidence. Restore any
+          # remaining unstaged tracked files before rebasing the evidence commit.
+          git diff --name-only -z | xargs -0 -r git restore --
           git fetch --no-tags origin main
           git rebase origin/main
           git push origin HEAD:main
