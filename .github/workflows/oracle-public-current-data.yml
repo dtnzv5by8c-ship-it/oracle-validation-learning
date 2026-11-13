@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - ".github/workflows/oracle-public-current-data.yml"
+  schedule:
+    - cron: "10 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -173,21 +175,14 @@ jobs:
           echo "TEAM_STATE_ROWS=${TEAM_STATE_ROWS}" >> "$GITHUB_ENV"
           echo "PERSISTENCE_BRANCH_VERIFIED=true" >> "$GITHUB_ENV"
 
-      - name: Create or reuse persistence PR
-        working-directory: oracle-source
-        env:
-          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      - name: Handoff validated persistence branch to serialized completion controller
         run: |
           set -euo pipefail
-          existing="$(gh pr list --repo "${TARGET_REPO}" --head "${PERSIST_BRANCH}" --state open --json number --jq '.[0].number' || true)"
-          if [ -n "${existing}" ]; then
-            echo "PERSIST_PR=${existing}" >> "$GITHUB_ENV"
-            exit 0
-          fi
-          pr_url="$(gh pr create --repo "${TARGET_REPO}" --base main --head "${PERSIST_BRANCH}"             --title "Persist validated current Team State from public runner"             --body "Validated current-state persistence. Rows=${TEAM_STATE_ROWS}; bytes=${TEAM_STATE_SIZE}; SHA256=${TEAM_STATE_SHA256}; staged and remote Git blob parity verified before PR creation. Oracle V1.6 production logic unchanged.")"
-          pr_number="${pr_url##*/}"
-          echo "PERSIST_PR=${pr_number}" >> "$GITHUB_ENV"
-          echo "PERSIST_PR_URL=${pr_url}" >> "$GITHUB_ENV"
+          echo "Validated branch is ready for connector-controlled PR/merge."
+          echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
+          echo "TEAM_STATE_SIZE=${TEAM_STATE_SIZE}"
+          echo "TEAM_STATE_SHA256=${TEAM_STATE_SHA256}"
+          echo "TEAM_STATE_ROWS=${TEAM_STATE_ROWS}"
 
       - name: Record validated persistence evidence
         working-directory: oracle-source
