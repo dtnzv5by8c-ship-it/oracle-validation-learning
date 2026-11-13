@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-13T07:52:07.667964+00:00",
+  "generated_utc": "2026-11-13T16:14:10.040938+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1331,49 +1331,31 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 7,
+      "fixture_count_in_window": 4,
       "fixtures": [
         {
-          "match_id": "match_fmb_srb1_2026-27_20261121_fk_crvena_zvezda_fk_radnik_surdulica",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "FK Crvena Zvezda",
-          "away": "FK Radnik Surdulica"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_fk_imt_beograd_partizan_beograd",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "FK IMT Beograd",
-          "away": "Partizan Beograd"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_fk_radnicki_1923_cukaricki",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "FK Radnički 1923",
-          "away": "Čukarički"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_macva_sabac_vojvodina",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Mačva Šabac",
-          "away": "Vojvodina"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_mladost_lucani_zeleznicar_pancevo",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Mladost Lučani",
-          "away": "Železničar Pančevo"
+          "match_id": "match_fmb_srb1_2026-27_20261121_radnicki_nis_fk_zemun",
+          "kickoff_at": "2026-11-21T12:00:00Z",
+          "home": "Radnički Niš",
+          "away": "FK Zemun"
         },
         {
           "match_id": "match_fmb_srb1_2026-27_20261121_ofk_beograd_novi_pazar",
-          "kickoff_at": "2026-11-21T00:00:00Z",
+          "kickoff_at": "2026-11-21T14:00:00Z",
           "home": "OFK Beograd",
           "away": "Novi Pazar"
         },
         {
-          "match_id": "match_fmb_srb1_2026-27_20261121_radnicki_nis_fk_zemun",
-          "kickoff_at": "2026-11-21T00:00:00Z",
-          "home": "Radnički Niš",
-          "away": "FK Zemun"
+          "match_id": "match_fmb_srb1_2026-27_20261121_mladost_lucani_zeleznicar_pancevo",
+          "kickoff_at": "2026-11-21T16:00:00Z",
+          "home": "Mladost Lučani",
+          "away": "Železničar Pančevo"
+        },
+        {
+          "match_id": "match_fmb_srb1_2026-27_20261121_fk_crvena_zvezda_fk_radnik_surdulica",
+          "kickoff_at": "2026-11-21T17:00:00Z",
+          "home": "FK Crvena Zvezda",
+          "away": "FK Radnik Surdulica"
         }
       ],
       "request": {
@@ -1725,7 +1707,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 140,
+    "fixtures_in_window": 137,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
