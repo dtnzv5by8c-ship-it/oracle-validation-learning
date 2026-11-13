@@ -1,6 +1,10 @@
 name: Oracle Public Prospective Completion Cycle
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oracle-public-prospective-completion.yml"
   workflow_dispatch:
 
 permissions:
