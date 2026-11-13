@@ -116,6 +116,32 @@ jobs:
           print("SAMPLE=",p.head(12).to_dict("records"))
           PY
 
+      - name: Materialize Team-State admission diagnostics
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pandas as pd, json, unicodedata, re
+          from difflib import SequenceMatcher
+          p=pd.read_csv("research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv")
+          s=pd.read_csv("database/prematch_team_state.csv")
+          no=p[p["status"].eq("NO_BET")].copy()
+          def norm(x):
+              x=unicodedata.normalize("NFKD",str(x)).encode("ascii","ignore").decode().lower()
+              return re.sub(r"[^a-z0-9]","",x)
+          out=[]
+          for _,r in no.iterrows():
+              for side in ["home","away"]:
+                  team=r[f"{side}_team"]; league=r["league_code"]
+                  names=s.loc[s["league_code"].eq(league),f"{side}_team"].dropna().unique().tolist()
+                  scores=sorted([(SequenceMatcher(None,norm(team),norm(x)).ratio(),x) for x in names],reverse=True)[:5]
+                  out.append({"date":r["date"],"league_code":league,"home_team":r["home_team"],"away_team":r["away_team"],"side":side,"team":team,"risk":r.get("risk",""),"top_candidates":scores})
+          pd.DataFrame(out).to_json("research/four_model/outputs/prospective_team_state_admission_diagnostic.json",orient="records",indent=2)
+          print("NO_BET_ROWS",len(no))
+          print("DIAGNOSTIC_ROWS",len(out))
+          print(pd.DataFrame(out).to_string(index=False))
+          PY
+
       - name: Prepare immutable prospective publication batch
         working-directory: oracle
         run: |
