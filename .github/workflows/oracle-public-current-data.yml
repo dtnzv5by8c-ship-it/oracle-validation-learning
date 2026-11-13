@@ -139,6 +139,8 @@ jobs:
           PERSIST_BRANCH="oracle/current-state/${GITHUB_RUN_ID}"
           git fetch --no-tags origin main
           git switch --create "${PERSIST_BRANCH}"
+          # The clone was authenticated only for the clone command; persist the same auth header for origin fetch/push.
+          git config http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           git add "${required_files[@]}"
           git add -f database/current_prematch_team_state.csv
           git diff --cached --quiet && { echo "No current staging changes."; exit 0; }
