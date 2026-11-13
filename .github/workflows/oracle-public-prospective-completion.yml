@@ -266,3 +266,5 @@ jobs:
 # Trigger checkpoint: canonical-fixture duplicate gate fix 4724bce.
 # Continuation checkpoint: consume latest private canonical-duplicate and snapshot-alignment fixes.
 # Trigger checkpoint: re-admit latest DATA_GATED fixtures 51a5275.
+
+# Trigger checkpoint: consume private Team-State identity fallback repair cd743b4 and rerun the serialized prospective admission cycle.
