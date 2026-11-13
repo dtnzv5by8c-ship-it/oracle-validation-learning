@@ -270,3 +270,4 @@ jobs:
 # Trigger checkpoint: consume private Team-State identity fallback repair cd743b4 and rerun the serialized prospective admission cycle.
 
 # Trigger checkpoint: consume private durable Team-State restoration 520a32a and prospective completion controller c1d0c157; run one serialized acceptance cycle.
+# Trigger checkpoint: consume merged public current-data Team State 13,852-row persistence and execute the next serialized prospective admission cycle.
