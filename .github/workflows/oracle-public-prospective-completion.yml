@@ -232,4 +232,4 @@ jobs:
 
 # Serialized trigger checkpoint: 2026-11-13 current-state compatibility admission fix.
 
-# Diagnostic trigger checkpoint: consume durable state-date provenance after current-state persistence merge.
+# Diagnostic trigger checkpoint: evidence persistence rebase race repair.
