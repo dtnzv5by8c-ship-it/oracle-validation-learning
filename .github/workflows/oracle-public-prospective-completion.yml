@@ -180,7 +180,14 @@ jobs:
         run: |
           set -o pipefail
           set +e
-          python scripts/publish_prediction_run.py research/four_model/outputs/prospective_publication_batch.csv 2>&1 | tee /tmp/publication_gateway.log
+          batch="research/four_model/outputs/prospective_publication_batch.csv"
+          if [ ! -s "${batch}" ] || [ "$(tail -n +2 "${batch}" | wc -l | tr -d ' ')" = "0" ]; then
+            echo "NO_OP: no new canonical prediction rows require publication"
+            echo "PUBLICATION_RC=0" > publication_gateway_status.txt
+            printf '%s\n' "NO_OP: no new canonical prediction rows require publication" > publication_gateway.log
+            exit 0
+          fi
+          python scripts/publish_prediction_run.py "${batch}" 2>&1 | tee /tmp/publication_gateway.log
           rc=${PIPESTATUS[0]}
           cp /tmp/publication_gateway.log publication_gateway.log
           echo "PUBLICATION_RC=${rc}" > publication_gateway_status.txt
