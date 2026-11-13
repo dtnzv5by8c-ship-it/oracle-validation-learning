@@ -132,8 +132,12 @@ jobs:
             oracle/publication_gateway_status.txt
 
       - name: Enforce publication gateway result
-        if: steps.publish.outcome == 'failure'
-        run: exit 1
+        if: always()
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          rc="$(awk -F= '/^PUBLICATION_RC=/{print $2}' publication_gateway_status.txt | tail -1)"
+          test "${rc}" = "0"
 
       - name: Restore protected historical artifacts
         working-directory: oracle
