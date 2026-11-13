@@ -148,7 +148,7 @@ jobs:
           git config user.name "oracle-current-data-bot"
           git config user.email "oracle-current-data-bot@users.noreply.github.com"
           git commit -m "Persist validated current staging data via public Actions"
-          git push --set-upstream origin "${PERSIST_BRANCH}"
+          git push --set-upstream "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git" "${PERSIST_BRANCH}"
 
           git fetch --no-tags origin "${PERSIST_BRANCH}"
           REMOTE_SIZE="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | wc -c)"
