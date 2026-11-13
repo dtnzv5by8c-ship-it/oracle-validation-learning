@@ -258,3 +258,4 @@ jobs:
 # Trigger checkpoint: compatibility league-code preservation fix validated by current run 43506218490.
 # Trigger checkpoint: canonical-fixture duplicate gate fix 4724bce.
 # Continuation checkpoint: consume latest private canonical-duplicate and snapshot-alignment fixes.
+# Trigger checkpoint: re-admit latest DATA_GATED fixtures 51a5275.
