@@ -144,59 +144,18 @@ jobs:
           echo "RECOVERY_BUNDLE=${BUNDLE_DIR}"
           echo "RECOVERY_BUNDLE_READY=true"
 
-      - name: Persist validated current staging branch
+      - name: Record validated persistence evidence
         working-directory: oracle-source
         run: |
           set -euo pipefail
-          required_files=(
-            database/current_matches.csv
-            database/current_goal_events.csv
-            database/current_source_reconciliation.csv
-            database/current_prematch_team_state.csv
-            research/otms/outputs/current_otms.csv
-            data/current_source_manifest.json
-            data/current_reconciliation_status.json
-            data/source_reconciliation_manifest.json
-            data/current_team_state_manifest.json
-            data/model_readiness.json
-            data/current_otms_manifest.json
-            data/four_model_readiness.json
-          )
-          for path in "${required_files[@]}"; do
-            test -f "$path" || { echo "PERSIST_INPUT_MISSING=$path"; exit 1; }
-          done
           test -s database/current_prematch_team_state.csv
-
           TEAM_STATE_SIZE="$(wc -c < database/current_prematch_team_state.csv)"
           TEAM_STATE_SHA256="$(sha256sum database/current_prematch_team_state.csv | awk '{print $1}')"
           TEAM_STATE_ROWS="$(tail -n +2 database/current_prematch_team_state.csv | wc -l)"
           MANIFEST_ROWS="$(python -c 'import json; print(json.load(open("data/current_team_state_manifest.json"))["rows"])')"
-          test "$TEAM_STATE_ROWS" = "$MANIFEST_ROWS"
-
-          PERSIST_BRANCH="oracle/current-state/${GITHUB_RUN_ID}"
-          git fetch --no-tags origin main
-          git switch --create "${PERSIST_BRANCH}"
-          # Rebind origin to the private production repository with the same write-capable token.
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
-          git add "${required_files[@]}"
-          git add -f database/current_prematch_team_state.csv
-          git diff --cached --quiet && { echo "No current staging changes."; exit 0; }
-
-          git config user.name "oracle-current-data-bot"
-          git config user.email "oracle-current-data-bot@users.noreply.github.com"
-          git commit -m "Persist validated current staging data via public Actions"
-          git push --set-upstream "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git" "${PERSIST_BRANCH}"
-
-          git fetch --no-tags origin "${PERSIST_BRANCH}"
-          REMOTE_SIZE="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | wc -c)"
-          REMOTE_SHA256="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | sha256sum | awk '{print $1}')"
-          REMOTE_ROWS="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | tail -n +2 | wc -l)"
-          test "$REMOTE_SIZE" = "$TEAM_STATE_SIZE"
-          test "$REMOTE_SHA256" = "$TEAM_STATE_SHA256"
-          test "$REMOTE_ROWS" = "$TEAM_STATE_ROWS"
-
-          echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
+          test "${TEAM_STATE_ROWS}" = "${MANIFEST_ROWS}"
           echo "CURRENT_TEAM_STATE_SIZE=${TEAM_STATE_SIZE}"
           echo "CURRENT_TEAM_STATE_SHA256=${TEAM_STATE_SHA256}"
           echo "CURRENT_TEAM_STATE_ROWS=${TEAM_STATE_ROWS}"
-          echo "PERSISTENCE_BRANCH_READY=true"
+          echo "PERSISTENCE_SOURCE_VALID=true"
+
