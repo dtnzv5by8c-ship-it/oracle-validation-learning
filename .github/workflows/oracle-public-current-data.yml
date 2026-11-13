@@ -137,6 +137,7 @@ jobs:
           test "${TEAM_STATE_ROWS}" = "${MANIFEST_ROWS}" || { echo "::error::MANIFEST_CSV_ROW_MISMATCH"; exit 1; }
 
           PERSIST_BRANCH="oracle/current-state/public-run-${GITHUB_RUN_ID}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
           git fetch --no-tags origin main
           git switch --create "${PERSIST_BRANCH}"
 
