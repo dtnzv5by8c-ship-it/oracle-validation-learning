@@ -140,6 +140,9 @@ jobs:
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
           git fetch --no-tags origin main
           git switch --create "${PERSIST_BRANCH}"
+          # Clear any stale assume-unchanged/skip-worktree bit on the generated Team State file.
+          git update-index --no-assume-unchanged --no-skip-worktree database/current_prematch_team_state.csv
+          git ls-files -v database/current_prematch_team_state.csv
 
           git add "${required_files[@]}"
           git add -f database/current_prematch_team_state.csv
