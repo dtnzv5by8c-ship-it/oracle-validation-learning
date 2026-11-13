@@ -232,3 +232,5 @@ jobs:
           echo "PERSISTENCE_SOURCE_VALID=true"
 
 # Trigger checkpoint: compatibility league-code preservation fix 0e3ac00.
+
+# Trigger checkpoint: consume post-21:49 durable Team-State restoration and refresh current FootyStats state before the next serialized prospective admission pass.
