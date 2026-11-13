@@ -107,42 +107,26 @@ jobs:
           python -m py_compile scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
           python -m py_compile scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py
 
-      - name: Publish validated recovery bundle to public execution repository
-        env:
-          PUBLIC_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-        working-directory: oracle-source
-        run: |
-          set -euo pipefail
-          BUNDLE_DIR="recovery/current-state/${GITHUB_RUN_ID}"
-          git clone --depth 1 --branch main "https://x-access-token:${PUBLIC_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" public-sink
-          mkdir -p "public-sink/${BUNDLE_DIR}"
-          required_files=(
-            database/current_matches.csv
-            database/current_goal_events.csv
-            database/current_source_reconciliation.csv
-            database/current_prematch_team_state.csv
-            research/otms/outputs/current_otms.csv
-            data/current_source_manifest.json
-            data/current_reconciliation_status.json
-            data/source_reconciliation_manifest.json
-            data/current_team_state_manifest.json
-            data/model_readiness.json
-            data/current_otms_manifest.json
-            data/four_model_readiness.json
-          )
-          for path in "${required_files[@]}"; do
-            test -f "${path}"
-            mkdir -p "public-sink/${BUNDLE_DIR}/$(dirname "${path}")"
-            cp "${path}" "public-sink/${BUNDLE_DIR}/${path}"
-          done
-          cd public-sink
-          git add -f "${BUNDLE_DIR}"
-          git config user.name "oracle-public-recovery-bot"
-          git config user.email "oracle-public-recovery-bot@users.noreply.github.com"
-          git commit -m "Publish validated Oracle current-state recovery bundle ${GITHUB_RUN_ID}"
-          git push origin main
-          echo "RECOVERY_BUNDLE=${BUNDLE_DIR}"
-          echo "RECOVERY_BUNDLE_READY=true"
+      - name: Upload validated recovery bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-current-state-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            oracle-source/database/current_matches.csv
+            oracle-source/database/current_goal_events.csv
+            oracle-source/database/current_prematch_team_state.csv
+            oracle-source/database/current_source_reconciliation.csv
+            oracle-source/research/otms/outputs/current_otms.csv
+            oracle-source/data/current_source_manifest.json
+            oracle-source/data/current_reconciliation_status.json
+            oracle-source/data/source_reconciliation_manifest.json
+            oracle-source/data/current_team_state_manifest.json
+            oracle-source/data/model_readiness.json
+            oracle-source/data/current_otms_manifest.json
+            oracle-source/data/four_model_readiness.json
+
 
       - name: Record validated persistence evidence
         working-directory: oracle-source
