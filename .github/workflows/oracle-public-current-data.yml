@@ -1,5 +1,5 @@
 name: Oracle Public Current Data Execution
-# Recovery control: private current-data persistence command repaired 2026-11-13; rerun on public Actions capacity.
+# Recovery control: current-state date provenance repair applied 2026-11-13; run on public Actions capacity.
 
 on:
   push:
