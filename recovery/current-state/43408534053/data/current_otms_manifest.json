@@ -1,0 +1,15 @@
+{
+  "generated_utc": "2026-11-13T10:23:02.081255+00:00",
+  "fixture_rows": 53,
+  "prior_strength": 8,
+  "markets": [
+    "BTTS",
+    "DC",
+    "O25",
+    "U45",
+    "DCU45",
+    "1UP"
+  ],
+  "status": "DIAGNOSTIC_ONLY",
+  "note": "Current OTMS is a diagnostic pre-match layer; not a standalone probability engine."
+}

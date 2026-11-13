@@ -1,0 +1,232 @@
+{
+  "generated_utc": "2026-11-13T10:22:52.543937+00:00",
+  "fotmob_rows": 2173,
+  "sofascore_rows": 0,
+  "matched": 0,
+  "agree": 0,
+  "conflict": 0,
+  "unverified": 2173,
+  "source_errors": [
+    {
+      "date": "2026-09-21",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-22",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-23",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-24",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-25",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-26",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-27",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-28",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-29",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-09-30",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-01",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-02",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-03",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-04",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-05",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-06",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-07",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-08",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-09",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-10",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-11",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-12",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-13",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-14",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-15",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-16",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-17",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-18",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-19",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-20",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-21",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-22",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-23",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-24",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-25",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-26",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-27",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-28",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-29",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-30",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-10-31",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-01",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-02",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-03",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-04",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-05",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-06",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-07",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-08",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-09",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-10",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-12",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-13",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-14",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-11-15",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ],
+  "source_hashes": []
+}

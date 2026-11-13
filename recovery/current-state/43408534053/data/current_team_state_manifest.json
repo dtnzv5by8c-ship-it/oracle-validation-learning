@@ -1,0 +1,7 @@
+{
+  "generated_utc": "2026-11-13T10:22:56.945854+00:00",
+  "rows": 13851,
+  "history_window": 5,
+  "feature_contract": "HISTORICAL_REPLAY_FEATURE_PARITY_V1.0",
+  "leakage_rule": "Target match is added only after all states for the target date are captured."
+}

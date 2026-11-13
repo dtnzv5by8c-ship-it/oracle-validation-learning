@@ -1,0 +1,17 @@
+{
+  "generated_utc": "2026-11-13T10:22:51.893283+00:00",
+  "status": "CURRENT",
+  "current_match_rows": 2173,
+  "current_goal_event_rows": 6313,
+  "source_manifest_present": true,
+  "reasons": [
+    "1 source/retrieval errors recorded."
+  ],
+  "gates": {
+    "current_source_available": true,
+    "duplicate_check": true,
+    "score_integrity": true,
+    "event_truth_available_for_all_completed": true
+  },
+  "rule": "A prediction run must not treat NOT_READY or EVENT_TRUTH_STALE as fully current."
+}

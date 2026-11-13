@@ -1,0 +1,14 @@
+{
+  "generated_utc": "2026-11-13T10:22:57.580194+00:00",
+  "status": "REVIEW_REQUIRED",
+  "reasons": [
+    "Current primary source covers 49 of 50 governed leagues."
+  ],
+  "model_readiness": {
+    "BTTS": true,
+    "DC": true,
+    "COMBO": true,
+    "M-1UP": false
+  },
+  "rule": "No model may silently substitute stale controlled data when current readiness is NOT_READY."
+}
