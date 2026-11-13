@@ -107,15 +107,10 @@ jobs:
           python -m py_compile scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
           python -m py_compile scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py
 
-      - name: Publish validated recovery bundle to public execution repository
-        env:
-          PUBLIC_TOKEN: ${{ github.token }}
+      - name: Persist validated current state to private production branch
         working-directory: oracle-source
         run: |
           set -euo pipefail
-          BUNDLE_DIR="recovery/current-state/${GITHUB_RUN_ID}"
-          git clone --depth 1 --branch main "https://x-access-token:${PUBLIC_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" public-sink
-          mkdir -p "public-sink/${BUNDLE_DIR}"
           required_files=(
             database/current_matches.csv
             database/current_goal_events.csv
@@ -131,18 +126,75 @@ jobs:
             data/four_model_readiness.json
           )
           for path in "${required_files[@]}"; do
-            test -f "${path}"
-            mkdir -p "public-sink/${BUNDLE_DIR}/$(dirname "${path}")"
-            cp "${path}" "public-sink/${BUNDLE_DIR}/${path}"
+            test -f "${path}" || { echo "::error::PERSIST_INPUT_MISSING=${path}"; exit 1; }
           done
-          cd public-sink
-          git add -f "${BUNDLE_DIR}"
-          git config user.name "oracle-public-recovery-bot"
-          git config user.email "oracle-public-recovery-bot@users.noreply.github.com"
-          git commit -m "Publish validated Oracle current-state recovery bundle ${GITHUB_RUN_ID}"
-          git push origin main
-          echo "RECOVERY_BUNDLE=${BUNDLE_DIR}"
-          echo "RECOVERY_BUNDLE_READY=true"
+
+          test -s database/current_prematch_team_state.csv
+          TEAM_STATE_SIZE="$(wc -c < database/current_prematch_team_state.csv)"
+          TEAM_STATE_SHA256="$(sha256sum database/current_prematch_team_state.csv | awk '{print $1}')"
+          TEAM_STATE_ROWS="$(tail -n +2 database/current_prematch_team_state.csv | wc -l)"
+          MANIFEST_ROWS="$(python -c 'import json; print(json.load(open("data/current_team_state_manifest.json"))["rows"])')"
+          test "${TEAM_STATE_ROWS}" = "${MANIFEST_ROWS}" || { echo "::error::MANIFEST_CSV_ROW_MISMATCH"; exit 1; }
+
+          PERSIST_BRANCH="oracle/current-state/public-run-${GITHUB_RUN_ID}"
+          git fetch --no-tags origin main
+          git switch --create "${PERSIST_BRANCH}"
+
+          git add "${required_files[@]}"
+          git add -f database/current_prematch_team_state.csv
+
+          # Critical large-file-safe index verification: prove the staged blob is the generated non-empty artifact.
+          INDEX_SIZE="$(git cat-file -s :database/current_prematch_team_state.csv)"
+          INDEX_SHA1="$(git rev-parse :database/current_prematch_team_state.csv)"
+          WORKTREE_SHA1="$(git hash-object database/current_prematch_team_state.csv)"
+          test "${INDEX_SIZE}" = "${TEAM_STATE_SIZE}" || { echo "::error::STAGED_BLOB_SIZE_MISMATCH index=${INDEX_SIZE} worktree=${TEAM_STATE_SIZE}"; exit 1; }
+          test "${INDEX_SHA1}" = "${WORKTREE_SHA1}" || { echo "::error::STAGED_BLOB_HASH_MISMATCH index=${INDEX_SHA1} worktree=${WORKTREE_SHA1}"; exit 1; }
+          test "${INDEX_SIZE}" -gt 0 || { echo "::error::STAGED_TEAM_STATE_BLOB_EMPTY"; exit 1; }
+
+          git config user.name "oracle-public-current-data-bot"
+          git config user.email "oracle-public-current-data-bot@users.noreply.github.com"
+          git commit -m "Persist validated current Team State from public runner"
+
+          git push --set-upstream origin "${PERSIST_BRANCH}"
+
+          git fetch --no-tags origin "${PERSIST_BRANCH}"
+          REMOTE_SIZE="$(git cat-file -s "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv")"
+          REMOTE_SHA1="$(git rev-parse "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv")"
+          test "${REMOTE_SIZE}" = "${TEAM_STATE_SIZE}" || { echo "::error::REMOTE_BLOB_SIZE_MISMATCH"; exit 1; }
+          test "${REMOTE_SHA1}" = "${WORKTREE_SHA1}" || { echo "::error::REMOTE_BLOB_HASH_MISMATCH"; exit 1; }
+
+          echo "PERSIST_BRANCH=${PERSIST_BRANCH}" >> "$GITHUB_ENV"
+          echo "TEAM_STATE_SIZE=${TEAM_STATE_SIZE}" >> "$GITHUB_ENV"
+          echo "TEAM_STATE_SHA256=${TEAM_STATE_SHA256}" >> "$GITHUB_ENV"
+          echo "TEAM_STATE_ROWS=${TEAM_STATE_ROWS}" >> "$GITHUB_ENV"
+          echo "PERSISTENCE_BRANCH_VERIFIED=true" >> "$GITHUB_ENV"
+
+      - name: Create or reuse persistence PR
+        working-directory: oracle-source
+        env:
+          GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list --repo "${TARGET_REPO}" --head "${PERSIST_BRANCH}" --state open --json number --jq '.[0].number' || true)"
+          if [ -n "${existing}" ]; then
+            echo "PERSIST_PR=${existing}" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          pr_url="$(gh pr create --repo "${TARGET_REPO}" --base main --head "${PERSIST_BRANCH}"             --title "Persist validated current Team State from public runner"             --body "Validated current-state persistence. Rows=${TEAM_STATE_ROWS}; bytes=${TEAM_STATE_SIZE}; SHA256=${TEAM_STATE_SHA256}; staged and remote Git blob parity verified before PR creation. Oracle V1.6 production logic unchanged.")"
+          pr_number="${pr_url##*/}"
+          echo "PERSIST_PR=${pr_number}" >> "$GITHUB_ENV"
+          echo "PERSIST_PR_URL=${pr_url}" >> "$GITHUB_ENV"
+
+      - name: Record validated persistence evidence
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          echo "PERSISTENCE_SOURCE_VALID=true"
+          echo "PERSISTENCE_BRANCH_VERIFIED=${PERSISTENCE_BRANCH_VERIFIED:-false}"
+          echo "PERSIST_PR=${PERSIST_PR:-unknown}"
+          echo "CURRENT_TEAM_STATE_SIZE=${TEAM_STATE_SIZE}"
+          echo "CURRENT_TEAM_STATE_SHA256=${TEAM_STATE_SHA256}"
+          echo "CURRENT_TEAM_STATE_ROWS=${TEAM_STATE_ROWS}"
 
       - name: Upload validated recovery bundle artifact
         uses: actions/upload-artifact@v4
