@@ -158,7 +158,7 @@ jobs:
 
           git push --set-upstream origin "${PERSIST_BRANCH}"
 
-          git fetch --no-tags origin "${PERSIST_BRANCH}"
+          git fetch --no-tags origin "+refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}"
           REMOTE_SIZE="$(git cat-file -s "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv")"
           REMOTE_SHA1="$(git rev-parse "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv")"
           test "${REMOTE_SIZE}" = "${TEAM_STATE_SIZE}" || { echo "::error::REMOTE_BLOB_SIZE_MISMATCH"; exit 1; }
