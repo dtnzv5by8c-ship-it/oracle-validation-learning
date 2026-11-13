@@ -33,6 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" clone --depth 1 --branch main "https://github.com/${TARGET_REPO}.git" oracle
+          git -C oracle remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
 
       - name: Setup Python
         uses: actions/setup-python@v5
