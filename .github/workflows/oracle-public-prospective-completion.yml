@@ -182,3 +182,5 @@ jobs:
           git fetch --no-tags origin main
           git rebase origin/main
           git push origin HEAD:main
+
+# Serialized trigger checkpoint: 2026-11-13 current-state compatibility admission fix.
