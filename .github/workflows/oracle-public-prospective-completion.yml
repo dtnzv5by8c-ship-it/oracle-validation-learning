@@ -254,3 +254,4 @@ jobs:
 # Serialized trigger checkpoint: 2026-11-13 current-state compatibility admission fix.
 
 # Diagnostic trigger checkpoint: evidence persistence rebase race repair.
+# Trigger checkpoint: current Team-State snapshot provenance alignment fix 6931405.
