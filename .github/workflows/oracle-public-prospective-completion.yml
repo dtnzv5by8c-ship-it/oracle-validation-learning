@@ -1,4 +1,5 @@
 name: Oracle Public Prospective Completion Cycle
+# Serialized recovery cycle: prospective inference now consumes the governed current-state compatibility view.
 
 on:
   push:
