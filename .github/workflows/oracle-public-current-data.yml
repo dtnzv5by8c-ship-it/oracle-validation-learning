@@ -109,7 +109,7 @@ jobs:
 
       - name: Publish validated recovery bundle to public execution repository
         env:
-          PUBLIC_TOKEN: ${{ github.token }}
+          PUBLIC_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
         working-directory: oracle-source
         run: |
           set -euo pipefail
