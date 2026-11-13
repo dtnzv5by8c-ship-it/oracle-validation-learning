@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/oracle-one-time-prospective-dispatch.yml"
+# Single-use trigger arm.
 
 permissions:
   contents: write
