@@ -94,9 +94,13 @@ jobs:
           FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
         run: python scripts/ingest_upcoming_fixtures.py 14 data/fixtures/oracle_upcoming_fixtures.csv
 
-      - name: Rebuild current Team State compatibility view
+      - name: Rebuild prediction compatibility view from durable current Team State
         working-directory: oracle
-        run: python scripts/build_current_team_state.py && python scripts/build_prediction_team_state_compatibility.py
+        run: |
+          set -euo pipefail
+          test -s database/current_prematch_team_state.csv
+          test -s data/current_team_state_manifest.json
+          python scripts/build_prediction_team_state_compatibility.py
 
       - name: Run existing governed four-model prediction batch
         working-directory: oracle
