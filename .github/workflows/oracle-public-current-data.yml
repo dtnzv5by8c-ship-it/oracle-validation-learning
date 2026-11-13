@@ -139,8 +139,8 @@ jobs:
           PERSIST_BRANCH="oracle/current-state/${GITHUB_RUN_ID}"
           git fetch --no-tags origin main
           git switch --create "${PERSIST_BRANCH}"
-          # The clone was authenticated only for the clone command; persist the same auth header for origin fetch/push.
-          git config http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          # Rebind origin to the private production repository with the same write-capable token.
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
           git add "${required_files[@]}"
           git add -f database/current_prematch_team_state.csv
           git diff --cached --quiet && { echo "No current staging changes."; exit 0; }
@@ -148,7 +148,7 @@ jobs:
           git config user.name "oracle-current-data-bot"
           git config user.email "oracle-current-data-bot@users.noreply.github.com"
           git commit -m "Persist validated current staging data via public Actions"
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push --set-upstream origin "${PERSIST_BRANCH}"
+          git push --set-upstream origin "${PERSIST_BRANCH}"
 
           git fetch --no-tags origin "${PERSIST_BRANCH}"
           REMOTE_SIZE="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | wc -c)"
