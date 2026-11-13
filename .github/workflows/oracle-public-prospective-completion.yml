@@ -69,6 +69,15 @@ jobs:
           set -euo pipefail
           EXPECTED_STATE_SHA="1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78"
           EXPECTED_MATCHES_SHA="1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc"
+          SOURCE_COMMIT="67742886553ef2d79fe7b3bf3ddd78c201a16f35"
+          if [ ! -s database/prematch_team_state.csv ] || [ "$(sha256sum database/prematch_team_state.csv | awk '{print $1}')" != "$EXPECTED_STATE_SHA" ]; then
+            git fetch --no-tags --depth=1 origin "$SOURCE_COMMIT"
+            git show "$SOURCE_COMMIT:database/prematch_team_state.csv" > database/prematch_team_state.csv
+          fi
+          if [ ! -s database/matches.csv ] || [ "$(sha256sum database/matches.csv | awk '{print $1}')" != "$EXPECTED_MATCHES_SHA" ]; then
+            git fetch --no-tags --depth=1 origin "$SOURCE_COMMIT"
+            git show "$SOURCE_COMMIT:database/matches.csv" > database/matches.csv
+          fi
           test -s database/prematch_team_state.csv
           test "$(sha256sum database/prematch_team_state.csv | awk '{print $1}')" = "$EXPECTED_STATE_SHA"
           test -s database/matches.csv
