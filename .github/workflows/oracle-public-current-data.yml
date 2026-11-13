@@ -231,3 +231,4 @@ jobs:
           echo "CURRENT_TEAM_STATE_ROWS=${TEAM_STATE_ROWS}"
           echo "PERSISTENCE_SOURCE_VALID=true"
 
+# Trigger checkpoint: compatibility league-code preservation fix 0e3ac00.
