@@ -146,6 +146,27 @@ jobs:
           print(pd.DataFrame(out).to_string(index=False))
           PY
 
+      - name: Diagnose NO_BET team-state resolution
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          import sys
+          sys.path.insert(0,'scripts')
+          import oracle_four_model_predict as m
+          p=pd.read_csv('research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv')
+          nb=p[p['status'].eq('NO_BET')].copy()
+          print('NO_BET_ROWS=',len(nb))
+          for r in nb.itertuples(index=False):
+              hk=m.resolve_current_state(r.league_code,r.home_team)
+              ak=m.resolve_current_state(r.league_code,r.away_team)
+              h=m.current_state_asof(r.league_code,hk,pd.Timestamp(r.date)) if hk else None
+              a=m.current_state_asof(r.league_code,ak,pd.Timestamp(r.date)) if ak else None
+              print({'date':r.date,'league':r.league_code,'home':r.home_team,'away':r.away_team,'home_key':hk,'away_key':ak,'home_n':None if h is None else h.get('n'),'away_n':None if a is None else a.get('n')})
+          PY
+
       - name: Prepare immutable prospective publication batch
         working-directory: oracle
         run: |
