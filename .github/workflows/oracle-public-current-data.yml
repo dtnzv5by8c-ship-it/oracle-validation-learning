@@ -1,0 +1,162 @@
+name: Oracle Public Current Data Execution
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-current-data.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-serialized-evidence-writer
+  cancel-in-progress: false
+
+jobs:
+  current:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+    steps:
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}" || { echo "::error::ORACLE_PRIVATE_REPO_TOKEN is missing."; exit 1; }
+          test -n "${FOOTYSTATS_API_KEY:-}" || { echo "::error::FOOTYSTATS_API_KEY is missing."; exit 1; }
+
+      - name: Clone private production repository
+        run: |
+          set -euo pipefail
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            clone --depth 1 --branch main "https://github.com/${TARGET_REPO}.git" oracle-source
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        working-directory: oracle-source
+        run: python -m pip install --disable-pip-version-check pandas numpy
+
+      - name: Ingest current FootyStats data (PRIMARY)
+        working-directory: oracle-source
+        run: python scripts/ingest_current_footystats.py
+
+      - name: Reconcile current staging data
+        working-directory: oracle-source
+        run: python scripts/reconcile_current_data.py
+
+      - name: Reconcile independent current sources
+        working-directory: oracle-source
+        run: python scripts/reconcile_current_sources.py
+
+      - name: Build current pre-match team state
+        working-directory: oracle-source
+        run: python scripts/build_current_team_state.py
+
+      - name: Validate current Team-State integrity
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          test -s database/current_prematch_team_state.csv
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          csv_path=Path("database/current_prematch_team_state.csv")
+          manifest=json.loads(Path("data/current_team_state_manifest.json").read_text())
+          with csv_path.open(newline="", encoding="utf-8") as f:
+              rows=list(csv.DictReader(f))
+          csv_rows=len(rows)
+          manifest_rows=int(manifest.get("rows",-1))
+          if csv_rows <= 0:
+              raise SystemExit("CURRENT_TEAM_STATE_PERSISTENCE_INVALID: CSV has zero rows")
+          if manifest_rows != csv_rows:
+              raise SystemExit(f"CURRENT_TEAM_STATE_PERSISTENCE_INVALID: manifest={manifest_rows} csv={csv_rows}")
+          print({"status":"PASS","rows":csv_rows})
+          PY
+
+      - name: Run current Team-State persistence regression tests
+        working-directory: oracle-source
+        run: python -m unittest tests/test_current_team_state_persistence.py
+
+      - name: Build prediction-engine Team-State compatibility view
+        working-directory: oracle-source
+        run: python scripts/build_prediction_team_state_compatibility.py
+
+      - name: Check model readiness
+        working-directory: oracle-source
+        run: python scripts/check_model_readiness.py
+
+      - name: Build Team DNA intelligence
+        working-directory: oracle-source
+        run: mkdir -p data && python scripts/build_team_dna.py database/matches.csv database/one_up_truth.csv data/current_team_dna.csv
+
+      - name: Build current OTMS diagnostic layer
+        working-directory: oracle-source
+        run: python research/otms/build_current_otms.py
+
+      - name: Validate tooling
+        working-directory: oracle-source
+        run: |
+          python -m py_compile scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
+          python -m py_compile scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py
+
+      - name: Persist validated current staging branch
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          required_files=(
+            database/current_matches.csv
+            database/current_goal_events.csv
+            database/current_source_reconciliation.csv
+            database/current_prematch_team_state.csv
+            research/otms/outputs/current_otms.csv
+            data/current_source_manifest.json
+            data/current_reconciliation_status.json
+            data/source_reconciliation_manifest.json
+            data/current_team_state_manifest.json
+            data/model_readiness.json
+            data/current_otms_manifest.json
+            data/four_model_readiness.json
+          )
+          for path in "${required_files[@]}"; do
+            test -f "$path" || { echo "PERSIST_INPUT_MISSING=$path"; exit 1; }
+          done
+          test -s database/current_prematch_team_state.csv
+
+          TEAM_STATE_SIZE="$(wc -c < database/current_prematch_team_state.csv)"
+          TEAM_STATE_SHA256="$(sha256sum database/current_prematch_team_state.csv | awk '{print $1}')"
+          TEAM_STATE_ROWS="$(tail -n +2 database/current_prematch_team_state.csv | wc -l)"
+          MANIFEST_ROWS="$(python -c 'import json; print(json.load(open("data/current_team_state_manifest.json"))["rows"])')"
+          test "$TEAM_STATE_ROWS" = "$MANIFEST_ROWS"
+
+          PERSIST_BRANCH="oracle/current-state/${GITHUB_RUN_ID}"
+          git fetch --no-tags origin main
+          git switch --create "${PERSIST_BRANCH}"
+          git add "${required_files[@]}"
+          git add -f database/current_prematch_team_state.csv
+          git diff --cached --quiet && { echo "No current staging changes."; exit 0; }
+
+          git config user.name "oracle-current-data-bot"
+          git config user.email "oracle-current-data-bot@users.noreply.github.com"
+          git commit -m "Persist validated current staging data via public Actions"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push --force --set-upstream origin "${PERSIST_BRANCH}"
+
+          git fetch --no-tags origin "${PERSIST_BRANCH}"
+          REMOTE_SIZE="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | wc -c)"
+          REMOTE_SHA256="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | sha256sum | awk '{print $1}')"
+          REMOTE_ROWS="$(git show "origin/${PERSIST_BRANCH}:database/current_prematch_team_state.csv" | tail -n +2 | wc -l)"
+          test "$REMOTE_SIZE" = "$TEAM_STATE_SIZE"
+          test "$REMOTE_SHA256" = "$TEAM_STATE_SHA256"
+          test "$REMOTE_ROWS" = "$TEAM_STATE_ROWS"
+
+          echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
+          echo "CURRENT_TEAM_STATE_SIZE=${TEAM_STATE_SIZE}"
+          echo "CURRENT_TEAM_STATE_SHA256=${TEAM_STATE_SHA256}"
+          echo "CURRENT_TEAM_STATE_ROWS=${TEAM_STATE_ROWS}"
+          echo "PERSISTENCE_BRANCH_READY=true"
