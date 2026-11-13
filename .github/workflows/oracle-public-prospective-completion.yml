@@ -102,6 +102,20 @@ jobs:
         working-directory: oracle
         run: python scripts/oracle_four_model_predict.py data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
 
+      - name: Diagnose prospective prediction status distribution
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pandas as pd
+          p=pd.read_csv("research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv")
+          print("PREDICTION_ROWS=",len(p))
+          print("STATUS_COUNTS=",p.get("status",pd.Series(dtype=str)).value_counts(dropna=False).to_dict())
+          if "risk" in p:
+              print("RISK_COUNTS=",p["risk"].value_counts(dropna=False).head(30).to_dict())
+          print("SAMPLE=",p.head(12).to_dict("records"))
+          PY
+
       - name: Prepare immutable prospective publication batch
         working-directory: oracle
         run: |
