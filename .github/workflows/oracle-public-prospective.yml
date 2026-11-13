@@ -1,0 +1,194 @@
+name: Oracle Public Prospective Execution
+
+on:
+  schedule:
+    - cron: "40 * * * *"
+  push:
+    paths:
+      - ".github/workflows/oracle-public-prospective.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-serialized-evidence-writer
+  cancel-in-progress: false
+
+jobs:
+  prospective:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+    steps:
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN:-}"
+          test -n "${FOOTYSTATS_API_KEY:-}"
+
+      - name: Clone latest private Oracle main
+        run: |
+          set -euo pipefail
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"             clone --depth 1 --branch main "https://github.com/${TARGET_REPO}.git" oracle
+          cd oracle
+          echo "SOURCE_MAIN_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Verify durable current Team State before admission
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          STATE_SIZE="$(git cat-file -s HEAD:database/current_prematch_team_state.csv)"
+          MANIFEST_ROWS="$(python -c 'import json; print(json.load(open("data/current_team_state_manifest.json"))["rows"])')"
+          test "$STATE_SIZE" -gt 0
+          test "$MANIFEST_ROWS" -eq 13851
+          echo "DURABLE_CURRENT_STATE_BLOB_SIZE=$STATE_SIZE"
+          echo "DURABLE_CURRENT_STATE_MANIFEST_ROWS=$MANIFEST_ROWS"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install research dependencies
+        working-directory: oracle
+        run: python -m pip install --disable-pip-version-check pandas numpy scikit-learn requests
+
+      - name: Refresh governed upcoming fixtures
+        working-directory: oracle
+        run: python scripts/ingest_upcoming_fixtures.py 14 data/fixtures/oracle_upcoming_fixtures.csv
+
+      - name: Preserve locked historical artifacts
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          EXPECTED_STATE_SHA="1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78"
+          EXPECTED_MATCHES_SHA="1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc"
+          if [ ! -s database/prematch_team_state.csv ] || [ "$(sha256sum database/prematch_team_state.csv | awk '{print $1}')" != "$EXPECTED_STATE_SHA" ]; then
+            git fetch --no-tags --depth=1 origin 67742886553ef2d79fe7b3bf3ddd78c201a16f35
+            git show 67742886553ef2d79fe7b3bf3ddd78c201a16f35:database/prematch_team_state.csv > database/prematch_team_state.csv
+          fi
+          if [ ! -s database/matches.csv ] || [ "$(sha256sum database/matches.csv | awk '{print $1}')" != "$EXPECTED_MATCHES_SHA" ]; then
+            git fetch --no-tags --depth=1 origin 67742886553ef2d79fe7b3bf3ddd78c201a16f35
+            git show 67742886553ef2d79fe7b3bf3ddd78c201a16f35:database/matches.csv > database/matches.csv
+          fi
+          test "$(sha256sum database/prematch_team_state.csv | awk '{print $1}')" = "$EXPECTED_STATE_SHA"
+          test "$(sha256sum database/matches.csv | awk '{print $1}')" = "$EXPECTED_MATCHES_SHA"
+          mkdir -p .oracle_protected_before
+          cp database/prematch_team_state.csv .oracle_protected_before/prematch_team_state.csv
+          cp database/matches.csv .oracle_protected_before/matches.csv
+
+      - name: Refresh current Team State and compatibility view
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/build_current_team_state.py
+          test -s database/current_prematch_team_state.csv
+          python - <<'PY'
+          import csv,json
+          p="database/current_prematch_team_state.csv"
+          m=json.load(open("data/current_team_state_manifest.json"))
+          rows=list(csv.DictReader(open(p,newline="",encoding="utf-8")))
+          assert len(rows)==int(m["rows"]) and len(rows)>0
+          print({"rows":len(rows),"manifest_rows":m["rows"]})
+          PY
+          python scripts/build_prediction_team_state_compatibility.py
+
+      - name: Run governed four-model OMI prediction batch
+        working-directory: oracle
+        run: python scripts/oracle_four_model_predict.py data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
+
+      - name: Prepare immutable publication batch
+        working-directory: oracle
+        continue-on-error: true
+        run: |
+          python scripts/prepare_prospective_four_market_publication.py             --predictions research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv             --fixtures data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv             --output research/four_model/outputs/prospective_publication_batch.csv ||             printf "fixture_id,competition,fixture_date,kickoff_time,home_team,away_team,model,model_version,model_status,raw_probability,selection,main_risk,data_quality_status,prediction_timestamp,data_cutoff_date,event_truth_cutoff_date,feature_snapshot_id,source_manifest_hash,pre_match_state_hash,model_code_sha,calibration_id\n" > research/four_model/outputs/prospective_publication_batch.csv
+
+      - name: Publish eligible predictions
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import csv,subprocess
+          p="research/four_model/outputs/prospective_publication_batch.csv"
+          rows=list(csv.DictReader(open(p,newline="",encoding="utf-8")))
+          if rows: subprocess.run(["python","scripts/publish_prediction_run.py",p],check=True)
+          else: print("DATA_GATED: no eligible future-kickoff predictions")
+          PY
+
+      - name: Restore protected historical artifacts
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          cp .oracle_protected_before/matches.csv database/matches.csv
+          cp .oracle_protected_before/prematch_team_state.csv database/prematch_team_state.csv
+          test -s database/matches.csv
+          test -s database/prematch_team_state.csv
+          test "$(sha256sum database/matches.csv | awk '{print $1}')" = "1836e220bcad535ab6d8e5885cffaf4b7c81593a4df97a0f410de3d17d07d2bc"
+          test "$(sha256sum database/prematch_team_state.csv | awk '{print $1}')" = "1932edf73e29d2df1400bf25e9ec763f6d7ce272fc003b48f0d115b295432e78"
+
+      - name: Refresh current truth and settle matured predictions
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python scripts/ingest_current_fotmob.py
+          python scripts/build_prospective_settlement_truth.py --predictions archive/PREDICTION_LEDGER.csv --current-matches database/current_matches.csv --output research/four_model/outputs/prospective_settlement_truth.csv
+          if [ -s research/four_model/outputs/prospective_settlement_truth.csv ] && [ "$(wc -l < research/four_model/outputs/prospective_settlement_truth.csv)" -gt 1 ]; then
+            python scripts/settle_prediction_run.py archive/PREDICTION_LEDGER.csv research/four_model/outputs/prospective_settlement_truth.csv research/four_model/outputs/prospective_settlement_output.csv
+            python scripts/feed_learning_ledgers.py --settled-output research/four_model/outputs/prospective_settlement_output.csv
+          fi
+
+      - name: Run governance and production gates
+        working-directory: oracle
+        run: |
+          python -m unittest discover -s tests -p "test_*.py"
+          python scripts/audit_historical_point_in_time.py --matches database/matches.csv --state database/prematch_team_state.csv --output research/historical_spine/point_in_time_leakage_audit.json || true
+          python scripts/run_prospective_shadow_gate.py
+          python scripts/run_oracle_production_readiness_gate.py
+          python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_four_model_predict.py scripts/prepare_prospective_four_market_publication.py scripts/build_prospective_settlement_truth.py scripts/publish_prediction_run.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/audit_historical_point_in_time.py scripts/run_prospective_shadow_gate.py scripts/run_oracle_production_readiness_gate.py
+
+      - name: Persist evidence to serialized private branch
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${TARGET_REPO}.git"
+          git config user.name "oracle-public-prospective-bot"
+          git config user.email "oracle-public-prospective-bot@users.noreply.github.com"
+          evidence_paths=(
+            archive/PREDICTION_LEDGER.csv
+            archive/SETTLEMENT_LEDGER.csv
+            archive/PROBABILITY_ERROR_LEDGER.csv
+            archive/LEARNING_LEDGER.csv
+            archive/TEAM_BEHAVIOUR_LEDGER.csv
+            archive/RUN_REGISTRY.csv
+            archive/FEATURE_SNAPSHOT_MANIFEST.csv
+            archive/FEATURE_SNAPSHOT_VALUES.csv
+            data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv
+            research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
+            research/four_model/outputs/prospective_publication_batch.csv
+            research/four_model/outputs/prospective_publication_batch.csv.manifest.json
+            research/four_model/outputs/prospective_settlement_truth.csv
+            research/four_model/outputs/prospective_settlement_output.csv
+            research/four_model/outputs/prospective_settlement_output.csv.manifest.json
+            research/four_model/outputs/prospective_shadow_gate_manifest.json
+            research/four_model/outputs/oracle_production_readiness_gate.json
+            research/historical_spine/point_in_time_leakage_audit.json
+          )
+          for f in "${evidence_paths[@]}"; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          git restore -- database/current_matches.csv database/current_goal_events.csv database/current_prematch_team_state.csv data/current_source_manifest.json data/current_team_state_manifest.json || true
+          if git diff --cached --quiet; then
+            echo "No evidence changes."
+            exit 0
+          fi
+          git commit -m "Record governed prospective evidence from public runner"
+          git reset --hard HEAD
+          PERSIST_BRANCH="oracle/prospective/public-run-${GITHUB_RUN_ID}"
+          git switch --create "${PERSIST_BRANCH}"
+          git push --set-upstream origin "${PERSIST_BRANCH}"
+          git fetch --no-tags origin "+refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}"
+          echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
+          echo "SOURCE_MAIN_SHA=${SOURCE_MAIN_SHA}"
