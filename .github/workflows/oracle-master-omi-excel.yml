@@ -1,0 +1,221 @@
+name: Oracle Master OMI Excel Export
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-master-omi-excel.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+      SOURCE_BRANCH: oracle/prospective/public-run-43584388063
+    steps:
+      - name: Validate secret
+        run: test -n "${GH_TOKEN:-}"
+
+      - name: Clone governed Oracle evidence branch
+        run: |
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"             clone --depth 1 --branch "$SOURCE_BRANCH" "https://github.com/${TARGET_REPO}.git" oracle
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Excel dependencies
+        run: python -m pip install --disable-pip-version-check pandas openpyxl
+
+      - name: Build Master OMI Excel
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import csv, json, os, math, re, unicodedata
+          from pathlib import Path
+          from collections import defaultdict
+          import pandas as pd
+          from openpyxl import Workbook
+          from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+          from openpyxl.utils import get_column_letter
+
+          ROOT=Path(".")
+          ledger=ROOT/"research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv"
+          fixtures=ROOT/"data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv"
+          state=ROOT/"database/current_prematch_team_state.csv"
+          matches=ROOT/"database/matches.csv"
+          visual_candidates=[
+              ROOT/"research/team_fixture_intelligence/fixture_intelligence_matrix.csv",
+              ROOT/"research/team_fixture_intelligence/team_fixture_intelligence_matrix.csv",
+              ROOT/"research/team_fixture_intelligence/fixture_market_research_router.csv"
+          ]
+          out=ROOT/"Master_OMI_Report_13-24_Nov_2026.xlsx"
+
+          df=pd.read_csv(ledger)
+          fx=pd.read_csv(fixtures) if fixtures.exists() and fixtures.stat().st_size else pd.DataFrame()
+          st=pd.read_csv(state) if state.exists() and state.stat().st_size else pd.DataFrame()
+          mt=pd.read_csv(matches) if matches.exists() and matches.stat().st_size else pd.DataFrame()
+
+          # Canonical fixture key for safe joins. Exact Fixture ID is preferred.
+          def norm(s):
+              s=unicodedata.normalize("NFKD",str(s or "")).encode("ascii","ignore").decode().lower()
+              return re.sub(r"[^a-z0-9]+","-",s).strip("-")
+          def fid(r):
+              if "fixture_id" in r and str(r.get("fixture_id") or "").strip():
+                  return str(r["fixture_id"])
+              return f"{r.get('league_code','')}-{str(r.get('date',''))[:10]}-{norm(r.get('home_team',''))}-{norm(r.get('away_team',''))}"
+          df["Fixture ID"]=df.apply(fid,axis=1)
+          if not fx.empty:
+              fx["Fixture ID"]=fx.apply(fid,axis=1)
+
+          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
+          h2h_rows=[]
+          form_rows=[]
+          if not mt.empty:
+              mt["date"]=pd.to_datetime(mt["date"],errors="coerce")
+              for _,r in df.iterrows():
+                  date=pd.to_datetime(r.get("date"),errors="coerce")
+                  league=str(r.get("league_code",""))
+                  home=str(r.get("home_team",""))
+                  away=str(r.get("away_team",""))
+                  m=mt[(mt["date"]<date) & (mt.get("league_code",pd.Series([""]*len(mt))).astype(str)==league)].copy() if "league_code" in mt.columns else mt[mt["date"]<date].copy()
+                  if not m.empty:
+                      def teammask(col,team):
+                          return m[col].astype(str).map(norm)==norm(team)
+                      hmask=teammask("home_team",home) if "home_team" in m.columns else pd.Series(False,index=m.index)
+                      amask=teammask("away_team",away) if "away_team" in m.columns else pd.Series(False,index=m.index)
+                      pair=m[(teammask("home_team",home)&teammask("away_team",away))|(teammask("home_team",away)&teammask("away_team",home))]
+                  else: pair=pd.DataFrame()
+                  n=len(pair)
+                  hw=dr=aw=0
+                  if n:
+                      for _,g in pair.iterrows():
+                          hg=float(g.get("home_goals",0)); ag=float(g.get("away_goals",0))
+                          if norm(g.get("home_team"))==norm(home):
+                              hw+=hg>ag; dr+=hg==ag; aw+=hg<ag
+                          else:
+                              hw+=ag>hg; dr+=ag==hg; aw+=ag<hg
+                  h2h_rows.append({
+                      "Fixture ID":r["Fixture ID"],"Date":r.get("date"),"League":league,"Home":home,"Away":away,
+                      "H2H Meetings":n,"Home Wins":int(hw),"Draws":int(dr),"Away Wins":int(aw),
+                      "H2H Status":"MATCHED" if n>=5 else ("MATCHED - SMALL SAMPLE" if n else "NO VERIFIED HISTORICAL H2H")
+                  })
+                  # Recent form: last five same-league matches for each team, strictly before fixture.
+                  for side,team in [("Home",home),("Away",away)]:
+                      tm=m[(m["home_team"].astype(str).map(norm)==norm(team))|(m["away_team"].astype(str).map(norm)==norm(team))].sort_values("date",ascending=False).head(5)
+                      pts=gf=ga=0; results=[]
+                      for _,g in tm.iterrows():
+                          ishome=norm(g.get("home_team"))==norm(team)
+                          gf0=float(g.get("home_goals",0) if ishome else g.get("away_goals",0))
+                          ga0=float(g.get("away_goals",0) if ishome else g.get("home_goals",0))
+                          gf+=gf0; ga+=ga0
+                          p=3 if gf0>ga0 else 1 if gf0==ga0 else 0; pts+=p
+                          results.append("W" if p==3 else "D" if p==1 else "L")
+                      form_rows.append({
+                          "Fixture ID":r["Fixture ID"],"Side":side,"Team":team,
+                          "Last 5 Results":" ".join(results),"Last 5 Points":pts if len(tm) else "",
+                          "Goals For":gf if len(tm) else "","Goals Against":ga if len(tm) else "",
+                          "Matches Available":len(tm),
+                          "Form Status":"5-match sample" if len(tm)==5 else ("Small sample" if len(tm)>0 else "No verified recent history")
+                      })
+
+          # Visual Intelligence: exact Fixture ID join only.
+          vis=None; vis_source=""
+          for p in visual_candidates:
+              if p.exists() and p.stat().st_size:
+                  try:
+                      x=pd.read_csv(p)
+                      if "fixture_id" in [str(c).lower() for c in x.columns] or "Fixture ID" in x.columns:
+                          vis=x; vis_source=str(p); break
+                  except Exception: pass
+          if vis is not None:
+              cols={str(c).lower():c for c in vis.columns}
+              fk=cols.get("fixture_id") or ("Fixture ID" if "Fixture ID" in vis.columns else None)
+              vis=vis.rename(columns={fk:"Fixture ID"})
+              vis["Fixture ID"]=vis["Fixture ID"].astype(str)
+              df["Fixture ID"]=df["Fixture ID"].astype(str)
+              df=df.merge(vis.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_VI"))
+
+          # Summary.
+          wb=Workbook(); ws=wb.active; ws.title="Executive Summary"
+          rows=[
+              ["Project Oracle — Master OMI Report","13–24 Nov 2026"],
+              ["Source run","43584388063"],
+              ["Source branch","oracle/prospective/public-run-43584388063"],
+              ["Production model","Oracle V1.6 — unchanged"],
+              ["Governed universe","50-League Universe; FootyStats current populated coverage = 49, 50th provider exception"],
+              ["Fixture rows",len(df)],
+              ["CONTROLLED",int((df["status"]=="CONTROLLED").sum())],
+              ["WATCH",int((df["status"]=="WATCH").sum())],
+              ["NO_BET",int((df["status"]=="NO_BET").sum())],
+              ["Raw BTTS coverage",int(df["BTTS_raw"].notna().sum())],
+              ["Raw Home 1X coverage",int(df["DC_HOME_raw"].notna().sum())],
+              ["Raw Away X2 coverage",int(df["DC_AWAY_raw"].notna().sum())],
+              ["Calibration","RAW_ONLY_UNVALIDATED"],
+              ["Production / betting","FAIL-CLOSED"],
+              ["Prospective maturity","HOLD until governed 100-settlement/model gate"],
+              ["Visual Intelligence source",vis_source or "No exact-Fixture-ID Visual Intelligence source available in persisted branch"],
+              ["Recent form","Derived from database/matches.csv, strictly pre-match; availability varies by team/league"],
+              ["H2H","Derived from database/matches.csv, same-league and strictly pre-match; small/zero samples retained"],
+          ]
+          for r in rows: ws.append(r)
+
+          def write_df(name,data):
+              w=wb.create_sheet(name[:31])
+              if data is None or data.empty:
+                  w.append(["No source data available — not fabricated."]); return w
+              for row in [list(map(str,data.columns))]+data.astype(object).where(pd.notna(data),"").values.tolist(): w.append(row)
+              return w
+
+          write_df("Fixture Predictions",df)
+          write_df("Recent Form",pd.DataFrame(form_rows))
+          write_df("H2H",pd.DataFrame(h2h_rows))
+          write_df("Team State",st)
+          nb=df[df["status"]=="NO_BET"].copy()
+          write_df("NO_BET Diagnostics",nb)
+          if vis is not None: write_df("Visual Intelligence",vis)
+          else: write_df("Visual Intelligence",pd.DataFrame([{"Status":"NOT AVAILABLE IN PERSISTED SOURCE","Reason":"No exact Fixture ID Visual Intelligence dataset was available in the governed evidence branch; no values were inferred."}]))
+          defs=pd.DataFrame([
+              ["Field","Definition"],
+              ["BTTS_raw","Governed raw BTTS probability; not calibrated/promotion evidence."],
+              ["DC_HOME_raw","Governed raw Home 1X probability."],
+              ["DC_AWAY_raw","Governed raw Away X2 probability."],
+              ["CONTROLLED / WATCH / NO_BET","Current Oracle admission/readiness status; not a guarantee of outcome."],
+              ["Recent Form","Last five verified same-league matches strictly before the fixture date where available."],
+              ["H2H","Verified same-league prior meetings strictly before fixture date; small samples are retained and explicitly labelled."],
+              ["Visual Intelligence","Only exact Fixture ID joins are accepted; missing values are not inferred."],
+              ["Attacking / Defensive / TOTAL Index","Only included where an exact governed source field exists; not fabricated from generic statistics."],
+              ["Risk / Confidence","Not inferred when no governed persisted artifact exists."],
+              ["Production","Oracle remains fail-closed; this workbook is a review artifact, not betting certification."]
+          ],columns=["Field","Definition"])
+          write_df("Definitions",defs)
+
+          # Styling.
+          for w in wb.worksheets:
+              w.freeze_panes="A2"; w.auto_filter.ref=w.dimensions
+              for cell in w[1]:
+                  cell.font=Font(bold=True,color="FFFFFF"); cell.fill=PatternFill("solid",fgColor="1F4E78")
+                  cell.alignment=Alignment(horizontal="center",vertical="center",wrap_text=True)
+              for row in w.iter_rows():
+                  for c in row[0:]:
+                      c.alignment=Alignment(vertical="top",wrap_text=True)
+              for col in range(1,w.max_column+1):
+                  vals=[len(str(w.cell(r,col).value or "")) for r in range(1,min(w.max_row,80)+1)]
+                  w.column_dimensions[get_column_letter(col)].width=min(max(max(vals or [10])+2,10),45)
+              w.row_dimensions[1].height=32
+          wb.save(out)
+          print(out, out.stat().st_size)
+          PY
+
+      - name: Upload Master OMI Excel
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oracle-Master-OMI-13-24-Nov-2026
+          path: oracle/Master_OMI_Report_13-24_Nov_2026.xlsx
+          retention-days: 30
