@@ -143,7 +143,6 @@ def main():
               "minimum_training_rows":MIN_TRAIN,"minimum_test_rows":MIN_TEST,"production_change":False,
               "chronology":"prediction-ledger date; training strictly before test week",
               "identity_rule":"exact canonical match_id for metadata enrichment only; unmatched metadata retained; no fuzzy matching"}
-    (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"
-"); print(json.dumps(manifest,indent=2))
+    (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n"); print(json.dumps(manifest,indent=2))
 
 if __name__=="__main__": main()
