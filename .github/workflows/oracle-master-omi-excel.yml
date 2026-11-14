@@ -16,7 +16,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
       TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
-      SOURCE_BRANCH: oracle/prospective/public-run-43584388063
+      SOURCE_BRANCH: main
     steps:
       - name: Validate secret
         run: test -n "${GH_TOKEN:-}"
@@ -161,6 +161,27 @@ jobs:
               df["Fixture ID"]=df["Fixture ID"].astype(str)
               df=df.merge(vis.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_VI"))
 
+          # FootyStats Team Intelligence — research/reporting enrichment only.
+          # Exact fixture IDs are joined; Home/Away team rows are pivoted into fixture-level columns.
+          fs_path = ROOT/"research/four_model/outputs/footystats_team_fixture_intelligence.csv"
+          fs = pd.read_csv(fs_path) if fs_path.exists() and fs_path.stat().st_size else pd.DataFrame()
+          if not fs.empty:
+              fs["Fixture ID"] = fs["fixture_id"].astype(str)
+              keep = [c for c in fs.columns if c not in {"fixture_id","league_code","date","kickoff_time","provider_league","provider_season","provider_season_id","side","team","error"}]
+              home = fs[fs["side"].eq("home")].copy()
+              away = fs[fs["side"].eq("away")].copy()
+              home = home[["Fixture ID"] + [c for c in keep if c in home.columns]].rename(columns={c:"FS Home "+c for c in keep if c in home.columns})
+              away = away[["Fixture ID"] + [c for c in keep if c in away.columns]].rename(columns={c:"FS Away "+c for c in keep if c in away.columns})
+              fs_fixture = home.merge(away,on="Fixture ID",how="outer")
+              for side in ("Home","Away"):
+                  stcol=f"FS {side} status"
+                  if stcol in fs_fixture.columns:
+                      pass
+              status_cols=[c for c in ["FS Home status","FS Away status"] if c in fs_fixture.columns]
+              if status_cols:
+                  fs_fixture["FootyStats Team Intelligence Status"] = fs_fixture[status_cols].apply(lambda r: "VERIFIED" if all(str(x)=="VERIFIED" for x in r) else ("PARTIAL" if any(str(x)=="VERIFIED" for x in r) else "UNVERIFIED"),axis=1)
+              df=df.merge(fs_fixture.drop_duplicates("Fixture ID"),on="Fixture ID",how="left")
+          
           # Summary.
           wb=Workbook(); ws=wb.active; ws.title="Executive Summary"
           rows=[
@@ -193,6 +214,8 @@ jobs:
               return w
 
           write_df("Fixture Predictions",df)
+          write_df("Market Intelligence",df)
+          write_df("FootyStats Team Intelligence",fs if 'fs' in locals() else pd.DataFrame())
           write_df("Recent Form",pd.DataFrame(form_rows))
           write_df("H2H",pd.DataFrame(h2h_rows))
           write_df("Team State",st)
@@ -228,7 +251,10 @@ jobs:
               ["Visual Intelligence","Only exact Fixture ID joins are accepted; missing values are not inferred."],
               ["Attacking / Defensive / TOTAL Index","Only included where an exact governed source field exists; not fabricated from generic statistics."],
               ["Risk / Confidence","Not inferred when no governed persisted artifact exists."],
-              ["Production","Oracle remains fail-closed; this workbook is a review artifact, not betting certification."]
+              ["Production","Oracle remains fail-closed; this workbook is a review artifact, not betting certification."],
+          ["FootyStats Team Intelligence","Research/reporting enrichment only. Point-in-time snapshots use FootyStats league-teams max_time at fixture kickoff minus one second. No Oracle V1.6 production logic is changed."],
+          ["FootyStats Team Score","League-relative percentile score: overall 45% PPG + 35% GF/M + 20% inverse GA/M; home/away scores use venue-specific PPG/GF/M/GA/M."],
+          ["FootyStats Goal Environment Score","League-relative research score: 50% average total goals/match + 25% GF/M + 25% GA/M. It is not a production probability."]
           ],columns=["Field","Definition"])
           write_df("Definitions",defs)
 
