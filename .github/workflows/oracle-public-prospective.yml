@@ -205,3 +205,5 @@ jobs:
           git fetch --no-tags origin "+refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}"
           echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
           echo "SOURCE_MAIN_SHA=${SOURCE_MAIN_SHA}"
+
+# Diagnostic refresh after exact NO_BET detail instrumentation
