@@ -221,3 +221,5 @@ jobs:
 # Trigger chronology-aligned NO_BET diagnostic refresh
 
 # Trigger full Oracle cycle after governed identity and chronology-admission fixes
+
+# Trigger after team identity syntax repair
