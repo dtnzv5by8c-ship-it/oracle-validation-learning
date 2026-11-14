@@ -157,7 +157,21 @@ jobs:
         working-directory: oracle
         run: |
           python -m unittest discover -s tests -p "test_*.py"
-          python scripts/audit_historical_point_in_time.py --matches database/matches.csv --state database/prematch_team_state.csv --output research/historical_spine/point_in_time_leakage_audit.json || true
+          MATCH_ROWS=$(python - <<'PY'
+import csv
+from pathlib import Path
+p=Path("database/matches.csv")
+with p.open(newline="",encoding="utf-8") as f:
+    print(max(0,sum(1 for _ in csv.DictReader(f))))
+PY
+)
+          if [ "$MATCH_ROWS" -le 1 ]; then
+            echo "DATA_GATED: protected historical artifact is a validation sentinel (<=1 match); point-in-time audit deferred until a real historical spine is admitted."
+            mkdir -p research/historical_spine
+            printf '%s\n' '{"artifact":"ORACLE_POINT_IN_TIME_LEAKAGE_AUDIT_V1.0","status":"DATA_GATED","reason":"validation_sentinel_historical_spine","rule":"every non-empty latest source date must be strictly earlier than fixture date"}' > research/historical_spine/point_in_time_leakage_audit.json
+          else
+            python scripts/audit_historical_point_in_time.py --matches database/matches.csv --state database/prematch_team_state.csv --output research/historical_spine/point_in_time_leakage_audit.json
+          fi
           python scripts/run_prospective_shadow_gate.py
           python scripts/run_oracle_production_readiness_gate.py
           python -m py_compile scripts/ingest_upcoming_fixtures.py scripts/oracle_four_model_predict.py scripts/prepare_prospective_four_market_publication.py scripts/build_prospective_settlement_truth.py scripts/publish_prediction_run.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/audit_historical_point_in_time.py scripts/run_prospective_shadow_gate.py scripts/run_oracle_production_readiness_gate.py
@@ -213,3 +227,5 @@ jobs:
 # Trigger after confirmed NO_BET diagnostic syntax repair 10e4169
 
 # Trigger chronology-aligned NO_BET diagnostic refresh
+
+# Trigger full Oracle cycle after governed identity and chronology-admission fixes
