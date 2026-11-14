@@ -14,7 +14,7 @@ permissions:
 # Trigger latest private integration repair validation
 # Canonical team identity bridge validation
 # Validate canonical identity resolver inside prospective prediction path
-# Expedite validation after current Team-State namespace fix
+# Roll back incorrect namespace adapter; revalidate known-good identity resolver
 concurrency:
   group: oracle-serialized-evidence-writer
   cancel-in-progress: false
