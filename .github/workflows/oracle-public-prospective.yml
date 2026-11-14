@@ -109,6 +109,11 @@ jobs:
         working-directory: oracle
         run: python scripts/oracle_four_model_predict.py data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
 
+      - name: Diagnose exact NO_BET root causes
+        run: |
+          python scripts/diagnose_no_bet_root_causes.py
+          test -s research/four_model/outputs/no_bet_root_cause_2026-11-13_to_2026-11-24.csv
+
       - name: Prepare immutable publication batch
         working-directory: oracle
         continue-on-error: true
