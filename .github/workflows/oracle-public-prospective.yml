@@ -209,3 +209,5 @@ jobs:
 # Diagnostic refresh after exact NO_BET detail instrumentation
 
 # Re-run after diagnostic syntax fix
+
+# Trigger after confirmed NO_BET diagnostic syntax repair 10e4169
