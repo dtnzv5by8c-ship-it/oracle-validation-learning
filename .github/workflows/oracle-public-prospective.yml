@@ -12,6 +12,7 @@ permissions:
   contents: write
 
 # Trigger latest private integration repair validation
+# Canonical team identity bridge validation
 concurrency:
   group: oracle-serialized-evidence-writer
   cancel-in-progress: false
