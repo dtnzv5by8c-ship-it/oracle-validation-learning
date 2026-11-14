@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
 
+# Trigger latest private integration repair validation
 concurrency:
   group: oracle-serialized-evidence-writer
   cancel-in-progress: false
