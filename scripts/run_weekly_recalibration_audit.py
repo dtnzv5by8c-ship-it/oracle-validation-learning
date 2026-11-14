@@ -50,10 +50,41 @@ def main():
     p["p"]=pd.to_numeric(p[prob],errors="coerce")
     p["target"]=pd.to_numeric(p["target"],errors="coerce")
     m["date"]=pd.to_datetime(m["date"],errors="coerce")
-    p=p.dropna(subset=["date_raw","p","target","match_id"])
-    keep=["match_id","date","league_code","home_team","away_team","home_goals","away_goals"]
+    p=p.dropna(subset=["date_raw","p","target","match_id"]).copy()
+
+    # Research-ledger identity repair: normalise canonical match IDs before joining.
+    # No fuzzy matching is permitted.
+    p["_match_key"]=p["match_id"].astype(str).str.strip()
+    m["_match_key"]=m["match_id"].astype(str).str.strip()
+    keep=["_match_key","match_id","date","league_code","home_team","away_team","home_goals","away_goals"]
     p=p.drop(columns=["date"],errors="ignore").rename(columns={"date_raw":"pred_date"})
-    p=p.merge(m[keep],on="match_id",how="inner",validate="many_to_one")
+    before=len(p)
+    p=p.merge(m[keep],on="_match_key",how="inner",validate="many_to_one",suffixes=("","_match"))
+    join_rate=(len(p)/before) if before else 0.0
+
+    # Deterministic fallback if IDs do not join: exact date + league + home + away.
+    if len(p)==0 and before:
+        raw=pd.read_csv(PRED,low_memory=False)
+        raw["date_raw"]=pd.to_datetime(raw["date"],errors="coerce")
+        raw["p"]=pd.to_numeric(raw[prob],errors="coerce")
+        raw["target"]=pd.to_numeric(raw["target"],errors="coerce")
+        raw=raw.dropna(subset=["date_raw","p","target","match_id"]).copy()
+        needed={"home_team","away_team","league_code"}
+        if needed.issubset(raw.columns):
+            raw["_date_key"]=raw["date_raw"].dt.date.astype(str)
+            for c in ["league_code","home_team","away_team"]:
+                raw[f"_{c}_key"]=raw[c].astype(str).str.strip().str.casefold()
+            mm=m.copy()
+            mm["_date_key"]=mm["date"].dt.date.astype(str)
+            for c in ["league_code","home_team","away_team"]:
+                mm[f"_{c}_key"]=mm[c].astype(str).str.strip().str.casefold()
+            raw=raw.merge(mm[["_date_key","_league_code_key","_home_team_key","_away_team_key",
+                               "date","league_code","home_team","away_team","home_goals","away_goals"]],
+                          on=["_date_key","_league_code_key","_home_team_key","_away_team_key"],
+                          how="inner",validate="many_to_one",suffixes=("","_match"))
+            p=raw
+            join_rate=(len(p)/before) if before else 0.0
+
     p["week"]=p["date"].dt.to_period("W-MON").apply(lambda x:str(x.start_time.date()))
     p["market"]=p["model"].astype(str).str.replace("_R2","",regex=False)
     p=p.sort_values(["date","match_id","model"]).reset_index(drop=True)
@@ -117,11 +148,17 @@ def main():
                 "recommendation":"RESEARCH_CANDIDATE" if len(g)>=8 and g.brier_improvement.mean()>0 and g.log_loss_improvement.mean()>0 and (g.brier_improvement>0).mean()>=0.60 else "HOLD"})
     pd.DataFrame(rec).to_csv(OUT/"recalibration_recommendations.csv",index=False)
 
-    manifest={"status":"COMPLETE_RESEARCH_ONLY","generated_utc":pd.Timestamp.utcnow().isoformat(),
-              "prediction_rows":int(len(p)),"models":sorted(p.model.unique().tolist()),
-              "weeks":int(p.week.nunique()),"minimum_training_rows":MIN_TRAIN,
+    manifest={"status":"COMPLETE_RESEARCH_ONLY" if len(p) else "BLOCKED_NO_JOIN",
+              "generated_utc":pd.Timestamp.utcnow().isoformat(),
+              "prediction_rows":int(len(p)),
+              "models":sorted(p.model.unique().tolist()) if len(p) else [],
+              "weeks":int(p.week.nunique()) if len(p) else 0,
+              "source_prediction_rows":int(before),
+              "prediction_match_join_rate":float(join_rate),
+              "minimum_training_rows":MIN_TRAIN,
               "minimum_test_rows":MIN_TEST,"production_change":False,
-              "chronology":"canonical match date; training strictly before test week"}
+              "chronology":"canonical match date; training strictly before test week",
+              "identity_rule":"exact canonical match_id; exact date+league+home+away fallback only; no fuzzy matching"}
     (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
     print(json.dumps(manifest,indent=2))
 
