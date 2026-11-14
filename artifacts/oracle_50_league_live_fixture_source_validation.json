@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-14T11:23:51.252382+00:00",
+  "generated_utc": "2026-11-14T17:56:39.114524+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -441,80 +441,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 24,
+      "fixture_count_in_window": 12,
       "fixtures": [
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_afc_wimbledon_blackpool",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "AFC Wimbledon",
-          "away": "Blackpool"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_bromley_notts_county",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Bromley",
-          "away": "Notts County"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_doncaster_leyton_orient",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Doncaster",
-          "away": "Leyton Orient"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_leicester_bradford",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Leicester",
-          "away": "Bradford"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_luton_cambridge",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Luton",
-          "away": "Cambridge"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_milton_keynes_dons_burton",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Milton Keynes Dons",
-          "away": "Burton"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_peterboro_oxford",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Peterboro",
-          "away": "Oxford"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_sheffield_weds_plymouth",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Sheffield Weds",
-          "away": "Plymouth"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_stevenage_mansfield",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Stevenage",
-          "away": "Mansfield"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_stockport_reading",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Stockport",
-          "away": "Reading"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_wigan_barnsley",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Wigan",
-          "away": "Barnsley"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_14112026_wycombe_huddersfield",
-          "kickoff_at": "2026-11-14T15:00:00.000Z",
-          "home": "Wycombe",
-          "away": "Huddersfield"
-        },
         {
           "match_id": "match_fd_eng3_2026-27_20112026_barnsley_sheffield_weds",
           "kickoff_at": "2026-11-20T20:00:00.000Z",
@@ -1620,14 +1548,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 5,
       "fixtures": [
-        {
-          "match_id": "match_fmb_uru1_2026_20261114_central_espanol_boston_river",
-          "kickoff_at": "2026-11-14T13:00:00.000Z",
-          "home": "Central Español",
-          "away": "Boston River"
-        },
         {
           "match_id": "match_fmb_uru1_2026_20261114_deportivo_maldonado_cerro",
           "kickoff_at": "2026-11-14T19:30:00.000Z",
@@ -1695,7 +1617,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 135,
+    "fixtures_in_window": 122,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true

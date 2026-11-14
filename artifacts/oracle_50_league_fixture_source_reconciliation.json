@@ -11,7 +11,7 @@
     "DATA_GATED": 25,
     "READY": 25
   },
-  "fixtures_in_window": 135,
+  "fixtures_in_window": 122,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -193,7 +193,7 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 24,
+      "fixture_count_in_window": 12,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
@@ -601,7 +601,7 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 5,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
