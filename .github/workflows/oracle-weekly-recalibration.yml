@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/oracle-weekly-recalibration.yml"
       - "scripts/run_weekly_recalibration_audit.py"
+      - "scripts/evaluate_footystats_team_features.py"
 
 permissions:
   contents: write
@@ -18,7 +19,7 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
       TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
@@ -57,15 +58,18 @@ jobs:
       - name: Run chronological weekly audit
         run: python scripts/run_weekly_recalibration_audit.py
 
+      - name: Evaluate FootyStats team-intelligence features
+        run: python scripts/evaluate_footystats_team_features.py
+
       - name: Publish research evidence
         run: |
           git config user.name "oracle-weekly-recalibration-bot"
           git config user.email "oracle-weekly-recalibration-bot@users.noreply.github.com"
-          git add outputs/weekly_recalibration
+          git add outputs/weekly_recalibration outputs/footystats_feature_evaluation
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            git commit -m "Record weekly chronological backtest and recalibration audit"
+            git commit -m "Record FootyStats team-intelligence research evaluation"
             git fetch --no-tags origin main
             git rebase origin/main
             git push origin HEAD:main
@@ -76,4 +80,6 @@ jobs:
         with:
           name: oracle-weekly-recalibration-${{ github.run_id }}
           retention-days: 14
-          path: outputs/weekly_recalibration
+          path: |
+            outputs/weekly_recalibration
+            outputs/footystats_feature_evaluation
