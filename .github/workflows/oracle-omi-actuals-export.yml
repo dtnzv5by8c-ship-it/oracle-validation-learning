@@ -1,0 +1,33 @@
+name: Oracle OMI Actuals Evidence Export
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-omi-actuals-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+    steps:
+      - name: Validate secret
+        run: test -n "${GH_TOKEN:-}"
+      - name: Clone production repository
+        run: |
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" clone --depth 1 --branch main "https://github.com/${TARGET_REPO}.git" oracle
+      - name: Package actuals evidence
+        run: |
+          mkdir -p package
+          cp oracle/research/four_model/outputs/recovered_prospective_evidence_2026-11-10.csv package/recovered_prospective_evidence.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-omi-actuals-evidence-${{ github.run_id }}
+          path: package
+          retention-days: 7
