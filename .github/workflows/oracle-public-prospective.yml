@@ -44,9 +44,12 @@ jobs:
           STATE_SIZE="$(git cat-file -s HEAD:database/current_prematch_team_state.csv)"
           MANIFEST_ROWS="$(python -c 'import json; print(json.load(open("data/current_team_state_manifest.json"))["rows"])')"
           test "$STATE_SIZE" -gt 0
-          test "$MANIFEST_ROWS" -eq 13851
+          CSV_ROWS="$(python -c 'import csv; print(sum(1 for _ in csv.DictReader(open("database/current_prematch_team_state.csv",newline="",encoding="utf-8"))))')"
+          test "$CSV_ROWS" -gt 0
+          test "$MANIFEST_ROWS" -eq "$CSV_ROWS"
           echo "DURABLE_CURRENT_STATE_BLOB_SIZE=$STATE_SIZE"
           echo "DURABLE_CURRENT_STATE_MANIFEST_ROWS=$MANIFEST_ROWS"
+          echo "DURABLE_CURRENT_STATE_CSV_ROWS=$CSV_ROWS"
 
       - name: Setup Python
         uses: actions/setup-python@v5
