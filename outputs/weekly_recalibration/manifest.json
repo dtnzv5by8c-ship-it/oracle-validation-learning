@@ -1,11 +1,14 @@
 {
-  "status": "COMPLETE_RESEARCH_ONLY",
-  "generated_utc": "2026-11-14T12:29:03.023646+00:00",
+  "status": "BLOCKED_NO_JOIN",
+  "generated_utc": "2026-11-14T16:22:38.617174+00:00",
   "prediction_rows": 0,
   "models": [],
   "weeks": 0,
+  "source_prediction_rows": 59472,
+  "prediction_match_join_rate": 0.0,
   "minimum_training_rows": 500,
   "minimum_test_rows": 50,
   "production_change": false,
-  "chronology": "canonical match date; training strictly before test week"
+  "chronology": "canonical match date; training strictly before test week",
+  "identity_rule": "exact canonical match_id; exact date+league+home+away fallback only; no fuzzy matching"
 }
