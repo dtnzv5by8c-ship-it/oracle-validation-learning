@@ -74,7 +74,8 @@ jobs:
           if not fx.empty:
               fx["Fixture ID"]=fx.apply(fid,axis=1)
 
-          # Team-State fixture join: exact fixture/date/team match where available.\n          ts_fixture=[]\n          if not st.empty:\n              for _,r in df.iterrows():\n                  date=str(r.get("date",""))[:10]; league=str(r.get("league_code","")); home=str(r.get("home_team","")); away=str(r.get("away_team",""))\n                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("league",pd.Series([""]*len(st))).astype(str)==league) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]\n                  if len(q):\n                      z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)\n                  else:\n                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})\n          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
+          # Team-State fixture join: exact fixture/date/team match where available.
+          ts_fixture=[]\n          if not st.empty:\n              for _,r in df.iterrows():\n                  date=str(r.get("date",""))[:10]; league=str(r.get("league_code","")); home=str(r.get("home_team","")); away=str(r.get("away_team",""))\n                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("league",pd.Series([""]*len(st))).astype(str)==league) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]\n                  if len(q):\n                      z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)\n                  else:\n                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})\n          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
           h2h_rows=[]
           form_rows=[]
           if not mt.empty:
@@ -181,6 +182,23 @@ jobs:
           write_df("NO_BET Diagnostics",nb)
           if vis is not None: write_df("Visual Intelligence",vis)
           else: write_df("Visual Intelligence",pd.DataFrame([{"Status":"NOT AVAILABLE IN PERSISTED SOURCE","Reason":"No exact Fixture ID Visual Intelligence dataset was available in the governed evidence branch; no values were inferred."}]))
+          raw_vi=None; raw_vi_source=""
+          for p in visual_candidates:
+              if p.exists() and p.stat().st_size:
+                  try:
+                      raw_vi=pd.read_csv(p); raw_vi_source=str(p); break
+                  except Exception: pass
+          if raw_vi is not None: write_df("Visual Intelligence Raw",raw_vi)
+          write_df("Team State by Fixture",pd.DataFrame(ts_fixture))
+          governance=pd.DataFrame([
+              ["Metric","Current governed evidence"],
+              ["BTTS OOS observations",10304],["BTTS Brier",0.2462],["BTTS Log Loss",0.6851],["BTTS AUC",0.5307],
+              ["M1UP OOS team opportunities",3280],["M1UP Brier",0.2392],["M1UP Log Loss",0.6711],["M1UP AUC",0.6163],
+              ["Current prospective fixtures",len(df)],["Current CONTROLLED",int((df["status"]=="CONTROLLED").sum())],["Current WATCH",int((df["status"]=="WATCH").sum())],["Current NO_BET",int((df["status"]=="NO_BET").sum())],
+              ["Current raw BTTS coverage",int(df["BTTS_raw"].notna().sum())],["Current raw Home 1X coverage",int(df["DC_HOME_raw"].notna().sum())],["Current raw Away X2 coverage",int(df["DC_AWAY_raw"].notna().sum())],
+              ["Production model","Oracle V1.6 unchanged"],["Calibration","RAW_ONLY_UNVALIDATED"],["Betting eligibility","FAIL-CLOSED"],["Prospective maturity","58 settled/model observations vs 100 governed minimum"]
+          ],columns=["Metric","Current governed evidence"])
+          write_df("Validation & Governance",governance)
           defs=pd.DataFrame([
               ["Field","Definition"],
               ["BTTS_raw","Governed raw BTTS probability; not calibrated/promotion evidence."],
