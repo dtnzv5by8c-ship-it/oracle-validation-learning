@@ -99,6 +99,41 @@ EXACT = {
     "betting_eligible": ("Whether this record is permitted for betting use.", "Boolean governance output; report remains research-only.", "Boolean."),
 }
 
+# Explicit definitions for the appended FootyStats Market Intelligence extension.
+EXACT.update({
+    "FootyStats Pre-Match Avg Goals": ("FootyStats pre-match average total goals for the fixture/team pairing.", "Copied from the FootyStats pre-match match field when present.", "Goals per match; provider statistic, not an Oracle probability."),
+    "FootyStats Pre-Match BTTS %": ("FootyStats pre-match BTTS percentage.", "Copied from FootyStats btts_percentage_pre_match.", "Percentage points (0–100); provider statistic, not automatically an Oracle probability."),
+    "FootyStats Pre-Match Over 0.5 %": ("FootyStats pre-match percentage for at least one total goal.", "Copied from the FootyStats pre-match over-0.5 field when available.", "Percentage points; research/reporting signal."),
+    "FootyStats Pre-Match Over 1.5 %": ("FootyStats pre-match percentage for at least two total goals.", "Copied from FootyStats over_15_percentage_pre_match.", "Percentage points; provider statistic."),
+    "FootyStats Pre-Match Over 2.5 %": ("FootyStats pre-match percentage for at least three total goals.", "Copied from FootyStats over_25_percentage_pre_match.", "Percentage points; provider statistic."),
+    "FootyStats Pre-Match Over 3.5 %": ("FootyStats pre-match percentage for at least four total goals.", "Copied from FootyStats over_35_percentage_pre_match.", "Percentage points; provider statistic."),
+    "FootyStats Pre-Match Over 4.5 %": ("FootyStats pre-match percentage for at least five total goals.", "Copied from FootyStats over_45_percentage_pre_match.", "Percentage points; provider statistic."),
+    "FootyStats Pre-Match Under 1.5 %": ("Complement of the FootyStats pre-match Over 1.5 percentage.", "100 minus the same FootyStats pre-match Over 1.5 percentage when present.", "Derived percentage; not an independently supplied FootyStats field."),
+    "FootyStats Pre-Match Under 2.5 %": ("Complement of the FootyStats pre-match Over 2.5 percentage.", "100 minus the same FootyStats pre-match Over 2.5 percentage when present.", "Derived percentage; not an independently supplied FootyStats field."),
+    "FootyStats Pre-Match Under 3.5 %": ("Complement of the FootyStats pre-match Over 3.5 percentage.", "100 minus the same FootyStats pre-match Over 3.5 percentage when present.", "Derived percentage; not an independently supplied FootyStats field."),
+    "FootyStats Pre-Match Under 4.5 %": ("Complement of the FootyStats pre-match Over 4.5 percentage.", "100 minus the same FootyStats pre-match Over 4.5 percentage when present.", "Derived percentage; not an independently supplied FootyStats field."),
+    "FootyStats Home Win %": ("FootyStats home-win percentage where a verified fixture/team/league percentage is supplied.", "Copied from a verified FootyStats source field; otherwise unavailable.", "Percentage points; never inferred from bookmaker odds."),
+    "FootyStats Draw %": ("FootyStats draw percentage where a verified source field is supplied.", "Copied from a verified FootyStats source field; otherwise unavailable.", "Percentage points; never inferred from bookmaker odds."),
+    "FootyStats Away Win %": ("FootyStats away-win percentage where a verified source field is supplied.", "Copied from a verified FootyStats source field; otherwise unavailable.", "Percentage points; never inferred from bookmaker odds."),
+    "FootyStats Home PPG Pre-Match": ("Home team's FootyStats pre-match points per game.", "Copied from the pre-match home PPG field when present.", "Points per match."),
+    "FootyStats Away PPG Pre-Match": ("Away team's FootyStats pre-match points per game.", "Copied from the pre-match away PPG field when present.", "Points per match."),
+    "FootyStats Home BTTS %": ("Home team's FootyStats BTTS percentage in the declared scope.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; scope and sample must be retained."),
+    "FootyStats Away BTTS %": ("Away team's FootyStats BTTS percentage in the declared scope.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; scope and sample must be retained."),
+    "FootyStats Home Over 1.5 %": ("Home team's FootyStats Over 1.5 historical percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate, not automatically a forecast."),
+    "FootyStats Away Over 1.5 %": ("Away team's FootyStats Over 1.5 historical percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate, not automatically a forecast."),
+    "FootyStats Home Clean Sheet %": ("Home team's FootyStats clean-sheet percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate."),
+    "FootyStats Away Clean Sheet %": ("Away team's FootyStats clean-sheet percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate."),
+    "FootyStats Home Failed To Score %": ("Home team's FootyStats failed-to-score percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate."),
+    "FootyStats Away Failed To Score %": ("Away team's FootyStats failed-to-score percentage.", "Copied from a verified FootyStats team-stat snapshot.", "Percentage points; historical rate."),
+    "FootyStats Home Prediction Risk %": ("FootyStats home-side prediction-risk measure.", "Copied from FootyStats team/league risk where verified.", "Percentage/status; risk is volatility/evidence context, not outcome probability."),
+    "FootyStats Away Prediction Risk %": ("FootyStats away-side prediction-risk measure.", "Copied from FootyStats team/league risk where verified.", "Percentage/status; risk is volatility/evidence context, not outcome probability."),
+    "FootyStats Home xG Avg": ("FootyStats home-side average expected goals.", "Copied from a verified FootyStats xG field.", "xG per match; point-in-time provenance must be verified before predictive use."),
+    "FootyStats Away xG Avg": ("FootyStats away-side average expected goals.", "Copied from a verified FootyStats xG field.", "xG per match; point-in-time provenance must be verified before predictive use."),
+    "FootyStats Total xG Avg": ("FootyStats total expected-goals environment for the fixture/league scope.", "Copied from a verified FootyStats xG field when available.", "xG per match; quarantined for predictive use until temporal provenance is proven."),
+    "FootyStats Goal Signal": ("Research-only signal summarising convergence/divergence of selected FootyStats goal indicators.", "Must be produced by a separately validated, chronological signal engine; no ad-hoc thresholding is permitted.", "Categorical/score; never a production probability."),
+    "FootyStats Signal Quality": ("Research-quality status for the FootyStats signal package.", "Based on field completeness, temporal provenance, sample size and backtest eligibility.", "Status; not an outcome probability.")
+})
+
 def describe(sheet, header):
     if header in EXACT:
         purpose, calc, limits = EXACT[header]
