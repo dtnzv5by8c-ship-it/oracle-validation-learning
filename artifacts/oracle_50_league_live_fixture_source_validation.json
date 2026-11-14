@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-13T22:33:31.686091+00:00",
+  "generated_utc": "2026-11-14T03:07:55.200698+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -216,53 +216,47 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 8,
+      "fixture_count_in_window": 7,
       "fixtures": [
         {
-          "match_id": "match_fmb_col1_2026_20261114_internacional_de_bogota_santa_fe",
-          "kickoff_at": "2026-11-14T01:30:00Z",
-          "home": "Internacional de Bogotá",
-          "away": "Santa Fe"
-        },
-        {
           "match_id": "match_fmb_col1_2026_20261114_atletico_nacional_once_caldas",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Atlético Nacional",
           "away": "Once Caldas"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_bucaramanga_fortaleza_fc",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Bucaramanga",
           "away": "Fortaleza FC"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_cucuta_cd_jaguares",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Cúcuta",
           "away": "CD Jaguares"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_deportivo_cali_tolima",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Deportivo Cali",
           "away": "Tolima"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_deportivo_pereira_america_de_cali",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Deportivo Pereira",
           "away": "América de Cali"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_millonarios_alianza_fc",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Millonarios",
           "away": "Alianza FC"
         },
         {
           "match_id": "match_fmb_col1_2026_20261114_aguilas_doradas_independiente_medellin",
-          "kickoff_at": "2026-11-14T20:30:00Z",
+          "kickoff_at": "2026-11-14T20:30:00.000Z",
           "home": "Águilas Doradas",
           "away": "Independiente Medellín"
         }
@@ -1630,19 +1624,19 @@
       "fixtures": [
         {
           "match_id": "match_fmb_uru1_2026_20261114_central_espanol_boston_river",
-          "kickoff_at": "2026-11-14T13:00:00Z",
+          "kickoff_at": "2026-11-14T13:00:00.000Z",
           "home": "Central Español",
           "away": "Boston River"
         },
         {
           "match_id": "match_fmb_uru1_2026_20261114_deportivo_maldonado_cerro",
-          "kickoff_at": "2026-11-14T19:30:00Z",
+          "kickoff_at": "2026-11-14T19:30:00.000Z",
           "home": "Deportivo Maldonado",
           "away": "Cerro"
         },
         {
           "match_id": "match_fmb_uru1_2026_20261114_nacional_albion",
-          "kickoff_at": "2026-11-14T23:00:00Z",
+          "kickoff_at": "2026-11-14T23:00:00.000Z",
           "home": "Nacional",
           "away": "Albion"
         },
@@ -1701,7 +1695,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 136,
+    "fixtures_in_window": 135,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true

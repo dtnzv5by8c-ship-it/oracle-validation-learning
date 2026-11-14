@@ -11,7 +11,7 @@
     "DATA_GATED": 25,
     "READY": 25
   },
-  "fixtures_in_window": 136,
+  "fixtures_in_window": 135,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -121,7 +121,7 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 8,
+      "fixture_count_in_window": 7,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
