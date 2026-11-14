@@ -1,0 +1,11 @@
+{
+  "status": "COMPLETE_RESEARCH_ONLY",
+  "generated_utc": "2026-11-14T12:26:37.295749+00:00",
+  "prediction_rows": 0,
+  "models": [],
+  "weeks": 0,
+  "minimum_training_rows": 500,
+  "minimum_test_rows": 50,
+  "production_change": false,
+  "chronology": "canonical match date; training strictly before test week"
+}
