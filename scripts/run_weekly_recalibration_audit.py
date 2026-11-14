@@ -142,6 +142,51 @@ def main():
                     cal_rows.append({"week":week,"model":model,"method":method,"train_n":len(train),"test_n":len(test),"error":type(e).__name__})
     cal=pd.DataFrame(cal_rows); cal.to_csv(OUT/"weekly_recalibration_candidates.csv",index=False)
 
+    # Research-only pooled challenger layer. The weekly challenger rows above are
+    # intentionally retained; this second layer pools the out-of-fold test rows so
+    # small weeks cannot receive the same weight as large weeks. Each test week is
+    # still calibrated only from observations strictly earlier than that week.
+    pooled_cal_rows=[]
+    for model in sorted(p["model"].unique()):
+        q=p[p.model.eq(model)].sort_values(["date","match_id"]).copy()
+        for week in sorted(q.week.unique()):
+            test=q[q.week.eq(week)]
+            train=q[q.date < test.date.min()]
+            if len(train)<MIN_TRAIN or len(test)<MIN_TEST or len(train.target.unique())<2: continue
+            for method in ["platt","isotonic"]:
+                try:
+                    if method=="platt":
+                        fit=LogisticRegression(solver="lbfgs").fit(train.p.to_numpy().reshape(-1,1),train.target.astype(int))
+                        cp=fit.predict_proba(test.p.to_numpy().reshape(-1,1))[:,1]
+                    else:
+                        fit=IsotonicRegression(y_min=EPS,y_max=1-EPS,out_of_bounds="clip").fit(train.p,train.target)
+                        cp=fit.predict(test.p)
+                    pooled_cal_rows.append(pd.DataFrame({
+                        "week":week,"model":model,"method":method,
+                        "target":test.target.to_numpy(dtype=float),
+                        "raw_probability":test.p.to_numpy(dtype=float),
+                        "candidate_probability":np.asarray(cp,dtype=float)
+                    }))
+                except Exception:
+                    continue
+    if pooled_cal_rows:
+        pc=pd.concat(pooled_cal_rows,ignore_index=True)
+        pooled_ch=[]
+        for (model,method),g in pc.groupby(["model","method"],sort=True):
+            rawm=metrics(g.target,g.raw_probability); rawm["ece"]=ece(g.target,g.raw_probability)
+            candm=metrics(g.target,g.candidate_probability); candm["ece"]=ece(g.target,g.candidate_probability)
+            pooled_ch.append({
+                "model":model,"method":method,"n":int(len(g)),
+                "raw_brier":rawm["brier"],"candidate_brier":candm["brier"],"brier_improvement":rawm["brier"]-candm["brier"],
+                "raw_log_loss":rawm["log_loss"],"candidate_log_loss":candm["log_loss"],"log_loss_improvement":rawm["log_loss"]-candm["log_loss"],
+                "raw_auc":rawm["auc"],"candidate_auc":candm["auc"],"auc_improvement":(candm["auc"]-rawm["auc"]) if rawm["auc"] is not None and candm["auc"] is not None else None,
+                "raw_ece":rawm["ece"],"candidate_ece":candm["ece"],"ece_improvement":rawm["ece"]-candm["ece"],
+                "weeks_tested":int(g.week.nunique())
+            })
+        pd.DataFrame(pooled_ch).to_csv(OUT/"pooled_recalibration_candidates.csv",index=False)
+    else:
+        pd.DataFrame(columns=["model","method","n","raw_brier","candidate_brier","brier_improvement","raw_log_loss","candidate_log_loss","log_loss_improvement","raw_auc","candidate_auc","auc_improvement","raw_ece","candidate_ece","ece_improvement","weeks_tested"]).to_csv(OUT/"pooled_recalibration_candidates.csv",index=False)
+
     rec=[]
     if len(cal):
         valid=cal[~cal.get("error",pd.Series(index=cal.index,dtype=object)).notna()] if "error" in cal else cal
