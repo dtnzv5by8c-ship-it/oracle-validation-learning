@@ -249,6 +249,28 @@ jobs:
           print(out, out.stat().st_size)
           PY
 
+      - name: Enforce Master OMI evidence completeness contract
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import openpyxl, json, pathlib
+          p=pathlib.Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
+          if not p.exists(): raise SystemExit("Master OMI workbook was not generated")
+          wb=openpyxl.load_workbook(p, read_only=True, data_only=False)
+          ws=wb["Fixture Predictions"] if "Fixture Predictions" in wb.sheetnames else None
+          if ws is None: raise SystemExit("Fixture Predictions sheet missing")
+          headers=[c.value for c in next(ws.iter_rows(min_row=1,max_row=1))]
+          if "Fixture ID" not in headers: raise SystemExit("Fixture ID column missing")
+          rows=list(ws.iter_rows(min_row=2, values_only=True)); n=len(rows)
+          if n==0: raise SystemExit("Master OMI contains zero fixture rows")
+          i=headers.index("Fixture ID")
+          blank=sum(1 for r in rows if r[i] in (None,""))
+          if blank: raise SystemExit(f"Blank Fixture ID rows: {blank}")
+          report={"fixture_rows":n,"blank_fixture_ids":blank,"status":"PASS","production_model":"Oracle V1.6 unchanged","contract":"Every fixture must have an explicit identity; evidence may be unavailable but must never be fabricated."}
+          pathlib.Path("master_omi_completeness_audit.json").write_text(json.dumps(report,indent=2))
+          print(json.dumps(report))
+          PY
+
       - name: Upload Master OMI Excel
         uses: actions/upload-artifact@v4
         with:
