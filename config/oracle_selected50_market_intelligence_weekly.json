@@ -1,6 +1,6 @@
 {
   "report_name": "Oracle Selected-50 Market Intelligence Report",
-  "configuration_version": "1.1.0",
+  "configuration_version": "1.2.0",
   "governed_league_universe": "Selected-50 governed season manifest; exact selected_id mapping only",
   "selected_league_count": 50,
   "production_benchmark": "Oracle V1.6",
@@ -29,5 +29,12 @@
     ],
     "eligibility": "Opt-in only: confirm_results_provider_credit_usage=true is required before any results API call. Default false produces a zero-call NOT_RETRIEVED_NO_CREDIT_APPROVAL register. production_eligible=false; betting_eligible=false; prediction_probabilities_modified=false.",
     "credit_control": "Separate explicit workflow_dispatch boolean approval required; provider API calls are zero unless confirm_results_provider_credit_usage=true."
+  },
+  "footystats_goal_market_extension": {
+    "status": "GOVERNED_RESEARCH_EXTENSION",
+    "schema_version": "95-column-user-reference-v2-with-footystats-goal-extension",
+    "purpose": "Append verified FootyStats pre-match goal-market percentages and high-value goal-environment/team signals to the Market Intelligence tab without changing the 95-column baseline.",
+    "fields": "Pre-match average goals; BTTS; Over 0.5/1.5/2.5/3.5/4.5; derived Under 1.5/2.5/3.5/4.5; verified 1X2 percentages where actually supplied; pre-match PPG; team BTTS/Over 1.5/clean-sheet/failed-to-score; prediction risk; xG; Goal Signal; Signal Quality.",
+    "promotion_rule": "No FootyStats field or Goal Signal may alter Oracle V1.6 probabilities, thresholds, calibration, betting eligibility or production governance. Promotion requires chronological out-of-sample evidence."
   }
 }
