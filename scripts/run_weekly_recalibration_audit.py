@@ -44,60 +44,56 @@ def main():
     if not req.issubset(p.columns): raise SystemExit(f"PRED_SCHEMA_FAILURE missing={sorted(req-set(p.columns))}")
     prob="raw_probability" if "raw_probability" in p.columns else ("probability" if "probability" in p.columns else None)
     if not prob: raise SystemExit("PRED_SCHEMA_FAILURE probability missing")
-    reqm={"match_id","date","home_goals","away_goals","league_code"}
+    reqm={"match_id","date","league_code"}
     if not reqm.issubset(m.columns): raise SystemExit(f"MATCH_SCHEMA_FAILURE missing={sorted(reqm-set(m.columns))}")
-    p["date_raw"]=pd.to_datetime(p["date"],errors="coerce")
+
+    # The OOS ledger already contains prediction date and event truth. Global performance
+    # and calibration must not depend on a secondary identity join. Match metadata is
+    # enrichment only; no fuzzy matching is permitted.
+    p["date"]=pd.to_datetime(p["date"],errors="coerce")
     p["p"]=pd.to_numeric(p[prob],errors="coerce")
     p["target"]=pd.to_numeric(p["target"],errors="coerce")
-    m["date"]=pd.to_datetime(m["date"],errors="coerce")
-    p=p.dropna(subset=["date_raw","p","target","match_id"]).copy()
+    p=p.dropna(subset=["date","p","target","match_id"]).copy()
+    before=len(p)
 
-    # Research-ledger identity repair: normalise canonical match IDs before joining.
-    # No fuzzy matching is permitted.
+    m["date"]=pd.to_datetime(m["date"],errors="coerce")
     p["_match_key"]=p["match_id"].astype(str).str.strip()
     m["_match_key"]=m["match_id"].astype(str).str.strip()
-    keep=["_match_key","match_id","date","league_code","home_team","away_team","home_goals","away_goals"]
-    p=p.drop(columns=["date"],errors="ignore").rename(columns={"date_raw":"pred_date"})
-    before=len(p)
-    p=p.merge(m[keep],on="_match_key",how="inner",validate="many_to_one",suffixes=("","_match"))
-    join_rate=(len(p)/before) if before else 0.0
-
-    # Deterministic fallback if IDs do not join: exact date + league + home + away.
-    if len(p)==0 and before:
-        raw=pd.read_csv(PRED,low_memory=False)
-        raw["date_raw"]=pd.to_datetime(raw["date"],errors="coerce")
-        raw["p"]=pd.to_numeric(raw[prob],errors="coerce")
-        raw["target"]=pd.to_numeric(raw["target"],errors="coerce")
-        raw=raw.dropna(subset=["date_raw","p","target","match_id"]).copy()
-        needed={"home_team","away_team","league_code"}
-        if needed.issubset(raw.columns):
-            raw["_date_key"]=raw["date_raw"].dt.date.astype(str)
-            for c in ["league_code","home_team","away_team"]:
-                raw[f"_{c}_key"]=raw[c].astype(str).str.strip().str.casefold()
-            mm=m.copy()
-            mm["_date_key"]=mm["date"].dt.date.astype(str)
-            for c in ["league_code","home_team","away_team"]:
-                mm[f"_{c}_key"]=mm[c].astype(str).str.strip().str.casefold()
-            raw=raw.merge(mm[["_date_key","_league_code_key","_home_team_key","_away_team_key",
-                               "date","league_code","home_team","away_team","home_goals","away_goals"]],
-                          on=["_date_key","_league_code_key","_home_team_key","_away_team_key"],
-                          how="inner",validate="many_to_one",suffixes=("","_match"))
-            p=raw
-            join_rate=(len(p)/before) if before else 0.0
+    meta=m[["_match_key","league_code"]].drop_duplicates("_match_key")
+    p=p.merge(meta,on="_match_key",how="left",validate="many_to_one",suffixes=("","_match"))
+    matched=int(p["league_code"].notna().sum())
+    join_rate=(matched/before) if before else 0.0
+    p["league_code"]=p["league_code"].fillna("UNMATCHED_IDENTITY").astype(str).str.strip()
 
     p["week"]=p["date"].dt.to_period("W-MON").apply(lambda x:str(x.start_time.date()))
     p["market"]=p["model"].astype(str).str.replace("_R2","",regex=False)
     p=p.sort_values(["date","match_id","model"]).reset_index(drop=True)
 
-    weekly=[]
+    weekly=[]; reliability_rows=[]; band_rows=[]
     for (week,model),g in p.groupby(["week","model"],sort=True):
         z=metrics(g.target,g.p); z["ece"]=ece(g.target,g.p)
         weekly.append({"week":week,"model":model,**z})
+        for i in range(10):
+            lo=i/10; hi=(i+1)/10
+            mask=(g.p>=lo)&((g.p<hi) if i<9 else (g.p<=hi))
+            if mask.any():
+                reliability_rows.append({"week":week,"model":model,"bin":i,"n":int(mask.sum()),
+                    "predicted_mean":float(g.loc[mask,"p"].mean()),"actual_rate":float(g.loc[mask,"target"].mean()),
+                    "abs_gap":float(abs(g.loc[mask,"p"].mean()-g.loc[mask,"target"].mean()))})
+        edges=[0,.5,.6,.7,.8,1.0]
+        labels=["<0.50","0.50-0.59","0.60-0.69","0.70-0.79","0.80-1.00"]
+        for lo,hi,label in zip(edges[:-1],edges[1:],labels):
+            mask=(g.p>=lo)&((g.p<hi) if hi<1 else (g.p<=hi))
+            if mask.any():
+                bm=metrics(g.loc[mask,"target"],g.loc[mask,"p"])
+                band_rows.append({"week":week,"model":model,"probability_band":label,**bm})
     pd.DataFrame(weekly).to_csv(OUT/"weekly_raw_performance.csv",index=False)
+    pd.DataFrame(reliability_rows).to_csv(OUT/"weekly_reliability.csv",index=False)
+    pd.DataFrame(band_rows).to_csv(OUT/"weekly_probability_bands.csv",index=False)
 
     league_week=[]
     for (week,league,model),g in p.groupby(["week","league_code","model"],sort=True):
-        if len(g)<10: continue
+        if len(g)<10 or league=="UNMATCHED_IDENTITY": continue
         z=metrics(g.target,g.p); z["ece"]=ece(g.target,g.p)
         league_week.append({"week":week,"league_code":league,"model":model,**z})
     pd.DataFrame(league_week).to_csv(OUT/"weekly_league_performance.csv",index=False)
@@ -120,46 +116,34 @@ def main():
                         fit=IsotonicRegression(y_min=EPS,y_max=1-EPS,out_of_bounds="clip").fit(train.p,train.target)
                         cp=fit.predict(test.p)
                     cm=metrics(test.target,cp); cm["ece"]=ece(test.target,cp)
-                    cal_rows.append({"week":week,"model":model,"method":method,
-                        "train_n":len(train),"test_n":len(test),
-                        "raw_brier":raw["brier"],"candidate_brier":cm["brier"],
-                        "brier_improvement":raw["brier"]-cm["brier"],
-                        "raw_log_loss":raw["log_loss"],"candidate_log_loss":cm["log_loss"],
-                        "log_loss_improvement":raw["log_loss"]-cm["log_loss"],
-                        "raw_ece":raw["ece"],"candidate_ece":cm["ece"],
-                        "ece_improvement":raw["ece"]-cm["ece"]})
+                    cal_rows.append({"week":week,"model":model,"method":method,"train_n":len(train),"test_n":len(test),
+                        "raw_brier":raw["brier"],"candidate_brier":cm["brier"],"brier_improvement":raw["brier"]-cm["brier"],
+                        "raw_log_loss":raw["log_loss"],"candidate_log_loss":cm["log_loss"],"log_loss_improvement":raw["log_loss"]-cm["log_loss"],
+                        "raw_ece":raw["ece"],"candidate_ece":cm["ece"],"ece_improvement":raw["ece"]-cm["ece"]})
                 except Exception as e:
                     cal_rows.append({"week":week,"model":model,"method":method,"train_n":len(train),"test_n":len(test),"error":type(e).__name__})
-    cal=pd.DataFrame(cal_rows)
-    cal.to_csv(OUT/"weekly_recalibration_candidates.csv",index=False)
+    cal=pd.DataFrame(cal_rows); cal.to_csv(OUT/"weekly_recalibration_candidates.csv",index=False)
 
     rec=[]
     if len(cal):
         valid=cal[~cal.get("error",pd.Series(index=cal.index,dtype=object)).notna()] if "error" in cal else cal
         for (model,method),g in valid.groupby(["model","method"]):
             rec.append({"model":model,"method":method,"weeks_tested":len(g),
-                "mean_brier_improvement":float(g.brier_improvement.mean()),
-                "median_brier_improvement":float(g.brier_improvement.median()),
-                "mean_log_loss_improvement":float(g.log_loss_improvement.mean()),
-                "median_log_loss_improvement":float(g.log_loss_improvement.median()),
-                "mean_ece_improvement":float(g.ece_improvement.mean()),
-                "weeks_brier_better":int((g.brier_improvement>0).sum()),
+                "mean_brier_improvement":float(g.brier_improvement.mean()),"median_brier_improvement":float(g.brier_improvement.median()),
+                "mean_log_loss_improvement":float(g.log_loss_improvement.mean()),"median_log_loss_improvement":float(g.log_loss_improvement.median()),
+                "mean_ece_improvement":float(g.ece_improvement.mean()),"weeks_brier_better":int((g.brier_improvement>0).sum()),
                 "weeks_log_loss_better":int((g.log_loss_improvement>0).sum()),
                 "recommendation":"RESEARCH_CANDIDATE" if len(g)>=8 and g.brier_improvement.mean()>0 and g.log_loss_improvement.mean()>0 and (g.brier_improvement>0).mean()>=0.60 else "HOLD"})
     pd.DataFrame(rec).to_csv(OUT/"recalibration_recommendations.csv",index=False)
 
-    manifest={"status":"COMPLETE_RESEARCH_ONLY" if len(p) else "BLOCKED_NO_JOIN",
-              "generated_utc":pd.Timestamp.utcnow().isoformat(),
-              "prediction_rows":int(len(p)),
-              "models":sorted(p.model.unique().tolist()) if len(p) else [],
-              "weeks":int(p.week.nunique()) if len(p) else 0,
-              "source_prediction_rows":int(before),
-              "prediction_match_join_rate":float(join_rate),
-              "minimum_training_rows":MIN_TRAIN,
-              "minimum_test_rows":MIN_TEST,"production_change":False,
-              "chronology":"canonical match date; training strictly before test week",
-              "identity_rule":"exact canonical match_id; exact date+league+home+away fallback only; no fuzzy matching"}
-    (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
-    print(json.dumps(manifest,indent=2))
+    manifest={"status":"COMPLETE_RESEARCH_ONLY" if len(p) else "BLOCKED_NO_OOS","generated_utc":pd.Timestamp.now(tz="UTC").isoformat(),
+              "prediction_rows":int(len(p)),"models":sorted(p.model.unique().tolist()) if len(p) else [],
+              "weeks":int(p.week.nunique()) if len(p) else 0,"source_prediction_rows":int(before),
+              "prediction_match_metadata_join_rate":float(join_rate),"unmatched_prediction_rows":int(before-matched),
+              "minimum_training_rows":MIN_TRAIN,"minimum_test_rows":MIN_TEST,"production_change":False,
+              "chronology":"prediction-ledger date; training strictly before test week",
+              "identity_rule":"exact canonical match_id for metadata enrichment only; unmatched metadata retained; no fuzzy matching"}
+    (OUT/"manifest.json").write_text(json.dumps(manifest,indent=2)+"
+"); print(json.dumps(manifest,indent=2))
 
 if __name__=="__main__": main()
