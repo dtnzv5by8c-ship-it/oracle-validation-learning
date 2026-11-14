@@ -47,7 +47,7 @@
       "FootyStats Signal Quality"
     ],
     "extension_column_count": 31,
-    "last_extension_column": "CW",
+    "last_extension_column": "DX",
     "extension_purpose": "FootyStats pre-match market percentages and high-value goal-environment/team signals; research/reporting only until independently backtested and governed."
   },
   "headers": [
