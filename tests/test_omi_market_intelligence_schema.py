@@ -33,6 +33,18 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         self.assertEqual(digest, schema["header_sequence_sha256"])
         self.assertEqual(schema["source_provenance"]["purpose"], "STRUCTURAL_HEADER_REFERENCE_ONLY_NOT_A_SOURCE_OF_CURRENT_FIXTURE_DATA")
 
+    def test_footystats_goal_market_extension_is_append_only(self):
+        s = self.schema
+        ext = s["extension_policy"].get("extension_headers", [])
+        self.assertEqual(s["extension_policy"]["extension_column_count"], len(ext))
+        self.assertEqual(s["extension_policy"]["first_new_column"], "CT")
+        self.assertEqual(s["extension_policy"]["last_extension_column"], "CW")
+        self.assertGreaterEqual(len(ext), 25)
+        self.assertIn("FootyStats Pre-Match BTTS %", ext)
+        self.assertIn("FootyStats Pre-Match Over 2.5 %", ext)
+        self.assertIn("FootyStats Goal Signal", ext)
+        self.assertIn("FootyStats Signal Quality", ext)
+
     def test_headers_are_nonblank_and_unique(self):
         headers = self.schema["headers"]
         self.assertTrue(all(isinstance(h, str) and h.strip() for h in headers))
@@ -59,7 +71,7 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         self.assertTrue(policy["never_insert_before_or_within_baseline"])
         self.assertTrue(policy["never_rename_reorder_or_delete_baseline_headers"])
 
-    def test_report_builder_uses_locked_95_column_schema_and_builds_omi_visual_tabs(self):
+    def test_report_builder_uses_locked_baseline_plus_extension_schema_and_builds_omi_visual_tabs(self):
         builder = (ROOT / "scripts" / "build_selected50_market_intelligence_report.py").read_text(encoding="utf-8")
         self.assertIn("omi_market_intelligence_schema_v1.json", builder)
         self.assertIn('decision_headers = omi_schema.get("headers", [])', builder)
