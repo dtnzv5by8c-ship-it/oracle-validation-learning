@@ -91,6 +91,24 @@ def main():
     pd.DataFrame(reliability_rows).to_csv(OUT/"weekly_reliability.csv",index=False)
     pd.DataFrame(band_rows).to_csv(OUT/"weekly_probability_bands.csv",index=False)
 
+    # Additional research-only evidence layer: pooled OOS metrics and pooled
+    # probability-band calibration. This does not refit or alter Oracle V1.6.
+    pooled=[]
+    pooled_bands=[]
+    for model,g in p.groupby("model",sort=True):
+        z=metrics(g.target,g.p); z["ece"]=ece(g.target,g.p); z["model"]=model
+        pooled.append(z)
+        edges=[0,.5,.6,.7,.8,1.0]
+        labels=["<0.50","0.50-0.59","0.60-0.69","0.70-0.79","0.80-1.00"]
+        for lo,hi,label in zip(edges[:-1],edges[1:],labels):
+            mask=(g.p>=lo)&((g.p<hi) if hi<1 else (g.p<=hi))
+            if mask.any():
+                bm=metrics(g.loc[mask,"target"],g.loc[mask,"p"])
+                bm["model"]=model; bm["probability_band"]=label
+                pooled_bands.append(bm)
+    pd.DataFrame(pooled).to_csv(OUT/"pooled_oos_performance.csv",index=False)
+    pd.DataFrame(pooled_bands).to_csv(OUT/"pooled_probability_bands.csv",index=False)
+
     league_week=[]
     for (week,league,model),g in p.groupby(["week","league_code","model"],sort=True):
         if len(g)<10 or league=="UNMATCHED_IDENTITY": continue
