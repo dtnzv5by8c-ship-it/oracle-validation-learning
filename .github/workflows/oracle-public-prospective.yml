@@ -207,9 +207,15 @@ jobs:
           git commit -m "Record governed prospective evidence from public runner"
           git reset --hard HEAD
           PERSIST_BRANCH="oracle/prospective/public-run-${GITHUB_RUN_ID}"
-          git switch --create "${PERSIST_BRANCH}"
-          git push --set-upstream origin "${PERSIST_BRANCH}"
-          git fetch --no-tags origin "+refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}"
+          # A rerun of the same workflow run can encounter an existing serialized
+          # evidence branch. Update only that run-specific branch; do not overwrite
+          # any other run's branch or alter production main.
+          git fetch --no-tags origin "+refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/${PERSIST_BRANCH}"; then
+            git push --force-with-lease="refs/heads/${PERSIST_BRANCH}:refs/remotes/origin/${PERSIST_BRANCH}" origin "HEAD:${PERSIST_BRANCH}"
+          else
+            git push --set-upstream origin "HEAD:${PERSIST_BRANCH}"
+          fi
           echo "PERSIST_BRANCH=${PERSIST_BRANCH}"
           echo "SOURCE_MAIN_SHA=${SOURCE_MAIN_SHA}"
 
