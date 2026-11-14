@@ -211,3 +211,5 @@ jobs:
 # Re-run after diagnostic syntax fix
 
 # Trigger after confirmed NO_BET diagnostic syntax repair 10e4169
+
+# Trigger chronology-aligned NO_BET diagnostic refresh
