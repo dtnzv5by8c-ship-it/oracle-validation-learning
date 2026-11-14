@@ -83,7 +83,8 @@ jobs:
                   if len(q):
                       z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)
                   else:
-                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})\n          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
+                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})
+          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
           h2h_rows=[]
           form_rows=[]
           if not mt.empty:
