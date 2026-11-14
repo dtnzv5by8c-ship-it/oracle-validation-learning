@@ -1821,13 +1821,18 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
     goal_by_exact_key = {key: values[0] for key, values in goal_by_key_candidates.items() if len(values) == 1}
     schema_path = Path(__file__).resolve().parents[1] / "config" / "omi_market_intelligence_schema_v1.json"
     omi_schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    decision_headers = omi_schema.get("headers", [])
+    baseline_decision_headers = omi_schema.get("headers", [])
+    extension_headers = omi_schema.get("extension_policy", {}).get("extension_headers", [])
+    decision_headers = list(baseline_decision_headers) + list(extension_headers)
     if (omi_schema.get("sheet_name") != "Market Intelligence"
             or omi_schema.get("baseline_column_count") != 95
             or omi_schema.get("baseline_columns") != "A:CQ"
-            or len(decision_headers) != 95
-            or len(set(decision_headers)) != 95):
-        raise ValueError("Governed OMI Book4 schema is missing, changed, or not exactly 95 unique columns")
+            or len(baseline_decision_headers) != 95
+            or len(set(baseline_decision_headers)) != 95
+            or len(extension_headers) != omi_schema.get("extension_policy", {}).get("extension_column_count")
+            or len(decision_headers) != 95 + len(extension_headers)
+            or len(set(decision_headers)) != len(decision_headers)):
+        raise ValueError("Governed OMI Book4 baseline/extension schema is missing, changed, duplicated, or invalid")
     base_header_aliases = {
         "Over 1.5": "Over 1,5",
         "Over 2.5": "Over 2,5",
@@ -1853,6 +1858,20 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
         "Research Home Over 1.5 %": "Research Home Over 1,5 %",
         "Research Away Over 1.5 %": "Research Away Over 1,5 %",
     }
+    def fs_value(trace_row, *keys, default="NOT_RETRIEVED_FROM_FOOTYSTATS_SNAPSHOT"):
+        for key in keys:
+            value = trace_row.get(key)
+            if value not in (None, ""):
+                return value
+        return default
+
+    def fs_under_from_over(trace_row, over_key, default="NOT_RETRIEVED_FROM_FOOTYSTATS_SNAPSHOT"):
+        value = fs_value(trace_row, over_key, default=default)
+        try:
+            return round(100.0 - float(value), 2)
+        except (TypeError, ValueError):
+            return default
+
     decision_rows = []
     for row_index, base_row_data in enumerate(rows):
         t = trace[row_index] if row_index < len(trace) else {}
@@ -1910,7 +1929,42 @@ def write_xlsx(path, rows, trace=None, archive_summary=None, goal_market_rows=No
             "History Source Fixture IDs": ";".join(x for x in (
                 str(t.get("home_form_source_fixture_ids") or ""),
                 str(t.get("away_form_source_fixture_ids") or "")
-            ) if x)
+            ) if x),
+            # FootyStats enrichment: populate only from a verified pre-match snapshot/trace.
+            # Under percentages are exact complements of the corresponding FootyStats over
+            # percentages when the same pre-match percentage is present; they are labelled
+            # as derived by the dictionary. No post-match values are substituted.
+            "FootyStats Pre-Match Avg Goals": fs_value(t, "footystats_average_goals_per_match_pre_match", "average_goals_per_match_pre_match"),
+            "FootyStats Pre-Match BTTS %": fs_value(t, "footystats_btts_percentage_pre_match", "btts_percentage_pre_match"),
+            "FootyStats Pre-Match Over 0.5 %": fs_value(t, "footystats_over_05_percentage_pre_match", "over_05_percentage_pre_match", "over05_percentage_pre_match"),
+            "FootyStats Pre-Match Over 1.5 %": fs_value(t, "footystats_over_15_percentage_pre_match", "over_15_percentage_pre_match"),
+            "FootyStats Pre-Match Over 2.5 %": fs_value(t, "footystats_over_25_percentage_pre_match", "over_25_percentage_pre_match"),
+            "FootyStats Pre-Match Over 3.5 %": fs_value(t, "footystats_over_35_percentage_pre_match", "over_35_percentage_pre_match"),
+            "FootyStats Pre-Match Over 4.5 %": fs_value(t, "footystats_over_45_percentage_pre_match", "over_45_percentage_pre_match"),
+            "FootyStats Pre-Match Under 1.5 %": fs_under_from_over(t, "footystats_over_15_percentage_pre_match"),
+            "FootyStats Pre-Match Under 2.5 %": fs_under_from_over(t, "footystats_over_25_percentage_pre_match"),
+            "FootyStats Pre-Match Under 3.5 %": fs_under_from_over(t, "footystats_over_35_percentage_pre_match"),
+            "FootyStats Pre-Match Under 4.5 %": fs_under_from_over(t, "footystats_over_45_percentage_pre_match"),
+            "FootyStats Home Win %": fs_value(t, "footystats_home_win_percentage", "home_win_percentage"),
+            "FootyStats Draw %": fs_value(t, "footystats_draw_percentage", "draw_percentage"),
+            "FootyStats Away Win %": fs_value(t, "footystats_away_win_percentage", "away_win_percentage"),
+            "FootyStats Home PPG Pre-Match": fs_value(t, "footystats_home_ppg_pre_match", "pre_match_ppg_home", "Pre-Match PPG (Home)"),
+            "FootyStats Away PPG Pre-Match": fs_value(t, "footystats_away_ppg_pre_match", "pre_match_ppg_away", "Pre-Match PPG (Away)"),
+            "FootyStats Home BTTS %": fs_value(t, "footystats_home_btts_percentage", "home_btts_percentage"),
+            "FootyStats Away BTTS %": fs_value(t, "footystats_away_btts_percentage", "away_btts_percentage"),
+            "FootyStats Home Over 1.5 %": fs_value(t, "footystats_home_over15_percentage", "home_over15_percentage"),
+            "FootyStats Away Over 1.5 %": fs_value(t, "footystats_away_over15_percentage", "away_over15_percentage"),
+            "FootyStats Home Clean Sheet %": fs_value(t, "footystats_home_clean_sheet_percentage", "home_clean_sheet_percentage"),
+            "FootyStats Away Clean Sheet %": fs_value(t, "footystats_away_clean_sheet_percentage", "away_clean_sheet_percentage"),
+            "FootyStats Home Failed To Score %": fs_value(t, "footystats_home_fts_percentage", "home_fts_percentage"),
+            "FootyStats Away Failed To Score %": fs_value(t, "footystats_away_fts_percentage", "away_fts_percentage"),
+            "FootyStats Home Prediction Risk %": fs_value(t, "footystats_home_prediction_risk", "home_prediction_risk"),
+            "FootyStats Away Prediction Risk %": fs_value(t, "footystats_away_prediction_risk", "away_prediction_risk"),
+            "FootyStats Home xG Avg": fs_value(t, "footystats_home_xg_avg", "home_xg_for_avg"),
+            "FootyStats Away xG Avg": fs_value(t, "footystats_away_xg_avg", "away_xg_for_avg"),
+            "FootyStats Total xG Avg": fs_value(t, "footystats_total_xg_avg", "xg_avg"),
+            "FootyStats Goal Signal": fs_value(t, "footystats_goal_signal", default="NOT_VALIDATED_UNTIL_WALK_FORWARD_BACKTEST"),
+            "FootyStats Signal Quality": fs_value(t, "footystats_signal_quality", default="RESEARCH_ONLY_NOT_YET_VALIDATED")
         }
         book4_row = {header: "" for header in decision_headers}
         for header, value in base_row_data.items():
