@@ -111,8 +111,8 @@ jobs:
 
       - name: Diagnose exact NO_BET root causes
         run: |
-          python scripts/diagnose_no_bet_root_causes.py
-          test -s research/four_model/outputs/no_bet_root_cause_2026-11-13_to_2026-11-24.csv
+          python oracle/scripts/diagnose_no_bet_root_causes.py
+          test -s oracle/research/four_model/outputs/no_bet_root_cause_2026-11-13_to_2026-11-24.csv
 
       - name: Prepare immutable publication batch
         working-directory: oracle
