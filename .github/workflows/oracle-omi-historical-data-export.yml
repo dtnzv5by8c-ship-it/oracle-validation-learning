@@ -1,0 +1,36 @@
+name: Oracle OMI Historical Data Export
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-omi-historical-data-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
+    steps:
+      - name: Validate secret
+        run: test -n "${GH_TOKEN:-}"
+      - name: Clone production repository
+        run: |
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" clone --depth 1 --branch main "https://github.com/${TARGET_REPO}.git" oracle
+      - name: Package OMI source data
+        run: |
+          mkdir -p package
+          cp oracle/database/matches.csv package/matches.csv
+          cp oracle/research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv package/omi_ledger.csv
+          cp oracle/data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv package/fixtures.csv
+          cp oracle/database/current_prematch_team_state.csv package/current_team_state.csv || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-omi-source-data-${{ github.run_id }}
+          path: package
+          retention-days: 7
