@@ -1,14 +1,23 @@
 {
-  "status": "BLOCKED_NO_JOIN",
-  "generated_utc": "2026-11-14T16:22:38.617174+00:00",
-  "prediction_rows": 0,
-  "models": [],
-  "weeks": 0,
+  "status": "COMPLETE_RESEARCH_ONLY",
+  "generated_utc": "2026-11-14T17:45:01.979536+00:00",
+  "prediction_rows": 59472,
+  "models": [
+    "BTTS",
+    "COMBO_AWAY",
+    "COMBO_HOME",
+    "DC_AWAY",
+    "DC_HOME",
+    "M1UP_AWAY",
+    "M1UP_HOME"
+  ],
+  "weeks": 57,
   "source_prediction_rows": 59472,
-  "prediction_match_join_rate": 0.0,
+  "prediction_match_metadata_join_rate": 0.0,
+  "unmatched_prediction_rows": 59472,
   "minimum_training_rows": 500,
   "minimum_test_rows": 50,
   "production_change": false,
-  "chronology": "canonical match date; training strictly before test week",
-  "identity_rule": "exact canonical match_id; exact date+league+home+away fallback only; no fuzzy matching"
+  "chronology": "prediction-ledger date; training strictly before test week",
+  "identity_rule": "exact canonical match_id for metadata enrichment only; unmatched metadata retained; no fuzzy matching"
 }
