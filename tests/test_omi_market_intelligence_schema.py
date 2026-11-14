@@ -38,7 +38,7 @@ class TestOmiMarketIntelligenceSchema(unittest.TestCase):
         ext = s["extension_policy"].get("extension_headers", [])
         self.assertEqual(s["extension_policy"]["extension_column_count"], len(ext))
         self.assertEqual(s["extension_policy"]["first_new_column"], "CT")
-        self.assertEqual(s["extension_policy"]["last_extension_column"], "CW")
+        self.assertEqual(s["extension_policy"]["last_extension_column"], "DX")
         self.assertGreaterEqual(len(ext), 25)
         self.assertIn("FootyStats Pre-Match BTTS %", ext)
         self.assertIn("FootyStats Pre-Match Over 2.5 %", ext)
