@@ -270,6 +270,25 @@ def main():
                  "xg_capture_time_utc":"",
                  "xg_temporal_provenance_status":"UNVERIFIED_NO_CAPTURE_TIMESTAMP",
                  "xg_prediction_use_status":"QUARANTINED_RESEARCH_AUDIT_ONLY",
+                 # FootyStats' own match-level pre-match goal-market fields. These are
+                 # retained verbatim for historical signal research and are never treated
+                 # as Oracle probabilities.
+                 "footystats_average_goals_per_match_pre_match":first(d,("average_goals_per_match_pre_match",)),
+                 "footystats_btts_percentage_pre_match":first(d,("btts_percentage_pre_match",)),
+                 "footystats_over_05_percentage_pre_match":first(d,("over_05_percentage_pre_match","over05_percentage_pre_match")),
+                 "footystats_over_15_percentage_pre_match":first(d,("over_15_percentage_pre_match",)),
+                 "footystats_over_25_percentage_pre_match":first(d,("over_25_percentage_pre_match",)),
+                 "footystats_over_35_percentage_pre_match":first(d,("over_35_percentage_pre_match",)),
+                 "footystats_over_45_percentage_pre_match":first(d,("over_45_percentage_pre_match",)),
+                 "footystats_odds_home_win":first(d,("odds_ft_home_team_win",)),
+                 "footystats_odds_draw":first(d,("odds_ft_draw",)),
+                 "footystats_odds_away_win":first(d,("odds_ft_away_team_win",)),
+                 "footystats_odds_over15":first(d,("odds_ft_over15",)),
+                 "footystats_odds_over25":first(d,("odds_ft_over25",)),
+                 "footystats_odds_over35":first(d,("odds_ft_over35",)),
+                 "footystats_odds_over45":first(d,("odds_ft_over45",)),
+                 "footystats_odds_btts_yes":first(d,("odds_btts_yes",)),
+                 "footystats_odds_btts_no":first(d,("odds_btts_no",)),
                  "odds_fields_present":";".join(k for k,v in d.items() if "odds" in k.lower() and v not in (None,"")),
                  "raw_record_sha256":hashlib.sha256(json.dumps(d,sort_keys=True,ensure_ascii=False).encode()).hexdigest()}
             records.append(rec)
