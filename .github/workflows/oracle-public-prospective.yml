@@ -157,7 +157,8 @@ jobs:
         working-directory: oracle
         run: |
           python -m unittest discover -s tests -p "test_*.py"
-          MATCH_ROWS=$(tail -n +2 database/matches.csv | wc -l | tr -d " ")\n          if [ "$MATCH_ROWS" -le 1 ]; then
+          MATCH_ROWS=$(tail -n +2 database/matches.csv | wc -l | tr -d " ")
+          if [ "$MATCH_ROWS" -le 1 ]; then
             echo "DATA_GATED: protected historical artifact is a validation sentinel (<=1 match); point-in-time audit deferred until a real historical spine is admitted."
             mkdir -p research/historical_spine
             printf '%s\n' '{"artifact":"ORACLE_POINT_IN_TIME_LEAKAGE_AUDIT_V1.0","status":"DATA_GATED","reason":"validation_sentinel_historical_spine","rule":"every non-empty latest source date must be strictly earlier than fixture date"}' > research/historical_spine/point_in_time_leakage_audit.json
