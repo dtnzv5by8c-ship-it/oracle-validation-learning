@@ -74,7 +74,7 @@ jobs:
           if not fx.empty:
               fx["Fixture ID"]=fx.apply(fid,axis=1)
 
-          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
+          # Team-State fixture join: exact fixture/date/team match where available.\n          ts_fixture=[]\n          if not st.empty:\n              for _,r in df.iterrows():\n                  date=str(r.get("date",""))[:10]; league=str(r.get("league_code","")); home=str(r.get("home_team","")); away=str(r.get("away_team",""))\n                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("league",pd.Series([""]*len(st))).astype(str)==league) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]\n                  if len(q):\n                      z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)\n                  else:\n                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})\n          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
           h2h_rows=[]
           form_rows=[]
           if not mt.empty:
