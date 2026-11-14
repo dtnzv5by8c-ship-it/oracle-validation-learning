@@ -207,3 +207,5 @@ jobs:
           echo "SOURCE_MAIN_SHA=${SOURCE_MAIN_SHA}"
 
 # Diagnostic refresh after exact NO_BET detail instrumentation
+
+# Re-run after diagnostic syntax fix
