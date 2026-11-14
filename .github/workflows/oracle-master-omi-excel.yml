@@ -76,14 +76,23 @@ jobs:
 
           # Team-State fixture join: exact fixture/date/team match where available.
           ts_fixture=[]
+          fx_lookup={}
+          if not fx.empty:
+              for _,fr in fx.iterrows():
+                  fx_lookup[str(fr.get("fixture_id") or fid(fr))]=fr.to_dict()
           if not st.empty:
               for _,r in df.iterrows():
-                  date=str(r.get("date",""))[:10]; league=str(r.get("league_code","")); home=str(r.get("home_team","")); away=str(r.get("away_team",""))
-                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("league",pd.Series([""]*len(st))).astype(str)==league) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]
+                  date=str(r.get("date",""))[:10]; home=str(r.get("home_team","")); away=str(r.get("away_team",""))
+                  fr=fx_lookup.get(str(r["Fixture ID"]),{})
+                  league_name=str(fr.get("league") or fr.get("competition") or "")
+                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("league",pd.Series([""]*len(st))).astype(str).map(norm)==norm(league_name)) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]
                   if len(q):
                       z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)
                   else:
-                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})
+                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league_name,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})
+          ts_df=pd.DataFrame(ts_fixture)
+          if not ts_df.empty:
+              df=df.merge(ts_df.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_STATE"))
           # H2H: same-league, strictly pre-match, canonicalised by normalized names.
           h2h_rows=[]
           form_rows=[]
