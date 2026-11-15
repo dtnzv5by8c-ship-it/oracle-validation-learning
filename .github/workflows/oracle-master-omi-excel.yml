@@ -194,9 +194,9 @@ jobs:
                   return None
 
               ppg_aliases = {
-                  "PPG": ["ppg", "PPG", "points_per_game"],
-                  "PPG Home": ["ppg_home", "PPG Home", "home_ppg", "home_points_per_game"],
-                  "PPG Away": ["ppg_away", "PPG Away", "away_ppg", "away_points_per_game"],
+                  "PPG": ["ppg", "PPG", "ppg_overall", "points_per_game"],
+                  "PPG Home": ["ppg_home", "PPG Home", "home_ppg", "ppg_home", "home_points_per_game"],
+                  "PPG Away": ["ppg_away", "PPG Away", "away_ppg", "ppg_away", "away_points_per_game"],
               }
               for side in ("Home", "Away"):
                   for metric, aliases in ppg_aliases.items():
@@ -221,7 +221,8 @@ jobs:
                       ts_source=first_existing(fs_fixture, [
                           f"FS {side} as_of", f"FS {side} as_of_timestamp",
                           f"FS {side} snapshot_timestamp", f"FS {side} source_timestamp",
-                          f"FS {side} timestamp", f"FS {side} kickoff_time"
+                          f"FS {side} timestamp", f"FS {side} kickoff_time",
+                          f"FS {side} cutoff_unix"
                       ])
                       df[f"FS {side} {metric} Source Timestamp"] = df[ts_source] if ts_source else "UNAVAILABLE"
                       df[f"FS {side} {metric} Freshness"] = (
