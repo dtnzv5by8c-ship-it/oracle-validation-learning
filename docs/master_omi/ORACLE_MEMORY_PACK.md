@@ -10,7 +10,7 @@ Canonical workbook foundation:
 `Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx`
 
 Foundation SHA-256:
-`84f557fdc297169a47a66458ba6eea9421ae94d003f71e7b55ccc96fbcd1761f1`
+`84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1`
 
 Protected Market Intelligence range:
 **A:ET (150 columns)**
@@ -40,8 +40,10 @@ A description-complete template was created on 2026-11-15:
 SHA-256:
 `781bfba120751e1a5995f762729639e1cc3b7317c4e44aa42dc5c77eae152c19`
 
-The corrected template is also stored in Nolan's Library at:
-`/Project Oracle/Master OMI/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx`
+The description-complete template is also stored in the GitHub template path:
+`docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx`
+
+Integrity verification on 2026-11-15 confirmed the protected A:ET range is cell-for-cell identical to the canonical foundation, with 239/239 Market Intelligence headings carrying descriptions.
 
 ## Formula protection
 
