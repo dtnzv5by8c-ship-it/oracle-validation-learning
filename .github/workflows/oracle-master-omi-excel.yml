@@ -376,12 +376,26 @@ jobs:
                   st=f"{v} Status"
                   if any(c not in mi.columns for c in (st,f"{v} Source",f"{v} Provenance",f"{v} Quality")):
                       raise SystemExit(f"FAIL: missing evidence metadata for {v}")
-                  direct=mi[v].astype(str).str.strip().ne("UNAVAILABLE")
-                  if (direct & ~mi[st].astype(str).eq("FOOTYSTATS_DIRECT")).any():
+                  raw=mi[v]
+                  status_series=mi[st].astype(str).str.strip()
+                  # Treat blank/NaN provider cells as unavailable evidence, never as direct values.
+                  missing_value=raw.isna() | raw.astype(str).str.strip().isin(["","nan","None","NaN","UNAVAILABLE"])
+                  direct=(~missing_value)
+                  if (direct & ~status_series.eq("FOOTYSTATS_DIRECT")).any():
                       raise SystemExit(f"FAIL: non-direct {v} values detected")
-                  unavailable=mi[v].astype(str).str.strip().eq("UNAVAILABLE")
-                  if (unavailable & ~mi[st].astype(str).eq("PROVIDER_FIELD_MISSING")).any():
-                      raise SystemExit(f"FAIL: unavailable {v} rows lack PROVIDER_FIELD_MISSING status")
+                  if (missing_value & ~status_series.eq("PROVIDER_FIELD_MISSING")).any():
+                      raise SystemExit(f"FAIL: missing {v} rows lack PROVIDER_FIELD_MISSING status")
+                  if ((status_series.eq("FOOTYSTATS_DIRECT")) & missing_value).any():
+                      raise SystemExit(f"FAIL: {v} marked FOOTYSTATS_DIRECT but provider value is blank/unavailable")
+                  src=mi[f"{v} Source"].astype(str).str.strip()
+                  prov=mi[f"{v} Provenance"].astype(str).str.strip()
+                  qual=mi[f"{v} Quality"].astype(str).str.strip()
+                  if (direct & ~src.eq("FootyStats")).any():
+                      raise SystemExit(f"FAIL: direct {v} values have non-FootyStats source")
+                  if (direct & ~prov.eq("PREMATCH_PROVIDER_FIELD")).any():
+                      raise SystemExit(f"FAIL: direct {v} values lack PREMATCH_PROVIDER_FIELD provenance")
+                  if (direct & ~qual.eq("DIRECT_PROVIDER_VALUE")).any():
+                      raise SystemExit(f"FAIL: direct {v} values lack DIRECT_PROVIDER_VALUE quality")
           print("PASS: exact Fixture ID and PPG/PPG Home/PPG Away evidence contract validated.")
           PY
 
