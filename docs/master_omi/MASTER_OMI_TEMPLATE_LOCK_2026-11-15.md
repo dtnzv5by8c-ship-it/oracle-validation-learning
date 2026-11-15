@@ -49,12 +49,26 @@ Created 2026-11-15:
 - Source Hierarchy
 - FootyStats Definitions
 
+## Integrity verification — 2026-11-15
+
+A full structural check was completed against the current description-complete workbook before this checkpoint was updated:
+- Market Intelligence: 239 columns
+- Protected A:ET foundation: 150 columns — **PASS, cell-for-cell unchanged** against the canonical foundation
+- Appended EU onward: 89 columns
+- Market Intelligence rows: 755 including header (754 fixture rows)
+- Heading descriptions/comments: 239 / 239 — **PASS**
+- Workbook sheets: 26
+- No columns inserted, deleted or reordered during verification
+
+The verified review copy was generated from the description-complete template for review/formula-building purposes. Its openpyxl-resaved SHA-256 is `d52c691deee7f72f5004427628dc4d0568326c12c50dd928898d699935328f1f`; this is a byte-level export hash, not a new schema identity. The canonical description-complete template identity remains the original SHA-256 below.
+
 ## Recovery rule
 
 If a future workbook differs from this checkpoint, treat the protected A:ET structure and canonical foundation as the source of truth. Restore the protected structure first, then append new fields after ET. Do not rebuild or redesign the template.
 
-## GitHub binary note
+## GitHub binary status
 
-The GitHub template path currently contains the workbook uploaded by Nolan on 2026-11-15. That uploaded binary is structurally older than the current 239-column canonical foundation and therefore must not be treated as the final description-complete template until it is replaced with the corrected workbook above.
+The description-complete workbook has been uploaded to the GitHub template path:
+`docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx`
 
-The text memory files are authoritative for the schema rules; once the corrected binary is uploaded to the same GitHub template path, the repository will be fully aligned.
+The GitHub binary is now aligned with the description-complete 239-column template. The JSON/MD memory files remain the authoritative written governance layer.
