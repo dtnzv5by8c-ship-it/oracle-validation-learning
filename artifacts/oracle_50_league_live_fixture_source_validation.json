@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-15T17:40:25.832622+00:00",
+  "generated_utc": "2026-11-15T22:45:20.501261+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -993,20 +993,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 7,
+      "fixture_count_in_window": 5,
       "fixtures": [
-        {
-          "match_id": "match_fmb_per1_2026_20261115_comerciantes_unidos_sport_boys",
-          "kickoff_at": "2026-11-15T18:00:00.000Z",
-          "home": "Comerciantes Unidos",
-          "away": "Sport Boys"
-        },
-        {
-          "match_id": "match_fmb_per1_2026_20261115_adc_juan_pablo_ii_deportivo_garcilaso",
-          "kickoff_at": "2026-11-15T20:15:00.000Z",
-          "home": "ADC Juan Pablo II",
-          "away": "Deportivo Garcilaso"
-        },
         {
           "match_id": "match_fmb_per1_2026_20261116_cd_ut_cajamarca_los_chankas",
           "kickoff_at": "2026-11-16T18:00:00Z",
@@ -1505,14 +1493,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 3,
+      "fixture_count_in_window": 2,
       "fixtures": [
-        {
-          "match_id": "match_fmb_uru1_2026_20261115_danubio_liverpool_fc",
-          "kickoff_at": "2026-11-15T19:30:00.000Z",
-          "home": "Danubio",
-          "away": "Liverpool FC"
-        },
         {
           "match_id": "match_fmb_uru1_2026_20261115_defensor_sporting_club_atletico_penarol",
           "kickoff_at": "2026-11-15T23:00:00.000Z",
@@ -1562,7 +1544,7 @@
     "ready": 24,
     "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 113,
+    "fixtures_in_window": 110,
     "leagues_with_fixture_evidence": 24,
     "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
