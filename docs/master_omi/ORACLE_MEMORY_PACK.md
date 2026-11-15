@@ -6,11 +6,11 @@ Project Oracle is Nolan's football market-intelligence and modelling program. Th
 
 ## Master OMI schema lock
 
-Canonical workbook:
+Canonical workbook foundation:
 `Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx`
 
-SHA-256:
-`84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1`
+Foundation SHA-256:
+`84f557fdc297169a47a66458ba6eea9421ae94d003f71e7b55ccc96fbcd1761f1`
 
 Protected Market Intelligence range:
 **A:ET (150 columns)**
@@ -21,7 +21,27 @@ Append-only boundary:
 Checkpoint:
 - 754 fixture rows
 - 239 Market Intelligence columns
-- 89 appended intelligence columns at checkpoint
+- 89 appended intelligence columns at the original checkpoint
+
+## Market Intelligence heading-description standard
+
+Every heading in the Master OMI **Market Intelligence** tab must have an Excel cell comment containing a concise operational description of what the field means and how it should be interpreted.
+
+This description layer is **metadata only**:
+- It must not alter formulas.
+- It must not change heading names.
+- It must not move columns.
+- It must not alter A:ET.
+- New headings must receive a description comment when introduced.
+- The description should identify the metric's purpose, context and any important interpretation/governance caveat.
+
+A description-complete template was created on 2026-11-15:
+`Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx`
+SHA-256:
+`781bfba120751e1a5995f762729639e1cc3b7317c4e44aa42dc5c77eae152c19`
+
+The corrected template is also stored in Nolan's Library at:
+`/Project Oracle/Master OMI/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx`
 
 ## Formula protection
 
@@ -35,6 +55,7 @@ Therefore:
 - Do not rebuild the workbook from a different template.
 - New data fields must be appended after ET.
 - Corrections should update values in existing columns where possible; if a genuinely new field/version is required, append it after ET.
+- Heading comments are allowed because they are metadata and do not change cell references.
 
 ## FootyStats intelligence
 
