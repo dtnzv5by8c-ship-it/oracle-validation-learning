@@ -24,6 +24,16 @@
     "xG remains quarantined for predictive use until point-in-time provenance is proven.",
     "Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged."
   ],
-  "github_binary_alignment": "PENDING_REPLACEMENT_OF_OLDER_UPLOADED_BINARY",
-  "purpose": "Permanent recovery checkpoint for the Master OMI workbook schema, template contract and heading-description standard."
+  "github_binary_alignment": "ALIGNED_2026-11-15",
+  "purpose": "Permanent recovery checkpoint for the Master OMI workbook schema, template contract and heading-description standard.",
+  "integrity_verification": {
+    "status": "PASS",
+    "protected_range": "A:ET",
+    "protected_columns": 150,
+    "appended_columns": 89,
+    "total_market_intelligence_columns": 239,
+    "fixture_rows": 754,
+    "heading_comments": "239/239",
+    "verified_against_foundation": "cell-for-cell A:ET match"
+  }
 }
