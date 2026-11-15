@@ -1,23 +1,29 @@
 {
-  "checkpoint":"2026-11-15T08:10:00+02:00",
-  "canonical_workbook":"Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx",
-  "sha256":"84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1",
+  "checkpoint": "2026-11-15",
+  "canonical_foundation_workbook": "Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx",
+  "foundation_sha256": "84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1",
+  "description_complete_template": "Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx",
+  "description_complete_template_sha256": "781bfba120751e1a5995f762729639e1cc3b7317c4e44aa42dc5c77eae152c19",
   "market_intelligence": {
-    "protected_range":"A:ET",
-    "protected_columns":150,
-    "append_start":"EU",
-    "total_columns_at_checkpoint":239,
-    "appended_columns_at_checkpoint":89,
-    "rows_at_checkpoint":754
+    "protected_range": "A:ET",
+    "protected_columns": 150,
+    "append_start": "EU",
+    "total_columns_at_checkpoint": 239,
+    "appended_columns_at_checkpoint": 89,
+    "rows_at_checkpoint": 754,
+    "heading_description_comments": 239
   },
-  "rules":[
+  "rules": [
     "A:ET is immutable and is the downstream formula cell-reference contract.",
     "Never insert, delete, rename, reorder, or overwrite A:ET.",
     "All new intelligence is append-only from EU onward.",
     "Preserve formulas and existing cell positions.",
+    "Every non-empty Market Intelligence heading must have a concise Excel comment description.",
+    "Heading comments are metadata only and must not alter the schema.",
     "FootyStats data requires explicit provenance; never fabricate values.",
     "xG remains quarantined for predictive use until point-in-time provenance is proven.",
     "Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged."
   ],
-  "purpose":"Permanent recovery checkpoint for the Master OMI workbook schema and template contract."
+  "github_binary_alignment": "PENDING_REPLACEMENT_OF_OLDER_UPLOADED_BINARY",
+  "purpose": "Permanent recovery checkpoint for the Master OMI workbook schema, template contract and heading-description standard."
 }
