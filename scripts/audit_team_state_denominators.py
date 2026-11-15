@@ -45,6 +45,10 @@ def audit(fixtures, matches, out):
 
     duplicate_fixture_ids=int(f.fixture_id.duplicated(keep=False).sum())
     duplicate_match_ids=int(m.match_id.duplicated(keep=False).sum())
+    # Duplicate historical match IDs are a hard evidence failure: do not silently
+    # collapse them because that can alter the denominator and therefore PPG/GF-M/GA-M.
+    if duplicate_match_ids:
+        raise SystemExit(f"BLOCKED_DUPLICATE_HISTORICAL_MATCH_IDS:{duplicate_match_ids}")
     rows=[]
     for r in f.itertuples(index=False):
         kickoff=r.kickoff_parsed
@@ -72,7 +76,7 @@ def audit(fixtures, matches, out):
                 scope="BLOCKED_NO_KICKOFF"
                 mapping_conflict=False
 
-            prior=exact.sort_values(["match_time","match_id"]).drop_duplicates("match_id",keep="last")
+            prior=exact.sort_values(["match_time","match_id"])
             overall=prior.tail(5)
             venue_all=prior[prior.home_team.astype(str)==team] if side=="home" else prior[prior.away_team.astype(str)==team]
             venue=venue_all.tail(5)
@@ -85,6 +89,7 @@ def audit(fixtures, matches, out):
                 "overall_n":om["n"],"ppg":om["ppg"],"gf_m":om["gf_m"],"ga_m":om["ga_m"],"overall_status":status,
                 "venue_n":vm["n"],"venue_ppg":vm["ppg"],"venue_gf_m":vm["gf_m"],"venue_ga_m":vm["ga_m"],"venue_status":vstatus,
                 "mapping_conflict":bool(mapping_conflict),
+                "denominator_reconciled":bool(status=="VERIFIED_5_MATCH" and om["n"]==len(overall) and om["n"]>=5),
                 "source":"historical settled match archive","quality":"VERIFIED" if status=="VERIFIED_5_MATCH" else "UNVERIFIED",
                 "substitution_flag":False,
                 "missingness_reason":"" if status=="VERIFIED_5_MATCH" else (
@@ -103,6 +108,7 @@ def audit(fixtures, matches, out):
         "verified_overall_rows":int((d.overall_status=="VERIFIED_5_MATCH").sum()),
         "verified_venue_rows":int((d.venue_status=="VERIFIED_5_VENUE_MATCH").sum()),
         "mapping_conflict_rows":int(d.mapping_conflict.sum()),
+        "denominator_reconciled_rows":int(d.denominator_reconciled.sum()),
         "overall_coverage":float((d.overall_status=="VERIFIED_5_MATCH").mean()) if len(d) else 0.0,
         "venue_coverage":float((d.venue_status=="VERIFIED_5_VENUE_MATCH").mean()) if len(d) else 0.0,
         "production_change":False,
