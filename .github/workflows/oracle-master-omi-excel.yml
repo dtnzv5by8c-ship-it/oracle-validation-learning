@@ -34,6 +34,48 @@ jobs:
       - name: Install Excel dependencies
         run: python -m pip install --disable-pip-version-check pandas openpyxl
 
+      - name: Validate Market Intelligence FootyStats PPG evidence
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import pandas as pd, re, sys
+          from pathlib import Path
+          p=Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
+          if not p.exists():
+              raise SystemExit("FAIL: Master OMI workbook missing")
+          mi=pd.read_excel(p,sheet_name="Market Intelligence")
+          required=[
+              "FS Home PPG","FS Home PPG Home","FS Home PPG Away",
+              "FS Away PPG","FS Away PPG Home","FS Away PPG Away",
+          ]
+          missing=[c for c in required if c not in mi.columns]
+          if missing:
+              raise SystemExit("FAIL: missing PPG columns: "+", ".join(missing))
+          if "Fixture ID" not in mi.columns:
+              raise SystemExit("FAIL: exact Fixture ID column missing")
+          ids=mi["Fixture ID"].astype(str).str.strip()
+          if ids.eq("").any() or ids.isna().any() or ids.duplicated().any():
+              raise SystemExit("FAIL: missing/duplicate Fixture IDs in Market Intelligence")
+          for side in ("Home","Away"):
+              for metric in ("PPG","PPG Home","PPG Away"):
+                  v=f"FS {side} {metric}"
+                  st=f"{v} Status"
+                  src=f"{v} Source"
+                  prov=f"{v} Provenance"
+                  qual=f"{v} Quality"
+                  if any(c not in mi.columns for c in (st,src,prov,qual)):
+                      raise SystemExit(f"FAIL: missing evidence metadata for {v}")
+                  direct=mi[v].astype(str).str.strip().ne("UNAVAILABLE")
+                  bad_direct=(direct & ~mi[st].astype(str).eq("FOOTYSTATS_DIRECT")).sum()
+                  if bad_direct:
+                      raise SystemExit(f"FAIL: non-direct {v} values detected")
+                  missing_reason=mi[v].astype(str).str.strip().eq("UNAVAILABLE")
+                  bad_missing=(missing_reason & ~mi[st].astype(str).eq("PROVIDER_FIELD_MISSING")).sum()
+                  if bad_missing:
+                      raise SystemExit(f"FAIL: unavailable {v} rows lack PROVIDER_FIELD_MISSING status")
+          print("PASS: exact Fixture ID and PPG/PPG Home/PPG Away evidence contract validated; no provider substitution permitted.")
+          PY
+
       - name: Build Master OMI Excel
         working-directory: oracle
         run: |
@@ -216,6 +258,20 @@ jobs:
                       df[f"FS {side} {metric} Source"]="FootyStats"
                       df[f"FS {side} {metric} Provenance"]="PREMATCH_PROVIDER_FIELD" if source else "PROVIDER_FIELD_MISSING"
                       df[f"FS {side} {metric} Quality"]="DIRECT_PROVIDER_VALUE" if source else "UNAVAILABLE"
+
+                      # Preserve provider chronology/freshness metadata when the source feed exposes it.
+                      ts_source=first_existing(fs_fixture, [
+                          f"FS {side} as_of", f"FS {side} as_of_timestamp",
+                          f"FS {side} snapshot_timestamp", f"FS {side} source_timestamp",
+                          f"FS {side} timestamp", f"FS {side} kickoff_time"
+                      ])
+                      df[f"FS {side} {metric} Source Timestamp"] = df[ts_source] if ts_source else "UNAVAILABLE"
+                      df[f"FS {side} {metric} Freshness"] = (
+                          df[ts_source].apply(lambda x: "TIMESTAMP_PRESENT" if pd.notna(x) and str(x).strip() not in ("","nan","None") else "UNVERIFIED")
+                          if ts_source else "UNVERIFIED"
+                      )
+                      df[f"FS {side} {metric} Substitution Flag"]="FALSE" if source else "FALSE"
+                      df[f"FS {side} {metric} Missingness Reason"] = "" if source else "PROVIDER_FIELD_MISSING"
 
               # Summary.
           wb=Workbook(); ws=wb.active; ws.title="Executive Summary"
