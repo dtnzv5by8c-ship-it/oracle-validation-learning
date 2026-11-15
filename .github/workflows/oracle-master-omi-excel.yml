@@ -182,8 +182,42 @@ jobs:
               if status_cols:
                   fs_fixture["FootyStats Team Intelligence Status"] = fs_fixture[status_cols].apply(lambda r: "VERIFIED" if all(str(x)=="VERIFIED" for x in r) else ("PARTIAL" if any(str(x)=="VERIFIED" for x in r) else "UNVERIFIED"),axis=1)
               df=df.merge(fs_fixture.drop_duplicates("Fixture ID"),on="Fixture ID",how="left")
-          
-          # Summary.
+
+              # Permanent PPG contract: expose provider-supplied PPG, PPG Home and PPG Away
+              # explicitly for both fixture sides. Never derive a provider field from odds/results.
+              # If FootyStats does not supply a field, keep it explicitly unavailable and preserve
+              # source/provenance status rather than silently substituting another statistic.
+              def first_existing(frame, candidates):
+                  for col in candidates:
+                      if col in frame.columns:
+                          return col
+                  return None
+
+              ppg_aliases = {
+                  "PPG": ["ppg", "PPG", "points_per_game"],
+                  "PPG Home": ["ppg_home", "PPG Home", "home_ppg", "home_points_per_game"],
+                  "PPG Away": ["ppg_away", "PPG Away", "away_ppg", "away_points_per_game"],
+              }
+              for side in ("Home", "Away"):
+                  for metric, aliases in ppg_aliases.items():
+                      target=f"FS {side} {metric}"
+                      source=first_existing(fs_fixture, [f"FS {side} {a}" for a in aliases])
+                      if source:
+                          df[target]=df[source]
+                      else:
+                          df[target]="UNAVAILABLE"
+                      status_col=f"FS {side} {metric} Status"
+                      if source:
+                          df[status_col]=df[source].apply(
+                              lambda x: "FOOTYSTATS_DIRECT" if pd.notna(x) and str(x).strip() not in ("","nan","None") else "PROVIDER_FIELD_MISSING"
+                          )
+                      else:
+                          df[status_col]="PROVIDER_FIELD_MISSING"
+                      df[f"FS {side} {metric} Source"]="FootyStats"
+                      df[f"FS {side} {metric} Provenance"]="PREMATCH_PROVIDER_FIELD" if source else "PROVIDER_FIELD_MISSING"
+                      df[f"FS {side} {metric} Quality"]="DIRECT_PROVIDER_VALUE" if source else "UNAVAILABLE"
+
+              # Summary.
           wb=Workbook(); ws=wb.active; ws.title="Executive Summary"
           rows=[
               ["Project Oracle — Master OMI Report","13–24 Nov 2026"],
@@ -255,6 +289,10 @@ jobs:
               ["Production","Oracle remains fail-closed; this workbook is a review artifact, not betting certification."],
           ["FootyStats Team Intelligence","Research/reporting enrichment only. Point-in-time snapshots use FootyStats league-teams max_time at fixture kickoff minus one second. No Oracle V1.6 production logic is changed."],
           ["FootyStats Team Score","League-relative percentile score: overall 45% PPG + 35% GF/M + 20% inverse GA/M; home/away scores use venue-specific PPG/GF/M/GA/M."],
+          ["FootyStats PPG","Direct FootyStats pre-match points-per-game field when supplied; never inferred from odds or Oracle probabilities."],
+          ["FootyStats PPG Home","Direct FootyStats pre-match home-scope PPG when supplied. Scope, denominator and as-of timestamp must remain tied to the provider snapshot."],
+          ["FootyStats PPG Away","Direct FootyStats pre-match away-scope PPG when supplied. Scope, denominator and as-of timestamp must remain tied to the provider snapshot."],
+          ["PPG Status / Provenance / Quality","Each PPG field carries explicit provider/status/provenance/quality metadata. Missing provider fields remain UNAVAILABLE/PROVIDER_FIELD_MISSING."],
           ["FootyStats Goal Environment Score","League-relative research score: 50% average total goals/match + 25% GF/M + 25% GA/M. It is not a production probability."]
           ],columns=["Field","Definition"])
           write_df("Definitions",defs)
