@@ -61,10 +61,8 @@ def audit(fixtures, matches, out):
                         m.home_goals.notna() & m.away_goals.notna()].copy()
                 scope="strict_kickoff"
             else:
-                prior=m[(m.league_code.astype(str)==league) &
-                        (m.date.notna()) & (m.date < pd.to_datetime(str(getattr(r,"kickoff_parsed")))) &
-                        ((m.home_team.astype(str)==team)|(m.away_team.astype(str)==team)) &
-                        m.home_goals.notna() & m.away_goals.notna()].copy()
+                # No timestamp = no admissible historical denominator. Do not fall back to date-only history.
+                prior=m.iloc[0:0].copy()
                 scope="BLOCKED_NO_KICKOFF"
             prior=prior.sort_values(["match_time","match_id"]).drop_duplicates("match_id",keep="last")
             overall=prior.tail(5)
