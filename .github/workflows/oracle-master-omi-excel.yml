@@ -1,4 +1,5 @@
 name: Oracle Master OMI Excel Export
+# Continuous Master OMI maintenance heartbeat: rerun governed source reconciliation.
 
 on:
   push:
