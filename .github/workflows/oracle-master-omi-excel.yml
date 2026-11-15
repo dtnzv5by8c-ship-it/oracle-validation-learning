@@ -34,48 +34,6 @@ jobs:
       - name: Install Excel dependencies
         run: python -m pip install --disable-pip-version-check pandas openpyxl
 
-      - name: Validate Market Intelligence FootyStats PPG evidence
-        working-directory: oracle
-        run: |
-          python - <<'PY'
-          import pandas as pd, re, sys
-          from pathlib import Path
-          p=Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
-          if not p.exists():
-              raise SystemExit("FAIL: Master OMI workbook missing")
-          mi=pd.read_excel(p,sheet_name="Market Intelligence")
-          required=[
-              "FS Home PPG","FS Home PPG Home","FS Home PPG Away",
-              "FS Away PPG","FS Away PPG Home","FS Away PPG Away",
-          ]
-          missing=[c for c in required if c not in mi.columns]
-          if missing:
-              raise SystemExit("FAIL: missing PPG columns: "+", ".join(missing))
-          if "Fixture ID" not in mi.columns:
-              raise SystemExit("FAIL: exact Fixture ID column missing")
-          ids=mi["Fixture ID"].astype(str).str.strip()
-          if ids.eq("").any() or ids.isna().any() or ids.duplicated().any():
-              raise SystemExit("FAIL: missing/duplicate Fixture IDs in Market Intelligence")
-          for side in ("Home","Away"):
-              for metric in ("PPG","PPG Home","PPG Away"):
-                  v=f"FS {side} {metric}"
-                  st=f"{v} Status"
-                  src=f"{v} Source"
-                  prov=f"{v} Provenance"
-                  qual=f"{v} Quality"
-                  if any(c not in mi.columns for c in (st,src,prov,qual)):
-                      raise SystemExit(f"FAIL: missing evidence metadata for {v}")
-                  direct=mi[v].astype(str).str.strip().ne("UNAVAILABLE")
-                  bad_direct=(direct & ~mi[st].astype(str).eq("FOOTYSTATS_DIRECT")).sum()
-                  if bad_direct:
-                      raise SystemExit(f"FAIL: non-direct {v} values detected")
-                  missing_reason=mi[v].astype(str).str.strip().eq("UNAVAILABLE")
-                  bad_missing=(missing_reason & ~mi[st].astype(str).eq("PROVIDER_FIELD_MISSING")).sum()
-                  if bad_missing:
-                      raise SystemExit(f"FAIL: unavailable {v} rows lack PROVIDER_FIELD_MISSING status")
-          print("PASS: exact Fixture ID and PPG/PPG Home/PPG Away evidence contract validated; no provider substitution permitted.")
-          PY
-
       - name: Build Master OMI Excel
         working-directory: oracle
         run: |
@@ -390,6 +348,41 @@ jobs:
           report={"fixture_rows":n,"blank_fixture_ids":blank,"status":"PASS","production_model":"Oracle V1.6 unchanged","contract":"Every fixture must have an explicit identity; evidence may be unavailable but must never be fabricated."}
           pathlib.Path("master_omi_completeness_audit.json").write_text(json.dumps(report,indent=2))
           print(json.dumps(report))
+          PY
+
+      - name: Validate Market Intelligence FootyStats PPG evidence
+        working-directory: oracle
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+          p=Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
+          if not p.exists():
+              raise SystemExit("FAIL: Master OMI workbook missing")
+          mi=pd.read_excel(p,sheet_name="Market Intelligence")
+          required=[
+              "FS Home PPG","FS Home PPG Home","FS Home PPG Away",
+              "FS Away PPG","FS Away PPG Home","FS Away PPG Away",
+          ]
+          missing=[c for c in required if c not in mi.columns]
+          if missing:
+              raise SystemExit("FAIL: missing PPG columns: "+", ".join(missing))
+          ids=mi["Fixture ID"].astype(str).str.strip()
+          if ids.eq("").any() or ids.isna().any() or ids.duplicated().any():
+              raise SystemExit("FAIL: missing/duplicate Fixture IDs in Market Intelligence")
+          for side in ("Home","Away"):
+              for metric in ("PPG","PPG Home","PPG Away"):
+                  v=f"FS {side} {metric}"
+                  st=f"{v} Status"
+                  if any(c not in mi.columns for c in (st,f"{v} Source",f"{v} Provenance",f"{v} Quality")):
+                      raise SystemExit(f"FAIL: missing evidence metadata for {v}")
+                  direct=mi[v].astype(str).str.strip().ne("UNAVAILABLE")
+                  if (direct & ~mi[st].astype(str).eq("FOOTYSTATS_DIRECT")).any():
+                      raise SystemExit(f"FAIL: non-direct {v} values detected")
+                  unavailable=mi[v].astype(str).str.strip().eq("UNAVAILABLE")
+                  if (unavailable & ~mi[st].astype(str).eq("PROVIDER_FIELD_MISSING")).any():
+                      raise SystemExit(f"FAIL: unavailable {v} rows lack PROVIDER_FIELD_MISSING status")
+          print("PASS: exact Fixture ID and PPG/PPG Home/PPG Away evidence contract validated.")
           PY
 
       - name: Upload Master OMI Excel
