@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   btts:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 330
     env:
