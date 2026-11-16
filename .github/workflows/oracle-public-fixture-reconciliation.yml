@@ -1,6 +1,8 @@
 name: Oracle Public Fixture Reconciliation - FootyStats Current
 
 on:
+  schedule:
+    - cron: "5 * * * *"
   push:
     paths:
       - ".github/workflows/oracle-public-fixture-reconciliation.yml"
