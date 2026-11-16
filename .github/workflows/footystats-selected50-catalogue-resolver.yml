@@ -2,6 +2,9 @@ name: FootyStats Selected-50 Catalogue Resolver (Public, 1 API Call)
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/footystats-selected50-catalogue-resolver.yml"
 
 permissions:
   contents: write
