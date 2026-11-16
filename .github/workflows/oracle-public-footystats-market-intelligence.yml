@@ -42,18 +42,40 @@ jobs:
           )
           runs=json.load(urllib.request.urlopen(req,timeout=30))["workflow_runs"]
           current_sha=os.environ["GITHUB_SHA"]
+          from datetime import datetime, timezone
           candidates=[
               r for r in runs
               if r.get("name")=="Oracle Master OMI Excel Export"
               and r.get("conclusion")=="success"
-              and r.get("head_sha")==current_sha
           ]
           if not candidates:
-              raise SystemExit(
-                  "No successful public Master OMI artifact exists for the current public HEAD "
-                  f"{current_sha}; refusing to consume a stale artifact from another HEAD."
+              raise SystemExit("No successful public Master OMI artifact exists; refusing to consume an unverifiable source.")
+          candidates=sorted(candidates,key=lambda x:x["created_at"],reverse=True)
+          r=None
+          for candidate in candidates:
+              created=datetime.fromisoformat(candidate["created_at"].replace("Z","+00:00"))
+              age_hours=(datetime.now(timezone.utc)-created).total_seconds()/3600
+              if age_hours>6:
+                  continue
+              if candidate.get("head_sha")==current_sha:
+                  r=candidate
+                  break
+              cmp=urllib.request.urlopen(
+                  urllib.request.Request(
+                      f"https://api.github.com/repos/{repo}/compare/{candidate['head_sha']}...{current_sha}",
+                      headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
+                  ),
+                  timeout=30
               )
-          r=sorted(candidates,key=lambda x:x["created_at"],reverse=True)[0]
+              compare=json.load(cmp)
+              if compare.get("status")=="ahead" and compare.get("behind_by")==0:
+                  r=candidate
+                  break
+          if not r:
+              raise SystemExit(
+                  f"No fresh successful public Master OMI artifact is current or an ancestor of {current_sha}; "
+                  "refusing stale/non-lineage source consumption."
+              )
           areq=urllib.request.Request(
               f"https://api.github.com/repos/{repo}/actions/runs/{r['id']}/artifacts?per_page=100",
               headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
