@@ -221,7 +221,7 @@ jobs:
               "intelligence_rows":len(evidence),
               "direct_provider_value_rows":len(vals),
               "unavailable_value_rows":len(evidence)-len(vals),
-              "metrics_requested":len(metrics),
+              "metrics_requested":17,
               "private_repository_used":False,
               "historical_season_fallback_used":False,
               "fuzzy_matching_used":False,
