@@ -202,35 +202,71 @@ jobs:
                   for metric, aliases in ppg_aliases.items():
                       target=f"FS {side} {metric}"
                       source=first_existing(fs_fixture, [f"FS {side} {a}" for a in aliases])
-                      if source:
-                          df[target]=df[source]
-                      else:
-                          df[target]="UNAVAILABLE"
-                      status_col=f"FS {side} {metric} Status"
-                      if source:
-                          df[status_col]=df[source].apply(
-                              lambda x: "FOOTYSTATS_DIRECT" if pd.notna(x) and str(x).strip() not in ("","nan","None") else "PROVIDER_FIELD_MISSING"
-                          )
-                      else:
-                          df[status_col]="PROVIDER_FIELD_MISSING"
-                      df[f"FS {side} {metric} Source"]="FootyStats"
-                      df[f"FS {side} {metric} Provenance"]="PREMATCH_PROVIDER_FIELD" if source else "PROVIDER_FIELD_MISSING"
-                      df[f"FS {side} {metric} Quality"]="DIRECT_PROVIDER_VALUE" if source else "UNAVAILABLE"
-
-                      # Preserve provider chronology/freshness metadata when the source feed exposes it.
+                      # A provider metric is VERIFIED only when the metric value and its
+                      # point-in-time evidence travel together. Never label a bare value
+                      # FOOTYSTATS_DIRECT merely because a source column exists.
                       ts_source=first_existing(fs_fixture, [
                           f"FS {side} as_of", f"FS {side} as_of_timestamp",
                           f"FS {side} snapshot_timestamp", f"FS {side} source_timestamp",
-                          f"FS {side} timestamp", f"FS {side} kickoff_time",
-                          f"FS {side} cutoff_unix"
+                          f"FS {side} timestamp", f"FS {side} cutoff_unix"
                       ])
-                      df[f"FS {side} {metric} Source Timestamp"] = df[ts_source] if ts_source else "UNAVAILABLE"
-                      df[f"FS {side} {metric} Freshness"] = (
-                          df[ts_source].apply(lambda x: "TIMESTAMP_PRESENT" if pd.notna(x) and str(x).strip() not in ("","nan","None") else "UNVERIFIED")
-                          if ts_source else "UNVERIFIED"
+                      kickoff_source=first_existing(fs_fixture, [
+                          f"FS {side} kickoff_time", f"FS {side} kickoff_timestamp",
+                          "kickoff_time", "kickoff_timestamp"
+                      ])
+
+                      def present(x):
+                          return pd.notna(x) and str(x).strip() not in ("","nan","None")
+
+                      def parse_ts(x):
+                          if not present(x):
+                              return pd.NaT
+                          try:
+                              s=str(x).strip()
+                              if re.fullmatch(r"-?\\d+(?:\\.\\d+)?",s):
+                                  return pd.to_datetime(float(s),unit="s",utc=True)
+                              return pd.to_datetime(s,utc=True,errors="coerce")
+                          except Exception:
+                              return pd.NaT
+
+                      df[target]=df[source] if source else "UNAVAILABLE"
+                      status_col=f"FS {side} {metric} Status"
+                      value_ok=df[source].map(present) if source else pd.Series(False,index=df.index)
+                      ts_ok=df[ts_source].map(present) if ts_source else pd.Series(False,index=df.index)
+                      provider_ts=df[ts_source].map(parse_ts) if ts_source else pd.Series(pd.NaT,index=df.index)
+                      kickoff_ts=df[kickoff_source].map(parse_ts) if kickoff_source else pd.Series(pd.NaT,index=df.index)
+                      chronology_ok=provider_ts.notna() & kickoff_ts.notna() & (provider_ts < kickoff_ts)
+
+                      df[status_col]="PROVIDER_FIELD_MISSING"
+                      df.loc[value_ok & ~ts_ok,status_col]="TEMPORAL_PROVENANCE_UNVERIFIED"
+                      df.loc[value_ok & ts_ok & ~chronology_ok,status_col]="TEMPORAL_PROVENANCE_UNVERIFIED"
+                      df.loc[value_ok & chronology_ok,status_col]="FOOTYSTATS_DIRECT"
+
+                      df[f"FS {side} {metric} Source"]=df[status_col].map(
+                          lambda s:"FootyStats" if s in ("FOOTYSTATS_DIRECT","TEMPORAL_PROVENANCE_UNVERIFIED") else "UNAVAILABLE"
                       )
-                      df[f"FS {side} {metric} Substitution Flag"]="FALSE" if source else "FALSE"
-                      df[f"FS {side} {metric} Missingness Reason"] = "" if source else "PROVIDER_FIELD_MISSING"
+                      df[f"FS {side} {metric} Provenance"]=df[status_col].map(
+                          lambda s:"PREMATCH_PROVIDER_FIELD" if s=="FOOTYSTATS_DIRECT" else (
+                              "TEMPORAL_PROVENANCE_UNVERIFIED" if s=="TEMPORAL_PROVENANCE_UNVERIFIED" else "PROVIDER_FIELD_MISSING"
+                          )
+                      )
+                      df[f"FS {side} {metric} Quality"]=df[status_col].map(
+                          lambda s:"DIRECT_PROVIDER_VALUE" if s=="FOOTYSTATS_DIRECT" else (
+                              "UNVERIFIED" if s=="TEMPORAL_PROVENANCE_UNVERIFIED" else "UNAVAILABLE"
+                          )
+                      )
+                      df[f"FS {side} {metric} Source Timestamp"]=df[ts_source] if ts_source else "UNAVAILABLE"
+                      df[f"FS {side} {metric} Freshness"]=df[status_col].map(
+                          lambda s:"VERIFIED_PRE_KICKOFF" if s=="FOOTYSTATS_DIRECT" else (
+                              "UNVERIFIED" if s=="TEMPORAL_PROVENANCE_UNVERIFIED" else "UNAVAILABLE"
+                          )
+                      )
+                      df[f"FS {side} {metric} Substitution Flag"]="FALSE"
+                      df[f"FS {side} {metric} Missingness Reason"]=df[status_col].map(
+                          lambda s:"" if s=="FOOTYSTATS_DIRECT" else (
+                              "TEMPORAL_PROVENANCE_UNVERIFIED" if s=="TEMPORAL_PROVENANCE_UNVERIFIED" else "PROVIDER_FIELD_MISSING"
+                          )
+                      )
 
               # Summary.
           wb=Workbook(); ws=wb.active; ws.title="Executive Summary"
