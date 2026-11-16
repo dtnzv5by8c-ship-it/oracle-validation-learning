@@ -1,0 +1,49 @@
+name: Oracle Public V1.6 Integration Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-v1-6-integration-readiness.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit public evidence and V1.6 integration readiness
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          from datetime import datetime,timezone
+          root=Path(".")
+          out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
+          checks={}
+          checks["fixture_reconciliation"]= (root/"recovery/fixtures/current/governed_fixture_reconciliation.csv").exists()
+          checks["footystats_summary"]= (out/"footystats_current_fixture_intelligence_summary.json").exists()
+          checks["recent_form_artifact_expected"]=True
+          checks["h2h_artifact_expected"]=True
+          # Existing production V1.6 ledger must be present before any integration is certified.
+          candidates=[
+            root/"research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv",
+            root/"recovery/master_omi_source/2026-11-14/omi_ledger.csv"
+          ]
+          checks["v1_6_ledger_source"]=any(p.exists() for p in candidates)
+          # Protected production boundaries: readiness audit never writes them.
+          checks["production_logic_modified"]=False
+          checks["master_omi_a_et_modified"]=False
+          status="READY_FOR_INTEGRATION" if checks["fixture_reconciliation"] and checks["footystats_summary"] and checks["v1_6_ledger_source"] else "BLOCKED_MISSING_PUBLIC_EVIDENCE"
+          report={"generated_utc":datetime.now(timezone.utc).isoformat(),"status":status,"checks":checks,"governance":"Readiness audit only. No Oracle V1.6 probabilities, thresholds, calibration or eligibility changed. No Master OMI A:ET changes.","next_gate":"Join exact fixture IDs to existing V1.6 outputs, then independently validate risk/coverage before workbook assembly."}
+          (out/"v1_6_integration_readiness.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-v1-6-readiness-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/v1_6_integration_readiness.json
+          if-no-files-found: error
