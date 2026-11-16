@@ -31,7 +31,7 @@ jobs:
           reg_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/research/oracle-50-league-readiness-audit/data/oracle-footystats-selected-50-season-id-manifest.csv"
           reg=json.loads(json.dumps(list(csv.DictReader(urlopen(reg_url,timeout=30).read().decode("utf-8").splitlines()))))
           target_ids={"16571","16615","16614","16572","17964","16537","17178","16627","16708","16617"}
-          # Probe only selected leagues absent from the current positive-row main snapshot; no non-selected extras are promoted.
+          # Probe only selected leagues absent from the current positive-row main snapshot; no non-selected extras are promoted.\n          # Refresh current-season evidence each execution; no cached/provider-history substitution.
           targets=[r for r in reg if r["selected_id"] in target_ids]
           def get(sid):
               q=urlencode({"key":API,"season_id":sid,"max_per_page":1000})
