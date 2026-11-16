@@ -1,0 +1,239 @@
+name: Oracle Public Fixture Reconciliation - FootyStats Current
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-fixture-reconciliation.yml"
+      - "recovery/master_omi_source/2026-11-14/fixtures.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-fixture-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Validate FootyStats secret
+        run: test -n "${FOOTYSTATS_API_KEY:-}"
+
+      - name: Pull current FootyStats fixture feed and reconcile the governed 385-fixture spine
+        shell: python
+        run: |
+          import csv, json, os, re, time, unicodedata
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          API = os.environ["FOOTYSTATS_API_KEY"]
+          spine_path = Path("recovery/master_omi_source/2026-11-14/fixtures.csv")
+          out = Path("recovery/fixtures/current")
+          out.mkdir(parents=True, exist_ok=True)
+
+          with spine_path.open(encoding="utf-8", newline="") as f:
+              spine = list(csv.DictReader(f))
+
+          def norm(value):
+              value = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode().lower()
+              return re.sub(r"[^a-z0-9]+", "", value)
+
+          def get_json(date_text, page=1):
+              params = {
+                  "key": API,
+                  "date": date_text,
+                  "timezone": "Etc/UTC",
+                  "page": page,
+              }
+              url = "https://api.football-data-api.com/todays-matches?" + urlencode(params)
+              req = Request(url, headers={"User-Agent": "Oracle-Public-Fixture-Reconciliation/1.0"})
+              for attempt in range(3):
+                  try:
+                      with urlopen(req, timeout=45) as response:
+                          payload = json.loads(response.read().decode("utf-8"))
+                      if payload.get("success") is not True:
+                          raise RuntimeError("FootyStats returned success=false")
+                      return payload
+                  except Exception as exc:
+                      if getattr(exc, "code", None) == 429 and attempt < 2:
+                          time.sleep(5 * (attempt + 1))
+                          continue
+                      raise
+
+          dates = sorted({str(r.get("date", ""))[:10] for r in spine if r.get("date")})
+          provider_rows = []
+          retrievals = []
+
+          for date_text in dates:
+              page = 1
+              while True:
+                  payload = get_json(date_text, page)
+                  data = payload.get("data") or []
+                  for match in data:
+                      provider_rows.append(match)
+                  pager = payload.get("pager") or {}
+                  max_page = int(pager.get("max_page") or page)
+                  if page >= max_page:
+                      break
+                  page += 1
+              retrievals.append({
+                  "date": date_text,
+                  "retrieved_utc": datetime.now(timezone.utc).isoformat(),
+                  "provider": "FootyStats",
+                  "endpoint": "todays-matches",
+              })
+
+          def provider_date(match):
+              ts = match.get("date_unix")
+              if ts is None:
+                  return ""
+              return datetime.fromtimestamp(float(ts), tz=timezone.utc).date().isoformat()
+
+          provider_index = {}
+          for m in provider_rows:
+              d = provider_date(m)
+              h = norm(m.get("home_name"))
+              a = norm(m.get("away_name"))
+              if d and h and a:
+                  provider_index.setdefault((d, h, a), []).append(m)
+
+          output = []
+          status_counts = Counter()
+
+          for r in spine:
+              d = str(r.get("date", ""))[:10]
+              h = norm(r.get("home_team"))
+              a = norm(r.get("away_team"))
+              candidates = provider_index.get((d, h, a), [])
+
+              if len(candidates) == 1:
+                  m = candidates[0]
+                  status = "MATCHED_EXACT_DATE_HOME_AWAY"
+                  provider_id = m.get("id")
+                  kickoff_unix = m.get("date_unix")
+                  kickoff_utc = (
+                      datetime.fromtimestamp(float(kickoff_unix), tz=timezone.utc).isoformat()
+                      if kickoff_unix is not None else ""
+                  )
+                  status_counts[status] += 1
+                  output.append({
+                      **r,
+                      "provider": "FootyStats",
+                      "provider_fixture_id": provider_id,
+                      "provider_home_id": m.get("homeID"),
+                      "provider_away_id": m.get("awayID"),
+                      "provider_home_name": m.get("home_name"),
+                      "provider_away_name": m.get("away_name"),
+                      "provider_competition_id": m.get("competition_id"),
+                      "provider_season": m.get("season"),
+                      "provider_status": m.get("status"),
+                      "provider_kickoff_utc": kickoff_utc,
+                      "provider_kickoff_unix": kickoff_unix,
+                      "identity_status": status,
+                      "identity_reason": "",
+                  })
+              elif len(candidates) > 1:
+                  status = "AMBIGUOUS_EXACT_DATE_HOME_AWAY"
+                  status_counts[status] += 1
+                  output.append({
+                      **r,
+                      "provider": "FootyStats",
+                      "provider_fixture_id": "",
+                      "provider_home_id": "",
+                      "provider_away_id": "",
+                      "provider_home_name": "",
+                      "provider_away_name": "",
+                      "provider_competition_id": "",
+                      "provider_season": "",
+                      "provider_status": "",
+                      "provider_kickoff_utc": "",
+                      "provider_kickoff_unix": "",
+                      "identity_status": status,
+                      "identity_reason": f"{len(candidates)} provider candidates",
+                  })
+              else:
+                  status = "UNMATCHED_CURRENT_FOOTYSTATS"
+                  status_counts[status] += 1
+                  output.append({
+                      **r,
+                      "provider": "FootyStats",
+                      "provider_fixture_id": "",
+                      "provider_home_id": "",
+                      "provider_away_id": "",
+                      "provider_home_name": "",
+                      "provider_away_name": "",
+                      "provider_competition_id": "",
+                      "provider_season": "",
+                      "provider_status": "",
+                      "provider_kickoff_utc": "",
+                      "provider_kickoff_unix": "",
+                      "identity_status": status,
+                      "identity_reason": "No exact current-provider match by date+home+away",
+                  })
+
+          fieldnames = list(output[0].keys()) if output else []
+          with (out / "governed_fixture_reconciliation.csv").open("w", encoding="utf-8", newline="") as f:
+              w = csv.DictWriter(f, fieldnames=fieldnames)
+              w.writeheader()
+              w.writerows(output)
+
+          summary = {
+              "generated_utc": datetime.now(timezone.utc).isoformat(),
+              "source": "FootyStats API",
+              "endpoint": "todays-matches",
+              "governed_fixture_rows": len(spine),
+              "provider_rows_retrieved": len(provider_rows),
+              "provider_dates_retrieved": dates,
+              "matched_exact": status_counts["MATCHED_EXACT_DATE_HOME_AWAY"],
+              "ambiguous_exact": status_counts["AMBIGUOUS_EXACT_DATE_HOME_AWAY"],
+              "unmatched_current": status_counts["UNMATCHED_CURRENT_FOOTYSTATS"],
+              "coverage_pct": round(
+                  100 * status_counts["MATCHED_EXACT_DATE_HOME_AWAY"] / len(spine), 2
+              ) if spine else 0,
+              "private_repository_used": False,
+              "historical_fallback_used": False,
+              "fuzzy_team_matching_used": False,
+              "production_model_logic_changed": False,
+              "master_omi_a_et_changed": False,
+              "governance": "Identity reconciliation only. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
+              "retrievals": retrievals,
+          }
+          (out / "governed_fixture_reconciliation_summary.json").write_text(
+              json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(summary, indent=2))
+
+          if len(output) != len(spine):
+              raise SystemExit("FAIL: governed fixture row count was not preserved.")
+
+      - name: Persist reconciliation evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-public-fixture-bot"
+          git config user.email "oracle-public-fixture-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/governed_fixture_reconciliation.csv recovery/fixtures/current/governed_fixture_reconciliation_summary.json
+          if git diff --cached --quiet; then
+            echo "No fixture reconciliation changes."
+            exit 0
+          fi
+          git commit -m "Add current FootyStats governed fixture reconciliation"
+          git push
+
+      - name: Upload reconciliation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-fixture-reconciliation-${{ github.run_id }}
+          path: recovery/fixtures/current/
+          retention-days: 30
