@@ -108,6 +108,67 @@ jobs:
               if d and h and a:
                   provider_index.setdefault((d, h, a), []).append(m)
 
+          country_by_code = {
+              "E0":"England","E1":"England","E2":"England","SP1":"Spain","SP2":"Spain","I1":"Italy","I2":"Italy",
+              "D1":"Germany","D2":"Germany","F1":"France","F2":"France","B1":"Belgium","AUT":"Austria",
+              "SWZ":"Switzerland","SC0":"Scotland","SRB1":"Serbia","CZE":"Czech Republic","POR2":"Portugal",
+              "RSA":"South Africa","KSA1":"Saudi Arabia","ECU1":"Ecuador","EGY1":"Egypt","CAN1":"Canada",
+              "CRO":"Croatia","G1":"Greece","T1":"Turkey","WAL1":"Wales","ALEAGUE":"Australia","JPN1":"Japan",
+              "MEX1":"Mexico","MLS":"USA","N1":"Netherlands","NOR":"Norway","PER1":"Peru","POL":"Poland",
+              "QAT1":"Qatar","ROU":"Romania","SWE":"Sweden","UKR":"Ukraine","BRA1":"Brazil","BUL1":"Bulgaria","DEN1":"Denmark"
+          }
+          season_cache = {}
+          match_cache = {}
+          def current_country_seasons(code):
+              country=country_by_code.get(str(code).strip())
+              if not country: return []
+              if code in season_cache: return season_cache[code]
+              req=Request("https://api.football-data-api.com/league-list?"+urlencode({"key":API,"chosen_leagues_only":"false"}),headers={"User-Agent":"Oracle-Public-Fixture-Reconciliation/1.1"})
+              for attempt in range(3):
+                  try:
+                      with urlopen(req,timeout=60) as response:
+                          payload=json.loads(response.read().decode("utf-8"))
+                      if payload.get("success") is not True: raise RuntimeError("FootyStats league-list success=false")
+                      break
+                  except Exception as exc:
+                      if getattr(exc,"code",None)==429 and attempt<2:
+                          time.sleep(5*(attempt+1)); continue
+                      raise
+              out=[]
+              for league in payload.get("data") or []:
+                  if not any(norm(country)==norm(str(v)) for v in [league.get("country"),league.get("country_name")] if v):
+                      continue
+                  for s in league.get("season") or []:
+                      sid=str(s.get("id") or "").strip()
+                      label=str(s.get("year") or s.get("season") or "").strip()
+                      if sid and "2026" in label: out.append((sid,label,league.get("name") or league.get("league_name") or ""))
+              season_cache[code]=out
+              return out
+
+          def fallback_candidates(code, home, away, target_date):
+              hits=[]
+              for sid,label,league_name in current_country_seasons(code):
+                  if sid not in match_cache:
+                      rows=[]; page=1
+                      while True:
+                          payload=get_json(target_date.isoformat(),1) if False else None
+                          q=urlencode({"key":API,"season_id":sid,"page":page,"max_per_page":1000})
+                          req=Request("https://api.football-data-api.com/league-matches?"+q,headers={"User-Agent":"Oracle-Public-Fixture-Reconciliation/1.1"})
+                          with urlopen(req,timeout=60) as response: payload=json.loads(response.read().decode("utf-8"))
+                          if payload.get("success") is not True: raise RuntimeError("FootyStats league-matches success=false")
+                          rows.extend(payload.get("data") or [])
+                          pager=payload.get("pager") or {}; max_page=int(pager.get("max_page") or page)
+                          if page>=max_page: break
+                          page+=1
+                      match_cache[sid]=rows
+                  for m in match_cache[sid]:
+                      ts=m.get("date_unix")
+                      if ts is None: continue
+                      md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
+                      if md==target_date and norm(m.get("home_name"))==home and norm(m.get("away_name"))==away:
+                          hits.append(m)
+              return hits
+
           output = []
           status_counts = Counter()
 
@@ -163,7 +224,27 @@ jobs:
                       "identity_reason": f"{len(candidates)} provider candidates",
                   })
               else:
-                  status = "UNMATCHED_CURRENT_FOOTYSTATS"
+                  # Exact current-season fallback: search only explicitly 2026-labelled
+                  # FootyStats league-matches for the governed league code. This is
+                  # identity reconciliation only; no fuzzy matching or historical fallback.
+                  fallback = fallback_candidates(r.get("league_code",""), h, a, datetime.strptime(d,"%Y-%m-%d").date()) if r.get("league_code") else []
+                  if len(fallback)==1:
+                      m=fallback[0]
+                      status="MATCHED_EXACT_DATE_HOME_AWAY"
+                      provider_id=m.get("id"); kickoff_unix=m.get("date_unix")
+                      kickoff_utc=(datetime.fromtimestamp(float(kickoff_unix),tz=timezone.utc).isoformat() if kickoff_unix is not None else "")
+                      status_counts[status]+=1
+                      output.append({
+                          **r,"provider":"FootyStats","provider_fixture_id":provider_id,
+                          "provider_home_id":m.get("homeID"),"provider_away_id":m.get("awayID"),
+                          "provider_home_name":m.get("home_name"),"provider_away_name":m.get("away_name"),
+                          "provider_competition_id":m.get("competition_id"),"provider_season":m.get("season"),
+                          "provider_status":m.get("status"),"provider_kickoff_utc":kickoff_utc,
+                          "provider_kickoff_unix":kickoff_unix,"identity_status":status,
+                          "identity_reason":"Exact current-season league-matches reconciliation"
+                      })
+                      continue
+                  status = "AMBIGUOUS_EXACT_DATE_HOME_AWAY" if len(fallback)>1 else "UNMATCHED_CURRENT_FOOTYSTATS"
                   status_counts[status] += 1
                   output.append({
                       **r,
