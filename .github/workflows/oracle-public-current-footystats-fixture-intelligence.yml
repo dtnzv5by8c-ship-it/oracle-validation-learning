@@ -92,6 +92,22 @@ jobs:
             ("Under 4.5 %","UNDER_4_5_PCT","seasonUnder45Percentage","under45_percentage"),
           ]
 
+          catalogue=api("league-list",{"chosen_leagues_only":"false"}).get("data") or []
+          if not catalogue:
+              raise SystemExit("FAIL-CLOSED: FootyStats league catalogue returned no data.")
+
+          def digits(s):
+              return re.sub(r"[^0-9]","",str(s or ""))
+
+          season_index={}
+          for lg in catalogue:
+              comp_id=str(lg.get("id") or lg.get("league_id") or "").strip()
+              for ss in (lg.get("season") or []):
+                  sid=str(ss.get("id") or "").strip()
+                  year=str(ss.get("year") or "").strip()
+                  if comp_id and sid and year:
+                      season_index[(comp_id,digits(year))]=sid
+
           team_cache={}
           evidence=[]
           audit=[]
@@ -111,10 +127,12 @@ jobs:
 
           for r in exact:
               fid=r.get("provider_fixture_id")
-              sid=str(r.get("provider_season") or "").strip()
+              season_label=str(r.get("provider_season") or "").strip()
+              comp_id=str(r.get("provider_competition_id") or "").strip()
+              sid=season_index.get((comp_id,digits(season_label)))
               kickoff_raw=r.get("provider_kickoff_unix")
               if not sid:
-                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_SEASON_ID_MISSING"})
+                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_SEASON_ID_UNRESOLVED","provider_competition_id":comp_id,"provider_season":season_label})
                   continue
               try:
                   kickoff=int(float(kickoff_raw))
@@ -123,17 +141,27 @@ jobs:
                   continue
 
               cutoff=kickoff-1
-              cache_key=(sid,cutoff)
+              date_key=r.get("date") or ""
+              cache_key=(sid,date_key)
               if cache_key not in team_cache:
                   try:
-                      payload=api("league-teams",{"season_id":sid,"include":"stats","max_time":cutoff})
-                      team_cache[cache_key]=payload.get("data") or []
+                      same_day=[x for x in exact if str(x.get("provider_season") or "").strip()==season_label and str(x.get("provider_competition_id") or "").strip()==comp_id and str(x.get("date") or "")==date_key]
+                      cutoffs=[]
+                      for x in same_day:
+                          try: cutoffs.append(int(float(x.get("provider_kickoff_unix")))-1)
+                          except Exception: pass
+                      snapshot_cutoff=min(cutoffs) if cutoffs else cutoff
+                      payload=api("league-teams",{"season_id":sid,"include":"stats","max_time":snapshot_cutoff})
+                      team_cache[cache_key]=(payload.get("data") or [],snapshot_cutoff)
                   except Exception as exc:
                       team_cache[cache_key]=None
-                      audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_TEAM_SNAPSHOT_FAILED","detail":type(exc).__name__})
+                      audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_TEAM_SNAPSHOT_FAILED","detail":type(exc).__name__,"provider_season_id":sid})
                       continue
 
-              teams=team_cache[cache_key] or []
+              cached=team_cache[cache_key]
+              if cached is None:
+                  continue
+              teams,snapshot_cutoff=cached
               byid={str(t.get("id")):t for t in teams if isinstance(t,dict) and t.get("id") is not None}
               ht=byid.get(str(r.get("provider_home_id")))
               at=byid.get(str(r.get("provider_away_id")))
@@ -190,8 +218,8 @@ jobs:
                           "metric_code":code,
                           "value":v if value_ok else "UNAVAILABLE",
                           "denominator_sample":sample if sample is not None else "UNAVAILABLE",
-                          "source_timestamp":cutoff,
-                          "source_timestamp_utc":datetime.fromtimestamp(cutoff,tz=timezone.utc).isoformat(),
+                          "source_timestamp":snapshot_cutoff,
+                          "source_timestamp_utc":datetime.fromtimestamp(snapshot_cutoff,tz=timezone.utc).isoformat(),
                           "kickoff_unix":kickoff,
                           "pre_match_status":"VERIFIED_PRE_KICKOFF" if chronology_ok else "UNVERIFIED",
                           "freshness":"PREMATCH_SNAPSHOT" if chronology_ok else "UNVERIFIED",
@@ -202,7 +230,7 @@ jobs:
                           "status":status
                       })
 
-              audit.append({**r,"intelligence_status":"DIRECT_PROVIDER_SNAPSHOT","reason":"","snapshot_cutoff_unix":cutoff})
+              audit.append({**r,"intelligence_status":"DIRECT_PROVIDER_SNAPSHOT","reason":"","snapshot_cutoff_unix":snapshot_cutoff,"provider_season_id":sid})
               time.sleep(0.05)
 
           for r in ambiguous:
@@ -239,6 +267,7 @@ jobs:
               "denominator_unavailable_rows":denom_missing,
               "unverified_value_rows":unverified,
               "metrics_requested":len(metrics),
+              "provider_catalogue_resolved":len(season_index),
               "private_repository_used":False,
               "historical_season_fallback_used":False,
               "fuzzy_matching_used":False,
