@@ -1,0 +1,85 @@
+name: Oracle Master OMI Source Recovery Snapshot
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-master-omi-source-recovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Download verified public OMI source artifact
+        uses: actions/download-artifact@v5
+        with:
+          artifact-ids: 14116783992
+          path: recovery/master_omi_source/2026-11-14
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 43603279385
+
+      - name: Verify recovered source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="recovery/master_omi_source/2026-11-14"
+          test -s "$ROOT/current_team_state.csv"
+          test -s "$ROOT/fixtures.csv"
+          test -s "$ROOT/matches.csv"
+          test -s "$ROOT/omi_ledger.csv"
+          sha256sum "$ROOT"/*.csv | tee "$ROOT/SHA256SUMS"
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root=Path("recovery/master_omi_source/2026-11-14")
+          def rows(name):
+              with (root/name).open(newline="", encoding="utf-8") as f:
+                  return list(csv.DictReader(f))
+          fs=rows("fixtures.csv")
+          lg=rows("omi_ledger.csv")
+          ms=rows("matches.csv")
+          ts=rows("current_team_state.csv")
+          manifest={
+              "status":"RECOVERED_SNAPSHOT_NOT_CURRENT",
+              "source_run_id":43603279385,
+              "source_artifact_id":14116783992,
+              "source_artifact_digest":"sha256:066e065a58fe8e986e5a033361171d2bcc7aeda3e962a84f8b9708e410a86624",
+              "source_artifact_created_utc":"2026-11-14T14:09:05Z",
+              "fixture_rows":len(fs),
+              "ledger_rows":len(lg),
+              "historical_match_rows":len(ms),
+              "team_state_rows":len(ts),
+              "fixture_date_min":min(r["date"] for r in fs),
+              "fixture_date_max":max(r["date"] for r in fs),
+              "historical_match_date_min":min(r["date"] for r in ms),
+              "historical_match_date_max":max(r["date"] for r in ms),
+              "ledger_date_min":min(r["date"] for r in lg),
+              "ledger_date_max":max(r["date"] for r in lg),
+              "governance":"Recovery evidence only. Do not treat this snapshot as current production source without a fresh-source gate and chronology validation.",
+              "private_repository_used_by_this_recovery_workflow":False
+          }
+          (root/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Persist recovered source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-recovery-bot"
+          git config user.email "oracle-recovery-bot@users.noreply.github.com"
+          git add recovery/master_omi_source/2026-11-14
+          if git diff --cached --quiet; then
+            echo "No new recovery files to commit."
+            exit 0
+          fi
+          git commit -m "Persist recovered Master OMI source snapshot from public artifact"
+          git push
