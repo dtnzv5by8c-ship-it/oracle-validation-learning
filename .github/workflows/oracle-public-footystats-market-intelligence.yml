@@ -41,13 +41,18 @@ jobs:
               headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
           )
           runs=json.load(urllib.request.urlopen(req,timeout=30))["workflow_runs"]
+          current_sha=os.environ["GITHUB_SHA"]
           candidates=[
               r for r in runs
               if r.get("name")=="Oracle Master OMI Excel Export"
               and r.get("conclusion")=="success"
+              and r.get("head_sha")==current_sha
           ]
           if not candidates:
-              raise SystemExit("No successful public Master OMI artifact available.")
+              raise SystemExit(
+                  "No successful public Master OMI artifact exists for the current public HEAD "
+                  f"{current_sha}; refusing to consume a stale artifact from another HEAD."
+              )
           r=sorted(candidates,key=lambda x:x["created_at"],reverse=True)[0]
           areq=urllib.request.Request(
               f"https://api.github.com/repos/{repo}/actions/runs/{r['id']}/artifacts?per_page=100",
@@ -57,7 +62,7 @@ jobs:
           art=next((a for a in arts if a["name"]=="Oracle-Master-OMI-13-24-Nov-2026" and not a.get("expired")),None)
           if not art:
               raise SystemExit(f"No non-expired Master OMI artifact on run {r['id']}.")
-          print(json.dumps({"run_id":r["id"],"head_sha":r["head_sha"],"created_at":r["created_at"],"artifact_id":art["id"],"artifact_name":art["name"]}))
+          print(json.dumps({"run_id":r["id"],"head_sha":r["head_sha"],"created_at":r["created_at"],"artifact_id":art["id"],"artifact_name":art["name"],"current_public_head":current_sha}))
           PY
           cat /tmp/source.json
           echo "run_id=$(python -c 'import json;print(json.load(open("/tmp/source.json"))["run_id"])')" >> "$GITHUB_OUTPUT"
