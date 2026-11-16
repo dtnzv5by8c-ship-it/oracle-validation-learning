@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   prospective:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
