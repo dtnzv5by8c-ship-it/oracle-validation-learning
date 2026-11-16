@@ -1,0 +1,322 @@
+name: Oracle Public FootyStats Market Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-footystats-market-intelligence.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: oracle-public-footystats-market-intelligence
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout public validation repository
+        uses: actions/checkout@v4
+
+      - name: Validate FootyStats secret
+        run: test -n "${FOOTYSTATS_API_KEY:-}"
+
+      - name: Find latest successful public Master OMI artifact
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > /tmp/source.json
+          import json, os, urllib.request
+          repo=os.environ["GITHUB_REPOSITORY"]
+          req=urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",
+              headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
+          )
+          runs=json.load(urllib.request.urlopen(req,timeout=30))["workflow_runs"]
+          candidates=[
+              r for r in runs
+              if r.get("name")=="Oracle Master OMI Excel Export"
+              and r.get("conclusion")=="success"
+          ]
+          if not candidates:
+              raise SystemExit("No successful public Master OMI artifact available.")
+          r=sorted(candidates,key=lambda x:x["created_at"],reverse=True)[0]
+          areq=urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs/{r['id']}/artifacts?per_page=100",
+              headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
+          )
+          arts=json.load(urllib.request.urlopen(areq,timeout=30))["artifacts"]
+          art=next((a for a in arts if a["name"]=="Oracle-Master-OMI-13-24-Nov-2026" and not a.get("expired")),None)
+          if not art:
+              raise SystemExit(f"No non-expired Master OMI artifact on run {r['id']}.")
+          print(json.dumps({"run_id":r["id"],"head_sha":r["head_sha"],"created_at":r["created_at"],"artifact_id":art["id"],"artifact_name":art["name"]}))
+          PY
+          cat /tmp/source.json
+          echo "run_id=$(python -c 'import json;print(json.load(open("/tmp/source.json"))["run_id"])')" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(python -c 'import json;print(json.load(open("/tmp/source.json"))["head_sha"])')" >> "$GITHUB_OUTPUT"
+          echo "created_at=$(python -c 'import json;print(json.load(open("/tmp/source.json"))["created_at"])')" >> "$GITHUB_OUTPUT"
+          echo "artifact_id=$(python -c 'import json;print(json.load(open("/tmp/source.json"))["artifact_id"])')" >> "$GITHUB_OUTPUT"
+
+      - name: Download latest public Master OMI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Oracle-Master-OMI-13-24-Nov-2026
+          path: source
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.source.outputs.run_id }}
+
+      - name: Install Excel dependencies
+        run: python -m pip install --disable-pip-version-check pandas openpyxl
+
+      - name: Direct current FootyStats PPG ingestion and validation
+        shell: python
+        env:
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_HEAD_SHA: ${{ steps.source.outputs.head_sha }}
+          SOURCE_CREATED_AT: ${{ steps.source.outputs.created_at }}
+        run: |
+          import json, os, re, time, hashlib, unicodedata
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          import pandas as pd
+
+          API=os.environ["FOOTYSTATS_API_KEY"]
+          OUT=Path("footystats_market_intelligence")
+          OUT.mkdir(parents=True,exist_ok=True)
+          wb_path=next(Path("source").glob("*.xlsx"))
+          df=pd.read_excel(wb_path,sheet_name="Fixture Predictions")
+          required=["Fixture ID","date","home_team","away_team","league"]
+          missing=[c for c in required if c not in df.columns]
+          if missing: raise SystemExit("Master OMI source missing required fixture columns: "+", ".join(missing))
+          df=df.copy()
+          df["Fixture ID"]=df["Fixture ID"].astype(str).str.strip()
+          if df["Fixture ID"].eq("").any() or df["Fixture ID"].duplicated().any():
+              raise SystemExit("Duplicate/blank Fixture IDs in Master OMI source.")
+          df["date"]=pd.to_datetime(df["date"],errors="coerce")
+          if df["date"].isna().any(): raise SystemExit("Unparseable fixture dates in Master OMI source.")
+
+          def norm(x):
+              x=unicodedata.normalize("NFKD",str(x or "")).encode("ascii","ignore").decode().lower()
+              return re.sub(r"[^a-z0-9]+","",x)
+
+          def get_json(path, params):
+              url="https://api.football-data-api.com/"+path+"?"+urlencode({"key":API,**params})
+              req=Request(url,headers={"User-Agent":"Oracle-Public-FootyStats-MI/1.0"})
+              with urlopen(req,timeout=45) as r:
+                  payload=json.loads(r.read().decode("utf-8"))
+              if payload.get("success") is not True:
+                  raise RuntimeError(f"{path}: provider success=false")
+              return payload
+
+          # Resolve the provider catalogue once. No private repository or historical
+          # season fallback is permitted.
+          catalogue=get_json("league-list",{"chosen_leagues_only":"false"}).get("data",[])
+          if not isinstance(catalogue,list): raise SystemExit("FootyStats league-list returned no usable catalogue.")
+
+          aliases={
+              "USA MLS":["USA MLS","MLS","Major League Soccer","USA Major League Soccer"],
+              "Wales Welsh Premier League":["Wales Welsh Premier League","Welsh Premier League","Cymru Premier"],
+              "Ecuador Primera Categoría Serie A":["Ecuador Primera Categoría Serie A","Ecuador Serie A","Liga Pro"],
+              "Canada Canadian Premier League":["Canada Canadian Premier League","Canadian Premier League"],
+              "South African PSL":["South African PSL","South Africa Premier Soccer League","Premier Soccer League"],
+              "Saudi Arabia Professional League":["Saudi Arabia Professional League","Saudi Professional League"],
+              "Australia A-League":["Australia A-League","A-League"],
+              "Japan J1 League":["Japan J1 League","J1 League"],
+              "Romanian Liga I":["Romanian Liga I","Liga I","Romania Liga I"],
+              "Bulgarian First League":["Bulgarian First League","First League"],
+              "Czech First League":["Czech First League","First League"],
+              "Croatian HNL":["Croatian HNL","HNL"],
+              "Serbian SuperLiga":["Serbian SuperLiga","SuperLiga"],
+              "Turkish Super Lig":["Turkish Super Lig","Super Lig"],
+              "Greek Super League":["Greek Super League","Super League"],
+          }
+
+          def resolve_league(name):
+              if not name or str(name).lower()=="nan": return None,"LEAGUE_NAME_UNAVAILABLE"
+              targets=[name]+aliases.get(name,[])
+              cands=[]
+              for x in catalogue:
+                  names=[x.get("name"),x.get("league_name"),x.get("english_name"),x.get("shortHand")]
+                  if any(norm(t)==norm(n) for t in targets for n in names if n):
+                      cands.append(x)
+              if len(cands)!=1:
+                  # Conservative containment fallback only when it yields one candidate.
+                  cands=[x for x in catalogue if any(norm(name) in norm(str(n)) or norm(str(n)) in norm(name)
+                      for n in [x.get("name"),x.get("league_name"),x.get("english_name")] if n)]
+              if len(cands)!=1: return None,"LEAGUE_IDENTITY_UNRESOLVED"
+              x=cands[0]
+              seasons=x.get("season") or []
+              current=[]
+              for s in seasons:
+                  sid=str(s.get("id") or "").strip()
+                  label=str(s.get("year") or s.get("season") or "").strip()
+                  if sid and "2026" in label: current.append((label,sid))
+              if not current:
+                  return None,"NO_CURRENT_2026_SEASON_AVAILABLE"
+              # Latest 2026-labelled season only; never fall back to 2025 or earlier.
+              current=sorted(current,key=lambda z:z[0],reverse=True)
+              return {"provider_league_name":x.get("name") or x.get("league_name"),"season_label":current[0][0],"season_id":current[0][1]},None
+
+          league_cache={}
+          match_cache={}
+          rows=[]
+          audit=[]
+          for _,r in df.iterrows():
+              fid=str(r["Fixture ID"])
+              league=str(r.get("league") or "").strip()
+              if not league or league.lower()=="nan":
+                  rec={"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                       "status":"UNAVAILABLE","reason":"LEAGUE_IDENTITY_UNAVAILABLE"}
+                  rows.append(rec); continue
+              if league not in league_cache:
+                  league_cache[league]=resolve_league(league)
+              resolved,err=league_cache[league]
+              if not resolved:
+                  rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                               "status":"UNVERIFIED","reason":err})
+                  continue
+
+              sid=resolved["season_id"]
+              if sid not in match_cache:
+                  matches=[]
+                  page=1
+                  while True:
+                      payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
+                      matches.extend(payload.get("data") or [])
+                      pager=payload.get("pager") or {}
+                      max_page=int(pager.get("max_page") or page)
+                      if page>=max_page: break
+                      page+=1
+                  match_cache[sid]=matches
+
+              home=norm(r["home_team"]); away=norm(r["away_team"]); date=r["date"].date()
+              candidates=[]
+              for m in match_cache[sid]:
+                  if norm(m.get("home_name"))==home and norm(m.get("away_name"))==away:
+                      ts=m.get("date_unix")
+                      if ts is not None:
+                          md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
+                          if md==date: candidates.append(m)
+              if len(candidates)!=1:
+                  rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                               "status":"UNVERIFIED","reason":"FIXTURE_PROVIDER_IDENTITY_UNRESOLVED",
+                               "candidate_count":len(candidates),"provider_season_id":sid})
+                  continue
+
+              m=candidates[0]
+              kickoff=int(m["date_unix"])
+              cutoff=kickoff-1
+              # Direct point-in-time provider snapshot. No retry/fallback season.
+              try:
+                  payload=get_json("league-teams",{"season_id":sid,"include":"stats","max_time":cutoff})
+              except Exception as exc:
+                  rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                               "status":"UNVERIFIED","reason":"PROVIDER_REQUEST_FAILED","detail":type(exc).__name__,
+                               "provider_season_id":sid,"provider_fixture_id":m.get("id"),"kickoff_unix":kickoff})
+                  continue
+
+              teams=payload.get("data") or []
+              if not isinstance(teams,list):
+                  teams=[]
+              byid={str(t.get("id")):t for t in teams if isinstance(t,dict) and t.get("id") is not None}
+              ht=byid.get(str(m.get("homeID"))); at=byid.get(str(m.get("awayID")))
+              if not ht or not at:
+                  rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                               "status":"UNVERIFIED","reason":"TEAM_PROVIDER_IDENTITY_UNRESOLVED",
+                               "provider_season_id":sid,"provider_fixture_id":m.get("id"),"kickoff_unix":kickoff,"snapshot_cutoff_unix":cutoff})
+                  continue
+
+              def stats_obj(t):
+                  # FootyStats league-teams responses may expose stats directly or under stats.
+                  s=t.get("stats")
+                  if isinstance(s,list) and s and isinstance(s[0],dict): return {**t,**s[0]}
+                  if isinstance(s,dict): return {**t,**s}
+                  return t
+
+              def val(t, key):
+                  z=stats_obj(t).get(key)
+                  return z if z not in (None,"","null") else None
+
+              metrics=[
+                  ("PPG","seasonPPG_overall","overall"),
+                  ("PPG Home","seasonPPG_home","home"),
+                  ("PPG Away","seasonPPG_away","away"),
+              ]
+              for side,t in [("Home",ht),("Away",at)]:
+                  st=stats_obj(t)
+                  for metric,key,scope in metrics:
+                      v=st.get(key)
+                      nkey={"overall":"seasonMatchesPlayed_overall","home":"seasonMatchesPlayed_home","away":"seasonMatchesPlayed_away"}[scope]
+                      sample=st.get(nkey)
+                      value_ok=v not in (None,"","null")
+                      sample_ok=sample not in (None,"","null")
+                      base={
+                          "Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                          "provider":"FootyStats","provider_league_name":resolved["provider_league_name"],
+                          "provider_season_id":sid,"provider_season_label":resolved["season_label"],
+                          "provider_fixture_id":m.get("id"),"provider_team_id":t.get("id"),
+                          "side":side,"metric":metric,"venue_scope":scope,
+                          "value":v if value_ok else "UNAVAILABLE",
+                          "denominator_sample":sample if sample_ok else "UNAVAILABLE",
+                          "denominator_field":nkey if sample_ok else "UNAVAILABLE",
+                          "as_of_date":datetime.fromtimestamp(cutoff,tz=timezone.utc).date().isoformat(),
+                          "source_timestamp":cutoff,"source_timestamp_type":"FootyStats max_time cutoff",
+                          "kickoff_unix":kickoff,"provenance":"FootyStats league-teams direct API",
+                          "freshness":"PREMATCH_SNAPSHOT" if cutoff<kickoff else "UNVERIFIED",
+                          "source_quality":"DIRECT_PROVIDER_VALUE" if value_ok else "UNAVAILABLE",
+                          "pre_match_status":"VERIFIED_PRE_KICKOFF_CUTOFF" if value_ok and cutoff<kickoff else "UNAVAILABLE",
+                          "substitution_flag":"FALSE",
+                          "missingness_reason":"" if value_ok else "PROVIDER_FIELD_MISSING",
+                          "status":"FOOTYSTATS_DIRECT" if value_ok and cutoff<kickoff else "UNAVAILABLE",
+                      }
+                      if value_ok and not sample_ok:
+                          base["denominator_sample"]="UNAVAILABLE"
+                          base["missingness_reason"]="PROVIDER_DENOMINATOR_FIELD_MISSING"
+                          base["status"]="FOOTYSTATS_DIRECT_DENOMINATOR_UNAVAILABLE"
+                      rows.append(base)
+              audit.append({"Fixture ID":fid,"league":league,"provider_season_id":sid,"provider_fixture_id":m.get("id"),
+                            "kickoff_unix":kickoff,"snapshot_cutoff_unix":cutoff,"chronology":"PASS" if cutoff<kickoff else "FAIL"})
+              time.sleep(0.05)
+
+          out_df=pd.DataFrame(rows)
+          out_df.to_csv(OUT/"footystats_ppg_fixture_evidence.csv",index=False)
+          summary={
+              "generated_utc":datetime.now(timezone.utc).isoformat(),
+              "source_master_omi_run_id":os.environ["SOURCE_RUN_ID"],
+              "source_master_omi_head_sha":os.environ["SOURCE_HEAD_SHA"],
+              "source_master_omi_created_at":os.environ["SOURCE_CREATED_AT"],
+              "fixture_rows":int(df["Fixture ID"].nunique()),
+              "output_rows":int(len(out_df)),
+              "leagues_in_master_omi":int(df["league"].dropna().nunique()),
+              "provider_leagues_resolved":int(sum(1 for v in league_cache.values() if v[0])),
+              "direct_ppg_rows":int((out_df.get("status",pd.Series(dtype=str)).eq("FOOTYSTATS_DIRECT")).sum()),
+              "provider_field_missing_rows":int((out_df.get("status",pd.Series(dtype=str)).eq("UNAVAILABLE")).sum()),
+              "denominator_unavailable_rows":int((out_df.get("status",pd.Series(dtype=str)).eq("FOOTYSTATS_DIRECT_DENOMINATOR_UNAVAILABLE")).sum()),
+              "unverified_rows":int(out_df.get("status",pd.Series(dtype=str)).astype(str).str.startswith("UNVERIFIED").sum()),
+              "private_repository_used":False,
+              "historical_season_fallback_used":False,
+              "oracle_v1_6_changed":False,
+              "master_omi_a_et_changed":False,
+          }
+          (OUT/"footystats_ppg_run_summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print(json.dumps(summary,indent=2))
+          if summary["fixture_rows"] and summary["output_rows"]==0:
+              raise SystemExit("No evidence rows produced; fail-closed.")
+
+      - name: Upload public FootyStats Market Intelligence evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-footystats-market-intelligence-${{ github.run_id }}
+          path: footystats_market_intelligence/
+          retention-days: 30
