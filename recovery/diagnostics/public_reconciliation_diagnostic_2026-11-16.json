@@ -1,0 +1,175 @@
+{
+  "status": "DIAGNOSTIC_ONLY",
+  "governance": "Read-only diagnostic. Does not alter Oracle V1.6, Master OMI A:ET, thresholds, calibration, eligibility or production gates.",
+  "fixture_rows": 385,
+  "current_rows": 2083,
+  "current_upcoming_rows": 14,
+  "fixture_date_min": "2026-11-13",
+  "fixture_date_max": "2026-11-24",
+  "current_upcoming_date_min": "2026-11-14",
+  "current_upcoming_date_max": "2026-11-18",
+  "exact_date_home_away_matches": 14,
+  "date_home_away_matches_recomputed": 0,
+  "unmatched_fixture_rows": 371,
+  "current_upcoming_by_date": {
+    "2026-11-14": 5,
+    "2026-11-16": 4,
+    "2026-11-18": 5
+  },
+  "fixture_by_date": {
+    "2026-11-13": 1,
+    "2026-11-14": 21,
+    "2026-11-15": 11,
+    "2026-11-16": 4,
+    "2026-11-18": 11,
+    "2026-11-19": 6,
+    "2026-11-20": 40,
+    "2026-11-21": 149,
+    "2026-11-22": 93,
+    "2026-11-23": 20,
+    "2026-11-24": 29
+  },
+  "sample_unmatched": [
+    {
+      "date": "2026-11-13",
+      "home": "Legan\u00e9s",
+      "away": "Burgos CF",
+      "league_code": "SP2",
+      "kickoff_time": "19:30:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Livyi Bereh",
+      "away": "Bukovyna",
+      "league_code": "UKR",
+      "kickoff_time": "10:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Real Valladolid",
+      "away": "CD Castell\u00f3n",
+      "league_code": "SP2",
+      "kickoff_time": "13:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "AFC Wimbledon",
+      "away": "Blackpool",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Luton Town",
+      "away": "Cambridge United",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Milton Keynes Dons",
+      "away": "Burton Albion",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Peterborough United",
+      "away": "Oxford United",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Sheffield Wednesday",
+      "away": "Plymouth Argyle",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Stockport County",
+      "away": "Reading",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Wigan Athletic",
+      "away": "Barnsley",
+      "league_code": "E2",
+      "kickoff_time": "15:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Real Sociedad II",
+      "away": "Sporting Gij\u00f3n",
+      "league_code": "SP2",
+      "kickoff_time": "15:15:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Almer\u00eda",
+      "away": "FC Andorra",
+      "league_code": "SP2",
+      "kickoff_time": "17:30:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "RCD Mallorca",
+      "away": "C\u00f3rdoba",
+      "league_code": "SP2",
+      "kickoff_time": "17:30:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Real Oviedo",
+      "away": "Girona FC",
+      "league_code": "SP2",
+      "kickoff_time": "20:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Mirassol",
+      "away": "Atl\u00e9tico Mineiro",
+      "league_code": "BRA1",
+      "kickoff_time": "21:30:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Quer\u00e9taro",
+      "away": "Monterrey",
+      "league_code": "MEX1",
+      "kickoff_time": "23:00:00+0000"
+    },
+    {
+      "date": "2026-11-14",
+      "home": "Chapecoense",
+      "away": "Vasco da Gama",
+      "league_code": "BRA1",
+      "kickoff_time": "23:30:00+0000"
+    },
+    {
+      "date": "2026-11-15",
+      "home": "Amarante",
+      "away": "Felgueiras 1932",
+      "league_code": "POR2",
+      "kickoff_time": "11:00:00+0000"
+    },
+    {
+      "date": "2026-11-15",
+      "home": "CD Tondela",
+      "away": "Farense",
+      "league_code": "POR2",
+      "kickoff_time": "11:00:00+0000"
+    },
+    {
+      "date": "2026-11-15",
+      "home": "CD Tenerife",
+      "away": "Ceuta",
+      "league_code": "SP2",
+      "kickoff_time": "13:00:00+0000"
+    }
+  ],
+  "diagnostic_conclusion": "At least one upcoming fixture matches the recovered spine by date+home+away; the zero-coverage gate should be decomposed further by league/time/provider identity."
+}
