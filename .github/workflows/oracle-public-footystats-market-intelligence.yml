@@ -266,11 +266,16 @@ jobs:
           for _,r in df.iterrows():
               fid=str(r["Fixture ID"])
               league=str(r.get("league") or "").strip()
-              if not league or league.lower()=="nan":
+              league_code=str(r.get("league_code") or "").strip()
+              if league.lower()=="nan":
+                  league=""
+              # If Master OMI has a blank display league but a governed league code,
+              # resolve by the code/alias map rather than discarding the fixture.
+              if not league and not league_code:
                   rec={"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
                        "status":"UNAVAILABLE","reason":"LEAGUE_IDENTITY_UNAVAILABLE"}
                   rows.append(rec); continue
-              cache_key=(league,str(r.get("league_code") or "").strip())
+              cache_key=(league,league_code)
               if cache_key not in league_cache:
                   league_cache[cache_key]=resolve_league(league,cache_key[1])
               resolved,err=league_cache[cache_key]
