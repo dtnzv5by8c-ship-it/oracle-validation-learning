@@ -78,6 +78,40 @@ jobs:
           merge-multiple: true
           path: /tmp/selected50-gap
 
+      - name: Resolve latest successful current FootyStats intelligence run
+        id: footystats
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > /tmp/footystats.env
+          import json,os,urllib.request
+          repo=os.environ["GITHUB_REPOSITORY"]; token=os.environ["GH_TOKEN"]
+          req=urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",
+              headers={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"}
+          )
+          data=json.load(urllib.request.urlopen(req,timeout=30))
+          name="Oracle Public Current FootyStats Fixture Intelligence"
+          runs=[r for r in data["workflow_runs"] if r["name"]==name and r["conclusion"]=="success"]
+          if not runs:
+              raise SystemExit("No successful current FootyStats intelligence run found")
+          r=max(runs,key=lambda x:x["updated_at"])
+          print(f"run={r['id']}")
+          PY
+          cat /tmp/footystats.env >> "$GITHUB_OUTPUT"
+
+      - name: Download latest current FootyStats intelligence artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.footystats.outputs.run }}
+          pattern: oracle-public-current-footystats-fixture-intelligence-*
+          merge-multiple: true
+          path: /tmp/footystats
+
       - name: Build fail-closed risk and coverage matrix
         shell: bash
         run: |
@@ -88,7 +122,7 @@ jobs:
           from datetime import datetime,timezone
           root=Path(".")
           fix=root/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
-          fts=root/"recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json"
+          fts=next(Path("/tmp/footystats").rglob("footystats_current_fixture_intelligence_summary.json"),None)
           src=root/"recovery/current-state/2026-11-16-0758/data/current_source_manifest.json"
           integ=next(Path("/tmp/integration").rglob("v1_6_fixture_integration_summary.json"),None)
           out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
