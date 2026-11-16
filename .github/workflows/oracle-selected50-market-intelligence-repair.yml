@@ -74,6 +74,7 @@ permissions:
 
 jobs:
   market-intelligence-repair:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
