@@ -269,6 +269,14 @@ jobs:
               league_code=str(r.get("league_code") or "").strip()
               if league.lower()=="nan":
                   league=""
+              # Master OMI can carry the governed league code only in the Fixture ID
+              # namespace when the display league is blank. Recover that canonical code
+              # deterministically; this is identity reconciliation, not provider-value
+              # substitution. Never infer a provider league from team names alone.
+              if not league_code:
+                  fid_prefix=fid.split("-",1)[0].strip()
+                  if fid_prefix in country_by_code or fid_prefix in aliases_by_code:
+                      league_code=fid_prefix
               # If Master OMI has a blank display league but a governed league code,
               # resolve by the code/alias map rather than discarding the fixture.
               if not league and not league_code:
