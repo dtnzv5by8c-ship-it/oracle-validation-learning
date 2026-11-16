@@ -207,7 +207,7 @@ jobs:
                       ts=m.get("date_unix")
                       if ts is not None:
                           md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
-                          if md==date: candidates.append(m)
+                          if abs((md-date).days)<=1: candidates.append(m)
               if len(candidates)!=1:
                   rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
                                "status":"UNVERIFIED","reason":"FIXTURE_PROVIDER_IDENTITY_UNRESOLVED",
