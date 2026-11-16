@@ -123,7 +123,8 @@ jobs:
           root=Path(".")
           fix=root/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
           fts=next(Path("/tmp/footystats").rglob("footystats_current_fixture_intelligence_summary.json"),None)
-          src=root/"recovery/current-state/2026-11-16-0758/data/current_source_manifest.json"
+          source_manifests=sorted(Path("recovery/current-state").glob("*/data/current_source_manifest.json"))
+          src=source_manifests[-1] if source_manifests else None
           integ=next(Path("/tmp/integration").rglob("v1_6_fixture_integration_summary.json"),None)
           out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
           for p in (fix,fts,src,integ):
