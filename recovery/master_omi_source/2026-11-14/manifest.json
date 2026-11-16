@@ -1,0 +1,19 @@
+{
+  "status": "RECOVERED_SNAPSHOT_NOT_CURRENT",
+  "source_run_id": 43603279385,
+  "source_artifact_id": 14116783992,
+  "source_artifact_digest": "sha256:066e065a58fe8e986e5a033361171d2bcc7aeda3e962a84f8b9708e410a86624",
+  "source_artifact_created_utc": "2026-11-14T14:09:05Z",
+  "fixture_rows": 385,
+  "ledger_rows": 385,
+  "historical_match_rows": 11304,
+  "team_state_rows": 13852,
+  "fixture_date_min": "2026-11-13",
+  "fixture_date_max": "2026-11-24",
+  "historical_match_date_min": "2025-03-21",
+  "historical_match_date_max": "2026-09-20",
+  "ledger_date_min": "2026-11-13",
+  "ledger_date_max": "2026-11-24",
+  "governance": "Recovery evidence only. Do not treat this snapshot as current production source without a fresh-source gate and chronology validation.",
+  "private_repository_used_by_this_recovery_workflow": false
+}
