@@ -42,15 +42,16 @@ jobs:
               d=dt(m.get("date_utc") or m.get("date") or "")
               try:hg=float(m.get("home_goals"));ag=float(m.get("away_goals"))
               except:continue
-              if d: hist.append((d,norm(m.get("league")),norm(m.get("home_team")),norm(m.get("away_team")),m.get("home_team",""),m.get("away_team",""),hg,ag))
+              if d: hist.append((d,str(m.get("league_id") or "").strip(),norm(m.get("home_team")),norm(m.get("away_team")),m.get("home_team",""),m.get("away_team",""),hg,ag))
           rows=[]
           for f in fixtures:
               if f.get("identity_status")!="MATCHED_EXACT_DATE_HOME_AWAY": continue
               kick=dt(f.get("provider_kickoff_utc") or "")
               if not kick: continue
-              league=norm(f.get("league_code"))
+              league=str(f.get("provider_competition_id") or "").strip()
               hn,an=norm(f.get("provider_home_name")),norm(f.get("provider_away_name"))
               # Same-league only. League code must exactly match the governed fixture code.
+              if not league: continue
               games=[x for x in hist if x[0]<kick and x[1]==league and ((x[2]==hn and x[3]==an) or (x[2]==an and x[3]==hn))]
               games=sorted(games,key=lambda x:x[0],reverse=True)
               hw=dw=aw=0
