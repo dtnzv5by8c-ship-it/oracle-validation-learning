@@ -1,0 +1,67 @@
+name: Oracle Public Same-League H2H Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-h2h-intelligence.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  h2h:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build strict same-league pre-match H2H
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          FIX=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          MATCH=Path("recovery/current-state/2026-11-16-0758/database/current_matches.csv")
+          OUT=Path("recovery/fixtures/current/intelligence"); OUT.mkdir(parents=True,exist_ok=True)
+          if not FIX.exists() or not MATCH.exists(): raise SystemExit("FAIL-CLOSED: required public current sources missing.")
+          fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
+          matches=list(csv.DictReader(MATCH.open(encoding="utf-8",newline="")))
+          def norm(s): return re.sub(r"\s+"," ",re.sub(r"[^a-z0-9]+"," ",str(s or "").casefold())).strip()
+          def dt(v):
+              try:return datetime.fromisoformat(v.replace("Z","+00:00")).astimezone(timezone.utc)
+              except:return None
+          hist=[]
+          for m in matches:
+              if str(m.get("finished","")).lower() not in ("true","1","yes") or str(m.get("cancelled","")).lower() in ("true","1","yes"): continue
+              d=dt(m.get("date_utc") or m.get("date") or "")
+              try:hg=float(m.get("home_goals"));ag=float(m.get("away_goals"))
+              except:continue
+              if d: hist.append((d,norm(m.get("league")),norm(m.get("home_team")),norm(m.get("away_team")),m.get("home_team",""),m.get("away_team",""),hg,ag))
+          rows=[]
+          for f in fixtures:
+              if f.get("identity_status")!="MATCHED_EXACT_DATE_HOME_AWAY": continue
+              kick=dt(f.get("provider_kickoff_utc") or "")
+              if not kick: continue
+              league=norm(f.get("league_code"))
+              hn,an=norm(f.get("provider_home_name")),norm(f.get("provider_away_name"))
+              # Same-league only. League code must exactly match the governed fixture code.
+              games=[x for x in hist if x[0]<kick and x[1]==league and ((x[2]==hn and x[3]==an) or (x[2]==an and x[3]==hn))]
+              games=sorted(games,key=lambda x:x[0],reverse=True)
+              hw=dw=aw=0
+              for x in games:
+                  home=x[6]>x[7]; draw=x[6]==x[7]
+                  if draw: dw+=1
+                  elif (x[2]==hn and home) or (x[3]==hn and not home): hw+=1
+                  else: aw+=1
+              rows.append({"league_code":f.get("league_code"),"date":f.get("date"),"home_team":f.get("provider_home_name"),"away_team":f.get("provider_away_name"),"kickoff_utc":kick.isoformat(),"provider_fixture_id":f.get("provider_fixture_id"),"same_league_only":True,"h2h_count":len(games),"home_wins":hw,"draws":dw,"away_wins":aw,"sample_status":"SUFFICIENT" if len(games)>=5 else "SMALL_SAMPLE" if len(games)>0 else "NO_SAMPLE","status":"VALIDATED" if len(games)>=5 else "NON_BLOCKING_RESEARCH","strict_pre_kickoff":True,"source":"FootyStats current_matches snapshot","source_snapshot":"2026-11-16-0758"})
+          fields=list(rows[0]) if rows else ["provider_fixture_id"]
+          with (OUT/"h2h_same_league.csv").open("w",encoding="utf-8",newline="") as fh:w=csv.DictWriter(fh,fieldnames=fields);w.writeheader();w.writerows(rows)
+          s={"generated_utc":datetime.now(timezone.utc).isoformat(),"governed_fixture_rows":len(fixtures),"h2h_rows":len(rows),"sufficient_5plus":sum(r["sample_status"]=="SUFFICIENT" for r in rows),"small_sample":sum(r["sample_status"]=="SMALL_SAMPLE" for r in rows),"no_sample":sum(r["sample_status"]=="NO_SAMPLE" for r in rows),"same_league_only":True,"strict_pre_kickoff":True,"non_blocking":True,"fuzzy_matching_used":False,"historical_fallback_used":False,"oracle_v1_6_changed":False}
+          (OUT/"h2h_same_league_summary.json").write_text(json.dumps(s,indent=2),encoding="utf-8");print(json.dumps(s,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-h2h-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/h2h_same_league*
+          if-no-files-found: error
