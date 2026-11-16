@@ -135,7 +135,8 @@ jobs:
                           return t[k]
                   return None
 
-              metrics=[
+              # metrics are defined once above the fixture loop so the run summary is always valid.
+          metrics=[
                 ("PPG","PPG","seasonPPG_overall","points_per_game"),
                 ("PPG Home","PPG_HOME","seasonPPG_home","home_ppg"),
                 ("PPG Away","PPG_AWAY","seasonPPG_away","away_ppg"),
