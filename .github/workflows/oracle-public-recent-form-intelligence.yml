@@ -1,0 +1,74 @@
+name: Oracle Public Recent Form Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-recent-form-intelligence.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  recent-form:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build strict pre-match last-5 Recent Form
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          FIX=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          MATCH=Path("recovery/current-state/2026-11-16-0758/database/current_matches.csv")
+          OUT=Path("recovery/fixtures/current/intelligence"); OUT.mkdir(parents=True,exist_ok=True)
+          if not FIX.exists() or not MATCH.exists(): raise SystemExit("FAIL-CLOSED: required public current sources missing.")
+          fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
+          matches=list(csv.DictReader(MATCH.open(encoding="utf-8",newline="")))
+          def norm(s):
+              return re.sub(r"\s+"," ",re.sub(r"[^a-z0-9]+"," ",str(s or "").casefold())).strip()
+          def parse_dt(v):
+              if not v:return None
+              try:return datetime.fromisoformat(v.replace("Z","+00:00")).astimezone(timezone.utc)
+              except:return None
+          completed=[]
+          for m in matches:
+              if str(m.get("finished","")).lower() not in ("true","1","yes") or str(m.get("cancelled","")).lower() in ("true","1","yes"): continue
+              md=parse_dt(m.get("date_utc") or m.get("date") or m.get("kickoff_utc"))
+              try:hg=float(m.get("home_goals"));ag=float(m.get("away_goals"))
+              except:continue
+              if md: completed.append({"dt":md,"home":m.get("home_team",""),"away":m.get("away_team",""),"hn":norm(m.get("home_team")),"an":norm(m.get("away_team")),"hg":hg,"ag":ag,"league":m.get("league","")})
+          rows=[]; audit=[]
+          for f in fixtures:
+              if f.get("identity_status")!="MATCHED_EXACT_DATE_HOME_AWAY":
+                  audit.append({**f,"status":"UNAVAILABLE","reason":"FIXTURE_IDENTITY_NOT_EXACT"});continue
+              kick=parse_dt(f.get("provider_kickoff_utc"))
+              if not kick:
+                  audit.append({**f,"status":"UNAVAILABLE","reason":"KICKOFF_TIME_UNAVAILABLE"});continue
+              for side,team in [("HOME",norm(f.get("provider_home_name"))),("AWAY",norm(f.get("provider_away_name")))]:
+                  hist=[]
+                  for m in completed:
+                      if m["dt"]>=kick: continue
+                      if team==m["hn"]:
+                          gf,ga=m["hg"],m["ag"];venue="HOME"
+                      elif team==m["an"]:
+                          gf,ga=m["ag"],m["hg"];venue="AWAY"
+                      else: continue
+                      result="W" if gf>ga else "D" if gf==ga else "L"
+                      hist.append({"dt":m["dt"],"result":result,"gf":gf,"ga":ga,"pts":3 if result=="W" else 1 if result=="D" else 0,"venue":venue})
+                  hist=sorted(hist,key=lambda x:x["dt"],reverse=True)[:5]
+                  rows.append({"league_code":f.get("league_code"),"date":f.get("date"),"home_team":f.get("provider_home_name"),"away_team":f.get("provider_away_name"),"kickoff_utc":kick.isoformat(),"provider_fixture_id":f.get("provider_fixture_id"),"team_side":side,"sample_size":len(hist),"sample_required":5,"sample_status":"SUFFICIENT" if len(hist)>=5 else "INSUFFICIENT","W":sum(x["result"]=="W" for x in hist),"D":sum(x["result"]=="D" for x in hist),"L":sum(x["result"]=="L" for x in hist),"GF":sum(x["gf"] for x in hist),"GA":sum(x["ga"] for x in hist),"points":sum(x["pts"] for x in hist),"form_sequence":"".join(x["result"] for x in hist),"home_matches":sum(x["venue"]=="HOME" for x in hist),"away_matches":sum(x["venue"]=="AWAY" for x in hist),"source":"FootyStats current_matches snapshot","source_snapshot":"2026-11-16-0758","strict_pre_kickoff":True,"status":"VALIDATED" if len(hist)>=5 else "INSUFFICIENT_DATA"})
+          fields=list(rows[0]) if rows else ["provider_fixture_id"]
+          with (OUT/"recent_form_last5.csv").open("w",encoding="utf-8",newline="") as fh: w=csv.DictWriter(fh,fieldnames=fields);w.writeheader();w.writerows(rows)
+          summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"governed_fixture_rows":len(fixtures),"exact_fixture_rows":sum(f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY" for f in fixtures),"recent_form_rows":len(rows),"teams_with_5_matches":sum(r["sample_status"]=="SUFFICIENT" for r in rows),"teams_insufficient":sum(r["sample_status"]=="INSUFFICIENT" for r in rows),"source_snapshot":"2026-11-16-0758","strict_pre_kickoff":True,"fuzzy_matching_used":False,"historical_fallback_used":False,"oracle_v1_6_changed":False}
+          (OUT/"recent_form_last5_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          PY
+      - name: Upload Recent Form evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-recent-form-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/recent_form_last5*
+          if-no-files-found: error
