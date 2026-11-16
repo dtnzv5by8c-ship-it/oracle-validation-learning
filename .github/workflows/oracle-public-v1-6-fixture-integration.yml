@@ -1,0 +1,106 @@
+name: Oracle Public V1.6 Fixture Integration Audit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-v1-6-fixture-integration.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download latest public intelligence artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/oracle-artifacts
+          for pair in "oracle-public-recent-form-recent_form_last5" "oracle-public-h2h-h2h_same_league"; do
+            name="${pair%%-*}"
+            case "$name" in
+              oracle) ;;
+            esac
+          done
+          python - <<'PY'
+          import json,os,subprocess,zipfile,io
+          repo=os.environ["GITHUB_REPOSITORY"]
+          token=os.environ["GH_TOKEN"]
+          import urllib.request
+          req=urllib.request.Request(f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100",headers={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"})
+          data=json.load(urllib.request.urlopen(req))
+          wanted={
+            "recent":"oracle-public-recent-form-",
+            "h2h":"oracle-public-h2h-"
+          }
+          for key,prefix in wanted.items():
+              arts=[a for a in data["artifacts"] if not a.get("expired") and a["name"].startswith(prefix)]
+              if not arts: raise SystemExit(f"Missing public artifact: {prefix}")
+              a=sorted(arts,key=lambda x:x["created_at"],reverse=True)[0]
+              req=urllib.request.Request(a["archive_download_url"],headers={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"})
+              blob=urllib.request.urlopen(req).read()
+              with zipfile.ZipFile(io.BytesIO(blob)) as z:
+                  z.extractall(f"/tmp/oracle-artifacts/{key}")
+              print(key,a["name"],a["id"])
+          PY
+
+      - name: Build exact fixture integration audit
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          FIX=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          LED=Path("recovery/master_omi_source/2026-11-14/omi_ledger.csv")
+          FT=Path("recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json")
+          RF=next(Path("/tmp/oracle-artifacts/recent").rglob("recent_form_last5.csv"),None)
+          HH=next(Path("/tmp/oracle-artifacts/h2h").rglob("h2h_same_league.csv"),None)
+          OUT=Path("recovery/fixtures/current/intelligence");OUT.mkdir(parents=True,exist_ok=True)
+          for p in [FIX,LED,FT,RF,HH]:
+              if not p or not p.exists(): raise SystemExit(f"FAIL-CLOSED missing evidence: {p}")
+          fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
+          ledger=list(csv.DictReader(LED.open(encoding="utf-8",newline="")))
+          rf=list(csv.DictReader(RF.open(encoding="utf-8",newline="")))
+          hh=list(csv.DictReader(HH.open(encoding="utf-8",newline="")))
+          def norm(s): return re.sub(r"\s+"," ",re.sub(r"[^a-z0-9]+"," ",str(s or "").casefold())).strip()
+          def key(r):
+              return (str(r.get("date","")),norm(r.get("home_team") or r.get("provider_home_name")),norm(r.get("away_team") or r.get("provider_away_name")))
+          lmap={key(r):r for r in ledger}
+          fmap={key(r):r for r in fixtures}
+          rmap={(str(r.get("date","")),norm(r.get("home_team")),norm(r.get("away_team")),r.get("team_side")):r for r in rf}
+          hmap={key(r):r for r in hh}
+          rows=[]
+          for f in fixtures:
+              k=key(f)
+              if f.get("identity_status")!="MATCHED_EXACT_DATE_HOME_AWAY":
+                  rows.append({"key":"|".join(k),"fixture_status":"NOT_EXACT","v1_6_status":"NOT_JOINED","recent_form":"NOT_JOINED","h2h":"NOT_JOINED","certification":"FAIL_CLOSED"});continue
+              l=lmap.get(k)
+              home=rmap.get((k[0],k[1],k[2],"HOME"))
+              away=rmap.get((k[0],k[1],k[2],"AWAY"))
+              h=hmap.get(k)
+              # Recovered ledger is explicitly a 2026-11-14 snapshot, not current certification evidence.
+              vstatus="SNAPSHOT_RECOVERED" if l else "MISSING"
+              rfstatus="AVAILABLE" if home and away else "MISSING"
+              hhstatus=h.get("status","MISSING") if h else "MISSING"
+              rows.append({"key":"|".join(k),"fixture_status":"EXACT","v1_6_status":vstatus,"recent_form":rfstatus,"h2h":hhstatus,"certification":"RESEARCH_INTEGRATION_ONLY"})
+          out=OUT/"v1_6_fixture_integration_audit.csv"
+          with out.open("w",encoding="utf-8",newline="") as fh:
+              w=csv.DictWriter(fh,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+          s={"generated_utc":datetime.now(timezone.utc).isoformat(),"governed_fixture_rows":len(fixtures),"exact_fixture_rows":sum(f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY" for f in fixtures),"v1_6_snapshot_ledger_rows":len(ledger),"recent_form_rows":len(rf),"h2h_rows":len(hh),"v1_6_join_status":"RESEARCH_INTEGRATION_ONLY","production_certification":False,"reason":"Recovered V1.6 ledger is dated 2026-11-14 and is not treated as current production evidence.","oracle_v1_6_changed":False,"master_omi_a_et_changed":False}
+          (OUT/"v1_6_fixture_integration_summary.json").write_text(json.dumps(s,indent=2),encoding="utf-8")
+          print(json.dumps(s,indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-v1-6-integration-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/v1_6_fixture_integration_*
+          if-no-files-found: error
