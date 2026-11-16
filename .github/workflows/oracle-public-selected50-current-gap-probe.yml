@@ -1,0 +1,71 @@
+name: Oracle Public Selected-50 Current Gap Probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-selected50-current-gap-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe missing selected-50 current seasons
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${FOOTYSTATS_API_KEY:-}"
+          python - <<'PY'
+          import csv,hashlib,json,os,re,time
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+          API=os.environ["FOOTYSTATS_API_KEY"]
+          reg_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/research/oracle-50-league-readiness-audit/data/oracle-footystats-selected-50-season-id-manifest.csv"
+          reg=json.loads(json.dumps(list(csv.DictReader(urlopen(reg_url,timeout=30).read().decode("utf-8").splitlines()))))
+          current_names={"Argentina Primera División","Chile Primera División","Colombia Categoria Primera A","Finland Veikkausliiga","India Indian Super League","Republic of Ireland Premier Division","Russia Russian Premier League","South Korea K League 1","Uruguay Primera División","Venezuela Primera División"}
+          # Probe only selected leagues absent from the current positive-row main snapshot; no non-selected extras are promoted.
+          targets=[r for r in reg if r["competition_name"] in current_names]
+          def get(sid):
+              q=urlencode({"key":API,"season_id":sid,"max_per_page":1000})
+              req=Request("https://api.football-data-api.com/league-matches?"+q,headers={"User-Agent":"Oracle-Public-Selected50-Gap-Probe/1.0"})
+              last=None
+              for attempt in range(4):
+                  try:
+                      with urlopen(req,timeout=60) as resp:
+                          raw=resp.read()
+                      return raw,json.loads(raw.decode("utf-8"))
+                  except Exception as e:
+                      last=e
+                      if getattr(e,"code",None)==429 and attempt<3:
+                          time.sleep(5*(attempt+1)); continue
+                      raise
+              raise last
+          out=Path("recovery/fixtures/current/intelligence"); out.mkdir(parents=True,exist_ok=True)
+          results=[]
+          for row in targets:
+              # season ID equals selected ID for the current season in the canonical manifest; India is 17964, Russia 17178.
+              sid=row["selected_id"]
+              raw,payload=get(sid)
+              data=payload.get("data") if isinstance(payload,dict) else None
+              data=data if isinstance(data,list) else []
+              digest=hashlib.sha256(raw).hexdigest()
+              results.append({"selected_id":row["selected_id"],"league":row["country"]+" "+row["competition_name"],"season_id":sid,"rows":len(data),"source":"FootyStats API","endpoint":"league-matches","payload_sha256":digest,"status":"DIRECT_PROVIDER_EVIDENCE" if data else "PROVIDER_EMPTY","production_eligible":False,"betting_eligible":False})
+              time.sleep(0.2)
+          summary={"generated_utc":__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),"target_selected_leagues":len(targets),"non_empty_current_seasons":sum(x["rows"]>0 for x in results),"empty_current_seasons":sum(x["rows"]==0 for x in results),"api_calls":len(targets),"production_eligible":False,"betting_eligible":False,"fuzzy_matching":False,"historical_fallback":False,"oracle_v1_6_changed":False,"master_omi_a_et_changed":False}
+          (out/"selected50_current_gap_probe.csv").write_text("selected_id,league,season_id,rows,source,endpoint,payload_sha256,status,production_eligible,betting_eligible\n"+"\n".join(",".join(str(x[k]).replace(","," ") for k in ["selected_id","league","season_id","rows","source","endpoint","payload_sha256","status","production_eligible","betting_eligible"]) for x in results)+"\n")
+          (out/"selected50_current_gap_probe_summary.json").write_text(json.dumps({"summary":summary,"results":results},indent=2,ensure_ascii=False)+"\n")
+          print(json.dumps({"summary":summary,"results":results},indent=2,ensure_ascii=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-selected50-current-gap-probe-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/selected50_current_gap_probe*
+          if-no-files-found: error
