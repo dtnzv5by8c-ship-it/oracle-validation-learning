@@ -124,6 +124,17 @@ jobs:
           catalogue=get_json("league-list",{"chosen_leagues_only":"false"}).get("data",[])
           if not isinstance(catalogue,list): raise SystemExit("FootyStats league-list returned no usable catalogue.")
 
+          country_by_code={
+              "E0":"England","E1":"England","E2":"England","SP1":"Spain","SP2":"Spain",
+              "I1":"Italy","I2":"Italy","D1":"Germany","D2":"Germany","F1":"France","F2":"France",
+              "B1":"Belgium","AUT":"Austria","SWZ":"Switzerland","SC0":"Scotland","SRB1":"Serbia",
+              "CZE":"Czech Republic","POR2":"Portugal","RSA":"South Africa","KSA1":"Saudi Arabia",
+              "ECU1":"Ecuador","EGY1":"Egypt","CAN1":"Canada","CRO":"Croatia","G1":"Greece",
+              "T1":"Turkey","WAL1":"Wales","ALEAGUE":"Australia","JPN1":"Japan","MEX1":"Mexico",
+              "MLS":"USA","N1":"Netherlands","NOR":"Norway","PER1":"Peru","POL":"Poland",
+              "QAT1":"Qatar","ROU":"Romania","SWE":"Sweden","UKR":"Ukraine","BRA1":"Brazil",
+              "BUL1":"Bulgaria","DEN1":"Denmark"
+          }
           aliases={
               "USA MLS":["USA MLS","MLS","Major League Soccer","USA Major League Soccer"],
               "Wales Welsh Premier League":["Wales Welsh Premier League","Welsh Premier League","Cymru Premier"],
@@ -142,18 +153,23 @@ jobs:
               "Greek Super League":["Greek Super League","Super League"],
           }
 
-          def resolve_league(name):
+          def resolve_league(name, league_code):
               if not name or str(name).lower()=="nan": return None,"LEAGUE_NAME_UNAVAILABLE"
               targets=[name]+aliases.get(name,[])
+              country=country_by_code.get(str(league_code).strip())
               cands=[]
               for x in catalogue:
                   names=[x.get("name"),x.get("league_name"),x.get("english_name"),x.get("shortHand")]
-                  if any(norm(t)==norm(n) for t in targets for n in names if n):
+                  country_names=[x.get("country"),x.get("country_name")]
+                  country_ok=(not country) or any(norm(country)==norm(str(cn)) for cn in country_names if cn)
+                  if country_ok and any(norm(t)==norm(n) for t in targets for n in names if n):
                       cands.append(x)
               if len(cands)!=1:
                   # Conservative containment fallback only when it yields one candidate.
-                  cands=[x for x in catalogue if any(norm(name) in norm(str(n)) or norm(str(n)) in norm(name)
-                      for n in [x.get("name"),x.get("league_name"),x.get("english_name")] if n)]
+                  cands=[x for x in catalogue
+                         if ((not country) or any(norm(country)==norm(str(cn)) for cn in [x.get("country"),x.get("country_name")] if cn))
+                         and any(norm(name) in norm(str(n)) or norm(str(n)) in norm(name)
+                                 for n in [x.get("name"),x.get("league_name"),x.get("english_name")] if n)]
               if len(cands)!=1: return None,"LEAGUE_IDENTITY_UNRESOLVED"
               x=cands[0]
               seasons=x.get("season") or []
@@ -179,9 +195,10 @@ jobs:
                   rec={"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
                        "status":"UNAVAILABLE","reason":"LEAGUE_IDENTITY_UNAVAILABLE"}
                   rows.append(rec); continue
-              if league not in league_cache:
-                  league_cache[league]=resolve_league(league)
-              resolved,err=league_cache[league]
+              cache_key=(league,str(r.get("league_code") or "").strip())
+              if cache_key not in league_cache:
+                  league_cache[cache_key]=resolve_league(league,cache_key[1])
+              resolved,err=league_cache[cache_key]
               if not resolved:
                   rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
                                "status":"UNVERIFIED","reason":err})
