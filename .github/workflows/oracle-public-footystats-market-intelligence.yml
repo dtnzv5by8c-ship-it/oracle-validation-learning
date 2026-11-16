@@ -270,26 +270,27 @@ jobs:
               sid=resolved["season_id"]
               if fallback_match is not None:
                   candidates=[fallback_match]
-              elif sid not in match_cache:
-                  matches=[]
-                  page=1
-                  while True:
-                      payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
-                      matches.extend(payload.get("data") or [])
-                      pager=payload.get("pager") or {}
-                      max_page=int(pager.get("max_page") or page)
-                      if page>=max_page: break
-                      page+=1
-                  match_cache[sid]=matches
+              else:
+                  if sid not in match_cache:
+                      matches=[]
+                      page=1
+                      while True:
+                          payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
+                          matches.extend(payload.get("data") or [])
+                          pager=payload.get("pager") or {}
+                          max_page=int(pager.get("max_page") or page)
+                          if page>=max_page: break
+                          page+=1
+                      match_cache[sid]=matches
 
-              home=norm(r["home_team"]); away=norm(r["away_team"]); date=r["date"].date()
-              candidates=[]
-              for m in match_cache[sid]:
-                  if norm(m.get("home_name"))==home and norm(m.get("away_name"))==away:
-                      ts=m.get("date_unix")
-                      if ts is not None:
-                          md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
-                          if abs((md-date).days)<=1: candidates.append(m)
+                  home=norm(r["home_team"]); away=norm(r["away_team"]); date=r["date"].date()
+                  candidates=[]
+                  for m in match_cache[sid]:
+                      if norm(m.get("home_name"))==home and norm(m.get("away_name"))==away:
+                          ts=m.get("date_unix")
+                          if ts is not None:
+                              md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
+                              if abs((md-date).days)<=1: candidates.append(m)
               if len(candidates)!=1:
                   rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
                                "status":"UNVERIFIED","reason":"FIXTURE_PROVIDER_IDENTITY_UNRESOLVED",
