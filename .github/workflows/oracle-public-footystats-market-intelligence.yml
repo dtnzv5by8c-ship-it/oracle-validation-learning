@@ -135,6 +135,13 @@ jobs:
               "QAT1":"Qatar","ROU":"Romania","SWE":"Sweden","UKR":"Ukraine","BRA1":"Brazil",
               "BUL1":"Bulgaria","DEN1":"Denmark"
           }
+          aliases_by_code={
+              "E2":["League One","EFL League One","England League One"],
+              "PAR1":["Paraguay Primera Division","Paraguay Primera División","Primera Division"],
+              "CRO":["Croatia HNL","Croatian HNL","HNL"],
+              "ECU1":["Ecuador Primera Categoría Serie A","Ecuador Serie A","Liga Pro"],
+              "PER1":["Peru Primera División","Peru Primera Division","Liga 1"]
+          }
           aliases={
               "USA MLS":["USA MLS","MLS","Major League Soccer","USA Major League Soccer"],
               "Wales Welsh Premier League":["Wales Welsh Premier League","Welsh Premier League","Cymru Premier"],
@@ -151,11 +158,19 @@ jobs:
               "Serbian SuperLiga":["Serbian SuperLiga","SuperLiga"],
               "Turkish Super Lig":["Turkish Super Lig","Super Lig"],
               "Greek Super League":["Greek Super League","Super League"],
+              "League One":["League One","EFL League One","England League One"],
+              "Liga Portugal 2":["Liga Portugal 2","Portugal Liga 2","Liga 2"],
+              "Croatian HNL":["Croatian HNL","Croatia HNL","HNL"],
           }
 
           def resolve_league(name, league_code):
-              if not name or str(name).lower()=="nan": return None,"LEAGUE_NAME_UNAVAILABLE"
-              targets=[name]+aliases.get(name,[])
+              code=str(league_code).strip()
+              if not name or str(name).lower()=="nan":
+                  targets=list(aliases_by_code.get(code,[]))
+                  if not targets:
+                      return None,"LEAGUE_IDENTITY_UNAVAILABLE"
+              else:
+                  targets=[name]+aliases.get(name,[])
               country=country_by_code.get(str(league_code).strip())
               cands=[]
               for x in catalogue:
