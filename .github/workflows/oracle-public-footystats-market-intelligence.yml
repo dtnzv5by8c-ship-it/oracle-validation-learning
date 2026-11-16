@@ -223,13 +223,20 @@ jobs:
                   if sid not in match_cache:
                       matches=[]
                       page=1
-                      while True:
-                          payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
-                          matches.extend(payload.get("data") or [])
-                          pager=payload.get("pager") or {}
-                          max_page=int(pager.get("max_page") or page)
-                          if page>=max_page: break
-                          page+=1
+                      try:
+                          while True:
+                              payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
+                              matches.extend(payload.get("data") or [])
+                              pager=payload.get("pager") or {}
+                              max_page=int(pager.get("max_page") or page)
+                              if page>=max_page: break
+                              page+=1
+                      except Exception:
+                          # Provider rate limiting or transient catalogue errors are
+                          # evidence gaps, never reasons to fabricate or fall back to
+                          # an older season.
+                          match_cache[sid]=[]
+                          continue
                       match_cache[sid]=matches
                   for m in match_cache[sid]:
                       if norm(m.get("home_name"))==norm(home_name) and norm(m.get("away_name"))==norm(away_name):
