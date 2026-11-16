@@ -113,11 +113,21 @@ jobs:
           def get_json(path, params):
               url="https://api.football-data-api.com/"+path+"?"+urlencode({"key":API,**params})
               req=Request(url,headers={"User-Agent":"Oracle-Public-FootyStats-MI/1.0"})
-              with urlopen(req,timeout=45) as r:
-                  payload=json.loads(r.read().decode("utf-8"))
-              if payload.get("success") is not True:
-                  raise RuntimeError(f"{path}: provider success=false")
-              return payload
+              last=None
+              for attempt in range(3):
+                  try:
+                      with urlopen(req,timeout=45) as r:
+                          payload=json.loads(r.read().decode("utf-8"))
+                      if payload.get("success") is not True:
+                          raise RuntimeError(f"{path}: provider success=false")
+                      return payload
+                  except Exception as exc:
+                      last=exc
+                      if getattr(exc,"code",None)==429 and attempt<2:
+                          time.sleep(5*(attempt+1))
+                          continue
+                      raise
+              raise last
 
           # Resolve the provider catalogue once. No private repository or historical
           # season fallback is permitted.
