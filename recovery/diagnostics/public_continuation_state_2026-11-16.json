@@ -1,0 +1,54 @@
+{
+  "generated_utc": "2026-11-16T18:40:00Z",
+  "head_sha": "d9051f6fde3803b34865da6736b581fb677b510a",
+  "cycle_actions": [
+    {
+      "commit": "5318c6c8477c96dd3af92599f297ad559e2015a0",
+      "run_id": 43931046756,
+      "workflow": "Oracle Public V1.6 Fixture Integration Audit V2",
+      "conclusion": "success",
+      "change": "Removed hardcoded 2026-11-14 recovered V1.6 ledger from current-production path; historical ledger is excluded and current-date ledger is required."
+    },
+    {
+      "commit": "d9051f6fde3803b34865da6736b581fb677b510a",
+      "run_id": 43931079735,
+      "workflow": "Oracle Public Risk Coverage Reconciliation",
+      "conclusion": "success",
+      "change": "Risk gate now counts only positive-row current-season FootyStats leagues and explicitly records stale provider-season entries."
+    }
+  ],
+  "coverage": {
+    "governed_fixture_rows": 385,
+    "exact_identity_rows": 363,
+    "ambiguous_identity_rows": 2,
+    "unmatched_identity_rows": 20,
+    "identity_coverage_pct": 94.29,
+    "footystats_direct_provider_value_rows": 2178,
+    "footystats_unavailable_value_rows": 10164,
+    "current_provider_leagues": 45,
+    "expected_provider_leagues": 50,
+    "current_league_coverage_pct": 90,
+    "stale_provider_season_leagues": 3,
+    "stale_provider_season_names": [
+      "Argentina Primera División",
+      "Chile Primera División",
+      "Uruguay Primera División"
+    ],
+    "recent_form_rows": 726,
+    "h2h_rows": 363,
+    "v1_6_current_production_certified": false
+  },
+  "governance": {
+    "private_repo_used": false,
+    "historical_fallback": false,
+    "fuzzy_matching": false,
+    "oracle_v1_6_changed": false,
+    "master_omi_a_et_changed": false
+  },
+  "blockers": [
+    "20 fixture identities are not exact-current; 2 are ambiguous and 20 are unmatched in the current reconciliation summary.",
+    "Only 45 of 50 selected leagues have positive-row current-season provider evidence; 3 manifest entries are stale zero-row seasons.",
+    "No current-date public V1.6 production ledger is present, so integration remains research-only and production certification is false."
+  ],
+  "next_action": "Restore/produce a complete current public Master OMI/V1.6 fixture source and reconcile the five missing current provider leagues plus exact fixture identities; do not use the historical recovered ledger."
+}
