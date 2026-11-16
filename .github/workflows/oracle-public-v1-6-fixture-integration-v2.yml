@@ -1,6 +1,8 @@
 name: Oracle Public V1.6 Fixture Integration Audit V2
 
 on:
+  schedule:
+    - cron: "25 * * * *"
   workflow_dispatch:
   push:
     paths:
