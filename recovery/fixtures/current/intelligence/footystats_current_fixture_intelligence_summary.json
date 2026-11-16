@@ -1,0 +1,19 @@
+{
+  "generated_utc": "2026-11-16T18:03:02.058917+00:00",
+  "governed_fixture_rows": 385,
+  "exact_fixture_rows": 363,
+  "ambiguous_fixture_rows": 2,
+  "unmatched_fixture_rows": 20,
+  "intelligence_rows": 12342,
+  "direct_provider_value_rows": 2178,
+  "unavailable_value_rows": 10164,
+  "denominator_unavailable_rows": 0,
+  "unverified_value_rows": 0,
+  "metrics_requested": 17,
+  "private_repository_used": false,
+  "historical_season_fallback_used": false,
+  "fuzzy_matching_used": false,
+  "oracle_v1_6_changed": false,
+  "master_omi_a_et_changed": false,
+  "governance": "Current FootyStats intelligence evidence only; provider values are not Oracle V1.6 probabilities."
+}
