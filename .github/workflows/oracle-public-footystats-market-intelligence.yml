@@ -37,7 +37,7 @@ jobs:
           import json, os, urllib.request
           repo=os.environ["GITHUB_REPOSITORY"]
           req=urllib.request.Request(
-              f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",
+              f"https://api.github.com/repos/{repo}/actions/workflows/oracle-master-omi-excel.yml/runs?per_page=100",
               headers={"Authorization":f"Bearer {os.environ['GH_TOKEN']}","Accept":"application/vnd.github+json"}
           )
           runs=json.load(urllib.request.urlopen(req,timeout=30))["workflow_runs"]
