@@ -1,0 +1,255 @@
+name: Oracle Public Current FootyStats Fixture Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-current-footystats-fixture-intelligence.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-current-footystats-fixture-intelligence
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate provider secret
+        run: test -n "${FOOTYSTATS_API_KEY:-}"
+
+      - name: Pull current pre-match FootyStats team intelligence
+        shell: python
+        run: |
+          import csv, json, os, re, time, unicodedata
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          API=os.environ["FOOTYSTATS_API_KEY"]
+          SRC=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          OUT=Path("recovery/fixtures/current/intelligence")
+          OUT.mkdir(parents=True,exist_ok=True)
+
+          rows=list(csv.DictReader(SRC.open(encoding="utf-8",newline="")))
+          if len(rows)!=385:
+              raise SystemExit(f"FAIL: expected 385 governed fixture rows, got {len(rows)}")
+
+          def norm(x):
+              return re.sub(r"[^a-z0-9]+","",unicodedata.normalize("NFKD",str(x or "")).encode("ascii","ignore").decode().lower())
+
+          def api(path, params):
+              url="https://api.football-data-api.com/"+path+"?"+urlencode({"key":API,**params})
+              req=Request(url,headers={"User-Agent":"Oracle-Public-Current-FootyStats-Intelligence/1.0"})
+              last=None
+              for attempt in range(4):
+                  try:
+                      with urlopen(req,timeout=60) as r:
+                          p=json.loads(r.read().decode("utf-8"))
+                      if p.get("success") is not True:
+                          raise RuntimeError(f"{path}: success=false")
+                      return p
+                  except Exception as e:
+                      last=e
+                      if getattr(e,"code",None)==429 and attempt<3:
+                          time.sleep(8*(attempt+1))
+                          continue
+                      raise
+              raise last
+
+          # Only rows with an exact current-provider identity are eligible.
+          exact=[r for r in rows if r.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY"]
+          ambiguous=[r for r in rows if r.get("identity_status")=="AMBIGUOUS_EXACT_DATE_HOME_AWAY"]
+          unmatched=[r for r in rows if r.get("identity_status")=="UNMATCHED_CURRENT_FOOTYSTATS"]
+
+          season_cache={}
+          team_cache={}
+          evidence=[]
+          audit=[]
+
+          # Read the provider IDs captured by the identity layer. We do not
+          # replace them with a different provider or use fuzzy team matching.
+          for r in exact:
+              fid=r["provider_fixture_id"]
+              sid=str(r.get("provider_season","")).strip()
+              if not sid:
+                  # Reconciliation may expose season as a label rather than ID.
+                  # Do not guess; quarantine.
+                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_SEASON_ID_MISSING"})
+                  continue
+
+              kickoff=r.get("provider_kickoff_unix")
+              try:
+                  kickoff=int(float(kickoff))
+              except:
+                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_KICKOFF_MISSING"})
+                  continue
+
+              cutoff=kickoff-1
+
+              # Cache a provider team snapshot for each current season. The
+              # max_time cutoff is passed to the provider; any response without
+              # a defensible pre-kickoff cutoff remains research/unverified.
+              cache_key=(sid,cutoff)
+              if cache_key not in team_cache:
+                  try:
+                      team_cache[cache_key]=api("league-teams",{
+                          "season_id":sid,
+                          "include":"stats",
+                          "max_time":cutoff
+                      }).get("data") or []
+                  except Exception as exc:
+                      team_cache[cache_key]=None
+                      audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_TEAM_SNAPSHOT_FAILED","detail":type(exc).__name__})
+                      continue
+
+              teams=team_cache[cache_key] or []
+              byid={str(t.get("id")):t for t in teams if isinstance(t,dict) and t.get("id") is not None}
+              ht=byid.get(str(r.get("provider_home_id")))
+              at=byid.get(str(r.get("provider_away_id")))
+
+              if not ht or not at:
+                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_TEAM_ID_NOT_IN_SNAPSHOT"})
+                  continue
+
+              def flat(t):
+                  s=t.get("stats")
+                  if isinstance(s,dict): return {**t,**s}
+                  if isinstance(s,list) and s and isinstance(s[0],dict): return {**t,**s[0]}
+                  return t
+
+              def get(t,*keys):
+                  t=flat(t)
+                  for k in keys:
+                      if k in t and t[k] not in (None,"","null"):
+                          return t[k]
+                  return None
+
+              metrics=[
+                ("PPG","PPG","seasonPPG_overall","points_per_game"),
+                ("PPG Home","PPG_HOME","seasonPPG_home","home_ppg"),
+                ("PPG Away","PPG_AWAY","seasonPPG_away","away_ppg"),
+                ("GF/M","GF_PER_MATCH","seasonAVG_goals_scored","goals_scored_per_match","avg_goals_scored"),
+                ("GA/M","GA_PER_MATCH","seasonAVG_goals_conceded","goals_conceded_per_match","avg_goals_conceded"),
+                ("Average Goals","AVERAGE_GOALS","seasonAVG_total_goals","average_goals"),
+                ("BTTS %","BTTS_PCT","seasonBTTSPercentage","btts_percentage"),
+                ("Over 0.5 %","OVER_0_5_PCT","seasonOver05Percentage","over05_percentage"),
+                ("Over 1.5 %","OVER_1_5_PCT","seasonOver15Percentage","over15_percentage"),
+                ("Over 2.5 %","OVER_2_5_PCT","seasonOver25Percentage","over25_percentage"),
+                ("Over 3.5 %","OVER_3_5_PCT","seasonOver35Percentage","over35_percentage"),
+                ("Over 4.5 %","OVER_4_5_PCT","seasonOver45Percentage","over45_percentage"),
+                ("Under 0.5 %","UNDER_0_5_PCT","seasonUnder05Percentage","under05_percentage"),
+                ("Under 1.5 %","UNDER_1_5_PCT","seasonUnder15Percentage","under15_percentage"),
+                ("Under 2.5 %","UNDER_2_5_PCT","seasonUnder25Percentage","under25_percentage"),
+                ("Under 3.5 %","UNDER_3_5_PCT","seasonUnder35Percentage","under35_percentage"),
+                ("Under 4.5 %","UNDER_4_5_PCT","seasonUnder45Percentage","under45_percentage"),
+              ]
+
+              for side,t in (("Home",ht),("Away",at)):
+                  for label,code,*keys in metrics:
+                      v=get(t,*keys)
+                      sample=get(t,
+                          "seasonMatchesPlayed_overall" if label=="PPG" else
+                          "seasonMatchesPlayed_home" if side=="Home" and label=="PPG Home" else
+                          "seasonMatchesPlayed_away" if side=="Away" and label=="PPG Away" else
+                          "seasonMatchesPlayed_overall"
+                      )
+                      status="FOOTYSTATS_DIRECT" if v is not None and cutoff<kickoff else "UNAVAILABLE"
+                      missing="" if status=="FOOTYSTATS_DIRECT" else "PROVIDER_FIELD_MISSING"
+                      evidence.append({
+                          "Fixture ID":fid,
+                          "date":r["date"],
+                          "league":r.get("league",""),
+                          "home_team":r["home_team"],
+                          "away_team":r["away_team"],
+                          "provider":"FootyStats",
+                          "provider_fixture_id":fid,
+                          "provider_home_id":r.get("provider_home_id"),
+                          "provider_away_id":r.get("provider_away_id"),
+                          "provider_season":sid,
+                          "provider_league":r.get("provider_competition_id",""),
+                          "side":side,
+                          "metric":label,
+                          "metric_code":code,
+                          "value":v if v is not None else "UNAVAILABLE",
+                          "denominator_sample":sample if sample is not None else "UNAVAILABLE",
+                          "source_timestamp":cutoff,
+                          "source_timestamp_utc":datetime.fromtimestamp(cutoff,tz=timezone.utc).isoformat(),
+                          "kickoff_unix":kickoff,
+                          "pre_match_status":"VERIFIED_PRE_KICKOFF" if cutoff<kickoff else "UNVERIFIED",
+                          "freshness":"PREMATCH_SNAPSHOT" if cutoff<kickoff else "UNVERIFIED",
+                          "provenance":"FootyStats league-teams direct API",
+                          "source_quality":"DIRECT_PROVIDER_VALUE" if v is not None else "UNAVAILABLE",
+                          "substitution_flag":"FALSE",
+                          "missingness_reason":missing,
+                          "status":status
+                      })
+              audit.append({**r,"intelligence_status":"DIRECT_PROVIDER_SNAPSHOT","reason":"","snapshot_cutoff_unix":cutoff})
+              time.sleep(0.05)
+
+          for r in ambiguous:
+              audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"AMBIGUOUS_PROVIDER_FIXTURE_IDENTITY"})
+          for r in unmatched:
+              audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"NO_CURRENT_FOOTYSTATS_FIXTURE_IDENTITY"})
+
+          with (OUT/"footystats_current_fixture_intelligence.csv").open("w",encoding="utf-8",newline="") as f:
+              if evidence:
+                  w=csv.DictWriter(f,fieldnames=list(evidence[0].keys())); w.writeheader(); w.writerows(evidence)
+
+          with (OUT/"fixture_intelligence_audit.csv").open("w",encoding="utf-8",newline="") as f:
+              if audit:
+                  w=csv.DictWriter(f,fieldnames=list(audit[0].keys())); w.writeheader(); w.writerows(audit)
+
+          vals=[x for x in evidence if x["status"]=="FOOTYSTATS_DIRECT"]
+          summary={
+              "generated_utc":datetime.now(timezone.utc).isoformat(),
+              "governed_fixture_rows":385,
+              "exact_fixture_rows":len(exact),
+              "ambiguous_fixture_rows":len(ambiguous),
+              "unmatched_fixture_rows":len(unmatched),
+              "intelligence_rows":len(evidence),
+              "direct_provider_value_rows":len(vals),
+              "unavailable_value_rows":len(evidence)-len(vals),
+              "metrics_requested":len(metrics),
+              "private_repository_used":False,
+              "historical_season_fallback_used":False,
+              "fuzzy_matching_used":False,
+              "oracle_v1_6_changed":False,
+              "master_omi_a_et_changed":False,
+              "governance":"Current FootyStats intelligence only; provider values are evidence and are not Oracle V1.6 probabilities."
+          }
+          (OUT/"footystats_current_fixture_intelligence_summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print(json.dumps(summary,indent=2))
+          if len(exact)>0 and len(evidence)==0:
+              raise SystemExit("FAIL-CLOSED: exact fixture identities exist but no current intelligence was produced.")
+
+      - name: Persist current intelligence evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-public-footystats-bot"
+          git config user.email "oracle-public-footystats-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/intelligence/
+          if git diff --cached --quiet; then
+            echo "No intelligence changes."
+          else
+            git commit -m "Add current FootyStats fixture intelligence"
+            git push
+          fi
+
+      - name: Upload intelligence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-current-footystats-fixture-intelligence-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/
+          retention-days: 30
