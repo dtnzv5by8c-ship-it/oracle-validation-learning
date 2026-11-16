@@ -41,14 +41,6 @@ jobs:
             echo "::error::MASTER_OMI_BLOCKED_NO_PUBLIC_SOURCE_DATA"
             exit 1
           fi
-    steps:
-      - name: Validate secret
-        run: test -n "${GH_TOKEN:-}"
-
-      - name: Clone governed Oracle evidence branch
-        run: |
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"             clone --depth 1 --branch "$SOURCE_BRANCH" "https://github.com/${TARGET_REPO}.git" oracle
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
