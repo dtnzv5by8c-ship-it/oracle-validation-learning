@@ -84,6 +84,45 @@ Important categories include:
 
 The exact fields and column positions in the canonical workbook take precedence over this summary.
 
+## Market Intelligence enrichment operating state — 2026-11-16
+
+The active development focus is the **Market Intelligence tab / EU+ append-only layer**. Oracle V1.6 and Master OMI A:ET are considered locked foundation and must not be redesigned or reopened merely to advance MI.
+
+Current enrichment priorities:
+1. Continue FootyStats PPG / PPG Home / PPG Away verification and coverage.
+2. Enrich and vet goal intelligence, including GF/M, GA/M, BTTS, Over/Under, goal environment and related FootyStats evidence.
+3. Strengthen provider identity, chronology, freshness, provenance, denominator/sample and missingness controls.
+4. Keep provider statistics distinct from Oracle probabilities/signals.
+5. Continue safe public-repository execution hardening in parallel, without disrupting the MI workstream.
+6. Maintain readiness for the next updated Master OMI fixture report.
+
+Latest verified MI state before this update:
+- Public FootyStats MI Run #8 succeeded with 2,235 evidence rows across 385 Master OMI fixtures.
+- 2,220 direct FootyStats PPG rows were verified.
+- 14 provider-unavailable rows and 1 unresolved fixture-identity row remained.
+- No denominator failures, duplicate Fixture ID/side/metric failures, or post/equal-kickoff timestamps were reported.
+- A league-code/alias reconciliation repair was committed as `f4f6f93f3c8d3f9ad3262da357b11253bce94201`.
+- Public MI Run #9 subsequently succeeded, but its upstream Master OMI artifact was not generated from the current `f4f6f93` HEAD; therefore current-HEAD reconciliation was **not** certified complete.
+- Run #9 reported 258 direct FootyStats PPG evidence rows in its fresh artifact and 342 UNVERIFIED rows, so its coverage figures must not be interpreted as an improvement over Run #8 until the upstream artifact lag is reconciled.
+- No private repository was used in these public MI runs.
+- Oracle V1.6 and Master OMI A:ET remained unchanged.
+
+## Scheduled maintenance automation governance — 2026-11-16
+
+Three existing hourly public-repository automations were recalibrated:
+- **Master OMI Accuracy — Public Repository** — hourly at :00.
+- **Oracle Signal Validation — Public Repository** — hourly at :20.
+- **Oracle Data Integrity — Public Repository** — hourly at :40.
+
+Their operating rule is now:
+- Do not treat a green workflow alone as 100% completion.
+- Determine actual verified coverage and remaining exceptions from live public GitHub evidence.
+- Continue MI/PPG work while material gaps remain.
+- When a gate reaches **100% verified**, move to the next highest-value outstanding improvement: goal/BTTS/Over-Under intelligence, provenance/data-quality controls, report quality, or safe public-only execution hardening.
+- If there is no meaningful outstanding work, **do not repeat redundant checks or waste resources**; report completion/no-action-required.
+- Never weaken validation controls, fabricate/estimate provider values, silently substitute data, alter Oracle V1.6 production logic, or modify Master OMI A:ET.
+- The private `oracle-football-data` repository is not to be used, dispatched, depended upon, or written to for ongoing execution.
+
 ## Data integrity
 
 - Exact Fixture ID joins are required.
@@ -111,7 +150,7 @@ Primary research/validation repository:
 Private production repository:
 `dtnzv5by8c-ship-it/oracle-football-data`
 
-Do not casually move production logic into the research repository.
+Do not casually move production logic into the research repository. For ongoing autonomous public execution, the private repository is treated as unavailable/exhausted and must not be depended upon.
 
 ## Working principle
 
