@@ -129,12 +129,19 @@ jobs:
           current_selected_ids |= gap_nonempty_ids
           current_leagues=[x for x in s.get("leagues",[]) if int(x.get("rows",0) or 0)>0 and str(x.get("season","")) in current_seasons]
           stale_leagues=[x for x in s.get("leagues",[]) if int(x.get("rows",0) or 0)==0 and str(x.get("season","")) not in current_seasons]
+          stale_selected_unresolved=[]
+          for x in stale_leagues:
+              lname=str(x.get("league") or "").strip()
+              sid=name_to_id.get(lname)
+              if sid and sid in gap_nonempty_ids:
+                  continue
+              stale_selected_unresolved.append(x)
           actual=len(current_selected_ids)
           blockers=[]
           if exact < len(fixtures): blockers.append("FIXTURE_IDENTITY_COVERAGE_BELOW_100")
           if ambiguous: blockers.append("AMBIGUOUS_FIXTURE_IDENTITIES")
           if actual < expected: blockers.append("CURRENT_FOOTYSTATS_LEAGUE_COVERAGE_BELOW_100")
-          if stale_leagues: blockers.append("STALE_PROVIDER_SEASON_ENTRIES_PRESENT")
+          if stale_selected_unresolved: blockers.append("STALE_PROVIDER_SEASON_ENTRIES_UNRESOLVED")
           if not i.get("production_certification",False): blockers.append("V1_6_CURRENT_PRODUCTION_CERTIFICATION_UNAVAILABLE")
           summary={
             "generated_utc":datetime.now(timezone.utc).isoformat(),
@@ -152,6 +159,8 @@ jobs:
             "footystats_league_coverage_pct":round(actual/expected*100,2) if expected else 0,
             "stale_provider_season_leagues":len(stale_leagues),
             "stale_provider_season_names":[x.get("league") for x in stale_leagues],
+            "stale_provider_season_unresolved_leagues":len(stale_selected_unresolved),
+            "stale_provider_season_unresolved_names":[x.get("league") for x in stale_selected_unresolved],
             "v1_6_production_certified":bool(i.get("production_certification",False)),
             "production_readiness":"BLOCKED" if blockers else "READY_FOR_FINAL_ASSEMBLY",
             "blockers":blockers,
