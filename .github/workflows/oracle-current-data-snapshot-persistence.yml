@@ -1,0 +1,81 @@
+name: Oracle Current Data Snapshot Persistence
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-current-data-snapshot-persistence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Download verified current-data artifact
+        uses: actions/download-artifact@v5
+        with:
+          artifact-ids: 14206703161
+          path: recovery/current-state/2026-11-16-0758
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 43827412012
+
+      - name: Verify current snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="recovery/current-state/2026-11-16-0758"
+          test -s "$ROOT/data/current_source_manifest.json"
+          test -s "$ROOT/data/current_reconciliation_status.json"
+          test -s "$ROOT/database/current_matches.csv"
+          test -s "$ROOT/database/current_prematch_team_state.csv"
+          sha256sum $(find "$ROOT" -type f | sort) | tee "$ROOT/SHA256SUMS"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("recovery/current-state/2026-11-16-0758")
+          source=json.loads((root/"data/current_source_manifest.json").read_text())
+          recon=json.loads((root/"data/current_reconciliation_status.json").read_text())
+          manifest={
+            "status":"CURRENT_SOURCE_SNAPSHOT_RESEARCH_GATE",
+            "source_workflow_run_id":43827412012,
+            "source_artifact_id":14206703161,
+            "source_artifact_digest":"sha256:c3e51eea87cf3c0231abdc13e70117f2545947546524c62b6c67e8c8d8619375",
+            "source_generated_utc":source["generated_utc"],
+            "source":"FootyStats API",
+            "selected_league_count":source.get("errors",[{}])[0].get("actual") if source.get("errors") else 50,
+            "window":source.get("window"),
+            "current_match_rows":recon.get("current_match_rows"),
+            "current_goal_event_rows":recon.get("current_goal_event_rows"),
+            "governed_upcoming_spine_rows":recon.get("governed_upcoming_spine_rows"),
+            "governed_upcoming_spine_matched":recon.get("governed_upcoming_spine_matched"),
+            "governed_upcoming_spine_coverage":recon.get("governed_upcoming_spine_coverage"),
+            "freshness_status":recon.get("freshness_status"),
+            "readiness_status":recon.get("status"),
+            "reasons":recon.get("reasons",[]),
+            "governance":"Current FootyStats snapshot persisted for public-only recovery. It is not production-admissible while readiness is NOT_READY; no provider values may be inferred or substituted.",
+            "private_repository_dependency_after_persistence":False
+          }
+          (root/"persistence_manifest.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Persist current snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-recovery-bot"
+          git config user.email "oracle-recovery-bot@users.noreply.github.com"
+          git add recovery/current-state/2026-11-16-0758
+          if git diff --cached --quiet; then
+            echo "No new current snapshot files to commit."
+            exit 0
+          fi
+          git commit -m "Persist current FootyStats source snapshot for public-only recovery"
+          git push
