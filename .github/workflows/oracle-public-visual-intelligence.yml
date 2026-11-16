@@ -1,0 +1,181 @@
+name: Oracle Public Visual Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-visual-intelligence.yml"
+      - "recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence.csv"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve latest successful Recent Form and H2H runs
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > /tmp/runs.env
+          import json,os,urllib.request
+          repo=os.environ["GITHUB_REPOSITORY"]; token=os.environ["GH_TOKEN"]
+          req=urllib.request.Request(
+            f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",
+            headers={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"})
+          data=json.load(urllib.request.urlopen(req))
+          for key,name in {
+            "recent":"Oracle Public Recent Form Intelligence",
+            "h2h":"Oracle Public Same-League H2H Intelligence",
+          }.items():
+            runs=[r for r in data["workflow_runs"] if r["name"]==name and r["conclusion"]=="success"]
+            if not runs: raise SystemExit("No successful run: "+name)
+            r=max(runs,key=lambda x:x["updated_at"])
+            print(f"{key}_run={r['id']}")
+          PY
+          cat /tmp/runs.env >> "$GITHUB_OUTPUT"
+
+      - name: Download Recent Form evidence
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve.outputs.recent_run }}
+          pattern: oracle-public-recent-form-*
+          merge-multiple: true
+          path: /tmp/recent
+
+      - name: Download H2H evidence
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve.outputs.h2h_run }}
+          pattern: oracle-public-h2h-*
+          merge-multiple: true
+          path: /tmp/h2h
+
+      - name: Build deterministic Visual Intelligence layer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re,html
+          from pathlib import Path
+          from datetime import datetime,timezone
+          root=Path(".")
+          fix=root/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          fts=root/"recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence.csv"
+          rf=next(Path("/tmp/recent").rglob("recent_form_last5.csv"),None)
+          hh=next(Path("/tmp/h2h").rglob("h2h_same_league.csv"),None)
+          for p in (fix,fts,rf,hh):
+              if not p or not p.exists(): raise SystemExit("FAIL-CLOSED missing evidence: "+str(p))
+          fixtures=list(csv.DictReader(fix.open(encoding="utf-8",newline="")))
+          fts_rows=list(csv.DictReader(fts.open(encoding="utf-8",newline="")))
+          forms=list(csv.DictReader(rf.open(encoding="utf-8",newline="")))
+          h2hs=list(csv.DictReader(hh.open(encoding="utf-8",newline="")))
+          def norm(s): return re.sub(r"\s+"," ",re.sub(r"[^a-z0-9]+"," ",str(s or "").casefold())).strip()
+          def fkey(r): return (str(r.get("date","")),norm(r.get("home_team") or r.get("provider_home_name")),norm(r.get("away_team") or r.get("provider_away_name")))
+          # Provider fixture intelligence is keyed by provider fixture ID; no fuzzy joins.
+          ft_by={}
+          for r in fts_rows:
+              fid=str(r.get("Fixture ID","")).strip()
+              if fid: ft_by.setdefault(fid,[]).append(r)
+          form_by={(str(r.get("date","")),norm(r.get("home_team")),norm(r.get("away_team")),r.get("team_side")):r for r in forms}
+          h2h_by={fkey(r):r for r in h2hs}
+          rows=[]
+          for f in fixtures:
+              fid=str(f.get("provider_fixture_id") or "").strip()
+              exact=f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY" and bool(fid)
+              k=fkey(f)
+              home=form_by.get((k[0],k[1],k[2],"HOME")) if exact else None
+              away=form_by.get((k[0],k[1],k[2],"AWAY")) if exact else None
+              h=h2h_by.get(k) if exact else None
+              metrics=ft_by.get(fid,[]) if exact else []
+              direct=sum(1 for x in metrics if x.get("status")=="FOOTYSTATS_DIRECT")
+              unavailable=sum(1 for x in metrics if x.get("status")=="UNAVAILABLE")
+              bymetric={(x.get("side"),x.get("metric")):x.get("value") for x in metrics}
+              rows.append({
+                "fixture_id":fid or "UNVERIFIED",
+                "league_code":f.get("league_code"),
+                "date":f.get("date"),
+                "home_team":f.get("home_team"),
+                "away_team":f.get("away_team"),
+                "identity_status":f.get("identity_status"),
+                "visual_join_status":"EXACT" if exact else "NOT_EXACT",
+                "footystats_direct_metric_rows":direct,
+                "footystats_unavailable_metric_rows":unavailable,
+                "home_ppg":bymetric.get(("Home","PPG"),"UNAVAILABLE"),
+                "away_ppg":bymetric.get(("Away","PPG"),"UNAVAILABLE"),
+                "home_gf_per_match":bymetric.get(("Home","GF/M"),"UNAVAILABLE"),
+                "away_gf_per_match":bymetric.get(("Away","GF/M"),"UNAVAILABLE"),
+                "home_ga_per_match":bymetric.get(("Home","GA/M"),"UNAVAILABLE"),
+                "away_ga_per_match":bymetric.get(("Away","GA/M"),"UNAVAILABLE"),
+                "btts_pct_home":bymetric.get(("Home","BTTS %"),"UNAVAILABLE"),
+                "btts_pct_away":bymetric.get(("Away","BTTS %"),"UNAVAILABLE"),
+                "over15_pct_home":bymetric.get(("Home","Over 1.5 %"),"UNAVAILABLE"),
+                "over15_pct_away":bymetric.get(("Away","Over 1.5 %"),"UNAVAILABLE"),
+                "over25_pct_home":bymetric.get(("Home","Over 2.5 %"),"UNAVAILABLE"),
+                "over25_pct_away":bymetric.get(("Away","Over 2.5 %"),"UNAVAILABLE"),
+                "recent_form_home":home.get("form_sequence","MISSING") if home else "MISSING",
+                "recent_form_away":away.get("form_sequence","MISSING") if away else "MISSING",
+                "recent_form_home_sample":home.get("sample_size","MISSING") if home else "MISSING",
+                "recent_form_away_sample":away.get("sample_size","MISSING") if away else "MISSING",
+                "recent_form_status":"SUFFICIENT" if home and away and home.get("sample_status")=="SUFFICIENT" and away.get("sample_status")=="SUFFICIENT" else "INSUFFICIENT_OR_MISSING",
+                "h2h_count":h.get("h2h_count","MISSING") if h else "MISSING",
+                "h2h_status":h.get("status","MISSING") if h else "MISSING",
+                "h2h_sample_status":h.get("sample_status","MISSING") if h else "MISSING",
+                "strict_pre_kickoff":True,
+                "same_league_h2h":True if h else "NOT_AVAILABLE",
+                "research_only":True,
+                "production_certified":False
+              })
+          out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
+          fields=list(rows[0])
+          with (out/"visual_intelligence.csv").open("w",encoding="utf-8",newline="") as fh:
+              w=csv.DictWriter(fh,fieldnames=fields); w.writeheader(); w.writerows(rows)
+          summary={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "governed_fixture_rows":len(fixtures),
+            "exact_join_rows":sum(x["visual_join_status"]=="EXACT" for x in rows),
+            "non_exact_rows":sum(x["visual_join_status"]!="EXACT" for x in rows),
+            "recent_form_sufficient_both_sides":sum(x["recent_form_status"]=="SUFFICIENT" for x in rows),
+            "h2h_rows_available":sum(x["h2h_status"]!="MISSING" for x in rows),
+            "footystats_fixture_rows_with_direct_evidence":sum(x["footystats_direct_metric_rows"]>0 for x in rows),
+            "research_only":True,
+            "production_certified":False,
+            "oracle_v1_6_changed":False,
+            "master_omi_a_et_changed":False,
+            "fuzzy_matching_used":False,
+            "historical_fallback_used":False
+          }
+          (out/"visual_intelligence_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          # A compact SVG is generated only from counted evidence states; no inferred scores or model values.
+          labels=[("Exact fixture joins",summary["exact_join_rows"]),("Recent Form sufficient",summary["recent_form_sufficient_both_sides"]),("H2H available",summary["h2h_rows_available"]),("FootyStats direct",summary["footystats_fixture_rows_with_direct_evidence"])]
+          width,height=900,320
+          maxv=max(v for _,v in labels) or 1
+          svg=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">','<rect width="100%" height="100%" fill="white"/>','<text x="30" y="30" font-size="20">Oracle Visual Intelligence — evidence coverage</text>']
+          for i,(lab,val) in enumerate(labels):
+              y=65+i*58; bar=int(720*val/maxv)
+              svg += [f'<text x="30" y="{y+18}" font-size="14">{html.escape(lab)}</text>',f'<rect x="190" y="{y}" width="{bar}" height="28" fill="#4a6"/>',f'<text x="{205+bar}" y="{y+19}" font-size="14">{val}</text>']
+          svg += ['<text x="30" y="300" font-size="12">Research-only evidence visualization; no Oracle production probabilities or inferred values.</text>','</svg>']
+          (out/"visual_intelligence.svg").write_text("\n".join(svg),encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Upload Visual Intelligence evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-visual-intelligence-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/visual_intelligence.*
+          if-no-files-found: error
+          retention-days: 30
