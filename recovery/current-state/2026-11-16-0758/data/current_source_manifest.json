@@ -1,0 +1,818 @@
+{
+  "generated_utc": "2026-11-16T07:58:29.951020+00:00",
+  "source": "FootyStats API",
+  "source_role": "PRIMARY_CURRENT_DATA",
+  "api_endpoint": "https://api.football-data-api.com/",
+  "research_cutoff": "2026-09-20",
+  "window": {
+    "start": "2026-09-21",
+    "end": "2026-11-18"
+  },
+  "errors": [
+    {
+      "type": "SELECTED_LEAGUE_COUNT",
+      "expected": 50,
+      "actual": 48
+    }
+  ],
+  "leagues": [
+    {
+      "league": "USA MLS",
+      "season_id": 16504,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 123,
+      "errors": []
+    },
+    {
+      "league": "Scotland Premiership",
+      "season_id": 17148,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 33,
+      "errors": []
+    },
+    {
+      "league": "Germany Bundesliga",
+      "season_id": 17210,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "England Premier League",
+      "season_id": 17146,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 50,
+      "errors": []
+    },
+    {
+      "league": "Portugal Liga NOS",
+      "season_id": 17217,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 36,
+      "errors": []
+    },
+    {
+      "league": "Turkey S\u00fcper Lig",
+      "season_id": 17265,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "England Championship",
+      "season_id": 17184,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 85,
+      "errors": []
+    },
+    {
+      "league": "England EFL League One",
+      "season_id": 17180,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 86,
+      "errors": []
+    },
+    {
+      "league": "Spain La Liga",
+      "season_id": 17199,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 50,
+      "errors": []
+    },
+    {
+      "league": "Spain Segunda Divisi\u00f3n",
+      "season_id": 17269,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 88,
+      "errors": []
+    },
+    {
+      "league": "Norway Eliteserien",
+      "season_id": 16558,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 40,
+      "errors": []
+    },
+    {
+      "league": "Netherlands Eredivisie",
+      "season_id": 17097,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "France Ligue 1",
+      "season_id": 17102,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "Italy Serie A",
+      "season_id": 17084,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 60,
+      "errors": []
+    },
+    {
+      "league": "France Ligue 2",
+      "season_id": 17117,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "Italy Serie B",
+      "season_id": 17404,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 60,
+      "errors": []
+    },
+    {
+      "league": "Belgium Pro League",
+      "season_id": 17171,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 36,
+      "errors": []
+    },
+    {
+      "league": "Germany 2. Bundesliga",
+      "season_id": 17212,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 45,
+      "errors": []
+    },
+    {
+      "league": "Austria Bundesliga",
+      "season_id": 17181,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 30,
+      "errors": []
+    },
+    {
+      "league": "Australia A-League",
+      "season_id": 17326,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 23,
+      "errors": []
+    },
+    {
+      "league": "Brazil Serie A",
+      "season_id": 16544,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 68,
+      "errors": []
+    },
+    {
+      "league": "Sweden Allsvenskan",
+      "season_id": 16576,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 48,
+      "errors": []
+    },
+    {
+      "league": "Argentina Primera Divisi\u00f3n",
+      "season_id": 5220,
+      "season": "20202021",
+      "status": "OK",
+      "pages": 1,
+      "rows": 0,
+      "errors": []
+    },
+    {
+      "league": "China Chinese Super League",
+      "season_id": 16789,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 32,
+      "errors": []
+    },
+    {
+      "league": "Switzerland Super League",
+      "season_id": 17129,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 24,
+      "errors": []
+    },
+    {
+      "league": "Japan J1 League",
+      "season_id": 17115,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 60,
+      "errors": []
+    },
+    {
+      "league": "Portugal LigaPro",
+      "season_id": 17215,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 42,
+      "errors": []
+    },
+    {
+      "league": "Greece Super League",
+      "season_id": 17356,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 34,
+      "errors": []
+    },
+    {
+      "league": "Egypt Egyptian Premier League",
+      "season_id": 17689,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 30,
+      "errors": []
+    },
+    {
+      "league": "Poland Ekstraklasa",
+      "season_id": 17112,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 46,
+      "errors": []
+    },
+    {
+      "league": "South Africa Premier Soccer League",
+      "season_id": 17444,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 23,
+      "errors": []
+    },
+    {
+      "league": "Mexico Liga MX",
+      "season_id": 17099,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 68,
+      "errors": []
+    },
+    {
+      "league": "Ukraine Ukrainian Premier League",
+      "season_id": 17191,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 39,
+      "errors": []
+    },
+    {
+      "league": "Croatia Prva HNL",
+      "season_id": 17087,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 25,
+      "errors": []
+    },
+    {
+      "league": "Serbia SuperLiga",
+      "season_id": 17119,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 36,
+      "errors": []
+    },
+    {
+      "league": "Wales Welsh Premier League",
+      "season_id": 17221,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 48,
+      "errors": []
+    },
+    {
+      "league": "Chile Primera Divisi\u00f3n",
+      "season_id": 495,
+      "season": "20162017",
+      "status": "OK",
+      "pages": 1,
+      "rows": 0,
+      "errors": []
+    },
+    {
+      "league": "Czech Republic First League",
+      "season_id": 17157,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 40,
+      "errors": []
+    },
+    {
+      "league": "Denmark Superliga",
+      "season_id": 17091,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 30,
+      "errors": []
+    },
+    {
+      "league": "Peru Primera Divisi\u00f3n",
+      "season_id": 16905,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 62,
+      "errors": []
+    },
+    {
+      "league": "Bulgaria First League",
+      "season_id": 17088,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 28,
+      "errors": []
+    },
+    {
+      "league": "Qatar Stars League",
+      "season_id": 17370,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 30,
+      "errors": []
+    },
+    {
+      "league": "Ecuador Primera Categor\u00eda Serie A",
+      "season_id": 16714,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 41,
+      "errors": []
+    },
+    {
+      "league": "Uruguay Primera Divisi\u00f3n",
+      "season_id": 855,
+      "season": "20152016",
+      "status": "OK",
+      "pages": 1,
+      "rows": 0,
+      "errors": []
+    },
+    {
+      "league": "Saudi Arabia Professional League",
+      "season_id": 17426,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 41,
+      "errors": []
+    },
+    {
+      "league": "Romania Liga I",
+      "season_id": 17247,
+      "season": "20262027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 43,
+      "errors": []
+    },
+    {
+      "league": "Paraguay Division Profesional",
+      "season_id": 16533,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 48,
+      "errors": []
+    },
+    {
+      "league": "Canada Canadian Premier League",
+      "season_id": 16741,
+      "season": "2026",
+      "status": "OK",
+      "pages": 1,
+      "rows": 27,
+      "errors": []
+    }
+  ],
+  "files": [
+    {
+      "endpoint": "league-list",
+      "sha256": "4003b3767eeab1a4451b28cb4a44657e1417df795931e2f6b931c76cf9cb5bab",
+      "bytes": 42196
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16504,
+      "page": 1,
+      "sha256": "a0e64a2d7a595df7583dbfa0e7a0d8796973a2c4374b39f3aea900ad3aa10ad2",
+      "bytes": 2677109
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17148,
+      "page": 1,
+      "sha256": "7c95f9e3fbde9d76f9a854fd7fc4b1a708b5ac40c90aabe01e8daf0f8b3a0e12",
+      "bytes": 981079
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17210,
+      "page": 1,
+      "sha256": "2cf6b4874e2299eef7ded2a82366ce1ed7e8708f38add349b51f6b13ba6c6615",
+      "bytes": 1516813
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17146,
+      "page": 1,
+      "sha256": "5150d0b7d416e105e2d82196456bb429d863701428ebbf3d9b94470e5b3b790f",
+      "bytes": 1877139
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17217,
+      "page": 1,
+      "sha256": "76f5606b54ff86349b2a552da75991ebc4297532aa67dd4bfdb6f324dba521f4",
+      "bytes": 1518197
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17265,
+      "page": 1,
+      "sha256": "95df8ebf6f1d6881540aa9cd8b3b1e05a8aa33b2c8999d2704b418eaaf0f0df1",
+      "bytes": 1518484
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17184,
+      "page": 1,
+      "sha256": "0a53432489b0af11a29e29b7ff5390758a41f5f20166b90e9095015177657775",
+      "bytes": 2742813
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17180,
+      "page": 1,
+      "sha256": "6d8163cb43d8eb0b3aa389fdcbb1677face3d4e604f40fce9978b4e998ddd7f3",
+      "bytes": 2741400
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17199,
+      "page": 1,
+      "sha256": "55ba308f29272afab23202c44999c845873c9cd5cb84c8afbbf4a37df4f04c75",
+      "bytes": 1887513
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17269,
+      "page": 1,
+      "sha256": "39bac249af2df7e9974f6eb95ad592c7c95cbf6e1a81392ba9d96b3ed7f3c92c",
+      "bytes": 2291391
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16558,
+      "page": 1,
+      "sha256": "4b0c8139bb1c70b86de510ba59c3dd9ced61d6e3bb2841f0aec07eb610c095aa",
+      "bytes": 1206519
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17097,
+      "page": 1,
+      "sha256": "488c0a2a4539f0b5280c6212b12abeb4c2f7fd2e350091d9e02bcdfbb6d6320f",
+      "bytes": 1519456
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17102,
+      "page": 1,
+      "sha256": "e440aef4ef6b997995cf4bcfe920165e0eee96efb0dd433634c2d96499fa77aa",
+      "bytes": 1518957
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17084,
+      "page": 1,
+      "sha256": "a4e4028af7402907b22637c6e1d1a11339ffe3ca55726c1b8dc083cad9461af7",
+      "bytes": 1871746
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17117,
+      "page": 1,
+      "sha256": "467e950c69212c22f2905ca5ae4864223e8b932ef9b85994d776b8011ccbb70f",
+      "bytes": 1518684
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17404,
+      "page": 1,
+      "sha256": "657a0cedd847a4fd26adf3fd3a512a2e11d218e058567fbe89fa3a6873cd74ce",
+      "bytes": 1875475
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17171,
+      "page": 1,
+      "sha256": "f945d246cb8afb6e2123fa928a4f57544e75b76d9a6ad76726bd246326bb21a6",
+      "bytes": 1514292
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17212,
+      "page": 1,
+      "sha256": "eadee4466ef156dfda050318f02b13be2f2104b33bc38335aad8fd6909123b0c",
+      "bytes": 1521822
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17181,
+      "page": 1,
+      "sha256": "2a73c91e1ad596856bdd76935a2fe5f27f893e4a11aebffd70d2d12bf686a841",
+      "bytes": 659507
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17326,
+      "page": 1,
+      "sha256": "ef2f81edfa4147498f185ee857dae59713a3152b27c34f73c25bc42b468c47a6",
+      "bytes": 771504
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16544,
+      "page": 1,
+      "sha256": "b3c9271d8f0e41c57252de5ecf2fe4a461a7e92ec92ebcccc705b3e5806c4af2",
+      "bytes": 1922800
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16576,
+      "page": 1,
+      "sha256": "25681297087337218839199b71b3d5c54d4397f3f2df25aaa20ebbdc862665c7",
+      "bytes": 1206292
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 5220,
+      "page": 1,
+      "sha256": "442e5022468eb09e6991796bf0ee4dbad8edb998f6ef2245375f5cb6ae28c80f",
+      "bytes": 686358
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16789,
+      "page": 1,
+      "sha256": "9b6b25311d88adc3c6cbd87cfe547ae6f0a0dc10754345d141c70b38fffae0c3",
+      "bytes": 1221060
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17129,
+      "page": 1,
+      "sha256": "be6f77c7f234d3611f6b3d3a8251c66e82440bd30648df4aa799b0622d7e1032",
+      "bytes": 659501
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17115,
+      "page": 1,
+      "sha256": "42a91502b5caf96d0603131f5349ead7f67ccf1666595ebd71f8214f8248a869",
+      "bytes": 1886097
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17215,
+      "page": 1,
+      "sha256": "6912375f424d880ea5ce0dba72b1968ea7fc88021952705b9c08f0d24b376374",
+      "bytes": 1514660
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17356,
+      "page": 1,
+      "sha256": "b096407edb02753fa1ddf974eab8f1f36ab86d1023c82b733b0a7a5e3f50b2a9",
+      "bytes": 905107
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17689,
+      "page": 1,
+      "sha256": "f9afb7336b05deb093d9f69503b5aac0eb811e8048afa5f8c45d09246f475494",
+      "bytes": 942174
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17112,
+      "page": 1,
+      "sha256": "1732961fc722f5a9495cf898a35eb3006827933ed1c66908e1cd1df194418c66",
+      "bytes": 1533249
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17444,
+      "page": 1,
+      "sha256": "401cc16e081615a14579cd5fb9559899148a821b5695f18a3b9fe8634d7fd4a0",
+      "bytes": 1193954
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17099,
+      "page": 1,
+      "sha256": "190f3f85dbc24fbb233f3b1e9be760a0c297f751de72eeb88a564e296d6b7048",
+      "bytes": 781227
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17191,
+      "page": 1,
+      "sha256": "5aa52e09620203dd9f256037687d9fc7c57dacee78122ea1037e8a4959b57b02",
+      "bytes": 1195706
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17087,
+      "page": 1,
+      "sha256": "922c4a84645364bebc9e7609a9f5577eacffca7b8878a3836e29099894b99142",
+      "bytes": 893256
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17119,
+      "page": 1,
+      "sha256": "a8f6ef162b4e6192f5d255b075980815f6aa485a6cf36bbdeffc82fbdf8c6191",
+      "bytes": 914627
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17221,
+      "page": 1,
+      "sha256": "7292b10d12057c7210f1e46294859fee13f3882471b7f55b674e77390538425b",
+      "bytes": 1202602
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 495,
+      "page": 1,
+      "sha256": "f410da176544dd93145125d6cebaabd2624c125cef58eb7b1596157e95c0313c",
+      "bytes": 1204597
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17157,
+      "page": 1,
+      "sha256": "4f706bddac76f3148830a8b703c84c2619583e262964387f5b2f77323d443cc4",
+      "bytes": 1202064
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17091,
+      "page": 1,
+      "sha256": "04cb6fc590c113cdf90fa885bda7fca55c817e22d554189b5182ce33069bf974",
+      "bytes": 660925
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16905,
+      "page": 1,
+      "sha256": "a8dec2070129dc1bd42ab269df37b3b368e1aeb331f0e62784f999efad2d2263",
+      "bytes": 1559013
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17088,
+      "page": 1,
+      "sha256": "1101b354c1edf7b81e560b84e3071b313bcf404a355c1b5edb29403242eedb7c",
+      "bytes": 912605
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17370,
+      "page": 1,
+      "sha256": "1af42728aaed1e0eecd50cb3aae5336caba1c399c48f29646f91ad190dd69761",
+      "bytes": 653506
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16714,
+      "page": 1,
+      "sha256": "dfee2fc67c31a6e7dc7a7104f9b2005bc74c78bc430545fb52ff0ce7fe0924ea",
+      "bytes": 1579506
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 855,
+      "page": 1,
+      "sha256": "2e3200ae987689026595f26ab896e1a591b1b245147614655e3fcad514cf7682",
+      "bytes": 1217841
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17426,
+      "page": 1,
+      "sha256": "bec52394d8052450f36972349eb76e9f706684eda3861f4627eecbe39a3b6352",
+      "bytes": 1519160
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17247,
+      "page": 1,
+      "sha256": "18cf958259dd81e558fd4875a61ea07e533f3334be4a6ce942f14bc40853f559",
+      "bytes": 1205042
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16533,
+      "page": 1,
+      "sha256": "d25365fc3a1adc1acfb4ac0e86a0f37e8dc425d56e3e0cdeb0d1115b1701cc9b",
+      "bytes": 1340504
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 16741,
+      "page": 1,
+      "sha256": "e48f374a5f2ab11b2ef71e2ce54b8232cbc6e95c3e282b4e5582cfcad6a202e3",
+      "bytes": 587581
+    }
+  ],
+  "selected_league_count": 48,
+  "match_rows": 2083,
+  "completed_match_rows": 2056,
+  "goal_event_rows": 6175,
+  "completed_matches_with_shots": 2056,
+  "completed_matches_with_sot": 2056,
+  "upcoming_match_rows": 27,
+  "xg_prematch_rows": 2083,
+  "goal_market_rows": 2083,
+  "avg_goals_prematch_rows": 2083,
+  "over25_prematch_rows": 2083,
+  "under25_prematch_rows": 2083,
+  "odds_1x2_rows": 2083,
+  "source_hash_count": 49,
+  "integrity": [
+    "FootyStats is the primary current-data source for this lane.",
+    "Only the subscribed chosen-league set is admitted; target is 50 leagues.",
+    "Current window begins strictly after the locked historical cutoff.",
+    "No current rows are merged into the locked historical match spine.",
+    "No synthetic results or inferred feature values are created.",
+    "Source payload hashes and retrieval timestamp are persisted.",
+    "Independent reconciliation remains a separate fail-closed gate."
+  ]
+}

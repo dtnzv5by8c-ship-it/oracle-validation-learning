@@ -1,0 +1,26 @@
+{
+  "status": "CURRENT_SOURCE_SNAPSHOT_RESEARCH_GATE",
+  "source_workflow_run_id": 43827412012,
+  "source_artifact_id": 14206703161,
+  "source_artifact_digest": "sha256:c3e51eea87cf3c0231abdc13e70117f2545947546524c62b6c67e8c8d8619375",
+  "source_generated_utc": "2026-11-16T07:58:29.951020+00:00",
+  "source": "FootyStats API",
+  "selected_league_count": 48,
+  "window": {
+    "start": "2026-09-21",
+    "end": "2026-11-18"
+  },
+  "current_match_rows": 2083,
+  "current_goal_event_rows": 6175,
+  "governed_upcoming_spine_rows": 429,
+  "governed_upcoming_spine_matched": 0,
+  "governed_upcoming_spine_coverage": 0.0,
+  "freshness_status": "FRESH",
+  "readiness_status": "NOT_READY",
+  "reasons": [
+    "429 governed upcoming fixture identities are not present in current FootyStats staging.",
+    "1 source/retrieval errors recorded."
+  ],
+  "governance": "Current FootyStats snapshot persisted for public-only recovery. It is not production-admissible while readiness is NOT_READY; no provider values may be inferred or substituted.",
+  "private_repository_dependency_after_persistence": false
+}

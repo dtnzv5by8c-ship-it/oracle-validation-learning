@@ -1,0 +1,14 @@
+{
+  "generated_utc": "2026-11-13T03:30:42.929438+00:00",
+  "spec_version": "FOUR_MODEL_SPEC_V0.1",
+  "overall": "READY_FOR_DEVELOPMENT_RUN",
+  "reasons": [],
+  "model_gate": {
+    "M1UP": "READY",
+    "BTTS": "READY",
+    "DOUBLE_CHANCE": "READY",
+    "COMBO": "READY"
+  },
+  "calibration": "NOT_VALIDATED_BY_THIS_GATE",
+  "promotion": "BLOCKED_UNTIL_WALK_FORWARD_EVIDENCE"
+}

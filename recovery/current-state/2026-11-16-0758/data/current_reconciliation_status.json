@@ -1,0 +1,26 @@
+{
+  "generated_utc": "2026-11-16T07:58:37.860397+00:00",
+  "source_generated_utc": "2026-11-16T07:58:29.951020+00:00",
+  "source_age_hours": 0.0,
+  "freshness_status": "FRESH",
+  "governed_upcoming_spine_rows": 429,
+  "governed_upcoming_spine_matched": 0,
+  "governed_upcoming_spine_unmatched": 429,
+  "governed_upcoming_spine_coverage": 0.0,
+  "latest_current_kickoff_utc": "2026-11-18T23:30:00+00:00",
+  "status": "NOT_READY",
+  "current_match_rows": 2083,
+  "current_goal_event_rows": 6175,
+  "source_manifest_present": true,
+  "reasons": [
+    "429 governed upcoming fixture identities are not present in current FootyStats staging.",
+    "1 source/retrieval errors recorded."
+  ],
+  "gates": {
+    "current_source_available": true,
+    "duplicate_check": true,
+    "score_integrity": true,
+    "event_truth_available_for_all_completed": true
+  },
+  "rule": "A prediction run must not treat NOT_READY or EVENT_TRUTH_STALE as fully current."
+}
