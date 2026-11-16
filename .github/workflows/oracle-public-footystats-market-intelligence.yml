@@ -201,6 +201,49 @@ jobs:
 
           league_cache={}
           match_cache={}
+          
+          def current_seasons_for_country(league_code):
+              country=country_by_code.get(str(league_code).strip())
+              out=[]
+              for x in catalogue:
+                  if country and not any(norm(country)==norm(str(cn)) for cn in [x.get("country"),x.get("country_name")] if cn):
+                      continue
+                  for s in x.get("season") or []:
+                      sid=str(s.get("id") or "").strip()
+                      label=str(s.get("year") or s.get("season") or "").strip()
+                      if sid and "2026" in label:
+                          out.append((x,label,sid))
+              return out
+
+          def fixture_identity_fallback(league_code, home_name, away_name, target_date):
+              # Evidence-backed current-season discovery only. This is identity
+              # reconciliation, not a provider-value fallback.
+              hits=[]
+              for x,label,sid in current_seasons_for_country(league_code):
+                  if sid not in match_cache:
+                      matches=[]
+                      page=1
+                      while True:
+                          payload=get_json("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
+                          matches.extend(payload.get("data") or [])
+                          pager=payload.get("pager") or {}
+                          max_page=int(pager.get("max_page") or page)
+                          if page>=max_page: break
+                          page+=1
+                      match_cache[sid]=matches
+                  for m in match_cache[sid]:
+                      if norm(m.get("home_name"))==norm(home_name) and norm(m.get("away_name"))==norm(away_name):
+                          ts=m.get("date_unix")
+                          if ts is None: continue
+                          md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
+                          if abs((md-target_date).days)<=1:
+                              hits.append((x,label,sid,m))
+              if len(hits)!=1:
+                  return None
+              x,label,sid,m=hits[0]
+              return {"provider_league_name":x.get("name") or x.get("league_name"),
+                      "season_label":label,"season_id":sid},m
+
           rows=[]
           audit=[]
           for _,r in df.iterrows():
@@ -214,13 +257,20 @@ jobs:
               if cache_key not in league_cache:
                   league_cache[cache_key]=resolve_league(league,cache_key[1])
               resolved,err=league_cache[cache_key]
+              fallback_match=None
               if not resolved:
-                  rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
-                               "status":"UNVERIFIED","reason":err})
-                  continue
+                  fb=fixture_identity_fallback(cache_key[1],r["home_team"],r["away_team"],r["date"].date())
+                  if fb:
+                      resolved,fallback_match=fb
+                  else:
+                      rows.append({"Fixture ID":fid,"league":league,"home_team":r["home_team"],"away_team":r["away_team"],
+                                   "status":"UNVERIFIED","reason":err})
+                      continue
 
               sid=resolved["season_id"]
-              if sid not in match_cache:
+              if fallback_match is not None:
+                  candidates=[fallback_match]
+              elif sid not in match_cache:
                   matches=[]
                   page=1
                   while True:
