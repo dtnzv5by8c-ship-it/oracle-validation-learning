@@ -114,18 +114,18 @@ jobs:
           registry_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/research/oracle-50-league-readiness-audit/data/prospective/oracle_50_league_fixture_source_registry.csv"
           from urllib.request import urlopen
           registry=list(csv.DictReader(urlopen(registry_url,timeout=30).read().decode("utf-8").splitlines()))
-          verified_selected={x["footystats_league_id"] for x in registry if x.get("source_resolution_status")=="CATALOG_VERIFIED_CURRENT_SEASON"}
+          selected_ids={x["footystats_league_id"] for x in registry}
           name_to_id={str(x.get("governed_league_name","")).strip():x["footystats_league_id"] for x in registry}
           current_selected_ids=set()
           for x in s.get("leagues",[]):
               name=str(x.get("league","")).strip()
-              if name in name_to_id and name_to_id[name] in verified_selected and int(x.get("rows",0) or 0)>0 and str(x.get("season","")) in current_seasons:
+              if name in name_to_id and name_to_id[name] in selected_ids and int(x.get("rows",0) or 0)>0 and str(x.get("season","")) in current_seasons:
                   current_selected_ids.add(name_to_id[name])
           gap=next(Path("/tmp/selected50-gap").rglob("selected50_current_gap_probe_summary.json"),None)
           gap_nonempty_ids=set()
           if gap:
               gd=json.loads(gap.read_text())
-              gap_nonempty_ids={str(x.get("selected_id")) for x in gd.get("results",[]) if int(x.get("rows",0) or 0)>0 and str(x.get("selected_id")) in verified_selected}
+              gap_nonempty_ids={str(x.get("selected_id")) for x in gd.get("results",[]) if int(x.get("rows",0) or 0)>0 and str(x.get("selected_id")) in selected_ids}
           current_selected_ids |= gap_nonempty_ids
           current_leagues=[x for x in s.get("leagues",[]) if int(x.get("rows",0) or 0)>0 and str(x.get("season","")) in current_seasons]
           stale_leagues=[x for x in s.get("leagues",[]) if int(x.get("rows",0) or 0)==0 and str(x.get("season","")) not in current_seasons]
