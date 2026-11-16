@@ -107,6 +107,45 @@ Latest verified MI state before this update:
 - No private repository was used in these public MI runs.
 - Oracle V1.6 and Master OMI A:ET remained unchanged.
 
+## Master OMI source recovery — 2026-11-16
+
+A source package previously created by the Oracle workflow was recovered from the **public GitHub Actions artifact**, eliminating the need for Nolan to recreate the missing fields manually.
+
+Recovery source:
+- Public repository: `dtnzv5by8c-ship-it/oracle-validation-learning`
+- Workflow run: `43603279385`
+- Artifact: `14116783992`
+- Artifact name: `oracle-omi-source-data-43603279385`
+- Artifact digest: `sha256:066e065a58fe8e986e5a033361171d2bcc7aeda3e962a84f8b9708e410a86624`
+- Artifact created: 2026-11-14 14:09 UTC
+
+Recovered files:
+`recovery/master_omi_source/2026-11-14/`
+- `current_team_state.csv` — 13,852 rows
+- `fixtures.csv` — 385 governed fixtures, 2026-11-13 through 2026-11-24
+- `matches.csv` — 11,304 historical matches, 2025-03-21 through 2026-09-20
+- `omi_ledger.csv` — 385 rows, matching the 385-fixture OMI window
+- `manifest.json`
+- `SHA256SUMS`
+
+The snapshot is explicitly classified:
+**RECOVERED_SNAPSHOT_NOT_CURRENT**
+
+It must not be silently treated as current production source. It is valid recovery evidence and can be used to reconstruct the missing OMI source spine, subject to fresh-source, chronology, identity and provenance gates.
+
+The recovery workflow is now persisted publicly as:
+`.github/workflows/oracle-master-omi-source-recovery.yml`
+
+Recovery workflow run:
+`43865145485` — **success**
+
+This recovery action does **not** change Oracle V1.6, production probabilities, thresholds, calibration, betting eligibility or Master OMI A:ET.
+
+Important distinction:
+- The recovered OMI package is the exact source package we were looking for.
+- The public recovery/current-state area also contains FootyStats current-data manifests and current match/team-state files from 2026-11-13, but these are separately timestamped evidence and must not be treated as a fresh 2026-11-16 snapshot without revalidation.
+- The next task is therefore to use the recovered package to restore the public source spine, then establish a fresh current-data gate before re-enabling downstream Master OMI / Signal Validation automation.
+
 ## Scheduled maintenance automation governance — 2026-11-16
 
 Three existing hourly public-repository automations were recalibrated:
