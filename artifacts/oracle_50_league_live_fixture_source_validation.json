@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-15T22:45:20.501261+00:00",
+  "generated_utc": "2026-11-16T02:41:49.966488+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -997,19 +997,19 @@
       "fixtures": [
         {
           "match_id": "match_fmb_per1_2026_20261116_cd_ut_cajamarca_los_chankas",
-          "kickoff_at": "2026-11-16T18:00:00Z",
+          "kickoff_at": "2026-11-16T18:00:00.000Z",
           "home": "CD UT Cajamarca",
           "away": "Los Chankas"
         },
         {
           "match_id": "match_fmb_per1_2026_20261116_club_deportivo_moquegua_atletico_grau",
-          "kickoff_at": "2026-11-16T20:15:00Z",
+          "kickoff_at": "2026-11-16T20:15:00.000Z",
           "home": "Club Deportivo Moquegua",
           "away": "Atlético Grau"
         },
         {
           "match_id": "match_fmb_per1_2026_20261116_cusco_fc_asociacion_deportiva_tarma",
-          "kickoff_at": "2026-11-16T20:15:00Z",
+          "kickoff_at": "2026-11-16T20:15:00.000Z",
           "home": "Cusco FC",
           "away": "Asociación Deportiva Tarma"
         },
@@ -1493,17 +1493,11 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 2,
+      "fixture_count_in_window": 1,
       "fixtures": [
         {
-          "match_id": "match_fmb_uru1_2026_20261115_defensor_sporting_club_atletico_penarol",
-          "kickoff_at": "2026-11-15T23:00:00.000Z",
-          "home": "Defensor Sporting",
-          "away": "Club Atletico Peñarol"
-        },
-        {
           "match_id": "match_fmb_uru1_2026_20261116_montevideo_wanderers_juventud_de_las_piedras",
-          "kickoff_at": "2026-11-16T23:00:00Z",
+          "kickoff_at": "2026-11-16T23:00:00.000Z",
           "home": "Montevideo Wanderers",
           "away": "Juventud de las Piedras"
         }
@@ -1544,7 +1538,7 @@
     "ready": 24,
     "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 110,
+    "fixtures_in_window": 109,
     "leagues_with_fixture_evidence": 24,
     "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
