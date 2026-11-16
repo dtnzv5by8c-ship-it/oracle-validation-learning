@@ -119,6 +119,17 @@ jobs:
           }
           season_cache = {}
           match_cache = {}
+          provider_competition_by_code = {
+              "BRA1":["Brazil Serie A"],
+              "E2":["England League One","League One"],
+              "PAR1":["Paraguay Primera Division","Paraguay Primera División"],
+              "QAT1":["Qatar Stars League","Qatar League"],
+              "CRO":["Croatia HNL","Croatian HNL","HNL"],
+              "SRB1":["Serbian SuperLiga","Serbian Super Liga","SuperLiga"],
+              "ECU1":["Ecuador Primera Categoría Serie A","Ecuador Serie A","Liga Pro"],
+              "PER1":["Peru Primera División","Peru Primera Division","Liga 1"],
+              "EGY1":["Egyptian Premier League","Egypt Premier League"]
+          }
           def current_country_seasons(code):
               country=country_by_code.get(str(code).strip())
               if not country: return []
@@ -137,6 +148,10 @@ jobs:
               out=[]
               for league in payload.get("data") or []:
                   if not any(norm(country)==norm(str(v)) for v in [league.get("country"),league.get("country_name")] if v):
+                      continue
+                  allowed=provider_competition_by_code.get(str(code).strip())
+                  lname=str(league.get("name") or league.get("league_name") or "")
+                  if allowed and not any(norm(a)==norm(lname) for a in allowed):
                       continue
                   for s in league.get("season") or []:
                       sid=str(s.get("id") or "").strip()
