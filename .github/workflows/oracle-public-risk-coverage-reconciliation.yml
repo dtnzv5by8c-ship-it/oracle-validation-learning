@@ -108,7 +108,7 @@ jobs:
           direct=f.get("direct_provider_value_rows",0)
           unavailable=f.get("unavailable_value_rows",0)
           expected=s.get("expected_league_count",50)
-          # Count only governed Selected-50 leagues with direct current-season evidence.
+          # Count only governed Selected-50 leagues with direct current-season evidence.\n          # Gap-probe evidence is admitted only when it is direct provider evidence for an explicit 2026-labelled season.
           # The current snapshot may contain non-selected extras; those never count toward the 50.
           current_seasons={"2026","20262027","2026/2027"}
           registry_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/research/oracle-50-league-readiness-audit/data/prospective/oracle_50_league_fixture_source_registry.csv"
