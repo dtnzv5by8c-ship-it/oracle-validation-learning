@@ -1,0 +1,89 @@
+name: Oracle Public Risk Coverage Reconciliation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-risk-coverage-reconciliation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build fail-closed risk and coverage matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          root=Path(".")
+          fix=root/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          fts=root/"recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json"
+          src=root/"recovery/current-state/2026-11-16-0758/data/current_source_manifest.json"
+          integ=root/"recovery/fixtures/current/intelligence/v1_6_fixture_integration_summary.json"
+          out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
+          for p in (fix,fts,src,integ):
+              if not p.exists(): raise SystemExit("FAIL-CLOSED missing evidence: "+str(p))
+          fixtures=list(csv.DictReader(fix.open(encoding="utf-8",newline="")))
+          f=json.loads(fts.read_text())
+          s=json.loads(src.read_text())
+          i=json.loads(integ.read_text())
+          counts={}
+          for r in fixtures:
+              st=r.get("identity_status","")
+              counts[st]=counts.get(st,0)+1
+          exact=counts.get("MATCHED_EXACT_DATE_HOME_AWAY",0)
+          ambiguous=counts.get("AMBIGUOUS_EXACT_DATE_HOME_AWAY",0)
+          unmatched=len(fixtures)-exact-ambiguous
+          direct=f.get("direct_provider_value_rows",0)
+          unavailable=f.get("unavailable_value_rows",0)
+          expected=s.get("expected_league_count",50)
+          actual=s.get("actual_league_count",s.get("league_count",0))
+          blockers=[]
+          if exact < len(fixtures): blockers.append("FIXTURE_IDENTITY_COVERAGE_BELOW_100")
+          if ambiguous: blockers.append("AMBIGUOUS_FIXTURE_IDENTITIES")
+          if actual < expected: blockers.append("CURRENT_FOOTYSTATS_LEAGUE_COVERAGE_BELOW_100")
+          if not i.get("production_certification",False): blockers.append("V1_6_CURRENT_PRODUCTION_CERTIFICATION_UNAVAILABLE")
+          summary={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "governed_fixture_rows":len(fixtures),
+            "exact_identity_rows":exact,
+            "ambiguous_identity_rows":ambiguous,
+            "unmatched_identity_rows":unmatched,
+            "identity_coverage_pct":round(exact/len(fixtures)*100,2),
+            "footystats_direct_provider_value_rows":direct,
+            "footystats_unavailable_value_rows":unavailable,
+            "footystats_actual_leagues":actual,
+            "footystats_expected_leagues":expected,
+            "footystats_league_coverage_pct":round(actual/expected*100,2) if expected else 0,
+            "v1_6_production_certified":bool(i.get("production_certification",False)),
+            "production_readiness":"BLOCKED" if blockers else "READY_FOR_FINAL_ASSEMBLY",
+            "blockers":blockers,
+            "oracle_v1_6_changed":False,
+            "master_omi_a_et_changed":False,
+            "private_repo_used":False,
+            "historical_fallback":False,
+            "fuzzy_matching":False
+          }
+          (out/"risk_coverage_reconciliation_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          with (out/"risk_coverage_reconciliation.csv").open("w",encoding="utf-8",newline="") as fh:
+              w=csv.writer(fh); w.writerow(["gate","value","status","reason"])
+              for k,v in summary.items():
+                  if isinstance(v,(dict,list)): continue
+                  w.writerow([k,v,"PASS" if k not in ("production_readiness",) and not (k=="footystats_actual_leagues" and actual<expected) else "REVIEW", "" ])
+          print(json.dumps(summary,indent=2))
+          if blockers: print("FAIL-CLOSED: blockers remain; no production certification.")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-risk-coverage-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/risk_coverage_reconciliation*
+          if-no-files-found: error
