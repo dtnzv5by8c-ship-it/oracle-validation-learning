@@ -1,0 +1,102 @@
+name: Oracle Public V1.6 Fixture Integration Audit V2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-v1-6-fixture-integration-v2.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve latest successful public intelligence runs
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY' > /tmp/runs.env
+          import json,os,urllib.request
+          repo=os.environ["GITHUB_REPOSITORY"]; token=os.environ["GH_TOKEN"]
+          req=urllib.request.Request(f"https://api.github.com/repos/{repo}/actions/runs?per_page=100",headers={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"})
+          data=json.load(urllib.request.urlopen(req))
+          for key,name in {"recent":"Oracle Public Recent Form Intelligence","h2h":"Oracle Public Same-League H2H Intelligence"}.items():
+              runs=[r for r in data["workflow_runs"] if r["name"]==name and r["conclusion"]=="success"]
+              if not runs: raise SystemExit("No successful run: "+name)
+              r=max(runs,key=lambda x:x["updated_at"])
+              print(f"{key}_run={r['id']}")
+          PY
+          cat /tmp/runs.env >> "$GITHUB_OUTPUT"
+
+      - name: Download Recent Form artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve.outputs.recent_run }}
+          pattern: oracle-public-recent-form-*
+          merge-multiple: true
+          path: /tmp/recent
+
+      - name: Download H2H artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve.outputs.h2h_run }}
+          pattern: oracle-public-h2h-*
+          merge-multiple: true
+          path: /tmp/h2h
+
+      - name: Build integration audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          root=Path("."); out=root/"recovery/fixtures/current/intelligence"; out.mkdir(parents=True,exist_ok=True)
+          fix=root/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          led=root/"recovery/master_omi_source/2026-11-14/omi_ledger.csv"
+          ft=out/"footystats_current_fixture_intelligence_summary.json"
+          rf=next(Path("/tmp/recent").rglob("recent_form_last5.csv"),None)
+          hh=next(Path("/tmp/h2h").rglob("h2h_same_league.csv"),None)
+          required=[fix,led,ft,rf,hh]
+          for p in required:
+              if not p or not p.exists(): raise SystemExit("FAIL-CLOSED missing evidence: "+str(p))
+          def norm(s): return re.sub(r"\s+"," ",re.sub(r"[^a-z0-9]+"," ",str(s or "").casefold())).strip()
+          def key(r): return (str(r.get("date","")),norm(r.get("home_team") or r.get("provider_home_name")),norm(r.get("away_team") or r.get("provider_away_name")))
+          fixtures=list(csv.DictReader(fix.open(encoding="utf-8",newline="")))
+          ledger=list(csv.DictReader(led.open(encoding="utf-8",newline="")))
+          forms=list(csv.DictReader(rf.open(encoding="utf-8",newline="")))
+          h2hs=list(csv.DictReader(hh.open(encoding="utf-8",newline="")))
+          lmap={key(x):x for x in ledger}
+          fmap={(str(x.get("date","")),norm(x.get("home_team")),norm(x.get("away_team")),x.get("team_side")):x for x in forms}
+          hmap={key(x):x for x in h2hs}
+          rows=[]
+          for f in fixtures:
+              k=key(f); exact=f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY"
+              home=fmap.get((k[0],k[1],k[2],"HOME")) if exact else None
+              away=fmap.get((k[0],k[1],k[2],"AWAY")) if exact else None
+              h=hmap.get(k) if exact else None
+              rows.append({"date":k[0],"home_team":k[1],"away_team":k[2],"fixture_identity":"EXACT" if exact else "NOT_EXACT","v1_6_snapshot":"RECOVERED" if exact and k in lmap else "MISSING","recent_form":"AVAILABLE" if home and away else "MISSING","h2h":h.get("status","MISSING") if h else "MISSING","certification":"RESEARCH_INTEGRATION_ONLY"})
+          with (out/"v1_6_fixture_integration_audit.csv").open("w",encoding="utf-8",newline="") as fh:
+              w=csv.DictWriter(fh,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+          summary={"generated_utc":datetime.now(timezone.utc).isoformat(),"governed_fixture_rows":len(fixtures),"exact_fixture_rows":sum(x["fixture_identity"]=="EXACT" for x in rows),"recent_form_rows":len(forms),"h2h_rows":len(h2hs),"v1_6_snapshot_ledger_rows":len(ledger),"production_certification":False,"status":"RESEARCH_INTEGRATION_ONLY","reason":"Recovered 2026-11-14 V1.6 ledger is not current production evidence.","oracle_v1_6_changed":False,"master_omi_a_et_changed":False}
+          (out/"v1_6_fixture_integration_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-v1-6-integration-v2-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/v1_6_fixture_integration_*
+          if-no-files-found: error
