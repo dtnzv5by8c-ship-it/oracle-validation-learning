@@ -49,16 +49,33 @@ jobs:
                       raise
               raise last
           out=Path("recovery/fixtures/current/intelligence"); out.mkdir(parents=True,exist_ok=True)
+          def norm(s): return re.sub(r"[^a-z0-9]+","",str(s).lower())
+          cat_req=Request("https://api.football-data-api.com/league-list?"+urlencode({"key":API,"chosen_leagues_only":"false"}),headers={"User-Agent":"Oracle-Public-Selected50-Gap-Probe/1.0"})
+          with urlopen(cat_req,timeout=60) as resp: cat_payload=json.loads(resp.read().decode("utf-8"))
+          catalogue=cat_payload.get("data") if isinstance(cat_payload,dict) else None
+          if cat_payload.get("success") is not True or not isinstance(catalogue,list): raise SystemExit("FootyStats league-list failed; fail-closed.")
           results=[]
           for row in targets:
-              # season ID equals selected ID for the current season in the canonical manifest; India is 17964, Russia 17178.
-              sid=row["selected_id"]
-              raw,payload=get(sid)
-              data=payload.get("data") if isinstance(payload,dict) else None
-              data=data if isinstance(data,list) else []
-              digest=hashlib.sha256(raw).hexdigest()
-              results.append({"selected_id":row["selected_id"],"league":row["country"]+" "+row["competition_name"],"season_id":sid,"rows":len(data),"source":"FootyStats API","endpoint":"league-matches","payload_sha256":digest,"status":"DIRECT_PROVIDER_EVIDENCE" if data else "PROVIDER_EMPTY","production_eligible":False,"betting_eligible":False})
-              time.sleep(0.2)
+              country=row["country"].strip(); comp=row["competition_name"].strip(); candidates=[]
+              for league in catalogue:
+                  lname=str(league.get("league_name") or "").strip(); pname=str(league.get("name") or "").strip(); pcountry=str(league.get("country") or "").strip()
+                  if norm(pcountry)==norm(country) and (norm(lname)==norm(comp) or norm(pname)==norm(country+" "+comp)):
+                      candidates.append(league)
+              if len(candidates)!=1:
+                  results.append({"selected_id":row["selected_id"],"league":country+" "+comp,"season_id":"","rows":0,"source":"FootyStats API","endpoint":"league-list","payload_sha256":"","status":"LEAGUE_IDENTITY_UNRESOLVED","production_eligible":False,"betting_eligible":False})
+                  continue
+              league=candidates[0]
+              current=[s for s in (league.get("season") or []) if "2026" in str(s.get("year") or s.get("season") or "") and str(s.get("id") or "").strip()]
+              if not current:
+                  results.append({"selected_id":row["selected_id"],"league":country+" "+comp,"season_id":"","rows":0,"source":"FootyStats API","endpoint":"league-list","payload_sha256":"","status":"NO_CURRENT_2026_SEASON_AVAILABLE","production_eligible":False,"betting_eligible":False})
+                  continue
+              # Probe every explicitly 2026-labelled provider season for this governed league; never use 2025 or earlier.
+              total_rows=0; season_ids=[]; digests=[]
+              for s in current:
+                  sid=str(s["id"]).strip(); raw,payload=get(sid); data=payload.get("data") if isinstance(payload,dict) else None; data=data if isinstance(data,list) else []
+                  total_rows += len(data); season_ids.append(sid); digests.append(hashlib.sha256(raw).hexdigest())
+                  time.sleep(0.2)
+              results.append({"selected_id":row["selected_id"],"league":country+" "+comp,"season_id":";".join(season_ids),"rows":total_rows,"source":"FootyStats API","endpoint":"league-matches","payload_sha256":";".join(digests),"status":"DIRECT_PROVIDER_EVIDENCE" if total_rows else "PROVIDER_EMPTY","production_eligible":False,"betting_eligible":False})
           summary={"generated_utc":__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),"target_selected_leagues":len(targets),"non_empty_current_seasons":sum(x["rows"]>0 for x in results),"empty_current_seasons":sum(x["rows"]==0 for x in results),"api_calls":len(targets),"production_eligible":False,"betting_eligible":False,"fuzzy_matching":False,"historical_fallback":False,"oracle_v1_6_changed":False,"master_omi_a_et_changed":False}
           (out/"selected50_current_gap_probe.csv").write_text("selected_id,league,season_id,rows,source,endpoint,payload_sha256,status,production_eligible,betting_eligible\n"+"\n".join(",".join(str(x[k]).replace(","," ") for k in ["selected_id","league","season_id","rows","source","endpoint","payload_sha256","status","production_eligible","betting_eligible"]) for x in results)+"\n")
           (out/"selected50_current_gap_probe_summary.json").write_text(json.dumps({"summary":summary,"results":results},indent=2,ensure_ascii=False)+"\n")
