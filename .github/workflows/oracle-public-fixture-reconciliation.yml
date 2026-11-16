@@ -220,6 +220,25 @@ jobs:
                       "identity_reason": "",
                   })
               elif len(candidates) > 1:
+                  # Re-run the ambiguity through the governed competition-scoped
+                  # current-season resolver before retaining an ambiguity.
+                  fallback = fallback_candidates(r.get("league_code",""), h, a, datetime.strptime(d,"%Y-%m-%d").date()) if r.get("league_code") else []
+                  if len(fallback)==1:
+                      m=fallback[0]
+                      status="MATCHED_EXACT_DATE_HOME_AWAY"
+                      provider_id=m.get("id"); kickoff_unix=m.get("date_unix")
+                      kickoff_utc=(datetime.fromtimestamp(float(kickoff_unix),tz=timezone.utc).isoformat() if kickoff_unix is not None else "")
+                      status_counts[status]+=1
+                      output.append({
+                          **r,"provider":"FootyStats","provider_fixture_id":provider_id,
+                          "provider_home_id":m.get("homeID"),"provider_away_id":m.get("awayID"),
+                          "provider_home_name":m.get("home_name"),"provider_away_name":m.get("away_name"),
+                          "provider_competition_id":m.get("competition_id"),"provider_season":m.get("season"),
+                          "provider_status":m.get("status"),"provider_kickoff_utc":kickoff_utc,
+                          "provider_kickoff_unix":kickoff_unix,"identity_status":status,
+                          "identity_reason":"Exact current-season competition-scoped reconciliation"
+                      })
+                      continue
                   status = "AMBIGUOUS_EXACT_DATE_HOME_AWAY"
                   status_counts[status] += 1
                   output.append({
