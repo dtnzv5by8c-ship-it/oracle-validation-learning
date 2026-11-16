@@ -1,0 +1,113 @@
+name: Oracle Public Reconciliation Diagnostic
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-reconciliation-diagnostic.yml"
+      - "recovery/master_omi_source/2026-11-14/fixtures.csv"
+      - "recovery/current-state/2026-11-16-0758/database/current_matches.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Diagnose fixture-to-FootyStats reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, re
+          from pathlib import Path
+          from collections import Counter
+
+          fixture_path=Path("recovery/master_omi_source/2026-11-14/fixtures.csv")
+          current_path=Path("recovery/current-state/2026-11-16-0758/database/current_matches.csv")
+          out=Path("recovery/diagnostics")
+          out.mkdir(parents=True, exist_ok=True)
+
+          def norm(s):
+              s=(s or "").strip().lower()
+              s=re.sub(r"[^a-z0-9]+","",s)
+              return s
+
+          with fixture_path.open(newline="",encoding="utf-8") as f:
+              fixtures=list(csv.DictReader(f))
+          with current_path.open(newline="",encoding="utf-8") as f:
+              current=list(csv.DictReader(f))
+
+          upcoming=[r for r in current if (r.get("date_utc") or "") >= "2026-11-13T00:00:00+00:00" and str(r.get("finished","")).lower() not in {"true","1"}]
+
+          def fkey(r):
+              return ((r.get("date") or "")[:10], norm(r.get("home_team")), norm(r.get("away_team")))
+          def ckey(r):
+              return ((r.get("date_utc") or "")[:10], norm(r.get("home_team")), norm(r.get("away_team")))
+
+          exact=Counter(ckey(r) for r in upcoming)
+          by_date=Counter((r.get("date_utc") or "")[:10] for r in upcoming)
+          fixture_dates=Counter((r.get("date") or "")[:10] for r in fixtures)
+
+          exact_matches=0
+          date_team_matches=0
+          examples=[]
+          for r in fixtures:
+              k=fkey(r)
+              if exact.get(k,0):
+                  exact_matches+=1
+              elif any(ckey(c)==k for c in upcoming):
+                  date_team_matches+=1
+              elif len(examples)<20:
+                  examples.append({
+                      "date":r.get("date"),
+                      "home":r.get("home_team"),
+                      "away":r.get("away_team"),
+                      "league_code":r.get("league_code"),
+                      "kickoff_time":r.get("kickoff_time")
+                  })
+
+          report={
+              "status":"DIAGNOSTIC_ONLY",
+              "governance":"Read-only diagnostic. Does not alter Oracle V1.6, Master OMI A:ET, thresholds, calibration, eligibility or production gates.",
+              "fixture_rows":len(fixtures),
+              "current_rows":len(current),
+              "current_upcoming_rows":len(upcoming),
+              "fixture_date_min":min((r.get("date","") for r in fixtures), default=None),
+              "fixture_date_max":max((r.get("date","") for r in fixtures), default=None),
+              "current_upcoming_date_min":min((r.get("date_utc","")[:10] for r in upcoming), default=None),
+              "current_upcoming_date_max":max((r.get("date_utc","")[:10] for r in upcoming), default=None),
+              "exact_date_home_away_matches":exact_matches,
+              "date_home_away_matches_recomputed":date_team_matches,
+              "unmatched_fixture_rows":len(fixtures)-exact_matches,
+              "current_upcoming_by_date":dict(sorted(by_date.items())),
+              "fixture_by_date":dict(sorted(fixture_dates.items())),
+              "sample_unmatched":examples
+          }
+          report["diagnostic_conclusion"]=(
+              "Current staging contains no upcoming rows matching the recovered 385-fixture spine by date+home+away."
+              if exact_matches==0 else
+              "At least one upcoming fixture matches the recovered spine by date+home+away; the zero-coverage gate should be decomposed further by league/time/provider identity."
+          )
+          (out/"public_reconciliation_diagnostic_2026-11-16.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(report,indent=2))
+          PY
+
+      - name: Persist diagnostic evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-public-diagnostic-bot"
+          git config user.email "oracle-public-diagnostic-bot@users.noreply.github.com"
+          git add recovery/diagnostics/public_reconciliation_diagnostic_2026-11-16.json
+          if git diff --cached --quiet; then
+            echo "No diagnostic changes."
+            exit 0
+          fi
+          git commit -m "Add public reconciliation diagnostic for current FootyStats staging"
+          git push
