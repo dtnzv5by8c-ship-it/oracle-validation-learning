@@ -34,6 +34,7 @@ concurrency:
 jobs:
   completion:
     if: ${{ false }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
