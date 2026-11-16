@@ -92,22 +92,8 @@ jobs:
             ("Under 4.5 %","UNDER_4_5_PCT","seasonUnder45Percentage","under45_percentage"),
           ]
 
-          catalogue=api("league-list",{"chosen_leagues_only":"false"}).get("data") or []
-          if not catalogue:
-              raise SystemExit("FAIL-CLOSED: FootyStats league catalogue returned no data.")
-
-          def digits(s):
-              return re.sub(r"[^0-9]","",str(s or ""))
-
-          season_index={}
-          for lg in catalogue:
-              comp_id=str(lg.get("id") or lg.get("league_id") or "").strip()
-              for ss in (lg.get("season") or []):
-                  sid=str(ss.get("id") or "").strip()
-                  year=str(ss.get("year") or "").strip()
-                  if comp_id and sid and year:
-                      season_index[(comp_id,digits(year))]=sid
-
+          # todays-matches exposes the numeric league-season identifier in provider_competition_id.
+          # FootyStats league-teams requires that numeric season_id; provider_season is only a display label.
           team_cache={}
           evidence=[]
           audit=[]
@@ -129,10 +115,10 @@ jobs:
               fid=r.get("provider_fixture_id")
               season_label=str(r.get("provider_season") or "").strip()
               comp_id=str(r.get("provider_competition_id") or "").strip()
-              sid=season_index.get((comp_id,digits(season_label)))
+              sid=comp_id
               kickoff_raw=r.get("provider_kickoff_unix")
               if not sid:
-                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_SEASON_ID_UNRESOLVED","provider_competition_id":comp_id,"provider_season":season_label})
+                  audit.append({**r,"intelligence_status":"UNVERIFIED","reason":"PROVIDER_SEASON_ID_MISSING","provider_competition_id":comp_id,"provider_season":season_label})
                   continue
               try:
                   kickoff=int(float(kickoff_raw))
@@ -267,7 +253,6 @@ jobs:
               "denominator_unavailable_rows":denom_missing,
               "unverified_value_rows":unverified,
               "metrics_requested":len(metrics),
-              "provider_catalogue_resolved":len(season_index),
               "private_repository_used":False,
               "historical_season_fallback_used":False,
               "fuzzy_matching_used":False,
