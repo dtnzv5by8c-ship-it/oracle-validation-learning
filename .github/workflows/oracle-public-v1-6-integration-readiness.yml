@@ -28,20 +28,70 @@ jobs:
           checks["footystats_summary"]= (out/"footystats_current_fixture_intelligence_summary.json").exists()
           checks["recent_form_artifact_expected"]=True
           checks["h2h_artifact_expected"]=True
-          # Existing production V1.6 ledger must be present before any integration is certified.
+
+          fixtures=list(csv.DictReader((root/"recovery/fixtures/current/governed_fixture_reconciliation.csv").open(encoding="utf-8",newline=""))) if checks["fixture_reconciliation"] else []
+          exact=sum(1 for r in fixtures if r.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY")
+          checks["fixture_identity_100pct"]=bool(fixtures) and exact==len(fixtures)
+
           candidates=[
             root/"research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv",
             root/"recovery/master_omi_source/2026-11-14/omi_ledger.csv"
           ]
-          checks["v1_6_ledger_source"]=any(p.exists() for p in candidates)
-          # Protected production boundaries: readiness audit never writes them.
+          ledger=next((p for p in candidates if p.exists() and p.stat().st_size),None)
+          checks["v1_6_ledger_source"]=ledger is not None
+          checks["v1_6_ledger_is_recovered_snapshot"]=ledger is not None and ledger.as_posix().startswith("recovery/master_omi_source/")
+          checks["v1_6_ledger_current_date_window"]=False
+          checks["v1_6_ledger_strict_pre_match_provenance"]=False
+          if ledger is not None:
+              try:
+                  rows=list(csv.DictReader(ledger.open(encoding="utf-8",newline="")))
+                  dates={str(r.get("date",""))[:10] for r in rows if str(r.get("date","")).strip()}
+                  # A recovered 2026-11-14 snapshot is not a current production ledger merely because it exists.
+                  checks["v1_6_ledger_current_date_window"]=(
+                      bool(rows)
+                      and min(dates) >= "2026-11-13"
+                      and max(dates) <= "2026-11-24"
+                      and not checks["v1_6_ledger_is_recovered_snapshot"]
+                  )
+                  # Production certification requires explicit provenance fields and a non-empty prediction timestamp.
+                  required={"prediction_timestamp","data_cutoff_date","feature_snapshot_id","source_manifest_hash","model_code_sha","calibration_id"}
+                  checks["v1_6_ledger_strict_pre_match_provenance"]=(
+                      bool(rows) and required.issubset(set(rows[0].keys()))
+                      and all(str(r.get("prediction_timestamp","")).strip() for r in rows)
+                      and all(str(r.get("data_cutoff_date","")).strip() for r in rows)
+                  )
+              except Exception:
+                  pass
+
+          checks["production_evidence_admissible"]=(
+              checks["v1_6_ledger_source"]
+              and not checks["v1_6_ledger_is_recovered_snapshot"]
+              and checks["v1_6_ledger_current_date_window"]
+              and checks["v1_6_ledger_strict_pre_match_provenance"]
+              and checks["fixture_identity_100pct"]
+          )
           checks["production_logic_modified"]=False
           checks["master_omi_a_et_modified"]=False
-          status="READY_FOR_INTEGRATION" if checks["fixture_reconciliation"] and checks["footystats_summary"] and checks["v1_6_ledger_source"] else "BLOCKED_MISSING_PUBLIC_EVIDENCE"
-          report={"generated_utc":datetime.now(timezone.utc).isoformat(),"status":status,"checks":checks,"governance":"Readiness audit only. No Oracle V1.6 probabilities, thresholds, calibration or eligibility changed. No Master OMI A:ET changes.","next_gate":"Join exact fixture IDs to existing V1.6 outputs, then independently validate risk/coverage before workbook assembly."}
+
+          status="READY_FOR_INTEGRATION" if (
+              checks["fixture_reconciliation"]
+              and checks["footystats_summary"]
+              and checks["production_evidence_admissible"]
+          ) else "BLOCKED_MISSING_OR_INADMISSIBLE_PUBLIC_EVIDENCE"
+
+          report={
+              "generated_utc":datetime.now(timezone.utc).isoformat(),
+              "status":status,
+              "checks":checks,
+              "exact_fixture_rows":exact,
+              "governed_fixture_rows":len(fixtures),
+              "governance":"Readiness audit only. Recovered snapshots are not production evidence. No Oracle V1.6 probabilities, thresholds, calibration or eligibility changed. No Master OMI A:ET changes.",
+              "next_gate":"Require a fresh public V1.6 production ledger with strict pre-match provenance and 100% exact fixture identity before certification; otherwise remain fail-closed."
+          }
           (out/"v1_6_integration_readiness.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
           print(json.dumps(report,indent=2))
           PY
+
       - uses: actions/upload-artifact@v4
         with:
           name: oracle-public-v1-6-readiness-${{ github.run_id }}
