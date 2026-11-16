@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-16T11:01:32.573908+00:00",
+  "generated_utc": "2026-11-16T20:57:47.536819+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -993,26 +993,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 5,
+      "fixture_count_in_window": 2,
       "fixtures": [
-        {
-          "match_id": "match_fmb_per1_2026_20261116_cd_ut_cajamarca_los_chankas",
-          "kickoff_at": "2026-11-16T18:00:00.000Z",
-          "home": "CD UT Cajamarca",
-          "away": "Los Chankas"
-        },
-        {
-          "match_id": "match_fmb_per1_2026_20261116_club_deportivo_moquegua_atletico_grau",
-          "kickoff_at": "2026-11-16T20:15:00.000Z",
-          "home": "Club Deportivo Moquegua",
-          "away": "Atlético Grau"
-        },
-        {
-          "match_id": "match_fmb_per1_2026_20261116_cusco_fc_asociacion_deportiva_tarma",
-          "kickoff_at": "2026-11-16T20:15:00.000Z",
-          "home": "Cusco FC",
-          "away": "Asociación Deportiva Tarma"
-        },
         {
           "match_id": "match_fmb_per1_2026_20261118_alianza_atletico_fbc_melgar",
           "kickoff_at": "2026-11-18T20:00:00Z",
@@ -1207,6 +1189,12 @@
           "away": "FK Zemun"
         },
         {
+          "match_id": "match_fmb_srb1_2026-27_20261121_fk_crvena_zvezda_fk_radnik_surdulica",
+          "kickoff_at": "2026-11-21T13:00:00Z",
+          "home": "FK Crvena Zvezda",
+          "away": "FK Radnik Surdulica"
+        },
+        {
           "match_id": "match_fmb_srb1_2026-27_20261121_ofk_beograd_novi_pazar",
           "kickoff_at": "2026-11-21T14:00:00Z",
           "home": "OFK Beograd",
@@ -1217,12 +1205,6 @@
           "kickoff_at": "2026-11-21T16:00:00Z",
           "home": "Mladost Lučani",
           "away": "Železničar Pančevo"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_fk_crvena_zvezda_fk_radnik_surdulica",
-          "kickoff_at": "2026-11-21T17:00:00Z",
-          "home": "FK Crvena Zvezda",
-          "away": "FK Radnik Surdulica"
         }
       ],
       "request": {
@@ -1538,7 +1520,7 @@
     "ready": 24,
     "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 109,
+    "fixtures_in_window": 106,
     "leagues_with_fixture_evidence": 24,
     "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
