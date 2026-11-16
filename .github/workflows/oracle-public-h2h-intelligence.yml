@@ -2,6 +2,8 @@ name: Oracle Public Same-League H2H Intelligence
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "40 * * * *"
   push:
     paths:
       - ".github/workflows/oracle-public-h2h-intelligence.yml"
@@ -22,7 +24,10 @@ jobs:
           from pathlib import Path
           from datetime import datetime,timezone
           FIX=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
-          MATCH=Path("recovery/current-state/2026-11-16-0758/database/current_matches.csv")
+          snapshots=sorted(Path("recovery/current-state").glob("*/database/current_matches.csv"))
+          if not snapshots: raise SystemExit("FAIL-CLOSED: no public current match snapshot available.")
+          MATCH=snapshots[-1]
+          SNAPSHOT=MATCH.parent.parent.name
           OUT=Path("recovery/fixtures/current/intelligence"); OUT.mkdir(parents=True,exist_ok=True)
           if not FIX.exists() or not MATCH.exists(): raise SystemExit("FAIL-CLOSED: required public current sources missing.")
           fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
@@ -54,7 +59,7 @@ jobs:
                   if draw: dw+=1
                   elif (x[2]==hn and home) or (x[3]==hn and not home): hw+=1
                   else: aw+=1
-              rows.append({"league_code":f.get("league_code"),"date":f.get("date"),"home_team":f.get("provider_home_name"),"away_team":f.get("provider_away_name"),"kickoff_utc":kick.isoformat(),"provider_fixture_id":f.get("provider_fixture_id"),"same_league_only":True,"h2h_count":len(games),"home_wins":hw,"draws":dw,"away_wins":aw,"sample_status":"SUFFICIENT" if len(games)>=5 else "SMALL_SAMPLE" if len(games)>0 else "NO_SAMPLE","status":"VALIDATED" if len(games)>=5 else "NON_BLOCKING_RESEARCH","strict_pre_kickoff":True,"source":"FootyStats current_matches snapshot","source_snapshot":"2026-11-16-0758"})
+              rows.append({"league_code":f.get("league_code"),"date":f.get("date"),"home_team":f.get("provider_home_name"),"away_team":f.get("provider_away_name"),"kickoff_utc":kick.isoformat(),"provider_fixture_id":f.get("provider_fixture_id"),"same_league_only":True,"h2h_count":len(games),"home_wins":hw,"draws":dw,"away_wins":aw,"sample_status":"SUFFICIENT" if len(games)>=5 else "SMALL_SAMPLE" if len(games)>0 else "NO_SAMPLE","status":"VALIDATED" if len(games)>=5 else "NON_BLOCKING_RESEARCH","strict_pre_kickoff":True,"source":"FootyStats current_matches snapshot","source_snapshot":SNAPSHOT})
           fields=list(rows[0]) if rows else ["provider_fixture_id"]
           with (OUT/"h2h_same_league.csv").open("w",encoding="utf-8",newline="") as fh:w=csv.DictWriter(fh,fieldnames=fields);w.writeheader();w.writerows(rows)
           s={"generated_utc":datetime.now(timezone.utc).isoformat(),"governed_fixture_rows":len(fixtures),"h2h_rows":len(rows),"sufficient_5plus":sum(r["sample_status"]=="SUFFICIENT" for r in rows),"small_sample":sum(r["sample_status"]=="SMALL_SAMPLE" for r in rows),"no_sample":sum(r["sample_status"]=="NO_SAMPLE" for r in rows),"same_league_only":True,"strict_pre_kickoff":True,"non_blocking":True,"fuzzy_matching_used":False,"historical_fallback_used":False,"oracle_v1_6_changed":False}
