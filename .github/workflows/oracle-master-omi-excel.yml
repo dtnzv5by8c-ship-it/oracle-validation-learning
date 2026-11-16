@@ -14,10 +14,33 @@ jobs:
   export:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      GH_TOKEN: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-      TARGET_REPO: dtnzv5by8c-ship-it/oracle-football-data
-      SOURCE_BRANCH: main
+    steps:
+      - name: Checkout public repository as the only governed source
+        uses: actions/checkout@v4
+        with:
+          path: oracle
+
+      - name: Enforce public-only source contract
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          required=(
+            research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
+            data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv
+            database/current_prematch_team_state.csv
+            database/matches.csv
+          )
+          missing=0
+          for f in "${required[@]}"; do
+            if [ ! -s "$f" ]; then
+              echo "::error::PUBLIC_SOURCE_ARTIFACT_MISSING=$f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::MASTER_OMI_BLOCKED_NO_PUBLIC_SOURCE_DATA"
+            exit 1
+          fi
     steps:
       - name: Validate secret
         run: test -n "${GH_TOKEN:-}"
