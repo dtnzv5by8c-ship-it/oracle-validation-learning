@@ -1,0 +1,19 @@
+league_code,governed_date,home_team,away_team,governed_kickoff,provider_current_season_dates,provider_current_season_offsets_days,provider_current_season_fixture_ids,diagnosis,promotion_allowed,reason
+PAR1,2026-11-18,2 de Mayo,Sportivo San Lorenzo,00:00:00+0000,2026-11-23,5,8581475,PROVIDER_OTHER_SINGLE_DATE_OFFSET,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PAR1,2026-11-18,Deportivo Recoleta,Guaraní,00:00:00+0000,2026-11-20,2,8581533,PROVIDER_TWO_DAYS_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PAR1,2026-11-18,Nacional Asunción,Cerro Porteño,00:00:00+0000,2026-11-23,5,8581465,PROVIDER_OTHER_SINGLE_DATE_OFFSET,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PAR1,2026-11-18,Olimpia,Sportivo Trinidense,00:00:00+0000,2026-11-22,4,8581529,PROVIDER_OTHER_SINGLE_DATE_OFFSET,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PAR1,2026-11-18,Rubio Ñú,Libertad,00:00:00+0000,2026-11-22,4,8581474,PROVIDER_OTHER_SINGLE_DATE_OFFSET,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PAR1,2026-11-18,Sportivo Ameliano,Sportivo Luqueño,00:00:00+0000,2026-11-20,2,8581509,PROVIDER_TWO_DAYS_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+QAT1,2026-11-19,Al Gharafa,Al Arabi,15:30:00+0000,2026-11-20,1,8605438,PROVIDER_ONE_DAY_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+CRO,2026-11-21,Dinamo Zagreb,Istra 1961,00:00:00+0000,2027-05-01;2026-11-22,"1,161",8546165;8546297,MULTIPLE_PROVIDER_DATES_REQUIRES_REVIEW,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+CRO,2026-11-21,Rijeka,Gorica,00:00:00+0000,2027-05-01;2026-11-22,"1,161",8546151;8546287,MULTIPLE_PROVIDER_DATES_REQUIRES_REVIEW,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+CRO,2026-11-21,Slaven Koprivnica,Osijek,00:00:00+0000,2027-05-01;2026-11-23,"2,161",8546170;8546293,MULTIPLE_PROVIDER_DATES_REQUIRES_REVIEW,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+SRB1,2026-11-21,IMT Novi Beograd,Partizan,00:00:00+0000,2026-11-22,1,8551648,PROVIDER_ONE_DAY_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+SRB1,2026-11-21,Mačva Šabac,Vojvodina,00:00:00+0000,2026-11-22,1,8551647,PROVIDER_ONE_DAY_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+SRB1,2026-11-21,Radnički Kragujevac,Čukarički,00:00:00+0000,2026-11-22,1,8551649,PROVIDER_ONE_DAY_LATER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+ECU1,2026-11-22,CD Universidad Católica,Barcelona,00:00:00+0000,2026-11-21,-1,8714447,PROVIDER_ONE_DAY_EARLIER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+ECU1,2026-11-22,CSD Independiente del Valle,Macará,00:00:00+0000,2026-11-20,-2,8714433,PROVIDER_TWO_DAYS_EARLIER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+ECU1,2026-11-22,Técnico Universitario,Deportivo Cuenca,00:00:00+0000,2026-11-21,-1,8714487,PROVIDER_ONE_DAY_EARLIER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+PER1,2026-11-22,Alianza Lima,FC Cajamarca,00:00:00+0000,2026-11-21,-1,8578250,PROVIDER_ONE_DAY_EARLIER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
+EGY1,2026-11-24,Wadi Degla,Al Ittihad,18:00:00+0000,2026-11-23,-1,8670146,PROVIDER_ONE_DAY_EARLIER,FALSE,Diagnostic only; exact date+home+away identity remains mandatory.
