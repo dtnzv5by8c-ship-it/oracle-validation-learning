@@ -1,0 +1,129 @@
+name: Oracle Public Final Gate Audit
+
+on:
+  schedule:
+    - cron: "55 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-final-gate-audit.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+      - "recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json"
+      - "artifacts/oracle_50_league_fixture_source_reconciliation.json"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: oracle-public-final-gate-audit
+  cancel-in-progress: false
+
+jobs:
+  final-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Resolve latest successful public integration and risk runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: python
+        run: |
+          import json, os, urllib.request
+          repo=os.environ['REPO']; token=os.environ['GH_TOKEN']
+          headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json'}
+          def latest(workflow):
+              u=f'https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?per_page=20'
+              req=urllib.request.Request(u,headers=headers)
+              with urllib.request.urlopen(req) as r: data=json.load(r)['workflow_runs']
+              ok=[x for x in data if x.get('status')=='completed' and x.get('conclusion')=='success']
+              if not ok: raise SystemExit(f'No successful run: {workflow}')
+              return ok[0]
+          out={'v16':latest('oracle-public-v1-6-fixture-integration-v2.yml')['id'],
+               'risk':latest('oracle-public-risk-coverage-reconciliation.yml')['id']}
+          open('/tmp/run_refs.json','w').write(json.dumps(out,indent=2))
+          print(json.dumps(out,indent=2))
+
+      - name: Download latest public evidence artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: python
+        run: |
+          import json, os, urllib.request, zipfile, io, pathlib
+          repo=os.environ['REPO']; token=os.environ['GH_TOKEN']
+          h={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json'}
+          refs=json.load(open('/tmp/run_refs.json'))
+          for key in ('v16','risk'):
+              rid=refs[key]
+              u=f'https://api.github.com/repos/{repo}/actions/runs/{rid}/artifacts?per_page=100'
+              req=urllib.request.Request(u,headers=h)
+              with urllib.request.urlopen(req) as r: arts=json.load(r)['artifacts']
+              arts=[a for a in arts if not a.get('expired')]
+              if not arts: raise SystemExit(f'No live artifact for {key}')
+              aid=arts[0]['id']
+              u=f'https://api.github.com/repos/{repo}/actions/artifacts/{aid}/zip'
+              req=urllib.request.Request(u,headers=h)
+              with urllib.request.urlopen(req) as r: data=r.read()
+              root=pathlib.Path('/tmp')/key; root.mkdir(parents=True,exist_ok=True)
+              with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(root)
+              print(key,rid,aid,arts[0]['name'])
+
+      - name: Compute fail-closed final gate
+        shell: python
+        run: |
+          import csv,json
+          from pathlib import Path
+          from datetime import datetime,timezone
+          def lj(p): return json.loads(Path(p).read_text())
+          recon=list(csv.DictReader(Path('recovery/fixtures/current/governed_fixture_reconciliation.csv').open(encoding='utf-8',newline='')))
+          fs=lj('recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json')
+          vf=list(Path('/tmp/v16').rglob('v1_6_fixture_integration_summary.json'))
+          rf=list(Path('/tmp/risk').rglob('risk_coverage_reconciliation_summary.json'))
+          exact=sum(x.get('identity_status')=='MATCHED_EXACT_DATE_HOME_AWAY' for x in recon)
+          amb=sum(x.get('identity_status')=='AMBIGUOUS_EXACT_DATE_HOME_AWAY' for x in recon)
+          unmatched=sum(x.get('identity_status')=='UNMATCHED_CURRENT_FOOTYSTATS' for x in recon)
+          blockers=[]
+          if len(recon)!=385: blockers.append(f'FIXTURE_UNIVERSE_NOT_385:{len(recon)}')
+          if exact!=385: blockers.append(f'FIXTURE_IDENTITY_NOT_100_PERCENT:{exact}/385')
+          if amb: blockers.append(f'AMBIGUOUS_IDENTITIES:{amb}')
+          if fs.get('unverified_value_rows',0): blockers.append('FOOTYSTATS_UNVERIFIED_VALUES_PRESENT')
+          if fs.get('historical_season_fallback_used'): blockers.append('HISTORICAL_FALLBACK_USED')
+          if fs.get('fuzzy_matching_used'): blockers.append('FUZZY_MATCHING_USED')
+          if fs.get('private_repository_used'): blockers.append('PRIVATE_REPOSITORY_USED')
+          v16=lj(vf[0]) if vf else {}; risk=lj(rf[0]) if rf else {}
+          if not vf or not v16.get('production_certification',False): blockers.append('V1_6_PRODUCTION_CERTIFICATION_FALSE')
+          if not rf: blockers.append('RISK_COVERAGE_SUMMARY_MISSING')
+          elif risk.get('status') not in ('PASS','READY'): blockers.append('RISK_COVERAGE_NOT_READY')
+          out={'generated_utc':datetime.now(timezone.utc).isoformat(),'status':'PASS' if not blockers else 'BLOCKED_FAIL_CLOSED',
+               'completion_percent':100 if not blockers else 90,'governed_fixture_rows':len(recon),
+               'exact_identity_rows':exact,'exact_identity_percent':round(exact/len(recon)*100,2) if recon else 0,
+               'ambiguous_identity_rows':amb,'unmatched_identity_rows':unmatched,
+               'footystats_direct_provider_value_rows':fs.get('direct_provider_value_rows'),
+               'v1_6_production_certified':bool(v16.get('production_certification',False)),
+               'master_omi_final_assembled':False,'master_omi_a_et_integrity_verified':False,
+               'formula_count_preserved':False,'pit_chronology_final_verified':False,'production_ready':not blockers,
+               'blockers':blockers,'private_repository_used':False,'oracle_v1_6_changed':False,'master_omi_a_et_changed':False,
+               'governance':'Audit only; production remains fail-closed.'}
+          p=Path('recovery/fixtures/current/intelligence/public_final_gate_audit_summary.json')
+          p.write_text(json.dumps(out,indent=2)+'\n'); print(json.dumps(out,indent=2))
+
+      - name: Persist final gate audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-public-final-gate-bot"
+          git config user.email "oracle-public-final-gate-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/intelligence/public_final_gate_audit_summary.json
+          if git diff --cached --quiet; then echo "No final-gate audit change."; else git commit -m "Persist public final gate audit"; git push; fi
+
+      - name: Upload final gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-final-gate-audit-${{ github.run_id }}
+          path: recovery/fixtures/current/intelligence/public_final_gate_audit_summary.json
+          retention-days: 30
