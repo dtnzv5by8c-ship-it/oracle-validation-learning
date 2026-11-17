@@ -1,0 +1,13 @@
+{
+  "generated_utc": "2026-11-17T09:50:25.552266+00:00",
+  "governed_fixture_rows": 385,
+  "unmatched_rows": 20,
+  "classification_counts": {
+    "PROVIDER_NOT_FOUND_IN_CURRENT_SEASON": 2,
+    "PROVIDER_SCHEDULE_DIFFERENCE": 18
+  },
+  "governance": "Diagnostic classification only. Exact date+home+away identity remains mandatory; no fuzzy matching, historical fallback, synthetic data, Oracle V1.6 changes, or Master OMI A:ET changes.",
+  "production_model_logic_changed": false,
+  "master_omi_a_et_changed": false,
+  "private_repository_used": false
+}
