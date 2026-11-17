@@ -53,7 +53,7 @@ jobs:
               return ok[0]['name']
           v=latest('oracle-public-v1-6-fixture-integration-v2.yml')
           r=latest('oracle-public-risk-coverage-reconciliation.yml')
-          refs={'v16_run_id':v,'v16_artifact_name':art(v,'oracle-public-v1-6-fixture-integration'),
+          refs={'v16_run_id':v,'v16_artifact_name':art(v,'oracle-public-v1-6-integration-v2'),
                 'risk_run_id':r,'risk_artifact_name':art(r,'oracle-public-risk-coverage')}
           with open('/tmp/run_refs.json','w') as f: json.dump(refs,f,indent=2)
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
