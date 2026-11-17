@@ -117,7 +117,7 @@ jobs:
               "RSA":"South Africa","KSA1":"Saudi Arabia","ECU1":"Ecuador","EGY1":"Egypt","CAN1":"Canada",
               "CRO":"Croatia","G1":"Greece","T1":"Turkey","WAL1":"Wales","ALEAGUE":"Australia","JPN1":"Japan",
               "MEX1":"Mexico","MLS":"USA","N1":"Netherlands","NOR":"Norway","PER1":"Peru","POL":"Poland",
-              "QAT1":"Qatar","ROU":"Romania","SWE":"Sweden","UKR":"Ukraine","BRA1":"Brazil","BUL1":"Bulgaria","DEN1":"Denmark"
+              "QAT1":"Qatar","ROU":"Romania","SWE":"Sweden","UKR":"Ukraine","PAR1":"Paraguay","BRA1":"Brazil","BUL1":"Bulgaria","DEN1":"Denmark"
           }
           season_cache = {}
           match_cache = {}
@@ -159,6 +159,18 @@ jobs:
                       sid=str(s.get("id") or "").strip()
                       label=str(s.get("year") or s.get("season") or "").strip()
                       if sid and "2026" in label: out.append((sid,label,league.get("name") or league.get("league_name") or ""))
+              # Some FootyStats league names do not exactly match the governed
+              # competition alias list. If the scoped resolver finds no 2026 season,
+              # retry at country scope and still require exact date+home+away identity.
+              if not out and provider_competition_by_code.get(str(code).strip()):
+                  for league in payload.get("data") or []:
+                      if not any(norm(country)==norm(str(v)) for v in [league.get("country"),league.get("country_name")] if v):
+                          continue
+                      for s in league.get("season") or []:
+                          sid=str(s.get("id") or "").strip()
+                          label=str(s.get("year") or s.get("season") or "").strip()
+                          if sid and "2026" in label:
+                              out.append((sid,label,league.get("name") or league.get("league_name") or ""))
               season_cache[code]=out
               return out
 
