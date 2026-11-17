@@ -1,0 +1,26 @@
+{
+  "generated_utc": "2026-11-17T04:37:21.450658+00:00",
+  "status": "BLOCKED_FAIL_CLOSED",
+  "completion_percent": 90,
+  "governed_fixture_rows": 385,
+  "exact_identity_rows": 365,
+  "exact_identity_percent": 94.81,
+  "ambiguous_identity_rows": 0,
+  "unmatched_identity_rows": 20,
+  "footystats_direct_provider_value_rows": 2190,
+  "v1_6_production_certified": false,
+  "master_omi_final_assembled": false,
+  "master_omi_a_et_integrity_verified": false,
+  "formula_count_preserved": false,
+  "pit_chronology_final_verified": false,
+  "production_ready": false,
+  "blockers": [
+    "FIXTURE_IDENTITY_NOT_100_PERCENT:365/385",
+    "V1_6_PRODUCTION_CERTIFICATION_FALSE",
+    "RISK_COVERAGE_NOT_READY"
+  ],
+  "private_repository_used": false,
+  "oracle_v1_6_changed": false,
+  "master_omi_a_et_changed": false,
+  "governance": "Audit only; production remains fail-closed."
+}
