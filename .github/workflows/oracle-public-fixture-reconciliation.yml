@@ -121,6 +121,7 @@ jobs:
           }
           season_cache = {}
           match_cache = {}
+          resolver_diagnostics = {}
           provider_competition_by_code = {
               "BRA1":["Brazil Serie A"],
               "E2":["England League One","League One"],
@@ -172,6 +173,7 @@ jobs:
                           if sid and any(y in label for y in ("2026","2027")):
                               out.append((sid,label,league.get("name") or league.get("league_name") or ""))
               season_cache[code]=out
+              resolver_diagnostics.setdefault(str(code).strip(), {})["season_candidates"] = out
               return out
 
           def fallback_candidates(code, home, away, target_date):
@@ -196,6 +198,7 @@ jobs:
                       md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date()
                       if md==target_date and norm(m.get("home_name"))==home and norm(m.get("away_name"))==away:
                           hits.append(m)
+              resolver_diagnostics.setdefault(str(code).strip(), {})["match_fallback_hits"] = len(hits)
               return hits
 
           output = []
@@ -337,6 +340,7 @@ jobs:
               "master_omi_a_et_changed": False,
               "governance": "Identity reconciliation only. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
               "retrievals": retrievals,
+              "resolver_diagnostics": resolver_diagnostics,
           }
           (out / "governed_fixture_reconciliation_summary.json").write_text(
               json.dumps(summary, indent=2) + "\n", encoding="utf-8"
