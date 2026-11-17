@@ -1,0 +1,181 @@
+name: Oracle Public Unmatched Fixture Classification
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-unmatched-fixture-classification.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-unmatched-fixture-classification
+  cancel-in-progress: false
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+    steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v4
+
+      - name: Validate source
+        run: |
+          test -n "${FOOTYSTATS_API_KEY:-}"
+          test -f recovery/fixtures/current/governed_fixture_reconciliation.csv
+
+      - name: Classify unresolved fixtures without weakening identity governance
+        shell: python
+        run: |
+          import csv, json, os, re, time, unicodedata
+          from collections import Counter
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          API = os.environ["FOOTYSTATS_API_KEY"]
+          src = Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          out = Path("recovery/fixtures/current")
+          rows = list(csv.DictReader(src.open(encoding="utf-8", newline="")))
+          unresolved = [r for r in rows if r.get("identity_status") == "UNMATCHED_CURRENT_FOOTYSTATS"]
+
+          def norm(v):
+              return re.sub(r"[^a-z0-9]+","",unicodedata.normalize("NFKD",str(v or "")).encode("ascii","ignore").decode().lower())
+
+          country_by_code = {
+              "E2":"England","PAR1":"Paraguay","QAT1":"Qatar","CRO":"Croatia","SRB1":"Serbia",
+              "ECU1":"Ecuador","PER1":"Peru","EGY1":"Egypt","BRA1":"Brazil"
+          }
+          competition_aliases = {
+              "E2":["England League Two","England EFL League Two","League Two"],
+              "PAR1":["Paraguay Primera Division","Paraguay Primera División"],
+              "QAT1":["Qatar Stars League","Qatar League"],
+              "CRO":["Croatia HNL","Croatian HNL","HNL"],
+              "SRB1":["Serbian SuperLiga","Serbian Super Liga","SuperLiga"],
+              "ECU1":["Ecuador Primera Categoría Serie A","Ecuador Serie A","Liga Pro"],
+              "PER1":["Peru Primera División","Peru Primera Division","Liga 1"],
+              "EGY1":["Egyptian Premier League","Egypt Premier League"]
+          }
+
+          def get(url):
+              req=Request(url,headers={"User-Agent":"Oracle-Public-Unmatched-Fixture-Classification/1.0"})
+              for attempt in range(3):
+                  try:
+                      with urlopen(req,timeout=60) as r:
+                          p=json.loads(r.read().decode("utf-8"))
+                      if p.get("success") is not True: raise RuntimeError("FootyStats success=false")
+                      return p
+                  except Exception as e:
+                      if getattr(e,"code",None)==429 and attempt<2:
+                          time.sleep(5*(attempt+1)); continue
+                      raise
+
+          league_list = get("https://api.football-data-api.com/league-list?"+urlencode({"key":API,"chosen_leagues_only":"false"}))
+          season_map={}
+          for code in sorted(set(r.get("league_code","") for r in unresolved)):
+              country=country_by_code.get(code)
+              candidates=[]
+              for league in league_list.get("data") or []:
+                  if country and not any(norm(country)==norm(str(v)) for v in [league.get("country"),league.get("country_name")] if v):
+                      continue
+                  aliases=competition_aliases.get(code)
+                  lname=str(league.get("name") or league.get("league_name") or "")
+                  if aliases and not any(norm(a)==norm(lname) for a in aliases):
+                      continue
+                  for s in league.get("season") or []:
+                      sid=str(s.get("id") or "")
+                      label=str(s.get("year") or s.get("season") or "")
+                      if sid and any(y in label for y in ("2026","2027")):
+                          candidates.append((sid,label,lname))
+              if not candidates and code in competition_aliases:
+                  for league in league_list.get("data") or []:
+                      if country and not any(norm(country)==norm(str(v)) for v in [league.get("country"),league.get("country_name")] if v):
+                          continue
+                      for s in league.get("season") or []:
+                          sid=str(s.get("id") or ""); label=str(s.get("year") or s.get("season") or "")
+                          if sid and any(y in label for y in ("2026","2027")):
+                              candidates.append((sid,label,str(league.get("name") or league.get("league_name") or "")))
+              season_map[code]=candidates
+
+          cache={}
+          def season_rows(sid):
+              if sid in cache: return cache[sid]
+              page=1; all_rows=[]
+              while True:
+                  p=get("https://api.football-data-api.com/league-matches?"+urlencode({"key":API,"season_id":sid,"page":page,"max_per_page":1000}))
+                  all_rows.extend(p.get("data") or [])
+                  pager=p.get("pager") or {}; mx=int(pager.get("max_page") or page)
+                  if page>=mx: break
+                  page+=1
+              cache[sid]=all_rows
+              return all_rows
+
+          classified=[]
+          counts=Counter()
+          for r in unresolved:
+              code=r.get("league_code",""); h=norm(r.get("home_team")); a=norm(r.get("away_team"))
+              target=datetime.strptime(str(r.get("date"))[:10],"%Y-%m-%d").date()
+              pair_hits=[]; exact_date_hits=[]
+              for sid,label,lname in season_map.get(code,[]):
+                  for m in season_rows(sid):
+                      mh=norm(m.get("home_name")); ma=norm(m.get("away_name"))
+                      if mh==h and ma==a:
+                          ts=m.get("date_unix")
+                          md=datetime.fromtimestamp(float(ts),tz=timezone.utc).date() if ts is not None else None
+                          hit={"provider_fixture_id":m.get("id"),"date":md.isoformat() if md else "","season":m.get("season"),"competition_id":m.get("competition_id"),"league":lname}
+                          pair_hits.append(hit)
+                          if md==target: exact_date_hits.append(hit)
+              if exact_date_hits:
+                  category="PROVIDER_CURRENT_EXACT_MATCH_RECONCILIATION_ANOMALY"
+              elif pair_hits:
+                  category="PROVIDER_SCHEDULE_DIFFERENCE"
+              else:
+                  category="PROVIDER_NOT_FOUND_IN_CURRENT_SEASON"
+              counts[category]+=1
+              classified.append({**r,"classification":category,"same_pair_current_season_hits":len(pair_hits),
+                                  "exact_date_hits":len(exact_date_hits),
+                                  "provider_pair_evidence":json.dumps(pair_hits,separators=(",",":"))})
+
+          result_path=out/"unmatched_fixture_classification.csv"
+          fields=list(classified[0].keys()) if classified else ["classification"]
+          with result_path.open("w",encoding="utf-8",newline="") as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(classified)
+
+          summary={
+              "generated_utc":datetime.now(timezone.utc).isoformat(),
+              "governed_fixture_rows":len(rows),
+              "unmatched_rows":len(unresolved),
+              "classification_counts":dict(counts),
+              "governance":"Diagnostic classification only. Exact date+home+away identity remains mandatory; no fuzzy matching, historical fallback, synthetic data, Oracle V1.6 changes, or Master OMI A:ET changes.",
+              "production_model_logic_changed":False,
+              "master_omi_a_et_changed":False,
+              "private_repository_used":False
+          }
+          (out/"unmatched_fixture_classification_summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+
+      - name: Persist classification evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-public-fixture-bot"
+          git config user.email "oracle-public-fixture-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/unmatched_fixture_classification.csv recovery/fixtures/current/unmatched_fixture_classification_summary.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Classify unresolved current FootyStats fixtures"
+          git push
+
+      - name: Upload classification artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-public-unmatched-fixture-classification-${{ github.run_id }}
+          path: recovery/fixtures/current/unmatched_fixture_classification*
+          retention-days: 30
