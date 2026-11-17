@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-17T06:18:36.777582+00:00",
+  "generated_utc": "2026-11-17T07:45:55.008868+00:00",
   "source": "FootyStats API",
   "endpoint": "todays-matches",
   "governed_fixture_rows": 385,
@@ -30,69 +30,1041 @@
   "retrievals": [
     {
       "date": "2026-11-13",
-      "retrieved_utc": "2026-11-17T06:17:46.394175+00:00",
+      "retrieved_utc": "2026-11-17T07:45:04.482771+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-14",
-      "retrieved_utc": "2026-11-17T06:17:46.582784+00:00",
+      "retrieved_utc": "2026-11-17T07:45:04.675325+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-15",
-      "retrieved_utc": "2026-11-17T06:17:46.757196+00:00",
+      "retrieved_utc": "2026-11-17T07:45:04.826912+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-16",
-      "retrieved_utc": "2026-11-17T06:17:46.888769+00:00",
+      "retrieved_utc": "2026-11-17T07:45:04.968936+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-18",
-      "retrieved_utc": "2026-11-17T06:17:47.011366+00:00",
+      "retrieved_utc": "2026-11-17T07:45:05.306649+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-19",
-      "retrieved_utc": "2026-11-17T06:17:47.165990+00:00",
+      "retrieved_utc": "2026-11-17T07:45:05.433715+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-20",
-      "retrieved_utc": "2026-11-17T06:17:47.309923+00:00",
+      "retrieved_utc": "2026-11-17T07:45:05.572207+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-21",
-      "retrieved_utc": "2026-11-17T06:17:47.509495+00:00",
+      "retrieved_utc": "2026-11-17T07:45:06.055322+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-22",
-      "retrieved_utc": "2026-11-17T06:17:47.689260+00:00",
+      "retrieved_utc": "2026-11-17T07:45:06.207668+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-23",
-      "retrieved_utc": "2026-11-17T06:17:47.821094+00:00",
+      "retrieved_utc": "2026-11-17T07:45:06.320744+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-24",
-      "retrieved_utc": "2026-11-17T06:17:47.979481+00:00",
+      "retrieved_utc": "2026-11-17T07:45:06.460901+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     }
-  ]
+  ],
+  "resolver_diagnostics": {
+    "E2": {
+      "season_candidates": [
+        [
+          "15050",
+          "20252026",
+          "England Premier League"
+        ],
+        [
+          "17146",
+          "20262027",
+          "England Premier League"
+        ],
+        [
+          "14930",
+          "20252026",
+          "England Championship"
+        ],
+        [
+          "17184",
+          "20262027",
+          "England Championship"
+        ],
+        [
+          "14934",
+          "20252026",
+          "England EFL League One"
+        ],
+        [
+          "17180",
+          "20262027",
+          "England EFL League One"
+        ],
+        [
+          "14935",
+          "20252026",
+          "England EFL League Two"
+        ],
+        [
+          "17185",
+          "20262027",
+          "England EFL League Two"
+        ],
+        [
+          "15657",
+          "20252026",
+          "England National League"
+        ],
+        [
+          "17279",
+          "20262027",
+          "England National League"
+        ],
+        [
+          "15518",
+          "20252026",
+          "England U18 Premier League"
+        ],
+        [
+          "17791",
+          "20262027",
+          "England U18 Premier League"
+        ],
+        [
+          "15634",
+          "20252026",
+          "England Premier League 2 Division One U23"
+        ],
+        [
+          "17792",
+          "20262027",
+          "England Premier League 2 Division One U23"
+        ],
+        [
+          "15543",
+          "20252026",
+          "England Professional Development League"
+        ],
+        [
+          "17570",
+          "20262027",
+          "England Professional Development League"
+        ],
+        [
+          "15238",
+          "20252026",
+          "England FA Cup"
+        ],
+        [
+          "17234",
+          "20262027",
+          "England FA Cup"
+        ],
+        [
+          "15137",
+          "20252026",
+          "England League Cup"
+        ],
+        [
+          "17111",
+          "20262027",
+          "England League Cup"
+        ],
+        [
+          "15119",
+          "20252026",
+          "England Community Shield"
+        ],
+        [
+          "17086",
+          "20262027",
+          "England Community Shield"
+        ],
+        [
+          "15478",
+          "20252026",
+          "England FA Women's Super League"
+        ],
+        [
+          "17475",
+          "20262027",
+          "England FA Women's Super League"
+        ],
+        [
+          "16016",
+          "20252026",
+          "England FA Women's Championship"
+        ],
+        [
+          "17481",
+          "20262027",
+          "England FA Women's Championship"
+        ],
+        [
+          "15598",
+          "20252026",
+          "England EFL Trophy"
+        ],
+        [
+          "17730",
+          "20262027",
+          "England EFL Trophy"
+        ],
+        [
+          "15427",
+          "20252026",
+          "England Isthmian Premier Division"
+        ],
+        [
+          "17393",
+          "20262027",
+          "England Isthmian Premier Division"
+        ],
+        [
+          "15404",
+          "20252026",
+          "England Northern Premier League"
+        ],
+        [
+          "17390",
+          "20262027",
+          "England Northern Premier League"
+        ],
+        [
+          "15428",
+          "20252026",
+          "England Southern League Premier Central"
+        ],
+        [
+          "17395",
+          "20262027",
+          "England Southern League Premier Central"
+        ],
+        [
+          "16477",
+          "20252026",
+          "England Womens FA Cup"
+        ],
+        [
+          "17946",
+          "20262027",
+          "England Womens FA Cup"
+        ],
+        [
+          "17947",
+          "20262027",
+          "England Womens FA Cup"
+        ],
+        [
+          "16051",
+          "20252026",
+          "England FA Womens National League Cup"
+        ],
+        [
+          "17660",
+          "20262027",
+          "England FA Womens National League Cup"
+        ],
+        [
+          "15839",
+          "20252026",
+          "England Premier League Cup U23"
+        ],
+        [
+          "17595",
+          "20262027",
+          "England Premier League Cup U23"
+        ],
+        [
+          "16117",
+          "20252026",
+          "England Central League Cup"
+        ],
+        [
+          "17489",
+          "20262027",
+          "England Central League Cup"
+        ],
+        [
+          "15588",
+          "20252026",
+          "England FA Trophy"
+        ],
+        [
+          "17235",
+          "20262027",
+          "England FA Trophy"
+        ],
+        [
+          "15389",
+          "20252026",
+          "England Southern League Premier South"
+        ],
+        [
+          "17503",
+          "20262027",
+          "England Southern League Premier South"
+        ],
+        [
+          "15409",
+          "20252026",
+          "England Isthmian League Division One North"
+        ],
+        [
+          "17564",
+          "20262027",
+          "England Isthmian League Division One North"
+        ],
+        [
+          "15617",
+          "20252026",
+          "England Southern League Division One Central"
+        ],
+        [
+          "17501",
+          "20262027",
+          "England Southern League Division One Central"
+        ],
+        [
+          "15402",
+          "20252026",
+          "England Isthmian League South East Division"
+        ],
+        [
+          "17561",
+          "20262027",
+          "England Isthmian League South East Division"
+        ],
+        [
+          "15245",
+          "20252026",
+          "England FA Vase"
+        ],
+        [
+          "15969",
+          "20252026",
+          "England London Senior Cup"
+        ],
+        [
+          "17681",
+          "20262027",
+          "England London Senior Cup"
+        ],
+        [
+          "15393",
+          "20252026",
+          "England Northern East Division One"
+        ],
+        [
+          "17562",
+          "20262027",
+          "England Northern East Division One"
+        ],
+        [
+          "15405",
+          "20252026",
+          "England Northern Midlands Division One"
+        ],
+        [
+          "17401",
+          "20262027",
+          "England Northern Midlands Division One"
+        ],
+        [
+          "15401",
+          "20252026",
+          "England Northern West Division One"
+        ],
+        [
+          "17565",
+          "20262027",
+          "England Northern West Division One"
+        ],
+        [
+          "15390",
+          "20252026",
+          "England Southern South Division One"
+        ],
+        [
+          "17648",
+          "20262027",
+          "England Southern South Division One"
+        ],
+        [
+          "15509",
+          "20252026",
+          "England Isthmian League South Central Division"
+        ],
+        [
+          "17422",
+          "20262027",
+          "England Isthmian League South Central Division"
+        ],
+        [
+          "15329",
+          "20252026",
+          "England Counties Leagues Essex Senior League"
+        ],
+        [
+          "17659",
+          "20262027",
+          "England Counties Leagues Essex Senior League"
+        ],
+        [
+          "15619",
+          "20252026",
+          "England Counties Leagues Combined Counties Premier North"
+        ],
+        [
+          "17770",
+          "20262027",
+          "England Counties Leagues Combined Counties Premier North"
+        ],
+        [
+          "15615",
+          "20252026",
+          "England Counties Leagues Combined Counties Premier South"
+        ],
+        [
+          "17771",
+          "20262027",
+          "England Counties Leagues Combined Counties Premier South"
+        ],
+        [
+          "15333",
+          "20252026",
+          "England Counties Leagues Eastern Counties League"
+        ],
+        [
+          "17156",
+          "20262027",
+          "England Counties Leagues Eastern Counties League"
+        ],
+        [
+          "16018",
+          "20252026",
+          "England Counties Leagues Midland League Premier"
+        ],
+        [
+          "17707",
+          "20262027",
+          "England Counties Leagues Midland League Premier"
+        ],
+        [
+          "15132",
+          "20252026",
+          "England Counties Leagues Northern Counties East"
+        ],
+        [
+          "17556",
+          "20262027",
+          "England Counties Leagues Northern Counties East"
+        ],
+        [
+          "15320",
+          "20252026",
+          "England Counties Leagues Northern League One"
+        ],
+        [
+          "17320",
+          "20262027",
+          "England Counties Leagues Northern League One"
+        ],
+        [
+          "15324",
+          "20252026",
+          "England Counties Leagues North West Counties League"
+        ],
+        [
+          "17709",
+          "20262027",
+          "England Counties Leagues North West Counties League"
+        ],
+        [
+          "15586",
+          "20252026",
+          "England Counties Leagues Southern Combination League Premier"
+        ],
+        [
+          "17645",
+          "20262027",
+          "England Counties Leagues Southern Combination League Premier"
+        ],
+        [
+          "15699",
+          "20252026",
+          "England Youth Alliance"
+        ],
+        [
+          "17784",
+          "20262027",
+          "England Youth Alliance"
+        ],
+        [
+          "16438",
+          "20252026",
+          "England FA Youth Cup"
+        ],
+        [
+          "18084",
+          "20262027",
+          "England FA Youth Cup"
+        ],
+        [
+          "15334",
+          "20252026",
+          "England Counties Leagues United Counties League Premier North"
+        ],
+        [
+          "17606",
+          "20262027",
+          "England Counties Leagues United Counties League Premier North"
+        ],
+        [
+          "15317",
+          "20252026",
+          "England Counties Leagues United Counties League Premier South"
+        ],
+        [
+          "17602",
+          "20262027",
+          "England Counties Leagues United Counties League Premier South"
+        ],
+        [
+          "15483",
+          "20252026",
+          "England U18 Professional Development League"
+        ],
+        [
+          "17569",
+          "20262027",
+          "England U18 Professional Development League"
+        ],
+        [
+          "15378",
+          "20252026",
+          "England Womens National League Division One South East"
+        ],
+        [
+          "17331",
+          "20262027",
+          "England Womens National League Division One South East"
+        ],
+        [
+          "15376",
+          "20252026",
+          "England Womens National League Division North"
+        ],
+        [
+          "17776",
+          "20262027",
+          "England Womens National League Division North"
+        ],
+        [
+          "15359",
+          "20252026",
+          "England Womens National League Division Midlands"
+        ],
+        [
+          "17777",
+          "20262027",
+          "England Womens National League Division Midlands"
+        ],
+        [
+          "15370",
+          "20252026",
+          "England Womens National League Division One South West"
+        ],
+        [
+          "17780",
+          "20262027",
+          "England Womens National League Division One South West"
+        ],
+        [
+          "15331",
+          "20252026",
+          "England Womens National League Premier Division North"
+        ],
+        [
+          "17343",
+          "20262027",
+          "England Womens National League Premier Division North"
+        ],
+        [
+          "15847",
+          "20252026",
+          "England Womens National League Premier Division South"
+        ],
+        [
+          "17781",
+          "20262027",
+          "England Womens National League Premier Division South"
+        ],
+        [
+          "15808",
+          "20252026",
+          "England Manchester Premier Cup"
+        ],
+        [
+          "17575",
+          "20262027",
+          "England Manchester Premier Cup"
+        ],
+        [
+          "15400",
+          "20252026",
+          "England Kent Senior Cup"
+        ],
+        [
+          "16069",
+          "20252026",
+          "England Cheshire Senior Cup"
+        ],
+        [
+          "17577",
+          "20262027",
+          "England Cheshire Senior Cup"
+        ],
+        [
+          "15753",
+          "20252026",
+          "England Sheffield and Hallamshire Senior Cup"
+        ],
+        [
+          "17578",
+          "20262027",
+          "England Sheffield and Hallamshire Senior Cup"
+        ],
+        [
+          "15961",
+          "20252026",
+          "England Derbyshire Senior Cup"
+        ],
+        [
+          "17931",
+          "20262027",
+          "England Derbyshire Senior Cup"
+        ],
+        [
+          "16097",
+          "20252026",
+          "England Lancashire Senior Cup"
+        ],
+        [
+          "17899",
+          "20262027",
+          "England Lancashire Senior Cup"
+        ],
+        [
+          "16506",
+          "20252026",
+          "England Central League"
+        ],
+        [
+          "17486",
+          "20262027",
+          "England Central League"
+        ],
+        [
+          "16358",
+          "20252026",
+          "England FA WNL Cup"
+        ],
+        [
+          "17392",
+          "20262027",
+          "England FA WNL Cup"
+        ],
+        [
+          "16058",
+          "20252026",
+          "England Surrey Senior Cup"
+        ],
+        [
+          "17589",
+          "20262027",
+          "England Surrey Senior Cup"
+        ],
+        [
+          "15844",
+          "20252026",
+          "England National League South"
+        ],
+        [
+          "17403",
+          "20262027",
+          "England National League South"
+        ],
+        [
+          "15845",
+          "20252026",
+          "England National League North"
+        ],
+        [
+          "17263",
+          "20262027",
+          "England National League North"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "PAR1": {
+      "season_candidates": [
+        [
+          "16533",
+          "2026",
+          "Paraguay Division Profesional"
+        ],
+        [
+          "16900",
+          "2026",
+          "Paraguay Division Intermedia"
+        ],
+        [
+          "17067",
+          "2026",
+          "Paraguay Copa Paraguay"
+        ],
+        [
+          "16879",
+          "2026",
+          "Paraguay Campeonato Femenino"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "QAT1": {
+      "season_candidates": [
+        [
+          "15038",
+          "20252026",
+          "Qatar Stars League"
+        ],
+        [
+          "17370",
+          "20262027",
+          "Qatar Stars League"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "CRO": {
+      "season_candidates": [
+        [
+          "15053",
+          "20252026",
+          "Croatia Prva HNL"
+        ],
+        [
+          "17087",
+          "20262027",
+          "Croatia Prva HNL"
+        ],
+        [
+          "15191",
+          "20252026",
+          "Croatia Druga HNL"
+        ],
+        [
+          "17278",
+          "20262027",
+          "Croatia Druga HNL"
+        ],
+        [
+          "15491",
+          "20252026",
+          "Croatia Prva HNL Juniori"
+        ],
+        [
+          "17512",
+          "20262027",
+          "Croatia Prva HNL Juniori"
+        ],
+        [
+          "15803",
+          "20252026",
+          "Croatia 3. HNL West"
+        ],
+        [
+          "17747",
+          "20262027",
+          "Croatia 3. HNL West"
+        ],
+        [
+          "15812",
+          "20252026",
+          "Croatia 3. HNL South"
+        ],
+        [
+          "17859",
+          "20262027",
+          "Croatia 3. HNL South"
+        ],
+        [
+          "15785",
+          "20252026",
+          "Croatia 3. HNL East"
+        ],
+        [
+          "17470",
+          "20262027",
+          "Croatia 3. HNL East"
+        ],
+        [
+          "14947",
+          "20252026",
+          "Croatia Croatian Football Cup"
+        ],
+        [
+          "17382",
+          "20262027",
+          "Croatia Croatian Football Cup"
+        ],
+        [
+          "15367",
+          "20252026",
+          "Croatia First League Women"
+        ],
+        [
+          "17361",
+          "20262027",
+          "Croatia First League Women"
+        ],
+        [
+          "15804",
+          "20252026",
+          "Croatia 3. HNL North"
+        ],
+        [
+          "17835",
+          "20262027",
+          "Croatia 3. HNL North"
+        ],
+        [
+          "15799",
+          "20252026",
+          "Croatia 3. HNL Center"
+        ],
+        [
+          "17748",
+          "20262027",
+          "Croatia 3. HNL Center"
+        ],
+        [
+          "16211",
+          "20252026",
+          "Croatia Second NL"
+        ],
+        [
+          "17383",
+          "20262027",
+          "Croatia Second NL"
+        ],
+        [
+          "17075",
+          "20252026",
+          "Croatia Womens Playoffs 1 2"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "SRB1": {
+      "season_candidates": [
+        [
+          "15065",
+          "20252026",
+          "Serbia SuperLiga"
+        ],
+        [
+          "17119",
+          "20262027",
+          "Serbia SuperLiga"
+        ],
+        [
+          "15523",
+          "20252026",
+          "Serbia Prva Liga"
+        ],
+        [
+          "17125",
+          "20262027",
+          "Serbia Prva Liga"
+        ],
+        [
+          "15760",
+          "20252026",
+          "Serbia Srpska Liga Belgrade"
+        ],
+        [
+          "17857",
+          "20262027",
+          "Serbia Srpska Liga Belgrade"
+        ],
+        [
+          "15751",
+          "20252026",
+          "Serbia Srpska Liga Vojvodina"
+        ],
+        [
+          "17858",
+          "20262027",
+          "Serbia Srpska Liga Vojvodina"
+        ],
+        [
+          "15732",
+          "20252026",
+          "Serbia Srpska Liga East"
+        ],
+        [
+          "17794",
+          "20262027",
+          "Serbia Srpska Liga East"
+        ],
+        [
+          "16006",
+          "20252026",
+          "Serbia Srpska Liga West"
+        ],
+        [
+          "17510",
+          "20262027",
+          "Serbia Srpska Liga West"
+        ],
+        [
+          "16389",
+          "20252026",
+          "Serbia Serbian Cup"
+        ],
+        [
+          "17836",
+          "20262027",
+          "Serbia Serbian Cup"
+        ],
+        [
+          "15538",
+          "20252026",
+          "Serbia U19 League"
+        ],
+        [
+          "17483",
+          "20262027",
+          "Serbia U19 League"
+        ],
+        [
+          "15695",
+          "20252026",
+          "Serbia SuperLiga Women"
+        ],
+        [
+          "17500",
+          "20262027",
+          "Serbia SuperLiga Women"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "BRA1": {
+      "season_candidates": [
+        [
+          "16544",
+          "2026",
+          "Brazil Serie A"
+        ]
+      ],
+      "match_fallback_hits": 1
+    },
+    "ECU1": {
+      "season_candidates": [
+        [
+          "16714",
+          "2026",
+          "Ecuador Primera Categor\u00eda Serie A"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "PER1": {
+      "season_candidates": [
+        [
+          "16905",
+          "2026",
+          "Peru Primera Divisi\u00f3n"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "EGY1": {
+      "season_candidates": [
+        [
+          "15544",
+          "20252026",
+          "Egypt Egyptian Premier League"
+        ],
+        [
+          "17689",
+          "20262027",
+          "Egypt Egyptian Premier League"
+        ],
+        [
+          "16430",
+          "20252026",
+          "Egypt Egypt Cup"
+        ],
+        [
+          "17968",
+          "20262027",
+          "Egypt Egypt Cup"
+        ],
+        [
+          "15215",
+          "20252026",
+          "Egypt Second Division"
+        ],
+        [
+          "17412",
+          "20262027",
+          "Egypt Second Division"
+        ],
+        [
+          "16068",
+          "20252026",
+          "Egypt League Cup"
+        ],
+        [
+          "17574",
+          "20262027",
+          "Egypt League Cup"
+        ]
+      ],
+      "match_fallback_hits": 0
+    }
+  }
 }
