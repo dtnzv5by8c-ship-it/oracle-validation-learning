@@ -11,7 +11,7 @@
     "DATA_GATED": 26,
     "READY": 24
   },
-  "fixtures_in_window": 106,
+  "fixtures_in_window": 108,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -120,9 +120,9 @@
       "competition_id": "comp_primera_a_col",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "DATA_GATED",
-      "fixture_count_in_window": 0,
-      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
+      "classification": "READY",
+      "fixture_count_in_window": 3,
+      "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
       "ordinal": "10",
@@ -600,9 +600,9 @@
       "competition_id": "comp_primera_division_uru",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "50",

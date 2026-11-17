@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-16T20:57:47.536819+00:00",
+  "generated_utc": "2026-11-17T03:45:04.358173+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -215,14 +215,33 @@
       "competition_id": "comp_primera_a_col",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "DATA_GATED",
-      "fixture_count_in_window": 0,
-      "fixtures": [],
+      "classification": "READY",
+      "fixture_count_in_window": 3,
+      "fixtures": [
+        {
+          "match_id": "match_fmb_col1_2026_20261120_independiente_medellin_santa_fe",
+          "kickoff_at": "2026-11-20T21:30:00Z",
+          "home": "Independiente Medellín",
+          "away": "Santa Fe"
+        },
+        {
+          "match_id": "match_fmb_col1_2026_20261120_bucaramanga_america_de_cali",
+          "kickoff_at": "2026-11-20T23:35:00Z",
+          "home": "Bucaramanga",
+          "away": "América de Cali"
+        },
+        {
+          "match_id": "match_fmb_col1_2026_20261121_deportivo_cali_millonarios",
+          "kickoff_at": "2026-11-21T01:40:00Z",
+          "home": "Deportivo Cali",
+          "away": "Millonarios"
+        }
+      ],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
+      "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
       "ordinal": "10",
@@ -1474,21 +1493,14 @@
       "competition_id": "comp_primera_division_uru",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_uru1_2026_20261116_montevideo_wanderers_juventud_de_las_piedras",
-          "kickoff_at": "2026-11-16T23:00:00.000Z",
-          "home": "Montevideo Wanderers",
-          "away": "Juventud de las Piedras"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "50",
@@ -1520,7 +1532,7 @@
     "ready": 24,
     "data_gated": 26,
     "source_error": 0,
-    "fixtures_in_window": 106,
+    "fixtures_in_window": 108,
     "leagues_with_fixture_evidence": 24,
     "leagues_without_fixture_evidence": 26,
     "scope_reconciliation_passed": true
