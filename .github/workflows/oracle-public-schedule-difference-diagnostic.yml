@@ -1,0 +1,126 @@
+name: Oracle Public Schedule Difference Diagnostic
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-schedule-difference-diagnostic.yml"
+      - "recovery/fixtures/current/unmatched_fixture_classification.csv"
+  schedule:
+    - cron: "25 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-schedule-difference-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Diagnose exact schedule differences
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, json, os
+          from datetime import date
+
+          src = "recovery/fixtures/current/unmatched_fixture_classification.csv"
+          out_csv = "recovery/fixtures/current/schedule_difference_diagnostic.csv"
+          out_json = "recovery/fixtures/current/schedule_difference_diagnostic_summary.json"
+
+          rows = list(csv.DictReader(open(src, encoding="utf-8")))
+          diffs = [r for r in rows if r.get("classification") == "PROVIDER_SCHEDULE_DIFFERENCE"]
+
+          def parse_evidence(v):
+              try:
+                  return json.loads(v) if v else []
+              except Exception:
+                  return []
+
+          out = []
+          for r in diffs:
+              evidence = parse_evidence(r.get("provider_pair_evidence"))
+              dates = []
+              for e in evidence:
+                  d = e.get("date")
+                  if d:
+                      try:
+                          dates.append({
+                              "date": d,
+                              "season": e.get("season"),
+                              "fixture_id": e.get("provider_fixture_id"),
+                              "competition_id": e.get("competition_id"),
+                              "league": e.get("league")
+                          })
+                      except Exception:
+                          pass
+              target = r["date"]
+              td = date.fromisoformat(target)
+              current = [x for x in dates if x["date"] >= "2026-09-21"]
+              offsets = []
+              for x in current:
+                  offsets.append((date.fromisoformat(x["date"]) - td).days)
+
+              unique_offsets = sorted(set(offsets))
+              if not current:
+                  diagnosis = "NO_POST_CUTOFF_PROVIDER_PAIR_EVIDENCE"
+              elif unique_offsets == [-1]:
+                  diagnosis = "PROVIDER_ONE_DAY_EARLIER"
+              elif unique_offsets == [1]:
+                  diagnosis = "PROVIDER_ONE_DAY_LATER"
+              elif unique_offsets == [2]:
+                  diagnosis = "PROVIDER_TWO_DAYS_LATER"
+              elif unique_offsets == [-2]:
+                  diagnosis = "PROVIDER_TWO_DAYS_EARLIER"
+              elif len(unique_offsets) == 1:
+                  diagnosis = "PROVIDER_OTHER_SINGLE_DATE_OFFSET"
+              else:
+                  diagnosis = "MULTIPLE_PROVIDER_DATES_REQUIRES_REVIEW"
+
+              out.append({
+                  "league_code": r["league_code"],
+                  "governed_date": target,
+                  "home_team": r["home_team"],
+                  "away_team": r["away_team"],
+                  "governed_kickoff": r["kickoff_time"],
+                  "provider_current_season_dates": ";".join(x["date"] for x in current),
+                  "provider_current_season_offsets_days": ",".join(str(x) for x in unique_offsets),
+                  "provider_current_season_fixture_ids": ";".join(str(x["fixture_id"]) for x in current),
+                  "diagnosis": diagnosis,
+                  "promotion_allowed": "FALSE",
+                  "reason": "Diagnostic only; exact date+home+away identity remains mandatory."
+              })
+
+          os.makedirs(os.path.dirname(out_csv), exist_ok=True)
+          fields = list(out[0].keys()) if out else ["diagnosis"]
+          with open(out_csv, "w", newline="", encoding="utf-8") as f:
+              w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(out)
+
+          counts = {}
+          for r in out: counts[r["diagnosis"]] = counts.get(r["diagnosis"], 0) + 1
+          summary = {
+              "generated_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+              "schedule_difference_rows": len(out),
+              "diagnosis_counts": counts,
+              "all_rows_promotion_allowed": False,
+              "governance": "Diagnostic only. No date normalization, fixture promotion, fuzzy matching, historical fallback, Oracle V1.6 change, or Master OMI A:ET change.",
+              "production_model_logic_changed": False,
+              "master_omi_a_et_changed": False,
+              "private_repository_used": False
+          }
+          json.dump(summary, open(out_json, "w", encoding="utf-8"), indent=2)
+          print(json.dumps(summary, indent=2))
+          PY
+
+      - name: Persist diagnostic
+        run: |
+          git config user.name "oracle-public-bot"
+          git config user.email "oracle-public-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/schedule_difference_diagnostic.csv recovery/fixtures/current/schedule_difference_diagnostic_summary.json
+          git diff --cached --quiet || git commit -m "Add public schedule difference diagnostic"
+          git push
