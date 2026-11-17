@@ -22,12 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Diagnose exact schedule differences
+      - name: Diagnose timestamp and timezone representation
         shell: bash
         run: |
           python - <<'PY'
           import csv, json, os
-          from datetime import date
+          from datetime import date, datetime, timezone
 
           src = "recovery/fixtures/current/unmatched_fixture_classification.csv"
           out_csv = "recovery/fixtures/current/schedule_difference_diagnostic.csv"
@@ -36,85 +36,99 @@ jobs:
           rows = list(csv.DictReader(open(src, encoding="utf-8")))
           diffs = [r for r in rows if r.get("classification") == "PROVIDER_SCHEDULE_DIFFERENCE"]
 
-          def parse_evidence(v):
+          def parse(v):
+              try: return json.loads(v) if v else []
+              except Exception: return []
+
+          def unix_to_utc(v):
               try:
-                  return json.loads(v) if v else []
+                  return datetime.fromtimestamp(float(v), tz=timezone.utc)
               except Exception:
-                  return []
+                  return None
 
-          out = []
+          def parse_dt(v):
+              if not v: return None
+              s=v.strip().replace("Z","+00:00")
+              try:
+                  dt=datetime.fromisoformat(s)
+                  return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+              except Exception:
+                  return None
+
+          out=[]
           for r in diffs:
-              evidence = parse_evidence(r.get("provider_pair_evidence"))
-              dates = []
+              evidence=parse(r.get("provider_pair_evidence"))
+              target=date.fromisoformat(r["date"])
+              items=[]
               for e in evidence:
-                  d = e.get("date")
-                  if d:
-                      try:
-                          dates.append({
-                              "date": d,
-                              "season": e.get("season"),
-                              "fixture_id": e.get("provider_fixture_id"),
-                              "competition_id": e.get("competition_id"),
-                              "league": e.get("league")
-                          })
-                      except Exception:
-                          pass
-              target = r["date"]
-              td = date.fromisoformat(target)
-              current = [x for x in dates if x["date"] >= "2026-09-21"]
-              offsets = []
+                  d=e.get("date")
+                  if not d: continue
+                  dt=unix_to_utc(e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix"))
+                  raw_dt=parse_dt(e.get("kickoff_time") or e.get("date_time") or e.get("datetime"))
+                  if dt is None: dt=raw_dt
+                  items.append({
+                      "date":d, "fixture_id":e.get("provider_fixture_id"),
+                      "competition_id":e.get("competition_id"), "season":e.get("season"),
+                      "date_unix":e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix"),
+                      "utc_datetime":dt.isoformat() if dt else "",
+                      "raw_datetime":raw_dt.isoformat() if raw_dt else ""
+                  })
+              current=[x for x in items if x["date"] >= "2026-09-21"]
+              offsets=sorted(set((date.fromisoformat(x["date"])-target).days for x in current))
+              timestamp_deltas=[]
               for x in current:
-                  offsets.append((date.fromisoformat(x["date"]) - td).days)
+                  if x["utc_datetime"]:
+                      try:
+                          governed_dt=parse_dt(r.get("kickoff_time"))
+                          provider_dt=datetime.fromisoformat(x["utc_datetime"])
+                          if governed_dt:
+                              timestamp_deltas.append(int((provider_dt-governed_dt).total_seconds()))
+                      except Exception: pass
 
-              unique_offsets = sorted(set(offsets))
               if not current:
-                  diagnosis = "NO_POST_CUTOFF_PROVIDER_PAIR_EVIDENCE"
-              elif unique_offsets == [-1]:
-                  diagnosis = "PROVIDER_ONE_DAY_EARLIER"
-              elif unique_offsets == [1]:
-                  diagnosis = "PROVIDER_ONE_DAY_LATER"
-              elif unique_offsets == [2]:
-                  diagnosis = "PROVIDER_TWO_DAYS_LATER"
-              elif unique_offsets == [-2]:
-                  diagnosis = "PROVIDER_TWO_DAYS_EARLIER"
-              elif len(unique_offsets) == 1:
-                  diagnosis = "PROVIDER_OTHER_SINGLE_DATE_OFFSET"
+                  diagnosis="NO_POST_CUTOFF_PROVIDER_PAIR_EVIDENCE"
+              elif any(abs(x) in (4,5) for x in offsets):
+                  diagnosis="SCHEDULE_DIFFERENCE_NOT_TIMEZONE_EXPLAINABLE"
+              elif offsets and all(abs(x)<=1 for x in offsets):
+                  diagnosis="TIMEZONE_OR_DATE_REPRESENTATION_REQUIRES_TIMESTAMP_TEST"
               else:
-                  diagnosis = "MULTIPLE_PROVIDER_DATES_REQUIRES_REVIEW"
+                  diagnosis="SCHEDULE_DIFFERENCE_REQUIRES_REVIEW"
 
               out.append({
-                  "league_code": r["league_code"],
-                  "governed_date": target,
-                  "home_team": r["home_team"],
-                  "away_team": r["away_team"],
-                  "governed_kickoff": r["kickoff_time"],
-                  "provider_current_season_dates": ";".join(x["date"] for x in current),
-                  "provider_current_season_offsets_days": ",".join(str(x) for x in unique_offsets),
-                  "provider_current_season_fixture_ids": ";".join(str(x["fixture_id"]) for x in current),
-                  "diagnosis": diagnosis,
-                  "promotion_allowed": "FALSE",
-                  "reason": "Diagnostic only; exact date+home+away identity remains mandatory."
+                  "league_code":r["league_code"], "governed_date":r["date"],
+                  "home_team":r["home_team"], "away_team":r["away_team"],
+                  "governed_kickoff":r["kickoff_time"],
+                  "provider_dates":";".join(x["date"] for x in current),
+                  "provider_fixture_ids":";".join(str(x["fixture_id"]) for x in current),
+                  "provider_utc_datetimes":";".join(x["utc_datetime"] for x in current),
+                  "provider_date_unix":";".join(str(x["date_unix"]) for x in current),
+                  "date_offsets_days":",".join(map(str,offsets)),
+                  "timestamp_deltas_seconds":",".join(map(str,timestamp_deltas)),
+                  "diagnosis":diagnosis,
+                  "promotion_allowed":"FALSE",
+                  "reason":"Diagnostic only; no timezone normalization or fixture promotion."
               })
 
-          os.makedirs(os.path.dirname(out_csv), exist_ok=True)
-          fields = list(out[0].keys()) if out else ["diagnosis"]
-          with open(out_csv, "w", newline="", encoding="utf-8") as f:
-              w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(out)
+          os.makedirs(os.path.dirname(out_csv),exist_ok=True)
+          fields=list(out[0].keys()) if out else ["diagnosis"]
+          with open(out_csv,"w",newline="",encoding="utf-8") as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(out)
 
-          counts = {}
-          for r in out: counts[r["diagnosis"]] = counts.get(r["diagnosis"], 0) + 1
-          summary = {
-              "generated_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
-              "schedule_difference_rows": len(out),
-              "diagnosis_counts": counts,
-              "all_rows_promotion_allowed": False,
-              "governance": "Diagnostic only. No date normalization, fixture promotion, fuzzy matching, historical fallback, Oracle V1.6 change, or Master OMI A:ET change.",
-              "production_model_logic_changed": False,
-              "master_omi_a_et_changed": False,
-              "private_repository_used": False
+          counts={}
+          for r in out: counts[r["diagnosis"]]=counts.get(r["diagnosis"],0)+1
+          summary={
+              "generated_utc":datetime.now(timezone.utc).isoformat(),
+              "schedule_difference_rows":len(out),
+              "diagnosis_counts":counts,
+              "timestamp_field_available_rows":sum(bool(r["provider_date_unix"] or r["provider_utc_datetimes"]) for r in out),
+              "all_rows_promotion_allowed":False,
+              "governance":"Diagnostic only. Timezone/date representation is tested before schedule adjudication; no date normalization, fuzzy matching, historical fallback, Oracle V1.6 change, or Master OMI A:ET change.",
+              "production_model_logic_changed":False,
+              "master_omi_a_et_changed":False,
+              "private_repository_used":False
           }
-          json.dump(summary, open(out_json, "w", encoding="utf-8"), indent=2)
-          print(json.dumps(summary, indent=2))
+          json.dump(summary,open(out_json,"w",encoding="utf-8"),indent=2)
+          print(json.dumps(summary,indent=2))
           PY
 
       - name: Persist diagnostic
@@ -122,5 +136,5 @@ jobs:
           git config user.name "oracle-public-bot"
           git config user.email "oracle-public-bot@users.noreply.github.com"
           git add recovery/fixtures/current/schedule_difference_diagnostic.csv recovery/fixtures/current/schedule_difference_diagnostic_summary.json
-          git diff --cached --quiet || git commit -m "Add public schedule difference diagnostic"
+          git diff --cached --quiet || git commit -m "Add timezone-aware schedule difference diagnostic"
           git push
