@@ -1,0 +1,113 @@
+name: Oracle Public Fixture Actuals Integrity
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-public-fixture-actuals-integrity.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+  schedule:
+    - cron: "35 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-public-fixture-actuals-integrity
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit actuals and pre-match statistics
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json,os,urllib.parse,urllib.request,time
+          from datetime import datetime,timezone
+
+          src="recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          out_csv="recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
+          out_json="recovery/fixtures/current/intelligence/fixture_actuals_integrity_summary.json"
+          rows=list(csv.DictReader(open(src,encoding="utf-8")))
+          key=os.environ.get("FOOTYSTATS_API_KEY","")
+          cache={}
+
+          def get(mid):
+              if not mid or not key: return {}
+              if mid in cache:return cache[mid]
+              url="https://api.football-data-api.com/match?"+urllib.parse.urlencode({"key":key,"match_id":mid})
+              try:
+                  with urllib.request.urlopen(url,timeout=30) as resp:
+                      p=json.loads(resp.read().decode())
+                  d=p.get("data") or p.get("result") or p
+                  if isinstance(d,list): d=d[0] if d else {}
+                  cache[mid]=d if isinstance(d,dict) else {}
+              except Exception as e: cache[mid]={"_error":str(e)}
+              time.sleep(.25)
+              return cache[mid]
+
+          out=[]
+          for r in rows:
+              mid=r.get("provider_fixture_id") or r.get("fixture_id") or ""
+              d=get(mid)
+              status=(d.get("status") or r.get("provider_status") or "").lower()
+              complete=status in ("complete","completed","finished","post-match")
+              hg=d.get("homeGoalCount",d.get("home_goals"))
+              ag=d.get("awayGoalCount",d.get("away_goals"))
+              total=d.get("totalGoalCount",d.get("overallGoalCount"))
+              if total is None and hg is not None and ag is not None:
+                  try: total=float(hg)+float(ag)
+                  except: pass
+              actuals_status="VERIFIED_ACTUALS" if complete and hg is not None and ag is not None else ("NOT_COMPLETED" if not complete else "ACTUALS_MISSING")
+              out.append({
+                "league_code":r.get("league_code",""),
+                "date":r.get("date",""),
+                "home_team":r.get("home_team",""),
+                "away_team":r.get("away_team",""),
+                "provider_fixture_id":mid,
+                "provider_status":status,
+                "actuals_status":actuals_status,
+                "home_goals_actual":hg if hg is not None else "",
+                "away_goals_actual":ag if ag is not None else "",
+                "total_goals_actual":total if total is not None else "",
+                "btts_actual":("" if hg is None or ag is None else ("YES" if float(hg)>0 and float(ag)>0 else "NO")),
+                "source":"FootyStats Match Details API",
+                "source_timestamp_utc":datetime.now(timezone.utc).isoformat(),
+                "production_model_logic_changed":"FALSE",
+                "master_omi_a_et_changed":"FALSE"
+              })
+
+          os.makedirs(os.path.dirname(out_csv),exist_ok=True)
+          fields=list(out[0]) if out else ["actuals_status"]
+          with open(out_csv,"w",newline="",encoding="utf-8") as f:
+              w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(out)
+          counts={}
+          for x in out: counts[x["actuals_status"]]=counts.get(x["actuals_status"],0)+1
+          summary={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "governed_fixture_rows":len(rows),
+            "verified_actuals_rows":counts.get("VERIFIED_ACTUALS",0),
+            "not_completed_rows":counts.get("NOT_COMPLETED",0),
+            "actuals_missing_rows":counts.get("ACTUALS_MISSING",0),
+            "governance":"Actuals audit only. Completed fixture goals/BTTS are sourced from provider match details; no synthetic actuals, no inferred results, no pre-match leakage, no Oracle V1.6 changes, no Master OMI A:ET changes.",
+            "private_repository_used":False,
+            "oracle_v1_6_changed":False,
+            "master_omi_a_et_changed":False
+          }
+          json.dump(summary,open(out_json,"w"),indent=2)
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Persist actuals audit
+        run: |
+          git config user.name "oracle-public-bot"
+          git config user.email "oracle-public-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv recovery/fixtures/current/intelligence/fixture_actuals_integrity_summary.json
+          git diff --cached --quiet || git commit -m "Persist fixture actuals integrity audit"
+          git push
