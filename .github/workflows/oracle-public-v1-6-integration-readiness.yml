@@ -2,6 +2,8 @@ name: Oracle Public V1.6 Integration Readiness
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "15 * * * *"
   push:
     paths:
       - ".github/workflows/oracle-public-v1-6-integration-readiness.yml"
