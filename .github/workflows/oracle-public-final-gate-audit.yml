@@ -65,14 +65,13 @@ jobs:
               with urllib.request.urlopen(req) as r: arts=json.load(r)['artifacts']
               arts=[a for a in arts if not a.get('expired')]
               if not arts: raise SystemExit(f'No live artifact for {key}')
-              aid=arts[0]['id']
+              aid=next((a['id'] for a in arts if a.get('workflow_run',{}).get('id')==rid), arts[0]['id'])
               u=f'https://api.github.com/repos/{repo}/actions/artifacts/{aid}/zip'
               req=urllib.request.Request(u,headers=h)
               with urllib.request.urlopen(req) as r: data=r.read()
               root=pathlib.Path('/tmp')/key; root.mkdir(parents=True,exist_ok=True)
               with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(root)
-              print(key,rid,aid,arts[0]['name'])
-
+              print(key,rid,aid)
       - name: Compute fail-closed final gate
         shell: python
         run: |
