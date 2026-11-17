@@ -124,7 +124,7 @@ jobs:
           resolver_diagnostics = {}
           provider_competition_by_code = {
               "BRA1":["Brazil Serie A"],
-              "E2":["England League One","League One"],
+              "E2":["England League Two","England EFL League Two","League Two"],
               "PAR1":["Paraguay Primera Division","Paraguay Primera División"],
               "QAT1":["Qatar Stars League","Qatar League"],
               "CRO":["Croatia HNL","Croatian HNL","HNL"],
