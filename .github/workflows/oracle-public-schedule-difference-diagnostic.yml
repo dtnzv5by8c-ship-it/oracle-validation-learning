@@ -24,6 +24,8 @@ jobs:
 
       - name: Diagnose timestamp and timezone representation
         shell: bash
+        env:
+          FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
         run: |
           python - <<'PY'
           import csv, json, os
@@ -35,6 +37,23 @@ jobs:
 
           rows = list(csv.DictReader(open(src, encoding="utf-8")))
           diffs = [r for r in rows if r.get("classification") == "PROVIDER_SCHEDULE_DIFFERENCE"]
+          import urllib.parse, urllib.request, time
+          API_KEY = os.environ.get("FOOTYSTATS_API_KEY", "")
+          detail_cache = {}
+          def fetch_match_timestamp(match_id):
+              if not match_id or not API_KEY: return {}
+              if match_id in detail_cache: return detail_cache[match_id]
+              url = "https://api.football-data-api.com/match?" + urllib.parse.urlencode({"key":API_KEY,"match_id":match_id})
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as resp:
+                      payload=json.loads(resp.read().decode("utf-8"))
+                  data=payload.get("data") or payload.get("result") or payload
+                  if isinstance(data,list): data=data[0] if data else {}
+                  detail_cache[match_id]=data if isinstance(data,dict) else {}
+              except Exception as exc:
+                  detail_cache[match_id]={"_error":str(exc)}
+              time.sleep(0.25)
+              return detail_cache[match_id]
 
           def parse(v):
               try: return json.loads(v) if v else []
@@ -63,13 +82,14 @@ jobs:
               for e in evidence:
                   d=e.get("date")
                   if not d: continue
-                  dt=unix_to_utc(e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix"))
+                  match_detail=fetch_match_timestamp(e.get("provider_fixture_id"))
+                  dt=unix_to_utc(e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix") or match_detail.get("date_unix"))
                   raw_dt=parse_dt(e.get("kickoff_time") or e.get("date_time") or e.get("datetime"))
                   if dt is None: dt=raw_dt
                   items.append({
                       "date":d, "fixture_id":e.get("provider_fixture_id"),
                       "competition_id":e.get("competition_id"), "season":e.get("season"),
-                      "date_unix":e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix"),
+                      "date_unix":e.get("date_unix") or e.get("unix_date") or e.get("kickoff_unix") or match_detail.get("date_unix"),
                       "utc_datetime":dt.isoformat() if dt else "",
                       "raw_datetime":raw_dt.isoformat() if raw_dt else ""
                   })
