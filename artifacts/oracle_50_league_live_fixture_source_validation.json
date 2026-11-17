@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-17T03:45:04.358173+00:00",
+  "generated_utc": "2026-11-17T13:12:51.674540+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1493,14 +1493,51 @@
       "competition_id": "comp_primera_division_uru",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "DATA_GATED",
-      "fixture_count_in_window": 0,
-      "fixtures": [],
+      "classification": "READY",
+      "fixture_count_in_window": 6,
+      "fixtures": [
+        {
+          "match_id": "match_fmb_uru1_2026_20261119_boston_river_deportivo_maldonado",
+          "kickoff_at": "2026-11-19T19:30:00Z",
+          "home": "Boston River",
+          "away": "Deportivo Maldonado"
+        },
+        {
+          "match_id": "match_fmb_uru1_2026_20261119_club_atletico_penarol_cerro_largo",
+          "kickoff_at": "2026-11-19T19:30:00Z",
+          "home": "Club Atletico Peñarol",
+          "away": "Cerro Largo"
+        },
+        {
+          "match_id": "match_fmb_uru1_2026_20261119_club_atletico_progreso_montevideo_city_torque",
+          "kickoff_at": "2026-11-19T19:30:00Z",
+          "home": "Club Atlético Progreso",
+          "away": "Montevideo City Torque"
+        },
+        {
+          "match_id": "match_fmb_uru1_2026_20261120_cerro_nacional",
+          "kickoff_at": "2026-11-20T19:30:00Z",
+          "home": "Cerro",
+          "away": "Nacional"
+        },
+        {
+          "match_id": "match_fmb_uru1_2026_20261120_liverpool_fc_montevideo_wanderers",
+          "kickoff_at": "2026-11-20T19:30:00Z",
+          "home": "Liverpool FC",
+          "away": "Montevideo Wanderers"
+        },
+        {
+          "match_id": "match_fmb_uru1_2026_20261120_racing_central_espanol",
+          "kickoff_at": "2026-11-20T19:30:00Z",
+          "home": "Racing",
+          "away": "Central Español"
+        }
+      ],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
+      "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
       "ordinal": "50",
@@ -1529,12 +1566,12 @@
   ],
   "summary": {
     "governed_leagues": 50,
-    "ready": 24,
-    "data_gated": 26,
+    "ready": 25,
+    "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 108,
-    "leagues_with_fixture_evidence": 24,
-    "leagues_without_fixture_evidence": 26,
+    "fixtures_in_window": 114,
+    "leagues_with_fixture_evidence": 25,
+    "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
   },
   "status": "COMPLETE"
