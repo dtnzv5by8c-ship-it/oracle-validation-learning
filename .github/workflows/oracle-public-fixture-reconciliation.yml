@@ -158,7 +158,7 @@ jobs:
                   for s in league.get("season") or []:
                       sid=str(s.get("id") or "").strip()
                       label=str(s.get("year") or s.get("season") or "").strip()
-                      if sid and "2026" in label: out.append((sid,label,league.get("name") or league.get("league_name") or ""))
+                      if sid and any(y in label for y in ("2026","2027")): out.append((sid,label,league.get("name") or league.get("league_name") or ""))
               # Some FootyStats league names do not exactly match the governed
               # competition alias list. If the scoped resolver finds no 2026 season,
               # retry at country scope and still require exact date+home+away identity.
@@ -169,7 +169,7 @@ jobs:
                       for s in league.get("season") or []:
                           sid=str(s.get("id") or "").strip()
                           label=str(s.get("year") or s.get("season") or "").strip()
-                          if sid and "2026" in label:
+                          if sid and any(y in label for y in ("2026","2027")):
                               out.append((sid,label,league.get("name") or league.get("league_name") or ""))
               season_cache[code]=out
               return out
