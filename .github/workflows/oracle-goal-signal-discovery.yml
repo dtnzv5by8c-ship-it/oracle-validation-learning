@@ -1,0 +1,125 @@
+name: Oracle Goal Signal Discovery - Historical OOS
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-goal-signal-discovery.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install
+        run: python -m pip install --disable-pip-version-check numpy pandas scikit-learn openpyxl
+      - name: Historical OOS diagnostic
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv,json,re
+          from pathlib import Path
+          from datetime import datetime,timezone
+          import numpy as np,pandas as pd
+          from sklearn.linear_model import Ridge
+          from openpyxl import Workbook
+          from openpyxl.styles import Font,PatternFill
+          from openpyxl.utils import get_column_letter
+          root=Path('.')
+          snaps=sorted(root.glob('recovery/current-state/*/database/current_matches.csv'))
+          if not snaps: raise SystemExit('FAIL-CLOSED: no match snapshot')
+          mf=snaps[-1]
+          def dt(v):
+            try:return datetime.fromisoformat(str(v).replace('Z','+00:00')).astimezone(timezone.utc)
+            except:return None
+          def norm(s):
+            return re.sub(r'\s+',' ',re.sub(r'[^a-z0-9]+',' ',str(s or '').casefold())).strip()
+          def num(v):
+            try:return float(v)
+            except:return None
+          raw=csv.DictReader(mf.open(encoding='utf-8',newline=''));ms=[]
+          for m in raw:
+            if str(m.get('finished','')).lower() not in ('true','1','yes') or str(m.get('cancelled','')).lower() in ('true','1','yes'):continue
+            d=dt(m.get('date_utc') or m.get('kickoff_utc') or m.get('date'));hg=num(m.get('home_goals'));ag=num(m.get('away_goals'))
+            if d is None or hg is None or ag is None:continue
+            ms.append({'d':d,'h':m.get('home_team',''),'a':m.get('away_team',''),'hn':norm(m.get('home_team')),'an':norm(m.get('away_team')),'hg':hg,'ag':ag,'league':m.get('league_code') or m.get('competition') or ''})
+          ms.sort(key=lambda x:x['d'])
+          lo=datetime(2025,3,20,tzinfo=timezone.utc);hi=datetime(2026,9,20,23,59,59,tzinfo=timezone.utc);ev=[m for m in ms if lo<=m['d']<=hi]
+          if len(ev)<500:raise SystemExit(f'FAIL-CLOSED: only {len(ev)} evaluation matches')
+          def hist(t,cut,v=None,n=5):
+            t=norm(t);out=[]
+            for m in ms:
+              if m['d']>=cut:break
+              if v=='home' and t!=m['hn']:continue
+              if v=='away' and t!=m['an']:continue
+              if v is None and t not in (m['hn'],m['an']):continue
+              gf,ga=(m['hg'],m['ag']) if t==m['hn'] else (m['ag'],m['hg']);out.append((m['d'],gf,ga,3 if gf>ga else 1 if gf==ga else 0))
+            return out[-n:][::-1]
+          def mean(q):return float(np.mean(q)) if q else np.nan
+          def feat(t,cut):
+            l3=hist(t,cut,None,3);l5=hist(t,cut,None,5);lh=hist(t,cut,'home',5);la=hist(t,cut,'away',5);q=l3;w=np.array([.5,.3,.2][:len(q)]);w=w/w.sum() if len(q) else w
+            return dict(ppg3=mean([x[3] for x in l3]),ppg5=mean([x[3] for x in l5]),gf3=mean([x[1] for x in l3]),ga3=mean([x[2] for x in l3]),gf5=mean([x[1] for x in l5]),ga5=mean([x[2] for x in l5]),rw_gf=float(np.dot(w,[x[1] for x in q])) if len(q) else np.nan,rw_ga=float(np.dot(w,[x[2] for x in q])) if len(q) else np.nan,hgf=mean([x[1] for x in lh]),hga=mean([x[2] for x in lh]),agf=mean([x[1] for x in la]),aga=mean([x[2] for x in la]),n5=len(l5))
+          rows=[]
+          for m in ev:
+            h=feat(m['h'],m['d']);a=feat(m['a'],m['d'])
+            if h['n5']<3 or a['n5']<3:continue
+            r={'date':m['d'].date().isoformat(),'league':m['league'],'home':m['h'],'away':m['a'],'y':m['hg']+m['ag']}
+            for k,v in h.items():r['H_'+k]=v
+            for k,v in a.items():r['A_'+k]=v
+            rows.append(r)
+          df=pd.DataFrame(rows)
+          df['ppg3_sum']=df.H_ppg3+df.A_ppg3;df['ppg5_sum']=df.H_ppg5+df.A_ppg5
+          df['attack3_cross']=(df.H_gf3+df.A_ga3+df.A_gf3+df.H_ga3)/2;df['attack5_cross']=(df.H_gf5+df.A_ga5+df.A_gf5+df.H_ga5)/2
+          df['recency_cross']=(df.H_rw_gf+df.A_rw_ga+df.A_rw_gf+df.H_rw_ga)/2;df['venue_cross']=(df.H_hgf+df.A_aga+df.A_agf+df.H_hga)/2
+          df['form_gap']=abs(df.H_ppg3-df.A_ppg3);df['goal_environment_gap']=abs(df.attack3_cross-df.attack5_cross)
+          sig=['ppg3_sum','ppg5_sum','attack3_cross','attack5_cross','recency_cross','venue_cross','form_gap','goal_environment_gap','H_ppg3','A_ppg3','H_ppg5','A_ppg5','H_gf3','A_gf3','H_ga3','A_ga3','H_gf5','A_gf5','H_ga5','A_ga5','H_rw_gf','A_rw_gf','H_rw_ga','A_rw_ga','H_hgf','H_hga','A_agf','A_aga']
+          scores=[]
+          for c in sig:
+            p=[];y=[]
+            for i in range(150,len(df)):
+              tr=df.iloc[:i];te=df.iloc[i];ok=np.isfinite(tr[c].values)
+              if ok.sum()<100 or not np.isfinite(te[c]):continue
+              model=Ridge(alpha=10).fit(tr.loc[ok,[c]],tr.loc[ok,'y']);p.append(float(model.predict([[te[c]]])[0]));y.append(float(te.y))
+            if len(y)<100:continue
+            p=np.array(p);y=np.array(y);e=p-y;scores.append({'signal':c,'n':len(y),'mae':float(np.mean(abs(e))),'rmse':float(np.sqrt(np.mean(e*e))),'bias':float(np.mean(e)),'exact':float(np.mean(np.rint(p)==y)),'within1':float(np.mean(abs(np.rint(p)-y)<=1)),'corr':float(np.corrcoef(p,y)[0,1]) if np.std(p)>0 else None})
+          Xc=['H_ppg3','A_ppg3','H_ppg5','A_ppg5','H_gf3','A_gf3','H_ga3','A_ga3','H_gf5','A_gf5','H_ga5','A_ga5','H_rw_gf','A_rw_gf','H_rw_ga','A_rw_ga','H_hgf','H_hga','A_agf','A_aga'];p=[];y=[]
+          for i in range(200,len(df)):
+            tr=df.iloc[:i];te=df.iloc[i];X=tr[Xc].values;yy=tr.y.values;ok=np.all(np.isfinite(X),axis=1)
+            if ok.sum()<200 or not np.all(np.isfinite(te[Xc].values)):continue
+            model=Ridge(alpha=10).fit(X[ok],yy[ok]);p.append(float(model.predict([te[Xc].values])[0]));y.append(float(te.y))
+          e=np.array(p)-np.array(y);multi={'signal':'20_signal_walkforward_ridge','n':len(y),'mae':float(np.mean(abs(e))),'rmse':float(np.sqrt(np.mean(e*e))),'bias':float(np.mean(e)),'exact':float(np.mean(np.rint(p)==y)),'within1':float(np.mean(abs(np.rint(p)-y)<=1)),'corr':float(np.corrcoef(p,y)[0,1])}
+          assoc=[]
+          for c in sig:
+            ok=np.isfinite(df[c])&np.isfinite(df.y)
+            if ok.sum()>100:assoc.append({'signal':c,'n':int(ok.sum()),'pearson_r':float(np.corrcoef(df.loc[ok,c],df.loc[ok,'y'])[0,1])})
+          assoc.sort(key=lambda x:abs(x['pearson_r']),reverse=True);scores.sort(key=lambda x:x['mae'])
+          result={'generated_utc':datetime.now(timezone.utc).isoformat(),'window_start':'2025-03-20','window_end':'2026-09-20','source_snapshot':str(mf),'evaluation_matches':len(ev),'eligible_rows':len(df),'signals':scores,'multivariate_benchmark':multi,'association_screen':assoc,'production_promotion':False,'oracle_v1_6_changed':False,'master_omi_A_ET_changed':False}
+          out=root/'recovery/fixtures/current/intelligence/goal_signal_discovery_2025-03-20_2026-09-20.json';out.write_text(json.dumps(result,indent=2))
+          wb=Workbook();ws=wb.active;ws.title='Signal Accuracy';ws.append(['Rank','Signal','N','MAE','RMSE','Bias','Exact Rounded %','Within ±1 Goal %','Correlation'])
+          for i,s in enumerate(scores,1):ws.append([i,s['signal'],s['n'],s['mae'],s['rmse'],s['bias'],s['exact'],s['within1'],s['corr']])
+          ws2=wb.create_sheet('Association Screen');ws2.append(['Rank','Signal','N','Pearson r'])
+          for i,s in enumerate(assoc,1):ws2.append([i,s['signal'],s['n'],s['pearson_r']])
+          ws3=wb.create_sheet('Multivariate Benchmark');ws3.append(list(multi));ws3.append(list(multi.values()))
+          ws4=wb.create_sheet('Controls');ws4.append(['Control','Value']);ws4.append(['Window','2025-03-20 to 2026-09-20']);ws4.append(['Production changed',False]);ws4.append(['Master OMI A:ET changed',False]);ws4.append(['Purpose','Research-only diagnostic of pre-match datapoints closest to total goals.'])
+          for sh in wb.worksheets:
+            for c in sh[1]:c.font=Font(bold=True,color='FFFFFF');c.fill=PatternFill('solid',fgColor='1F4E78')
+            for i in range(1,sh.max_column+1):sh.column_dimensions[get_column_letter(i)].width=20
+          wb.save('Oracle_Goal_Signal_Discovery_Historical_OOS_2025-03-20_2026-09-20.xlsx')
+          print(json.dumps(result,indent=2))
+          PY
+      - name: Persist research result
+        run: |
+          git config user.name "oracle-public-bot"
+          git config user.email "oracle-public-bot@users.noreply.github.com"
+          git add recovery/fixtures/current/intelligence/goal_signal_discovery_2025-03-20_2026-09-20.json
+          git commit -m "Add historical OOS goal signal discovery research"
+          git push
+      - name: Upload workbook
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oracle-Goal-Signal-Discovery-Historical-OOS
+          path: |
+            Oracle_Goal_Signal_Discovery_Historical_OOS_2025-03-20_2026-09-20.xlsx
+            recovery/fixtures/current/intelligence/goal_signal_discovery_2025-03-20_2026-09-20.json
+          retention-days: 30
