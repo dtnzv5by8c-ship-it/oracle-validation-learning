@@ -165,23 +165,42 @@ jobs:
 
           def clamp(x): return max(0.05,min(7.0,float(x)))
           def preds(r):
-              # F1/F2: PPG environment. PPG is converted to a goal environment using
-              # pre-target league mean and a conservative 0.22-goal-per-PPG scale.
-              f1=league_total + .22*((r["H_ppg5"]+r["A_ppg5"])-4.0)
-              f2=league_total + .22*((r["H_ppg3"]+r["A_ppg3"])-4.0)
-              # F3/F4: attack + defensive vulnerability, all-venue.
-              f3=(r["H_gf5"]+r["A_ga5"]+r["A_gf5"]+r["H_ga5"])/2
-              f4=(r["H_gf3"]+r["A_ga3"]+r["A_gf3"]+r["H_ga3"])/2
-              # F5: recency-weighted attack/defence.
-              f5=(r["H_rw_gf"]+r["A_rw_ga"]+r["A_rw_gf"]+r["H_rw_ga"])/2
-              # F6: venue attack-vs-defence interaction.
-              f6=(r["venue_home_attack"]+r["venue_away_def"]+r["venue_away_attack"]+r["venue_home_def"])/2
-              # F7: momentum-adjusted goal environment.
+              # 28 transparent candidate goal-environment equations.
+              p5=r["H_ppg5"]+r["A_ppg5"]; p3=r["H_ppg3"]+r["A_ppg3"]
+              l5=(r["H_gf5"]+r["A_ga5"]+r["A_gf5"]+r["H_ga5"])/2
+              l3=(r["H_gf3"]+r["A_ga3"]+r["A_gf3"]+r["H_ga3"])/2
+              venue=(r["venue_home_attack"]+r["venue_away_def"]+r["venue_away_attack"]+r["venue_home_def"])/2
+              rw=(r["H_rw_gf"]+r["A_rw_ga"]+r["A_rw_gf"]+r["H_rw_ga"])/2
+              h3=(r["H_gf3"]+r["A_ga3"])/2; a3=(r["A_gf3"]+r["H_ga3"])/2
+              h5=(r["H_gf5"]+r["A_ga5"])/2; a5=(r["A_gf5"]+r["H_ga5"])/2
+              hv=(r["venue_home_attack"]+r["venue_away_def"])/2
+              av=(r["venue_away_attack"]+r["venue_home_def"])/2
               mom=(r["H_gf3"]-r["H_gf5"])+(r["A_gf3"]-r["A_gf5"])+(r["H_ga3"]-r["H_ga5"])+(r["A_ga3"]-r["A_ga5"])
-              f7=f4 + .25*mom
-              # F8: blended consensus of independent transparent engines.
-              f8=.15*f1+.15*f2+.20*f4+.20*f5+.30*f6
-              return [clamp(x) for x in (f1,f2,f3,f4,f5,f6,f7,f8)]
+              # PPG environment family
+              f1=league_total + .22*(p5-4)
+              f2=league_total + .22*(p3-4)
+              f3=l5; f4=l3; f5=rw; f6=venue; f7=l3+.25*mom; f8=.15*f1+.15*f2+.20*l3+.20*rw+.30*venue
+              f9=.5*(f1+f2)
+              f10=.7*f2+.3*f1
+              f11=.6*f2+.4*l3
+              f12=.6*l3+.4*l5
+              f13=.5*l3+.5*venue
+              f14=.5*(h3+a3)+.5*(hv+av)
+              f15=.6*(h3+a3)+.4*(h5+a5)
+              f16=.7*(h3+a3)+.3*league_total
+              f17=.5*(h3+a3)+.5*f2
+              f18=league_total*((max(h3,.05)*max(a3,.05))/(max(league_home,.05)*max(league_away,.05)))**0.5
+              f19=league_total*((max(l3,.05)/max(league_total,.05))**.5)*((max(venue,.05)/max(league_total,.05))**.5)
+              f20=2*((max(h3,.05)*max(a3,.05))**0.5)
+              f21=2*((max(h5,.05)*max(a5,.05))**0.5)
+              f22=.5*f2+.5*f18
+              f23=.35*f2+.35*l3+.30*venue
+              f24=.4*f2+.3*rw+.3*f18
+              f25=.5*f2+.5*(h3+a3)
+              f26=.5*f2+.5*(h5+a5)
+              f27=.5*f2+.25*(h3+a3)+.25*(hv+av)
+              f28=.25*f1+.25*f2+.25*f18+.25*f27
+              return [clamp(x) for x in (f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f21,f22,f23,f24,f25,f26,f27,f28)]
 
           for r in rows:
               r["preds"]=preds(r)
@@ -218,7 +237,17 @@ jobs:
             ("F3_Last5_Attack_Defence",2),("F4_Last3_Attack_Defence",3),
             ("F5_RecencyWeighted_Attack_Defence",4),("F6_Venue_Attack_Defence",5),
             ("F7_Last3_Momentum_Adjusted",6),("F8_Hybrid_Consensus",7),
-            ("F9_WalkForward_Ridge_20Signal",None)
+            ("F9_WalkForward_Ridge_20Signal",None),
+            ("F10_PPG_50_50",8),("F11_PPG70_Last3_30_Attack",9),
+            ("F12_Attack_60L3_40L5",10),("F13_AttackVenue_50_50",11),
+            ("F14_ExpectedGoals_OverallVenue",12),("F15_ExpectedGoals_L3L5",13),
+            ("F16_ExpectedGoals_LeagueShrink",14),("F17_ExpectedGoals_PPGBlend",15),
+            ("F18_Geometric_Attack",16),("F19_Geometric_L3_Venue",17),
+            ("F20_Geometric_HomeAway",18),("F21_Geometric_L5",19),
+            ("F22_DualEngine_PPGGeom",20),("F23_TripleBlend",21),
+            ("F24_PPG_Recency_Geom",22),("F25_PPG_ExpectedGoals",23),
+            ("F26_PPG_L5_ExpectedGoals",24),("F27_PPG_VenueExpected",25),
+            ("F28_QuadEngine_Ensemble",26)
           ]
 
           def metrics(p,y):
