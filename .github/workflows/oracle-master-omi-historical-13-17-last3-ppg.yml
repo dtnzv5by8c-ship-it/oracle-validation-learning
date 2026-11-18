@@ -201,7 +201,7 @@ jobs:
               if d not in TARGET_DATES: continue
               league=str(ws.cell(r,c_league).value or "")
               fixture_text=norm(ws.cell(r,c_fixture).value or "")
-              candidates=[f for f in target if f.get("date")==d and norm(f.get("league_code")) in norm(league) and norm(f.get("home_team")) in fixture_text and norm(f.get("away_team")) in fixture_text]
+              candidates=[f for f in target if f.get("date")==d and norm(f.get("home_team")) in fixture_text and norm(f.get("away_team")) in fixture_text]
               if len(candidates)!=1:
                   continue
               f=candidates[0]; target_row_numbers.append(r); matched_rows+=1
