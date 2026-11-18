@@ -196,3 +196,18 @@ Do not casually move production logic into the research repository. For ongoing 
 **LOCK THE FOUNDATION — BUILD OUTWARD.**
 
 The GitHub memory pack is the durable project context. The canonical workbook is the durable spreadsheet schema. The workflows are the repeatable execution layer.
+
+
+## Master OMI Last-3 PPG extension — 2026-11-18
+
+The Market Intelligence append-only layer now includes a governed **Last-3 PPG** test layer.
+
+- Locked template: \`Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_AND_LAST3_PPG_18Nov2026.xlsx\`
+- Append-only boundary: after the existing Market Intelligence columns; **A:ET remains immutable**.
+- New fields: HOME_LAST_3_PPG, HOME_LAST_3_POINTS, HOME_LAST_3_WDL, HOME_LAST_3_GF, HOME_LAST_3_GA, HOME_LAST_3_SAMPLE, plus the corresponding six AWAY fields.
+- Definition: PPG is points divided by verified completed matches in the team's three most recent matches strictly before the target fixture kickoff.
+- No same-time or post-kickoff match is eligible.
+- Small/no samples are explicitly labelled; values are never fabricated.
+- This layer is Market Intelligence / research evidence only and is **not** an Oracle V1.6 probability or production signal.
+- Historical report generated for 13–17 Nov 2026 uses the governed 50-league fixture universe and includes verified FootyStats actuals where available.
+- Template/report integrity was checked after save: A:ET unchanged and formula count preserved.
