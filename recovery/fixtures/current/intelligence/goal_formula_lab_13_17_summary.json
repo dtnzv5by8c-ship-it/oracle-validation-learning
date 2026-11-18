@@ -1,0 +1,114 @@
+{
+  "generated_utc": "2026-11-18T12:33:17.009446+00:00",
+  "target_verified_actuals": 30,
+  "training_observations": 30,
+  "league_total_baseline": 2.9792354884379426,
+  "formulas": [
+    {
+      "formula": "F1_Last5_PPG_Environment",
+      "n": 30,
+      "mae": 1.458884300770804,
+      "rmse": 1.992283082787438,
+      "bias": -0.29986451156205735,
+      "exact_rounded": 0.26666666666666666,
+      "within_1_goal": 0.7,
+      "within_0_5": 0.26666666666666666,
+      "correlation": 0.11250533363208948
+    },
+    {
+      "formula": "F2_Last3_PPG_Environment",
+      "n": 30,
+      "mae": 1.458273189659693,
+      "rmse": 1.9703041960908028,
+      "bias": -0.31098673378427966,
+      "exact_rounded": 0.3,
+      "within_1_goal": 0.7,
+      "within_0_5": 0.3,
+      "correlation": 0.20458374332732462
+    },
+    {
+      "formula": "F3_Last5_Attack_Defence",
+      "n": 30,
+      "mae": 1.6591666666666667,
+      "rmse": 2.153519406305254,
+      "bias": -0.11583333333333337,
+      "exact_rounded": 0.2,
+      "within_1_goal": 0.5333333333333333,
+      "within_0_5": 0.23333333333333334,
+      "correlation": -0.2402222495476605
+    },
+    {
+      "formula": "F4_Last3_Attack_Defence",
+      "n": 30,
+      "mae": 1.777777777777778,
+      "rmse": 2.2823801741294676,
+      "bias": -0.13333333333333333,
+      "exact_rounded": 0.23333333333333334,
+      "within_1_goal": 0.43333333333333335,
+      "within_0_5": 0.23333333333333334,
+      "correlation": -0.29213554888189647
+    },
+    {
+      "formula": "F5_RecencyWeighted_Attack_Defence",
+      "n": 30,
+      "mae": 1.8033333333333335,
+      "rmse": 2.285716517856053,
+      "bias": -0.20000000000000004,
+      "exact_rounded": 0.2,
+      "within_1_goal": 0.4,
+      "within_0_5": 0.2,
+      "correlation": -0.2118029810723436
+    },
+    {
+      "formula": "F6_Venue_Attack_Defence",
+      "n": 30,
+      "mae": 1.5358333333333332,
+      "rmse": 2.026114805163741,
+      "bias": -0.02472222222222224,
+      "exact_rounded": 0.2,
+      "within_1_goal": 0.6666666666666666,
+      "within_0_5": 0.23333333333333334,
+      "correlation": 0.06707302286463317
+    },
+    {
+      "formula": "F7_Last3_Momentum_Adjusted",
+      "n": 30,
+      "mae": 1.8779166666666667,
+      "rmse": 2.3731209672075297,
+      "bias": -0.14208333333333328,
+      "exact_rounded": 0.23333333333333334,
+      "within_1_goal": 0.4,
+      "within_0_5": 0.23333333333333334,
+      "correlation": -0.2846249403497974
+    },
+    {
+      "formula": "F8_Hybrid_Consensus",
+      "n": 30,
+      "mae": 1.5890458457867966,
+      "rmse": 2.075338468735129,
+      "bias": -0.16571102013528385,
+      "exact_rounded": 0.26666666666666666,
+      "within_1_goal": 0.6,
+      "within_0_5": 0.26666666666666666,
+      "correlation": -0.12729148748588037
+    },
+    {
+      "formula": "F9_WalkForward_Ridge_20Signal",
+      "n": 30,
+      "mae": 1.5299041605924415,
+      "rmse": 1.9971108292671105,
+      "bias": 0.03293499343342809,
+      "exact_rounded": 0.23333333333333334,
+      "within_1_goal": 0.6333333333333333,
+      "within_0_5": 0.23333333333333334,
+      "correlation": 0.00012325882238616858
+    }
+  ],
+  "winner_by_mae": "F2_Last3_PPG_Environment",
+  "winner_by_rmse": "F2_Last3_PPG_Environment",
+  "winner_by_exact_rounded": "F2_Last3_PPG_Environment",
+  "protected_A_ET_unchanged": true,
+  "oracle_v1_6_changed": false,
+  "production_promotion": false,
+  "source_snapshot": "43408534053"
+}
