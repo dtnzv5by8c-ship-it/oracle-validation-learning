@@ -350,7 +350,7 @@ jobs:
         run: |
           git config user.name "oracle-public-bot"
           git config user.email "oracle-public-bot@users.noreply.github.com"
-          git add Oracle_Master_OMI_Report_Goal_Formula_Lab_13-17Nov2026.xlsx recovery/fixtures/current/intelligence/goal_formula_lab_13_17_summary.json
+          git add -f Oracle_Master_OMI_Report_Goal_Formula_Lab_13-17Nov2026.xlsx recovery/fixtures/current/intelligence/goal_formula_lab_13_17_summary.json
           git commit -m "Add experimental goal formula lab and 13-17 Nov accuracy backtest"
           git push
 
