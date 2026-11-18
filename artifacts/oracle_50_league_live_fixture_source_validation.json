@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-18T04:12:34.066203+00:00",
+  "generated_utc": "2026-11-18T13:52:20.245714+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1214,16 +1214,16 @@
           "away": "FK Radnik Surdulica"
         },
         {
-          "match_id": "match_fmb_srb1_2026-27_20261121_ofk_beograd_novi_pazar",
-          "kickoff_at": "2026-11-21T14:00:00Z",
-          "home": "OFK Beograd",
-          "away": "Novi Pazar"
-        },
-        {
           "match_id": "match_fmb_srb1_2026-27_20261121_mladost_lucani_zeleznicar_pancevo",
-          "kickoff_at": "2026-11-21T16:00:00Z",
+          "kickoff_at": "2026-11-21T14:00:00Z",
           "home": "Mladost Lučani",
           "away": "Železničar Pančevo"
+        },
+        {
+          "match_id": "match_fmb_srb1_2026-27_20261121_ofk_beograd_novi_pazar",
+          "kickoff_at": "2026-11-21T16:00:00Z",
+          "home": "OFK Beograd",
+          "away": "Novi Pazar"
         }
       ],
       "request": {
