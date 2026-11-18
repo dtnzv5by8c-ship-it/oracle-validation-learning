@@ -1,0 +1,353 @@
+name: Oracle Master OMI Historical 13-17 Nov 2026 + Last-3 PPG
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-master-omi-historical-13-17-last3-ppg.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+      - "recovery/current-state/**/database/current_matches.csv"
+      - "recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
+      - "docs/master_omi/templates/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oracle-master-omi-historical-13-17-last3-ppg
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Excel tooling
+        run: python -m pip install --disable-pip-version-check openpyxl
+
+      - name: Build locked Last-3 PPG template and historical Master OMI report
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, json, re, hashlib, shutil, os
+          from pathlib import Path
+          from datetime import datetime, timezone
+          from copy import copy
+          from openpyxl import load_workbook, Workbook
+          from openpyxl.comments import Comment
+          from openpyxl.styles import Font, PatternFill, Alignment
+          from openpyxl.utils import get_column_letter
+
+          ROOT=Path(".")
+          TARGET_DATES={f"2026-11-{d:02d}" for d in range(13,18)}
+          TEMPLATE=ROOT/"docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx"
+          FIX=ROOT/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          ACT=ROOT/"recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
+          SNAPSHOTS=sorted(ROOT.glob("recovery/current-state/*/database/current_matches.csv"))
+          if not TEMPLATE.exists(): raise SystemExit("FAIL-CLOSED: locked description-complete Master OMI template is missing.")
+          if not FIX.exists(): raise SystemExit("FAIL-CLOSED: governed fixture reconciliation is missing.")
+          if not SNAPSHOTS: raise SystemExit("FAIL-CLOSED: no public current match snapshot is available.")
+          MATCH=SNAPSHOTS[-1]
+          SNAPSHOT=MATCH.parent.parent.name
+
+          def norm(s):
+              s=str(s or "").casefold()
+              s=re.sub(r"[^a-z0-9]+"," ",s)
+              return re.sub(r"\s+"," ",s).strip()
+          def parse_dt(v):
+              if not v: return None
+              try: return datetime.fromisoformat(str(v).replace("Z","+00:00")).astimezone(timezone.utc)
+              except: return None
+          def num(v):
+              try: return float(v)
+              except: return None
+          def sha256_file(p):
+              h=hashlib.sha256()
+              with open(p,"rb") as f:
+                  for b in iter(lambda:f.read(1024*1024),b""): h.update(b)
+              return h.hexdigest()
+
+          fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
+          matches=list(csv.DictReader(MATCH.open(encoding="utf-8",newline="")))
+          actuals=list(csv.DictReader(ACT.open(encoding="utf-8",newline=""))) if ACT.exists() else []
+          target=[f for f in fixtures if f.get("date") in TARGET_DATES]
+          exact_target=[f for f in target if f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY"]
+          if len(target)==0: raise SystemExit("FAIL-CLOSED: no governed fixtures found for 13-17 Nov 2026.")
+          if len(exact_target)!=len(target):
+              raise SystemExit(f"FAIL-CLOSED: target fixture identity is not exact for all rows: {len(exact_target)}/{len(target)}.")
+
+          # Build strict pre-kickoff completed match index from the public current snapshot.
+          completed=[]
+          for m in matches:
+              if str(m.get("finished","")).lower() not in ("true","1","yes"): continue
+              if str(m.get("cancelled","")).lower() in ("true","1","yes"): continue
+              dt=parse_dt(m.get("date_utc") or m.get("date") or m.get("kickoff_utc"))
+              hg=num(m.get("home_goals")); ag=num(m.get("away_goals"))
+              if dt is None or hg is None or ag is None: continue
+              completed.append({
+                  "dt":dt,"hn":norm(m.get("home_team")),"an":norm(m.get("away_team")),
+                  "home":m.get("home_team",""),"away":m.get("away_team",""),
+                  "hg":hg,"ag":ag
+              })
+
+          # Exact Fixture -> Last 3 PPG, strictly before provider kickoff.
+          ppg_rows=[]
+          ppg_map={}
+          for f in exact_target:
+              kick=parse_dt(f.get("provider_kickoff_utc")) or parse_dt(f.get("date"))
+              for side,team in [("HOME",f.get("provider_home_name")),("AWAY",f.get("provider_away_name"))]:
+                  hist=[]
+                  tn=norm(team)
+                  for m in completed:
+                      if m["dt"]>=kick: continue
+                      if tn==m["hn"]:
+                          gf,ga=m["hg"],m["ag"]
+                      elif tn==m["an"]:
+                          gf,ga=m["ag"],m["hg"]
+                      else:
+                          continue
+                      pts=3 if gf>ga else 1 if gf==ga else 0
+                      hist.append((m["dt"],gf,ga,pts))
+                  hist=sorted(hist,key=lambda x:x[0],reverse=True)[:3]
+                  sample=len(hist)
+                  points=sum(x[3] for x in hist)
+                  ppg=(points/sample) if sample else None
+                  key=(f.get("league_code"),f.get("date"),norm(f.get("provider_home_name")),norm(f.get("provider_away_name")),side)
+                  rec={
+                    "league_code":f.get("league_code",""),"date":f.get("date",""),
+                    "home_team":f.get("provider_home_name",""),"away_team":f.get("provider_away_name",""),
+                    "provider_fixture_id":f.get("provider_fixture_id",""),"team_side":side,"team":team,
+                    "last3_ppg":ppg if ppg is not None else "",
+                    "last3_points":points if sample else "",
+                    "last3_wins":sum(x[3]==3 for x in hist) if sample else "",
+                    "last3_draws":sum(x[3]==1 for x in hist) if sample else "",
+                    "last3_losses":sum(x[3]==0 for x in hist) if sample else "",
+                    "last3_gf":sum(x[1] for x in hist) if sample else "",
+                    "last3_ga":sum(x[2] for x in hist) if sample else "",
+                    "sample_size":sample,"sample_status":"SUFFICIENT" if sample==3 else ("SMALL_SAMPLE" if sample>0 else "NO_VERIFIED_HISTORY"),
+                    "strict_pre_kickoff":True,"source":"Public current_matches snapshot","source_snapshot":SNAPSHOT,
+                    "as_of_rule":"All three matches strictly before target fixture kickoff"
+                  }
+                  ppg_rows.append(rec); ppg_map[key]=rec
+
+          # Load locked template. A:ET is never edited.
+          wb=load_workbook(TEMPLATE, data_only=False)
+          if "Market Intelligence" not in wb.sheetnames:
+              raise SystemExit("FAIL-CLOSED: Market Intelligence sheet missing from locked template.")
+          ws=wb["Market Intelligence"]
+          protected_before=[[ws.cell(r,c).value for c in range(1,151)] for r in range(1,ws.max_row+1)]
+          formula_before=sum(1 for row in ws.iter_rows() for cell in row if isinstance(cell.value,str) and cell.value.startswith("="))
+
+          # Find header row and key columns without assuming names.
+          header_row=None; hmap={}
+          for r in range(1,min(ws.max_row,10)+1):
+              vals=[norm(ws.cell(r,c).value) for c in range(1,min(ws.max_column,80)+1)]
+              hits=sum(any(k in v for k in ("date","home","away","league")) for v in vals if v)
+              if hits>=3:
+                  header_row=r; hmap={norm(ws.cell(r,c).value):c for c in range(1,ws.max_column+1) if ws.cell(r,c).value not in (None,"")}
+                  break
+          if header_row is None: raise SystemExit("FAIL-CLOSED: could not identify Market Intelligence header row.")
+
+          def find_col(*patterns):
+              for c in range(1,ws.max_column+1):
+                  v=norm(ws.cell(header_row,c).value)
+                  if any(p in v for p in patterns): return c
+              return None
+          c_date=find_col("date")
+          c_home=find_col("home team","home")
+          c_away=find_col("away team","away")
+          c_league=find_col("league code","league")
+          if not all((c_date,c_home,c_away,c_league)):
+              raise SystemExit(f"FAIL-CLOSED: unable to resolve Market Intelligence fixture key columns: date={c_date},home={c_home},away={c_away},league={c_league}")
+
+          # Append-only new fields after the current last column.
+          start_col=ws.max_column+1
+          fields=[
+            ("HOME_LAST_3_PPG","Home team's points per game across its three most recent completed matches strictly before the fixture kickoff. PPG = points / verified matches. Research/MI field; not Oracle probability."),
+            ("HOME_LAST_3_POINTS","Home team's total points across the same last-three-match sample."),
+            ("HOME_LAST_3_WDL","Home team's W-D-L sequence/count across the same last-three-match sample."),
+            ("HOME_LAST_3_GF","Home team's goals scored across the same last-three-match sample."),
+            ("HOME_LAST_3_GA","Home team's goals conceded across the same last-three-match sample."),
+            ("HOME_LAST_3_SAMPLE","Number of verified completed matches available in the strict pre-kickoff last-three sample; 3 is the target."),
+            ("AWAY_LAST_3_PPG","Away team's points per game across its three most recent completed matches strictly before the fixture kickoff. PPG = points / verified matches. Research/MI field; not Oracle probability."),
+            ("AWAY_LAST_3_POINTS","Away team's total points across the same last-three-match sample."),
+            ("AWAY_LAST_3_WDL","Away team's W-D-L sequence/count across the same last-three-match sample."),
+            ("AWAY_LAST_3_GF","Away team's goals scored across the same last-three-match sample."),
+            ("AWAY_LAST_3_GA","Away team's goals conceded across the same last-three-match sample."),
+            ("AWAY_LAST_3_SAMPLE","Number of verified completed matches available in the strict pre-kickoff last-three sample; 3 is the target.")
+          ]
+          for i,(head,desc) in enumerate(fields):
+              c=start_col+i
+              ws.cell(header_row,c,head)
+              ws.cell(header_row,c).comment=Comment(desc,"Project Oracle")
+              # Copy style from preceding header.
+              src=ws.cell(header_row,max(1,c-1))
+              ws.cell(header_row,c)._style=copy(src._style)
+              ws.cell(header_row,c).font=copy(src.font)
+              ws.cell(header_row,c).fill=copy(src.fill)
+              ws.cell(header_row,c).border=copy(src.border)
+              ws.cell(header_row,c).alignment=copy(src.alignment)
+              ws.column_dimensions[get_column_letter(c)].width=18
+
+          # Exact row join and populate target-date rows only.
+          matched_rows=0
+          target_row_numbers=[]
+          for r in range(header_row+1,ws.max_row+1):
+              d=str(ws.cell(r,c_date).value or "")[:10]
+              if d not in TARGET_DATES: continue
+              league=str(ws.cell(r,c_league).value or "")
+              home=str(ws.cell(r,c_home).value or "")
+              away=str(ws.cell(r,c_away).value or "")
+              candidates=[f for f in exact_target if f.get("date")==d and norm(f.get("home_team"))==norm(home) and norm(f.get("away_team"))==norm(away)]
+              if len(candidates)!=1:
+                  continue
+              f=candidates[0]; target_row_numbers.append(r); matched_rows+=1
+              for side,base in [("HOME",0),("AWAY",6)]:
+                  key=(f.get("league_code"),f.get("date"),norm(f.get("provider_home_name")),norm(f.get("provider_away_name")),side)
+                  rec=ppg_map.get(key,{})
+                  vals=[rec.get("last3_ppg",""),rec.get("last3_points",""),
+                        f"W{rec.get('last3_wins','')}-D{rec.get('last3_draws','')}-L{rec.get('last3_losses','')}" if rec.get("sample_size") else "",
+                        rec.get("last3_gf",""),rec.get("last3_ga",""),rec.get("sample_size","")]
+                  for j,v in enumerate(vals): ws.cell(r,start_col+base+j,v)
+          if matched_rows!=len(target):
+              raise SystemExit(f"FAIL-CLOSED: Market Intelligence row join did not match all target fixtures: {matched_rows}/{len(target)}.")
+
+          # Build explicit PPG Last 3 and Actuals tabs.
+          for s in ["PPG Last 3","Historical Actuals 13-17"]:
+              if s in wb.sheetnames: del wb[s]
+          pws=wb.create_sheet("PPG Last 3")
+          pheaders=list(ppg_rows[0].keys()) if ppg_rows else ["status"]
+          pws.append(pheaders)
+          for x in ppg_rows: pws.append([x.get(h,"") for h in pheaders])
+          aws=wb.create_sheet("Historical Actuals 13-17")
+          ah=["league_code","date","home_team","away_team","provider_fixture_id","provider_status","provider_kickoff_utc_date","kickoff_chronology_status","pre_match_home_ppg","pre_match_away_ppg","actuals_status","home_goals_actual","away_goals_actual","total_goals_actual","btts_actual","source","retrieved_utc"]
+          aws.append(ah)
+          target_ids={(f.get("provider_fixture_id"),f.get("date")) for f in target}
+          target_actuals=[a for a in actuals if (a.get("provider_fixture_id"),a.get("date")) in target_ids]
+          for a in target_actuals: aws.append([a.get(h,"") for h in ah])
+
+          for sheet in (pws,aws):
+              sheet.freeze_panes="A2"; sheet.auto_filter.ref=sheet.dimensions
+              for cell in sheet[1]:
+                  cell.font=Font(bold=True,color="FFFFFF"); cell.fill=PatternFill("solid",fgColor="1F4E78")
+                  cell.alignment=Alignment(horizontal="center",vertical="center",wrap_text=True)
+              for col in range(1,sheet.max_column+1):
+                  sheet.column_dimensions[get_column_letter(col)].width=min(max(len(str(sheet.cell(1,col).value or ""))+4,14),32)
+
+          # Add a compact report metadata sheet.
+          if "Report Metadata" in wb.sheetnames: del wb["Report Metadata"]
+          mws=wb.create_sheet("Report Metadata",0)
+          meta=[
+            ("Report","Oracle Master OMI — Historical Actuals Review"),
+            ("Date range","13 Nov 2026 to 17 Nov 2026"),
+            ("Governed universe","50-League Universe"),
+            ("Target fixture rows",len(target)),
+            ("Distinct leagues",len({f.get("league_code") for f in target})),
+            ("Exact FootyStats identities",len(exact_target)),
+            ("Last-3 PPG rows",len(ppg_rows)),
+            ("Target actual rows captured",len(target_actuals)),
+            ("Actuals verified",sum(a.get("actuals_status")=="VERIFIED_ACTUALS" for a in target_actuals)),
+            ("Actual chronology confirmed",sum(a.get("kickoff_chronology_status")=="MATCH_DATE_CONFIRMED" for a in target_actuals)),
+            ("Last-3 PPG definition","Points per game across the team's three most recent completed matches strictly before the fixture kickoff; no same-time/post-kickoff match is included."),
+            ("Source","Public FootyStats current match snapshot + persisted FootyStats Match Details actuals."),
+            ("Oracle V1.6","UNCHANGED — this is Market Intelligence / historical validation enrichment only."),
+            ("A:ET","IMMUTABLE — no cells in A:ET were edited."),
+            ("Append boundary","New fields appended after the existing Market Intelligence columns."),
+            ("Production certification","NOT implied by this report; production remains fail-closed where required.")
+          ]
+          for row in meta: mws.append(row)
+          mws["A1"].font=Font(bold=True); mws["B1"].font=Font(bold=True)
+
+          # Verify A:ET and formula count before saving.
+          protected_after=[[ws.cell(r,c).value for c in range(1,151)] for r in range(1,ws.max_row+1)]
+          formula_after=sum(1 for row in ws.iter_rows() for cell in row if isinstance(cell.value,str) and cell.value.startswith("="))
+          if protected_before!=protected_after:
+              raise SystemExit("FAIL-CLOSED: protected A:ET values/formulas changed.")
+          if formula_before!=formula_after:
+              raise SystemExit(f"FAIL-CLOSED: formula count changed before save: {formula_before}->{formula_after}.")
+
+          LOCKED=ROOT/"docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_AND_LAST3_PPG_18Nov2026.xlsx"
+          REPORT=ROOT/"Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx"
+          wb.save(LOCKED)
+
+          # Reload and verify the saved workbook still has A:ET unchanged.
+          v=load_workbook(LOCKED,data_only=False)
+          vws=v["Market Intelligence"]
+          after_save=[[vws.cell(r,c).value for c in range(1,151)] for r in range(1,vws.max_row+1)]
+          formula_saved=sum(1 for row in vws.iter_rows() for cell in row if isinstance(cell.value,str) and cell.value.startswith("="))
+          if protected_before!=after_save: raise SystemExit("FAIL-CLOSED: saved workbook A:ET verification failed.")
+          if formula_before!=formula_saved: raise SystemExit(f"FAIL-CLOSED: saved workbook formula count changed: {formula_before}->{formula_saved}.")
+          if vws.max_column < start_col+len(fields)-1: raise SystemExit("FAIL-CLOSED: Last-3 PPG append was not persisted.")
+
+          # Build report from the locked template copy, retaining the full workbook structure and hiding non-target MI rows.
+          shutil.copy2(LOCKED,REPORT)
+          rw=load_workbook(REPORT,data_only=False)
+          rws=rw["Market Intelligence"]
+          for r in range(header_row+1,rws.max_row+1):
+              d=str(rws.cell(r,c_date).value or "")[:10]
+              if d and d not in TARGET_DATES:
+                  rws.row_dimensions[r].hidden=True
+          rw["Report Metadata"]["B1"]="13 Nov 2026 to 17 Nov 2026"
+          rw.save(REPORT)
+
+          manifest={
+            "generated_utc":datetime.now(timezone.utc).isoformat(),
+            "target_dates":["2026-11-13","2026-11-14","2026-11-15","2026-11-16","2026-11-17"],
+            "governed_universe":"50-League Universe",
+            "target_fixture_rows":len(target),
+            "distinct_leagues":len({f.get("league_code") for f in target}),
+            "exact_identity_rows":len(exact_target),
+            "last3_ppg_rows":len(ppg_rows),
+            "target_actual_rows":len(target_actuals),
+            "verified_actual_rows":sum(a.get("actuals_status")=="VERIFIED_ACTUALS" for a in target_actuals),
+            "chronology_confirmed_actual_rows":sum(a.get("kickoff_chronology_status")=="MATCH_DATE_CONFIRMED" for a in target_actuals),
+            "protected_columns":"A:ET",
+            "protected_columns_unchanged":True,
+            "formula_count_before":formula_before,
+            "formula_count_after_save":formula_saved,
+            "formula_count_preserved":formula_before==formula_saved,
+            "append_start_column":start_col,
+            "append_end_column":start_col+len(fields)-1,
+            "append_fields":[x[0] for x in fields],
+            "source_snapshot":SNAPSHOT,
+            "production_model_logic_changed":False,
+            "oracle_v1_6_changed":False,
+            "private_repository_used":False,
+            "historical_fallback_used":False,
+            "fuzzy_matching_used":False,
+            "locked_template_sha256":sha256_file(LOCKED),
+            "report_sha256":sha256_file(REPORT)
+          }
+          (ROOT/"recovery/fixtures/current/intelligence/master_omi_historical_13_17_last3_ppg_summary.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+
+          # Persist memory-pack lock only after all workbook checks passed.
+          mp=ROOT/"docs/master_omi/ORACLE_MEMORY_PACK.md"
+          txt=mp.read_text(encoding="utf-8")
+          marker="## Master OMI Last-3 PPG extension — 2026-11-18"
+          if marker not in txt:
+              block=f"""\n\n{marker}\n\nThe Market Intelligence append-only layer now includes a governed **Last-3 PPG** test layer.\n\n- Locked template: \`Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_AND_LAST3_PPG_18Nov2026.xlsx\`\n- Append-only boundary: after the existing Market Intelligence columns; **A:ET remains immutable**.\n- New fields: HOME_LAST_3_PPG, HOME_LAST_3_POINTS, HOME_LAST_3_WDL, HOME_LAST_3_GF, HOME_LAST_3_GA, HOME_LAST_3_SAMPLE, plus the corresponding six AWAY fields.\n- Definition: PPG is points divided by verified completed matches in the team's three most recent matches strictly before the target fixture kickoff.\n- No same-time or post-kickoff match is eligible.\n- Small/no samples are explicitly labelled; values are never fabricated.\n- This layer is Market Intelligence / research evidence only and is **not** an Oracle V1.6 probability or production signal.\n- Historical report generated for 13–17 Nov 2026 uses the governed 50-league fixture universe and includes verified FootyStats actuals where available.\n- Template/report integrity was checked after save: A:ET unchanged and formula count preserved.\n"""
+              mp.write_text(txt+block,encoding="utf-8")
+          print(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Persist locked template, memory pack and audit summary
+        shell: bash
+        run: |
+          git config user.name "oracle-public-bot"
+          git config user.email "oracle-public-bot@users.noreply.github.com"
+          git add docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_AND_LAST3_PPG_18Nov2026.xlsx
+          git add docs/master_omi/ORACLE_MEMORY_PACK.md
+          git add recovery/fixtures/current/intelligence/master_omi_historical_13_17_last3_ppg_summary.json
+          git commit -m "Lock Master OMI Last-3 PPG extension and historical report"
+          git push
+
+      - name: Upload historical Master OMI report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oracle-Master-OMI-Historical-13-17-Nov-2026-50-League-Last3PPG
+          path: |
+            Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx
+            recovery/fixtures/current/intelligence/master_omi_historical_13_17_last3_ppg_summary.json
+          retention-days: 30
