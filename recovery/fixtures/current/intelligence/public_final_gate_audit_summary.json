@@ -1,13 +1,13 @@
 {
-  "generated_utc": "2026-11-18T13:32:18.734437+00:00",
+  "generated_utc": "2026-11-18T21:39:19.704322+00:00",
   "status": "BLOCKED_FAIL_CLOSED",
   "completion_percent": 90,
   "governed_fixture_rows": 385,
-  "exact_identity_rows": 365,
-  "exact_identity_percent": 94.81,
+  "exact_identity_rows": 364,
+  "exact_identity_percent": 94.55,
   "ambiguous_identity_rows": 0,
-  "unmatched_identity_rows": 20,
-  "footystats_direct_provider_value_rows": 2190,
+  "unmatched_identity_rows": 21,
+  "footystats_direct_provider_value_rows": 2184,
   "v1_6_production_certified": false,
   "master_omi_final_assembled": false,
   "master_omi_a_et_integrity_verified": false,
@@ -15,7 +15,7 @@
   "pit_chronology_final_verified": false,
   "production_ready": false,
   "blockers": [
-    "FIXTURE_IDENTITY_NOT_100_PERCENT:365/385",
+    "FIXTURE_IDENTITY_NOT_100_PERCENT:364/385",
     "V1_6_PRODUCTION_CERTIFICATION_FALSE",
     "RISK_COVERAGE_NOT_READY"
   ],
