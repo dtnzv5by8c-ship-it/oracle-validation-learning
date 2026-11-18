@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-18T11:28:26.827734+00:00",
+  "generated_utc": "2026-11-18T20:23:19.948790+00:00",
   "source": "FootyStats API",
   "endpoint": "todays-matches",
   "governed_fixture_rows": 385,
@@ -17,10 +17,10 @@
     "2026-11-23",
     "2026-11-24"
   ],
-  "matched_exact": 365,
+  "matched_exact": 364,
   "ambiguous_exact": 0,
-  "unmatched_current": 20,
-  "coverage_pct": 94.81,
+  "unmatched_current": 21,
+  "coverage_pct": 94.55,
   "private_repository_used": false,
   "historical_fallback_used": false,
   "fuzzy_team_matching_used": false,
@@ -30,67 +30,67 @@
   "retrievals": [
     {
       "date": "2026-11-13",
-      "retrieved_utc": "2026-11-18T11:28:09.581794+00:00",
+      "retrieved_utc": "2026-11-18T20:22:51.804281+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-14",
-      "retrieved_utc": "2026-11-18T11:28:09.780908+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.009881+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-15",
-      "retrieved_utc": "2026-11-18T11:28:09.950455+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.185137+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-16",
-      "retrieved_utc": "2026-11-18T11:28:10.087917+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.344646+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-18",
-      "retrieved_utc": "2026-11-18T11:28:10.242203+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.487735+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-19",
-      "retrieved_utc": "2026-11-18T11:28:10.376610+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.641009+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-20",
-      "retrieved_utc": "2026-11-18T11:28:10.573522+00:00",
+      "retrieved_utc": "2026-11-18T20:22:52.799594+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-21",
-      "retrieved_utc": "2026-11-18T11:28:10.774424+00:00",
+      "retrieved_utc": "2026-11-18T20:22:53.024678+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-22",
-      "retrieved_utc": "2026-11-18T11:28:10.951762+00:00",
+      "retrieved_utc": "2026-11-18T20:22:53.228417+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-23",
-      "retrieved_utc": "2026-11-18T11:28:11.126789+00:00",
+      "retrieved_utc": "2026-11-18T20:22:53.381672+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-24",
-      "retrieved_utc": "2026-11-18T11:28:11.283325+00:00",
+      "retrieved_utc": "2026-11-18T20:22:53.566194+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     }
@@ -362,6 +362,226 @@
           "17500",
           "20262027",
           "Serbia SuperLiga Women"
+        ]
+      ],
+      "match_fallback_hits": 0
+    },
+    "F2": {
+      "season_candidates": [
+        [
+          "14932",
+          "20252026",
+          "France Ligue 1"
+        ],
+        [
+          "17102",
+          "20262027",
+          "France Ligue 1"
+        ],
+        [
+          "14954",
+          "20252026",
+          "France Ligue 2"
+        ],
+        [
+          "17117",
+          "20262027",
+          "France Ligue 2"
+        ],
+        [
+          "15361",
+          "20252026",
+          "France National"
+        ],
+        [
+          "17208",
+          "20262027",
+          "France National"
+        ],
+        [
+          "15244",
+          "20252026",
+          "France Feminine Division 1"
+        ],
+        [
+          "18060",
+          "20262027",
+          "France Feminine Division 1"
+        ],
+        [
+          "15642",
+          "20252026",
+          "France Championnat National U19"
+        ],
+        [
+          "17420",
+          "20262027",
+          "France Championnat National U19"
+        ],
+        [
+          "16410",
+          "20252026",
+          "France Coupe de France"
+        ],
+        [
+          "18054",
+          "20262027",
+          "France Coupe de France"
+        ],
+        [
+          "17032",
+          "20252026",
+          "France Ligue 1 2 Play offs"
+        ],
+        [
+          "17019",
+          "20252026",
+          "France Ligue 2/3 Play-offs"
+        ],
+        [
+          "16412",
+          "20252026",
+          "France Trophee des Champions - Super Cup"
+        ],
+        [
+          "17049",
+          "20262027",
+          "France Trophee des Champions - Super Cup"
+        ],
+        [
+          "15476",
+          "20252026",
+          "France National 3 Group H"
+        ],
+        [
+          "17756",
+          "20262027",
+          "France National 3 Group H"
+        ],
+        [
+          "15486",
+          "20252026",
+          "France National 3 Group A"
+        ],
+        [
+          "17755",
+          "20262027",
+          "France National 3 Group A"
+        ],
+        [
+          "15508",
+          "20252026",
+          "France National 3 Group F"
+        ],
+        [
+          "17754",
+          "20262027",
+          "France National 3 Group F"
+        ],
+        [
+          "15477",
+          "20252026",
+          "France National 3 Group E"
+        ],
+        [
+          "17408",
+          "20262027",
+          "France National 3 Group E"
+        ],
+        [
+          "15490",
+          "20252026",
+          "France National 3 Group D"
+        ],
+        [
+          "17760",
+          "20262027",
+          "France National 3 Group D"
+        ],
+        [
+          "15438",
+          "20252026",
+          "France National 2 Group A"
+        ],
+        [
+          "17391",
+          "20262027",
+          "France National 2 Group A"
+        ],
+        [
+          "15436",
+          "20252026",
+          "France National 2 Group B"
+        ],
+        [
+          "17657",
+          "20262027",
+          "France National 2 Group B"
+        ],
+        [
+          "15440",
+          "20252026",
+          "France National 2 Group C"
+        ],
+        [
+          "17650",
+          "20262027",
+          "France National 2 Group C"
+        ],
+        [
+          "15500",
+          "20252026",
+          "France National 3 Group C"
+        ],
+        [
+          "17751",
+          "20262027",
+          "France National 3 Group C"
+        ],
+        [
+          "15482",
+          "20252026",
+          "France National 3 Group B"
+        ],
+        [
+          "17750",
+          "20262027",
+          "France National 3 Group B"
+        ],
+        [
+          "16602",
+          "20252026",
+          "France Coupe Gambardella"
+        ],
+        [
+          "16546",
+          "20252026",
+          "France Coupe de France F\u00e9minine"
+        ],
+        [
+          "15999",
+          "20252026",
+          "France Feminine Division 2"
+        ],
+        [
+          "17230",
+          "20262027",
+          "France Feminine Division 2"
+        ],
+        [
+          "15494",
+          "20252026",
+          "France National 3 Group G"
+        ],
+        [
+          "17796",
+          "20262027",
+          "France National 3 Group G"
+        ],
+        [
+          "18070",
+          "20262027",
+          "France Challenge Espoirs"
         ]
       ],
       "match_fallback_hits": 0
