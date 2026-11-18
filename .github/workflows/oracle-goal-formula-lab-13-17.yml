@@ -1,0 +1,361 @@
+name: Oracle Goal Formula Lab 13-17 Nov 2026
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-goal-formula-lab-13-17.yml"
+      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+      - "recovery/current-state/**/database/current_matches.csv"
+      - "recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
+      - "docs/master_omi/templates/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tooling
+        run: python -m pip install --disable-pip-version-check openpyxl numpy scikit-learn
+
+      - name: Build Goal Formula Lab
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, json, math, re, hashlib, shutil
+          from pathlib import Path
+          from datetime import datetime, timezone
+          from openpyxl import load_workbook
+          from openpyxl.styles import Font, PatternFill, Alignment
+          from openpyxl.comments import Comment
+          from openpyxl.utils import get_column_letter
+          from sklearn.linear_model import Ridge, LinearRegression
+          import numpy as np
+
+          ROOT=Path(".")
+          TARGET_DATES={f"2026-11-{d:02d}" for d in range(13,18)}
+          FIX=ROOT/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
+          ACT=ROOT/"recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
+          SNAPSHOTS=sorted(ROOT.glob("recovery/current-state/*/database/current_matches.csv"))
+          BASE=ROOT/"Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx"
+          if not BASE.exists():
+              BASE=ROOT/"Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx"
+          if not BASE.exists() or not FIX.exists() or not SNAPSHOTS:
+              raise SystemExit("FAIL-CLOSED: required historical report, fixture spine or match snapshot missing.")
+          MATCH=SNAPSHOTS[-1]
+          SNAPSHOT=MATCH.parent.parent.name
+
+          def norm(s):
+              s=str(s or "").casefold()
+              s=re.sub(r"[^a-z0-9]+"," ",s)
+              return re.sub(r"\s+"," ",s).strip()
+          def dt(v):
+              if not v: return None
+              try: return datetime.fromisoformat(str(v).replace("Z","+00:00")).astimezone(timezone.utc)
+              except: return None
+          def num(v):
+              try: return float(v)
+              except: return None
+          def mean(a): return sum(a)/len(a) if a else None
+          def safe(x,default=0.0): return default if x is None or not np.isfinite(x) else float(x)
+
+          fixtures=list(csv.DictReader(FIX.open(encoding="utf-8",newline="")))
+          actuals=list(csv.DictReader(ACT.open(encoding="utf-8",newline=""))) if ACT.exists() else []
+          matches=[]
+          for m in csv.DictReader(MATCH.open(encoding="utf-8",newline="")):
+              if str(m.get("finished","")).lower() not in ("true","1","yes"): continue
+              if str(m.get("cancelled","")).lower() in ("true","1","yes"): continue
+              d=dt(m.get("date_utc") or m.get("kickoff_utc") or m.get("date"))
+              hg=num(m.get("home_goals")); ag=num(m.get("away_goals"))
+              if d is None or hg is None or ag is None: continue
+              matches.append(dict(dt=d, hn=norm(m.get("home_team")), an=norm(m.get("away_team")),
+                                  home=m.get("home_team",""), away=m.get("away_team",""), hg=hg, ag=ag,
+                                  raw=m))
+          matches.sort(key=lambda x:x["dt"])
+
+          target=[f for f in fixtures if f.get("date") in TARGET_DATES and f.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY"]
+          if not target: raise SystemExit("FAIL-CLOSED: no exact target fixtures.")
+
+          def team_hist(team, cutoff, venue=None, n=5):
+              tn=norm(team); out=[]
+              for m in matches:
+                  if m["dt"]>=cutoff: break
+                  if venue=="home" and tn!=m["hn"]: continue
+                  if venue=="away" and tn!=m["an"]: continue
+                  if venue is None and tn not in (m["hn"],m["an"]): continue
+                  if tn==m["hn"]: gf,ga=m["hg"],m["ag"]
+                  else: gf,ga=m["ag"],m["hg"]
+                  pts=3 if gf>ga else 1 if gf==ga else 0
+                  out.append((m["dt"],gf,ga,pts))
+              return out[-n:][::-1]
+
+          def feat(team, cutoff):
+              l3=team_hist(team,cutoff,None,3); l5=team_hist(team,cutoff,None,5)
+              return {
+                "ppg3":safe(mean([x[3] for x in l3])),
+                "ppg5":safe(mean([x[3] for x in l5])),
+                "gf3":safe(mean([x[1] for x in l3])),
+                "ga3":safe(mean([x[2] for x in l3])),
+                "gf5":safe(mean([x[1] for x in l5])),
+                "ga5":safe(mean([x[2] for x in l5])),
+                "vgf":safe(mean([x[1] for x in team_hist(team,cutoff,"home",5)])),
+                "vga":safe(mean([x[2] for x in team_hist(team,cutoff,"home",5)])),
+                "vaf":safe(mean([x[1] for x in team_hist(team,cutoff,"away",5)])),
+                "vaa":safe(mean([x[2] for x in team_hist(team,cutoff,"away",5)]))
+              }
+
+          def row_features(f):
+              cutoff=dt(f.get("provider_kickoff_utc"))
+              if cutoff is None: cutoff=dt(f.get("date")+"T00:00:00+00:00")
+              h=feat(f.get("provider_home_name"),cutoff); a=feat(f.get("provider_away_name"),cutoff)
+              # recency weighting: 50/30/20 on last 3 goals for/against.
+              def rw(team):
+                  q=team_hist(team,cutoff,None,3)
+                  w=[.5,.3,.2][:len(q)]
+                  z=sum(w)
+                  return (sum(x[1]*w[i] for i,x in enumerate(q))/z if z else 0,
+                          sum(x[2]*w[i] for i,x in enumerate(q))/z if z else 0)
+              hrg,hra=rw(f.get("provider_home_name")); arg,ara=rw(f.get("provider_away_name"))
+              h["rw_gf"]=hrg; h["rw_ga"]=hra; a["rw_gf"]=arg; a["rw_ga"]=ara
+              # Venue-specific context: home team's home attack + away team's away attack,
+              # plus reciprocal defensive vulnerability.
+              venue_home_attack=safe(h["vgf"],h["gf5"]); venue_home_def=safe(h["vga"],h["ga5"])
+              venue_away_attack=safe(a["vaf"],a["gf5"]); venue_away_def=safe(a["vaa"],a["ga5"])
+              return h,a,venue_home_attack,venue_home_def,venue_away_attack,venue_away_def
+
+          # Target actuals keyed by provider fixture id/date.
+          actual_map={}
+          for a in actuals:
+              if a.get("actuals_status")=="VERIFIED_ACTUALS":
+                  hg=num(a.get("home_goals_actual")); ag=num(a.get("away_goals_actual"))
+                  if hg is not None and ag is not None:
+                      actual_map[(a.get("provider_fixture_id"),a.get("date"))]=hg+ag
+
+          # Build target rows with strict pre-match features.
+          rows=[]
+          for f in target:
+              key=(f.get("provider_fixture_id"),f.get("date"))
+              if key not in actual_map: continue
+              cutoff=dt(f.get("provider_kickoff_utc"))
+              h,a,vha,vhd,vaa,vad=row_features(f)
+              rows.append({
+                "league":f.get("league_code",""),"date":f.get("date",""),
+                "home":f.get("provider_home_name",""),"away":f.get("provider_away_name",""),
+                "fixture_id":f.get("provider_fixture_id",""),"actual_total":actual_map[key],
+                **{f"H_{k}":v for k,v in h.items()}, **{f"A_{k}":v for k,v in a.items()},
+                "venue_home_attack":vha,"venue_home_def":vhd,
+                "venue_away_attack":vaa,"venue_away_def":vad
+              })
+
+          if len(rows)<10: raise SystemExit(f"FAIL-CLOSED: only {len(rows)} verified target actuals available.")
+
+          # Research formulas. These are deliberately transparent and remain experimental.
+          # Baseline league total is learned only from matches before the target period.
+          pre=[m for m in matches if m["dt"] < datetime(2026,11,13,tzinfo=timezone.utc)]
+          league_total=mean([m["hg"]+m["ag"] for m in pre]) or 2.5
+          league_home=mean([m["hg"] for m in pre]) or 1.45
+          league_away=mean([m["ag"] for m in pre]) or 1.15
+
+          def clamp(x): return max(0.05,min(7.0,float(x)))
+          def preds(r):
+              # F1/F2: PPG environment. PPG is converted to a goal environment using
+              # pre-target league mean and a conservative 0.22-goal-per-PPG scale.
+              f1=league_total + .22*((r["H_ppg5"]+r["A_ppg5"])-4.0)
+              f2=league_total + .22*((r["H_ppg3"]+r["A_ppg3"])-4.0)
+              # F3/F4: attack + defensive vulnerability, all-venue.
+              f3=(r["H_gf5"]+r["A_ga5"]+r["A_gf5"]+r["H_ga5"])/2
+              f4=(r["H_gf3"]+r["A_ga3"]+r["A_gf3"]+r["H_ga3"])/2
+              # F5: recency-weighted attack/defence.
+              f5=(r["H_rw_gf"]+r["A_rw_ga"]+r["A_rw_gf"]+r["H_rw_ga"])/2
+              # F6: venue attack-vs-defence interaction.
+              f6=(r["venue_home_attack"]+r["venue_away_def"]+r["venue_away_attack"]+r["venue_home_def"])/2
+              # F7: momentum-adjusted goal environment.
+              mom=(r["H_gf3"]-r["H_gf5"])+(r["A_gf3"]-r["A_gf5"])+(r["H_ga3"]-r["H_ga5"])+(r["A_ga3"]-r["A_ga5"])
+              f7=f4 + .25*mom
+              # F8: blended consensus of independent transparent engines.
+              f8=.15*f1+.15*f2+.20*f4+.20*f5+.30*f6
+              return [clamp(x) for x in (f1,f2,f3,f4,f5,f6,f7,f8)]
+
+          for r in rows:
+              r["preds"]=preds(r)
+
+          # Add a strictly pre-target learned model as an experimental "X" formula.
+          # Training features are generated for historical matches using only their prior matches.
+          train=[]
+          for m in pre:
+              cutoff=m["dt"]
+              h=feat(m["home"],cutoff); a=feat(m["away"],cutoff)
+              train.append([
+                h["ppg3"],a["ppg3"],h["ppg5"],a["ppg5"],
+                h["gf3"],a["gf3"],h["ga3"],a["ga3"],
+                h["gf5"],a["gf5"],h["ga5"],a["ga5"],
+                h["rw_gf"],a["rw_gf"],h["rw_ga"],a["rw_ga"],
+                h["vgf"],h["vga"],a["vaf"],a["vaa"]
+              ])
+          y=np.array([m["hg"]+m["ag"] for m in pre],dtype=float)
+          X=np.array(train,dtype=float)
+          good=np.all(np.isfinite(X),axis=1)&np.isfinite(y)
+          X=X[good]; y=y[good]
+          if len(y)<200: raise SystemExit("FAIL-CLOSED: insufficient historical training observations.")
+          ridge=Ridge(alpha=10.0).fit(X,y)
+          # X-model is trained only on pre-13-Nov data.
+          for r in rows:
+              x=np.array([r[k] for k in [
+                "H_ppg3","A_ppg3","H_ppg5","A_ppg5","H_gf3","A_gf3","H_ga3","A_ga3",
+                "H_gf5","A_gf5","H_ga5","A_ga5","H_rw_gf","A_rw_gf","H_rw_ga","A_rw_ga",
+                "H_vgf","H_vga","A_vaf","A_vaa"]],dtype=float).reshape(1,-1)
+              r["ridge_pred"]=clamp(ridge.predict(x)[0])
+
+          methods=[
+            ("F1_Last5_PPG_Environment",0),("F2_Last3_PPG_Environment",1),
+            ("F3_Last5_Attack_Defence",2),("F4_Last3_Attack_Defence",3),
+            ("F5_RecencyWeighted_Attack_Defence",4),("F6_Venue_Attack_Defence",5),
+            ("F7_Last3_Momentum_Adjusted",6),("F8_Hybrid_Consensus",7),
+            ("F9_WalkForward_Ridge_20Signal",None)
+          ]
+
+          def metrics(p,y):
+              p=np.array(p,float); y=np.array(y,float)
+              err=p-y
+              mae=float(np.mean(np.abs(err))); rmse=float(np.sqrt(np.mean(err**2)))
+              bias=float(np.mean(err)); exact=float(np.mean(np.rint(p)==y))
+              plus1=float(np.mean(np.abs(np.rint(p)-y)<=1))
+              within05=float(np.mean(np.abs(p-y)<=0.5))
+              corr=float(np.corrcoef(p,y)[0,1]) if len(y)>1 and np.std(p)>0 and np.std(y)>0 else None
+              return dict(n=len(y),mae=mae,rmse=rmse,bias=bias,exact_rounded=exact,within_1_goal=plus1,within_0_5=within05,correlation=corr)
+
+          y=[r["actual_total"] for r in rows]
+          summary=[]
+          for name,idx in methods:
+              p=[r["ridge_pred"] if idx is None else r["preds"][idx] for r in rows]
+              summary.append({"formula":name,**metrics(p,y)})
+
+          # Excel workbook: experimental copy only. Existing A:ET in Market Intelligence remains untouched.
+          OUT=ROOT/"Oracle_Master_OMI_Goal_Formula_Lab_13-17Nov2026.xlsx"
+          shutil.copy2(BASE,OUT)
+          wb=load_workbook(OUT,data_only=False)
+          if "Goal Formula Lab" in wb.sheetnames: del wb["Goal Formula Lab"]
+          ws=wb.create_sheet("Goal Formula Lab")
+          headers=["League","Date","Home","Away","Fixture ID","Actual Total Goals",
+                   "H_L3_PPG","A_L3_PPG","H_L5_PPG","A_L5_PPG","H_L3_GF/M","A_L3_GF/M","H_L3_GA/M","A_L3_GA/M",
+                   "H_L5_GF/M","A_L5_GF/M","H_L5_GA/M","A_L5_GA/M","H_RW_GF/M","A_RW_GF/M","H_RW_GA/M","A_RW_GA/M",
+                   "H_HOME_GF/M","H_HOME_GA/M","A_AWAY_GF/M","A_AWAY_GA/M",
+                   "F1 Last5 PPG","F2 Last3 PPG","F3 Last5 AttackDef","F4 Last3 AttackDef","F5 Recency","F6 Venue",
+                   "F7 Momentum","F8 Hybrid","F9 Ridge","Formula Leader"]
+          ws.append(headers)
+          for c in range(1,len(headers)+1):
+              cell=ws.cell(1,c); cell.font=Font(bold=True,color="FFFFFF"); cell.fill=PatternFill("solid",fgColor="1F4E78"); cell.alignment=Alignment(horizontal="center",wrap_text=True)
+          for i,r in enumerate(rows,2):
+              vals=[r["league"],r["date"],r["home"],r["away"],r["fixture_id"],r["actual_total"],
+                    r["H_ppg3"],r["A_ppg3"],r["H_ppg5"],r["A_ppg5"],r["H_gf3"],r["A_gf3"],r["H_ga3"],r["A_ga3"],
+                    r["H_gf5"],r["A_gf5"],r["H_ga5"],r["A_ga5"],r["H_rw_gf"],r["A_rw_gf"],r["H_rw_ga"],r["A_rw_ga"],
+                    r["venue_home_attack"],r["venue_home_def"],r["venue_away_attack"],r["venue_away_def"]]
+              for c,v in enumerate(vals,1): ws.cell(i,c,v)
+              # Excel formulas intentionally visible/reviewable.
+              ws.cell(i,27,f"=ROUND({league_total:.12f}+0.22*((I{i}+J{i})-4),2)")
+              ws.cell(i,28,f"=ROUND({league_total:.12f}+0.22*((G{i}+H{i})-4),2)")
+              ws.cell(i,29,f"=ROUND((O{i}+R{i}+P{i}+Q{i})/2,2)")
+              ws.cell(i,30,f"=ROUND((K{i}+N{i}+L{i}+M{i})/2,2)")
+              ws.cell(i,31,f"=ROUND((S{i}+V{i}+T{i}+U{i})/2,2)")
+              ws.cell(i,32,f"=ROUND((W{i}+Z{i}+Y{i}+X{i})/2,2)")
+              ws.cell(i,33,f"=ROUND(AD{i}+0.25*((K{i}-O{i})+(L{i}-P{i})+(M{i}-Q{i})+(N{i}-R{i})),2)")
+              ws.cell(i,34,f"=ROUND(0.15*AA{i}+0.15*AB{i}+0.20*AD{i}+0.20*AE{i}+0.30*AF{i},2)")
+              # F9 coefficients are stored in the coefficients sheet; use SUMPRODUCT so the formula is auditable.
+              ws.cell(i,35,f"=ROUND(SUMPRODUCT(G{i}:Z{i},'Formula Coefficients'!$B$2:$U$2)+'Formula Coefficients'!$B$1,2)")
+              ws.cell(i,36,f'=INDEX($AA$1:$AI$1,1,MATCH(MIN(ABS($AA{i}:$AI{i}-$F{i})),$AA{i}:$AI{i},0))')
+          ws.freeze_panes="A2"; ws.auto_filter.ref=ws.dimensions
+          for c in range(1,ws.max_column+1): ws.column_dimensions[get_column_letter(c)].width=min(max(len(str(ws.cell(1,c).value or ""))+3,12),24)
+
+          # Coefficients / methodology sheet.
+          cw=wb.create_sheet("Formula Coefficients")
+          cw.append(["F9 Ridge intercept"]+[""]*19)
+          cw["B1"]=float(ridge.intercept_)
+          names=["H_L3_PPG","A_L3_PPG","H_L5_PPG","A_L5_PPG","H_L3_GF","A_L3_GF","H_L3_GA","A_L3_GA","H_L5_GF","A_L5_GF","H_L5_GA","A_L5_GA","H_RW_GF","A_RW_GF","H_RW_GA","A_RW_GA","H_HOME_GF","H_HOME_GA","A_AWAY_GF","A_AWAY_GA"]
+          cw.append(names)
+          cw.append(list(ridge.coef_))
+          # Correct SUMPRODUCT orientation: coefficients row 3, intercept B1.
+          for c in range(1,21): cw.cell(2,c).font=Font(bold=True)
+          cw["A4"]="Training cutoff"; cw["B4"]="2026-11-13T00:00:00Z"
+          cw["A5"]="Training observations"; cw["B5"]=len(y)
+          cw["A6"]="F9 methodology"; cw["B6"]="Ridge regression (alpha=10) trained only on completed matches strictly before 13 Nov 2026; each training row uses only matches available before that historical fixture."
+          cw["A8"]="Formula definitions"
+          defs=[
+            ("F1","League total + 0.22 × (Last-5 PPG sum − 4.0)"),
+            ("F2","League total + 0.22 × (Last-3 PPG sum − 4.0)"),
+            ("F3","Mean of home/away Last-5 attack + reciprocal defensive vulnerability"),
+            ("F4","Mean of home/away Last-3 attack + reciprocal defensive vulnerability"),
+            ("F5","Same attack/defence architecture using 50/30/20 recency weights"),
+            ("F6","Venue-specific home/away attack and defensive vulnerability"),
+            ("F7","F4 + 0.25 × combined Last-3 minus Last-5 GF/GA momentum"),
+            ("F8","Weighted consensus: 15% F1 + 15% F2 + 20% F4 + 20% F5 + 30% F6"),
+            ("F9","Walk-forward Ridge using 20 pre-match signals; no target-period outcomes in training")
+          ]
+          for x in defs: cw.append(list(x))
+          cw.freeze_panes="A2"
+
+          # Accuracy sheet, with both calculated results and Excel formulas.
+          sw=wb.create_sheet("Formula Accuracy")
+          sw.append(["Formula","N","MAE","RMSE","Bias","Exact Rounded Goal %","Within ±1 Goal %","Within ±0.5 Goal %","Correlation","Rank"])
+          for c in range(1,11):
+              sw.cell(1,c).font=Font(bold=True,color="FFFFFF"); sw.cell(1,c).fill=PatternFill("solid",fgColor="1F4E78")
+          ordered=sorted(summary,key=lambda x:x["mae"])
+          rank={x["formula"]:i+1 for i,x in enumerate(ordered)}
+          for i,s in enumerate(summary,2):
+              sw.append([s["formula"],s["n"],s["mae"],s["rmse"],s["bias"],s["exact_rounded"],s["within_1_goal"],s["within_0_5"],s["correlation"],rank[s["formula"]]])
+          sw["L1"]="IMPORTANT"; sw["L2"]="This is a discovery backtest only. The 13-17 Nov sample is small and must not be promoted to Oracle V1.6 production."
+          sw["L3"]="Exact rounded goal % means ROUND(prediction,0) equals actual total goals."
+          sw["L4"]="Within ±1 means the rounded prediction is no more than one goal from actual."
+          sw["L5"]="All inputs are strictly pre-kickoff; target actual goals are used only for scoring."
+          for c in range(1,11): sw.column_dimensions[get_column_letter(c)].width=18
+
+          # Leaderboard chart-like visual via ranking values, no external chart needed.
+          lw=wb.create_sheet("Formula Leaderboard")
+          lw.append(["Rank","Formula","MAE","RMSE","Exact %","±1 Goal %","Correlation"])
+          for i,s in enumerate(ordered,1):
+              lw.append([i,s["formula"],s["mae"],s["rmse"],s["exact_rounded"],s["within_1_goal"],s["correlation"]])
+          lw["A1"].font=Font(bold=True)
+          for row in lw.iter_rows():
+              for cell in row: cell.alignment=Alignment(vertical="center")
+
+          # Save and verify Market Intelligence A:ET values are byte-for-byte equivalent to source.
+          src=load_workbook(BASE,data_only=False)
+          srcws=src["Market Intelligence"]; outws=wb["Market Intelligence"]
+          src_protected=[[srcws.cell(r,c).value for c in range(1,151)] for r in range(1,srcws.max_row+1)]
+          out_protected=[[outws.cell(r,c).value for c in range(1,151)] for r in range(1,outws.max_row+1)]
+          if src_protected!=out_protected:
+              raise SystemExit("FAIL-CLOSED: Goal Formula Lab altered Market Intelligence A:ET.")
+          wb.save(OUT)
+
+          # Save a machine-readable result manifest.
+          manifest={"generated_utc":datetime.now(timezone.utc).isoformat(),"target_verified_actuals":len(rows),
+                    "training_observations":len(y),"league_total_baseline":league_total,
+                    "formulas":summary,"winner_by_mae":ordered[0]["formula"],
+                    "winner_by_rmse":sorted(summary,key=lambda x:x["rmse"])[0]["formula"],
+                    "winner_by_exact_rounded":sorted(summary,key=lambda x:x["exact_rounded"],reverse=True)[0]["formula"],
+                    "protected_A_ET_unchanged":True,"oracle_v1_6_changed":False,"production_promotion":False,
+                    "source_snapshot":SNAPSHOT}
+          (ROOT/"recovery/fixtures/current/intelligence/goal_formula_lab_13_17_summary.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+          print(json.dumps(manifest,indent=2))
+          PY
+
+      - name: Persist experiment and summary
+        shell: bash
+        run: |
+          git config user.name "oracle-public-bot"
+          git config user.email "oracle-public-bot@users.noreply.github.com"
+          git add Oracle_Master_OMI_Report_Goal_Formula_Lab_13-17Nov2026.xlsx recovery/fixtures/current/intelligence/goal_formula_lab_13_17_summary.json
+          git commit -m "Add experimental goal formula lab and 13-17 Nov accuracy backtest"
+          git push
+
+      - name: Upload Goal Formula Lab
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oracle-Goal-Formula-Lab-13-17-Nov-2026
+          path: |
+            Oracle_Master_OMI_Report_Goal_Formula_Lab_13-17Nov2026.xlsx
+            recovery/fixtures/current/intelligence/goal_formula_lab_13_17_summary.json
+          retention-days: 30
