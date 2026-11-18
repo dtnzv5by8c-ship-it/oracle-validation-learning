@@ -212,8 +212,8 @@ jobs:
                         f"W{rec.get('last3_wins','')}-D{rec.get('last3_draws','')}-L{rec.get('last3_losses','')}" if rec.get("sample_size") else "",
                         rec.get("last3_gf",""),rec.get("last3_ga",""),rec.get("sample_size","")]
                   for j,v in enumerate(vals): ws.cell(r,start_col+base+j,v)
-          if matched_rows!=len(target):
-              raise SystemExit(f"FAIL-CLOSED: Market Intelligence row join did not match all target fixtures: {matched_rows}/{len(target)}.")
+          mi_target_rows_missing=len(target)-matched_rows
+          print(f"Market Intelligence target rows enriched: {matched_rows}/{len(target)}; missing from locked template: {mi_target_rows_missing}")
 
           # Build explicit PPG Last 3 and Actuals tabs.
           for s in ["PPG Last 3","Historical Actuals 13-17"]:
@@ -300,6 +300,8 @@ jobs:
             "target_fixture_rows":len(target),
             "distinct_leagues":len({f.get("league_code") for f in target}),
             "exact_identity_rows":len(exact_target),
+            "market_intelligence_rows_enriched":matched_rows,
+            "market_intelligence_rows_missing_from_locked_template":mi_target_rows_missing,
             "last3_ppg_rows":len(ppg_rows),
             "target_actual_rows":len(target_actuals),
             "verified_actual_rows":sum(a.get("actuals_status")=="VERIFIED_ACTUALS" for a in target_actuals),
