@@ -156,14 +156,13 @@ jobs:
                   v=norm(ws.cell(header_row,c).value)
                   if any(p in v for p in patterns): return c
               return None
-          c_date=find_col("date")
-          c_home=find_col("home team","home")
-          c_away=find_col("away team","away")
-          c_league=find_col("league code","league")
+          c_date=find_col("fixture date","date")
+          c_league=find_col("league")
+          c_fixture=find_col("fixture")
           print("MI_HEADER_ROW",header_row)
           print("MI_HEADERS",[(c,ws.cell(header_row,c).value) for c in range(1,ws.max_column+1) if ws.cell(header_row,c).value not in (None,"")][:80])
-          if not all((c_date,c_home,c_away,c_league)):
-              raise SystemExit(f"FAIL-CLOSED: unable to resolve Market Intelligence fixture key columns: date={c_date},home={c_home},away={c_away},league={c_league}")
+          if not all((c_date,c_league,c_fixture)):
+              raise SystemExit(f"FAIL-CLOSED: unable to resolve Market Intelligence fixture key columns: date={c_date},league={c_league},fixture={c_fixture}")
 
           # Append-only new fields after the current last column.
           start_col=ws.max_column+1
@@ -201,9 +200,8 @@ jobs:
               d=str(ws.cell(r,c_date).value or "")[:10]
               if d not in TARGET_DATES: continue
               league=str(ws.cell(r,c_league).value or "")
-              home=str(ws.cell(r,c_home).value or "")
-              away=str(ws.cell(r,c_away).value or "")
-              candidates=[f for f in exact_target if f.get("date")==d and norm(f.get("home_team"))==norm(home) and norm(f.get("away_team"))==norm(away)]
+              fixture_text=norm(ws.cell(r,c_fixture).value or "")
+              candidates=[f for f in target if f.get("date")==d and norm(f.get("league_code")) in norm(league) and norm(f.get("home_team")) in fixture_text and norm(f.get("away_team")) in fixture_text]
               if len(candidates)!=1:
                   continue
               f=candidates[0]; target_row_numbers.append(r); matched_rows+=1
