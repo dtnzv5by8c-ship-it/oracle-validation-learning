@@ -1,39 +1,49 @@
 {
-  "checkpoint": "2026-11-15",
+  "checkpoint": "2026-11-18",
   "canonical_foundation_workbook": "Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx",
   "foundation_sha256": "84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1",
-  "description_complete_template": "Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_15Nov2026.xlsx",
-  "description_complete_template_sha256": "781bfba120751e1a5995f762729639e1cc3b7317c4e44aa42dc5c77eae152c19",
+  "canonical_template_status": "LOCKED_V2_LAST3_PPG",
+  "canonical_template_library_name": "Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx",
+  "canonical_template_dimensions": "755 rows x 251 columns",
   "market_intelligence": {
     "protected_range": "A:ET",
     "protected_columns": 150,
     "append_start": "EU",
-    "total_columns_at_checkpoint": 239,
-    "appended_columns_at_checkpoint": 89,
-    "rows_at_checkpoint": 754,
-    "heading_description_comments": 239
+    "total_columns_current": 251,
+    "appended_columns_current": 101,
+    "last3_ppg_append_block": "EU:IS"
   },
+  "required_intelligence_layers": [
+    "Oracle V1.6 governed production outputs — unchanged",
+    "Fixture identity and reconciliation",
+    "Market Intelligence A:ET — immutable",
+    "FootyStats provider intelligence with provenance/status/quality",
+    "Last-3 PPG",
+    "Last-5 form/PPG/GF/M/GA/M",
+    "Venue/home-away PPG and form",
+    "H2H",
+    "Team State",
+    "BTTS research signals",
+    "Total-goals research signals and goal-formula laboratory outputs",
+    "Win/draw/away probability research where governed evidence permits",
+    "Visual Intelligence",
+    "NO_BET diagnostics",
+    "Actual results and post-match validation for completed fixtures",
+    "Data quality, missingness, provenance and governance metadata"
+  ],
   "rules": [
     "A:ET is immutable and is the downstream formula cell-reference contract.",
     "Never insert, delete, rename, reorder, or overwrite A:ET.",
     "All new intelligence is append-only from EU onward.",
     "Preserve formulas and existing cell positions.",
     "Every non-empty Market Intelligence heading must have a concise Excel comment description.",
-    "Heading comments are metadata only and must not alter the schema.",
     "FootyStats data requires explicit provenance; never fabricate values.",
     "xG remains quarantined for predictive use until point-in-time provenance is proven.",
-    "Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged."
+    "Research goal signals do not overwrite Oracle V1.6 production probabilities.",
+    "No post-kickoff or leakage-derived feature may be used as a pre-match signal.",
+    "Oracle V1.6 production logic, probabilities, thresholds, calibration, betting eligibility and governance remain unchanged.",
+    "If a provider value is unavailable, mark it explicitly rather than substituting silently."
   ],
-  "github_binary_alignment": "ALIGNED_2026-11-15",
-  "purpose": "Permanent recovery checkpoint for the Master OMI workbook schema, template contract and heading-description standard.",
-  "integrity_verification": {
-    "status": "PASS",
-    "protected_range": "A:ET",
-    "protected_columns": 150,
-    "appended_columns": 89,
-    "total_market_intelligence_columns": 239,
-    "fixture_rows": 754,
-    "heading_comments": "239/239",
-    "verified_against_foundation": "cell-for-cell A:ET match"
-  }
+  "github_binary_alignment": "LEGACY_239_COLUMN_BINARY_PRESENT; V2_251_COLUMN_CANONICAL_SPEC_LOCKED_HERE_PENDING_BINARY_REPLACEMENT",
+  "purpose": "Permanent recovery checkpoint for the Master OMI workbook schema, canonical intelligence layers and heading-description standard."
 }
