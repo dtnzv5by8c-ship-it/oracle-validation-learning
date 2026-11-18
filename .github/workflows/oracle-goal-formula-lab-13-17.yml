@@ -93,6 +93,10 @@ jobs:
 
           def feat(team, cutoff):
               l3=team_hist(team,cutoff,None,3); l5=team_hist(team,cutoff,None,5)
+              q=l3
+              w=[.5,.3,.2][:len(q)]; z=sum(w)
+              rw_gf=(sum(x[1]*w[i] for i,x in enumerate(q))/z if z else 0)
+              rw_ga=(sum(x[2]*w[i] for i,x in enumerate(q))/z if z else 0)
               return {
                 "ppg3":safe(mean([x[3] for x in l3])),
                 "ppg5":safe(mean([x[3] for x in l5])),
@@ -103,7 +107,8 @@ jobs:
                 "vgf":safe(mean([x[1] for x in team_hist(team,cutoff,"home",5)])),
                 "vga":safe(mean([x[2] for x in team_hist(team,cutoff,"home",5)])),
                 "vaf":safe(mean([x[1] for x in team_hist(team,cutoff,"away",5)])),
-                "vaa":safe(mean([x[2] for x in team_hist(team,cutoff,"away",5)]))
+                "vaa":safe(mean([x[2] for x in team_hist(team,cutoff,"away",5)])),
+                "rw_gf":safe(rw_gf),"rw_ga":safe(rw_ga)
               }
 
           def row_features(f):
