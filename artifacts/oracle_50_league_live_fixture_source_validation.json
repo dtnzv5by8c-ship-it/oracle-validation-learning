@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-18T13:52:20.245714+00:00",
+  "generated_utc": "2026-11-18T21:52:18.578432+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1012,14 +1012,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 2,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_per1_2026_20261118_alianza_atletico_fbc_melgar",
-          "kickoff_at": "2026-11-18T20:00:00.000Z",
-          "home": "Alianza Atlético",
-          "away": "FBC Melgar"
-        },
         {
           "match_id": "match_fmb_per1_2026_20261121_alianza_lima_fc_cajamarca",
           "kickoff_at": "2026-11-21T20:30:00Z",
@@ -1569,7 +1563,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 114,
+    "fixtures_in_window": 113,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
