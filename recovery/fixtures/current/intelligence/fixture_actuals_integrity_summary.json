@@ -1,14 +1,14 @@
 {
-  "generated_utc": "2026-11-18T12:11:00.065072+00:00",
+  "generated_utc": "2026-11-18T20:53:26.169827+00:00",
   "governed_fixture_rows": 385,
   "verified_actuals_rows": 30,
   "not_completed_rows": 355,
   "actuals_missing_rows": 0,
   "kickoff_chronology_counts": {
-    "MATCH_DATE_CONFIRMED": 365,
-    "UNVERIFIED": 20
+    "MATCH_DATE_CONFIRMED": 364,
+    "UNVERIFIED": 21
   },
-  "pre_match_ppg_fields_captured": 365,
+  "pre_match_ppg_fields_captured": 364,
   "governance": "Actuals/chronology audit only. Completed fixture goals and BTTS are sourced from provider match details; pre-match PPG is captured separately from provider pre_match fields; provider kickoff timestamp is retained for chronology review. No synthetic actuals, no inferred results, no post-match current PPG used as pre-match evidence, no Oracle V1.6 changes, no Master OMI A:ET changes.",
   "private_repository_used": false,
   "oracle_v1_6_changed": false,
