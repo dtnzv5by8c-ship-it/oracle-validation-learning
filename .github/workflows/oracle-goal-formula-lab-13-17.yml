@@ -41,11 +41,9 @@ jobs:
           FIX=ROOT/"recovery/fixtures/current/governed_fixture_reconciliation.csv"
           ACT=ROOT/"recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv"
           SNAPSHOTS=sorted(ROOT.glob("recovery/current-state/*/database/current_matches.csv"))
-          BASE=ROOT/"Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx"
-          if not BASE.exists():
-              BASE=ROOT/"Oracle_Master_OMI_Report_HISTORICAL_13-17Nov2026_50League_Last3PPG.xlsx"
+          BASE=ROOT/"docs/master_omi/templates/Oracle_Master_OMI_Report_TEMPLATE_LOCKED_WITH_HEADING_DESCRIPTIONS_AND_LAST3_PPG_18Nov2026.xlsx"
           if not BASE.exists() or not FIX.exists() or not SNAPSHOTS:
-              raise SystemExit("FAIL-CLOSED: required historical report, fixture spine or match snapshot missing.")
+              raise SystemExit("FAIL-CLOSED: required locked template, fixture spine or match snapshot missing.")
           MATCH=SNAPSHOTS[-1]
           SNAPSHOT=MATCH.parent.parent.name
 
@@ -265,7 +263,7 @@ jobs:
               ws.cell(i,33,f"=ROUND(AD{i}+0.25*((K{i}-O{i})+(L{i}-P{i})+(M{i}-Q{i})+(N{i}-R{i})),2)")
               ws.cell(i,34,f"=ROUND(0.15*AA{i}+0.15*AB{i}+0.20*AD{i}+0.20*AE{i}+0.30*AF{i},2)")
               # F9 coefficients are stored in the coefficients sheet; use SUMPRODUCT so the formula is auditable.
-              ws.cell(i,35,f"=ROUND(SUMPRODUCT(G{i}:Z{i},'Formula Coefficients'!$B$2:$U$2)+'Formula Coefficients'!$B$1,2)")
+              ws.cell(i,35,f"=ROUND(SUMPRODUCT(G{i}:Z{i},'Formula Coefficients'!$B$3:$U$3)+'Formula Coefficients'!$B$1,2)")
               ws.cell(i,36,f'=INDEX($AA$1:$AI$1,1,MATCH(MIN(ABS($AA{i}:$AI{i}-$F{i})),$AA{i}:$AI{i},0))')
           ws.freeze_panes="A2"; ws.auto_filter.ref=ws.dimensions
           for c in range(1,ws.max_column+1): ws.column_dimensions[get_column_letter(c)].width=min(max(len(str(ws.cell(1,c).value or ""))+3,12),24)
