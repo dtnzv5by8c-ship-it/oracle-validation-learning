@@ -339,3 +339,45 @@ docs/master_omi/MASTER_OMI_V2_1_2_H2H_FOOTYSTATS_LOCK_2026-11-19.md
 Commit: 4a9a1ffc237365f2e7e5c892515d1432c21dcd2d
 
 Governance remains unchanged: Oracle V1.6 production logic unchanged; A:ET schema unchanged; future intelligence appended after the current LTSS block; no post-kickoff evidence; no fabricated provider values.
+## Master OMI V2.1.3 FootyStats form source correction — 2026-11-19
+
+Root cause: the prior form extraction mixed venue-form fields into the intended overall Last-5 fields. This is not acceptable for production reporting.
+
+Permanent source of truth for Last-5 provider form:
+`https://api.football-data-api.com/lastx?key=YOURKEY&team_id=TEAM_ID`
+
+FootyStats documents this as the Team Last 5 / 6 / 10 Stats endpoint. The exact 5-match node is selected using `seasonMatchesPlayed_overall = 5`.
+
+Required mapping:
+- `formRun_overall` -> scheduled team's overall FootyStats Last-5 Form.
+- `formRun_home` -> scheduled home team's Home Venue Last-5 Form.
+- `formRun_away` -> scheduled away team's Away Venue Last-5 Form.
+- `seasonPPG_overall/home/away` -> corresponding Last-5 PPG fields.
+- `seasonScoredAVG_overall/home/away` -> corresponding Last-5 GF/M fields.
+- `seasonConcededAVG_overall/home/away` -> corresponding Last-5 GA/M fields.
+- `seasonAVG_overall/home/away` -> corresponding Last-5 total-goals averages.
+- `seasonMatchesPlayed_overall/home/away` -> sample counts.
+
+FootyStats help states that Last-5 Form uses the team's last five matches and can include matches from different leagues. This is why league-table `currentFormHome/currentFormAway` values must not be used as the overall Last-5 provider field.
+
+Form order is permanently locked: **OLDEST -> NEWEST, left-to-right**. Example `LLLWL` means Loss, Loss, Loss, Win, Loss; final character is the most recent result.
+
+QA requirements:
+- form length must equal sample N;
+- form-derived PPG must match provider PPG within rounding tolerance;
+- overall field must come from `formRun_overall`, never `currentFormHome/currentFormAway`;
+- venue fields must come from `formRun_home/formRun_away`;
+- provider snapshot UTC must be recorded;
+- if exact 5-match provider coverage is below 95% for unique teams, fail closed rather than publish partial provider form;
+- no stale values from prior reports may survive a failed refresh.
+
+New workflow:
+`.github/workflows/oracle-footystats-form-rebuild.yml`
+Script:
+`scripts/oracle_footystats_form_rebuild.py`
+
+Lock specification:
+`docs/master_omi/MASTER_OMI_V2_1_3_FOOTYSTATS_FORM_SOURCE_LOCK_2026-11-19.md`
+Commit: `c6ae7aadecf48e6ec0da61143d0e45dd9662f1f7`
+
+Governance: Oracle V1.6 unchanged; A:ET unchanged; provider intelligence after ET may be corrected in place; future intelligence remains append-only.
