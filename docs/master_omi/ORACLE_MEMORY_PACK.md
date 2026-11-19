@@ -412,3 +412,53 @@ Permanent rule:
 - Never use the stale uploaded derivative as the template for weekly reporting when it conflicts with the locked canonical workbook.
 
 Canonical workbook SHA-256 verified 2026-11-19: `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`.
+
+
+## Master OMI V2.1.1 — permanent weekly reporting contract — 2026-11-19
+
+The validated canonical workbook is now the operational reporting baseline:
+Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx
+SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
+
+Validated Market Intelligence structure:
+- 755 rows x 264 columns.
+- A:ET (150 columns) is immutable.
+- EU:JD (151:264) is the current append-only intelligence contract.
+- Future additions begin at JE; never insert into or reorder existing columns.
+- Freeze pane is A2 and the Market Intelligence filter range is A1:EI755.
+
+Canonical EU:JD metadata mapping:
+- EU:EV: FootyStats overall Last-5 form and Last-5 PPG.
+- EW:FB: FootyStats Last-5 GF/M, GA/M and total-goals averages.
+- FC:FL: FootyStats venue Last-5 form, venue PPG, GF/M and GA/M.
+- FM:FN: FootyStats league position.
+- FO:GB: BTTS, over/under, clean-sheet, failed-to-score and sample-size metrics.
+- GG:GJ: FootyStats source fixture IDs for overall and venue samples.
+- GK:GV: empirical/derived pre-match goal and BTTS market-intelligence signals.
+- GW:GZ: provider outcome probabilities and provider prediction-risk fields.
+- HA:HF: xG provider values and xG audit fields.
+- HG:HI: xG temporal provenance, predictive-use and betting-eligibility governance.
+- HJ:HZ: league goal environment, historical goal consensus, evidence quality and goal-signal research fields.
+- IA:IE: signal quality, evidence label, history cutoff, source/join status and data-quality status.
+- IF:IQ: governed Last-3 PPG/points/WDL/GF/GA/sample fields.
+- IR:JD: LTSS_V1.1 team-strength fields: version, window, Home/Away overall scores, difference, attack/defence scores, status, backtest note, as-of date and confidence.
+
+Form interpretation is permanently fixed:
+- FootyStats form strings are read left-to-right from oldest qualifying match to newest qualifying match.
+- Example LLLWL = Loss, Loss, Loss, Win, Loss; the final character is the most recent match.
+- Venue form uses the same chronological convention but only qualifying home/away venue matches.
+- Last-3/Last-5 features must be strictly pre-kickoff; no same-time or post-kickoff match may enter a feature window.
+
+Weekly report generation must be seamless and automated at the data-contract level:
+1. Start from the canonical workbook above; never start from a downloaded derivative.
+2. Reconcile the governed fixture spine to FootyStats using exact identity first; no silent fuzzy matching.
+3. Populate every applicable Market Intelligence field into its governed column.
+4. Preserve provenance/source IDs, history cutoffs, status, confidence, sample size and quality metadata alongside the metric.
+5. Run a completeness/column-alignment QA before delivering the workbook. A blank in a governed field is acceptable only when the source genuinely has no verified value and the corresponding status/missingness metadata explains why.
+6. Run type/range sanity checks so percentages, PPG, GF/M, GA/M, scores and probabilities are stored as sensible human-readable numeric values; never expose workflow/run IDs as analytical values.
+7. Run chronology checks for Last-3/Last-5 and venue form.
+8. Run cross-field checks: form sample size vs form string length; PPG/points consistency; source fixture IDs vs stated sample; team score status/confidence/as-of alignment.
+9. Run a final report QA comparing the generated workbook against the canonical schema before presenting it to Nolan.
+10. Only then provide the report. If a field is genuinely unavailable, explicitly label it as unavailable/unverified rather than silently leaving a misleading blank.
+
+Non-negotiable: Nolan should be able to request “Master OMI for the upcoming fixtures” without manually identifying missing columns or repairing the workbook. The technical reconciliation, extraction, validation and schema checks are Gem's responsibility.
