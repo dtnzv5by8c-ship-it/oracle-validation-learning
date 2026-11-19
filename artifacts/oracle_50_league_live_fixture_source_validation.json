@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-19T12:54:32.861854+00:00",
+  "generated_utc": "2026-11-19T21:26:05.294390+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -1488,26 +1488,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 3,
       "fixtures": [
-        {
-          "match_id": "match_fmb_uru1_2026_20261119_boston_river_deportivo_maldonado",
-          "kickoff_at": "2026-11-19T19:30:00.000Z",
-          "home": "Boston River",
-          "away": "Deportivo Maldonado"
-        },
-        {
-          "match_id": "match_fmb_uru1_2026_20261119_club_atletico_penarol_cerro_largo",
-          "kickoff_at": "2026-11-19T19:30:00.000Z",
-          "home": "Club Atletico Peñarol",
-          "away": "Cerro Largo"
-        },
-        {
-          "match_id": "match_fmb_uru1_2026_20261119_club_atletico_progreso_montevideo_city_torque",
-          "kickoff_at": "2026-11-19T19:30:00.000Z",
-          "home": "Club Atlético Progreso",
-          "away": "Montevideo City Torque"
-        },
         {
           "match_id": "match_fmb_uru1_2026_20261120_cerro_nacional",
           "kickoff_at": "2026-11-20T19:30:00Z",
@@ -1563,7 +1545,7 @@
     "ready": 25,
     "data_gated": 25,
     "source_error": 0,
-    "fixtures_in_window": 113,
+    "fixtures_in_window": 110,
     "leagues_with_fixture_evidence": 25,
     "leagues_without_fixture_evidence": 25,
     "scope_reconciliation_passed": true
