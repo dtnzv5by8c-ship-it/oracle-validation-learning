@@ -40,3 +40,22 @@ This is the permanent recovery/reference specification for the Master OMI V2 wor
 
 Review status:
 AWAITING_NOLAN_REVIEW
+
+
+## V2.1.1 operational lock — 2026-11-19
+
+Canonical workbook:
+`Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx`
+SHA-256: `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`
+
+Validated structure: Market Intelligence 755 rows x 264 columns; A:ET immutable; EU:JD current append-only intelligence; future additions start at JE.
+
+The V2.1.1 operational contract requires every generated weekly report to pass: fixture identity reconciliation, Market Intelligence column alignment, source/provenance retention, numeric range/type sanity, Last-3/Last-5 chronology, venue-form chronology, sample-size consistency, team-score metadata consistency, and final schema comparison against this canonical workbook.
+
+Form convention: FootyStats Last-5 and venue Last-5 strings are ordered oldest qualifying match to newest qualifying match, left-to-right. Example LLLWL = L, L, L, W, L, with the final L most recent.
+
+The report generator must populate governed values into the exact existing columns and must never use workflow IDs, run IDs, hashes or other technical identifiers as analytical values. Genuine unavailable evidence must be explicitly marked unavailable/unverified with supporting metadata.
+
+The 14–24 Nov 2026 uploaded 305-column derivative is not the template and must not be reused as the source for future reports.
+
+Review status remains: AWAITING_NOLAN_REVIEW, with V2.1.1 as the operational baseline unless Nolan explicitly approves a later version.
