@@ -301,3 +301,41 @@ Market Intelligence ends at JD; future data must append after JD.
 A:ET remains cell-for-cell unchanged.
 Correction lock: `docs/master_omi/MASTER_OMI_V2_1_1_LTSS_CORRECTION_LOCK_2026-11-19.md`
 Correction commit: `e64f99d8dccd3f66fe85c869b65f4ff6682a7d67`
+## Master OMI V2.1.2 H2H + FootyStats interpretation lock — 2026-11-19
+
+The Market Intelligence H2H block and FootyStats form interpretation are now permanently standardized.
+
+H2H correction:
+- Previously blank H2H summary fields are populated from the governed H2H Intelligence sheet where exact fixture identity exists.
+- Two-year pre-kickoff window.
+- Maximum five most recent qualifying H2H meetings.
+- Exact team/fixture identity only; no fuzzy matching, no future results, no cross-league substitution.
+- H2H Current Home Avg Goals = goals scored by the scheduled home team across qualifying prior H2H meetings, regardless of historical venue.
+- H2H Current Away Avg Goals = goals scored by the scheduled away team across qualifying prior H2H meetings, regardless of historical venue.
+- H2H Avg Total Goals = mean total goals across qualifying meetings.
+- H2H Goal Trend: latest-three H2H total-goal average versus older qualifying meetings; >=0.50 = RISING, <=-0.50 = FALLING, otherwise STABLE; fewer than four = INSUFFICIENT_SAMPLE.
+
+FootyStats form interpretation:
+- Oracle reading convention is locked as OLDEST -> NEWEST, left-to-right.
+- Example: LLLWL = Loss, Loss, Loss, Win, Loss; the final L is the most recent match.
+- W = Win, D = Draw, L = Loss.
+- Last-5 sample means the five most recent qualifying completed matches strictly before kickoff.
+- FootyStats official help describes Last 5 Form as overall Home + Away form and PPG as points per game. Oracle's chronological reading convention is explicitly documented in the template.
+
+Heading descriptions:
+- Every non-empty Market Intelligence heading now has a unique Excel comment.
+- 264 headings, 264 comments, 264 unique comment texts.
+- Comments identify the specific field and explain what makes up the metric and how to interpret it.
+- The previous repeated generic note has been removed.
+
+FootyStats Definitions sheet now permanently records form order, W/D/L meanings, the LLLWL example, Last-5 cutoff, H2H methodology, H2H trend methodology, identity scope and refresh expectation.
+
+Locked workbook:
+Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx
+SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
+
+GitHub lock:
+docs/master_omi/MASTER_OMI_V2_1_2_H2H_FOOTYSTATS_LOCK_2026-11-19.md
+Commit: 4a9a1ffc237365f2e7e5c892515d1432c21dcd2d
+
+Governance remains unchanged: Oracle V1.6 production logic unchanged; A:ET schema unchanged; future intelligence appended after the current LTSS block; no post-kickoff evidence; no fabricated provider values.
