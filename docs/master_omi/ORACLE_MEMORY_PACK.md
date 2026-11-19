@@ -381,3 +381,19 @@ Lock specification:
 Commit: `c6ae7aadecf48e6ec0da61143d0e45dd9662f1f7`
 
 Governance: Oracle V1.6 unchanged; A:ET unchanged; provider intelligence after ET may be corrected in place; future intelligence remains append-only.
+## 14–24 Nov 2026 updated Master OMI report — 2026-11-19
+
+Report: `Oracle_Master_OMI_Report_14-24_Nov_2026_UPDATED_50League.xlsx`
+SHA-256: `19f6edfd751c442bab419c17c7a642cf270d9981605cbc8bddc1761eeed9355b`
+
+Scope: 14–24 Nov 2026 inclusive, governed 50-League Universe.
+Market Intelligence was enriched from the current Master OMI reporting structure and retained legacy intelligence fields.
+Verified actuals: 36 fixtures, sourced from `recovery/fixtures/current/intelligence/fixture_actuals_integrity.csv` / FootyStats Match Details API, snapshot 2026-11-19.
+Only `VERIFIED_ACTUALS` are populated as scores; pending/unverified fixtures are never represented as 0–0.
+Future fixtures from 20–24 Nov are intentionally left without actual scores.
+Oracle V1.6 remains unchanged and production betting remains FAIL-CLOSED.
+The dedicated FootyStats `/lastx` form-refresh workflow remains authoritative for re-certifying overall Last-5 versus venue Last-5 form; the updated report does not falsely claim that the older form block has been re-certified.
+
+GitHub report checkpoint: `docs/master_omi/MASTER_OMI_14-24_NOV_2026_UPDATED_REPORT_2026-11-19.md`
+Commit: `238624877212520018bd4844ff4a27fe56fa21fd`
+Binary workbook stored in ChatGPT Library: `/Oracle Master OMI/`.
