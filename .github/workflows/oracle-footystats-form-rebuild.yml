@@ -1,0 +1,64 @@
+name: Oracle FootyStats Form Rebuild QA
+
+on:
+  push:
+    paths:
+      - ".github/workflows/oracle-footystats-form-rebuild.yml"
+      - "scripts/oracle_footystats_form_rebuild.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    env:
+      REPO: dtnzv5by8c-ship-it/oracle-validation-learning
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl requests beautifulsoup4
+
+      - name: Download latest Master OMI artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, requests, zipfile, io
+          repo=os.environ["REPO"]; token=os.environ["GH_TOKEN"]
+          h={"Authorization":f"Bearer {token}","Accept":"application/vnd.github+json"}
+          r=requests.get(f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100",headers=h,timeout=30)
+          r.raise_for_status()
+          arts=r.json()["artifacts"]
+          target=[a for a in arts if a["name"]=="Oracle-Master-OMI-13-24-Nov-2026" and not a.get("expired")]
+          if not target:
+              raise SystemExit("No current Master OMI artifact found")
+          target.sort(key=lambda a:a["created_at"],reverse=True)
+          a=target[0]
+          z=requests.get(a["archive_download_url"],headers=h,timeout=120)
+          z.raise_for_status()
+          pathlib.Path("/tmp/artifact.zip").write_bytes(z.content)
+          with zipfile.ZipFile(io.BytesIO(z.content)) as zz:
+              zz.extractall("/tmp/master_omi")
+          print("artifact",a["id"],a["created_at"])
+          PY
+
+      - name: Rebuild FootyStats Last-5 form
+        run: |
+          python scripts/oracle_footystats_form_rebuild.py /tmp/master_omi /tmp/rebuilt
+
+      - name: Upload corrected workbook and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oracle-Master-OMI-13-24-Nov-2026-FootyStats-Form-FIXED
+          path: |
+            /tmp/rebuilt/*.xlsx
+            /tmp/rebuilt/*.csv
+            /tmp/rebuilt/*.json
+          retention-days: 14
