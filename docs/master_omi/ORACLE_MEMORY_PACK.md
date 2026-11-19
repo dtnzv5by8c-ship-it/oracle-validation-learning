@@ -211,3 +211,68 @@ The Market Intelligence append-only layer now includes a governed **Last-3 PPG**
 - This layer is Market Intelligence / research evidence only and is **not** an Oracle V1.6 probability or production signal.
 - Historical report generated for 13–17 Nov 2026 uses the governed 50-league fixture universe and includes verified FootyStats actuals where available.
 - Template/report integrity was checked after save: A:ET unchanged and formula count preserved.
+
+## Master OMI V2.1 Team Strength / LTSS_V1 — 2026-11-19
+
+The Master OMI Market Intelligence layer now includes a locked research-only League-relative Team Strength Score (LTSS_V1) extension.
+
+User-approved design:
+- Score scale: 50–150.
+- 100 = league-relative centre.
+- League-relative rather than a cross-league absolute ranking.
+- Three scores: Overall Team Score, Attack Score, Defence Score.
+- Overall score is intended as a readable strength signal for likely winner context and as a supporting input to goal analysis; it is not a probability.
+- Attack and Defence scores are intended to help interpret goal environments and matchup structure.
+
+Historical validation:
+- Source: recovered public OMI source artifact from workflow run 43603279385.
+- Historical match spine: 11,304 matches, 2025-03-21 to 2026-09-20.
+- Chronological, pre-match-only testing.
+- Lookback windows tested: 60, 90, 120, 180, 270, 365, 540 days and all available history.
+- League-specific window selection requires at least 80 eligible OOS matches.
+- Selection objective combines home-result Brier score, goal-difference error and correlation between Team Score Difference and actual goal difference.
+- Current global diagnostic: 365 days was the strongest global window on the combined research objective; global direction accuracy was approximately 60.0% in the recovered historical spine.
+- These are research diagnostics only and must not be presented as Oracle V1.6 production accuracy or as a probability guarantee.
+
+League-specific historical windows are stored in the Master OMI Team Strength Backtest tab and should be recalculated/reevaluated weekly as new historical matches accumulate.
+
+Weekly operating rule:
+1. Recalculate LTSS at least weekly.
+2. Use only information strictly before each fixture kickoff.
+3. Apply the league-specific validated window where the minimum OOS gate is met.
+4. Use the governed fallback only when league-specific evidence is insufficient.
+5. Record rating version, window, status and as-of date.
+6. Preserve prior snapshots; do not overwrite historical rating evidence.
+7. Append future intelligence after the current LTSS block.
+
+Current appended Market Intelligence fields:
+- TEAM_STRENGTH_VERSION
+- TEAM_SCORE_WINDOW_DAYS
+- HOME_TEAM_SCORE
+- AWAY_TEAM_SCORE
+- TEAM_SCORE_DIFFERENCE
+- HOME_ATTACK_SCORE
+- AWAY_ATTACK_SCORE
+- HOME_DEFENCE_SCORE
+- AWAY_DEFENCE_SCORE
+- TEAM_SCORE_STATUS
+- TEAM_SCORE_BACKTEST_NOTE
+- TEAM_SCORE_AS_OF
+
+Status taxonomy:
+- BACKTESTED_LEAGUE_WINDOW
+- STATE_FALLBACK_RESEARCH
+- HISTORICAL_SPINE_INSUFFICIENT
+- DATA_LIMITED
+
+Governance:
+- Oracle V1.6 production logic unchanged.
+- Master OMI A:ET unchanged.
+- LTSS_V1 is Market Intelligence / research only until separately promoted through chronological OOS validation.
+- No fuzzy identity matching.
+- No post-kickoff or future information.
+- Future additions are append-only after the LTSS block.
+
+Locked specification:
+docs/master_omi/MASTER_OMI_V2_1_TEAM_STRENGTH_LOCK_2026-11-19.md
+Commit: b80ccc6ce4ef87427773a690bcc0514a5944a7f4
