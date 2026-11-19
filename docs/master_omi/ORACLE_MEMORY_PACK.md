@@ -276,3 +276,28 @@ Governance:
 Locked specification:
 docs/master_omi/MASTER_OMI_V2_1_TEAM_STRENGTH_LOCK_2026-11-19.md
 Commit: b80ccc6ce4ef87427773a690bcc0514a5944a7f4
+## Master OMI V2.1.1 LTSS correction — 2026-11-19
+
+Following workbook review, LTSS was corrected before template promotion:
+- Removed invalid `9999` window sentinel.
+- German Bundesliga and Austrian Bundesliga are now treated as separate competition identities.
+- Turkish Super Lig is treated separately from other Turkish competitions.
+- Current LTSS scores are recalculated from point-in-time FootyStats Last-5 PPG, GF/M and GA/M using historically calibrated result-direction weights.
+- Scores are displayed as whole numbers on the 50–150 league-relative scale.
+- JD is now `TEAM_SCORE_CONFIDENCE`.
+- Last-3 PPG fields use verified point-in-time evidence only; otherwise they show `N/A` rather than stale or fabricated values.
+- LTSS columns are formatted to prevent Excel `####` display.
+
+Historical calibration diagnostic:
+- 365-day rolling pre-match features.
+- First 7,000 eligible observations used for coefficient fitting; later 3,092 used as chronological OOS diagnostic.
+- OOS Brier: 0.2320.
+- OOS directional accuracy: 61.4%.
+- Coefficients: PPG 0.0904; goal difference 0.2928; GF/M 0.2084; GA/M -0.0844.
+
+Corrected workbook:
+`Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_CORRECTED.xlsx`
+Market Intelligence ends at JD; future data must append after JD.
+A:ET remains cell-for-cell unchanged.
+Correction lock: `docs/master_omi/MASTER_OMI_V2_1_1_LTSS_CORRECTION_LOCK_2026-11-19.md`
+Correction commit: `e64f99d8dccd3f66fe85c869b65f4ff6682a7d67`
