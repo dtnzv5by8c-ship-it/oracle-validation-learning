@@ -397,3 +397,18 @@ The dedicated FootyStats `/lastx` form-refresh workflow remains authoritative fo
 GitHub report checkpoint: `docs/master_omi/MASTER_OMI_14-24_NOV_2026_UPDATED_REPORT_2026-11-19.md`
 Commit: `238624877212520018bd4844ff4a27fe56fa21fd`
 Binary workbook stored in ChatGPT Library: `/Oracle Master OMI/`.
+## Master OMI stale-derivative repair / canonical source rule — 2026-11-19
+
+A user-uploaded workbook named `Oracle_Master_OMI_Report_14-24_Nov_2026_UPDATED_50League(1).xlsx` was audited on 2026-11-19. It was a stale 305-column derivative: the Market Intelligence EU:JD enrichment block contained large numbers of blanks even though the locked canonical V2.1.1 workbook contained the governed values for the same 14–24 Nov fixture window. The derivative also carried an older duplicate FootyStats block in JY:KS that is not part of the current canonical schema.
+
+Permanent rule:
+- For future Master OMI report generation, use the locked canonical workbook `Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx` as the Market Intelligence schema/data source of truth.
+- Do not generate a new 305-column derivative or reintroduce the legacy JY:KS duplicate block.
+- Current canonical Market Intelligence ends at JD (264 columns); future intelligence appends after JD.
+- A:ET remains immutable.
+- For the 14–24 Nov 2026 window, the canonical workbook contains 387 governed fixture rows and complete populated LTSS/form/FootyStats fields except for fields where verified provider/history evidence genuinely does not exist. Those exceptions are explicit missingness states, not blank cells to be silently filled.
+- The remaining legitimate gaps in the 14–24 Nov canonical block are concentrated in H2H/league historical goal-context fields and two venue-form/source-ID cases; they must remain explicit unavailable states unless fresh verified evidence is acquired.
+- Team Strength LTSS_V1.1 values are present and should be used as the current research-only team score block: 50–150 league-relative scale, Overall + Attack + Defence, with status/confidence/as-of metadata.
+- Never use the stale uploaded derivative as the template for weekly reporting when it conflicts with the locked canonical workbook.
+
+Canonical workbook SHA-256 verified 2026-11-19: `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`.
