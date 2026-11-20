@@ -1,9 +1,8 @@
 # Master OMI Formula Input Release Gate — QA Status
 
-Date: 2026-11-20
+Date: 2026-11-21
 Repository: dtnzv5by8c-ship-it/oracle-validation-learning
 Canonical baseline: Master OMI V2.1.1
-Canonical workbook: Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx
 Production model: Oracle V1.6 unchanged
 
 ## Permanent release-gate policy
@@ -18,94 +17,119 @@ Missing evidence remains UNAVAILABLE/UNVERIFIED and is never converted to zero o
 - Notes such as identity review, kickoff/date review, invalid numeric ranges or sub-100% required coverage may never coexist with PASS.
 - VERIFIED_PREMATCH, VERIFIED_ACTUALS and UNAVAILABLE/UNVERIFIED remain separate.
 
-## Automation Run 11 — current re-audit
+## 2026-11-21 immutable re-audit
 
 **Release status: FAIL-CLOSED / NOT RELEASE-ELIGIBLE.**
 
-Canonical SHA-256:
-`9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`
+Canonical reference workbook:
+`Oracle_Master_OMI_Report_FINAL_14Nov2026_FOOTYSTATS_APPENDED_ET_FIXED.xlsx`
 
-Current audited candidate SHA-256:
-`eb6121d128027716867ca042c1dd60ac3e9d065fe8936d11674f4f1d25801021`
+Canonical reference workbook SHA-256:
+`84f557fdc297169a47a66458ba6ea9421ae94d003f71e7b55ccc96fbcd1761f1`
 
-Per-fixture status manifest SHA-256:
-`56aa21d2965f7bfca4d1d61cd40081cb7ed54a0302b8c351d49aaa73af640198`
+Current audited candidate:
+`Oracle_Master_OMI_Report_14-24_Nov_2026_FORMULA_GATE_RUN11_FINAL_FAIL_CLOSED.xlsx`
+
+Current candidate SHA-256:
+`d74a4568640c81bfd7c39dabbfd0df9086c0f65d98ecd49942fd6880041de597`
+
+### Critical immutable A:ET finding
+
+Direct A:ET comparison detected **5,760 cell-value differences across 9 A:ET headings**.
+
+Examples:
+- AE2 H2H Avg Total Goals: 3 vs 3.2
+- BJ2 H2H Last-5: dated score history vs L/D/W encoding
+- BK2 H2H N: 3 vs 5
+- DJ2 H2H Available History Window: 2025-04-18 to 2026-05-10 vs 2025-03-21 to 2026-09-20
+- DK2 H2H Current Home Avg Goals: 2.333 vs blank
+- DL2 H2H Current Away Avg Goals: 0.667 vs blank
+- DM2 H2H Avg Total Goals (2Y Available): 3 vs blank
+- DN2 H2H Sample N (2Y Available): 3 vs 0
+- DO2 H2H Goal Trend: INSUFFICIENT_SAMPLE vs NO VERIFIED H2H
+
+This is a hard release-gate failure. **No A:ET repair or coercion was performed.**
 
 ### Structural / identity gates
 
-- Market Intelligence: **755 × 264**
-- A:ET nonblank values versus canonical baseline: **0 value differences**
-- A:ET non-value type differences: **140 blank cells only**; no nonblank A:ET value mutation detected
-- Governed heading definitions/comments: **264/264**
-- Fixture identity: **387/387 PASS**
+- Candidate Market Intelligence: **755 × 264**
+- Canonical reference Market Intelligence: **755 × 239**
+- Candidate governed header comments: **264/264**
+- Duplicate headings retained: H2H Avg Total Goals; Historical Accuracy Status; A+ Setup Status
+- Formula Input QA governed fixtures: **387**
 - FootyStats identity: **387/387 EXACT_FIXTURE_ID_JOIN**
-- Last-3 chronology/status: **387/387 PASS**
-- Last-5 chronology/status: **387/387 PASS**
-- GF/M & GA/M status: **387/387 PASS**
-- Venue metrics: **387/387 PASS**
-- LTSS/team-strength: **387/387 PASS**
+- Fixture Identity: **16 PASS / 371 FAIL**
+- Last-3 PPG: **387/387 PASS**
+- Last-5 PPG: **387/387 PASS**
+- GF/M & GA/M status: **387/387 PASS at QA/status layer**
+- Venue Metrics: **387/387 PASS**
+- Team Strength/LTSS: **387/387 PASS**
 - Pre-match leakage: **387/387 PASS**
-- Oracle V1.6: **unchanged**
-- A:ET: **no insertion, reorder, rename or nonblank value mutation**
 
-### Mandatory blockers
+### Coverage
 
-#### 1. Native Excel numeric-type gate — BLOCKER
+- 100% required MI coverage: **218/387**
+- Below 100%: **169/387**
 
-The immutable A:ET baseline stores the core required pre-match PPG/GF/M/GA/M display inputs as text. Because A:ET is immutable, these cells were not coerced or rewritten.
+### Kickoff/date
 
-This gate therefore fails closed for the governed formula-input layer.
+- Upcoming fixture rows: **754**
+- Exact archive fixture joins: **754**
+- Kickoff matches: **687**
+- Kickoff mismatches requiring manual review: **67**
+- Automatic correction: **none**
 
-#### 2. Kickoff/date reconciliation
+### Native Excel numeric types
 
-**38/387** governed fixtures fail kickoff/date reconciliation.
+The current candidate contains **17,082 numeric-looking text cells within A:ET**. Required numeric pre-match fields stored as text are not coerced because A:ET is immutable. Native numeric type failure therefore remains a hard blocker.
 
-#### 3. Required MI coverage
+### Goal environment
 
-**169/387** governed fixtures have required MI coverage below 100%.
-**218/387** have 100% coverage.
+Historical Goal Context contains implausible values, including:
+- League Avg Home Goals: **16.059259...**
+- League Avg Away Goals: **17.859259...**
+- League Avg Total Goals: **33.918518...**
+- Pre-Fixture League Goal Avg: **33.918518...**
 
-#### 4. Implausible goal-environment values
+These remain **UNAVAILABLE/UNVERIFIED**. No divide-by-10, rescaling, interpolation, estimate or guessed repair was applied.
 
-**24/387** governed fixtures contain invalid goal-environment evidence.
+### xG provenance
 
-Examples include repeated league-total-goal values of:
-- **33.9185**
-- **19.5668**
+- Numeric pre-match-labelled xG candidates: **754**
+- Verified point-in-time capture timestamps: **0/754**
+- Production-eligible xG: **0**
+- Betting-eligible xG: **0**
 
-These remain **UNAVAILABLE/UNVERIFIED**.
+### Actuals / backtesting
 
-No divide-by-10, rescaling, estimate or guessed transformation was applied.
-
-#### 5. xG provenance
-
-**0/754** rows have verified point-in-time capture timestamps. xG remains quarantined and is not eligible for production formula use.
-
-#### 6. Verified actuals / backtesting
-
-**31/387** governed fixtures have independently verified actuals in the current QA layer.
-
-Nevertheless:
-- BACKTEST_READY = **0/387**
-- because the formula-input gate is not fully passed.
+- Verified Actuals in Formula Input QA: **31/387**
+- BACKTEST_READY: **0/387**
 
 ### Final per-fixture decisions
 
-- FORMULA_INPUT_STATUS / Prediction Input Ready: **0/387 READY; 387/387 BLOCKED**
-- BACKTEST_READY: **0/387**
-- RELEASE_DECISION: **0/387 PASS; 387/387 FAIL**
+- FORMULA_INPUT_STATUS READY: **0/387**
+- FORMULA_INPUT_STATUS BLOCKED: **387/387**
+- BACKTEST_READY YES: **0/387**
+- RELEASE_DECISION PASS: **0/387**
+- RELEASE_DECISION FAIL: **387/387**
 - Forbidden PASS + blocker combinations: **0**
+
+### Production-model protection
+
+- Oracle V1.6: unchanged
+- A:ET: not repaired, reordered, inserted, renamed or coerced
+- Missing values: not converted to zero or estimates
+- Fuzzy FootyStats matching: not admitted
+- Implausible goal-environment evidence: quarantined
 
 ### Evidence
 
-Current automation audit:
-`docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUDIT_2026-11-20_AUTOMATION_RUN11.md`
+Immutable re-audit:
+`docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_IMMUTABLE_REAUDIT_2026-11-21_RUN11.md`
 
-The per-fixture status table is retained in the audited workbook's **Formula Input QA** sheet and represented by the manifest hash above.
+Commit:
+`98ec6ac414527316f8f58535876729c8c6c906f7`
 
-**Release remains FAIL-CLOSED. Continue hourly checks. Do not promote to PASS until a complete audit reaches 100% compliance with every mandatory governed gate.**
+The current candidate must be rejected until the controlled workbook-generation process produces an A:ET-identical candidate from the canonical baseline. Then rerun the complete release gate from scratch.
 
-
-## Run 11 final re-audit — 2026-11-21
-
-**Release remains FAIL-CLOSED.** Current audited workbook SHA-256: `d74a4568640c81bfd7c39dabbfd0df9086c0f65d98ecd49942fd6880041de597`. Per-fixture manifest SHA-256: `e38d5070b951e8b18cd8b31563c4b40db078825af6a5f0e8464e4297b9ef219e`. FORMULA_INPUT_STATUS READY 0/387; BACKTEST_READY 0/387; RELEASE_DECISION PASS 0/387, FAIL 387/387. 371 Formula Input QA rows with identity-review notes were corrected from Fixture Identity=PASS to FAIL; no A:ET or Oracle V1.6 changes were made. Remaining blockers: 38 kickoff/date reconciliation failures, 169 fixtures below 100% required MI coverage, 24 implausible goal-environment fixtures quarantined as UNAVAILABLE/UNVERIFIED, and 0/754 xG point-in-time provenance timestamps verified. Continue hourly fail-closed checks.
+**Release remains FAIL-CLOSED.**
