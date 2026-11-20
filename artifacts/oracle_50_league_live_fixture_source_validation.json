@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-20T03:04:29.552764+00:00",
+  "generated_utc": "2026-11-20T11:27:17.056787+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -34,14 +34,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 4,
+      "fixture_count_in_window": 3,
       "fixtures": [
-        {
-          "match_id": "match_fmb_aus1_2026-27_20261120_western_sydney_wanderers_fc_adelaide_united",
-          "kickoff_at": "2026-11-20T08:40:00.000Z",
-          "home": "Western Sydney Wanderers FC",
-          "away": "Adelaide United"
-        },
         {
           "match_id": "match_fmb_aus1_2026-27_20261121_auckland_fc_melbourne_victory",
           "kickoff_at": "2026-11-21T04:00:00Z",
@@ -92,14 +86,45 @@
       "competition_id": "comp_pro_league_be",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "DATA_GATED",
-      "fixture_count_in_window": 0,
-      "fixtures": [],
+      "classification": "READY",
+      "fixture_count_in_window": 5,
+      "fixtures": [
+        {
+          "match_id": "match_fd_bel1_2026-27_20112026_cercle_brugge_westerlo",
+          "kickoff_at": "2026-11-20T19:45:00.000Z",
+          "home": "Cercle Brugge",
+          "away": "Westerlo"
+        },
+        {
+          "match_id": "match_fd_bel1_2026-27_21112026_charleroi_st_truiden",
+          "kickoff_at": "2026-11-21T15:00:00.000Z",
+          "home": "Charleroi",
+          "away": "St Truiden"
+        },
+        {
+          "match_id": "match_fd_bel1_2026-27_21112026_genk_raal_la_louviere",
+          "kickoff_at": "2026-11-21T17:15:00.000Z",
+          "home": "Genk",
+          "away": "RAAL La Louviere"
+        },
+        {
+          "match_id": "match_fd_bel1_2026-27_21112026_mechelen_club_brugge",
+          "kickoff_at": "2026-11-21T19:45:00.000Z",
+          "home": "Mechelen",
+          "away": "Club Brugge"
+        },
+        {
+          "match_id": "match_fd_bel1_2026-27_21112026_waregem_antwerp",
+          "kickoff_at": "2026-11-21T19:45:00.000Z",
+          "home": "Waregem",
+          "away": "Antwerp"
+        }
+      ],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
+      "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
       "ordinal": "05",
@@ -1542,12 +1567,12 @@
   ],
   "summary": {
     "governed_leagues": 50,
-    "ready": 25,
-    "data_gated": 25,
+    "ready": 26,
+    "data_gated": 24,
     "source_error": 0,
-    "fixtures_in_window": 110,
-    "leagues_with_fixture_evidence": 25,
-    "leagues_without_fixture_evidence": 25,
+    "fixtures_in_window": 114,
+    "leagues_with_fixture_evidence": 26,
+    "leagues_without_fixture_evidence": 24,
     "scope_reconciliation_passed": true
   },
   "status": "COMPLETE"
