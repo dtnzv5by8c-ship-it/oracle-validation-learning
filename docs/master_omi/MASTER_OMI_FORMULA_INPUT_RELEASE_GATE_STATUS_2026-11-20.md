@@ -104,3 +104,8 @@ Current automation audit:
 The per-fixture status table is retained in the audited workbook's **Formula Input QA** sheet and represented by the manifest hash above.
 
 **Release remains FAIL-CLOSED. Continue hourly checks. Do not promote to PASS until a complete audit reaches 100% compliance with every mandatory governed gate.**
+
+
+## Run 11 final re-audit — 2026-11-21
+
+**Release remains FAIL-CLOSED.** Current audited workbook SHA-256: `d74a4568640c81bfd7c39dabbfd0df9086c0f65d98ecd49942fd6880041de597`. Per-fixture manifest SHA-256: `e38d5070b951e8b18cd8b31563c4b40db078825af6a5f0e8464e4297b9ef219e`. FORMULA_INPUT_STATUS READY 0/387; BACKTEST_READY 0/387; RELEASE_DECISION PASS 0/387, FAIL 387/387. 371 Formula Input QA rows with identity-review notes were corrected from Fixture Identity=PASS to FAIL; no A:ET or Oracle V1.6 changes were made. Remaining blockers: 38 kickoff/date reconciliation failures, 169 fixtures below 100% required MI coverage, 24 implausible goal-environment fixtures quarantined as UNAVAILABLE/UNVERIFIED, and 0/754 xG point-in-time provenance timestamps verified. Continue hourly fail-closed checks.
