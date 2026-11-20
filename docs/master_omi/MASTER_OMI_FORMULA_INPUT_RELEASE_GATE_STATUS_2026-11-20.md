@@ -30,11 +30,25 @@ The last completed audit recorded 100% PASS for the canonical Market Intelligenc
 
 ## Current re-audit
 
-The Formula Input Release Gate automation is currently running a fresh end-to-end audit. Its current run has not yet completed, so the prior 100% certification must not be assumed to certify the current run.
+Run 6 completed a fresh end-to-end audit and failed closed.
 
-Current release status: FAIL-CLOSED / AUDIT-IN-PROGRESS.
+Findings:
+- 264/264 Market Intelligence headings present with comments.
+- V2.1.1 headers match.
+- Initial release candidate violated A:ET immutability: 310 semantic differences versus the canonical baseline. The candidate was repaired by restoring A:ET exactly from V2.1.1; post-repair A:ET semantic differences = 0.
+- 38 target-window kickoff/date reconciliation records remain REVIEW_REQUIRED.
+- 9 target-window goal-intelligence rows contain implausible >10-goal league-environment values and are blocked rather than estimated.
+- 340/387 target fixtures are currently FORMULA_INPUT_READY; 47 are blocked.
+- 21/387 are BACKTEST_READY after applying exact identity/date and actuals gates.
+- xG remains quarantined: 0/754 rows have verified point-in-time capture timestamps.
+- No fuzzy matching, fabricated values, missing-to-zero conversion, Oracle V1.6 changes, or A:ET redesign occurred.
+- Numeric-looking text scan of governed numeric fields is clean after the prior numeric correction.
 
-No report should be promoted from the current run until the fresh audit completes and all release gates pass.
+Current release status: FAIL-CLOSED / NOT RELEASE-ELIGIBLE.
+
+Evidence: `docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUDIT_2026-11-20_RUN6.md`
+
+The hourly QA must continue until the blockers are resolved and a complete re-audit reaches 100% PASS.
 
 ## Permanent constraints
 
