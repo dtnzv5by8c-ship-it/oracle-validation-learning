@@ -60,3 +60,8 @@ The hourly QA must continue until the blockers are resolved and a complete re-au
 - Do not convert missing values to zero or estimates.
 - Fix only verified extraction, mapping or configuration defects.
 - Re-run the complete audit after any fix.
+
+
+## Run 8 current state
+
+Run 8 re-audit found and corrected a release-decision configuration defect: mandatory identity-review and sub-100% coverage blockers were coexisting with PASS decisions. The repaired candidate has 5/387 formula-input-ready and 5/387 RELEASE_DECISION=PASS; 382/387 are FAIL. Backtest-ready is 0/387 in the repaired candidate because the five fully eligible pre-match rows do not have independently verified actuals. A:ET semantic differences versus the canonical baseline remain 0. Release remains FAIL-CLOSED. Evidence: `docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUDIT_2026-11-20_RUN8.md`.
