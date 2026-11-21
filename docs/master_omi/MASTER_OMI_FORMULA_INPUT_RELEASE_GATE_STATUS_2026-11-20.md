@@ -133,3 +133,29 @@ Commit:
 The current candidate must be rejected until the controlled workbook-generation process produces an A:ET-identical candidate from the canonical baseline. Then rerun the complete release gate from scratch.
 
 **Release remains FAIL-CLOSED.**
+
+
+## Automation Run 11 final audit — 2026-11-21
+
+Current candidate SHA-256: `d74a4568640c81bfd7c39dabbfd0df9086c0f65d98ecd49942fd6880041de597`
+
+Final decision: **FAIL-CLOSED / NOT RELEASE-ELIGIBLE**.
+
+- Formula Input Ready: **0/387**
+- Backtest Ready: **0/387**
+- Release Decision PASS: **0/387**
+- Release Decision FAIL: **387/387**
+- Exact FootyStats joins: **387/387**
+- MI coverage 100%: **218/387**
+- MI coverage below 100%: **169/387**
+- Verified actuals: **31/387**
+- Kickoff/date reconciliation requiring review: **67/754**
+- xG point-in-time provenance verified: **0/754**
+- Market Intelligence: **755 x 264**
+- Header comments: **264/264**
+- Duplicate exact fixture keys: **0**
+
+The current candidate is not certifiable as A:ET-identical to the canonical foundation. A:ET remains immutable; no repair or coercion was performed. Required numeric fields stored as text remain blocked. Implausible goal-environment values remain UNAVAILABLE/UNVERIFIED. Missing values remain distinct from zero and estimates.
+
+Run evidence: `docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUTOMATION_RUN11_2026-11-21_FINAL.md`
+Commit: `2adaa195d2485e0776fe8add2441ea09a0fc5f46`
