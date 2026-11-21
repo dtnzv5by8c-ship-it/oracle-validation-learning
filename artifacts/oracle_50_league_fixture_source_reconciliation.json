@@ -8,10 +8,10 @@
   "unexpected_league_ids": [],
   "duplicate_league_ids": [],
   "classification_counts": {
-    "DATA_GATED": 37,
-    "READY": 13
+    "DATA_GATED": 49,
+    "READY": 1
   },
-  "fixtures_in_window": 23,
+  "fixtures_in_window": 1,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -60,9 +60,9 @@
       "competition_id": "comp_pro_league_be",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "05",
@@ -84,9 +84,9 @@
       "competition_id": "comp_canadian_premier_league_can",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "07",
@@ -97,7 +97,7 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 2,
+      "fixture_count_in_window": 1,
       "reason": "LIVE_FIXTURES_VERIFIED"
     },
     {
@@ -204,9 +204,9 @@
       "competition_id": "comp_premier_league_eng",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "17",
@@ -228,9 +228,9 @@
       "competition_id": "comp_ligue_1_fr",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "19",
@@ -252,9 +252,9 @@
       "competition_id": "comp_2_bundesliga_de",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "21",
@@ -264,9 +264,9 @@
       "competition_id": "comp_bundesliga_de",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "22",
@@ -300,9 +300,9 @@
       "competition_id": "comp_serie_a_it",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "25",
@@ -348,9 +348,9 @@
       "competition_id": "comp_eredivisie_nl",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "29",
@@ -384,9 +384,9 @@
       "competition_id": "comp_liga_1_per",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "32",
@@ -516,9 +516,9 @@
       "competition_id": "comp_laliga_es",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "43",
@@ -552,9 +552,9 @@
       "competition_id": "comp_super_league_sui",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "46",
@@ -612,9 +612,9 @@
       "competition_id": "comp_primera_division_ven",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     }
   ]
 }

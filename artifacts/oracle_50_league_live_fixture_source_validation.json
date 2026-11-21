@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-21T17:25:20.507534+00:00",
+  "generated_utc": "2026-11-21T23:07:50.398562+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -67,27 +67,14 @@
       "competition_id": "comp_pro_league_be",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "fixtures": [
-        {
-          "match_id": "match_fd_bel1_2026-27_21112026_mechelen_club_brugge",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Mechelen",
-          "away": "Club Brugge"
-        },
-        {
-          "match_id": "match_fd_bel1_2026-27_21112026_waregem_antwerp",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Waregem",
-          "away": "Antwerp"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "05",
@@ -114,21 +101,14 @@
       "competition_id": "comp_canadian_premier_league_can",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_can1_2026_20261121_cavalry_fc_atletico_ottawa",
-          "kickoff_at": "2026-11-21T20:00:00.000Z",
-          "home": "Cavalry FC",
-          "away": "Atlético Ottawa"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "07",
@@ -139,14 +119,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 2,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_chi1_2026_20261121_o_higgins_universidad_de_chile",
-          "kickoff_at": "2026-11-21T21:00:00.000Z",
-          "home": "O'Higgins",
-          "away": "Universidad de Chile"
-        },
         {
           "match_id": "match_fmb_chi1_2026_20261121_universidad_de_concepcion_nublense",
           "kickoff_at": "2026-11-21T23:30:00.000Z",
@@ -304,21 +278,14 @@
       "competition_id": "comp_premier_league_eng",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_newcastle_united_arsenal",
-          "kickoff_at": "2026-11-21T17:30:00.000Z",
-          "home": "Newcastle United",
-          "away": "Arsenal"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "17",
@@ -345,39 +312,14 @@
       "competition_id": "comp_ligue_1_fr",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_fr1_2026-27_20261121_lens_toulouse",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Lens",
-          "away": "Toulouse"
-        },
-        {
-          "match_id": "match_fmb_fr1_2026-27_20261121_lille_lyon",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Lille",
-          "away": "Lyon"
-        },
-        {
-          "match_id": "match_fmb_fr1_2026-27_20261121_monaco_auxerre",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Monaco",
-          "away": "Auxerre"
-        },
-        {
-          "match_id": "match_fmb_fr1_2026-27_20261121_strasbourg_brest",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Strasbourg",
-          "away": "Brest"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "19",
@@ -404,21 +346,14 @@
       "competition_id": "comp_2_bundesliga_de",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_olg_83691",
-          "kickoff_at": "2026-11-21T19:30:00.000Z",
-          "home": "FC St. Pauli",
-          "away": "VfL Bochum"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "21",
@@ -428,21 +363,14 @@
       "competition_id": "comp_bundesliga_de",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_schalke_04_vfb_stuttgart",
-          "kickoff_at": "2026-11-21T17:30:00.000Z",
-          "home": "Schalke 04",
-          "away": "VfB Stuttgart"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "22",
@@ -482,21 +410,14 @@
       "competition_id": "comp_serie_a_it",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_it1_2026-27_20261121_napoli_torino",
-          "kickoff_at": "2026-11-21T19:45:00.000Z",
-          "home": "Napoli",
-          "away": "Torino"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "25",
@@ -557,39 +478,14 @@
       "competition_id": "comp_eredivisie_nl",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "fixtures": [
-        {
-          "match_id": "match_fd_ned1_2026-27_21112026_feyenoord_excelsior",
-          "kickoff_at": "2026-11-21T17:45:00.000Z",
-          "home": "Feyenoord",
-          "away": "Excelsior"
-        },
-        {
-          "match_id": "match_fd_ned1_2026-27_21112026_utrecht_cambuur",
-          "kickoff_at": "2026-11-21T17:45:00.000Z",
-          "home": "Utrecht",
-          "away": "Cambuur"
-        },
-        {
-          "match_id": "match_fd_ned1_2026-27_21112026_telstar_zwolle",
-          "kickoff_at": "2026-11-21T20:00:00.000Z",
-          "home": "Telstar",
-          "away": "Zwolle"
-        },
-        {
-          "match_id": "match_fd_ned1_2026-27_21112026_groningen_heerenveen",
-          "kickoff_at": "2026-11-21T20:00:00.000Z",
-          "home": "Groningen",
-          "away": "Heerenveen"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "29",
@@ -633,21 +529,14 @@
       "competition_id": "comp_liga_1_per",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_per1_2026_20261121_alianza_lima_fc_cajamarca",
-          "kickoff_at": "2026-11-21T20:30:00.000Z",
-          "home": "Alianza Lima",
-          "away": "FC Cajamarca"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "32",
@@ -827,27 +716,14 @@
       "competition_id": "comp_laliga_es",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_es1_2026-27_20261121_sevilla_real_betis",
-          "kickoff_at": "2026-11-21T17:30:00.000Z",
-          "home": "Sevilla",
-          "away": "Real Betis"
-        },
-        {
-          "match_id": "match_fmb_es1_2026-27_20261121_real_madrid_celta_vigo",
-          "kickoff_at": "2026-11-21T20:00:00.000Z",
-          "home": "Real Madrid",
-          "away": "Celta Vigo"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "43",
@@ -891,21 +767,14 @@
       "competition_id": "comp_super_league_sui",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_sui1_2026-27_20261121_sion_servette",
-          "kickoff_at": "2026-11-21T19:30:00.000Z",
-          "home": "Sion",
-          "away": "Servette"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "46",
@@ -983,37 +852,24 @@
       "competition_id": "comp_primera_division_ven",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_ven1_2026_20261121_carabobo_fc_portuguesa_fc",
-          "kickoff_at": "2026-11-21T21:30:00.000Z",
-          "home": "Carabobo FC",
-          "away": "Portuguesa FC"
-        },
-        {
-          "match_id": "match_fmb_ven1_2026_20261121_deportivo_tachira_caracas",
-          "kickoff_at": "2026-11-21T21:30:00.000Z",
-          "home": "Deportivo Táchira",
-          "away": "Caracas"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     }
   ],
   "summary": {
     "governed_leagues": 50,
-    "ready": 13,
-    "data_gated": 37,
+    "ready": 1,
+    "data_gated": 49,
     "source_error": 0,
-    "fixtures_in_window": 23,
-    "leagues_with_fixture_evidence": 13,
-    "leagues_without_fixture_evidence": 37,
+    "fixtures_in_window": 1,
+    "leagues_with_fixture_evidence": 1,
+    "leagues_without_fixture_evidence": 49,
     "scope_reconciliation_passed": true
   },
   "status": "COMPLETE"
