@@ -8,10 +8,10 @@
   "unexpected_league_ids": [],
   "duplicate_league_ids": [],
   "classification_counts": {
-    "DATA_GATED": 27,
-    "READY": 23
+    "DATA_GATED": 30,
+    "READY": 20
   },
-  "fixtures_in_window": 94,
+  "fixtures_in_window": 86,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -36,9 +36,9 @@
       "competition_id": "comp_a_league_aus",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 3,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "03",
@@ -120,9 +120,9 @@
       "competition_id": "comp_primera_a_col",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "10",
@@ -504,9 +504,9 @@
       "competition_id": "comp_k_league_1_kor",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "42",
