@@ -159,3 +159,13 @@ The current candidate is not certifiable as A:ET-identical to the canonical foun
 
 Run evidence: `docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUTOMATION_RUN11_2026-11-21_FINAL.md`
 Commit: `2adaa195d2485e0776fe8add2441ea09a0fc5f46`
+
+
+## Run 11 corrected canonical re-audit — 2026-11-21
+
+The earlier immutable A:ET finding in this status file was superseded by a direct comparison against the actual locked canonical workbook in the Library. The corrected comparison found **0 A:ET value differences** across the first 150 columns. There were 1,269 cell-type differences, all canonical float -> candidate int; these are not content mutations. The candidate nevertheless remains FAIL-CLOSED because required A:ET pre-match GF/M, GA/M and PPG fields are stored as text strings for the 387 governed fixtures, plus unresolved identity, kickoff/date, coverage, xG provenance and goal-environment gates.
+
+Corrected audit evidence: `docs/master_omi/qa/MASTER_OMI_FORMULA_GATE_AUTOMATION_RUN11_2026-11-21_CORRECTED.md`
+Commit: `48dd8cad59182df020dfe5173cf6c37913a10bd5`
+
+Corrected final status: **FAIL-CLOSED / NOT RELEASE-ELIGIBLE**.
