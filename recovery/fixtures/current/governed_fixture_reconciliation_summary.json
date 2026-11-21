@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-20T19:57:56.628831+00:00",
+  "generated_utc": "2026-11-21T09:35:49.299950+00:00",
   "source": "FootyStats API",
   "endpoint": "todays-matches",
   "governed_fixture_rows": 385,
@@ -30,67 +30,67 @@
   "retrievals": [
     {
       "date": "2026-11-13",
-      "retrieved_utc": "2026-11-20T19:57:30.382442+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.507697+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-14",
-      "retrieved_utc": "2026-11-20T19:57:30.619842+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.626587+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-15",
-      "retrieved_utc": "2026-11-20T19:57:30.753231+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.733213+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-16",
-      "retrieved_utc": "2026-11-20T19:57:30.878125+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.829279+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-18",
-      "retrieved_utc": "2026-11-20T19:57:31.184400+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.916063+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-19",
-      "retrieved_utc": "2026-11-20T19:57:31.500215+00:00",
+      "retrieved_utc": "2026-11-21T09:35:31.997943+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-20",
-      "retrieved_utc": "2026-11-20T19:57:31.628461+00:00",
+      "retrieved_utc": "2026-11-21T09:35:32.131641+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-21",
-      "retrieved_utc": "2026-11-20T19:57:31.890258+00:00",
+      "retrieved_utc": "2026-11-21T09:35:32.315159+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-22",
-      "retrieved_utc": "2026-11-20T19:57:32.037680+00:00",
+      "retrieved_utc": "2026-11-21T09:35:32.466293+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-23",
-      "retrieved_utc": "2026-11-20T19:57:32.159791+00:00",
+      "retrieved_utc": "2026-11-21T09:35:32.552930+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
       "date": "2026-11-24",
-      "retrieved_utc": "2026-11-20T19:57:32.274113+00:00",
+      "retrieved_utc": "2026-11-21T09:35:32.645336+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     }
