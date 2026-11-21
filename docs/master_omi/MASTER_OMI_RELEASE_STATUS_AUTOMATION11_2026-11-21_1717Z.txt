@@ -1,0 +1,35 @@
+MASTER OMI RELEASE STATUS — 2026-11-21 17:17 SAST
+
+RELEASE_DECISION=FAIL
+RELEASE_STATUS=FAIL-CLOSED
+
+Governed fixtures=387
+FORMULA_INPUT_READY=188
+FORMULA_INPUT_BLOCKED=199
+BACKTEST_READY=15
+RELEASE_PASS=188
+RELEASE_FAIL=199
+
+Mandatory blockers:
+- 169/387 below 100% required MI coverage
+- 38/387 kickoff/date reconciliation blockers
+- 7 target-window implausible goal-environment fixtures quarantined
+- 0/754 xG rows with independently verified point-in-time capture timestamps
+
+Schema V2.1.1=PASS
+Market Intelligence=755x264
+A:ET value differences=0
+A:ET normalized numeric-value hash=899f1465b36dabc6ccbc69d51aaa97a6b87b47eabee4c32855b30cae7b78edd8
+Exact FootyStats identity=387/387
+Duplicate governed fixture keys=0
+Header comments=264/264
+Verified actuals=31/387
+
+Native Excel numeric gate: PASS. Float/int serialization differences are native numeric types with identical values; no coercion performed.
+
+Oracle V1.6=UNCHANGED
+Missing values=NOT ZERO-FILLED / NOT ESTIMATED
+Goal anomalies=UNAVAILABLE/UNVERIFIED
+xG=UNAVAILABLE/UNVERIFIED unless point-in-time provenance is independently verified
+
+Corrected workbook whole-workbook SHA-256=ea1b40237d8c98ab75bd4f98c66125bd85f6ce848c03034c3041b890d6f94330
