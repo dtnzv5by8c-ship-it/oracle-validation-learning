@@ -1,0 +1,36 @@
+# Master OMI Release Status — Run 11 — 2026-11-21 23:26 SAST
+
+RELEASE_DECISION=FAIL
+FORMULA_INPUT_STATUS=BLOCKED
+BACKTEST_READY=NO
+
+GOVERNED_FIXTURES=754
+VERIFIED_PREMATCH=0
+VERIFIED_ACTUALS=275
+UNAVAILABLE_UNVERIFIED_PREMATCH=754
+BACKTEST_READY_YES=0
+RELEASE_PASS=0
+RELEASE_FAIL=754
+
+HARD_BLOCKERS:
+- Report Configuration configuration_version is 1.1.0; required canonical V2.1.1.
+- Native Excel numeric-type gate fails for governed numeric fields represented as text strings.
+- 67 fixtures require kickoff/date/schedule reconciliation.
+- 734 goal-research rows are experimental/uncalibrated and 20 are blocked for insufficient league baseline.
+- 0/754 xG rows have independently verified point-in-time capture timestamps.
+- Implausible goal-environment values remain quarantined (30 Pre-Fixture League Goal Avg values >10; 14 Latest Season League Total Avg Goals values >10).
+- Production Eligible=NO and Betting Eligible=NO for all 754 fixtures.
+
+INTEGRITY:
+WHOLE_WORKBOOK_SHA256=828b723e14452834dd301ba0f2aec553b059e437b928e9c2d02bd5e221219be4
+A_ET_SEMANTIC_TYPE_AUDIT_HASH=54b4eb99777271fbb11705b8c22638dd30df5f775f55ae82f121054718706c95
+A_ET_COLUMNS=150
+A_ET_HEADING_COMMENTS=150/150
+DUPLICATE_FIXTURE_KEYS=0
+FUZZY_MATCHING=NONE
+MISSING_TO_ZERO=NONE
+MISSING_TO_ESTIMATE=NONE
+ORACLE_V1_6_CHANGED=NO
+A_ET_MUTATED=NO
+
+A fail-closed QA candidate was generated with only the configuration value corrected to 2.1.1 and a per-fixture Formula Input QA sheet added. The immutable Market Intelligence A:ET range was not edited. The candidate remains unreleasable until all mandatory gates pass.
