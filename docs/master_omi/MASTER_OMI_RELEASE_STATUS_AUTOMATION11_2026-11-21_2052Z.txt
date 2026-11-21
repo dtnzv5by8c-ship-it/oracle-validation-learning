@@ -1,0 +1,21 @@
+MASTER OMI RELEASE STATUS — AUTOMATION RUN 11
+Timestamp: 2026-11-21 20:52 SAST
+STATUS: FAIL-CLOSED
+
+Canonical SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
+Candidate SHA-256: 4780634b3c7ce118390d9fc96f7a0da8a7b418f3bf3ce748c4b8e87d8d13e1ca
+A:ET value differences: 0
+A:ET native-type differences: 1269
+Governed fixtures: 387
+FORMULA_INPUT_STATUS READY: 0
+FORMULA_INPUT_STATUS BLOCKED: 387
+BACKTEST_READY YES: 0
+RELEASE_DECISION PASS: 0
+RELEASE_DECISION FAIL: 387
+Verified actuals: 31
+Sub-100% required coverage: 169
+Kickoff/date blockers: 38
+Goal-environment quarantines: 15
+xG capture timestamps verified: 0/754
+
+A:ET is immutable; no in-place coercion or structural mutation performed. Oracle V1.6 unchanged. Missing values remain missing/unverified. Release remains fail-closed until the candidate is regenerated preserving canonical A:ET native representation and all remaining mandatory gates pass.
