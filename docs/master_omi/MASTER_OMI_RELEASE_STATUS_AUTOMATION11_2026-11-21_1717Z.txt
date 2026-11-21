@@ -1,4 +1,4 @@
-MASTER OMI RELEASE STATUS — 2026-11-21 17:48 SAST
+MASTER OMI RELEASE STATUS — 2026-11-21 18:52 SAST
 
 RELEASE_DECISION=FAIL
 RELEASE_STATUS=FAIL-CLOSED
@@ -12,11 +12,12 @@ RELEASE_FAIL=387
 
 Canonical SHA256=9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
 A_ET_VALUE_DIFFS=0
-A_ET_TYPE_DIFFS=1269 (value-equivalent candidate int vs canonical float; no coercion)
+A_ET_TYPE_DIFFS=1269 (candidate int vs canonical float; value-equivalent but not canonical native representation)
+A_ET_IMMUTABILITY=FAIL-CLOSED
 Schema V2.1.1=PASS
 
 Mandatory blockers:
-- Native Excel numeric-type gate: governed A:ET numeric inputs are text/string representations; immutable range cannot be coerced
+- Immutable A:ET native-type mismatch: 1,269 cells differ from canonical native representation; no coercion performed
 - 169/387 below 100% required MI coverage
 - 38/387 kickoff/date reconciliation blockers
 - 15/387 implausible goal-environment fixtures quarantined
@@ -29,4 +30,9 @@ Duplicate governed fixture keys=0
 Post-match leakage=387/387 PASS
 Oracle V1.6=UNCHANGED
 
-The Formula Input QA layer was corrected to fail closed on the genuine native-type gate. A:ET was not changed.
+State model:
+VERIFIED_PREMATCH=0/387
+VERIFIED_ACTUALS=31/387
+UNAVAILABLE/UNVERIFIED=remaining blocked/unverified states
+
+No missing values were converted to zero or estimates. No fuzzy fixture matching, silent date normalization, guessed goal rescaling, A:ET coercion, insertion, deletion, reordering or renaming was performed.
