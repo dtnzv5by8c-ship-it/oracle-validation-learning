@@ -1,8 +1,8 @@
 {
-  "generated_utc": "2026-11-21T16:58:12.331071+00:00",
+  "generated_utc": "2026-11-21T22:21:07.007211+00:00",
   "governed_fixture_rows": 385,
-  "verified_actuals_rows": 151,
-  "not_completed_rows": 234,
+  "verified_actuals_rows": 215,
+  "not_completed_rows": 170,
   "actuals_missing_rows": 0,
   "kickoff_chronology_counts": {
     "MATCH_DATE_CONFIRMED": 364,
