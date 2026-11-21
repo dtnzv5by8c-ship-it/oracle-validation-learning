@@ -1,0 +1,1 @@
+RE-AUDIT RUN 11 — see audit file for controls. Per-fixture manifest is embedded in the current Formula Input QA workbook; all 387 governed rows are BLOCKED/FAIL, with exact identity joins only.
