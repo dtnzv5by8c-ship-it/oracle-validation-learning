@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-21T09:40:30.827762+00:00",
+  "generated_utc": "2026-11-21T17:25:20.507534+00:00",
   "mode": "READ_ONLY_50_LEAGUE_LIVE_FIXTURE_SOURCE_VALIDATION",
   "window_start": "2026-11-07",
   "window_end": "2026-11-21",
@@ -68,20 +68,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 4,
+      "fixture_count_in_window": 2,
       "fixtures": [
-        {
-          "match_id": "match_fd_bel1_2026-27_21112026_charleroi_st_truiden",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Charleroi",
-          "away": "St Truiden"
-        },
-        {
-          "match_id": "match_fd_bel1_2026-27_21112026_genk_raal_la_louviere",
-          "kickoff_at": "2026-11-21T17:15:00.000Z",
-          "home": "Genk",
-          "away": "RAAL La Louviere"
-        },
         {
           "match_id": "match_fd_bel1_2026-27_21112026_mechelen_club_brugge",
           "kickoff_at": "2026-11-21T19:45:00.000Z",
@@ -151,14 +139,8 @@
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 3,
+      "fixture_count_in_window": 2,
       "fixtures": [
-        {
-          "match_id": "match_fmb_chi1_2026_20261121_coquimbo_unido_everton_cd",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Coquimbo Unido",
-          "away": "Everton CD"
-        },
         {
           "match_id": "match_fmb_chi1_2026_20261121_o_higgins_universidad_de_chile",
           "kickoff_at": "2026-11-21T21:00:00.000Z",
@@ -220,27 +202,14 @@
       "competition_id": "comp_hnl_cro",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_cro1_2026-27_20261121_nk_lokomotiva_hajduk_split",
-          "kickoff_at": "2026-11-21T14:00:00.000Z",
-          "home": "NK Lokomotiva",
-          "away": "Hajduk Split"
-        },
-        {
-          "match_id": "match_fmb_cro1_2026-27_20261121_rudes_nk_varazdin",
-          "kickoff_at": "2026-11-21T17:00:00.000Z",
-          "home": "Rudeš",
-          "away": "NK Varaždin"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "11",
@@ -301,81 +270,14 @@
       "competition_id": "comp_championship_eng",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 11,
-      "fixtures": [
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_millwall_qpr",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Millwall",
-          "away": "QPR"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_norwich_cardiff",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Norwich",
-          "away": "Cardiff"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_southampton_derby",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Southampton",
-          "away": "Derby"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_bolton_portsmouth",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Bolton",
-          "away": "Portsmouth"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_lincoln_wrexham",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Lincoln",
-          "away": "Wrexham"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_middlesbrough_bristol_city",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Middlesbrough",
-          "away": "Bristol City"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_sheffield_united_watford",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Sheffield United",
-          "away": "Watford"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_stoke_birmingham",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Stoke",
-          "away": "Birmingham"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_swansea_west_brom",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Swansea",
-          "away": "West Brom"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_west_ham_preston",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "West Ham",
-          "away": "Preston"
-        },
-        {
-          "match_id": "match_fd_eng2_2026-27_21112026_wolves_charlton",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Wolves",
-          "away": "Charlton"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "15",
@@ -385,81 +287,14 @@
       "competition_id": "comp_league_one_eng",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 11,
-      "fixtures": [
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_blackpool_wigan",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Blackpool",
-          "away": "Wigan"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_reading_bromley",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Reading",
-          "away": "Bromley"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_bradford_doncaster",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Bradford",
-          "away": "Doncaster"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_burton_luton",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Burton",
-          "away": "Luton"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_cambridge_stockport",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Cambridge",
-          "away": "Stockport"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_huddersfield_leicester",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Huddersfield",
-          "away": "Leicester"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_leyton_orient_afc_wimbledon",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Leyton Orient",
-          "away": "AFC Wimbledon"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_mansfield_milton_keynes_dons",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Mansfield",
-          "away": "Milton Keynes Dons"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_notts_county_stevenage",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Notts County",
-          "away": "Stevenage"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_oxford_wycombe",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Oxford",
-          "away": "Wycombe"
-        },
-        {
-          "match_id": "match_fd_eng3_2026-27_21112026_plymouth_peterboro",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Plymouth",
-          "away": "Peterboro"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "16",
@@ -470,44 +305,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 7,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_manchester_city_fulham",
-          "kickoff_at": "2026-11-21T12:30:00.000Z",
-          "home": "Manchester City",
-          "away": "Fulham"
-        },
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_afc_bournemouth_nottingham_forest",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "AFC Bournemouth",
-          "away": "Nottingham Forest"
-        },
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_aston_villa_sunderland",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Aston Villa",
-          "away": "Sunderland"
-        },
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_chelsea_leeds_united",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Chelsea",
-          "away": "Leeds United"
-        },
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_coventry_city_crystal_palace",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Coventry City",
-          "away": "Crystal Palace"
-        },
-        {
-          "match_id": "match_fmb_epl_2026-27_20261121_tottenham_hotspur_ipswich_town",
-          "kickoff_at": "2026-11-21T15:00:00.000Z",
-          "home": "Tottenham Hotspur",
-          "away": "Ipswich Town"
-        },
         {
           "match_id": "match_fmb_epl_2026-27_20261121_newcastle_united_arsenal",
           "kickoff_at": "2026-11-21T17:30:00.000Z",
@@ -547,14 +346,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 5,
+      "fixture_count_in_window": 4,
       "fixtures": [
-        {
-          "match_id": "match_fmb_fr1_2026-27_20261121_nice_paris_saint_germain",
-          "kickoff_at": "2026-11-21T16:15:00.000Z",
-          "home": "Nice",
-          "away": "Paris Saint-Germain"
-        },
         {
           "match_id": "match_fmb_fr1_2026-27_20261121_lens_toulouse",
           "kickoff_at": "2026-11-21T19:45:00.000Z",
@@ -612,26 +405,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 4,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_olg_83689",
-          "kickoff_at": "2026-11-21T12:00:00.000Z",
-          "home": "VfL Wolfsburg",
-          "away": "Holstein Kiel"
-        },
-        {
-          "match_id": "match_olg_83694",
-          "kickoff_at": "2026-11-21T12:00:00.000Z",
-          "home": "Hannover 96",
-          "away": "SpVgg Greuther Fürth"
-        },
-        {
-          "match_id": "match_olg_83699",
-          "kickoff_at": "2026-11-21T12:00:00.000Z",
-          "home": "1. FC Nürnberg",
-          "away": "Eintracht Braunschweig"
-        },
         {
           "match_id": "match_olg_83691",
           "kickoff_at": "2026-11-21T19:30:00.000Z",
@@ -654,38 +429,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 6,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_bayer_leverkusen_paderborn",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Bayer Leverkusen",
-          "away": "Paderborn"
-        },
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_borussia_monchengladbach_borussia_dortmund",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Borussia Mönchengladbach",
-          "away": "Borussia Dortmund"
-        },
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_eintracht_frankfurt_hoffenheim",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Eintracht Frankfurt",
-          "away": "Hoffenheim"
-        },
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_elversberg_freiburg",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Elversberg",
-          "away": "Freiburg"
-        },
-        {
-          "match_id": "match_fmb_de1_2026-27_20261121_union_berlin_rb_leipzig",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Union Berlin",
-          "away": "RB Leipzig"
-        },
         {
           "match_id": "match_fmb_de1_2026-27_20261121_schalke_04_vfb_stuttgart",
           "kickoff_at": "2026-11-21T17:30:00.000Z",
@@ -720,27 +465,14 @@
       "competition_id": "comp_indian_super_league_ind",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 2,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_ind1_2026-27_20261121_chennaiyin_fc_punjab_fc",
-          "kickoff_at": "2026-11-21T11:30:00.000Z",
-          "home": "Chennaiyin FC",
-          "away": "Punjab FC"
-        },
-        {
-          "match_id": "match_fmb_ind1_2026-27_20261121_northeast_united_fc_fc_goa",
-          "kickoff_at": "2026-11-21T14:00:00.000Z",
-          "home": "Northeast United FC",
-          "away": "FC Goa"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "24",
@@ -751,26 +483,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 4,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_it1_2026-27_20261121_como_cagliari",
-          "kickoff_at": "2026-11-21T14:00:00.000Z",
-          "home": "Como",
-          "away": "Cagliari"
-        },
-        {
-          "match_id": "match_fmb_it1_2026-27_20261121_lazio_lecce",
-          "kickoff_at": "2026-11-21T14:00:00.000Z",
-          "home": "Lazio",
-          "away": "Lecce"
-        },
-        {
-          "match_id": "match_fmb_it1_2026-27_20261121_parma_roma",
-          "kickoff_at": "2026-11-21T17:00:00.000Z",
-          "home": "Parma",
-          "away": "Roma"
-        },
         {
           "match_id": "match_fmb_it1_2026-27_20261121_napoli_torino",
           "kickoff_at": "2026-11-21T19:45:00.000Z",
@@ -844,14 +558,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 5,
+      "fixture_count_in_window": 4,
       "fixtures": [
-        {
-          "match_id": "match_fd_ned1_2026-27_21112026_nijmegen_psv_eindhoven",
-          "kickoff_at": "2026-11-21T15:30:00.000Z",
-          "home": "Nijmegen",
-          "away": "PSV Eindhoven"
-        },
         {
           "match_id": "match_fd_ned1_2026-27_21112026_feyenoord_excelsior",
           "kickoff_at": "2026-11-21T17:45:00.000Z",
@@ -1017,39 +725,14 @@
       "competition_id": "comp_premier_league_rus",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_rus1_2026-27_20261121_fc_orenburg_baltika",
-          "kickoff_at": "2026-11-21T10:00:00.000Z",
-          "home": "FC Orenburg",
-          "away": "Baltika"
-        },
-        {
-          "match_id": "match_fmb_rus1_2026-27_20261121_akron_togliatti_fakel",
-          "kickoff_at": "2026-11-21T12:15:00.000Z",
-          "home": "Akron Togliatti",
-          "away": "Fakel"
-        },
-        {
-          "match_id": "match_fmb_rus1_2026-27_20261121_rubin_kazan_zenit_st_petersburg",
-          "kickoff_at": "2026-11-21T14:30:00.000Z",
-          "home": "Rubin Kazan",
-          "away": "Zenit St. Petersburg"
-        },
-        {
-          "match_id": "match_fmb_rus1_2026-27_20261121_cska_moscow_fk_akhmat",
-          "kickoff_at": "2026-11-21T16:45:00.000Z",
-          "home": "CSKA Moscow",
-          "away": "FK Akhmat"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "37",
@@ -1093,39 +776,14 @@
       "competition_id": "comp_superliga_srb",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 4,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_radnicki_nis_fk_zemun",
-          "kickoff_at": "2026-11-21T12:00:00.000Z",
-          "home": "Radnički Niš",
-          "away": "FK Zemun"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_fk_crvena_zvezda_fk_radnik_surdulica",
-          "kickoff_at": "2026-11-21T13:00:00.000Z",
-          "home": "FK Crvena Zvezda",
-          "away": "FK Radnik Surdulica"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_mladost_lucani_zeleznicar_pancevo",
-          "kickoff_at": "2026-11-21T14:00:00.000Z",
-          "home": "Mladost Lučani",
-          "away": "Železničar Pančevo"
-        },
-        {
-          "match_id": "match_fmb_srb1_2026-27_20261121_ofk_beograd_novi_pazar",
-          "kickoff_at": "2026-11-21T16:00:00.000Z",
-          "home": "OFK Beograd",
-          "away": "Novi Pazar"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "40",
@@ -1170,20 +828,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 4,
+      "fixture_count_in_window": 2,
       "fixtures": [
-        {
-          "match_id": "match_fmb_es1_2026-27_20261121_deportivo_alaves_deportivo_a_coruna",
-          "kickoff_at": "2026-11-21T13:00:00.000Z",
-          "home": "Deportivo Alavés",
-          "away": "Deportivo A Coruña"
-        },
-        {
-          "match_id": "match_fmb_es1_2026-27_20261121_rayo_vallecano_valencia",
-          "kickoff_at": "2026-11-21T15:15:00.000Z",
-          "home": "Rayo Vallecano",
-          "away": "Valencia"
-        },
         {
           "match_id": "match_fmb_es1_2026-27_20261121_sevilla_real_betis",
           "kickoff_at": "2026-11-21T17:30:00.000Z",
@@ -1246,20 +892,8 @@
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
       "classification": "READY",
-      "fixture_count_in_window": 3,
+      "fixture_count_in_window": 1,
       "fixtures": [
-        {
-          "match_id": "match_fmb_sui1_2026-27_20261121_lugano_grasshopper",
-          "kickoff_at": "2026-11-21T17:00:00.000Z",
-          "home": "Lugano",
-          "away": "Grasshopper"
-        },
-        {
-          "match_id": "match_fmb_sui1_2026-27_20261121_young_boys_thun",
-          "kickoff_at": "2026-11-21T17:00:00.000Z",
-          "home": "Young Boys",
-          "away": "Thun"
-        },
         {
           "match_id": "match_fmb_sui1_2026-27_20261121_sion_servette",
           "kickoff_at": "2026-11-21T19:30:00.000Z",
@@ -1315,33 +949,14 @@
       "competition_id": "comp_premier_league_ukr",
       "catalog_season": "2026/27",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 3,
-      "fixtures": [
-        {
-          "match_id": "match_fmb_ukr1_2026-27_20261121_fc_kolos_kovalivka_fc_kharkiv",
-          "kickoff_at": "2026-11-21T11:00:00.000Z",
-          "home": "FC Kolos Kovalivka",
-          "away": "FC Kharkiv"
-        },
-        {
-          "match_id": "match_fmb_ukr1_2026-27_20261121_kryvbas_kudrivka",
-          "kickoff_at": "2026-11-21T11:00:00.000Z",
-          "home": "Kryvbas",
-          "away": "Kudrivka"
-        },
-        {
-          "match_id": "match_fmb_ukr1_2026-27_20261121_karpaty_zorya",
-          "kickoff_at": "2026-11-21T16:00:00.000Z",
-          "home": "Karpaty",
-          "away": "Zorya"
-        }
-      ],
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "fixtures": [],
       "request": {
         "http_status": 200,
         "status": "OK"
       },
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "49",
@@ -1393,12 +1008,12 @@
   ],
   "summary": {
     "governed_leagues": 50,
-    "ready": 20,
-    "data_gated": 30,
+    "ready": 13,
+    "data_gated": 37,
     "source_error": 0,
-    "fixtures_in_window": 86,
-    "leagues_with_fixture_evidence": 20,
-    "leagues_without_fixture_evidence": 30,
+    "fixtures_in_window": 23,
+    "leagues_with_fixture_evidence": 13,
+    "leagues_without_fixture_evidence": 37,
     "scope_reconciliation_passed": true
   },
   "status": "COMPLETE"
