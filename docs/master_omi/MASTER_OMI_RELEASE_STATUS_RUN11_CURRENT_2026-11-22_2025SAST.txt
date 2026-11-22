@@ -1,0 +1,18 @@
+MASTER_OMI_RELEASE_STATUS
+Run: 11
+Timestamp: 2026-11-22 20:25 SAST
+Decision: FAIL-CLOSED
+
+754 governed fixtures x 264 Market Intelligence columns audited.
+
+PASS: 264/264 headings/comments; 754/754 fixture identity; 754/754 exact FootyStats identity; 754/754 Last-3; 754/754 Last-5; 754/754 CMOI; 0 duplicate Fixture IDs; 0 Excel errors; 0 mandatory blanks.
+
+FAIL/BLOCKED: 15,574 numeric-looking text cells across 21 governed numeric-dominant columns; 67 kickoff/date REVIEW_REQUIRED; 754/754 xG temporal provenance UNVERIFIED_NO_CAPTURE_TIMESTAMP; 754/754 formula input BLOCKED; 0/754 backtest ready; A:ET native-type/serialization differences 140.
+
+Verified actuals: 31/754. Remaining 723 explicitly UNAVAILABLE/UNVERIFIED.
+
+No A:ET mutation. No Oracle V1.6 mutation. No fuzzy matching, timezone normalization, historical backfill, zero-filling, estimation, or guessing.
+
+QA evidence correction: the prior 17,082/23-column summary was internally inconsistent. The authoritative direct cell scan and Column Coverage Matrix show 15,574 numeric-looking text cells across 21 failing numeric-dominant columns. The two Evidence Risk columns are categorical and are excluded from this numeric gate.
+
+Release remains fail-closed until every mandatory gate passes.
