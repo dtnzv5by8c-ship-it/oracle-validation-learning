@@ -1,0 +1,29 @@
+MASTER OMI RELEASE STATUS — RUN 11
+Timestamp: 2026-11-22 20:11 SAST
+Configuration: V2.1.1
+Governed fixtures: 754
+MI columns: 264
+Workbook SHA256: cc46eb23ae91b614eeec7cbf40f3a75ab897faafcca4926eb186d2593372a93f
+
+RELEASE_DECISION=FAIL-CLOSED
+FORMULA_INPUT_STATUS=BLOCKED (754/754)
+BACKTEST_READY=NO (754/754)
+VERIFIED_PREMATCH=0/754
+VERIFIED_ACTUALS=31/754
+KICKOFF_DATE_REVIEW_REQUIRED=67/754
+XG_PROVENANCE_UNVERIFIED_NO_CAPTURE_TIMESTAMP=754/754
+CMOI_PASS=754/754
+DUPLICATE_FIXTURE_IDS=0
+EXCEL_ERRORS=0
+MANDATORY_BLANKS=0
+HEADING_COMMENT_COVERAGE=264/264
+A_ET_VALUE_DIFFS=0
+A_ET_TYPE_SERIALIZATION_DIFFS=140
+A_ET_MUTATION=NONE
+ORACLE_V1_6_MUTATION=NONE
+
+Numeric-looking text remains in 23 governed numeric-dominant columns according to the persisted coverage matrix. No coercion or production mutation was performed.
+
+No fuzzy matching, timezone normalization, historical backfill, zero-filling, estimates, or guesses were used.
+
+The release gate remains fail-closed until all mandatory controls pass.
