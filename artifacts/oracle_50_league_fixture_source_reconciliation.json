@@ -8,10 +8,9 @@
   "unexpected_league_ids": [],
   "duplicate_league_ids": [],
   "classification_counts": {
-    "DATA_GATED": 49,
-    "READY": 1
+    "DATA_GATED": 50
   },
-  "fixtures_in_window": 1,
+  "fixtures_in_window": 0,
   "production_model_changed": false,
   "production_eligible": false,
   "betting_eligible": false,
@@ -96,9 +95,9 @@
       "competition_id": "comp_primera_division_chi",
       "catalog_season": "2026",
       "catalog_status": "CATALOG_VERIFIED_CURRENT_SEASON",
-      "classification": "READY",
-      "fixture_count_in_window": 1,
-      "reason": "LIVE_FIXTURES_VERIFIED"
+      "classification": "DATA_GATED",
+      "fixture_count_in_window": 0,
+      "reason": "NO_USABLE_FIXTURES_IN_GOVERNED_WINDOW"
     },
     {
       "ordinal": "08",
