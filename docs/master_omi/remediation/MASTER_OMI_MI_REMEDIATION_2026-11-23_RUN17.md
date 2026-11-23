@@ -63,7 +63,7 @@ The 21,749 changes are type-only conversions. The original lexical numeric value
 | HF | 754 |
 
 ## Preserved source IDs
-The 25 numeric-looking strings outside ET were preserved because they are FootyStats provenance/source-fixture identifiers in GG:GJ, not analytical numeric fields.
+The 25 numeric-looking strings outside ET were preserved because they are FootyStats provenance/source-fixture identifiers in GG:GJ, not analytical numeric fields. Cells: `GI24,GJ35,GG40,GI40,GI163,GJ164,GJ165,GJ177,GH340,GI340,GG341,GJ341,GH455,GI455,GJ455,GJ466,GI610,GJ610,GI611,GG612,GI612,GJ621,GH622,GJ711,GJ755`.
 
 ## Latest QA blockers retained for independent QA
 - 15,574 immutable A:ET numeric-type exceptions
