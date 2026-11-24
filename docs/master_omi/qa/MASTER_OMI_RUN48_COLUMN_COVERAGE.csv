@@ -1,0 +1,265 @@
+index,column,heading,comment_present,nonblank,blank,native_numeric,numeric_looking_text,formula_count,excel_error_count,min_numeric,max_numeric,immutable_A_ET
+0,A,Fixture Date,True,754,0,0,0,0,0,,,True
+1,B,League,True,754,0,0,0,0,0,,,True
+2,C,Fixture,True,754,0,0,0,0,0,,,True
+3,D,BTTS Yes,True,754,0,0,714,0,0,45.13,70.19,True
+4,E,Home 1X,True,754,0,0,714,0,0,22.72,95.08,True
+5,F,Away X2,True,754,0,0,714,0,0,14.82,88.91,True
+6,G,Over 1.5,True,754,0,0,0,0,0,,,True
+7,H,Over 2.5,True,754,0,0,0,0,0,,,True
+8,I,Under 4.5,True,754,0,0,0,0,0,,,True
+9,J,Home over 1.5 goals,True,754,0,0,0,0,0,,,True
+10,K,Away over 1.5 goals,True,754,0,0,0,0,0,,,True
+11,L,Home 1X + Over 1.5,True,754,0,0,0,0,0,,,True
+12,M,Away X2 + Over 1.5,True,754,0,0,0,0,0,,,True
+13,N,Home 1X + Under 4.5,True,754,0,0,0,0,0,,,True
+14,O,Away X2 + Under 4.5,True,754,0,0,0,0,0,,,True
+15,P,M-1UP Home,True,754,0,0,0,0,0,,,True
+16,Q,M-1UP Away,True,754,0,0,0,0,0,,,True
+17,R,Draw Probability (derived),True,754,0,0,0,0,0,,,True
+18,S,Goal Line Call (O/U 2.5),True,754,0,0,0,0,0,,,True
+19,T,Most Likely Total-Goals Band (derived),True,754,0,0,0,0,0,,,True
+20,U,Recent Form (5),True,754,0,0,0,0,0,,,True
+21,V,Recent Form Points (Last 5),True,754,0,0,0,0,0,,,True
+22,W,League Position,True,754,0,0,0,0,0,,,True
+23,X,Avg. Goals Scored (Last 5),True,754,0,0,0,0,0,,,True
+24,Y,Avg. Goals Conceded (Last 5),True,754,0,0,0,0,0,,,True
+25,Z,Avg. Points (Last 5),True,754,0,0,0,0,0,,,True
+26,AA,Attacking Index,True,754,0,0,0,0,0,,,True
+27,AB,Defensive Index,True,754,0,0,0,0,0,,,True
+28,AC,TOTAL Index,True,754,0,0,0,0,0,,,True
+29,AD,H2H Last 5 Summary,True,754,0,0,0,0,0,,,True
+30,AE,H2H Avg Total Goals,True,616,138,616,0,0,0,0.0,8.0,True
+31,AF,Historical Accuracy Status,True,754,0,0,0,0,0,,,True
+32,AG,Home Evidence Risk,True,754,0,0,0,0,0,,,True
+33,AH,Away Evidence Risk,True,754,0,0,0,0,0,,,True
+34,AI,Home Risk Rationale,True,754,0,0,0,0,0,,,True
+35,AJ,Away Risk Rationale,True,754,0,0,0,0,0,,,True
+36,AK,A+ Setup Status,True,754,0,0,0,0,0,,,True
+37,AL,Gem's Independent Match Analysis,True,754,0,0,0,0,0,,,True
+38,AM,Fixture ID,True,754,0,0,754,0,0,8390680.0,8740839.0,True
+39,AN,Provider Season ID,True,754,0,0,754,0,0,16504.0,17964.0,True
+40,AO,Home Team ID,True,754,0,0,754,0,0,1.0,1398748.0,True
+41,AP,Away Team ID,True,754,0,0,754,0,0,2.0,1668582.0,True
+42,AQ,Schedule Reconciliation,True,754,0,0,0,0,0,,,True
+43,AR,History Cutoff UTC,True,754,0,0,0,0,0,,,True
+44,AS,Home Last-5 Form,True,754,0,0,0,0,0,,,True
+45,AT,Home Last-5 N,True,754,0,754,0,0,0,1.0,5.0,True
+46,AU,Home Goals For Avg,True,754,0,0,754,0,0,0.0,4.5,True
+47,AV,Home Goals Against Avg,True,754,0,0,754,0,0,0.0,4.0,True
+48,AW,Home Points Per Game,True,754,0,0,754,0,0,0.0,3.0,True
+49,AX,Home-at-Home N,True,754,0,754,0,0,0,0.0,5.0,True
+50,AY,Home-at-Home Form,True,754,0,0,0,0,0,,,True
+51,AZ,Away Last-5 Form,True,754,0,0,0,0,0,,,True
+52,BA,Away Last-5 N,True,754,0,754,0,0,0,1.0,5.0,True
+53,BB,Away Goals For Avg,True,754,0,0,754,0,0,0.0,4.5,True
+54,BC,Away Goals Against Avg,True,754,0,0,754,0,0,0.0,3.6,True
+55,BD,Away Points Per Game,True,754,0,0,754,0,0,0.0,3.0,True
+56,BE,Away-Away N,True,754,0,754,0,0,0,0.0,5.0,True
+57,BF,Away-Away Form,True,754,0,0,0,0,0,,,True
+58,BG,Home League Position,True,754,0,754,0,0,0,1.0,29.0,True
+59,BH,Away League Position,True,754,0,754,0,0,0,1.0,30.0,True
+60,BI,League Table Status,True,754,0,0,0,0,0,,,True
+61,BJ,H2H Last-5,True,754,0,0,0,0,0,,,True
+62,BK,H2H N,True,754,0,754,0,0,0,0.0,5.0,True
+63,BL,H2H Avg Total Goals,True,616,138,616,0,0,0,0.0,8.0,True
+64,BM,Goal Research Status,True,754,0,0,0,0,0,,,True
+65,BN,Goal Research Model ID,True,754,0,0,0,0,0,,,True
+66,BO,Research Over 1.5 %,True,734,20,0,734,0,0,52.91,93.54,True
+67,BP,Research Over 2.5 %,True,734,20,0,734,0,0,26.22,81.86,True
+68,BQ,Research Under 4.5 %,True,734,20,0,734,0,0,54.5,96.55,True
+69,BR,Research Home Over 1.5 %,True,734,20,0,734,0,0,19.72,71.29,True
+70,BS,Research Away Over 1.5 %,True,734,20,0,734,0,0,17.0,69.15,True
+71,BT,Home Expected Goals Lambda,True,734,20,0,734,0,0,0.8167,2.5009,True
+72,BU,Away Expected Goals Lambda,True,734,20,0,734,0,0,0.7406,2.3999,True
+73,BV,Goal Research Home/Away Sample N,True,754,0,0,0,0,0,,,True
+74,BW,Goal Research League Prior N,True,754,0,0,754,0,0,11.0,466.0,True
+75,BX,Goal Research Source,True,754,0,0,0,0,0,,,True
+76,BY,Goal Research Block Reason,True,754,0,0,0,0,0,,,True
+77,BZ,Historical Accuracy Status,True,754,0,0,0,0,0,,,True
+78,CA,A+ Setup Status,True,754,0,0,0,0,0,,,True
+79,CB,Evidence / Schedule Gate,True,754,0,0,0,0,0,,,True
+80,CC,Production Eligible,True,754,0,0,0,0,0,,,True
+81,CD,Betting Eligible,True,754,0,0,0,0,0,,,True
+82,CE,History Source Fixture IDs,True,754,0,0,0,0,0,,,True
+83,CF,Actual Home Goals,True,316,438,316,0,0,0,0.0,6.0,True
+84,CG,Actual Away Goals,True,316,438,316,0,0,0,0.0,6.0,True
+85,CH,Actual Total Goals,True,316,438,316,0,0,0,0.0,10.0,True
+86,CI,Actual Match Result,True,316,438,0,0,0,0,,,True
+87,CJ,Actual BTTS,True,316,438,0,0,0,0,,,True
+88,CK,Actual Over 1.5,True,316,438,0,0,0,0,,,True
+89,CL,Actual Over 2.5,True,316,438,0,0,0,0,,,True
+90,CM,Actual Under 4.5,True,316,438,0,0,0,0,,,True
+91,CN,Actual Settlement Status,True,754,0,0,0,0,0,,,True
+92,CO,Actual Results Source,True,358,396,0,0,0,0,,,True
+93,CP,League Recent Avg Goals (Team-Form),True,754,0,754,0,0,0,2.1,4.2,True
+94,CQ,League Form Sample (Teams),True,754,0,754,0,0,0,2.0,72.0,True
+95,CR,Home Form Rank (League),True,754,0,754,0,0,0,1.0,70.0,True
+96,CS,Home Form Tier,True,754,0,0,0,0,0,,,True
+97,CT,Away Form Rank (League),True,754,0,754,0,0,0,1.0,67.0,True
+98,CU,Away Form Tier,True,754,0,0,0,0,0,,,True
+99,CV,Home Form PPG,True,754,0,754,0,0,0,0.0,3.0,True
+100,CW,Away Form PPG,True,754,0,754,0,0,0,0.0,3.0,True
+101,CX,Form PPG Differential,True,754,0,754,0,0,0,-2.6,3.0,True
+102,CY,Form Edge Signal,True,754,0,0,0,0,0,,,True
+103,CZ,League Goal Environment,True,754,0,0,0,0,0,,,True
+104,DA,Goal Research Over 1.5 %,True,734,20,734,0,0,0,52.91,93.54,True
+105,DB,Goal Research Over 2.5 %,True,734,20,734,0,0,0,26.22,81.86,True
+106,DC,Goal Research Under 4.5 %,True,734,20,734,0,0,0,54.5,96.55,True
+107,DD,Goal Research Home Over 1.5 %,True,734,20,734,0,0,0,19.72,71.29,True
+108,DE,Goal Research Away Over 1.5 %,True,734,20,734,0,0,0,17.0,69.15,True
+109,DF,Goal Research Home λ,True,734,20,734,0,0,0,0.8167,2.5009,True
+110,DG,Goal Research Away λ,True,734,20,734,0,0,0,0.7406,2.3999,True
+111,DH,Goal Research Signal,True,754,0,0,0,0,0,,,True
+112,DI,Actuals / Research Review Status,True,275,479,0,0,0,0,,,True
+113,DJ,H2H Available History Window,True,754,0,0,0,0,0,,,True
+114,DK,H2H Current Home Avg Goals,True,616,138,616,0,0,0,0.0,6.0,True
+115,DL,H2H Current Away Avg Goals,True,616,138,616,0,0,0,0.0,5.0,True
+116,DM,H2H Avg Total Goals (2Y Available),True,616,138,616,0,0,0,0.0,8.0,True
+117,DN,H2H Sample N (2Y Available),True,754,0,754,0,0,0,0.0,5.0,True
+118,DO,H2H Goal Trend,True,754,0,0,0,0,0,,,True
+119,DP,League Avg Home Goals (2Y Available),True,468,286,468,0,0,0,1.026666666666667,16.05925925925926,True
+120,DQ,League Avg Away Goals (2Y Available),True,468,286,468,0,0,0,0.92,17.85925925925926,True
+121,DR,League Avg Total Goals (2Y Available),True,468,286,468,0,0,0,2.16,33.91851851851852,True
+122,DS,League Sample N (2Y Available),True,468,286,468,0,0,0,50.0,745.0,True
+123,DT,Prior-Year Same-Month Home Avg Goals,True,412,342,412,0,0,0,1.17948717948718,2.0,True
+124,DU,Prior-Year Same-Month Away Avg Goals,True,412,342,412,0,0,0,0.875,1.484848484848485,True
+125,DV,Prior-Year Same-Month Total Goals,True,412,342,412,0,0,0,2.129032258064516,3.285714285714286,True
+126,DW,Prior-Year Same-Month Sample N,True,468,286,468,0,0,0,0.0,70.0,True
+127,DX,Pre-Fixture League Goal Avg,True,468,286,468,0,0,0,2.16,33.91851851851852,True
+128,DY,Current vs 2Y Goal Environment %,True,468,286,468,0,0,0,0.0,0.0,True
+129,DZ,Current vs Prior-Year Same-Month %,True,412,342,412,0,0,0,-11.85681747592918,29.745889387145,True
+130,EA,Home Historical Home Scoring Avg,True,244,510,244,0,0,0,0.0,3.333333333333333,True
+131,EB,Home Historical Home Conceding Avg,True,244,510,244,0,0,0,0.0,3.5,True
+132,EC,Away Historical Away Scoring Avg,True,242,512,242,0,0,0,0.0,2.333333333333333,True
+133,ED,Away Historical Away Conceding Avg,True,242,512,242,0,0,0,0.25,3.4,True
+134,EE,Historical Goal Consensus,True,468,286,468,0,0,0,2.16,33.91851851851852,True
+135,EF,Historical Consensus Spread,True,468,286,468,0,0,0,0.0,31.75185185185186,True
+136,EG,Historical Consensus Strength,True,468,286,0,0,0,0,,,True
+137,EH,Potential Total Goals Research Range,True,468,286,0,0,0,0,,,True
+138,EI,Historical Goal Evidence Quality,True,468,286,0,0,0,0,,,True
+139,EJ,Latest Season League Home Avg Goals,True,406,348,406,0,0,0,1.026666666666667,16.05925925925926,True
+140,EK,Latest Season League Away Avg Goals,True,406,348,406,0,0,0,0.92,17.85925925925926,True
+141,EL,Latest Season League Total Avg Goals,True,406,348,406,0,0,0,2.16,33.91851851851852,True
+142,EM,Latest Season League Sample N,True,406,348,406,0,0,0,35.0,135.0,True
+143,EN,Latest Season Home Team Home Scoring Avg,True,189,565,189,0,0,0,0.0,4.5,True
+144,EO,Latest Season Home Team Home Conceding Avg,True,189,565,189,0,0,0,0.0,4.333333333333333,True
+145,EP,Latest Season Away Team Away Scoring Avg,True,186,568,186,0,0,0,0.0,4.0,True
+146,EQ,Latest Season Away Team Away Conceding Avg,True,186,568,186,0,0,0,0.0,5.0,True
+147,ER,Latest Season vs 2Y Goal Environment %,True,406,348,406,0,0,0,-8.561754272815246,18.36734693877551,True
+148,ES,Goal Context Direction,True,406,348,0,0,0,0,,,True
+149,ET,Goal Context Confidence,True,406,348,0,0,0,0,,,True
+150,EU,FootyStats Home Last 5 Form,True,754,0,0,0,0,0,,,False
+151,EV,FootyStats Away Last 5 Form,True,754,0,0,0,0,0,,,False
+152,EW,FootyStats Home Last 5 PPG,True,754,0,754,0,0,0,0.0,3.0,False
+153,EX,FootyStats Away Last 5 PPG,True,754,0,754,0,0,0,0.0,3.0,False
+154,EY,FootyStats Home Last 5 GF/M,True,754,0,754,0,0,0,0.0,4.5,False
+155,EZ,FootyStats Away Last 5 GF/M,True,754,0,754,0,0,0,0.0,4.5,False
+156,FA,FootyStats Home Last 5 GA/M,True,754,0,754,0,0,0,0.0,4.0,False
+157,FB,FootyStats Away Last 5 GA/M,True,754,0,754,0,0,0,0.0,3.6,False
+158,FC,FootyStats Home Last 5 Total Goals AVG,True,754,0,754,0,0,0,0.6,5.5,False
+159,FD,FootyStats Away Last 5 Total Goals AVG,True,754,0,754,0,0,0,0.6,5.2,False
+160,FE,FootyStats Home Venue Last 5 Form,True,748,6,0,0,0,0,,,False
+161,FF,FootyStats Away Venue Last 5 Form,True,749,5,0,0,0,0,,,False
+162,FG,FootyStats Home Venue PPG,True,754,0,734,0,0,0,0.0,3.0,False
+163,FH,FootyStats Away Venue PPG,True,754,0,735,0,0,0,0.0,3.0,False
+164,FI,FootyStats Home Venue GF/M,True,754,0,734,0,0,0,0.0,6.0,False
+165,FJ,FootyStats Away Venue GF/M,True,754,0,735,0,0,0,0.0,4.4,False
+166,FK,FootyStats Home Venue GA/M,True,754,0,734,0,0,0,0.0,3.33,False
+167,FL,FootyStats Away Venue GA/M,True,754,0,735,0,0,0,0.0,4.0,False
+168,FM,FootyStats Home League Position,True,754,0,754,0,0,0,1.0,29.0,False
+169,FN,FootyStats Away League Position,True,754,0,754,0,0,0,1.0,30.0,False
+170,FO,FootyStats Home BTTS %,True,754,0,754,0,0,0,0.0,100.0,False
+171,FP,FootyStats Away BTTS %,True,754,0,754,0,0,0,0.0,100.0,False
+172,FQ,FootyStats Home O1.5 Match %,True,754,0,754,0,0,0,20.0,100.0,False
+173,FR,FootyStats Away O1.5 Match %,True,754,0,754,0,0,0,20.0,100.0,False
+174,FS,FootyStats Home O2.5 Match %,True,754,0,754,0,0,0,0.0,100.0,False
+175,FT,FootyStats Away O2.5 Match %,True,754,0,754,0,0,0,0.0,100.0,False
+176,FU,FootyStats Home U4.5 Match %,True,754,0,754,0,0,0,20.0,100.0,False
+177,FV,FootyStats Away U4.5 Match %,True,754,0,754,0,0,0,40.0,100.0,False
+178,FW,FootyStats Home Team O1.5 %,True,754,0,754,0,0,0,0.0,100.0,False
+179,FX,FootyStats Away Team O1.5 %,True,754,0,754,0,0,0,0.0,100.0,False
+180,FY,FootyStats Home Clean Sheet %,True,754,0,754,0,0,0,0.0,100.0,False
+181,FZ,FootyStats Away Clean Sheet %,True,754,0,754,0,0,0,0.0,100.0,False
+182,GA,FootyStats Home Failed To Score %,True,754,0,754,0,0,0,0.0,100.0,False
+183,GB,FootyStats Away Failed To Score %,True,754,0,754,0,0,0,0.0,100.0,False
+184,GC,FootyStats Home Overall Sample N,True,754,0,754,0,0,0,1.0,5.0,False
+185,GD,FootyStats Away Overall Sample N,True,754,0,754,0,0,0,1.0,5.0,False
+186,GE,FootyStats Home Venue Sample N,True,754,0,754,0,0,0,0.0,5.0,False
+187,GF,FootyStats Away Venue Sample N,True,754,0,754,0,0,0,0.0,5.0,False
+188,GG,FootyStats Home Overall Source Fixture IDs,True,754,0,0,3,0,0,8597389.0,8721876.0,False
+189,GH,FootyStats Away Overall Source Fixture IDs,True,754,0,0,3,0,0,8597389.0,8721876.0,False
+190,GI,FootyStats Home Venue Source Fixture IDs,True,748,6,0,8,0,0,8568536.0,8721876.0,False
+191,GJ,FootyStats Away Venue Source Fixture IDs,True,749,5,0,11,0,0,8597389.0,8721872.0,False
+192,GK,FootyStats Pre-Match Avg Goals (Empirical),True,754,0,754,0,0,0,1.4,4.9,False
+193,GL,FootyStats Pre-Match BTTS % (Empirical),True,754,0,754,0,0,0,0.0,100.0,False
+194,GM,FootyStats Pre-Match O0.5 %,True,754,0,0,0,0,0,,,False
+195,GN,FootyStats Pre-Match O1.5 % (Empirical),True,754,0,754,0,0,0,40.0,100.0,False
+196,GO,FootyStats Pre-Match O2.5 % (Empirical),True,754,0,754,0,0,0,10.0,100.0,False
+197,GP,FootyStats Pre-Match O3.5 %,True,754,0,0,0,0,0,,,False
+198,GQ,FootyStats Pre-Match O4.5 %,True,754,0,0,0,0,0,,,False
+199,GR,FootyStats Pre-Match U1.5 % (Derived),True,754,0,754,0,0,0,0.0,60.0,False
+200,GS,FootyStats Pre-Match U2.5 % (Derived),True,754,0,754,0,0,0,0.0,90.0,False
+201,GT,FootyStats Pre-Match U3.5 %,True,754,0,0,0,0,0,,,False
+202,GU,FootyStats Pre-Match U4.5 % (Empirical),True,754,0,754,0,0,0,50.0,100.0,False
+203,GV,FootyStats Home Win % (Provider),True,754,0,0,0,0,0,,,False
+204,GW,FootyStats Draw % (Provider),True,754,0,0,0,0,0,,,False
+205,GX,FootyStats Away Win % (Provider),True,754,0,0,0,0,0,,,False
+206,GY,FootyStats Home Prediction Risk %,True,754,0,0,0,0,0,,,False
+207,GZ,FootyStats Away Prediction Risk %,True,754,0,0,0,0,0,,,False
+208,HA,FootyStats Home xG For AVG (Provider),True,754,0,0,0,0,0,,,False
+209,HB,FootyStats Away xG For AVG (Provider),True,754,0,0,0,0,0,,,False
+210,HC,FootyStats Total xG AVG (Provider),True,754,0,0,0,0,0,,,False
+211,HD,FootyStats Pre-Match Home xG Audit,True,754,0,754,0,0,0,0.0,3.12,False
+212,HE,FootyStats Pre-Match Away xG Audit,True,754,0,754,0,0,0,0.0,2.65,False
+213,HF,FootyStats Pre-Match Total xG Audit,True,754,0,754,0,0,0,0.77,4.8,False
+214,HG,FootyStats xG Temporal Provenance Status,True,754,0,0,0,0,0,,,False
+215,HH,FootyStats xG Prediction Use Status,True,754,0,0,0,0,0,,,False
+216,HI,FootyStats xG Betting Eligibility,True,754,0,0,0,0,0,,,False
+217,HJ,FootyStats League Avg Home Goals (2Y),True,468,286,468,0,0,0,1.026666666666667,16.05925925925926,False
+218,HK,FootyStats League Avg Away Goals (2Y),True,468,286,468,0,0,0,0.92,17.85925925925926,False
+219,HL,FootyStats League Avg Total Goals (2Y),True,468,286,468,0,0,0,2.16,33.91851851851852,False
+220,HM,FootyStats League Sample N (2Y),True,468,286,468,0,0,0,50.0,745.0,False
+221,HN,FootyStats Pre-Fixture League Goal Avg,True,468,286,468,0,0,0,2.16,33.91851851851852,False
+222,HO,FootyStats Current vs 2Y Goal Environment %,True,468,286,468,0,0,0,0.0,0.0,False
+223,HP,FootyStats Current vs Prior-Year Same-Month %,True,412,342,412,0,0,0,-11.85681747592918,29.745889387145,False
+224,HQ,FootyStats Latest Season League Home Avg Goals,True,406,348,406,0,0,0,1.026666666666667,16.05925925925926,False
+225,HR,FootyStats Latest Season League Away Avg Goals,True,406,348,406,0,0,0,0.92,17.85925925925926,False
+226,HS,FootyStats Latest Season League Total Avg Goals,True,406,348,406,0,0,0,2.16,33.91851851851852,False
+227,HT,FootyStats Latest Season League Sample N,True,406,348,406,0,0,0,35.0,135.0,False
+228,HU,FootyStats Historical Goal Consensus,True,468,286,468,0,0,0,2.015,33.91851851851852,False
+229,HV,FootyStats Historical Consensus Spread,True,427,327,427,0,0,0,0.0120184899845914,31.60899470899471,False
+230,HW,FootyStats Historical Consensus Strength,True,468,286,0,0,0,0,,,False
+231,HX,FootyStats Potential Total Goals Research Range,True,468,286,0,0,0,0,,,False
+232,HY,FootyStats Historical Goal Evidence Quality,True,468,286,0,0,0,0,,,False
+233,HZ,FootyStats Goal Signal,True,754,0,0,0,0,0,,,False
+234,IA,FootyStats Signal Quality,True,754,0,0,0,0,0,,,False
+235,IB,FootyStats Evidence Label,True,754,0,0,0,0,0,,,False
+236,IC,FootyStats History Cutoff UTC,True,754,0,0,0,0,0,,,False
+237,ID,FootyStats Source / Join Status,True,754,0,0,0,0,0,,,False
+238,IE,FootyStats Data Quality Status,True,754,0,0,0,0,0,,,False
+239,IF,HOME_LAST_3_PPG,True,754,0,28,0,0,0,0.0,3.0,False
+240,IG,HOME_LAST_3_POINTS,True,754,0,28,0,0,0,0.0,9.0,False
+241,IH,HOME_LAST_3_WDL,True,754,0,0,0,0,0,,,False
+242,II,HOME_LAST_3_GF,True,754,0,28,0,0,0,0.0,11.0,False
+243,IJ,HOME_LAST_3_GA,True,754,0,28,0,0,0,1.0,9.0,False
+244,IK,HOME_LAST_3_SAMPLE,True,754,0,28,0,0,0,3.0,3.0,False
+245,IL,AWAY_LAST_3_PPG,True,754,0,28,0,0,0,0.0,3.0,False
+246,IM,AWAY_LAST_3_POINTS,True,754,0,28,0,0,0,0.0,9.0,False
+247,IN,AWAY_LAST_3_WDL,True,754,0,0,0,0,0,,,False
+248,IO,AWAY_LAST_3_GF,True,754,0,28,0,0,0,0.0,8.0,False
+249,IP,AWAY_LAST_3_GA,True,754,0,28,0,0,0,1.0,9.0,False
+250,IQ,AWAY_LAST_3_SAMPLE,True,754,0,28,0,0,0,3.0,3.0,False
+251,IR,TEAM_STRENGTH_VERSION,True,754,0,0,0,0,0,,,False
+252,IS,TEAM_SCORE_WINDOW_DAYS,True,754,0,406,0,0,0,60.0,540.0,False
+253,IT,HOME_TEAM_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+254,IU,AWAY_TEAM_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+255,IV,TEAM_SCORE_DIFFERENCE,True,754,0,754,0,0,0,-100.0,100.0,False
+256,IW,HOME_ATTACK_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+257,IX,AWAY_ATTACK_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+258,IY,HOME_DEFENCE_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+259,IZ,AWAY_DEFENCE_SCORE,True,754,0,754,0,0,0,50.0,150.0,False
+260,JA,TEAM_SCORE_STATUS,True,754,0,0,0,0,0,,,False
+261,JB,TEAM_SCORE_BACKTEST_NOTE,True,754,0,0,0,0,0,,,False
+262,JC,TEAM_SCORE_AS_OF,True,754,0,0,0,0,0,,,False
+263,JD,TEAM_SCORE_CONFIDENCE,True,754,0,0,0,0,0,,,False
