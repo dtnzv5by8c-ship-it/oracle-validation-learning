@@ -11,7 +11,7 @@ Permanent Master OMI V2.1.1 contract; Oracle V1.6 preserved; 754 governed fixtur
 - Latest independent binary QA artifact: docs/master_omi/qa/MASTER_OMI_MI_QA_AUTOMATION11_CURRENT_2026-11-24_0323SAST.md
 - QA artifact commit: e1ee4b98a19f73af96c706ad2f5ca9495a90017d
 - Canonical V2.1.1 SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
-- Audited workbook SHA-256: efee a8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f (canonical value in source evidence; spacing normalized here for readability)
+- Audited workbook SHA-256: efeea8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f (canonical value in source evidence; spacing normalized here for readability)
 - Market Intelligence XML SHA-256: 5b59c57e8f130993de94f134d827a19e7012321a256362c668d12a45713c1fde
 
 ## QA findings
