@@ -12,7 +12,7 @@ Oracle V1.6: unchanged.
 ## Latest remediation state
 Latest remediation artifact: Run 42.
 Candidate: Oracle_Master_OMI_V2_1_1_REMEDIATION_RUN42_2026-11-24_EXACT_AET.xlsx
-Candidate SHA-256 recorded by remediation evidence: efee a8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f
+Candidate SHA-256 recorded by remediation evidence: efeea8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f
 Canonical SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e
 Canonical Market Intelligence XML SHA-256: bca9fab0d80cc988696211bdaab426bb8f6b1ecbe4f9caa58e275aa56e488baf
 
