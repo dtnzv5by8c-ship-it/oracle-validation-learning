@@ -1,0 +1,13 @@
+{
+  "run": "41",
+  "candidate_sha256": "efeea8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f",
+  "exceptions": [
+    {"scope":"cell","issue":"numeric-looking text in immutable A:ET","count":15574,"action":"preserve; cannot mutate contract"},
+    {"scope":"row","issue":"Schedule Reconciliation REVIEW_REQUIRED","count":67,"action":"no timezone normalization; require authoritative reconciliation"},
+    {"scope":"row","issue":"xG temporal provenance UNVERIFIED_NO_CAPTURE_TIMESTAMP","count":754,"action":"quarantine from production/betting"},
+    {"scope":"row","issue":"Actuals / Research Review Status unexplained blank","count":479,"action":"do not infer; remain release exception"},
+    {"scope":"row","issue":"CMOI unavailable/unverified","count":367,"action":"do not infer; exact-ID cross-check found no authoritative replacement"},
+    {"scope":"cell","issue":"numeric-looking provenance/source IDs outside ET","count":25,"action":"retain text; not analytical numerics"}
+  ],
+  "prohibited_actions_not_performed":["fuzzy matching","timezone normalization","historical backfill","estimation","zero fill","unsupported provenance substitution","A:ET mutation","Oracle V1.6 redesign"]
+}
