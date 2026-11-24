@@ -1,0 +1,19 @@
+{
+  "run": "41",
+  "candidate_sha256": "efeea8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f",
+  "canonical_sha256": "9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e",
+  "scope": {"fixtures": 754, "market_intelligence_columns": 264},
+  "schema": {"headings": "264/264", "comments": "264/264"},
+  "identity": {"fixture_ids_populated": 754, "unique": 754, "duplicates": 0},
+  "formulas": 0,
+  "excel_errors": 0,
+  "immutable_aet": {"aet_fragment_sha256": "fc13ceae478cc1fe308ccb44abd0fe896996f537ae34487c587fcc594fef074a", "numeric_looking_text": 15574},
+  "append_only_numeric_gate": {"supported_analytical_numeric_text": 0, "provenance_source_id_text": 25},
+  "provenance": {"footystats_exact_fixture_join": "754/754", "footystats_quality": "754/754 GOOD_RESEARCH_EVIDENCE"},
+  "schedule": {"MATCH": 687, "REVIEW_REQUIRED": 67},
+  "xg": {"UNVERIFIED_NO_CAPTURE_TIMESTAMP": 754, "betting_eligible_no": 754},
+  "ltss_v1_1": {"BACKTESTED_LEAGUE_WINDOW": 406, "STATE_FALLBACK_RESEARCH": 348},
+  "actuals": {"verified": 275, "blank_review_status": 479},
+  "release": {"production_eligible": 0, "betting_eligible": 0, "formula_input_ready": 0, "backtest_ready": 0},
+  "decision": "FAIL-CLOSED"
+}
