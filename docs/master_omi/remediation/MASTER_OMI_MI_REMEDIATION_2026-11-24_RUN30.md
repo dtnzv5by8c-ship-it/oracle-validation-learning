@@ -35,7 +35,7 @@ Governed fields: EW:FB, FG:FL, FO:GB, HD:HF.
 - Analytical numeric-looking text outside ET: 0
 - Package entries changed: 1 (xl/worksheets/sheet3.xml)
 - Immutable A:ET cell-fragment hash before/after: 1b22bdce8e626b00e42d9ec59cbf800e1c4d7a3cacce7819a78ffc0aba265699
-- Candidate workbook SHA-256: efee a8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f
+- Candidate workbook SHA-256: efeea8101814f7d207d9396cb4182b15a952f2dc3a476e5f51f28a5da4915f8f
 - Cell-change manifest SHA-256: 72731873991b7b71d20e73af9b3bb6a41dc7e9bf2a9f2bee554f8da6743c799a
 
 ## Unresolved for independent QA
