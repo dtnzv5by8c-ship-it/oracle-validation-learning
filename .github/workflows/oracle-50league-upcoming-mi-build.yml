@@ -8,15 +8,6 @@ on:
       - main
       - work/oracle-omi-2026-11-27-to-2026-12-02
   workflow_dispatch:
-    inputs:
-      start_date:
-        required: true
-        default: "2026-11-27"
-        type: string
-      end_date:
-        required: true
-        default: "2026-12-02"
-        type: string
 
 permissions:
   contents: read
@@ -31,8 +22,7 @@ jobs:
     timeout-minutes: 60
     env:
       FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
-      START_DATE: ${{ inputs.start_date || '2026-11-27' }}
-      END_DATE: ${{ inputs.end_date || '2026-12-02' }}
+      LOOKAHEAD_DAYS: "7"
     steps:
       - uses: actions/checkout@v4
 
@@ -50,10 +40,11 @@ jobs:
           from urllib.request import Request,urlopen
 
           API=os.environ["FOOTYSTATS_API_KEY"]
-          start=datetime.strptime(os.environ["START_DATE"],"%Y-%m-%d").date()
-          end=datetime.strptime(os.environ["END_DATE"],"%Y-%m-%d").date()
-          if end < start or (end-start).days > 30:
-              raise SystemExit("Invalid fixture window")
+          now=datetime.now(timezone.utc)
+          start=now.date()
+          end=(now+timedelta(days=int(os.environ.get("LOOKAHEAD_DAYS","7")))).date()
+          if end < start or (end-start).days > 14:
+              raise SystemExit("Invalid rolling fixture window")
 
           selected_ids={
             "16571","17326","17181","17171","16544","16741","16615","16789","16614","17087",
@@ -183,37 +174,82 @@ jobs:
                         "status":"DIRECT_PROVIDER" if v is not None else "UNAVAILABLE"
                       })
 
-          # Exact /lastx provider snapshot for all teams in the window.
-          team_ids=sorted({r["provider_home_id"] for r in spine if r["provider_home_id"]}|{r["provider_away_id"] for r in spine if r["provider_away_id"]})
-          def lastx(tid):
-              try:
-                  p=api("lastx",{"team_id":tid})
-                  nodes=[]
-                  def walk(x,path="root"):
-                      if isinstance(x,dict):
-                          if "formRun_overall" in x: nodes.append((path,x))
-                          for k,v in x.items(): walk(v,path+"."+k)
-                      elif isinstance(x,list):
-                          for i,v in enumerate(x): walk(v,f"{path}[{i}]")
-                  walk(p)
-                  cand=[]
-                  for path,node in nodes:
-                      n=node.get("seasonMatchesPlayed_overall")
-                      score=(100 if n==5 else 0)+(50 if "last5" in path.lower() or "last_5" in path.lower() else 0)
-                      cand.append((score,path,node))
-                  if not cand: return tid,{}
-                  cand.sort(key=lambda x:(x[0],x[1]),reverse=True)
-                  node=cand[0][2]
-                  if node.get("seasonMatchesPlayed_overall")!=5: return tid,{}
-                  return tid,node
-              except Exception:
-                  return tid,{}
+          # Fixture-specific Last-5: use authoritative season match history with a strict kickoff cutoff.
+          # The prior lastx endpoint had no fixture-specific cutoff provenance and was not safe for promotion.
+          season_matches={}
+          for sid in sorted({r["league_season_id"] for r in spine if r["league_season_id"]}):
+              rows=[]
+              page=1
+              while True:
+                  p=api("league-matches",{"season_id":sid,"page":page,"max_per_page":1000})
+                  rows.extend(p.get("data") or [])
+                  pager=p.get("pager") or {}
+                  mx=int(pager.get("max_page") or page)
+                  if page>=mx: break
+                  page+=1
+              season_matches[sid]=rows
 
-          last5={}
-          with ThreadPoolExecutor(max_workers=8) as ex:
-              futs=[ex.submit(lastx,tid) for tid in team_ids]
-              for f in as_completed(futs):
-                  tid,node=f.result(); last5[tid]=node
+          def num(x):
+              try: return float(x)
+              except Exception: return None
+
+          def match_epoch(m):
+              for k in ("date_unix","date"):
+                  if m.get(k) not in (None,""):
+                      try:
+                          return float(m[k]) if k=="date_unix" else datetime.fromisoformat(str(m[k]).replace("Z","+00:00")).timestamp()
+                      except Exception: pass
+              return None
+
+          def score(m,team_id):
+              hg=next((m.get(k) for k in ("homeGoalCount","home_goals","homeGoals","home_score") if m.get(k) not in (None,"")),None)
+              ag=next((m.get(k) for k in ("awayGoalCount","away_goals","awayGoals","away_score") if m.get(k) not in (None,"")),None)
+              hg=num(hg); ag=num(ag)
+              if hg is None or ag is None: return None
+              ishome=str(m.get("homeID") or "")==str(team_id)
+              gf,ga=(hg,ag) if ishome else (ag,hg)
+              return gf,ga,("W" if gf>ga else "D" if gf==ga else "L")
+
+          def last5_for(sid,team_id,kickoff_unix,venue):
+              rows=[]
+              for m in season_matches.get(sid,[]):
+                  mt=match_epoch(m)
+                  if mt is None or mt>=kickoff_unix: continue
+                  if str(m.get("homeID") or "")!=str(team_id) and str(m.get("awayID") or "")!=str(team_id): continue
+                  if venue=="home" and str(m.get("homeID") or "")!=str(team_id): continue
+                  if venue=="away" and str(m.get("awayID") or "")!=str(team_id): continue
+                  sc=score(m,team_id)
+                  if sc is not None: rows.append((mt,sc))
+              rows.sort(key=lambda x:x[0],reverse=True); rows=rows[:5]
+              if not rows: return {"form":"UNAVAILABLE","ppg":"UNAVAILABLE","gf_m":"UNAVAILABLE","ga_m":"UNAVAILABLE","sample":0,"cutoff":""}
+              pts=sum(3 if x[1][2]=="W" else 1 if x[1][2]=="D" else 0 for x in rows)
+              gf=sum(x[1][0] for x in rows); ga=sum(x[1][1] for x in rows)
+              return {"form":" ".join(x[1][2] for x in rows),"ppg":pts/len(rows),"gf_m":gf/len(rows),"ga_m":ga/len(rows),"sample":len(rows),"cutoff":datetime.fromtimestamp(kickoff_unix,tz=timezone.utc).isoformat()}
+
+          mi=[]
+          snap=datetime.now(timezone.utc).isoformat()
+          for r in spine:
+              kickoff_unix=float(datetime.fromisoformat(r["kickoff_utc"].replace("Z","+00:00")).timestamp())
+              h=last5_for(r["league_season_id"],r["provider_home_id"],kickoff_unix,"home")
+              a=last5_for(r["league_season_id"],r["provider_away_id"],kickoff_unix,"away")
+              mi.append({
+                **r,
+                "home_last5_form":h["form"],"away_last5_form":a["form"],
+                "home_last5_ppg":h["ppg"],"away_last5_ppg":a["ppg"],
+                "home_last5_gf_m":h["gf_m"],"away_last5_gf_m":a["gf_m"],
+                "home_last5_ga_m":h["ga_m"],"away_last5_ga_m":a["ga_m"],
+                "home_venue_last5_form":h["form"],"away_venue_last5_form":a["form"],
+                "home_venue_ppg":h["ppg"],"away_venue_ppg":a["ppg"],
+                "home_venue_gf_m":h["gf_m"],"away_venue_gf_m":a["gf_m"],
+                "home_venue_ga_m":h["ga_m"],"away_venue_ga_m":a["ga_m"],
+                "home_overall_sample":h["sample"],"away_overall_sample":a["sample"],
+                "home_venue_sample":h["sample"],"away_venue_sample":a["sample"],
+                "home_last5_cutoff_utc":h["cutoff"],"away_last5_cutoff_utc":a["cutoff"],
+                "footystats_snapshot_utc":snap,
+                "last5_status":"VERIFIED_PRE_KICKOFF" if h["sample"]==5 and a["sample"]==5 else "UNAVAILABLE_INSUFFICIENT_SAMPLE",
+                "last5_source":"FootyStats league-matches",
+                "intelligence_status":"DIRECT_PROVIDER_PREMATCH"
+              })
 
           # Write one fixture-level MI row with governed FootyStats columns.
           byfixture={}
@@ -264,7 +300,7 @@ jobs:
             "private_repository_used":False,"fuzzy_matching_used":False,
             "historical_fallback_used":False,"production_model_logic_changed":False,
             "market_intelligence_A_ET_changed":False,"pre_match_only":True,
-            "lastx_unique_teams":len(team_ids),"lastx_exact_5_teams":sum(1 for v in last5.values() if v),
+            "season_match_rows":sum(len(v) for v in season_matches.values()),"last5_fully_verified_fixtures":sum(1 for x in mi if x["last5_status"]=="VERIFIED_PRE_KICKOFF"),
             "generated_utc":snap
           }
           (out/"build_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
@@ -276,6 +312,6 @@ jobs:
       - name: Upload 50-league fixture and MI evidence
         uses: actions/upload-artifact@v4
         with:
-          name: oracle-50league-omi-2026-11-27-to-2026-12-02
+          name: oracle-50league-omi-rolling-current
           path: oracle_upcoming_50/
           retention-days: 30
