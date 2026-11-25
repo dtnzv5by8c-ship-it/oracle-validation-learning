@@ -53,3 +53,23 @@ A fresh rolling workflow run must:
 7. undergo independent QA.
 
 No release workbook is certified by this remediation cycle.
+
+
+## 20:51 SAST continuation — additional defects fixed
+
+Direct live-repository inspection found two implementation defects in the prior remediation:
+
+1. The rolling 50-league producer generated `oracle_upcoming_50/*` only as workflow artifacts, while the downstream Master OMI contract required `data/fixtures/governed_50league_current.csv`. The producer now persists the rolling current spine and manifest to the public repository after validating exact provider fixture IDs and uniqueness.
+2. The corrected Last-5 implementation was followed by a second legacy MI writer that referenced an undefined `last5` cache and would overwrite the valid fixture-specific cutoff-safe result. That duplicate writer has been removed.
+
+A third dependency defect was confirmed: the public repository has no authoritative `omi_prediction_ledger_current.csv`, `database/current_prematch_team_state.csv`, or `database/matches.csv` on the default branch. These are not safely reconstructible from the public repository without changing Oracle V1.6 or fabricating production data. They therefore remain fail-closed blockers.
+
+A fourth orchestration defect was fixed: the rolling producer now runs hourly, and Master OMI is triggered when rolling current fixture/ledger/state inputs change. The Master OMI output is no longer named as a dated frozen weekly workbook.
+
+### Live commits from this cycle
+- `5e0723064d79b775a8f5d9d18641f0a8179c382b` — rolling producer persistence + Last-5 duplicate-writer fix
+- `9f5b2a2993b70e0859ae44df8270180fc698aa60` — Master OMI current-input dependency trigger + non-dated output
+- `add91b87f61d64300dd2dd30d0b92d34700eba26` — root-cause matrix extension
+
+### Release
+`FAIL-CLOSED`. No release workbook is produced until the authoritative current ledger/current-state dependencies exist and the fresh rolling run passes exhaustive cell-level coverage, type, provenance, chronology and leakage QA.
