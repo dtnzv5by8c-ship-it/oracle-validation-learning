@@ -311,8 +311,12 @@ jobs:
               w=csv.DictWriter(f,fieldnames=list(mi[0].keys()) if mi else ["fixture_id"])
               w.writeheader(); w.writerows(mi)
 
+          actual_dates=sorted({r["date"] for r in spine if r.get("date")})
           summary={
-            "window_start":start.isoformat(),"window_end":end.isoformat(),"governed_leagues":50,
+            "window_start":start.isoformat(),"window_end":end.isoformat(),
+            "fixture_date_min":actual_dates[0] if actual_dates else "",
+            "fixture_date_max":actual_dates[-1] if actual_dates else "",
+            "governed_leagues":50,
             "fixture_rows":len(spine),"unique_provider_fixture_ids":len({r["fixture_id"] for r in spine}),
             "season_ids_with_fixtures":len({r["league_season_id"] for r in spine}),
             "retrievals":retrievals,"provider":"FootyStats",
@@ -351,7 +355,13 @@ jobs:
           ids=[r["fixture_id"] for r in rows]
           assert len(ids)==len(set(ids)), "FAIL-CLOSED: duplicate provider fixture IDs"
           assert all(r.get("identity_status")=="EXACT_PROVIDER_FIXTURE_ID" for r in rows)
-          print({"rows":len(rows),"unique_fixture_ids":len(set(ids))})
+          import json
+          manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
+          dates=sorted(r["date"] for r in rows if r.get("date"))
+          assert manifest.get("fixture_rows")==len(rows), "FAIL-CLOSED: manifest row count mismatch"
+          assert manifest.get("unique_provider_fixture_ids")==len(set(ids)), "FAIL-CLOSED: manifest fixture-ID count mismatch"
+          assert manifest.get("fixture_date_min")==dates[0] and manifest.get("fixture_date_max")==dates[-1], "FAIL-CLOSED: manifest fixture-date bounds mismatch"
+          print({"rows":len(rows),"unique_fixture_ids":len(set(ids)),"date_min":dates[0],"date_max":dates[-1]})
           PY
 
       - name: Persist rolling current fixture and MI artifacts
