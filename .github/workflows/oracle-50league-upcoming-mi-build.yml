@@ -6,11 +6,12 @@ on:
   push:
     branches:
       - main
-      - work/oracle-omi-2026-11-27-to-2026-12-02
+  schedule:
+    - cron: "15 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: oracle-upcoming-50-mi-build
@@ -251,43 +252,8 @@ jobs:
                 "intelligence_status":"DIRECT_PROVIDER_PREMATCH"
               })
 
-          # Write one fixture-level MI row with governed FootyStats columns.
-          byfixture={}
-          for x in intel:
-              byfixture.setdefault(x["fixture_id"],{})[(x["side"],x["metric"])]=x["value"]
-          mi=[]
-          snap=datetime.now(timezone.utc).isoformat()
-          for r in spine:
-              vals=byfixture.get(r["fixture_id"],{})
-              h=last5.get(r["provider_home_id"],{}); a=last5.get(r["provider_away_id"],{})
-              mi.append({
-                **r,
-                "home_last5_form":(h.get("formRun_overall") or "UNAVAILABLE"),
-                "away_last5_form":(a.get("formRun_overall") or "UNAVAILABLE"),
-                "home_last5_ppg":h.get("seasonPPG_overall","UNAVAILABLE"),
-                "away_last5_ppg":a.get("seasonPPG_overall","UNAVAILABLE"),
-                "home_last5_gf_m":h.get("seasonScoredAVG_overall","UNAVAILABLE"),
-                "away_last5_gf_m":a.get("seasonScoredAVG_overall","UNAVAILABLE"),
-                "home_last5_ga_m":h.get("seasonConcededAVG_overall","UNAVAILABLE"),
-                "away_last5_ga_m":a.get("seasonConcededAVG_overall","UNAVAILABLE"),
-                "home_last5_total_goals":h.get("seasonAVG_overall","UNAVAILABLE"),
-                "away_last5_total_goals":a.get("seasonAVG_overall","UNAVAILABLE"),
-                "home_venue_last5_form":h.get("formRun_home","UNAVAILABLE"),
-                "away_venue_last5_form":a.get("formRun_away","UNAVAILABLE"),
-                "home_venue_ppg":h.get("seasonPPG_home","UNAVAILABLE"),
-                "away_venue_ppg":a.get("seasonPPG_away","UNAVAILABLE"),
-                "home_venue_gf_m":h.get("seasonScoredAVG_home","UNAVAILABLE"),
-                "away_venue_gf_m":a.get("seasonScoredAVG_away","UNAVAILABLE"),
-                "home_venue_ga_m":h.get("seasonConcededAVG_home","UNAVAILABLE"),
-                "away_venue_ga_m":a.get("seasonConcededAVG_away","UNAVAILABLE"),
-                "home_overall_sample":h.get("seasonMatchesPlayed_overall","UNAVAILABLE"),
-                "away_overall_sample":a.get("seasonMatchesPlayed_overall","UNAVAILABLE"),
-                "home_venue_sample":h.get("seasonMatchesPlayed_home","UNAVAILABLE"),
-                "away_venue_sample":a.get("seasonMatchesPlayed_away","UNAVAILABLE"),
-                "footystats_snapshot_utc":snap,
-                "intelligence_status":"DIRECT_PROVIDER_PREMATCH"
-              })
-
+          # The first MI construction above is authoritative.
+          # Do not overwrite it with a second path that referenced an undefined LastX cache.
           with (out/"footystats_market_intelligence.csv").open("w",encoding="utf-8",newline="") as f:
               w=csv.DictWriter(f,fieldnames=list(mi[0].keys()) if mi else ["fixture_id"])
               w.writeheader(); w.writerows(mi)
@@ -308,6 +274,45 @@ jobs:
 
           if not spine:
               raise SystemExit("FAIL-CLOSED: no governed 50-league fixtures returned for requested window")
+
+          # Persist only rolling current artifacts. No dated frozen spine is written.
+          import shutil
+          Path("data/fixtures").mkdir(parents=True,exist_ok=True)
+          shutil.copyfile(out/"governed_50league_upcoming_fixtures.csv","data/fixtures/governed_50league_current.csv")
+          summary["current_fixture_spine_path"]="data/fixtures/governed_50league_current.csv"
+          summary["current_mi_path"]="oracle_upcoming_50/footystats_market_intelligence.csv"
+          (Path("data/fixtures")/"governed_50league_current_manifest.json").write_text(
+              json.dumps(summary,indent=2),encoding="utf-8"
+          )
+
+      - name: Validate rolling current fixture spine persistence
+        run: |
+          set -euo pipefail
+          test -s data/fixtures/governed_50league_current.csv
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          p=Path("data/fixtures/governed_50league_current.csv")
+          rows=list(csv.DictReader(p.open(newline="",encoding="utf-8")))
+          assert rows, "FAIL-CLOSED: current governed fixture spine is empty"
+          ids=[r["fixture_id"] for r in rows]
+          assert len(ids)==len(set(ids)), "FAIL-CLOSED: duplicate provider fixture IDs"
+          assert all(r.get("identity_status")=="EXACT_PROVIDER_FIXTURE_ID" for r in rows)
+          print({"rows":len(rows),"unique_fixture_ids":len(set(ids))})
+          PY
+
+      - name: Persist rolling current fixture and MI artifacts
+        run: |
+          set -euo pipefail
+          git config user.name "oracle-50league-current-mi-bot"
+          git config user.email "oracle-50league-current-mi-bot@users.noreply.github.com"
+          git add data/fixtures/governed_50league_current.csv data/fixtures/governed_50league_current_manifest.json oracle_upcoming_50/footystats_market_intelligence.csv oracle_upcoming_50/governed_50league_upcoming_fixtures.csv oracle_upcoming_50/build_summary.json
+          if git diff --cached --quiet; then
+            echo "No rolling-current changes."
+          else
+            git commit -m "Persist rolling 50-league current fixture and MI artifacts"
+            git push origin HEAD:main
+          fi
 
       - name: Upload 50-league fixture and MI evidence
         uses: actions/upload-artifact@v4
