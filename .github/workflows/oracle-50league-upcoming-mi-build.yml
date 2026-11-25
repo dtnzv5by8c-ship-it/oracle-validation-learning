@@ -211,14 +211,16 @@ jobs:
               gf,ga=(hg,ag) if ishome else (ag,hg)
               return gf,ga,("W" if gf>ga else "D" if gf==ga else "L")
 
-          def last5_for(sid,team_id,kickoff_unix,venue):
+          def last5_for(sid,team_id,kickoff_unix,venue=None):
               rows=[]
               for m in season_matches.get(sid,[]):
                   mt=match_epoch(m)
                   if mt is None or mt>=kickoff_unix: continue
-                  if str(m.get("homeID") or "")!=str(team_id) and str(m.get("awayID") or "")!=str(team_id): continue
-                  if venue=="home" and str(m.get("homeID") or "")!=str(team_id): continue
-                  if venue=="away" and str(m.get("awayID") or "")!=str(team_id): continue
+                  is_home=str(m.get("homeID") or "")==str(team_id)
+                  is_away=str(m.get("awayID") or "")==str(team_id)
+                  if not (is_home or is_away): continue
+                  if venue=="home" and not is_home: continue
+                  if venue=="away" and not is_away: continue
                   sc=score(m,team_id)
                   if sc is not None: rows.append((mt,sc))
               rows.sort(key=lambda x:x[0],reverse=True); rows=rows[:5]
@@ -227,30 +229,81 @@ jobs:
               gf=sum(x[1][0] for x in rows); ga=sum(x[1][1] for x in rows)
               return {"form":" ".join(x[1][2] for x in rows),"ppg":pts/len(rows),"gf_m":gf/len(rows),"ga_m":ga/len(rows),"sample":len(rows),"cutoff":datetime.fromtimestamp(kickoff_unix,tz=timezone.utc).isoformat()}
 
+          def h2h_for(sid,home_id,away_id,kickoff_unix):
+              rows=[]
+              for m in season_matches.get(sid,[]):
+                  mt=match_epoch(m)
+                  if mt is None or mt>=kickoff_unix: continue
+                  if str(m.get("homeID") or "")!=str(home_id) or str(m.get("awayID") or "")!=str(away_id):
+                      continue
+                  hg=num(next((m.get(k) for k in ("homeGoalCount","home_goals","homeGoals","home_score") if m.get(k) not in (None,"")),None))
+                  ag=num(next((m.get(k) for k in ("awayGoalCount","away_goals","awayGoals","away_score") if m.get(k) not in (None,"")),None))
+                  if hg is None or ag is None: continue
+                  rows.append((mt,hg,ag))
+              rows.sort(key=lambda x:x[0],reverse=True)
+              n=len(rows)
+              if n==0:
+                  return {"sample":0,"home_wins":"UNAVAILABLE","draws":"UNAVAILABLE","away_wins":"UNAVAILABLE","btts_pct":"UNAVAILABLE","over25_pct":"UNAVAILABLE","avg_goals":"UNAVAILABLE","last_meeting_utc":"UNAVAILABLE","status":"UNAVAILABLE_NO_AUTHORITATIVE_H2H"}
+              return {
+                  "sample":n,
+                  "home_wins":sum(h> a for _,h,a in rows),
+                  "draws":sum(h==a for _,h,a in rows),
+                  "away_wins":sum(h< a for _,h,a in rows),
+                  "btts_pct":100*sum(h>0 and a>0 for _,h,a in rows)/n,
+                  "over25_pct":100*sum((h+a)>2.5 for _,h,a in rows)/n,
+                  "avg_goals":sum(h+a for _,h,a in rows)/n,
+                  "last_meeting_utc":datetime.fromtimestamp(rows[0][0],tz=timezone.utc).isoformat(),
+                  "status":"VERIFIED_PRE_KICKOFF"
+              }
+
+          intel_by_fixture={}
+          for z in intel:
+              k=(z["fixture_id"],z["side"])
+              intel_by_fixture.setdefault(k,{})
+              intel_by_fixture[k][z["metric"]]=z["value"]
+
           mi=[]
           snap=datetime.now(timezone.utc).isoformat()
           for r in spine:
               kickoff_unix=float(datetime.fromisoformat(r["kickoff_utc"].replace("Z","+00:00")).timestamp())
-              h=last5_for(r["league_season_id"],r["provider_home_id"],kickoff_unix,"home")
-              a=last5_for(r["league_season_id"],r["provider_away_id"],kickoff_unix,"away")
-              mi.append({
+              h_over=last5_for(r["league_season_id"],r["provider_home_id"],kickoff_unix)
+              a_over=last5_for(r["league_season_id"],r["provider_away_id"],kickoff_unix)
+              h_venue=last5_for(r["league_season_id"],r["provider_home_id"],kickoff_unix,"home")
+              a_venue=last5_for(r["league_season_id"],r["provider_away_id"],kickoff_unix,"away")
+              hh=h2h_for(r["league_season_id"],r["provider_home_id"],r["provider_away_id"],kickoff_unix)
+              row={
                 **r,
-                "home_last5_form":h["form"],"away_last5_form":a["form"],
-                "home_last5_ppg":h["ppg"],"away_last5_ppg":a["ppg"],
-                "home_last5_gf_m":h["gf_m"],"away_last5_gf_m":a["gf_m"],
-                "home_last5_ga_m":h["ga_m"],"away_last5_ga_m":a["ga_m"],
-                "home_venue_last5_form":h["form"],"away_venue_last5_form":a["form"],
-                "home_venue_ppg":h["ppg"],"away_venue_ppg":a["ppg"],
-                "home_venue_gf_m":h["gf_m"],"away_venue_gf_m":a["gf_m"],
-                "home_venue_ga_m":h["ga_m"],"away_venue_ga_m":a["ga_m"],
-                "home_overall_sample":h["sample"],"away_overall_sample":a["sample"],
-                "home_venue_sample":h["sample"],"away_venue_sample":a["sample"],
-                "home_last5_cutoff_utc":h["cutoff"],"away_last5_cutoff_utc":a["cutoff"],
+                "home_last5_form":h_over["form"],"away_last5_form":a_over["form"],
+                "home_last5_ppg":h_over["ppg"],"away_last5_ppg":a_over["ppg"],
+                "home_last5_gf_m":h_over["gf_m"],"away_last5_gf_m":a_over["gf_m"],
+                "home_last5_ga_m":h_over["ga_m"],"away_last5_ga_m":a_over["ga_m"],
+                "home_venue_last5_form":h_venue["form"],"away_venue_last5_form":a_venue["form"],
+                "home_venue_ppg":h_venue["ppg"],"away_venue_ppg":a_venue["ppg"],
+                "home_venue_gf_m":h_venue["gf_m"],"away_venue_gf_m":a_venue["gf_m"],
+                "home_venue_ga_m":h_venue["ga_m"],"away_venue_ga_m":a_venue["ga_m"],
+                "home_overall_sample":h_over["sample"],"away_overall_sample":a_over["sample"],
+                "home_venue_sample":h_venue["sample"],"away_venue_sample":a_venue["sample"],
+                "home_last5_cutoff_utc":h_over["cutoff"],"away_last5_cutoff_utc":a_over["cutoff"],
+                "home_venue_cutoff_utc":h_venue["cutoff"],"away_venue_cutoff_utc":a_venue["cutoff"],
                 "footystats_snapshot_utc":snap,
-                "last5_status":"VERIFIED_PRE_KICKOFF" if h["sample"]==5 and a["sample"]==5 else "UNAVAILABLE_INSUFFICIENT_SAMPLE",
+                "last5_status":"VERIFIED_PRE_KICKOFF" if h_over["sample"]==5 and a_over["sample"]==5 else "UNAVAILABLE_INSUFFICIENT_SAMPLE",
+                "venue_last5_status":"VERIFIED_PRE_KICKOFF" if h_venue["sample"]==5 and a_venue["sample"]==5 else "UNAVAILABLE_INSUFFICIENT_SAMPLE",
                 "last5_source":"FootyStats league-matches",
+                "h2h_sample_n":hh["sample"],"h2h_home_wins":hh["home_wins"],"h2h_draws":hh["draws"],"h2h_away_wins":hh["away_wins"],
+                "h2h_btts_pct":hh["btts_pct"],"h2h_over25_pct":hh["over25_pct"],"h2h_avg_goals":hh["avg_goals"],
+                "h2h_last_meeting_utc":hh["last_meeting_utc"],"h2h_status":hh["status"],
+                "xg_status":"UNVERIFIED_NO_CAPTURE_TIMESTAMP",
                 "intelligence_status":"DIRECT_PROVIDER_PREMATCH"
-              })
+              }
+              for side in ("HOME","AWAY"):
+                  vals=intel_by_fixture.get((r["fixture_id"],side),{})
+                  prefix="home_" if side=="HOME" else "away_"
+                  for code,v in vals.items():
+                      row[f"fs_{prefix}{code.lower()}"]=v
+                      row[f"fs_{prefix}{code.lower()}_source"]="FootyStats league-teams"
+                      row[f"fs_{prefix}{code.lower()}_snapshot_cutoff_utc"]=next((z["snapshot_cutoff_utc"] for z in intel if z["fixture_id"]==r["fixture_id"] and z["side"]==side), "")
+                      row[f"fs_{prefix}{code.lower()}_status"]="VERIFIED_PRE_KICKOFF" if v not in (None,"UNAVAILABLE") else "UNAVAILABLE"
+              mi.append(row)
 
           # The first MI construction above is authoritative.
           # Do not overwrite it with a second path that referenced an undefined LastX cache.
