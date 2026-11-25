@@ -1,6 +1,8 @@
 name: Oracle 50-League Upcoming Fixture + MI Build
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - work/oracle-omi-2026-11-27-to-2026-12-02
