@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches:
+      - main
       - work/oracle-omi-2026-11-27-to-2026-12-02
   workflow_dispatch:
     inputs:
