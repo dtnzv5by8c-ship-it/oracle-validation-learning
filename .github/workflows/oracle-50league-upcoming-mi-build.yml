@@ -1,0 +1,278 @@
+name: Oracle 50-League Upcoming Fixture + MI Build
+
+on:
+  push:
+    branches:
+      - work/oracle-omi-2026-11-27-to-2026-12-02
+  workflow_dispatch:
+    inputs:
+      start_date:
+        required: true
+        default: "2026-11-27"
+        type: string
+      end_date:
+        required: true
+        default: "2026-12-02"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-upcoming-50-mi-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FOOTYSTATS_API_KEY: ${{ secrets.FOOTYSTATS_API_KEY }}
+      START_DATE: ${{ inputs.start_date || '2026-11-27' }}
+      END_DATE: ${{ inputs.end_date || '2026-12-02' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate provider secret
+        run: test -n "${FOOTYSTATS_API_KEY:-}"
+
+      - name: Build governed 50-league fixture spine and pre-match FootyStats intelligence
+        shell: python
+        run: |
+          import csv,json,os,re,time,unicodedata
+          from concurrent.futures import ThreadPoolExecutor,as_completed
+          from datetime import datetime,timezone,timedelta
+          from pathlib import Path
+          from urllib.parse import urlencode
+          from urllib.request import Request,urlopen
+
+          API=os.environ["FOOTYSTATS_API_KEY"]
+          start=datetime.strptime(os.environ["START_DATE"],"%Y-%m-%d").date()
+          end=datetime.strptime(os.environ["END_DATE"],"%Y-%m-%d").date()
+          if end < start or (end-start).days > 30:
+              raise SystemExit("Invalid fixture window")
+
+          selected_ids={
+            "16571","17326","17181","17171","16544","16741","16615","16789","16614","17087",
+            "17157","17091","16714","17146","17184","17180","16572","17102","17117","17210",
+            "17212","17356","17964","17084","17404","17115","17099","17097","16558","16533",
+            "16905","17112","17215","16537","17247","17178","17426","17148","17119","17444",
+            "16627","17199","17269","16576","17129","17265","16504","17191","16708","16617"
+          }
+
+          def norm(x):
+              return re.sub(r"[^a-z0-9]+","",unicodedata.normalize("NFKD",str(x or "")).encode("ascii","ignore").decode().lower())
+
+          def api(path,params):
+              url="https://api.football-data-api.com/"+path+"?"+urlencode({"key":API,**params})
+              req=Request(url,headers={"User-Agent":"Oracle-50-League-Upcoming-MI/1.0"})
+              for attempt in range(4):
+                  try:
+                      with urlopen(req,timeout=60) as rr:
+                          p=json.loads(rr.read().decode("utf-8"))
+                      if p.get("success") is not True:
+                          raise RuntimeError(path+" success=false")
+                      return p
+                  except Exception as e:
+                      if getattr(e,"code",None)==429 and attempt<3:
+                          time.sleep(8*(attempt+1)); continue
+                      raise
+
+          def date_of(m):
+              ts=m.get("date_unix")
+              return datetime.fromtimestamp(float(ts),tz=timezone.utc).date().isoformat() if ts is not None else ""
+
+          fixtures=[]
+          retrievals=[]
+          d=start
+          while d<=end:
+              page=1
+              while True:
+                  p=api("todays-matches",{"date":d.isoformat(),"timezone":"Etc/UTC","page":page})
+                  for m in p.get("data") or []:
+                      if str(m.get("competition_id") or "") in selected_ids:
+                          fixtures.append(m)
+                  pager=p.get("pager") or {}
+                  max_page=int(pager.get("max_page") or page)
+                  if page>=max_page: break
+                  page+=1
+              retrievals.append({"date":d.isoformat(),"retrieved_utc":datetime.now(timezone.utc).isoformat()})
+              d+=timedelta(days=1)
+
+          # Exact provider fixture identity is the authoritative spine.
+          unique={}
+          for m in fixtures:
+              fid=str(m.get("id") or "")
+              if fid: unique[fid]=m
+          fixtures=list(unique.values())
+          fixtures.sort(key=lambda m:(date_of(m),str(m.get("date_unix") or ""),str(m.get("competition_id") or ""),norm(m.get("home_name")),norm(m.get("away_name"))))
+
+          out=Path("oracle_upcoming_50"); out.mkdir(exist_ok=True)
+          spine=[]
+          for m in fixtures:
+              ts=m.get("date_unix")
+              kickoff=datetime.fromtimestamp(float(ts),tz=timezone.utc).isoformat() if ts is not None else ""
+              spine.append({
+                "fixture_id":str(m.get("id")),
+                "date":date_of(m),
+                "kickoff_utc":kickoff,
+                "home_team":m.get("home_name") or "",
+                "away_team":m.get("away_name") or "",
+                "league_season_id":str(m.get("competition_id") or ""),
+                "provider_home_id":str(m.get("homeID") or ""),
+                "provider_away_id":str(m.get("awayID") or ""),
+                "provider":"FootyStats",
+                "provider_status":m.get("status") or "",
+                "provider_season":m.get("season") or "",
+                "identity_status":"EXACT_PROVIDER_FIXTURE_ID",
+              })
+
+          with (out/"governed_50league_upcoming_fixtures.csv").open("w",encoding="utf-8",newline="") as f:
+              w=csv.DictWriter(f,fieldnames=list(spine[0].keys()) if spine else ["fixture_id"])
+              w.writeheader(); w.writerows(spine)
+
+          # Pull exact pre-match league-team snapshots for every fixture's season.
+          team_cache={}
+          for sid in sorted({r["league_season_id"] for r in spine if r["league_season_id"]}):
+              # Earliest kickoff in this season/window is the conservative snapshot cutoff.
+              cut=min(int(float(m["date_unix"])) for m in fixtures if str(m.get("competition_id") or "")==sid and m.get("date_unix") is not None)-1
+              p=api("league-teams",{"season_id":sid,"include":"stats","max_time":cut})
+              team_cache[sid]=(p.get("data") or [],cut)
+
+          def flat(t):
+              s=t.get("stats")
+              if isinstance(s,dict): return {**t,**s}
+              if isinstance(s,list) and s and isinstance(s[0],dict): return {**t,**s[0]}
+              return t
+          def get(t,*keys):
+              t=flat(t)
+              for k in keys:
+                  if k in t and t[k] not in (None,"","null"): return t[k]
+              return None
+
+          metrics=[
+            ("PPG","seasonPPG_overall"),("PPG_HOME","seasonPPG_home"),("PPG_AWAY","seasonPPG_away"),
+            ("GF_M","seasonAVG_goals_scored","goals_scored_per_match","avg_goals_scored"),
+            ("GA_M","seasonAVG_goals_conceded","goals_conceded_per_match","avg_goals_conceded"),
+            ("AVG_GOALS","seasonAVG_total_goals","average_goals"),
+            ("BTTS_PCT","seasonBTTSPercentage","btts_percentage"),
+            ("OVER15_PCT","seasonOver15Percentage","over15_percentage"),
+            ("OVER25_PCT","seasonOver25Percentage","over25_percentage"),
+            ("OVER35_PCT","seasonOver35Percentage","over35_percentage"),
+            ("UNDER45_PCT","seasonUnder45Percentage","under45_percentage"),
+          ]
+
+          intel=[]
+          for r in spine:
+              sid=r["league_season_id"]
+              teams,cut=team_cache.get(sid,([],None))
+              byid={str(t.get("id")):t for t in teams if isinstance(t,dict) and t.get("id") is not None}
+              for side,tid in (("HOME",r["provider_home_id"]),("AWAY",r["provider_away_id"])):
+                  t=byid.get(str(tid))
+                  for code,*keys in metrics:
+                      v=get(t,*keys) if t else None
+                      intel.append({
+                        "fixture_id":r["fixture_id"],"date":r["date"],"kickoff_utc":r["kickoff_utc"],
+                        "home_team":r["home_team"],"away_team":r["away_team"],"league_season_id":sid,
+                        "side":side,"metric":code,"value":v if v is not None else "UNAVAILABLE",
+                        "source":"FootyStats league-teams","snapshot_cutoff_utc":datetime.fromtimestamp(cut,tz=timezone.utc).isoformat() if cut else "",
+                        "pre_match_status":"VERIFIED_PRE_KICKOFF" if cut else "UNVERIFIED",
+                        "status":"DIRECT_PROVIDER" if v is not None else "UNAVAILABLE"
+                      })
+
+          # Exact /lastx provider snapshot for all teams in the window.
+          team_ids=sorted({r["provider_home_id"] for r in spine if r["provider_home_id"]}|{r["provider_away_id"] for r in spine if r["provider_away_id"]})
+          def lastx(tid):
+              try:
+                  p=api("lastx",{"team_id":tid})
+                  nodes=[]
+                  def walk(x,path="root"):
+                      if isinstance(x,dict):
+                          if "formRun_overall" in x: nodes.append((path,x))
+                          for k,v in x.items(): walk(v,path+"."+k)
+                      elif isinstance(x,list):
+                          for i,v in enumerate(x): walk(v,f"{path}[{i}]")
+                  walk(p)
+                  cand=[]
+                  for path,node in nodes:
+                      n=node.get("seasonMatchesPlayed_overall")
+                      score=(100 if n==5 else 0)+(50 if "last5" in path.lower() or "last_5" in path.lower() else 0)
+                      cand.append((score,path,node))
+                  if not cand: return tid,{}
+                  cand.sort(key=lambda x:(x[0],x[1]),reverse=True)
+                  node=cand[0][2]
+                  if node.get("seasonMatchesPlayed_overall")!=5: return tid,{}
+                  return tid,node
+              except Exception:
+                  return tid,{}
+
+          last5={}
+          with ThreadPoolExecutor(max_workers=8) as ex:
+              futs=[ex.submit(lastx,tid) for tid in team_ids]
+              for f in as_completed(futs):
+                  tid,node=f.result(); last5[tid]=node
+
+          # Write one fixture-level MI row with governed FootyStats columns.
+          byfixture={}
+          for x in intel:
+              byfixture.setdefault(x["fixture_id"],{})[(x["side"],x["metric"])]=x["value"]
+          mi=[]
+          snap=datetime.now(timezone.utc).isoformat()
+          for r in spine:
+              vals=byfixture.get(r["fixture_id"],{})
+              h=last5.get(r["provider_home_id"],{}); a=last5.get(r["provider_away_id"],{})
+              mi.append({
+                **r,
+                "home_last5_form":(h.get("formRun_overall") or "UNAVAILABLE"),
+                "away_last5_form":(a.get("formRun_overall") or "UNAVAILABLE"),
+                "home_last5_ppg":h.get("seasonPPG_overall","UNAVAILABLE"),
+                "away_last5_ppg":a.get("seasonPPG_overall","UNAVAILABLE"),
+                "home_last5_gf_m":h.get("seasonScoredAVG_overall","UNAVAILABLE"),
+                "away_last5_gf_m":a.get("seasonScoredAVG_overall","UNAVAILABLE"),
+                "home_last5_ga_m":h.get("seasonConcededAVG_overall","UNAVAILABLE"),
+                "away_last5_ga_m":a.get("seasonConcededAVG_overall","UNAVAILABLE"),
+                "home_last5_total_goals":h.get("seasonAVG_overall","UNAVAILABLE"),
+                "away_last5_total_goals":a.get("seasonAVG_overall","UNAVAILABLE"),
+                "home_venue_last5_form":h.get("formRun_home","UNAVAILABLE"),
+                "away_venue_last5_form":a.get("formRun_away","UNAVAILABLE"),
+                "home_venue_ppg":h.get("seasonPPG_home","UNAVAILABLE"),
+                "away_venue_ppg":a.get("seasonPPG_away","UNAVAILABLE"),
+                "home_venue_gf_m":h.get("seasonScoredAVG_home","UNAVAILABLE"),
+                "away_venue_gf_m":a.get("seasonScoredAVG_away","UNAVAILABLE"),
+                "home_venue_ga_m":h.get("seasonConcededAVG_home","UNAVAILABLE"),
+                "away_venue_ga_m":a.get("seasonConcededAVG_away","UNAVAILABLE"),
+                "home_overall_sample":h.get("seasonMatchesPlayed_overall","UNAVAILABLE"),
+                "away_overall_sample":a.get("seasonMatchesPlayed_overall","UNAVAILABLE"),
+                "home_venue_sample":h.get("seasonMatchesPlayed_home","UNAVAILABLE"),
+                "away_venue_sample":a.get("seasonMatchesPlayed_away","UNAVAILABLE"),
+                "footystats_snapshot_utc":snap,
+                "intelligence_status":"DIRECT_PROVIDER_PREMATCH"
+              })
+
+          with (out/"footystats_market_intelligence.csv").open("w",encoding="utf-8",newline="") as f:
+              w=csv.DictWriter(f,fieldnames=list(mi[0].keys()) if mi else ["fixture_id"])
+              w.writeheader(); w.writerows(mi)
+
+          summary={
+            "window_start":start.isoformat(),"window_end":end.isoformat(),"governed_leagues":50,
+            "fixture_rows":len(spine),"unique_provider_fixture_ids":len({r["fixture_id"] for r in spine}),
+            "season_ids_with_fixtures":len({r["league_season_id"] for r in spine}),
+            "retrievals":retrievals,"provider":"FootyStats",
+            "private_repository_used":False,"fuzzy_matching_used":False,
+            "historical_fallback_used":False,"production_model_logic_changed":False,
+            "market_intelligence_A_ET_changed":False,"pre_match_only":True,
+            "lastx_unique_teams":len(team_ids),"lastx_exact_5_teams":sum(1 for v in last5.values() if v),
+            "generated_utc":snap
+          }
+          (out/"build_summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          print(json.dumps(summary,indent=2))
+
+          if not spine:
+              raise SystemExit("FAIL-CLOSED: no governed 50-league fixtures returned for requested window")
+
+      - name: Upload 50-league fixture and MI evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-50league-omi-2026-11-27-to-2026-12-02
+          path: oracle_upcoming_50/
+          retention-days: 30
