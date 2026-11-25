@@ -23,6 +23,34 @@ jobs:
         with:
           path: oracle
 
+      - name: Enforce rolling current-spine freshness
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          m=Path("data/fixtures/governed_50league_current_manifest.json")
+          if not m.exists() or m.stat().st_size == 0:
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_MANIFEST_MISSING")
+          d=json.loads(m.read_text(encoding="utf-8"))
+          ts=d.get("generated_utc")
+          if not ts:
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_GENERATION_TIMESTAMP_MISSING")
+          generated=datetime.fromisoformat(ts.replace("Z","+00:00"))
+          age=(datetime.now(timezone.utc)-generated).total_seconds()
+          if age < 0 or age > 90*60:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_STALE_CURRENT_SPINE age_seconds={age:.0f}")
+          rows=int(d.get("fixture_rows",0))
+          unique=int(d.get("unique_provider_fixture_ids",0))
+          if rows <= 0 or rows != unique:
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_IDENTITY_INVALID")
+          if d.get("private_repository_used") is not False or d.get("fuzzy_matching_used") is not False or d.get("historical_fallback_used") is not False:
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_GOVERNANCE_FLAGS_INVALID")
+          print({"status":"PASS","generated_utc":ts,"age_seconds":round(age),"rows":rows,"unique_provider_fixture_ids":unique})
+          PY
+
       - name: Enforce public-only source contract
         working-directory: oracle
         run: |
