@@ -25,8 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv
-            data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv
+            research/four_model/outputs/omi_prediction_ledger_current.csv
+            data/fixtures/governed_50league_current.csv
             database/current_prematch_team_state.csv
             database/matches.csv
           )
@@ -37,6 +37,14 @@ jobs:
               missing=1
             fi
           done
+          if compgen -G 'research/four_model/outputs/omi_prediction_ledger_*_to_*.csv' >/dev/null; then
+            echo "::error::DATED_FROZEN_OMI_LEDGER_DETECTED"
+            missing=1
+          fi
+          if compgen -G 'data/fixtures/omi_locked_spine_*_to_*.csv' >/dev/null; then
+            echo "::error::DATED_FROZEN_OMI_SPINE_DETECTED"
+            missing=1
+          fi
           if [ "$missing" -ne 0 ]; then
             echo "::error::MASTER_OMI_BLOCKED_NO_PUBLIC_SOURCE_DATA"
             exit 1
@@ -62,8 +70,8 @@ jobs:
           from openpyxl.utils import get_column_letter
 
           ROOT=Path(".")
-          ledger=ROOT/"research/four_model/outputs/omi_prediction_ledger_2026-11-13_to_2026-11-24.csv"
-          fixtures=ROOT/"data/fixtures/omi_locked_spine_2026-11-13_to_2026-11-24.csv"
+          ledger=ROOT/"research/four_model/outputs/omi_prediction_ledger_current.csv"
+          fixtures=ROOT/"data/fixtures/governed_50league_current.csv"
           state=ROOT/"database/current_prematch_team_state.csv"
           matches=ROOT/"database/matches.csv"
           visual_candidates=[
