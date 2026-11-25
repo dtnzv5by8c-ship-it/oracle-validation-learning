@@ -5,6 +5,9 @@ on:
   push:
     paths:
       - ".github/workflows/oracle-master-omi-excel.yml"
+      - "data/fixtures/governed_50league_current.csv"
+      - "research/four_model/outputs/omi_prediction_ledger_current.csv"
+      - "database/current_prematch_team_state.csv"
   workflow_dispatch:
 
 permissions:
@@ -79,7 +82,7 @@ jobs:
               ROOT/"research/team_fixture_intelligence/team_fixture_intelligence_matrix.csv",
               ROOT/"research/team_fixture_intelligence/fixture_market_research_router.csv"
           ]
-          out=ROOT/"Master_OMI_Report_13-24_Nov_2026.xlsx"
+          out=ROOT/"Master_OMI_Report_CURRENT.xlsx"
 
           df=pd.read_csv(ledger)
           fx=pd.read_csv(fixtures) if fixtures.exists() and fixtures.stat().st_size else pd.DataFrame()
@@ -487,6 +490,6 @@ jobs:
       - name: Upload Master OMI Excel
         uses: actions/upload-artifact@v4
         with:
-          name: Oracle-Master-OMI-13-24-Nov-2026
-          path: oracle/Master_OMI_Report_13-24_Nov_2026.xlsx
+          name: Oracle-Master-OMI-Current
+          path: oracle/Master_OMI_Report_CURRENT.xlsx
           retention-days: 30
