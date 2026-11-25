@@ -1,0 +1,10 @@
+name: Oracle 50-League Fixture Spine Fast
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo fast-fixture-spine
