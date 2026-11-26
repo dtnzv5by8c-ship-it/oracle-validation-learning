@@ -422,3 +422,5 @@ jobs:
           retention-days: 30
 
 # 2026-11-26 23:42 SAST: force a fresh execution after the rolling-current persistence remediation; no production logic change.
+
+# 2026-11-27 00:44 SAST: remediation cycle trigger checkpoint; preserve rolling 50-league/current-only contract.
