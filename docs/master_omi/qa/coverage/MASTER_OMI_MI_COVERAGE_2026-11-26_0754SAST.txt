@@ -1,0 +1,38 @@
+Master OMI MI column coverage matrix — 2026-11-26 07:54 SAST
+Scope target: 264 canonical MI columns
+Current accessible MI: 139 columns
+Coverage: 139/264 (52.65%)
+Current fixture rows: 371
+Canonical governed fixtures: 754
+Fixture coverage: 371/754 (49.20%)
+Status by gate:
+schema=BLOCKED_BY_CANONICAL_BINARY
+fixture_identity=PASS_CURRENT_SPINE_ONLY
+source_identity=PASS_CURRENT_SPINE_ONLY
+pre_match_cutoff=PARTIAL_VERIFIED
+provenance=PARTIAL; xG UNVERIFIED_NO_CAPTURE_TIMESTAMP
+sample_size=PARTIAL
+chronology=PARTIAL; 21 historical identity rows UNVERIFIED in latest actuals audit
+value_type=PARTIAL
+native_excel_numeric_type=UNVERIFIED_CANDIDATE_BINARY_UNAVAILABLE
+range=PARTIAL
+cross_field_consistency=PARTIAL
+missingness=EXPLICIT_STATUS_CODES_FOR_CURRENT_MI
+leakage=NOT_CERTIFIABLE_FOR_CANONICAL_WORKBOOK
+duplicates=PASS_CURRENT_SPINE
+formula_readiness=BLOCKED
+PPG=VERIFIED_CURRENT_MI_WHERE_PRESENT
+GF_M=UNAVAILABLE_EXPLICIT
+GA_M=UNAVAILABLE_EXPLICIT
+venue_metrics=EXPLICIT_STATUS_CODED
+recent_form=FIXTURE_CUTOFF_LOGIC_PRESENT; 370 FULLY_VERIFIED
+H2H=EXPLICIT_STATUS_CODED
+BTTS_GOAL_INTELLIGENCE=PARTIAL
+xG=UNVERIFIED_NO_CAPTURE_TIMESTAMP
+LTSS=BLOCKED
+source_ids=PARTIAL
+actuals=359 VERIFIED / 26 NOT_COMPLETED / 0 MISSING IN 385-ROW AUDIT
+derived_fields=BLOCKED_FOR_PRODUCTION
+A_ET=NOT_CERTIFIABLE_FROM_BINARY; canonical protected hash preserved
+Oracle_V1_6=NOT_PRODUCTION_CERTIFIED; no change asserted
+FINAL=FAIL-CLOSED
