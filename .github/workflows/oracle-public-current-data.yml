@@ -176,6 +176,37 @@ jobs:
           echo "TEAM_STATE_ROWS=${TEAM_STATE_ROWS}" >> "$GITHUB_ENV"
           echo "PERSISTENCE_BRANCH_VERIFIED=true" >> "$GITHUB_ENV"
 
+      - name: Publish current prediction ledger when authoritative private production output exists
+        working-directory: oracle-source
+        env:
+          PUBLIC_REPO: ${{ github.repository }}
+          PUBLIC_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          LEDGER="research/four_model/outputs/omi_prediction_ledger_current.csv"
+          if [ ! -s "$LEDGER" ]; then
+            echo "CURRENT_PREDICTION_LEDGER_NOT_YET_AVAILABLE=true"
+            exit 0
+          fi
+          cd ..
+          rm -rf public-ledger
+          git clone --depth 1 "https://x-access-token:${PUBLIC_TOKEN}@github.com/${PUBLIC_REPO}.git" public-ledger
+          mkdir -p public-ledger/research/four_model/outputs
+          cp "oracle-source/${LEDGER}" "public-ledger/${LEDGER}"
+          cd public-ledger
+          git config user.name "oracle-public-current-data-bot"
+          git config user.email "oracle-public-current-data-bot@users.noreply.github.com"
+          git add "${LEDGER}"
+          if git diff --cached --quiet; then
+            echo "No current prediction ledger changes to persist."
+            exit 0
+          fi
+          git commit -m "Publish authoritative current prediction ledger"
+          git fetch --no-tags origin main
+          git rebase origin/main
+          git push origin HEAD:main
+          echo "CURRENT_PREDICTION_LEDGER_PERSISTED=true"
+
       - name: Publish validated current-state bundle to public governed repository
         working-directory: oracle-source
         env:
