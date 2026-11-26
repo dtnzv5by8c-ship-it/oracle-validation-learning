@@ -8,6 +8,7 @@ on:
       - "data/fixtures/governed_50league_current.csv"
       - "research/four_model/outputs/omi_prediction_ledger_current.csv"
       - "database/current_prematch_team_state.csv"
+      - "database/current_matches.csv"
   workflow_dispatch:
 
 permissions:
@@ -59,7 +60,7 @@ jobs:
             research/four_model/outputs/omi_prediction_ledger_current.csv
             data/fixtures/governed_50league_current.csv
             database/current_prematch_team_state.csv
-            database/matches.csv
+            database/current_matches.csv
           )
           missing=0
           for f in "${required[@]}"; do
@@ -104,7 +105,7 @@ jobs:
           ledger=ROOT/"research/four_model/outputs/omi_prediction_ledger_current.csv"
           fixtures=ROOT/"data/fixtures/governed_50league_current.csv"
           state=ROOT/"database/current_prematch_team_state.csv"
-          matches=ROOT/"database/matches.csv"
+          matches=ROOT/"database/current_matches.csv"
           visual_candidates=[
               ROOT/"research/team_fixture_intelligence/fixture_intelligence_matrix.csv",
               ROOT/"research/team_fixture_intelligence/team_fixture_intelligence_matrix.csv",
@@ -424,11 +425,14 @@ jobs:
         run: |
           python - <<'PY'
           import openpyxl, json, pathlib
-          p=pathlib.Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
+          p=pathlib.Path("Master_OMI_Report_CURRENT.xlsx")
           if not p.exists(): raise SystemExit("Master OMI workbook was not generated")
           wb=openpyxl.load_workbook(p, read_only=True, data_only=False)
           ws=wb["Fixture Predictions"] if "Fixture Predictions" in wb.sheetnames else None
           if ws is None: raise SystemExit("Fixture Predictions sheet missing")
+          mi=wb["Market Intelligence"] if "Market Intelligence" in wb.sheetnames else None
+          if mi is None: raise SystemExit("Market Intelligence sheet missing")
+          if mi.max_column != 264: raise SystemExit(f"MASTER_OMI_BLOCKED_NONCANONICAL_MI_WIDTH columns={mi.max_column} expected=264")
           headers=[c.value for c in next(ws.iter_rows(min_row=1,max_row=1))]
           if "Fixture ID" not in headers: raise SystemExit("Fixture ID column missing")
           rows=list(ws.iter_rows(min_row=2, values_only=True)); n=len(rows)
@@ -447,7 +451,7 @@ jobs:
           python - <<'PY'
           import pandas as pd
           from pathlib import Path
-          p=Path("Master_OMI_Report_13-24_Nov_2026.xlsx")
+          p=Path("Master_OMI_Report_CURRENT.xlsx")
           if not p.exists():
               raise SystemExit("FAIL: Master OMI workbook missing")
           mi=pd.read_excel(p,sheet_name="Market Intelligence")
