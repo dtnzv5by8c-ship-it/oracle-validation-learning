@@ -1,6 +1,7 @@
 name: Oracle Public Current Data Execution
 # Recovery control: current-state date provenance repair applied 2026-11-13; run on public Actions capacity.
 
+# Trigger checkpoint: force a fresh authoritative current-data execution after persistence-path remediation.
 on:
   push:
     paths:
