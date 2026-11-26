@@ -1,0 +1,15 @@
+{
+  "generated_utc": "2026-11-26T15:48:41.795382+00:00",
+  "status": "REVIEW_REQUIRED",
+  "reasons": [
+    "Current data integrity gate failed.",
+    "Current primary source covers 48 of 50 governed leagues."
+  ],
+  "model_readiness": {
+    "BTTS": true,
+    "DC": true,
+    "COMBO": true,
+    "M-1UP": false
+  },
+  "rule": "No model may silently substitute stale controlled data when current readiness is NOT_READY."
+}
