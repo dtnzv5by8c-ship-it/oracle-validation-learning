@@ -1,10 +1,8 @@
 name: Oracle 50-League Upcoming Fixture + MI Build
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   schedule:
-    - cron: "15 * * * *"
+    - cron: "15 0,6,12,18 * * *"
   workflow_dispatch:
 
 permissions:
@@ -383,7 +381,24 @@ jobs:
             echo "No rolling-current changes."
           else
             git commit -m "Persist rolling 50-league current fixture and MI artifacts"
-            git push origin HEAD:main
+            # Reconcile legitimate main-branch commits that landed while the provider build was running.
+            # Never force-push or overwrite remote work.
+            for attempt in 1 2 3 4 5; do
+              git fetch origin main
+              if git rebase origin/main; then
+                if git push origin HEAD:main; then
+                  echo "Rolling-current artifacts persisted on main."
+                  exit 0
+                fi
+              else
+                echo "FAIL-CLOSED: rebase conflict while reconciling main; refusing to overwrite remote work."
+                git rebase --abort || true
+                exit 1
+              fi
+              sleep $((attempt * 10))
+            done
+            echo "FAIL-CLOSED: could not persist rolling-current artifacts after 5 safe push attempts."
+            exit 1
           fi
 
       - name: Upload 50-league fixture and MI evidence
