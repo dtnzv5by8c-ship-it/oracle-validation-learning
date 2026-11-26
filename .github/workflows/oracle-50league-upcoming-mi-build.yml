@@ -379,30 +379,40 @@ jobs:
           set -euo pipefail
           git config user.name "oracle-50league-current-mi-bot"
           git config user.email "oracle-50league-current-mi-bot@users.noreply.github.com"
-          git add data/fixtures/governed_50league_current.csv data/fixtures/governed_50league_current_manifest.json oracle_upcoming_50/footystats_market_intelligence.csv oracle_upcoming_50/governed_50league_upcoming_fixtures.csv oracle_upcoming_50/build_summary.json
-          if git diff --cached --quiet; then
-            echo "No rolling-current changes."
-          else
+          # Rolling-current artifacts are singleton governed outputs. Concurrent current-data
+          # writers can legitimately update the same files while this provider build is running.
+          # Never merge generated CSV/JSON histories and never force-push. Instead refresh main,
+          # overlay this freshly validated artifact set, and push the resulting latest-main commit.
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+          cp data/fixtures/governed_50league_current.csv "$tmpdir/"
+          cp data/fixtures/governed_50league_current_manifest.json "$tmpdir/"
+          cp oracle_upcoming_50/footystats_market_intelligence.csv "$tmpdir/"
+          cp oracle_upcoming_50/governed_50league_upcoming_fixtures.csv "$tmpdir/"
+          cp oracle_upcoming_50/build_summary.json "$tmpdir/"
+          for attempt in 1 2 3 4 5; do
+            git fetch --no-tags origin main
+            git reset --hard origin/main
+            mkdir -p data/fixtures oracle_upcoming_50
+            cp "$tmpdir/governed_50league_current.csv" data/fixtures/governed_50league_current.csv
+            cp "$tmpdir/governed_50league_current_manifest.json" data/fixtures/governed_50league_current_manifest.json
+            cp "$tmpdir/footystats_market_intelligence.csv" oracle_upcoming_50/footystats_market_intelligence.csv
+            cp "$tmpdir/governed_50league_upcoming_fixtures.csv" oracle_upcoming_50/governed_50league_upcoming_fixtures.csv
+            cp "$tmpdir/build_summary.json" oracle_upcoming_50/build_summary.json
+            git add data/fixtures/governed_50league_current.csv data/fixtures/governed_50league_current_manifest.json oracle_upcoming_50/footystats_market_intelligence.csv oracle_upcoming_50/governed_50league_upcoming_fixtures.csv oracle_upcoming_50/build_summary.json
+            if git diff --cached --quiet; then
+              echo "No rolling-current changes."
+              exit 0
+            fi
             git commit -m "Persist rolling 50-league current fixture and MI artifacts"
-            # Reconcile legitimate main-branch commits that landed while the provider build was running.
-            # Never force-push or overwrite remote work.
-            for attempt in 1 2 3 4 5; do
-              git fetch origin main
-              if git rebase origin/main; then
-                if git push origin HEAD:main; then
-                  echo "Rolling-current artifacts persisted on main."
-                  exit 0
-                fi
-              else
-                echo "FAIL-CLOSED: rebase conflict while reconciling main; refusing to overwrite remote work."
-                git rebase --abort || true
-                exit 1
-              fi
-              sleep $((attempt * 10))
-            done
-            echo "FAIL-CLOSED: could not persist rolling-current artifacts after 5 safe push attempts."
-            exit 1
-          fi
+            if git push origin HEAD:main; then
+              echo "Rolling-current artifacts persisted on main."
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "FAIL-CLOSED: could not persist rolling-current artifacts after 5 safe latest-main refresh attempts."
+          exit 1
 
       - name: Upload 50-league fixture and MI evidence
         uses: actions/upload-artifact@v4
