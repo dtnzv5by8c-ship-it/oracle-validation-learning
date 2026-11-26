@@ -1,5 +1,5 @@
 fixture_id,date,kickoff_utc,home_team,away_team,league_season_id,provider_home_id,provider_away_id,provider,provider_status,provider_season,identity_status
-8749587,2026-11-26,2026-11-26T00:00:00+00:00,Boca Juniors,Independiente Rivadavia,16571,705,746,FootyStats,incomplete,2026,EXACT_PROVIDER_FIXTURE_ID
+8749587,2026-11-26,2026-11-26T00:00:00+00:00,Boca Juniors,Independiente Rivadavia,16571,705,746,FootyStats,complete,2026,EXACT_PROVIDER_FIXTURE_ID
 8714461,2026-11-26,2026-11-26T00:00:00+00:00,Barcelona,CSD Independiente del Valle,16714,4322,4321,FootyStats,incomplete,2026,EXACT_PROVIDER_FIXTURE_ID
 8757368,2026-11-26,2026-11-26T01:00:00+00:00,Toluca,Atlas,17099,1424,1421,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8758022,2026-11-26,2026-11-26T03:10:00+00:00,Monterrey,América,17099,1430,1420,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
