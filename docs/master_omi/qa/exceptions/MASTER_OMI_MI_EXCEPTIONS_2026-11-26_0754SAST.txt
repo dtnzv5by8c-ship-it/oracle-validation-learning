@@ -1,0 +1,15 @@
+Master OMI MI row exception matrix — 2026-11-26 07:54 SAST
+Current rolling spine: 371 rows; duplicates 0.
+Canonical production target: 754 rows.
+Current source scope gap: 383 rows; do not pad/backfill.
+Latest public final-gate/reconciliation audit: 385 rows.
+Exact identity: 364; unmatched: 21; ambiguous: 0.
+Actuals: 359 verified; 26 not completed; 0 actuals missing.
+Chronology: 364 MATCH_DATE_CONFIRMED; 21 UNVERIFIED.
+Current MI Last-5: 370 fully verified; 1 unavailable/insufficient sample.
+xG: 371 UNVERIFIED_NO_CAPTURE_TIMESTAMP.
+H2H and venue optional unavailable evidence must remain explicit status-coded.
+Mandatory current prediction/state dependencies: absent.
+Candidate workbook binary/XML: unavailable for independent native Excel/formula/A:ET certification.
+No fuzzy matching, historical fallback, zero-fill, estimation, timezone normalization or post-kickoff evidence accepted.
+Release: FAIL-CLOSED.
