@@ -420,3 +420,5 @@ jobs:
           name: oracle-50league-omi-rolling-current
           path: oracle_upcoming_50/
           retention-days: 30
+
+# 2026-11-26 23:42 SAST: force a fresh execution after the rolling-current persistence remediation; no production logic change.
