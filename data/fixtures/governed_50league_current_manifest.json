@@ -1,44 +1,44 @@
 {
-  "window_start": "2026-11-25",
-  "window_end": "2026-12-02",
-  "fixture_date_min": "2026-11-25",
+  "window_start": "2026-11-26",
+  "window_end": "2026-12-03",
+  "fixture_date_min": "2026-11-26",
   "fixture_date_max": "2026-12-03",
   "governed_leagues": 50,
-  "fixture_rows": 368,
-  "unique_provider_fixture_ids": 368,
+  "fixture_rows": 371,
+  "unique_provider_fixture_ids": 371,
   "season_ids_with_fixtures": 40,
   "retrievals": [
     {
-      "date": "2026-11-25",
-      "retrieved_utc": "2026-11-25T22:47:26.631203+00:00"
-    },
-    {
       "date": "2026-11-26",
-      "retrieved_utc": "2026-11-25T22:47:26.736700+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.056180+00:00"
     },
     {
       "date": "2026-11-27",
-      "retrieved_utc": "2026-11-25T22:47:26.875117+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.142678+00:00"
     },
     {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-25T22:47:27.072745+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.273241+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-25T22:47:27.284114+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.431167+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-25T22:47:27.400762+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.507857+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-25T22:47:27.509724+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.576686+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-25T22:47:27.622723+00:00"
+      "retrieved_utc": "2026-11-26T00:45:45.655218+00:00"
+    },
+    {
+      "date": "2026-12-03",
+      "retrieved_utc": "2026-11-26T00:45:45.726587+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -49,8 +49,8 @@
   "market_intelligence_A_ET_changed": false,
   "pre_match_only": true,
   "season_match_rows": 11959,
-  "last5_fully_verified_fixtures": 367,
-  "generated_utc": "2026-11-25T22:47:50.795678+00:00",
+  "last5_fully_verified_fixtures": 370,
+  "generated_utc": "2026-11-26T00:46:03.240520+00:00",
   "current_fixture_spine_path": "data/fixtures/governed_50league_current.csv",
   "current_mi_path": "oracle_upcoming_50/footystats_market_intelligence.csv"
 }
