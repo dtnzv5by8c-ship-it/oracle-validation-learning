@@ -1,6 +1,9 @@
 name: Oracle 50-League Upcoming Fixture + MI Build
 
 on:
+  push:
+    paths:
+      - ".github/workflows/oracle-50league-upcoming-mi-build.yml"
   schedule:
     - cron: "15 0,6,12,18 * * *"
   workflow_dispatch:
