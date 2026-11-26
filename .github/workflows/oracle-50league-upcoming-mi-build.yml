@@ -60,8 +60,11 @@ jobs:
 
           def api(path,params):
               url="https://api.football-data-api.com/"+path+"?"+urlencode({"key":API,**params})
-              req=Request(url,headers={"User-Agent":"Oracle-50-League-Upcoming-MI/1.0"})
-              for attempt in range(4):
+              req=Request(url,headers={"User-Agent":"Oracle-50-League-Upcoming-MI/1.1"})
+              # FootyStats can return HTTP 429 when the provider quota/rate window is saturated.
+              # Retry with provider-supplied Retry-After when available, otherwise use capped
+              # exponential backoff. Never substitute stale data, estimates, or fallback sources.
+              for attempt in range(8):
                   try:
                       with urlopen(req,timeout=60) as rr:
                           p=json.loads(rr.read().decode("utf-8"))
@@ -69,8 +72,16 @@ jobs:
                           raise RuntimeError(path+" success=false")
                       return p
                   except Exception as e:
-                      if getattr(e,"code",None)==429 and attempt<3:
-                          time.sleep(8*(attempt+1)); continue
+                      if getattr(e,"code",None)==429 and attempt<7:
+                          retry_after=None
+                          try:
+                              retry_after=float(e.headers.get("Retry-After"))
+                          except Exception:
+                              retry_after=None
+                          delay=retry_after if retry_after is not None else min(300,30*(2**attempt))
+                          print(f"FootyStats HTTP 429 on {path}; retry {attempt+1}/7 after {delay:.0f}s",flush=True)
+                          time.sleep(max(1,delay))
+                          continue
                       raise
 
           def date_of(m):
