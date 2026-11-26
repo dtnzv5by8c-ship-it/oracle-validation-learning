@@ -63,3 +63,14 @@ No fabrication, estimation, zero-fill, fuzzy matching, timezone normalization, h
 
 ## Final status
 FAIL-CLOSED — 100% release gate not achieved.
+
+
+## New root-cause correction — 15:18 SAST
+The live public current-data workflow was found to contain an unconditional job guard: `if: ${{ false }}`. This disabled the entire authoritative current-data execution job even though the workflow retained hourly scheduling and workflow_dispatch triggers. This is a root-cause workflow-dependency defect, not a data-quality gap.
+
+- File: `.github/workflows/oracle-public-current-data.yml`
+- Correction commit: `c44e456986e0eed3d1ca7fdc038ae847e6a512e7`
+- Change: removed only the disabling job guard; ingestion, reconciliation, PIT validation, persistence checks and Oracle V1.6 logic were not altered.
+- Expected effect: the scheduled public current-data job can now execute instead of being silently skipped.
+- Post-change run: not yet visible in the GitHub workflow-run listing at audit time; therefore no current Team State/matches/ledger promotion is claimed.
+- Status: FIX APPLIED — AWAITING EXECUTION/INDEPENDENT QA.
