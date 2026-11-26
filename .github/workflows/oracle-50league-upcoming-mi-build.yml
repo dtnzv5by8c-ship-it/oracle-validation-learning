@@ -3,9 +3,6 @@ name: Oracle 50-League Upcoming Fixture + MI Build
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
   schedule:
     - cron: "15 * * * *"
   workflow_dispatch:
@@ -15,7 +12,7 @@ permissions:
 
 concurrency:
   group: oracle-upcoming-50-mi-build
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -138,6 +135,7 @@ jobs:
               w.writeheader(); w.writerows(spine)
 
           # Pull exact pre-match league-team snapshots for every fixture's season.
+          # Do this sequentially and only once per season; never fan out provider calls.
           team_cache={}
           for sid in sorted({r["league_season_id"] for r in spine if r["league_season_id"]}):
               # Earliest kickoff in this season/window is the conservative snapshot cutoff.
