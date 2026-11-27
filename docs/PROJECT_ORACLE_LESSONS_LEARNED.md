@@ -228,3 +228,13 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Regression test: `5b2f274255a867a53f7db5d19d70531a456ce386` verifies the variable-row contract, 264-column schema and presence of the live overlay builder.
 - Validation result: implementation/control-plane fix is live. Runtime certification remains blocked until the public automation has an approved hash-verified canonical binary at the expected runtime path and an authoritative `omi_prediction_ledger_current.csv` with exact current Fixture-ID parity. No workbook is certified from the implementation commits alone.
 - Regression guard: future exporter changes must preserve variable current rows, exact Fixture-ID parity, 264 columns and A:ET contract; any fixed 754/755 weekly-row assertion is prohibited.
+
+
+## 2026-11-28 — Permanent Master OMI canonical-surface protection
+- Root cause confirmed: the variable-row exporter could satisfy the current-row contract only by deleting/rebuilding the canonical `Market Intelligence` sheet. That is unsafe because the locked canonical sheet is the A:ET reference surface.
+- Permanent fix commits:
+  - `dbdad0e3fde2c474808cd2477e25fd967b4043f5` — exporter now leaves the locked canonical `Market Intelligence` sheet untouched and materialises the variable current 50-league spine in `Market Intelligence CURRENT`.
+  - `6af5a4b32311af09e4b4ef93c7dd541f1c653394` — workflow validates the new current surface while retaining the locked canonical sheet.
+  - `d72bd58aad25ee8bd4ea32a4520b6c513c268bfb` — removes derived `Production Eligible` / `Betting Eligible` outputs from the mandatory-input gate; missing inputs remain explicitly unavailable rather than being falsely treated as source inputs.
+- Provider-specific FootyStats Last-5 GF/M and GA/M mappings were corrected to use their own provider fields rather than generic Team State aliases.
+- Exact Fixture-ID and PIT checks remain fail-closed. No stale-row padding, fuzzy matching, historical fallback, fabrication, or Oracle V1.6 model change.
