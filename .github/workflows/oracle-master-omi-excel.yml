@@ -149,56 +149,87 @@ jobs:
           ts_df=pd.DataFrame(ts_fixture)
           if not ts_df.empty:
               df=df.merge(ts_df.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_STATE"))
-          # H2H: same-league, strictly pre-match, canonicalised by normalized names.
+          # H2H + Recent Form: exact provider-ID joins only.
+          # Team names are never used to admit a historical match into governed intelligence.
           h2h_rows=[]
           form_rows=[]
-          if not mt.empty:
-              mt["date"]=pd.to_datetime(mt["date"],errors="coerce")
+          exact_history_ready = (
+              not mt.empty
+              and "source_match_id" in mt.columns
+              and "home_id" in mt.columns
+              and "away_id" in mt.columns
+              and "date_utc" in mt.columns
+              and "provider_home_id" in fx.columns
+              and "provider_away_id" in fx.columns
+          )
+          if exact_history_ready:
+              mt["date_utc"]=pd.to_datetime(mt["date_utc"],errors="coerce",utc=True)
+              mt["source_match_id"]=mt["source_match_id"].astype(str)
+              mt["home_id"]=mt["home_id"].astype(str)
+              mt["away_id"]=mt["away_id"].astype(str)
               for _,r in df.iterrows():
-                  date=pd.to_datetime(r.get("date"),errors="coerce")
-                  league=str(r.get("league_code",""))
-                  home=str(r.get("home_team",""))
-                  away=str(r.get("away_team",""))
-                  m=mt[(mt["date"]<date) & (mt.get("league_code",pd.Series([""]*len(mt))).astype(str)==league)].copy() if "league_code" in mt.columns else mt[mt["date"]<date].copy()
-                  if not m.empty:
-                      def teammask(col,team):
-                          return m[col].astype(str).map(norm)==norm(team)
-                      hmask=teammask("home_team",home) if "home_team" in m.columns else pd.Series(False,index=m.index)
-                      amask=teammask("away_team",away) if "away_team" in m.columns else pd.Series(False,index=m.index)
-                      pair=m[(teammask("home_team",home)&teammask("away_team",away))|(teammask("home_team",away)&teammask("away_team",home))]
-                  else: pair=pd.DataFrame()
+                  fid_value=str(r["Fixture ID"])
+                  fr=fx_lookup.get(fid_value,{})
+                  home_id=str(fr.get("provider_home_id") or "")
+                  away_id=str(fr.get("provider_away_id") or "")
+                  league_id=str(fr.get("league_season_id") or "")
+                  kickoff=pd.to_datetime(r.get("kickoff_utc") or fr.get("kickoff_utc"),errors="coerce",utc=True)
+                  prior=mt[mt["date_utc"]<kickoff].copy() if pd.notna(kickoff) else pd.DataFrame()
+                  if home_id and away_id and not prior.empty:
+                      pair=prior[
+                          ((prior["home_id"]==home_id)&(prior["away_id"]==away_id)) |
+                          ((prior["home_id"]==away_id)&(prior["away_id"]==home_id))
+                      ].copy()
+                  else:
+                      pair=pd.DataFrame()
                   n=len(pair)
                   hw=dr=aw=0
-                  if n:
-                      for _,g in pair.iterrows():
-                          hg=float(g.get("home_goals",0)); ag=float(g.get("away_goals",0))
-                          if norm(g.get("home_team"))==norm(home):
-                              hw+=hg>ag; dr+=hg==ag; aw+=hg<ag
-                          else:
-                              hw+=ag>hg; dr+=ag==hg; aw+=ag<hg
+                  for _,g in pair.iterrows():
+                      hg=float(g.get("home_goals",0)); ag=float(g.get("away_goals",0))
+                      if str(g.get("home_id"))==home_id:
+                          hw+=hg>ag; dr+=hg==ag; aw+=hg<ag
+                      else:
+                          hw+=ag>hg; dr+=ag==hg; aw+=ag<hg
                   h2h_rows.append({
-                      "Fixture ID":r["Fixture ID"],"Date":r.get("date"),"League":league,"Home":home,"Away":away,
+                      "Fixture ID":fid_value,"Date":r.get("date"),"League":league_id,
+                      "Home":r.get("home_team"),"Away":r.get("away_team"),
                       "H2H Meetings":n,"Home Wins":int(hw),"Draws":int(dr),"Away Wins":int(aw),
-                      "H2H Status":"MATCHED" if n>=5 else ("MATCHED - SMALL SAMPLE" if n else "NO VERIFIED HISTORICAL H2H")
+                      "H2H Status":"MATCHED" if n>=5 else ("MATCHED - SMALL SAMPLE" if n else "UNAVAILABLE_NO_EXACT_PROVIDER_HISTORY")
                   })
-                  # Recent form: last five same-league matches for each team, strictly before fixture.
-                  for side,team in [("Home",home),("Away",away)]:
-                      tm=m[(m["home_team"].astype(str).map(norm)==norm(team))|(m["away_team"].astype(str).map(norm)==norm(team))].sort_values("date",ascending=False).head(5)
+                  for side,team_id in [("Home",home_id),("Away",away_id)]:
+                      tm=prior[(prior["home_id"]==team_id)|(prior["away_id"]==team_id)].sort_values("date_utc",ascending=False).head(5) if team_id and not prior.empty else pd.DataFrame()
                       pts=gf=ga=0; results=[]
                       for _,g in tm.iterrows():
-                          ishome=norm(g.get("home_team"))==norm(team)
+                          ishome=str(g.get("home_id"))==team_id
                           gf0=float(g.get("home_goals",0) if ishome else g.get("away_goals",0))
                           ga0=float(g.get("away_goals",0) if ishome else g.get("home_goals",0))
                           gf+=gf0; ga+=ga0
                           p=3 if gf0>ga0 else 1 if gf0==ga0 else 0; pts+=p
                           results.append("W" if p==3 else "D" if p==1 else "L")
                       form_rows.append({
-                          "Fixture ID":r["Fixture ID"],"Side":side,"Team":team,
-                          "Last 5 Results":" ".join(results),"Last 5 Points":pts if len(tm) else "",
+                          "Fixture ID":fid_value,"Side":side,"Team":team_id,
+                          "Last 5 Results":" ".join(results) if results else "UNAVAILABLE_NO_EXACT_PROVIDER_HISTORY",
+                          "Last 5 Points":pts if len(tm) else "",
                           "Goals For":gf if len(tm) else "","Goals Against":ga if len(tm) else "",
                           "Matches Available":len(tm),
-                          "Form Status":"5-match sample" if len(tm)==5 else ("Small sample" if len(tm)>0 else "No verified recent history")
+                          "Form Status":"5-match sample" if len(tm)==5 else ("Small sample" if len(tm)>0 else "UNAVAILABLE_NO_EXACT_PROVIDER_HISTORY")
                       })
+          else:
+              for _,r in df.iterrows():
+                  fid_value=str(r["Fixture ID"])
+                  for side in ("Home","Away"):
+                      form_rows.append({
+                          "Fixture ID":fid_value,"Side":side,"Team":r.get("home_team") if side=="Home" else r.get("away_team"),
+                          "Last 5 Results":"UNAVAILABLE_EXACT_PROVIDER_HISTORY",
+                          "Last 5 Points":"","Goals For":"","Goals Against":"",
+                          "Matches Available":0,"Form Status":"UNVERIFIED_NO_EXACT_PROVIDER_HISTORY"
+                      })
+                  h2h_rows.append({
+                      "Fixture ID":fid_value,"Date":r.get("date"),"League":r.get("league_code",""),
+                      "Home":r.get("home_team"),"Away":r.get("away_team"),
+                      "H2H Meetings":0,"Home Wins":0,"Draws":0,"Away Wins":0,
+                      "H2H Status":"UNVERIFIED_NO_EXACT_PROVIDER_HISTORY"
+                  })
 
           # Visual Intelligence: exact Fixture ID join only.
           vis=None; vis_source=""
