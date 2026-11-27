@@ -250,3 +250,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
   - `afcb65cd56fa393d1feb33cb2581bc96c791cf35` — prediction engine uses exact fixture kickoff for prospective current-state PIT admission.
   - `327e4a1df9c3ad01b9a1f8fe5efb0e34b41f0145` and `c6c4f93bcc4ca8cd0135c7673bb4505f48342152` — public workflow adds a permanent kickoff-level PIT regression gate.
 - This is an integration/PIT correction only. Oracle V1.6 features, formulas, calibration, thresholds and eligibility logic are unchanged.
+
+
+## 2026-11-28 — Master OMI overlay builder had undefined runtime field-contract symbols
+- Root cause: the live `scripts/build_master_omi_current.py` referenced `alias`, `mandatory` and `blocked_fields` during current-sheet materialisation without defining them. This was a genuine export-layer runtime defect; a workflow reaching the builder would fail with NameError before producing a candidate workbook.
+- Evidence: live public HEAD inspection of the exporter showed the references at the row-materialisation loop and mandatory-input gate, while no definitions existed earlier in the file.
+- Fix commits: `892f57d06cb50367d950cfc02db9e25594ef7198` defines the exact authoritative ledger/FootyStats field mapping, mandatory current-release inputs and blocked-field accumulator; `660b8443dc55e945d55d7966a5bc2b5ca9564097` removes unsupported H2H/league-position aliases that could have created semantic false mappings.
+- Validation result: static contract correction committed; regression test `c37fe980968cba87888b67cf476bdf2404b7375e` added to assert the runtime symbols are defined and the mandatory-input fail-closed gate remains present. Full runtime validation remains pending the next admissible fresh-spine export execution.
+- Regression guard: `tests/test_master_omi_overlay_field_contract.py` must pass before any Master OMI export can be admitted; unsupported provider fields remain explicitly unavailable and are never mapped through semantic guesses.
