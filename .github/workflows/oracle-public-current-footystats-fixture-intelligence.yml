@@ -2,7 +2,7 @@ name: Oracle Public Current FootyStats Fixture Intelligence
 
 on:
   schedule:
-    - cron: "10 * * * *"
+    - cron: "25 * * * *"
   workflow_dispatch:
   push:
     paths:
