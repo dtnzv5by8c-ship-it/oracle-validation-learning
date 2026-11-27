@@ -981,3 +981,11 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 7. Independent QA must reach 100% before release.
 
 Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:ET remain unchanged.
+
+
+## 2026-11-27 — canonical overlay implementation remediation
+- Current rolling spine at checkpoint: governed_leagues=50, 359 fixtures, 359 unique Fixture IDs, 41 fixture-bearing season IDs, generated 2026-11-27T21:21:52.892979Z.
+- Corrected the public export path to honor the variable-row contract: public commit `8ef9f8432b5d6c67b7989bce129922d031c8653e` adds `scripts/build_master_omi_current.py`; workflow commit `1ff867a53a886479eb984841d20ab4ec1124de7d` invokes it and validates 264 columns plus exact current row parity; regression guard `5b2f274255a867a53f7db5d19d70531a456ce386` prevents fixed 754/755 weekly-row assumptions.
+- The public exporter now fails only on genuine materialisation dependencies rather than an incorrect fixed-row contract. The remaining binary dependency is the hash-verified canonical workbook base; it is present in the connected Library but not in public GitHub runtime.
+- Current prediction ledger remains absent from public HEAD; therefore no runtime overlay can yet be certified. The next admissible run is after current-data persistence creates `research/four_model/outputs/omi_prediction_ledger_current.csv` with exact row/Fixture-ID parity and the canonical base is made available to the automation runtime.
+- No Oracle V1.6 model logic, thresholds, calibration, probabilities, betting eligibility or A:ET contract was changed.
