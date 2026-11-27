@@ -140,6 +140,25 @@ jobs:
         working-directory: oracle-source
         run: python -m unittest tests/test_current_team_state_persistence.py
 
+      - name: Validate current Team-State prediction namespace
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          p=Path("database/current_prematch_team_state.csv")
+          with p.open(newline="",encoding="utf-8") as f:
+              rows=list(csv.DictReader(f))
+          if not rows:
+              raise SystemExit("CURRENT_TEAM_STATE_NAMESPACE_BLOCKED_EMPTY")
+          missing=[r.get("fixture_id","") for r in rows if not str(r.get("league_code") or "").strip()]
+          if missing:
+              raise SystemExit(f"CURRENT_TEAM_STATE_NAMESPACE_BLOCKED_MISSING_LEAGUE_CODE count={len(missing)}")
+          print({"status":"PASS","rows":len(rows),"league_namespace_complete":True})
+          PY
+          python -m unittest tests/test_current_team_state_exact_identity.py
+
       - name: Build prediction-engine Team-State compatibility view
         working-directory: oracle-source
         run: python scripts/build_prediction_team_state_compatibility.py
