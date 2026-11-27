@@ -141,11 +141,14 @@ jobs:
                   date=str(r.get("date",""))[:10]; home=str(r.get("home_team","")); away=str(r.get("away_team",""))
                   fr=fx_lookup.get(str(r["Fixture ID"]),{})
                   league_name=str(fr.get("league") or fr.get("competition") or "")
-                  q=st[(st.get("date",pd.Series([""]*len(st))).astype(str).str[:10]==date) & (st.get("home_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(home)) & (st.get("away_team",pd.Series([""]*len(st))).astype(str).map(norm)==norm(away))]
+                  # Exact current Team-State admission only. No normalized name/date fallback.
+                  q=pd.DataFrame()
+                  if "fixture_id" in st.columns:
+                      q=st[st["fixture_id"].astype(str)==str(r["Fixture ID"])]
                   if len(q):
                       z=q.iloc[0].to_dict(); z["Fixture ID"]=r["Fixture ID"]; ts_fixture.append(z)
                   else:
-                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league_name,"home_team":home,"away_team":away,"Team State Status":"NOT FOUND IN CURRENT STATE"})
+                      ts_fixture.append({"Fixture ID":r["Fixture ID"],"date":date,"league":league_name,"home_team":home,"away_team":away,"Team State Status":"UNVERIFIED_NO_EXACT_FIXTURE_ID"})
           ts_df=pd.DataFrame(ts_fixture)
           if not ts_df.empty:
               df=df.merge(ts_df.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_STATE"))
