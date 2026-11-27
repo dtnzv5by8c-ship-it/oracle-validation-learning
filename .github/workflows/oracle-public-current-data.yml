@@ -164,6 +164,31 @@ jobs:
         working-directory: oracle-source
         run: python scripts/build_prediction_team_state_compatibility.py
 
+      - name: Enforce kickoff-level Team-State PIT regression
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          from datetime import datetime, timezone
+          from pathlib import Path
+          def dt(v):
+              return datetime.fromisoformat(str(v).replace("Z","+00:00")).astimezone(timezone.utc)
+          rows=list(csv.DictReader(Path("database/current_prediction_team_state.csv").open(newline="",encoding="utf-8")))
+          if not rows:
+              raise SystemExit("CURRENT_TEAM_STATE_PIT_BLOCKED_EMPTY")
+          bad=[]
+          for r in rows:
+              target=dt(r["date"]+"T00:00:00+00:00")
+              for side in ("home_state_date","away_state_date"):
+                  v=str(r.get(side) or "").strip()
+                  if not v or dt(v) >= target:
+                      bad.append((r.get("match_id"),side,v,r.get("date")))
+          if bad:
+              raise SystemExit(f"CURRENT_TEAM_STATE_PIT_BLOCKED count={len(bad)} sample={bad[:5]}")
+          print({"status":"PASS","rows":len(rows),"kickoff_level_pit":True})
+          PY
+
       - name: Check model readiness
         working-directory: oracle-source
         run: python scripts/check_model_readiness.py
@@ -179,7 +204,7 @@ jobs:
       - name: Validate tooling
         working-directory: oracle-source
         run: |
-          python -m py_compile scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
+          python -m py_compile scripts/oracle_four_model_predict.py scripts/build_prediction_team_state_compatibility.py scripts/build_current_team_state.py scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
           python -m py_compile scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py
 
       - name: Run exact-identity and current-spine regression gates
