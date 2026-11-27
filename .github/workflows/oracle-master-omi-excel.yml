@@ -482,6 +482,10 @@ jobs:
           print(out, out.stat().st_size)
           PY
 
+      - name: Materialise canonical 264-column schema on rolling fixture spine
+        working-directory: oracle
+        run: python scripts/build_master_omi_current.py
+
       - name: Enforce Master OMI evidence completeness contract
         working-directory: oracle
         run: |
@@ -518,19 +522,17 @@ jobs:
           wb=openpyxl.load_workbook(p,read_only=True,data_only=False)
           mi=wb["Market Intelligence"] if "Market Intelligence" in wb.sheetnames else None
           if mi is None: raise SystemExit("MASTER_OMI_BLOCKED_MI_SHEET_MISSING")
-          if mi.max_row != 755 or mi.max_column != 264:
-              raise SystemExit(f"MASTER_OMI_BLOCKED_NONCANONICAL_SURFACE rows={mi.max_row} cols={mi.max_column} expected=755x264")
+          if mi.max_column != 264:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_NONCANONICAL_SURFACE cols={mi.max_column} expected=264")
           fp=wb["Fixture Predictions"] if "Fixture Predictions" in wb.sheetnames else None
           if fp is None: raise SystemExit("MASTER_OMI_BLOCKED_FIXTURE_PREDICTIONS_SHEET_MISSING")
-          ids=[]
-          headers=[c.value for c in next(fp.iter_rows(min_row=1,max_row=1))]
-          if "Fixture ID" not in headers: raise SystemExit("MASTER_OMI_BLOCKED_FIXTURE_ID_COLUMN_MISSING")
+          headers=[c.value for c in next(mi.iter_rows(min_row=1,max_row=1))]
+          if len(headers)!=264 or "Fixture ID" not in headers: raise SystemExit("MASTER_OMI_BLOCKED_CANONICAL_HEADERS")
           i=headers.index("Fixture ID")
-          for row in fp.iter_rows(min_row=2,values_only=True): ids.append(str(row[i]).strip() if row[i] is not None else "")
-          if len(ids)!=754 or any(not x for x in ids) or len(set(ids))!=754:
-              raise SystemExit(f"MASTER_OMI_BLOCKED_FIXTURE_ID_SURFACE rows={len(ids)} unique={len(set(ids))} expected=754")
-          print(json.dumps({"status":"PASS","market_intelligence_surface":"755x264","governed_fixture_rows":754,"fixture_ids_unique":754}))
-          PY
+          ids=[str(row[i]).strip() if row[i] is not None else "" for row in mi.iter_rows(min_row=2,values_only=True)]
+          if not ids or any(not x for x in ids) or len(set(ids))!=len(ids):
+              raise SystemExit(f"MASTER_OMI_BLOCKED_FIXTURE_ID_SURFACE rows={len(ids)} unique={len(set(ids))}")
+          print(json.dumps({"status":"PASS","market_intelligence_surface":str(mi.max_row)+"x"+str(mi.max_column),"governed_fixture_rows":len(ids),"fixture_ids_unique":len(set(ids)),"row_contract":"VARIABLE_CURRENT_ROLLING_SPINE"}))
 
       - name: Validate Market Intelligence FootyStats PPG evidence
         working-directory: oracle
