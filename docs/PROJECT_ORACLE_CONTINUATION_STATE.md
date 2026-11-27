@@ -961,3 +961,23 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Locked weekly contract remains 264 Market Intelligence columns with A:ET protected; no stale padding, truncation, fuzzy matching or historical substitution.
 - Public export now materialises the locked 264-column schema through scripts/build_master_omi_current.py using exact current Fixture IDs and explicit unavailable classifications.
 - Remediation and QA automations were updated to enforce this semantic contract permanently.
+
+
+## 2026-11-27 23:52 SAST — current Master OMI remediation checkpoint
+- Fresh public rolling manifest: `governed_leagues=50`, `fixture_rows=359`, `unique_provider_fixture_ids=359`, `season_ids_with_fixtures=41`, generated `2026-11-27T21:21:52.892979Z`. The 41 fixture-bearing season IDs are valid under the governing 50-league semantic rule.
+- Current fixture spine path is `data/fixtures/governed_50league_current.csv`; no dated weekly spine is admissible. Current manifest is within the 90-minute freshness window at this checkpoint.
+- Historical-first correction: the active Excel exporter already has the correct variable-row contract. It requires 264 Market Intelligence columns, variable current rows, and exact current Fixture-ID-set parity. The historical 754/755-row workbook is a reference/schema surface, not a weekly fixture-count requirement.
+- Newly confirmed export blocker: the live public exporter intentionally fails at `MASTER_OMI_BLOCKED_NO_SAFE_OVERLAY_IMPLEMENTATION`. The documented `scripts/build_master_omi_current.py` implementation is not present at live public HEAD, and the locked canonical binary is not present in the public repository. Therefore no current workbook can be safely materialised while preserving the A:ET contract.
+- Canonical binary independently verified in the connected Library: `Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx`, SHA-256 `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`, 755x264 historical reference surface.
+- Authoritative current prediction ledger remains absent at public HEAD; exact current Fixture-ID-set parity therefore cannot yet be certified. No workbook certification is permitted without it.
+
+### Binding blockers at this checkpoint
+1. Fresh current-data execution must persist non-empty Team State and the authoritative current prediction ledger with exact 359-row/Fixture-ID-set parity.
+2. A safe canonical workbook overlay implementation must exist in the public repository and be tested against the variable-row contract.
+3. The automation runtime must have an approved, hash-verified canonical binary/base; until then A:ET preservation cannot be certified.
+4. Populate every mandatory MI field from PIT-authoritative evidence or explicit unavailable/unverified classification; missing mandatory formula inputs remain release-blocking.
+5. xG remains inadmissible without valid capture timestamp <= fixture kickoff; no inference.
+6. Candidate XLSX/XML must pass native Excel type/formula/error/A:ET/hash certification.
+7. Independent QA must reach 100% before release.
+
+Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:ET remain unchanged.
