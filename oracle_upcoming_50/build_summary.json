@@ -1,44 +1,44 @@
 {
-  "window_start": "2026-11-26",
-  "window_end": "2026-12-03",
-  "fixture_date_min": "2026-11-26",
-  "fixture_date_max": "2026-12-03",
+  "window_start": "2026-11-27",
+  "window_end": "2026-12-04",
+  "fixture_date_min": "2026-11-27",
+  "fixture_date_max": "2026-12-04",
   "governed_leagues": 50,
-  "fixture_rows": 372,
-  "unique_provider_fixture_ids": 372,
-  "season_ids_with_fixtures": 40,
+  "fixture_rows": 392,
+  "unique_provider_fixture_ids": 392,
+  "season_ids_with_fixtures": 41,
   "retrievals": [
     {
-      "date": "2026-11-26",
-      "retrieved_utc": "2026-11-26T21:43:04.435985+00:00"
-    },
-    {
       "date": "2026-11-27",
-      "retrieved_utc": "2026-11-26T21:43:04.517088+00:00"
+      "retrieved_utc": "2026-11-27T00:11:52.258436+00:00"
     },
     {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-26T21:43:04.663086+00:00"
+      "retrieved_utc": "2026-11-27T00:11:52.455228+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-26T21:43:04.777861+00:00"
+      "retrieved_utc": "2026-11-27T00:11:52.641852+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-26T21:43:04.857762+00:00"
+      "retrieved_utc": "2026-11-27T00:11:52.778118+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-26T21:43:04.913585+00:00"
+      "retrieved_utc": "2026-11-27T00:11:52.891663+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-26T21:43:04.983053+00:00"
+      "retrieved_utc": "2026-11-27T00:11:53.010072+00:00"
     },
     {
       "date": "2026-12-03",
-      "retrieved_utc": "2026-11-26T21:43:05.042002+00:00"
+      "retrieved_utc": "2026-11-27T00:11:53.140676+00:00"
+    },
+    {
+      "date": "2026-12-04",
+      "retrieved_utc": "2026-11-27T00:11:53.265609+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -48,7 +48,7 @@
   "production_model_logic_changed": false,
   "market_intelligence_A_ET_changed": false,
   "pre_match_only": true,
-  "season_match_rows": 11960,
-  "last5_fully_verified_fixtures": 371,
-  "generated_utc": "2026-11-26T21:43:22.369537+00:00"
+  "season_match_rows": 12266,
+  "last5_fully_verified_fixtures": 391,
+  "generated_utc": "2026-11-27T00:12:17.529536+00:00"
 }
