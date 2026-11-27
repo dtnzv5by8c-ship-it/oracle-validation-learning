@@ -59,3 +59,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - RC-05: CMOI, LTSS, actuals and downstream derived formula inputs are absent from the current artifact. Fix path: populate from authoritative pre-kickoff/settlement evidence with provenance and sample sizes. Regression guard: missing mandatory formula inputs remain release-blocking.
 - RC-06: candidate XLSX/XML is absent. Fix path: build the candidate only after the governed MI surface and ledger exist. Regression guard: no release without native Excel type/formula/error/hash/A:ET certification.
 - Fix evidence: Cycle 11 root-cause register aea614fb36928941c857a286fdaa3d427b30d829; current rolling-spine persistence 0420ef36fc4772a08b4268ac05830a0c142e0294; permanent continuation controls 9604d13ee44be44eceedd5be7948156184f8a2dc.
+
+
+## 2026-11-27 — current FootyStats intelligence hard-coded fixture-count defect
+- Cause: .github/workflows/oracle-public-current-footystats-fixture-intelligence.yml hard-coded the current governed fixture count to 385, so it could not operate against the live rolling 50-league spine when the current set became 392 fixtures.
+- Evidence: live rolling manifest reports governed_leagues=50, fixture_rows=392, unique_provider_fixture_ids=392, season_ids_with_fixtures=41; the workflow contained an explicit 385-row assertion and hard-coded summary value.
+- Fix commit: c183a070214105616f3e35e43d3e3a7ca562f80f.
+- Validation result: workflow now derives the count from the current reconciliation input, fails closed on an empty spine, and asserts summary/input parity. Oracle V1.6 and A:ET are unchanged.
+- Regression guard: no fixed fixture-count assertion remains in this workflow; current row count is sourced from the current governed input and persisted summary parity is fail-closed.
