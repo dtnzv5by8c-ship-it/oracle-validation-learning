@@ -1,12 +1,8 @@
 {
-  "generated_utc": "2026-11-27T15:17:34.464774+00:00",
-  "schedule_difference_rows": 18,
-  "diagnosis_counts": {
-    "SCHEDULE_DIFFERENCE_NOT_TIMEZONE_EXPLAINABLE": 4,
-    "SCHEDULE_DIFFERENCE_REQUIRES_REVIEW": 6,
-    "TIMEZONE_OR_DATE_REPRESENTATION_REQUIRES_TIMESTAMP_TEST": 8
-  },
-  "timestamp_field_available_rows": 18,
+  "generated_utc": "2026-11-27T23:33:11.320766+00:00",
+  "schedule_difference_rows": 0,
+  "diagnosis_counts": {},
+  "timestamp_field_available_rows": 0,
   "all_rows_promotion_allowed": false,
   "governance": "Diagnostic only. Timezone/date representation is tested before schedule adjudication; no date normalization, fuzzy matching, historical fallback, Oracle V1.6 change, or Master OMI A:ET change.",
   "production_model_logic_changed": false,
