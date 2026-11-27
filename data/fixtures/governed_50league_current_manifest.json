@@ -10,35 +10,35 @@
   "retrievals": [
     {
       "date": "2026-11-27",
-      "retrieved_utc": "2026-11-27T01:30:54.291650+00:00"
+      "retrieved_utc": "2026-11-27T01:43:58.842385+00:00"
     },
     {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-27T01:30:54.521257+00:00"
+      "retrieved_utc": "2026-11-27T01:43:58.987878+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-27T01:30:54.729281+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.109946+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-27T01:30:54.869900+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.182121+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-27T01:30:55.004236+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.248376+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-27T01:30:55.151213+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.317762+00:00"
     },
     {
       "date": "2026-12-03",
-      "retrieved_utc": "2026-11-27T01:30:55.290137+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.388333+00:00"
     },
     {
       "date": "2026-12-04",
-      "retrieved_utc": "2026-11-27T01:30:55.467793+00:00"
+      "retrieved_utc": "2026-11-27T01:43:59.470618+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -50,7 +50,7 @@
   "pre_match_only": true,
   "season_match_rows": 12266,
   "last5_fully_verified_fixtures": 391,
-  "generated_utc": "2026-11-27T01:31:21.980159+00:00",
+  "generated_utc": "2026-11-27T01:44:18.279672+00:00",
   "current_fixture_spine_path": "data/fixtures/governed_50league_current.csv",
   "current_mi_path": "oracle_upcoming_50/footystats_market_intelligence.csv"
 }
