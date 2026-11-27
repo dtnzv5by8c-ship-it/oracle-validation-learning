@@ -91,7 +91,7 @@ jobs:
         working-directory: oracle
         run: python -m unittest tests/test_master_omi_exact_matching_contract.py
 
-      - name: Validate locked canonical Master OMI contract
+      - name: Validate active Master OMI schema contract
         working-directory: oracle
         run: |
           set -euo pipefail
@@ -99,20 +99,17 @@ jobs:
           import json
           from pathlib import Path
           p=Path("docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json")
-          if not p.exists():
-              raise SystemExit("MASTER_OMI_BLOCKED_CANONICAL_CONTRACT_MISSING")
-          d=json.loads(p.read_text(encoding="utf-8"))
-          expected={
-              "market_intelligence_rows":755,
-              "governed_fixture_rows":754,
-              "market_intelligence_columns":264,
-              "immutable_columns":"A:ET",
-              "immutable_column_count":150,
-          }
-          for k,v in expected.items():
-              if d.get(k)!=v:
-                  raise SystemExit(f"MASTER_OMI_BLOCKED_CANONICAL_CONTRACT_INVALID {k}={d.get(k)!r} expected={v!r}")
-          print({"status":"PASS","contract_version":d.get("contract_version"),"rows":d["market_intelligence_rows"],"governed_fixture_rows":d["governed_fixture_rows"],"columns":d["market_intelligence_columns"],"immutable":d["immutable_columns"]})
+          s=Path("docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json")
+          if not p.exists() or not s.exists(): raise SystemExit("MASTER_OMI_BLOCKED_SCHEMA_CONTRACT_MISSING")
+          d=json.loads(p.read_text(encoding="utf-8")); schema=json.loads(s.read_text(encoding="utf-8"))
+          if d.get("market_intelligence_columns")!=264 or d.get("immutable_columns")!="A:ET" or d.get("immutable_column_count")!=150:
+              raise SystemExit("MASTER_OMI_BLOCKED_SCHEMA_CONTRACT_INVALID")
+          if d.get("market_intelligence_rows")!="VARIABLE_CURRENT_ROLLING_SPINE" or d.get("governed_fixture_rows")!="EXACT_CURRENT_FIXTURE_ID_SET":
+              raise SystemExit("MASTER_OMI_BLOCKED_FIXED_ROW_CONTRACT_DETECTED")
+          if schema.get("market_intelligence_columns")!=264 or schema.get("variable_fixture_rows") is not True:
+              raise SystemExit("MASTER_OMI_BLOCKED_VARIABLE_ROW_SCHEMA_INVALID")
+          if len(schema.get("headers",[]))!=264: raise SystemExit("MASTER_OMI_BLOCKED_HEADER_SCHEMA_WIDTH")
+          print({"status":"PASS","columns":264,"immutable":"A:ET","row_contract":"VARIABLE_CURRENT_ROLLING_SPINE"})
           PY
 
       - name: Install Excel dependencies
