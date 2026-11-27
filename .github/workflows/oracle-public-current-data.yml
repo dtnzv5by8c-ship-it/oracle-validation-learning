@@ -194,6 +194,7 @@ jobs:
             database/current_goal_events.csv
             database/current_source_reconciliation.csv
             database/current_prematch_team_state.csv
+            database/current_prediction_team_state.csv
             research/otms/outputs/current_otms.csv
             data/current_source_manifest.json
             data/current_reconciliation_status.json
@@ -336,6 +337,7 @@ jobs:
             database/current_matches.csv
             database/current_goal_events.csv
             database/current_prematch_team_state.csv
+            database/current_prediction_team_state.csv
             database/current_source_reconciliation.csv
             research/otms/outputs/current_otms.csv
             data/current_source_manifest.json
