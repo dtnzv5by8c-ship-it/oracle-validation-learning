@@ -1,6 +1,4 @@
 fixture_id,date,kickoff_utc,home_team,away_team,league_season_id,provider_home_id,provider_away_id,provider,provider_status,provider_season,identity_status
-8714464,2026-11-27,2026-11-27T19:00:00+00:00,Delfin SC,Orense SC,16714,4324,6660,FootyStats,incomplete,2026,EXACT_PROVIDER_FIXTURE_ID
-8547594,2026-11-27,2026-11-27T19:00:00+00:00,Groningen,Willem II,17097,372,381,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8550435,2026-11-27,2026-11-27T19:30:00+00:00,Górnik Zabrze,Wisła Płock,17112,785,787,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8572547,2026-11-27,2026-11-27T19:30:00+00:00,Werder Bremen,Borussia M'gladbach,17210,37,39,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8584427,2026-11-27,2026-11-27T19:30:00+00:00,Leganés,CE Sabadell FC,17269,278,317,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
