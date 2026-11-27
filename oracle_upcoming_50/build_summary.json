@@ -4,41 +4,41 @@
   "fixture_date_min": "2026-11-27",
   "fixture_date_max": "2026-12-04",
   "governed_leagues": 50,
-  "fixture_rows": 369,
-  "unique_provider_fixture_ids": 369,
+  "fixture_rows": 359,
+  "unique_provider_fixture_ids": 359,
   "season_ids_with_fixtures": 41,
   "retrievals": [
     {
       "date": "2026-11-27",
-      "retrieved_utc": "2026-11-27T19:09:59.808395+00:00"
+      "retrieved_utc": "2026-11-27T21:21:26.559178+00:00"
     },
     {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-27T19:10:00.010954+00:00"
+      "retrieved_utc": "2026-11-27T21:21:26.758162+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-27T19:10:00.202362+00:00"
+      "retrieved_utc": "2026-11-27T21:21:26.928173+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-27T19:10:00.335415+00:00"
+      "retrieved_utc": "2026-11-27T21:21:27.054725+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-27T19:10:00.645241+00:00"
+      "retrieved_utc": "2026-11-27T21:21:27.183045+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-27T19:10:00.784124+00:00"
+      "retrieved_utc": "2026-11-27T21:21:27.322870+00:00"
     },
     {
       "date": "2026-12-03",
-      "retrieved_utc": "2026-11-27T19:10:00.928227+00:00"
+      "retrieved_utc": "2026-11-27T21:21:27.453015+00:00"
     },
     {
       "date": "2026-12-04",
-      "retrieved_utc": "2026-11-27T19:10:01.072250+00:00"
+      "retrieved_utc": "2026-11-27T21:21:27.579567+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -49,6 +49,6 @@
   "market_intelligence_A_ET_changed": false,
   "pre_match_only": true,
   "season_match_rows": 12266,
-  "last5_fully_verified_fixtures": 369,
-  "generated_utc": "2026-11-27T19:10:26.070640+00:00"
+  "last5_fully_verified_fixtures": 359,
+  "generated_utc": "2026-11-27T21:21:52.892979+00:00"
 }
