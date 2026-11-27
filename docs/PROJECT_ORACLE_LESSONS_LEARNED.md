@@ -67,3 +67,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: c183a070214105616f3e35e43d3e3a7ca562f80f.
 - Validation result: workflow now derives the count from the current reconciliation input, fails closed on an empty spine, and asserts summary/input parity. Oracle V1.6 and A:ET are unchanged.
 - Regression guard: no fixed fixture-count assertion remains in this workflow; current row count is sourced from the current governed input and persisted summary parity is fail-closed.
+
+
+## 2026-11-27 — rolling-spine freshness schedule defect
+- Cause: the rolling 50-league producer was scheduled only at minutes 15 of 00, 06, 12 and 18 UTC, while the independent Master OMI release contract requires the current rolling spine to be no older than 90 minutes. This creates deterministic stale periods and can block otherwise valid weekly MI cycles.
+- Evidence: live `.github/workflows/oracle-50league-upcoming-mi-build.yml` contained `cron: "15 0,6,12,18 * * *"`; latest independent QA at 12:47 SAST marked the 08:33:39 UTC rolling snapshot stale because it exceeded the 90-minute gate.
+- Fix commit: 417e0dbd604691bde9b071f0567c8e5212094bf9.
+- Validation result: producer schedule is now hourly at minute 15 (`15 * * * *`), while the existing exact-spine/Fixture-ID-set hash gates, 50-league semantic rule, pre-match-only controls, and no-fallback controls remain unchanged. The push also creates an immediate controlled execution path because the workflow is configured to run on workflow-file changes.
+- Regression guard: keep the producer cadence at or below the 90-minute freshness contract; any future schedule change that creates a longer interval must be rejected. Independent process timestamps remain non-identity evidence; exact spine and Fixture-ID-set hashes remain authoritative.
