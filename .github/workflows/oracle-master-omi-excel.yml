@@ -138,14 +138,37 @@ jobs:
           echo "canonical_sha256=$ACTUAL_SHA"
           echo "canonical_base=runtime/work/Master_OMI_Report_BASE.xlsx"
 
-      - name: Block until canonical overlay implementation is present
+      - name: Build current Master OMI from canonical base and exact rolling Fixture-ID set
         working-directory: oracle
         run: |
           set -euo pipefail
-          echo "::error::MASTER_OMI_BLOCKED_NO_SAFE_OVERLAY_IMPLEMENTATION"
-          echo "::error::The canonical workbook is the only permitted base, but no approved overlay/export implementation is present."
-          echo "::error::Do not fabricate Master_OMI_Report_CURRENT.xlsx."
-          exit 1
+          python scripts/build_master_omi_current.py
+
+      - name: Validate current workbook contract before upload
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from openpyxl import load_workbook
+          status=json.loads(Path("data/master_omi_current_build_status.json").read_text())
+          if status.get("status") != "PASS":
+              raise SystemExit("MASTER_OMI_BLOCKED_BUILD_STATUS")
+          p=Path("Master_OMI_Report_CURRENT.xlsx")
+          if not p.exists() or p.stat().st_size == 0:
+              raise SystemExit("MASTER_OMI_BLOCKED_WORKBOOK_MISSING")
+          wb=load_workbook(p, data_only=False, read_only=False)
+          ws=wb["Market Intelligence"]
+          if ws.max_column != 264:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_WIDTH={ws.max_column}")
+          manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
+          if ws.max_row-1 != int(manifest["fixture_rows"]):
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_ROW_PARITY")
+          if status.get("fixture_ids_sha256") is None:
+              raise SystemExit("MASTER_OMI_BLOCKED_FIXTURE_ID_HASH_MISSING")
+          print({"status":"PASS","rows":ws.max_row-1,"columns":ws.max_column})
+          PY
 
       - name: Upload Master OMI Excel
         uses: actions/upload-artifact@v4
