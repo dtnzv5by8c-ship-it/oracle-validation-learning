@@ -902,3 +902,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Current Data run 598 (46044401678) failed; rerun attempt 2 also failed. Schedule-fix run 599 (46044454917) also failed. All failures occurred within seconds and GitHub exposed no usable job-step/log evidence through the connector, so no new technical root cause is asserted from these failures.
 - The producer-before-consumer schedule fix remains committed at 546272485e82cbb3e651c5e66241753642019117 (Current Data :20 UTC after rolling producer :15 UTC).
 - Do not certify the fresh spine until a successful Current Data execution persists reconciliation hashes, non-empty Team State, and the authoritative current prediction ledger.
+
+
+## 2026-11-27 20:37 SAST — current-cycle reconciliation contract corrected
+- Historical-first evidence confirmed the public reconciliation workflow was still consuming a dated 2026-11-14 frozen spine even though the current rolling manifest is 384 fixtures / 50 governed leagues / 41 fixture-bearing season IDs.
+- Fix commit: `7ae8b556f504edc30cc7708b1f2eeaf490521b5d` binds reconciliation to `data/fixtures/governed_50league_current.csv` and its manifest, enforces governed_leagues=50, exact row and Fixture-ID parity, strict kickoff > manifest generated_utc, and persists exact rolling-spine and Fixture-ID-set hashes.
+- Validation: source-level correction committed; runtime validation pending a new reconciliation workflow execution. No timestamp equality between independent processes is required.
+- Next action: obtain a fresh producer snapshot, run the corrected reconciliation against that same spine, certify both hashes, then proceed to Team State/prediction ledger and canonical MI.
