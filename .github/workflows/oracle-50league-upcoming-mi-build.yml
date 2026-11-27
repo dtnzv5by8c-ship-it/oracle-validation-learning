@@ -6,7 +6,7 @@ on:
     paths:
       - ".github/workflows/oracle-50league-upcoming-mi-build.yml"
   schedule:
-    - cron: "15 0,6,12,18 * * *"
+    - cron: "15 * * * *"
   workflow_dispatch:
 
 permissions:
