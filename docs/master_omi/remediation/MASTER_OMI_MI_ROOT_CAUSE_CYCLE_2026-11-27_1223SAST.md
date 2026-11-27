@@ -8,7 +8,7 @@
 - season_ids_with_fixtures=41
 - generated_utc=2026-11-27T08:33:39.602844Z
 - Current independent QA: docs/master_omi/qa/MASTER_OMI_MI_AUTOMATION_TURN11_CURRENT_2026-11-27_1119SAST.md
-- Canonical V2.1.1 SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf106e39f106e (reference contract remains unchanged)
+- Canonical V2.1.1 SHA-256: 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e (reference contract remains unchanged)
 
 ## Root-cause matrix
 
