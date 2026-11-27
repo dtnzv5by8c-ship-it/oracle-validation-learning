@@ -468,4 +468,4 @@ jobs:
 # Trigger checkpoint: consume post-21:49 durable Team-State restoration and refresh current FootyStats state before the next serialized prospective admission pass.
 # 2026-11-26 23:42 SAST: fresh current-data reconciliation cycle after rolling-spine remediation; no production model logic change.
 
-# 2026-11-27 03:30 SAST: fail closed on any lag between reconciliation snapshot and the live rolling 50-league spine.
+# 2026-11-28 00:27 SAST: force post-PIT-fix authoritative rebuild; kickoff-level PIT must be regenerated before certification.
