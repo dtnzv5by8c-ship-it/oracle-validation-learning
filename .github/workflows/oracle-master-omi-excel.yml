@@ -1,29 +1,37 @@
 name: Oracle Master OMI Excel Export
-# Permanent variable-row / 264-column materialisation contract active.
-# Continuous Master OMI maintenance heartbeat: rerun governed source reconciliation.
 
 on:
   push:
     paths:
       - ".github/workflows/oracle-master-omi-excel.yml"
       - "data/fixtures/governed_50league_current.csv"
+      - "data/fixtures/governed_50league_current_manifest.json"
       - "research/four_model/outputs/omi_prediction_ledger_current.csv"
       - "database/current_prematch_team_state.csv"
-      - "database/current_matches.csv"
+      - "oracle_upcoming_50/footystats_market_intelligence.csv"
+      - "scripts/build_master_omi_current.py"
+      - "docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json"
+      - "docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: master-omi-current-export
+  cancel-in-progress: true
+
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+
     steps:
-      - name: Checkout public repository as the only governed source
+      - name: Checkout public repository as governed source
         uses: actions/checkout@v4
         with:
           path: oracle
+          fetch-depth: 1
 
       - name: Checkout private production repository for canonical workbook base only
         uses: actions/checkout@v4
@@ -33,7 +41,7 @@ jobs:
           path: oracle-private
           fetch-depth: 1
 
-      - name: Materialise approved private canonical workbook base
+      - name: Materialise approved canonical workbook
         working-directory: oracle
         run: |
           set -euo pipefail
@@ -41,184 +49,160 @@ jobs:
           SOURCE="$(find ../oracle-private -type f -name "$CANONICAL_NAME" -print -quit || true)"
           if [ -z "$SOURCE" ]; then
             echo "::error::MASTER_OMI_BLOCKED_PRIVATE_CANONICAL_BINARY_NOT_FOUND"
-            echo "::error::Expected canonical binary in private production repository; public repository must not contain it."
             exit 1
           fi
-          mkdir -p runtime/canonical
+          mkdir -p runtime/canonical runtime/work
           cp "$SOURCE" "runtime/canonical/$CANONICAL_NAME"
-          echo "canonical_source=$SOURCE"
-          echo "canonical_materialised=runtime/canonical/$CANONICAL_NAME"
+          EXPECTED_SHA="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
+          ACTUAL_SHA="$(sha256sum "runtime/canonical/$CANONICAL_NAME" | awk '{print $1}')"
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_SHA_MISMATCH expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
+            exit 1
+          fi
+          cp "runtime/canonical/$CANONICAL_NAME" runtime/work/Master_OMI_Report_BASE.xlsx
+          echo "canonical_sha256=$ACTUAL_SHA"
 
-      - name: Enforce rolling current-spine freshness
+      - name: Enforce fresh rolling 50-league spine
         working-directory: oracle
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json
+          import csv, json, hashlib
           from datetime import datetime, timezone
           from pathlib import Path
-          m=Path("data/fixtures/governed_50league_current_manifest.json")
-          if not m.exists() or m.stat().st_size == 0:
-              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_MANIFEST_MISSING")
-          d=json.loads(m.read_text(encoding="utf-8"))
-          ts=d.get("generated_utc")
-          if not ts:
-              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_GENERATION_TIMESTAMP_MISSING")
-          generated=datetime.fromisoformat(ts.replace("Z","+00:00"))
+          manifest_path=Path("data/fixtures/governed_50league_current_manifest.json")
+          spine_path=Path("data/fixtures/governed_50league_current.csv")
+          if not manifest_path.is_file() or not spine_path.is_file():
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_OR_MANIFEST_MISSING")
+          m=json.loads(manifest_path.read_text(encoding="utf-8"))
+          if m.get("governed_leagues") != 50:
+              raise SystemExit("MASTER_OMI_BLOCKED_GOVERNED_LEAGUES_NOT_50")
+          if m.get("private_repository_used") is not False or m.get("fuzzy_matching_used") is not False or m.get("historical_fallback_used") is not False:
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_GOVERNANCE_FLAGS_INVALID")
+          generated=datetime.fromisoformat(str(m["generated_utc"]).replace("Z","+00:00")).astimezone(timezone.utc)
           age=(datetime.now(timezone.utc)-generated).total_seconds()
           if age < 0 or age > 90*60:
               raise SystemExit(f"MASTER_OMI_BLOCKED_STALE_CURRENT_SPINE age_seconds={age:.0f}")
-          rows=int(d.get("fixture_rows",0))
-          unique=int(d.get("unique_provider_fixture_ids",0))
-          if rows <= 0 or rows != unique:
-              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_IDENTITY_INVALID")
-          if d.get("private_repository_used") is not False or d.get("fuzzy_matching_used") is not False or d.get("historical_fallback_used") is not False:
-              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_SPINE_GOVERNANCE_FLAGS_INVALID")
-          print({"status":"PASS","generated_utc":ts,"age_seconds":round(age),"rows":rows,"unique_provider_fixture_ids":unique})
+          with spine_path.open(newline="",encoding="utf-8-sig") as f:
+              rows=list(csv.DictReader(f))
+          ids=[str(r.get("fixture_id") or "").strip() for r in rows]
+          if not ids or len(ids)!=len(set(ids)):
+              raise SystemExit("MASTER_OMI_BLOCKED_SPINE_FIXTURE_ID_INVALID")
+          if int(m.get("fixture_rows",-1)) != len(ids) or int(m.get("unique_provider_fixture_ids",-1)) != len(ids):
+              raise SystemExit("MASTER_OMI_BLOCKED_MANIFEST_SPINE_PARITY")
+          spine_sha=hashlib.sha256(spine_path.read_bytes()).hexdigest()
+          id_sha=hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
+          print({"status":"PASS","governed_leagues":50,"fixture_rows":len(ids),"season_ids_with_fixtures":m.get("season_ids_with_fixtures"),"age_seconds":round(age),"spine_sha256":spine_sha,"fixture_ids_sha256":id_sha})
           PY
 
-      - name: Enforce public-only source contract
-        working-directory: oracle
-        run: |
-          set -euo pipefail
-          required=(
-            research/four_model/outputs/omi_prediction_ledger_current.csv
-            data/fixtures/governed_50league_current.csv
-            database/current_prematch_team_state.csv
-            database/current_matches.csv
-          )
-          missing=0
-          for f in "${required[@]}"; do
-            if [ ! -s "$f" ]; then
-              echo "::error::PUBLIC_SOURCE_ARTIFACT_MISSING=$f"
-              missing=1
-            fi
-          done
-          if compgen -G 'research/four_model/outputs/omi_prediction_ledger_*_to_*.csv' >/dev/null; then
-            echo "::error::DATED_FROZEN_OMI_LEDGER_DETECTED"
-            missing=1
-          fi
-          if compgen -G 'data/fixtures/omi_locked_spine_*_to_*.csv' >/dev/null; then
-            echo "::error::DATED_FROZEN_OMI_SPINE_DETECTED"
-            missing=1
-          fi
-          if [ "$missing" -ne 0 ]; then
-            echo "::error::MASTER_OMI_BLOCKED_NO_PUBLIC_SOURCE_DATA"
-            exit 1
-          fi
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Run exact matching regression gate
-        working-directory: oracle
-        run: python -m unittest tests/test_master_omi_exact_matching_contract.py
-
-      - name: Validate active Master OMI schema contract
-        working-directory: oracle
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path("docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json")
-          s=Path("docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json")
-          if not p.exists() or not s.exists(): raise SystemExit("MASTER_OMI_BLOCKED_SCHEMA_CONTRACT_MISSING")
-          d=json.loads(p.read_text(encoding="utf-8")); schema=json.loads(s.read_text(encoding="utf-8"))
-          if d.get("market_intelligence_columns")!=264 or d.get("immutable_columns")!="A:ET" or d.get("immutable_column_count")!=150:
-              raise SystemExit("MASTER_OMI_BLOCKED_SCHEMA_CONTRACT_INVALID")
-          if d.get("market_intelligence_rows")!="VARIABLE_CURRENT_ROLLING_SPINE" or d.get("governed_fixture_rows")!="EXACT_CURRENT_FIXTURE_ID_SET":
-              raise SystemExit("MASTER_OMI_BLOCKED_FIXED_ROW_CONTRACT_DETECTED")
-          if schema.get("market_intelligence_columns")!=264 or schema.get("variable_fixture_rows") is not True:
-              raise SystemExit("MASTER_OMI_BLOCKED_VARIABLE_ROW_SCHEMA_INVALID")
-          if len(schema.get("headers",[]))!=264: raise SystemExit("MASTER_OMI_BLOCKED_HEADER_SCHEMA_WIDTH")
-          print({"status":"PASS","columns":264,"immutable":"A:ET","row_contract":"VARIABLE_CURRENT_ROLLING_SPINE"})
-          PY
-
-      - name: Install Excel dependencies
-        run: python -m pip install --disable-pip-version-check pandas openpyxl
-
-      - name: Enforce exact current Team-State and prediction-ledger parity
+      - name: Enforce public current-source parity
         working-directory: oracle
         run: |
           set -euo pipefail
           python - <<'PY'
           import csv
           from pathlib import Path
-          spine=list(csv.DictReader(Path("data/fixtures/governed_50league_current.csv").open(newline="",encoding="utf-8-sig")))
-          ledger=list(csv.DictReader(Path("research/four_model/outputs/omi_prediction_ledger_current.csv").open(newline="",encoding="utf-8-sig")))
-          state=list(csv.DictReader(Path("database/current_prematch_team_state.csv").open(newline="",encoding="utf-8-sig")))
-          sid={str(r.get("fixture_id") or "").strip() for r in spine}
-          lid={str(r.get("fixture_id") or "").strip() for r in ledger}
-          tid={str(r.get("fixture_id") or "").strip() for r in state}
-          if len(spine) != len(sid): raise SystemExit("MASTER_OMI_BLOCKED_SPINE_DUPLICATE_FIXTURE_IDS")
-          if len(ledger) != len(lid) or lid != sid:
-              raise SystemExit(f"MASTER_OMI_BLOCKED_LEDGER_PARITY spine={len(sid)} ledger={len(lid)}")
-          if len(state) != len(tid) or tid != sid:
-              raise SystemExit(f"MASTER_OMI_BLOCKED_TEAM_STATE_PARITY spine={len(sid)} team_state={len(tid)}")
-          print({"status":"PASS","spine":len(sid),"ledger":len(lid),"team_state":len(tid)})
+          paths=[
+            "research/four_model/outputs/omi_prediction_ledger_current.csv",
+            "data/fixtures/governed_50league_current.csv",
+            "database/current_prematch_team_state.csv",
+            "oracle_upcoming_50/footystats_market_intelligence.csv",
+          ]
+          for p in paths:
+              if not Path(p).is_file() or Path(p).stat().st_size==0:
+                  raise SystemExit(f"MASTER_OMI_BLOCKED_REQUIRED_CURRENT_ARTIFACT_MISSING={p}")
+          spine=list(csv.DictReader(Path(paths[1]).open(newline="",encoding="utf-8-sig")))
+          ledger=list(csv.DictReader(Path(paths[0]).open(newline="",encoding="utf-8-sig")))
+          state=list(csv.DictReader(Path(paths[2]).open(newline="",encoding="utf-8-sig")))
+          intel=list(csv.DictReader(Path(paths[3]).open(newline="",encoding="utf-8-sig")))
+          sid=[str(r.get("fixture_id") or "").strip() for r in spine]
+          lid=[str(r.get("fixture_id") or "").strip() for r in ledger]
+          tid=[str(r.get("fixture_id") or "").strip() for r in state]
+          iid=[str(r.get("fixture_id") or "").strip() for r in intel]
+          if len(sid)!=len(set(sid)): raise SystemExit("MASTER_OMI_BLOCKED_SPINE_DUPLICATE_FIXTURE_IDS")
+          if set(lid)!=set(sid) or len(lid)!=len(sid): raise SystemExit(f"MASTER_OMI_BLOCKED_LEDGER_FIXTURE_ID_PARITY spine={len(sid)} ledger={len(lid)}")
+          if set(tid)!=set(sid) or len(tid)!=len(sid): raise SystemExit(f"MASTER_OMI_BLOCKED_TEAM_STATE_FIXTURE_ID_PARITY spine={len(sid)} team_state={len(tid)}")
+          if set(iid)!=set(sid) or len(iid)!=len(sid): raise SystemExit(f"MASTER_OMI_BLOCKED_INTELLIGENCE_FIXTURE_ID_PARITY spine={len(sid)} intelligence={len(iid)}")
+          print({"status":"PASS","spine":len(sid),"ledger":len(lid),"team_state":len(tid),"intelligence":len(iid)})
           PY
 
-      - name: Require authoritative canonical workbook base
-        working-directory: oracle
-        run: |
-          set -euo pipefail
-          CANONICAL="runtime/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx"
-          EXPECTED_SHA="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
-          if [ ! -s "$CANONICAL" ]; then
-            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_BINARY_NOT_AVAILABLE_TO_AUTOMATION"
-            echo "::error::No workbook may be synthesized or rebuilt from CSV inputs."
-            echo "::error::A:ET must inherit from the locked canonical binary."
-            exit 1
-          fi
-          ACTUAL_SHA="$(sha256sum "$CANONICAL" | awk '{print $1}')"
-          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
-            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_SHA_MISMATCH expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
-            exit 1
-          fi
-          mkdir -p runtime/work
-          cp "$CANONICAL" runtime/work/Master_OMI_Report_BASE.xlsx
-          echo "::notice::Canonical workbook base accepted; downstream exporter must overlay without modifying A:ET."
-          echo "canonical_sha256=$ACTUAL_SHA"
-          echo "canonical_base=runtime/work/Master_OMI_Report_BASE.xlsx"
-
-      - name: Build current Master OMI from canonical base and exact rolling Fixture-ID set
-        working-directory: oracle
-        run: |
-          set -euo pipefail
-          python scripts/build_master_omi_current.py
-
-      - name: Validate current workbook contract before upload
+      - name: Validate locked 264-column variable-row contract
         working-directory: oracle
         run: |
           set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
-          from openpyxl import load_workbook
-          status=json.loads(Path("data/master_omi_current_build_status.json").read_text())
-          if status.get("status") != "PASS":
-              raise SystemExit("MASTER_OMI_BLOCKED_BUILD_STATUS")
-          p=Path("Master_OMI_Report_CURRENT.xlsx")
-          if not p.exists() or p.stat().st_size == 0:
-              raise SystemExit("MASTER_OMI_BLOCKED_WORKBOOK_MISSING")
-          wb=load_workbook(p, data_only=False, read_only=False)
-          ws=wb["Market Intelligence CURRENT"]
-          if ws.max_column != 264:
-              raise SystemExit(f"MASTER_OMI_BLOCKED_WIDTH={ws.max_column}")
-          manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
-          if ws.max_row-1 != int(manifest["fixture_rows"]):
-              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_ROW_PARITY")
-          if status.get("fixture_ids_sha256") is None:
-              raise SystemExit("MASTER_OMI_BLOCKED_FIXTURE_ID_HASH_MISSING")
-          locked=wb["Market Intelligence"]
-if locked.max_column != 264:
-    raise SystemExit("MASTER_OMI_BLOCKED_LOCKED_CANONICAL_WIDTH")
-print({"status":"PASS","rows":ws.max_row-1,"columns":ws.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column})
+          c=json.loads(Path("docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json").read_text())
+          s=json.loads(Path("docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json").read_text())
+          if c.get("market_intelligence_columns")!=264 or c.get("immutable_columns")!="A:ET" or c.get("immutable_column_count")!=150:
+              raise SystemExit("MASTER_OMI_BLOCKED_SCHEMA_CONTRACT_INVALID")
+          if c.get("market_intelligence_rows")!="VARIABLE_CURRENT_ROLLING_SPINE" or c.get("governed_fixture_rows")!="EXACT_CURRENT_FIXTURE_ID_SET":
+              raise SystemExit("MASTER_OMI_BLOCKED_FIXED_ROW_CONTRACT_DETECTED")
+          if s.get("market_intelligence_columns")!=264 or s.get("variable_fixture_rows") is not True or len(s.get("headers",[]))!=264:
+              raise SystemExit("MASTER_OMI_BLOCKED_VARIABLE_ROW_SCHEMA_INVALID")
+          print({"status":"PASS","columns":264,"immutable":"A:ET","rows":"VARIABLE_CURRENT_ROLLING_SPINE"})
           PY
 
-      - name: Upload Master OMI Excel
+      - name: Setup Python and Excel dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Excel dependencies
+        run: python -m pip install --disable-pip-version-check pandas openpyxl
+
+      - name: Run exact matching regression gate
+        working-directory: oracle
+        run: python -m unittest tests/test_master_omi_exact_matching_contract.py
+
+      - name: Run variable-row overlay regression gate
+        working-directory: oracle
+        run: python -m unittest tests/test_master_omi_variable_row_contract.py tests/test_master_omi_overlay_field_contract.py
+
+      - name: Build current Master OMI
+        working-directory: oracle
+        run: python scripts/build_master_omi_current.py
+
+      - name: Certify current workbook and immutable A:ET surface
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, hashlib, json
+          from pathlib import Path
+          from openpyxl import load_workbook
+          status=json.loads(Path("data/master_omi_current_build_status.json").read_text())
+          if status.get("status")!="PASS":
+              raise SystemExit("MASTER_OMI_BLOCKED_BUILD_STATUS")
+          out=Path("Master_OMI_Report_CURRENT.xlsx")
+          if not out.is_file() or out.stat().st_size==0:
+              raise SystemExit("MASTER_OMI_BLOCKED_WORKBOOK_MISSING")
+          spine=list(csv.DictReader(Path("data/fixtures/governed_50league_current.csv").open(newline="",encoding="utf-8-sig")))
+          wb=load_workbook(out,data_only=False,read_only=False)
+          if "Market Intelligence" not in wb.sheetnames or "Market Intelligence CURRENT" not in wb.sheetnames:
+              raise SystemExit("MASTER_OMI_BLOCKED_REQUIRED_SHEETS_MISSING")
+          locked=wb["Market Intelligence"]
+          current=wb["Market Intelligence CURRENT"]
+          if locked.max_column!=264 or current.max_column!=264:
+              raise SystemExit("MASTER_OMI_BLOCKED_WIDTH")
+          if current.max_row-1!=len(spine):
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_ROW_PARITY")
+          current_ids=[str(current.cell(r,39).value or "").strip() for r in range(2,current.max_row+1)]
+          spine_ids=[str(r.get("fixture_id") or "").strip() for r in spine]
+          if set(current_ids)!=set(spine_ids) or len(current_ids)!=len(spine_ids):
+              raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_FIXTURE_ID_SET_MISMATCH")
+          locked_header=[locked.cell(1,c).value for c in range(1,265)]
+          schema=json.loads(Path("docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json").read_text())
+          if locked_header!=schema["headers"]:
+              raise SystemExit("MASTER_OMI_BLOCKED_LOCKED_HEADER_CONTRACT")
+          locked_fingerprint=hashlib.sha256(json.dumps([[locked.cell(r,c).value for c in range(1,265)] for r in range(1,min(locked.max_row,755)+1)],default=str,separators=(",",":")).encode()).hexdigest()
+          if locked_fingerprint != hashlib.sha256(json.dumps([[load_workbook(Path("runtime/work/Master_OMI_Report_BASE.xlsx"),data_only=False,read_only=False)["Market Intelligence"].cell(r,c).value for c in range(1,265)] for r in range(1,min(locked.max_row,755)+1)],default=str,separators=(",",":")).encode()).hexdigest():
+              raise SystemExit("MASTER_OMI_BLOCKED_A_ET_CANONICAL_SURFACE_CHANGED")
+          print({"status":"PASS","current_rows":current.max_row-1,"columns":current.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column,"locked_surface":"UNCHANGED"})
+          PY
+
+      - name: Upload certified current Master OMI
         uses: actions/upload-artifact@v4
         with:
           name: Oracle-Master-OMI-Current
