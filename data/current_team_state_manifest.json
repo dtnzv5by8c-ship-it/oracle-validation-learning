@@ -1,7 +1,15 @@
 {
-  "generated_utc": "2026-11-27T01:32:30.186872+00:00",
-  "rows": 14061,
+  "generated_utc": "2026-11-27T21:08:21.020873+00:00",
+  "rows": 369,
+  "fixture_ids": 369,
   "history_window": 5,
-  "feature_contract": "HISTORICAL_REPLAY_FEATURE_PARITY_V1.0",
-  "leakage_rule": "Target match is added only after all states for the target date are captured."
+  "history_source": "FootyStats current_matches.csv",
+  "identity_rule": "EXACT_LEAGUE_ID_AND_PROVIDER_TEAM_ID_ONLY",
+  "pit_rule": "STRICT_KICKOFF_BEFORE_TARGET",
+  "rolling_spine_sha256": "d6804eb2921bd2b2df16d69dd9cfd250b87295822def6897a604a6f7907a3e6e",
+  "rolling_spine_generated_utc": "2026-11-27T19:10:26.070640+00:00",
+  "venue_status": "UNAVAILABLE_SOURCE_SCHEMA",
+  "unavailable_fixture_count": 0,
+  "status": "OK",
+  "model_logic_changed": false
 }
