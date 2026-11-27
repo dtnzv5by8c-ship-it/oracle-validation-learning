@@ -29,7 +29,7 @@ jobs:
       - name: Validate FootyStats secret
         run: test -n "${FOOTYSTATS_API_KEY:-}"
 
-      - name: Pull current FootyStats fixture feed and reconcile the governed 385-fixture spine
+      - name: Pull current FootyStats fixture feed and reconcile the sole current rolling 50-league spine
         shell: python
         run: |
           import csv, json, os, re, time, unicodedata
@@ -40,12 +40,38 @@ jobs:
           from urllib.request import Request, urlopen
 
           API = os.environ["FOOTYSTATS_API_KEY"]
-          spine_path = Path("recovery/master_omi_source/2026-11-14/fixtures.csv")
+          spine_path = Path("data/fixtures/governed_50league_current.csv")
+          manifest_path = Path("data/fixtures/governed_50league_current_manifest.json")
+          if not spine_path.exists() or not manifest_path.exists():
+              raise SystemExit("FAIL: current rolling 50-league spine/manifest missing.")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if int(manifest.get("governed_leagues", 0)) != 50:
+              raise SystemExit("FAIL: governed_leagues must equal 50.")
+          source_generated_utc = str(manifest.get("generated_utc") or "").strip()
+          if not source_generated_utc:
+              raise SystemExit("FAIL: rolling manifest generated_utc missing.")
           out = Path("recovery/fixtures/current")
           out.mkdir(parents=True, exist_ok=True)
 
           with spine_path.open(encoding="utf-8", newline="") as f:
               spine = list(csv.DictReader(f))
+          expected_rows = int(manifest.get("fixture_rows", -1))
+          expected_ids = int(manifest.get("unique_provider_fixture_ids", -1))
+          if len(spine) != expected_rows:
+              raise SystemExit(f"FAIL: manifest/spine row mismatch: manifest={expected_rows} spine={len(spine)}")
+          fixture_ids = [str(r.get("fixture_id","")).strip() for r in spine]
+          if any(not x for x in fixture_ids) or len(set(fixture_ids)) != len(fixture_ids):
+              raise SystemExit("FAIL: rolling spine Fixture IDs are missing or duplicated.")
+          if len(set(fixture_ids)) != expected_ids:
+              raise SystemExit(f"FAIL: manifest/spine Fixture-ID count mismatch: manifest={expected_ids} spine={len(set(fixture_ids))}")
+          source_dt = datetime.fromisoformat(source_generated_utc.replace("Z","+00:00"))
+          for r in spine:
+              kickoff = str(r.get("kickoff_utc","")).strip()
+              if not kickoff:
+                  raise SystemExit(f"FAIL: missing kickoff_utc for Fixture ID {r.get('fixture_id')}")
+              kdt = datetime.fromisoformat(kickoff.replace("Z","+00:00"))
+              if kdt <= source_dt:
+                  raise SystemExit(f"FAIL: rolling spine contains past/non-future kickoff: {r.get('fixture_id')} kickoff={kickoff} generated={source_generated_utc}")
 
           def norm(value):
               value = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode().lower()
@@ -320,11 +346,19 @@ jobs:
               w.writeheader()
               w.writerows(output)
 
+          import hashlib
+          spine_sha256 = hashlib.sha256(spine_path.read_bytes()).hexdigest()
+          fixture_id_set_sha256 = hashlib.sha256("\n".join(sorted(fixture_ids)).encode("utf-8")).hexdigest()
           summary = {
               "generated_utc": datetime.now(timezone.utc).isoformat(),
+              "source_generated_utc": source_generated_utc,
+              "rolling_spine_sha256": spine_sha256,
+              "fixture_id_set_sha256": fixture_id_set_sha256,
               "source": "FootyStats API",
               "endpoint": "todays-matches",
               "governed_fixture_rows": len(spine),
+              "governed_leagues": int(manifest.get("governed_leagues", 0)),
+              "unique_provider_fixture_ids": len(set(fixture_ids)),
               "provider_rows_retrieved": len(provider_rows),
               "provider_dates_retrieved": dates,
               "matched_exact": status_counts["MATCHED_EXACT_DATE_HOME_AWAY"],
@@ -338,7 +372,7 @@ jobs:
               "fuzzy_team_matching_used": False,
               "production_model_logic_changed": False,
               "master_omi_a_et_changed": False,
-              "governance": "Identity reconciliation only. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
+              "governance": "Identity reconciliation only. Sole current rolling 50-league spine; exact Fixture-ID set and snapshot hashes are authoritative. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
               "retrievals": retrievals,
               "resolver_diagnostics": resolver_diagnostics,
           }
