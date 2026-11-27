@@ -923,3 +923,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - The prior persisted reconciliation status at data/current_reconciliation_status.json is stale (392 rows, generated 01:32:23Z) and is not admissible for the current spine. A fresh reconciliation execution is required.
 - The public intelligence artifact currently persisted is also stale relative to the current spine (384 rows generated 18:40:11Z versus current spine 371 rows generated 18:39:04Z); it is not admissible for release.
 - Newly confirmed consumer push-trigger race has been fixed in commits 8f7897b3016eaf041ed7eadfd0545d123bf82e6e and 48c55bc3e06f511c5338bdf8a6ddf04815d362b1. Do not certify until fresh reconciliation, fresh intelligence, current Team State, prediction ledger, canonical MI and independent QA gates pass.
+
+
+## 2026-11-27 21:08 SAST — public current-evidence writer serialization
+- New root cause: producer, reconciliation, and intelligence workflows could overlap as independent main-branch singleton writers. This was confirmed by the fresh 371-row spine coexisting with a successful but stale 384-row intelligence artifact and a reconciliation persistence failure.
+- Permanent controls: consumer push triggers removed; all three public current-evidence writers now share `oracle-public-current-evidence-writer` with `cancel-in-progress=false`. Fix commits: 8f7897b3016eaf041ed7eadfd0545d123bf82e6e, 48c55bc3e06f511c5338bdf8a6ddf04815d362b1, f598a68cdf3aba4b1898c1a1b174c69e078967c8, 427b94077e9e40ada27cadc9f09c95ae0fcd8465, 71557af21c703a75c3ecafc3d4b5193059b531a6.
+- Current sole fixture spine: 50 governed leagues, 371 fixtures, 371 unique provider Fixture IDs, 41 fixture-bearing season IDs, generated 2026-11-27T18:39:04.536137Z.
+- Current persisted reconciliation status remains stale (392 rows, 01:32Z) and current intelligence remains stale relative to the 371-row spine (384 rows, 18:40:11Z). Both are release-blocking until regenerated and hash-matched to the 371-row spine.
