@@ -1,6 +1,10 @@
 name: Oracle 50-League Freshness Watchdog
+# Runtime activation guard: a control-plane change must immediately exercise the watchdog; schedule remains the recurring path.
 
 on:
+  push:
+    paths:
+      - ".github/workflows/oracle-50league-freshness-watchdog.yml"
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
