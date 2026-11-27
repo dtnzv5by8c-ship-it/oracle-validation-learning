@@ -47,3 +47,15 @@ Before diagnosing or changing anything, inspect the live public GitHub state, ac
 
 ## Production readiness
 Production remains fail-closed until canonical 50-league source/identity, snapshot, xG, odds, freshness, market observation, prediction linkage, workbook schema/type integrity and verified settlement gates pass.
+
+
+## 2026-11-27 — Cycle 11 current 50-league / MI release blockers confirmed
+- Evidence: live rolling manifest generated 2026-11-27T08:33:39.602844Z with governed_leagues=50, 392 fixture rows, 392 unique provider Fixture IDs, and 41 fixture-bearing season IDs. This validates the semantic rule: governed league count is 50; fixture-bearing season-ID count may be lower.
+- Evidence: Cycle 11 root-cause register commit aea614fb36928941c857a286fdaa3d427b30d829 confirms exact 392/392 identity, no duplicate IDs, no fuzzy matching, no historical fallback, no Oracle V1.6/A:ET change.
+- RC-01: current rolling artifact is only 139 columns and is not the canonical 754x264 production MI surface. Fix path: downstream production MI rebuild; do not pad or patch cells. Regression guard: candidate must match locked canonical schema before workbook certification.
+- RC-02: xG is UNVERIFIED_NO_CAPTURE_TIMESTAMP for all 392. Fix path: require capture timestamp <= fixture PIT before admission. Regression guard: xG without valid PIT capture timestamp is inadmissible.
+- RC-03: provider payload does not expose direct GF/M, GA/M and goal/BTTS fields in the current artifact. Fix path: use authoritative evidence if available; otherwise explicit UNAVAILABLE/UNVERIFIED classification. Regression guard: no inference or numeric zero-fill.
+- RC-04: provider_status=incomplete for 390/392. Fix path: resolve source completeness or explicitly classify contract status before release. Regression guard: incomplete mandatory provider status cannot pass certification.
+- RC-05: CMOI, LTSS, actuals and downstream derived formula inputs are absent from the current artifact. Fix path: populate from authoritative pre-kickoff/settlement evidence with provenance and sample sizes. Regression guard: missing mandatory formula inputs remain release-blocking.
+- RC-06: candidate XLSX/XML is absent. Fix path: build the candidate only after the governed MI surface and ledger exist. Regression guard: no release without native Excel type/formula/error/hash/A:ET certification.
+- Fix evidence: Cycle 11 root-cause register aea614fb36928941c857a286fdaa3d427b30d829; current rolling-spine persistence 0420ef36fc4772a08b4268ac05830a0c142e0294; permanent continuation controls 9604d13ee44be44eceedd5be7948156184f8a2dc.
