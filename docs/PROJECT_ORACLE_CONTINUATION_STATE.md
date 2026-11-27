@@ -888,3 +888,10 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 7. Independent 100% QA gate.
 
 Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:ET remain unchanged.
+
+
+## 2026-11-27 — current cycle continuation
+- Fresh public rolling manifest: 384 fixtures, 384 unique provider Fixture IDs, governed_leagues=50, season_ids_with_fixtures=41, generated 2026-11-27T16:36:18.975669Z.
+- Newly confirmed dependency defect: Current Data was scheduled at :10 UTC while the rolling-spine producer runs at :15 UTC. This ordering can make the consumer persist the prior cycle's spine/reconciliation. Permanent schedule fix: private commit 546272485e82cbb3e651c5e66241753642019117, Current Data now runs at :20 UTC.
+- Controlled runtime: Current Data run 46044401678 was triggered against the fresh spine; attempt 1 failed and attempt 2 is queued/running. Do not certify until its durable Team State, reconciliation hashes and prediction ledger are independently verified.
+- Binding blockers remain: authoritative current prediction ledger with exact row/Fixture-ID parity, canonical 264-column MI, PIT-valid xG where admitted, mandatory formula inputs, and native XLSX/XML/A:ET/type/formula/hash certification.
