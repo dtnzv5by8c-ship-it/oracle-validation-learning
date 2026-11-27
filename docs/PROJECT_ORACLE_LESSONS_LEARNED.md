@@ -186,3 +186,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: private oracle-football-data commit bb4f0d1243b8dd4c2ab7c1a84630c7f1598a64f5 adds an explicit pre-ingestion gate that fetches the authoritative public rolling spine and manifest, enforces governed_leagues=50, exact row/Fixture-ID parity, unique IDs, and strict future kickoff admission before current-data ingestion.
 - Validation result: the fix is committed to the live private production repository; the failed public run was requeued for failed-job validation. Certification remains blocked until a completed rerun proves the gate and the downstream current prediction ledger/persistence chain.
 - Regression guard: every current-data run must explicitly validate the authoritative rolling 50-league public spine before ingestion; the exact-identity regression test must continue to require the rolling-spine contract in the current workflow; no dated/frozen fixture input is admissible.
+
+
+## 2026-11-27 — public Excel exporter was not enforcing the locked canonical row surface
+- Cause: the public `oracle-master-omi-excel.yml` exporter generated a review workbook directly from the current prediction ledger and only checked that Market Intelligence had 264 columns. It did not enforce the locked canonical 755-row / 754-governed-fixture surface before artifact admission.
+- Evidence: locked canonical V2.1.1 evidence establishes Market Intelligence = 755 rows × 264 columns with 754 governed fixtures; current authoritative ledger is a rolling current snapshot and may legitimately contain a different fixture count. A current ledger must never be padded, truncated, or replaced merely to reach 754 rows.
+- Fix commit: `5ae8a705782a879accd0e94882c666a41f12e931` adds the canonical contract manifest and a hard pre-admission 755×264 / 754-unique-Fixture-ID gate.
+- Regression guard: no workbook produced from a noncanonical row surface may be uploaded as `Oracle-Master-OMI-Current`; current rolling fixture count remains governed by the 50-league spine and must not be forced to 754.
+- Remaining dependency: the automation environment must have access to the authoritative canonical V2.1.1 binary/base workbook before a true 755×264 production workbook can be materialized and certified. Until then the export remains fail-closed.
