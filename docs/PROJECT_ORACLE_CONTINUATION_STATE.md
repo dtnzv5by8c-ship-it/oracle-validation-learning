@@ -845,3 +845,12 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Fix: `446a0868a4581b866f7962c7ab0c33e12de7fda3` adds fetch/rebase/push retry logic to the intelligence persistence step.
 - Runtime validation: pending fresh run from the fix commit.
 - Next action: verify persisted current intelligence, then consume the same fresh spine for reconciliation/Team State/prediction ledger and canonical MI QA.
+
+
+## 2026-11-27 15:40 SAST — Team State namespace adapter field mismatch
+- Historical-first evidence: public Current Data run 46000249579 completed ingestion, current-spine reconciliation, Team State build, persistence, namespace validation and exact-identity tests successfully; it failed only at prediction compatibility with `DATA_GATED: no valid pre-match state rows`.
+- Root cause: current Team State builder writes provider-derived league namespace into `league_code`, while compatibility adapter read `league`. All 392 rows were therefore skipped despite valid namespace data.
+- Fix: private production commit `db0faa05a47b887bfa8dc306d78cb7c31239b1f7` makes compatibility consume `league_code` with backward-compatible `league` fallback. Regression test commit `d779d0484ce772bbb0896fec6cd75d1214c65ae7` guards the field contract.
+- Validation: corrected source is live; fresh Current Data runtime validation is still required. Do not certify from run 46000249579.
+- Parallel result: current FootyStats intelligence persistence run 46000338562 completed successfully, with the correct rolling-spine input and artifact persistence.
+- Next gate sequence: fresh Current Data run on the corrected private commit -> authoritative current prediction ledger with exact Fixture-ID row/set parity -> canonical 264-column MI -> full PIT/provenance/type/leakage QA -> native XLSX/XML/A:ET certification -> independent 100%.
