@@ -163,3 +163,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commits: reconciliation `f598a68cdf3aba4b1898c1a1b174c69e078967c8`; intelligence `427b94077e9e40ada27cadc9f09c95ae0fcd8465`; producer `71557af21c703a75c3ecafc3d4b5193059b531a6`.
 - Validation result: all three public workflows now share the single `oracle-public-current-evidence-writer` concurrency group with `cancel-in-progress=false`. The currently persisted 371-row spine remains authoritative; fresh reconciliation/intelligence execution is required before release because existing reconciliation/intelligence artifacts are not yet proven to share the current 371-row spine hash.
 - Regression guard: no public current-evidence writer may commit concurrently with another public current-evidence writer. Exact rolling-spine SHA and Fixture-ID-set SHA must match before downstream persistence/certification. Green workflow status alone is never sufficient.
+
+
+## 2026-11-27 — reconciliation persistence race on public main
+- Cause: the public current FootyStats reconciliation job generated a valid current reconciliation certificate but persisted it with a single `git push`. Run `46051033071` completed the full reconciliation step successfully, generated a 384-fixture certificate with exact rolling-spine SHA `b2d152cadf13ddbc3ad471c7c1aa0ce1d9d7e3f28a816b1675ac32431e543329` and Fixture-ID-set SHA `9ee8d6f977f57ad7e11147b65c84bac042f5a9cee8e463dbc035c73c09ed1afa`, then failed only because `main` had advanced: `! [rejected] main -> main (fetch first)`.
+- Evidence: workflow job `140693820173`; reconciliation itself passed, then persistence failed at the push step. The failure is independent of fixture identity, provider matching, PIT cutoff, or model logic.
+- Fix commit: `929b1ce45e84a111b44916d1ee50129bb5a51c49` changes reconciliation persistence to fetch/rebase/retry up to five times and never force-pushes.
+- Validation result: code-level fix committed to live public main; runtime validation is pending the next post-fix reconciliation execution. No stale artifact is being promoted.
+- Regression guard: current reconciliation persistence must retry after a moving main head and may not fail closed solely because another governed writer advanced main. Force-push is prohibited; exact rolling-spine SHA and Fixture-ID-set SHA remain the admissibility controls.
