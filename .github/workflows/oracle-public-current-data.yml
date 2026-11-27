@@ -179,7 +179,7 @@ jobs:
               raise SystemExit("CURRENT_TEAM_STATE_PIT_BLOCKED_EMPTY")
           bad=[]
           for r in rows:
-              target=dt(r["date"]+"T00:00:00+00:00")
+              target=dt(r["kickoff_utc"])
               for side in ("home_state_date","away_state_date"):
                   v=str(r.get(side) or "").strip()
                   if not v or dt(v) >= target:
