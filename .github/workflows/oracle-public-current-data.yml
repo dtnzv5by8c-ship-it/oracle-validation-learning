@@ -57,6 +57,10 @@ jobs:
 
       - name: Fail closed if reconciliation spine snapshot differs from live rolling spine,        working-directory: oracle-source,        run: |,          set -euo pipefail,          python - <<'PY',          import csv, json, urllib.request, hashlib,          from pathlib import Path,          url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/main/data/fixtures/governed_50league_current.csv",          manifest_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/main/data/fixtures/governed_50league_current_manifest.json",          req=urllib.request.Request(url, headers={"User-Agent":"Oracle-Public-Current-Data/1.0","Cache-Control":"no-cache"}),          with urllib.request.urlopen(req, timeout=60) as r:,              raw=r.read(),          with urllib.request.urlopen(urllib.request.Request(manifest_url,headers={"User-Agent":"Oracle-Public-Current-Data/1.0","Cache-Control":"no-cache"}), timeout=60) as r:,              manifest=json.loads(r.read().decode("utf-8")),          live=list(csv.DictReader(raw.decode("utf-8-sig").splitlines())),          status=json.loads(Path("data/current_reconciliation_status.json").read_text()),          reported=int(status.get("governed_upcoming_spine_rows") or 0),          live_ids=sorted({str(x.get("fixture_id") or "").strip() for x in live if str(x.get("fixture_id") or "").strip()}),          live_n=len(live_ids),          live_sha=hashlib.sha256(raw).hexdigest(),          live_ids_sha=hashlib.sha256("\n".join(live_ids).encode("utf-8")).hexdigest(),          if reported != live_n:,              raise SystemExit(f"CURRENT_RECONCILIATION_SNAPSHOT_MISMATCH: reported={reported} live={live_n}"),          if status.get("rolling_spine_sha256") != live_sha:,              raise SystemExit("CURRENT_RECONCILIATION_SPINE_HASH_DRIFT"),          if status.get("rolling_spine_fixture_ids_sha256") != live_ids_sha:,              raise SystemExit("CURRENT_RECONCILIATION_FIXTURE_ID_SET_DRIFT"),          if manifest.get("generated_utc") != status.get("source_generated_utc"):,              raise SystemExit("CURRENT_RECONCILIATION_MANIFEST_TIMESTAMP_DRIFT"),          if status.get("status") != "CURRENT":,              raise SystemExit(f"CURRENT_RECONCILIATION_NOT_CURRENT: {status.get('status')}"),          if float(status.get("governed_upcoming_spine_coverage") or 0) != 1.0:,              raise SystemExit(f"CURRENT_RECONCILIATION_COVERAGE_NOT_100: {status.get('governed_upcoming_spine_coverage')}"),          print({"status":"PASS","live_spine_rows":live_n,"coverage":status.get("governed_upcoming_spine_coverage"),"spine_sha256":live_sha}),          PY,,      - name: Reconcile independent current sources
       - name: Reconcile independent current sources
+          if int(status.get("fixture_metadata_mismatch_count") or 0) != 0:
+              raise SystemExit(f"CURRENT_RECONCILIATION_METADATA_MISMATCH={status.get('fixture_metadata_mismatch_count')}")
+          if status.get("venue_status") not in {"AVAILABLE","UNAVAILABLE_SOURCE_SCHEMA"}:
+              raise SystemExit(f"CURRENT_RECONCILIATION_VENUE_STATUS_INVALID={status.get('venue_status')}")
         working-directory: oracle-source
         run: python scripts/reconcile_current_sources.py
 
@@ -106,6 +110,9 @@ jobs:
         run: python research/otms/build_current_otms.py
 
       - name: Validate tooling
+      - name: Run exact-identity and current-spine regression gates
+        working-directory: oracle-source
+        run: python -m unittest tests/test_exact_identity_regression.py
         working-directory: oracle-source
         run: |
           python -m py_compile scripts/build_team_dna.py scripts/build_fixture_dynamics.py scripts/build_model_interaction.py scripts/publish_prediction_run.py scripts/classify_misses.py scripts/validate_prediction_run.py scripts/settle_prediction_run.py scripts/feed_learning_ledgers.py scripts/update_learning_ledgers.py scripts/probability_calibration_engine.py scripts/team_prediction_behaviour_engine.py
