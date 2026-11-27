@@ -91,3 +91,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commits: private production `9e7c422d9c66ff4651f239711d6e1fd5e30316b8` derives the existing league namespace from exact FootyStats `league_id -> league` evidence and fails closed if any governed league ID lacks a provider league name; public workflow `075d90ccba6f5f4ab5ed37dd8a084dccb6b5bd0f` adds a mandatory nonblank league-namespace gate and runs the exact-identity regression suite before compatibility.
 - Validation result: code-level fix and public regression gate are live; fresh runtime validation is pending the newly triggered Current Data execution.
 - Regression guard: Team State cannot enter prediction compatibility if any current row lacks an exact provider-derived league namespace; no name-based team identity or historical fallback is permitted.
+
+
+## 2026-11-27 — current intelligence persistence race on public main
+- Cause: the current FootyStats intelligence workflow generated the correct current artifact from the rolling spine but persisted by a single direct `git push`. Other governed workflows/lesson commits advanced public main between checkout and push, causing `fetch first` rejection and discarding the otherwise valid intelligence artifact.
+- Evidence: workflow run 46000085695 generated the intelligence summary successfully, then failed at persistence with `! [rejected] main -> main (fetch first)`. The run processed the current rolling spine rather than the old 385-row artifact after the previous input fix.
+- Fix commit: `446a0868a4581b866f7962c7ab0c33e12de7fda3` adds fetch/rebase/push retry logic (five attempts) to the persistence step.
+- Validation result: code-level race hardening is live; fresh runtime validation is pending the workflow run triggered by this commit.
+- Regression guard: governed current-intelligence persistence must tolerate concurrent public-main updates without dropping the generated artifact; direct single-attempt pushes are prohibited.
