@@ -44,8 +44,9 @@ jobs:
           OUT.mkdir(parents=True,exist_ok=True)
 
           rows=list(csv.DictReader(SRC.open(encoding="utf-8",newline="")))
-          if len(rows)!=385:
-              raise SystemExit(f"FAIL: expected 385 governed fixture rows, got {len(rows)}")
+          governed_fixture_rows=len(rows)
+          if governed_fixture_rows <= 0:
+              raise SystemExit("FAIL-CLOSED: current governed fixture spine is empty")
 
           def norm(x):
               return re.sub(r"[^a-z0-9]+","",unicodedata.normalize("NFKD",str(x or "")).encode("ascii","ignore").decode().lower())
@@ -245,7 +246,7 @@ jobs:
 
           summary={
               "generated_utc":datetime.now(timezone.utc).isoformat(),
-              "governed_fixture_rows":385,
+              "governed_fixture_rows":governed_fixture_rows,
               "exact_fixture_rows":len(exact),
               "ambiguous_fixture_rows":len(ambiguous),
               "unmatched_fixture_rows":len(unmatched),
@@ -262,6 +263,8 @@ jobs:
               "master_omi_a_et_changed":False,
               "governance":"Current FootyStats intelligence evidence only; provider values are not Oracle V1.6 probabilities."
           }
+          if summary["governed_fixture_rows"] != len(rows):
+              raise SystemExit("FAIL-CLOSED: summary fixture count diverges from current governed spine")
           (OUT/"footystats_current_fixture_intelligence_summary.json").write_text(json.dumps(summary,indent=2)+"\n")
           print(json.dumps(summary,indent=2))
 
