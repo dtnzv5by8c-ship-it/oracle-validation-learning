@@ -342,3 +342,17 @@ Canonical workbook inspection completed:
 
 ---
 END HANDOVER
+
+
+## 2026-11-28 — Permanent exporter architecture fix applied
+The previous variable-row exporter was corrected so it can no longer delete/rebuild the locked canonical `Market Intelligence` sheet. The locked canonical sheet remains the immutable A:ET reference surface; the variable rolling 50-league current data is now materialised in a separate `Market Intelligence CURRENT` sheet.
+
+Commits:
+- `dbdad0e3fde2c474808cd2477e25fd967b4043f5` — safe non-destructive current-surface builder.
+- `6af5a4b32311af09e4b4ef93c7dd541f1c653394` — workflow validates `Market Intelligence CURRENT` and retains locked canonical surface.
+- `d72bd58aad25ee8bd4ea32a4520b6c513c268bfb` — derived eligibility outputs removed from mandatory-input gate.
+- `3460cca37f254589aa8e0786c13ca1725d12b407` — lessons-learned record.
+
+Provider-specific FootyStats Last-5 GF/M and GA/M mappings were corrected to their provider fields. Exact Fixture-ID/PIT controls remain active.
+
+Current runtime remains fail-closed until the public current prediction ledger and Team State are regenerated against the same fresh rolling 50-league spine. At the latest inspected state, the rolling spine is 359 rows while persisted current Team State/ledger remain 369 rows; this mismatch is correctly blocking release.
