@@ -196,8 +196,12 @@ jobs:
           schema=json.loads(Path("docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json").read_text())
           if locked_header!=schema["headers"]:
               raise SystemExit("MASTER_OMI_BLOCKED_LOCKED_HEADER_CONTRACT")
-          locked_fingerprint=hashlib.sha256(json.dumps([[locked.cell(r,c).value for c in range(1,265)] for r in range(1,min(locked.max_row,755)+1)],default=str,separators=(",",":")).encode()).hexdigest()
-          if locked_fingerprint != hashlib.sha256(json.dumps([[load_workbook(Path("runtime/work/Master_OMI_Report_BASE.xlsx"),data_only=False,read_only=False)["Market Intelligence"].cell(r,c).value for c in range(1,265)] for r in range(1,min(locked.max_row,755)+1)],default=str,separators=(",",":")).encode()).hexdigest():
+          base_wb=load_workbook(Path("runtime/work/Master_OMI_Report_BASE.xlsx"),data_only=False,read_only=False)
+          base_locked=base_wb["Market Intelligence"]
+          def surface_hash(ws):
+              payload=[(ws.cell(r,c).coordinate,ws.cell(r,c).value) for r in range(1,ws.max_row+1) for c in range(1,151)]
+              return hashlib.sha256(json.dumps(payload,default=str,separators=(",",":")).encode()).hexdigest()
+          if surface_hash(locked) != surface_hash(base_locked):
               raise SystemExit("MASTER_OMI_BLOCKED_A_ET_CANONICAL_SURFACE_CHANGED")
           print({"status":"PASS","current_rows":current.max_row-1,"columns":current.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column,"locked_surface":"UNCHANGED"})
           PY
