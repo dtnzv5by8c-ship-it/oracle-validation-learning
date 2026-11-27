@@ -778,3 +778,23 @@ Run #6 returned status=COMPLETE with governed_leagues=50 and scope_reconciliatio
 
 ### Highest-value next action
 Use the next naturally scheduled prospective cycle with genuinely new, pre-kickoff, data-admissible fixtures to advance the immutable evidence chain. Do not rerun completed source validation without new evidence.
+
+
+## Current continuation control — 2026-11-27
+
+### Mandatory starting point for every future cycle
+Read this file and `docs/PROJECT_ORACLE_LESSONS_LEARNED.md` before diagnosing a new failure. Then inspect live GitHub state and active runs. Previously closed defects must be treated as closed unless new evidence proves regression.
+
+### Latest recurring defects now permanently controlled
+1. **Manifest timestamp drift:** independent process timestamps are not identity keys. Use rolling-spine SHA-256 and exact Fixture-ID-set SHA-256.
+2. **50-league semantic mismatch:** `governed_leagues=50` is the universe contract. A rolling window may contain fewer than 50 fixture-bearing `league_season_id` values. Current Team State now validates the manifest universe instead of requiring 50 season IDs.
+3. **Prediction-ledger dependency:** current prediction ledger must be built from the governed rolling spine with exact row and Fixture-ID parity before Master OMI certification.
+
+### Fix evidence
+- Public lessons-learned update: commit `c8ab5159efe1e3c1d9ea60e516d0a0eceefcf1ed`.
+- Team State semantic fix: `oracle-football-data` commit `2b56ee95f9ade3f4c2307e46b4b14e929670432a`.
+- Team State regression guard: `oracle-football-data` commit `ae977a2efcb896cfdb58d4e907f529a39b26cfae`.
+- Timestamp-drift workflow fix: public commit `21d848db17ac1f05dbe71c02fe358f172686a28`.
+
+### Release discipline
+The canonical Master OMI workbook remains fail-closed until the independent 100% QA gate certifies the complete 50-league MI surface, workbook integrity, provenance, PIT chronology, formula compatibility, and exact A:ET protection. No green workflow alone is a release signal.
