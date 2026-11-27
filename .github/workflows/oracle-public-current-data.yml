@@ -13,6 +13,9 @@ on:
   schedule:
     - cron: "20 * * * *"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Oracle 50-League Upcoming Fixture + MI Build"]
+    types: [completed]
 
 permissions:
   contents: write
@@ -23,6 +26,7 @@ concurrency:
 
 jobs:
   current:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -318,6 +322,28 @@ jobs:
               extra=sorted(set(led_ids)-set(fx_ids))
               raise SystemExit(f"CURRENT_LEDGER_EXACT_FIXTURE_ID_SET_FAIL missing={missing[:10]} extra={extra[:10]}")
           print({"status":"PASS","rows":len(led),"exact_fixture_id_set":True})
+          PY
+
+      - name: Revalidate ledger against live rolling spine immediately before publication
+        working-directory: oracle-source
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, urllib.request
+          from pathlib import Path
+          spine_url="https://raw.githubusercontent.com/dtnzv5by8c-ship-it/oracle-validation-learning/main/data/fixtures/governed_50league_current.csv"
+          req=urllib.request.Request(spine_url,headers={"User-Agent":"Oracle-Public-Current-Data/1.0","Cache-Control":"no-cache"})
+          with urllib.request.urlopen(req,timeout=60) as r:
+              live=list(csv.DictReader(r.read().decode("utf-8-sig").splitlines()))
+          led=list(csv.DictReader(Path("research/four_model/outputs/omi_prediction_ledger_current.csv").open(newline="",encoding="utf-8")))
+          live_ids=[str(x.get("fixture_id") or "").strip() for x in live]
+          led_ids=[str(x.get("fixture_id") or "").strip() for x in led]
+          if len(live_ids)!=len(set(live_ids)) or len(led_ids)!=len(set(led_ids)):
+              raise SystemExit("CURRENT_LEDGER_FINAL_IDENTITY_INVALID")
+          if set(live_ids)!=set(led_ids) or len(live_ids)!=len(led_ids):
+              missing=sorted(set(live_ids)-set(led_ids)); extra=sorted(set(led_ids)-set(live_ids))
+              raise SystemExit(f"CURRENT_LEDGER_FINAL_LIVE_SPINE_PARITY_FAIL missing={missing[:10]} extra={extra[:10]} live={len(live_ids)} ledger={len(led_ids)}")
+          print({"status":"PASS","live_spine_rows":len(live_ids),"ledger_rows":len(led_ids),"exact_fixture_id_set":True})
           PY
       - name: Publish current prediction ledger when authoritative private production output exists
         working-directory: oracle-source
