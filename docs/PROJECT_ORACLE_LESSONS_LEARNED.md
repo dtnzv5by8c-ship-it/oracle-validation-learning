@@ -194,3 +194,12 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: `5ae8a705782a879accd0e94882c666a41f12e931` adds the canonical contract manifest and a hard pre-admission 755×264 / 754-unique-Fixture-ID gate.
 - Regression guard: no workbook produced from a noncanonical row surface may be uploaded as `Oracle-Master-OMI-Current`; current rolling fixture count remains governed by the 50-league spine and must not be forced to 754.
 - Remaining dependency: the automation environment must have access to the authoritative canonical V2.1.1 binary/base workbook before a true 755×264 production workbook can be materialized and certified. Until then the export remains fail-closed.
+
+
+## 2026-11-27 — Permanent Master OMI row-contract/materialisation fix
+- Root cause: the Excel export path incorrectly treated the historical canonical 754/755-row workbook surface as a frozen weekly fixture count, while the authoritative current spine is a variable rolling 50-league Fixture-ID set. This created a structural deadlock even when current upstream data was valid.
+- Correct contract: weekly fixture row count must equal the fresh rolling 50-league Fixture-ID set exactly; do not pad, truncate, or carry stale fixtures. The locked requirement is the 264-column Market Intelligence schema and A:ET cell-reference contract.
+- Permanent implementation: docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json plus scripts/build_master_omi_current.py materialise the 264-column schema against the exact current Fixture-ID set and explicitly classify unavailable evidence. Excel workflow gate now validates 264 columns and variable current row count rather than 754/755 fixed rows.
+- FootyStats current PPG/GF/M/GA/M are admitted from exact current provider/state evidence; xG remains quarantined when capture timestamp provenance is unproven.
+- Regression guard: remediation and independent QA automations now explicitly reject fixed weekly row-count assumptions and require exact current Fixture-ID parity.
+- Oracle V1.6 and the A:ET cell-reference contract remain unchanged.
