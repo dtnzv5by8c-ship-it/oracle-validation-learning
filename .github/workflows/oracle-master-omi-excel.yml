@@ -115,6 +115,27 @@ jobs:
       - name: Install Excel dependencies
         run: python -m pip install --disable-pip-version-check pandas openpyxl
 
+      - name: Enforce exact current Team-State and prediction-ledger parity
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          spine=list(csv.DictReader(Path("data/fixtures/governed_50league_current.csv").open(newline="",encoding="utf-8-sig")))
+          ledger=list(csv.DictReader(Path("research/four_model/outputs/omi_prediction_ledger_current.csv").open(newline="",encoding="utf-8-sig")))
+          state=list(csv.DictReader(Path("database/current_prematch_team_state.csv").open(newline="",encoding="utf-8-sig")))
+          sid={str(r.get("fixture_id") or "").strip() for r in spine}
+          lid={str(r.get("fixture_id") or "").strip() for r in ledger}
+          tid={str(r.get("fixture_id") or "").strip() for r in state}
+          if len(spine) != len(sid): raise SystemExit("MASTER_OMI_BLOCKED_SPINE_DUPLICATE_FIXTURE_IDS")
+          if len(ledger) != len(lid) or lid != sid:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_LEDGER_PARITY spine={len(sid)} ledger={len(lid)}")
+          if len(state) != len(tid) or tid != sid:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_TEAM_STATE_PARITY spine={len(sid)} team_state={len(tid)}")
+          print({"status":"PASS","spine":len(sid),"ledger":len(lid),"team_state":len(tid)})
+          PY
+
       - name: Require authoritative canonical workbook base
         working-directory: oracle
         run: |
