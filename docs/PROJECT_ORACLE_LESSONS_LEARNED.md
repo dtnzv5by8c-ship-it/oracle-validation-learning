@@ -107,3 +107,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: private production `db0faa05a47b887bfa8dc306d78cb7c31239b1f7` changes the adapter to read `league_code` with backward-compatible `league` fallback.
 - Validation result: source-level correction committed; fresh Current Data runtime validation is required before promotion. No Oracle V1.6 model logic, probabilities, calibration, thresholds, betting eligibility or A:ET changed.
 - Regression guard: private test `d779d0484ce772bbb0896fec6cd75d1214c65ae7` asserts the compatibility adapter consumes the current Team State `league_code` field. The public namespace gate remains mandatory before compatibility.
+
+
+## 2026-11-27 — current upcoming spine admitted past-kickoff fixtures
+- Cause: the rolling "upcoming" producer queried today through +7 days but admitted every provider row returned for those dates, including fixtures whose exact provider `date_unix` had already passed at producer execution time.
+- Evidence: independent gate audit at 2026-11-27T15:11:03Z found 6/392 persisted fixtures with `kickoff_utc <= 15:11:03Z`, including 8758024, 8758023, 8597543, 8568422 and 8620554. The artifact is explicitly the governed upcoming spine.
+- Fix commit: `d19cf316594f2ed35a86d7853b4cd2e2a3260cc2` filters admission to exact provider kickoff timestamps strictly later than producer `now` and fail-closes missing kickoff timestamps; persistence validation asserts every persisted kickoff is later than manifest `generated_utc`.
+- Validation result: code-level fix is live; fresh workflow runtime validation is pending. Do not certify the corrected spine until a new producer run persists a fixture set with zero past/non-future kickoffs.
+- Regression guard: future changes must preserve strict `kickoff_utc > generated_utc` admission for the upcoming spine; no timezone normalization or guessed timestamps are permitted.
