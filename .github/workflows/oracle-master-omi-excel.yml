@@ -1,4 +1,5 @@
 name: Oracle Master OMI Excel Export
+# Permanent variable-row / 264-column materialisation contract active.
 # Continuous Master OMI maintenance heartbeat: rerun governed source reconciliation.
 
 on:
