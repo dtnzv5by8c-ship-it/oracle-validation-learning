@@ -39,3 +39,8 @@ FAIL-CLOSED / NOT RELEASED.
 
 ## Next gate sequence
 Fresh rolling 50-league producer -> fresh current-data reconciliation -> authoritative current prediction ledger -> canonical 264-column MI -> exhaustive cell/type/provenance/chronology/leakage QA -> native XLSX/XML and A:ET certification -> exact hashes -> 100% release.
+
+## Additional 03:30 SAST control
+A new public current-data workflow gate now compares the reconciliation snapshot's governed-spine row count against the live rolling public spine and requires CURRENT status plus 100% exact coverage. Any drift (for example the current 372-row reconciliation artifact versus the newer 392-row rolling spine) fails closed before Team State/OMI admission. This prevents a stale reconciliation snapshot from being mistaken for the current weekly universe.
+
+Control commit: dd438b412512060a56a57d89d3b635133035b18a.
