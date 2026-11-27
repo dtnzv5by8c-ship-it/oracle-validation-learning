@@ -6,6 +6,8 @@ on:
   push:
     paths:
       - ".github/workflows/oracle-public-current-data.yml"
+      - "data/fixtures/governed_50league_current.csv"
+      - "data/fixtures/governed_50league_current_manifest.json"
   schedule:
     - cron: "10 * * * *"
   workflow_dispatch:
@@ -82,7 +84,7 @@ jobs:
               raise SystemExit("CURRENT_RECONCILIATION_SPINE_HASH_DRIFT")
           if status.get("rolling_spine_fixture_ids_sha256") != live_ids_sha:
               raise SystemExit("CURRENT_RECONCILIATION_FIXTURE_ID_SET_DRIFT")
-          if manifest.get("generated_utc") != status.get("source_generated_utc"):
+          if manifest.get("generated_utc") != status.get("rolling_spine_generated_utc"):
               raise SystemExit("CURRENT_RECONCILIATION_MANIFEST_TIMESTAMP_DRIFT")
           if status.get("status") != "CURRENT":
               raise SystemExit(f"CURRENT_RECONCILIATION_NOT_CURRENT: {status.get('status')}")
