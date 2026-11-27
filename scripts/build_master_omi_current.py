@@ -28,6 +28,86 @@ CONTRACT = ROOT / "docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json"
 OUT = ROOT / "Master_OMI_Report_CURRENT.xlsx"
 STATUS = ROOT / "data/master_omi_current_build_status.json"
 
+# Exact field mappings from the authoritative current ledger / FootyStats intelligence.
+# Only fields with a direct authoritative source mapping are promoted; everything else
+# is explicitly classified unavailable rather than inferred.
+alias = {
+    "BTTS Yes":"BTTS_raw",
+    "Home 1X":"DC_HOME_raw",
+    "Away X2":"DC_AWAY_raw",
+    "Home 1X + Over 1.5":"COMBO_HOME_raw",
+    "Away X2 + Over 1.5":"COMBO_AWAY_raw",
+    "M-1UP Home":"M1UP_HOME_raw",
+    "M-1UP Away":"M1UP_AWAY_raw",
+    "Historical Accuracy Status":"calibration_status",
+    "Evidence / Schedule Gate":"status",
+    "Home Last-5 Form":"home_last5_form",
+    "Home Last-5 N":"home_overall_sample",
+    "Home Goals For Avg":"home_last5_gf_m",
+    "Home Goals Against Avg":"home_last5_ga_m",
+    "Home Points Per Game":"home_last5_ppg",
+    "Home-at-Home N":"home_venue_sample",
+    "Home-at-Home Form":"home_venue_last5_form",
+    "Away Last-5 Form":"away_last5_form",
+    "Away Last-5 N":"away_overall_sample",
+    "Away Goals For Avg":"away_last5_gf_m",
+    "Away Goals Against Avg":"away_last5_ga_m",
+    "Away Points Per Game":"away_last5_ppg",
+    "Away-Away N":"away_venue_sample",
+    "Away-Away Form":"away_venue_last5_form",
+    "H2H Last-5":"h2h_last_meeting_utc",
+    "H2H N":"h2h_sample_n",
+    "H2H Avg Total Goals":"h2h_avg_goals",
+    "H2H Current Home Avg Goals":"h2h_home_wins",
+    "H2H Current Away Avg Goals":"h2h_away_wins",
+    "FootyStats Home Last 5 Form":"home_last5_form",
+    "FootyStats Away Last 5 Form":"away_last5_form",
+    "FootyStats Home Last 5 PPG":"home_last5_ppg",
+    "FootyStats Away Last 5 PPG":"away_last5_ppg",
+    "FootyStats Home Last 5 GF/M":"home_last5_gf_m",
+    "FootyStats Away Last 5 GF/M":"away_last5_gf_m",
+    "FootyStats Home Last 5 GA/M":"home_last5_ga_m",
+    "FootyStats Away Last 5 GA/M":"away_last5_ga_m",
+    "FootyStats Home Venue Last 5 Form":"home_venue_last5_form",
+    "FootyStats Away Venue Last 5 Form":"away_venue_last5_form",
+    "FootyStats Home Venue PPG":"home_venue_ppg",
+    "FootyStats Away Venue PPG":"away_venue_ppg",
+    "FootyStats Home Venue GF/M":"home_venue_gf_m",
+    "FootyStats Away Venue GF/M":"away_venue_gf_m",
+    "FootyStats Home Venue GA/M":"home_venue_ga_m",
+    "FootyStats Away Venue GA/M":"away_venue_ga_m",
+    "FootyStats Home Overall Sample N":"home_overall_sample",
+    "FootyStats Away Overall Sample N":"away_overall_sample",
+    "FootyStats Home Venue Sample N":"home_venue_sample",
+    "FootyStats Away Venue Sample N":"away_venue_sample",
+    "FootyStats Home BTTS %":"fs_home_btts_pct",
+    "FootyStats Away BTTS %":"fs_away_btts_pct",
+    "FootyStats Home O1.5 Match %":"fs_home_over15_pct",
+    "FootyStats Away O1.5 Match %":"fs_away_over15_pct",
+    "FootyStats Home O2.5 Match %":"fs_home_over25_pct",
+    "FootyStats Away O2.5 Match %":"fs_away_over25_pct",
+    "FootyStats Home U4.5 Match %":"fs_home_under45_pct",
+    "FootyStats Away U4.5 Match %":"fs_away_under45_pct",
+    "FootyStats Home League Position":"fs_home_league_position",
+    "FootyStats Away League Position":"fs_away_league_position",
+    "FootyStats History Cutoff UTC":"footystats_snapshot_utc",
+    "FootyStats Source / Join Status":"intelligence_status",
+    "FootyStats Data Quality Status":"intelligence_status",
+    "Goal Research Block Reason":"xg_status",
+}
+# Mandatory current-release inputs. Provider-unavailable research fields are not
+# treated as mandatory; missing values here remain a hard release blocker.
+mandatory = {
+    "Fixture ID","Fixture Date","Provider Season ID","Home Team ID","Away Team ID",
+    "Schedule Reconciliation","History Cutoff UTC",
+    "BTTS Yes","Home 1X","Away X2","Home 1X + Over 1.5","Away X2 + Over 1.5",
+    "M-1UP Home","M-1UP Away",
+    "Home Last-5 Form","Home Last-5 N","Home Goals For Avg","Home Goals Against Avg","Home Points Per Game",
+    "Away Last-5 Form","Away Last-5 N","Away Goals For Avg","Away Goals Against Avg","Away Points Per Game",
+    "FootyStats Home Last 5 PPG","FootyStats Away Last 5 PPG",
+}
+blocked_fields = []
+
 def die(code, **detail):
     STATUS.parent.mkdir(parents=True, exist_ok=True)
     STATUS.write_text(json.dumps({"status":"BLOCKED","reason":code, **detail}, indent=2), encoding="utf-8")
