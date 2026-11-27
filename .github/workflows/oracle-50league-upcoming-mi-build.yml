@@ -13,8 +13,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: oracle-upcoming-50-mi-build
-  cancel-in-progress: true
+  group: oracle-public-current-evidence-writer
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -447,3 +447,5 @@ jobs:
 # 2026-11-27 17:39 SAST: controlled runtime validation trigger after strict past-kickoff admission fix; no production-model change.
 
 # 2026-11-27 20:37 SAST: force fresh runtime validation of strict rolling-spine temporal gate.
+
+# 2026-11-27 21:08 SAST: serialize all public current-evidence writers under one concurrency group; prevent producer/reconciliation/intelligence main-branch write races.
