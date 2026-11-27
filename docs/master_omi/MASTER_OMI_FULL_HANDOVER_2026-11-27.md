@@ -313,5 +313,32 @@ DO NOT GIVE ME ANOTHER STATUS-ONLY RESPONSE. EXECUTE THE RECOVERY, BUILD, QA AND
 ## SUCCESS CONDITION
 The task is complete only when Nolan has an actual current Master OMI XLSX with the Market Intelligence tab and an independent QA PASS, or when a hard technical impossibility is demonstrated with exact evidence.
 
+
+## IMMEDIATE WORKING REPORT CREATED — 27 NOV 2026
+A local working export was successfully created from the locked canonical binary plus the latest public rolling intelligence snapshot.
+
+File:
+Oracle_Master_OMI_CURRENT_WORKING_2026-11-27.xlsx
+
+Working export SHA256:
+8e6841adbc8a7a5177ce5a6905864993db62ee88afd99114b88e438f2b85e
+
+Important status:
+- This is a WORKING intelligence export, not the final certified production Master OMI.
+- The original locked `Market Intelligence` sheet remains untouched at 755 x 264.
+- A separate `Market Intelligence CURRENT` sheet contains the current 369-fixture rolling intelligence surface at exactly 264 columns.
+- `CURRENT REPORT STATUS` records the release state and known data gates.
+- Canonical Market Intelligence A:ET was programmatically compared before/after and verified unchanged.
+- Current source snapshot used the successful 50-League MI artifact (run 46054730403 / artifact 15225488215) and current Team State artifact (run 46066784664 / artifact 15232026165).
+- This working export intentionally does NOT claim independent 100% production certification.
+- The production GitHub workflow remains fail-closed until the safe canonical overlay is implemented.
+- The working export provides an immediate view of the current intelligence while preserving the locked canonical workbook.
+
+Canonical workbook inspection completed:
+- Market Intelligence = 755 rows x 264 columns.
+- Fixture ID = column 39.
+- ET = column 150; EU = column 151.
+- Existing Market Intelligence header/formula surface remains intact.
+
 ---
 END HANDOVER
