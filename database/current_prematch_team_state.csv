@@ -11303,28 +11303,6 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-09-20,2026-09-20,2026-09-11,2026-09-12,Turkish Super Lig,Erzurumspor,Samsunspor,controlled,5,0.4,2.2,0.2,0.6,0.2,9.2,2.6,5,1.2,2.2,0.4,0.4,0.2,14.2,2.8
 2026-09-20,2026-09-20,2026-09-14,2026-09-12,Turkish Super Lig,Fenerbahce,Eyupspor,controlled,5,1.6,1.2,0.6,0.2,0.4,17.2,6.6,5,0.4,1.6,0.2,0.8,0.0,12.2,3.0
 2026-09-20,2026-09-20,2026-09-12,2026-09-12,Turkish Super Lig,Goztep,Rizespor,controlled,5,1.8,2.6,0.8,0.2,0.0,15.6,5.0,5,1.0,0.8,0.2,0.4,0.4,16.4,5.2
-2026-09-27,2026-09-27,,,season:16504,Austin,San Diego,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Columbus Crew,Inter Miami,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,FC Dallas,Los Angeles FC,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Houston Dynamo,Sporting KC,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,LA Galaxy,Colorado Rapids,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Nashville SC,Toronto,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Real Salt Lake,New England Revolution,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Seattle Sounders,Minnesota United,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,SJ Earthquakes,Portland Timbers,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16504,Vancouver Whitecaps,DC United,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16708,Central Español,Liverpool FC Montevideo,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16708,Defensor Sporting,Danubio,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16708,Juventud,Cerro,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:16708,Torque,Deportivo Maldonado,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17099,Pumas UNAM,Atlético San Luis,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17099,Santos Laguna,Pachuca,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17099,Tigres UANL,Puebla,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17269,Burgos CF,CD Eldense,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17269,RCD Mallorca,Almería,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17269,Real Oviedo,Sporting Gijón,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17269,Real Valladolid,Córdoba,current,0,,,,,,,,0,,,,,,,
-2026-09-27,2026-09-27,,,season:17269,SD Eibar,UD Las Palmas,current,0,,,,,,,,0,,,,,,,
 2026-09-28,2026-09-28,,,season:16533,Libertad,Olimpia,current,0,,,,,,,,0,,,,,,,
 2026-09-28,2026-09-28,,,season:16533,Sportivo San Lorenzo,Deportivo Recoleta,current,0,,,,,,,,0,,,,,,,
 2026-09-28,2026-09-28,,,season:16708,Wanderers,Albion,current,0,,,,,,,,0,,,,,,,
@@ -11332,13 +11310,13 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-09-28,2026-09-28,,,season:17099,Necaxa,América,current,0,,,,,,,,0,,,,,,,
 2026-09-28,2026-09-28,,,season:17269,Leganés,CD Castellón,current,0,,,,,,,,0,,,,,,,
 2026-09-30,2026-09-30,,,season:16504,New York RB,St. Louis City,current,0,,,,,,,,0,,,,,,,
-2026-09-30,2026-09-30,2026-09-27,,season:16708,Torque,Peñarol,current,1,0.0,2.0,0.0,1.0,0.0,4.0,1.0,0,,,,,,,
+2026-09-30,2026-09-30,,,season:16708,Torque,Peñarol,current,0,,,,,,,,0,,,,,,,
 2026-09-30,2026-09-30,,,season:16905,Cienciano,Los Chankas,current,0,,,,,,,,0,,,,,,,
-2026-10-02,2026-10-02,2026-09-27,2026-09-27,season:16504,Seattle Sounders,Sporting KC,current,1,3.0,1.0,1.0,0.0,0.0,13.0,8.0,1,2.0,0.0,0.0,0.0,1.0,10.0,4.0
+2026-10-02,2026-10-02,,,season:16504,Seattle Sounders,Sporting KC,current,0,,,,,,,,0,,,,,,,
 2026-10-02,2026-10-02,,,season:16544,São Paulo,Santos,current,0,,,,,,,,0,,,,,,,
 2026-10-02,2026-10-02,,,season:16571,Independiente,Instituto,current,0,,,,,,,,0,,,,,,,
 2026-10-02,2026-10-02,,,season:16615,Univ. Concepción,Huachipato,current,0,,,,,,,,0,,,,,,,
-2026-10-02,2026-10-02,2026-09-27,2026-09-27,season:17269,CD Eldense,Real Oviedo,current,1,0.0,1.0,0.0,1.0,0.0,11.0,4.0,1,2.0,0.0,0.0,0.0,1.0,16.0,6.0
+2026-10-02,2026-10-02,,,season:17269,CD Eldense,Real Oviedo,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,2026-09-28,season:16533,Guaraní,Sportivo San Lorenzo,current,0,,,,,,,,1,0.0,0.0,0.0,1.0,1.0,17.0,3.0
 2026-10-03,2026-10-03,,,season:16544,Atlético Mineiro,Bragantino,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:16571,Atlético Tucumán,Barracas Central,current,0,,,,,,,,0,,,,,,,
@@ -11346,30 +11324,30 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-03,2026-10-03,,,season:16571,Defensa y Justicia,San Lorenzo,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:16571,Independiente Rivadavia,Gimnasia La Plata,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:16571,Newell's Old Boys,Lanús,current,0,,,,,,,,0,,,,,,,
-2026-10-03,2026-10-03,2026-09-28,2026-09-27,season:16708,Albion,Defensor Sporting,current,1,1.0,2.0,1.0,0.0,0.0,3.0,2.0,1,1.0,0.0,0.0,0.0,1.0,7.0,4.0
-2026-10-03,2026-10-03,2026-09-27,2026-09-27,season:16708,Deportivo Maldonado,Central Español,current,1,2.0,0.0,0.0,0.0,1.0,4.0,3.0,1,1.0,2.0,1.0,0.0,0.0,12.0,4.0
-2026-10-03,2026-10-03,2026-09-27,,season:16708,Liverpool FC Montevideo,Progreso,current,1,2.0,1.0,1.0,0.0,0.0,4.0,3.0,0,,,,,,,
+2026-10-03,2026-10-03,2026-09-28,,season:16708,Albion,Defensor Sporting,current,1,1.0,2.0,1.0,0.0,0.0,3.0,2.0,0,,,,,,,
+2026-10-03,2026-10-03,,,season:16708,Deportivo Maldonado,Central Español,current,0,,,,,,,,0,,,,,,,
+2026-10-03,2026-10-03,,,season:16708,Liverpool FC Montevideo,Progreso,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:17180,Burton Albion,Huddersfield Town,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:17180,Leyton Orient,Plymouth Argyle,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:17180,Reading,Bradford City,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,,season:17191,Veres,Kudrivka,current,0,,,,,,,,0,,,,,,,
-2026-10-03,2026-10-03,,2026-09-27,season:17269,Albacete Balompié,SD Eibar,current,0,,,,,,,,1,3.0,2.0,1.0,0.0,0.0,18.0,6.0
-2026-10-03,2026-10-03,2026-09-27,2026-09-27,season:17269,Almería,Burgos CF,current,1,1.0,0.0,0.0,0.0,1.0,11.0,3.0,1,1.0,0.0,0.0,0.0,1.0,6.0,2.0
+2026-10-03,2026-10-03,,,season:17269,Albacete Balompié,SD Eibar,current,0,,,,,,,,0,,,,,,,
+2026-10-03,2026-10-03,,,season:17269,Almería,Burgos CF,current,0,,,,,,,,0,,,,,,,
 2026-10-03,2026-10-03,,2026-09-28,season:17269,Cádiz,Leganés,current,0,,,,,,,,1,0.0,2.0,0.0,1.0,0.0,15.0,2.0
 2026-10-04,2026-10-04,,,season:16571,Argentinos Juniors,Tigre,current,0,,,,,,,,0,,,,,,,
 2026-10-04,2026-10-04,,,season:16571,Huracán,Aldosivi,current,0,,,,,,,,0,,,,,,,
 2026-10-04,2026-10-04,,,season:16571,Talleres Córdoba,Belgrano,current,0,,,,,,,,0,,,,,,,
-2026-10-04,2026-10-04,,2026-09-27,season:16708,Boston River,Juventud,current,0,,,,,,,,1,0.0,0.0,0.0,1.0,1.0,9.0,3.0
-2026-10-04,2026-10-04,2026-09-27,2026-09-28,season:16708,Cerro,Wanderers,current,1,0.0,0.0,0.0,1.0,1.0,6.0,3.0,1,2.0,1.0,1.0,0.0,0.0,7.0,4.0
-2026-10-04,2026-10-04,2026-09-27,,season:16708,Danubio,Cerro Largo,current,1,0.0,1.0,0.0,1.0,0.0,6.0,1.0,0,,,,,,,
+2026-10-04,2026-10-04,,,season:16708,Boston River,Juventud,current,0,,,,,,,,0,,,,,,,
+2026-10-04,2026-10-04,,2026-09-28,season:16708,Cerro,Wanderers,current,0,,,,,,,,1,2.0,1.0,1.0,0.0,0.0,7.0,4.0
+2026-10-04,2026-10-04,,,season:16708,Danubio,Cerro Largo,current,0,,,,,,,,0,,,,,,,
 2026-10-04,2026-10-04,,2026-09-30,season:16708,Racing,Peñarol,current,0,,,,,,,,1,1.0,1.0,1.0,0.0,0.0,4.0,2.0
 2026-10-04,2026-10-04,,,season:17215,Farense,GD Chaves,current,0,,,,,,,,0,,,,,,,
 2026-10-04,2026-10-04,2026-09-28,,season:17269,CD Castellón,Ceuta,current,1,2.0,0.0,0.0,0.0,1.0,22.0,7.0,0,,,,,,,
 2026-10-04,2026-10-04,,,season:17269,CE Sabadell FC,FC Andorra,current,0,,,,,,,,0,,,,,,,
-2026-10-04,2026-10-04,,2026-09-27,season:17269,Girona FC,RCD Mallorca,current,0,,,,,,,,1,0.0,1.0,0.0,1.0,0.0,17.0,5.0
+2026-10-04,2026-10-04,,,season:17269,Girona FC,RCD Mallorca,current,0,,,,,,,,0,,,,,,,
 2026-10-04,2026-10-04,,,season:17269,Real Sociedad II,Granada CF,current,0,,,,,,,,0,,,,,,,
-2026-10-04,2026-10-04,2026-09-27,,season:17269,Sporting Gijón,Celta de Vigo II,current,1,0.0,2.0,0.0,1.0,0.0,11.0,3.0,0,,,,,,,
-2026-10-04,2026-10-04,2026-09-27,2026-09-27,season:17269,UD Las Palmas,Real Valladolid,current,1,2.0,3.0,1.0,0.0,0.0,11.0,5.0,1,3.0,1.0,1.0,0.0,0.0,12.0,7.0
+2026-10-04,2026-10-04,,,season:17269,Sporting Gijón,Celta de Vigo II,current,0,,,,,,,,0,,,,,,,
+2026-10-04,2026-10-04,,,season:17269,UD Las Palmas,Real Valladolid,current,0,,,,,,,,0,,,,,,,
 2026-10-05,2026-10-05,,,season:16533,Cerro Porteño,2 de Mayo,current,0,,,,,,,,0,,,,,,,
 2026-10-05,2026-10-05,2026-09-28,2026-09-28,season:16533,Deportivo Recoleta,Libertad,current,1,0.0,0.0,0.0,1.0,1.0,13.0,1.0,1,0.0,1.0,0.0,1.0,0.0,8.0,2.0
 2026-10-05,2026-10-05,,,season:16533,Sportivo Trinidense,Sportivo Luqueño,current,0,,,,,,,,0,,,,,,,
@@ -11377,12 +11355,12 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-05,2026-10-05,,,season:16571,Estudiantes,Gimnasia Mendoza,current,0,,,,,,,,0,,,,,,,
 2026-10-05,2026-10-05,,,season:16571,Estudiantes Río Cuarto,Racing Club,current,0,,,,,,,,0,,,,,,,
 2026-10-05,2026-10-05,,,season:16571,Vélez Sarsfield,Platense,current,0,,,,,,,,0,,,,,,,
-2026-10-05,2026-10-05,,2026-09-30,season:16708,Nacional,Torque,current,0,,,,,,,,2,0.5,1.5,0.5,0.5,0.0,7.5,2.5
-2026-10-05,2026-10-05,2026-09-27,,season:17269,Córdoba,CD Tenerife,current,1,1.0,3.0,1.0,0.0,0.0,16.0,4.0,0,,,,,,,
+2026-10-05,2026-10-05,,2026-09-30,season:16708,Nacional,Torque,current,0,,,,,,,,1,1.0,1.0,1.0,0.0,0.0,11.0,4.0
+2026-10-05,2026-10-05,,,season:17269,Córdoba,CD Tenerife,current,0,,,,,,,,0,,,,,,,
 2026-10-06,2026-10-06,2026-09-28,,season:16533,Olimpia,Nacional Asunción,current,1,1.0,0.0,0.0,0.0,1.0,12.0,7.0,0,,,,,,,
 2026-10-06,2026-10-06,,,season:16533,Sportivo Ameliano,Rubio Ñú,current,0,,,,,,,,0,,,,,,,
 2026-10-06,2026-10-06,,,season:16571,Banfield,Rosario Central,current,0,,,,,,,,0,,,,,,,
-2026-10-07,2026-10-07,,2026-09-27,season:16504,Chicago Fire,Vancouver Whitecaps,current,0,,,,,,,,1,3.0,3.0,1.0,0.0,0.0,16.0,9.0
+2026-10-07,2026-10-07,,,season:16504,Chicago Fire,Vancouver Whitecaps,current,0,,,,,,,,0,,,,,,,
 2026-10-07,2026-10-07,,,season:16544,Botafogo,Vasco da Gama,current,0,,,,,,,,0,,,,,,,
 2026-10-07,2026-10-07,2026-10-03,,season:16544,Bragantino,Mirassol,current,1,0.0,1.0,0.0,1.0,0.0,23.0,7.0,0,,,,,,,
 2026-10-07,2026-10-07,,,season:16544,Internacional,Corinthians,current,0,,,,,,,,0,,,,,,,
@@ -11401,8 +11379,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-09,2026-10-09,2026-10-03,2026-10-03,season:16571,Gimnasia La Plata,Atlético Tucumán,current,1,1.0,1.0,1.0,0.0,0.0,15.0,4.0,1,2.0,3.0,1.0,0.0,0.0,10.0,8.0
 2026-10-09,2026-10-09,2026-10-02,2026-10-03,season:16571,Instituto,Boca Juniors,current,1,4.0,1.0,1.0,0.0,0.0,13.0,6.0,1,3.0,0.0,0.0,0.0,1.0,25.0,7.0
 2026-10-09,2026-10-09,,,season:16576,IFK Göteborg,Västerås SK,current,0,,,,,,,,0,,,,,,,
-2026-10-09,2026-10-09,2026-10-03,2026-10-03,season:16708,Deportivo Maldonado,Liverpool FC Montevideo,current,2,2.5,0.0,0.0,0.0,1.0,5.5,3.0,2,2.5,1.5,1.0,0.0,0.0,6.5,4.0
-2026-10-09,2026-10-09,2026-10-05,2026-10-04,season:16708,Torque,Danubio,current,3,0.3333,1.6667,0.3333,0.6667,0.0,8.0,2.3333,2,1.0,1.0,0.5,0.5,0.0,6.0,1.5
+2026-10-09,2026-10-09,2026-10-03,2026-10-03,season:16708,Deportivo Maldonado,Liverpool FC Montevideo,current,1,3.0,0.0,0.0,0.0,1.0,7.0,3.0,1,3.0,2.0,1.0,0.0,0.0,9.0,5.0
+2026-10-09,2026-10-09,2026-10-05,2026-10-04,season:16708,Torque,Danubio,current,2,0.5,1.5,0.5,0.5,0.0,10.0,3.0,1,2.0,1.0,1.0,0.0,0.0,6.0,2.0
 2026-10-09,2026-10-09,,,season:16714,Delfin SC,Mushuc Runa SC,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:16714,Libertad,Leones del Norte,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17087,Gorica,Rudeš,current,0,,,,,,,,0,,,,,,,
@@ -11413,6 +11391,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-09,2026-10-09,,,season:17112,Wieczysta Kraków,Wisła Płock,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17115,Kashima Antlers,Gamba Osaka,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17115,Kashiwa Reysol,Vissel Kobe,current,0,,,,,,,,0,,,,,,,
+2026-10-09,2026-10-09,,,season:17117,Dunkerque,Annecy,current,0,,,,,,,,0,,,,,,,
+2026-10-09,2026-10-09,,,season:17117,Montpellier,Grenoble Foot 38,current,0,,,,,,,,0,,,,,,,
+2026-10-09,2026-10-09,,,season:17117,Nancy,Guingamp,current,0,,,,,,,,0,,,,,,,
+2026-10-09,2026-10-09,,,season:17117,Pau,Laval,current,0,,,,,,,,0,,,,,,,
+2026-10-09,2026-10-09,,,season:17117,Sochaux,Boulogne,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17157,Zlín,Slavia Praha,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17171,Waasland-Beveren,Lommel United,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17184,West Ham United,Queens Park Rangers,current,0,,,,,,,,0,,,,,,,
@@ -11430,14 +11413,14 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-09,2026-10-09,,,season:17426,Al Kholood,Al Quadisiya,current,0,,,,,,,,0,,,,,,,
 2026-10-09,2026-10-09,,,season:17426,Al Nassr,Al Draih,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:16504,Atlanta United FC,FC Cincinnati,current,0,,,,,,,,0,,,,,,,
-2026-10-10,2026-10-10,,2026-09-27,season:16504,Charlotte,FC Dallas,current,0,,,,,,,,1,1.0,0.0,0.0,0.0,1.0,13.0,4.0
+2026-10-10,2026-10-10,,,season:16504,Charlotte,FC Dallas,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,2026-10-07,,season:16504,Chicago Fire,New York City,current,1,3.0,1.0,1.0,0.0,0.0,22.0,7.0,0,,,,,,,
-2026-10-10,2026-10-10,2026-09-27,2026-09-27,season:16504,Inter Miami,DC United,current,1,1.0,2.0,1.0,0.0,0.0,5.0,3.0,1,3.0,3.0,1.0,0.0,0.0,21.0,8.0
-2026-10-10,2026-10-10,2026-09-27,2026-10-02,season:16504,New England Revolution,Seattle Sounders,current,1,0.0,3.0,0.0,1.0,0.0,16.0,4.0,2,2.5,1.0,1.0,0.0,0.0,17.0,7.5
-2026-10-10,2026-10-10,2026-09-30,2026-09-27,season:16504,New York RB,San Diego,current,1,0.0,3.0,0.0,1.0,0.0,10.0,5.0,1,3.0,3.0,1.0,0.0,0.0,15.0,5.0
-2026-10-10,2026-10-10,,2026-09-27,season:16504,Orlando City,Columbus Crew,current,0,,,,,,,,1,2.0,1.0,1.0,0.0,0.0,14.0,6.0
-2026-10-10,2026-10-10,,2026-09-27,season:16504,Philadelphia Union,Real Salt Lake,current,0,,,,,,,,1,3.0,0.0,0.0,0.0,1.0,9.0,6.0
-2026-10-10,2026-10-10,2026-09-27,,season:16504,Toronto,Montreal Impact,current,1,0.0,2.0,0.0,1.0,0.0,11.0,3.0,0,,,,,,,
+2026-10-10,2026-10-10,,,season:16504,Inter Miami,DC United,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,2026-10-02,season:16504,New England Revolution,Seattle Sounders,current,0,,,,,,,,1,2.0,1.0,1.0,0.0,0.0,21.0,7.0
+2026-10-10,2026-10-10,2026-09-30,,season:16504,New York RB,San Diego,current,1,0.0,3.0,0.0,1.0,0.0,10.0,5.0,0,,,,,,,
+2026-10-10,2026-10-10,,,season:16504,Orlando City,Columbus Crew,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,,season:16504,Philadelphia Union,Real Salt Lake,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,,season:16504,Toronto,Montreal Impact,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,2026-10-05,2026-10-05,season:16533,Sportivo Luqueño,Cerro Porteño,current,1,2.0,3.0,1.0,0.0,0.0,14.0,6.0,1,0.0,2.0,0.0,1.0,0.0,17.0,3.0
 2026-10-10,2026-10-10,2026-10-03,2026-10-05,season:16533,Sportivo San Lorenzo,Sportivo Trinidense,current,2,0.5,0.5,0.5,0.5,0.5,18.0,3.0,1,3.0,2.0,1.0,0.0,0.0,9.0,5.0
 2026-10-10,2026-10-10,2026-10-07,2026-10-07,season:16544,Vasco da Gama,Remo,current,1,2.0,1.0,1.0,0.0,0.0,17.0,8.0,1,1.0,1.0,1.0,0.0,0.0,23.0,9.0
@@ -11452,7 +11435,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-10,2026-10-10,,,season:16576,Mjällby,Degerfors,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,2026-10-02,season:16615,Cobresal,Univ. Concepción,current,0,,,,,,,,1,0.0,2.0,0.0,1.0,0.0,10.0,2.0
 2026-10-10,2026-10-10,2026-10-02,,season:16615,Huachipato,O'Higgins,current,1,2.0,0.0,0.0,0.0,1.0,14.0,5.0,0,,,,,,,
-2026-10-10,2026-10-10,2026-10-03,2026-10-04,season:16708,Defensor Sporting,Cerro,current,2,1.5,1.5,0.5,0.0,0.5,8.0,5.0,2,0.0,1.0,0.0,1.0,0.5,9.0,4.0
+2026-10-10,2026-10-10,2026-10-03,2026-10-04,season:16708,Defensor Sporting,Cerro,current,1,2.0,3.0,1.0,0.0,0.0,9.0,6.0,1,0.0,2.0,0.0,1.0,0.0,12.0,5.0
 2026-10-10,2026-10-10,2026-10-04,2026-10-03,season:16708,Peñarol,Progreso,current,2,1.0,0.5,0.5,0.0,0.5,8.5,3.5,1,2.0,3.0,1.0,0.0,0.0,8.0,3.0
 2026-10-10,2026-10-10,2026-10-04,2026-10-04,season:16708,Wanderers,Boston River,current,2,2.0,0.5,0.5,0.0,0.5,6.0,3.5,1,0.0,0.0,0.0,1.0,1.0,12.0,3.0
 2026-10-10,2026-10-10,,,season:16714,CSD Independiente del Valle,SD Aucas,current,0,,,,,,,,0,,,,,,,
@@ -11471,9 +11454,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-10,2026-10-10,,,season:17097,Fortuna Sittard,Twente,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17097,Go Ahead Eagles,Sparta Rotterdam,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,2026-09-28,,season:17099,Juárez,Tijuana,current,1,1.0,2.0,1.0,0.0,0.0,9.0,1.0,0,,,,,,,
-2026-10-10,2026-10-10,2026-09-27,2026-09-28,season:17099,Puebla,León,current,1,0.0,1.0,0.0,1.0,0.0,10.0,1.0,1,2.0,1.0,1.0,0.0,0.0,7.0,3.0
+2026-10-10,2026-10-10,,2026-09-28,season:17099,Puebla,León,current,0,,,,,,,,1,2.0,1.0,1.0,0.0,0.0,7.0,3.0
 2026-10-10,2026-10-10,,,season:17099,Querétaro,Atlante,current,0,,,,,,,,0,,,,,,,
-2026-10-10,2026-10-10,2026-09-27,,season:17099,Tigres UANL,Toluca,current,1,1.0,0.0,0.0,0.0,1.0,12.0,4.0,0,,,,,,,
+2026-10-10,2026-10-10,,,season:17099,Tigres UANL,Toluca,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17102,Brest,Angers SCO,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17102,Lille,Le Havre,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17102,Lorient,Paris,current,0,,,,,,,,0,,,,,,,
@@ -11486,6 +11469,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-10,2026-10-10,,,season:17115,Cerezo Osaka,Yokohama F. Marinos,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17115,Kyoto Sanga,Machida Zelvia,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17115,Tokyo,Urawa Reds,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,,season:17117,Clermont,Red Star,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,,season:17117,Nantes,Reims,current,0,,,,,,,,0,,,,,,,
+2026-10-10,2026-10-10,,,season:17117,Saint-Étienne,Rodez,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17119,IMT Novi Beograd,Radnik Surdulica,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17119,Radnički Kragujevac,Red Star Belgrade,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17119,Čukarički,Mačva Šabac,current,0,,,,,,,,0,,,,,,,
@@ -11560,7 +11546,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-10,2026-10-10,,,season:17265,Gençlerbirliği,Amed,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17265,Rizespor,Fenerbahçe,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17265,Samsunspor,Trabzonspor,current,0,,,,,,,,0,,,,,,,
-2026-10-10,2026-10-10,2026-10-02,2026-10-05,season:17269,CD Eldense,Córdoba,current,2,2.0,1.0,0.5,0.5,0.0,14.0,6.5,2,2.0,2.5,1.0,0.0,0.0,16.0,5.0
+2026-10-10,2026-10-10,2026-10-02,2026-10-05,season:17269,CD Eldense,Córdoba,current,1,4.0,1.0,1.0,0.0,0.0,17.0,9.0,1,3.0,2.0,1.0,0.0,0.0,16.0,6.0
 2026-10-10,2026-10-10,2026-10-04,2026-10-04,season:17269,Celta de Vigo II,Real Sociedad II,current,1,2.0,3.0,1.0,0.0,0.0,14.0,8.0,1,2.0,3.0,1.0,0.0,0.0,17.0,6.0
 2026-10-10,2026-10-10,2026-10-04,2026-10-04,season:17269,Ceuta,CE Sabadell FC,current,1,1.0,1.0,1.0,0.0,0.0,13.0,4.0,1,0.0,0.0,0.0,1.0,1.0,19.0,3.0
 2026-10-10,2026-10-10,,,season:17356,AEK Athens,OFI,current,0,,,,,,,,0,,,,,,,
@@ -11574,12 +11560,12 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-10,2026-10-10,,,season:17426,Al Hazm,Neom SC,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17426,Al Hilal,Al Ittihad,current,0,,,,,,,,0,,,,,,,
 2026-10-10,2026-10-10,,,season:17426,Al Ittifaq,Al Khaleej,current,0,,,,,,,,0,,,,,,,
-2026-10-11,2026-10-11,2026-09-27,2026-09-27,season:16504,Austin,Nashville SC,current,1,3.0,3.0,1.0,0.0,0.0,13.0,6.0,1,2.0,0.0,0.0,0.0,1.0,23.0,11.0
-2026-10-11,2026-10-11,2026-09-27,2026-09-27,season:16504,Colorado Rapids,SJ Earthquakes,current,1,2.0,3.0,1.0,0.0,0.0,9.0,4.0,1,3.0,1.0,1.0,0.0,0.0,13.0,8.0
-2026-10-11,2026-10-11,2026-09-27,2026-10-07,season:16504,Los Angeles FC,Vancouver Whitecaps,current,1,0.0,1.0,0.0,1.0,0.0,11.0,3.0,2,2.0,3.0,1.0,0.0,0.0,15.5,5.5
-2026-10-11,2026-10-11,2026-09-27,2026-09-27,season:16504,Minnesota United,Houston Dynamo,current,1,1.0,3.0,1.0,0.0,0.0,14.0,2.0,1,0.0,2.0,0.0,1.0,0.0,21.0,4.0
-2026-10-11,2026-10-11,2026-10-02,2026-09-27,season:16504,Sporting KC,Portland Timbers,current,2,1.5,1.0,0.5,0.0,0.5,16.0,7.5,1,1.0,3.0,1.0,0.0,0.0,18.0,6.0
-2026-10-11,2026-10-11,2026-09-30,2026-09-27,season:16504,St. Louis City,LA Galaxy,current,1,3.0,0.0,0.0,0.0,1.0,15.0,8.0,1,3.0,2.0,1.0,0.0,0.0,15.0,7.0
+2026-10-11,2026-10-11,,,season:16504,Austin,Nashville SC,current,0,,,,,,,,0,,,,,,,
+2026-10-11,2026-10-11,,,season:16504,Colorado Rapids,SJ Earthquakes,current,0,,,,,,,,0,,,,,,,
+2026-10-11,2026-10-11,,2026-10-07,season:16504,Los Angeles FC,Vancouver Whitecaps,current,0,,,,,,,,1,1.0,3.0,1.0,0.0,0.0,15.0,2.0
+2026-10-11,2026-10-11,,,season:16504,Minnesota United,Houston Dynamo,current,0,,,,,,,,0,,,,,,,
+2026-10-11,2026-10-11,2026-10-02,,season:16504,Sporting KC,Portland Timbers,current,1,1.0,2.0,1.0,0.0,0.0,22.0,11.0,0,,,,,,,
+2026-10-11,2026-10-11,2026-09-30,,season:16504,St. Louis City,LA Galaxy,current,1,3.0,0.0,0.0,0.0,1.0,15.0,8.0,0,,,,,,,
 2026-10-11,2026-10-11,2026-10-05,2026-10-03,season:16533,Libertad,Guaraní,current,2,1.0,1.0,0.5,0.5,0.0,11.5,3.5,1,1.0,1.0,1.0,0.0,0.0,12.0,4.0
 2026-10-11,2026-10-11,2026-10-06,2026-10-06,season:16533,Rubio Ñú,Olimpia,current,1,2.0,1.0,1.0,0.0,0.0,18.0,4.0,2,1.0,0.5,0.5,0.0,0.5,21.0,5.5
 2026-10-11,2026-10-11,2026-10-08,2026-10-08,season:16544,Atlético Mineiro,Santos,current,2,1.5,1.0,0.5,0.0,0.5,11.5,6.0,2,2.0,1.5,1.0,0.0,0.0,12.5,4.0
@@ -11603,9 +11589,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-11,2026-10-11,,,season:16615,Coquimbo Unido,Colo-Colo,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:16615,Deportes Limache,Palestino,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:16615,Everton,La Serena,current,0,,,,,,,,0,,,,,,,
-2026-10-11,2026-10-11,2026-10-03,2026-10-05,season:16708,Central Español,Nacional,current,2,0.5,2.5,0.5,0.5,0.0,8.0,2.5,1,2.0,0.0,0.0,0.0,1.0,8.0,4.0
+2026-10-11,2026-10-11,2026-10-03,2026-10-05,season:16708,Central Español,Nacional,current,1,0.0,3.0,0.0,1.0,0.0,4.0,1.0,1,2.0,0.0,0.0,0.0,1.0,8.0,4.0
 2026-10-11,2026-10-11,2026-10-04,2026-10-03,season:16708,Cerro Largo,Albion,current,1,1.0,2.0,1.0,0.0,0.0,6.0,2.0,2,2.0,2.0,1.0,0.0,0.0,6.0,4.5
-2026-10-11,2026-10-11,2026-10-04,2026-10-04,season:16708,Juventud,Racing,current,2,0.0,0.0,0.0,1.0,1.0,12.0,2.5,1,0.0,1.0,0.0,1.0,0.0,5.0,3.0
+2026-10-11,2026-10-11,2026-10-04,2026-10-04,season:16708,Juventud,Racing,current,1,0.0,0.0,0.0,1.0,1.0,15.0,2.0,1,0.0,1.0,0.0,1.0,0.0,5.0,3.0
 2026-10-11,2026-10-11,,,season:16714,CD Universidad Católica,Macará,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:16714,LDU Quito,Barcelona,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:16714,Orense SC,Deportivo Cuenca,current,0,,,,,,,,0,,,,,,,
@@ -11630,8 +11616,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-11,2026-10-11,,,season:17097,Utrecht,Willem II,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,2026-09-28,,season:17099,América,Monterrey,current,1,4.0,2.0,1.0,0.0,0.0,21.0,10.0,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17099,Atlas,Guadalajara,current,0,,,,,,,,0,,,,,,,
-2026-10-11,2026-10-11,2026-09-27,2026-09-27,season:17099,Atlético San Luis,Santos Laguna,current,1,3.0,2.0,1.0,0.0,0.0,11.0,7.0,1,1.0,0.0,0.0,0.0,1.0,17.0,9.0
-2026-10-11,2026-10-11,2026-09-27,2026-09-28,season:17099,Pachuca,Necaxa,current,1,0.0,1.0,0.0,1.0,0.0,11.0,0.0,1,2.0,4.0,1.0,0.0,0.0,15.0,6.0
+2026-10-11,2026-10-11,,,season:17099,Atlético San Luis,Santos Laguna,current,0,,,,,,,,0,,,,,,,
+2026-10-11,2026-10-11,,2026-09-28,season:17099,Pachuca,Necaxa,current,0,,,,,,,,1,2.0,4.0,1.0,0.0,0.0,15.0,6.0
 2026-10-11,2026-10-11,,,season:17102,Nice,Strasbourg,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17102,Rennes,Auxerre,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17102,Troyes,Olympique Marseille,current,0,,,,,,,,0,,,,,,,
@@ -11684,10 +11670,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-11,2026-10-11,,,season:17265,Beşiktaş,Kocaelispor,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17265,Gaziantep FK,Çorum Belediyespor,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17265,Konyaspor,İstanbul Başakşehir,current,0,,,,,,,,0,,,,,,,
-2026-10-11,2026-10-11,2026-10-03,2026-10-03,season:17269,Almería,Leganés,current,2,1.5,0.5,0.5,0.0,0.5,18.0,5.5,2,0.0,3.0,0.0,1.0,0.0,13.5,1.5
-2026-10-11,2026-10-11,2026-10-03,2026-10-04,season:17269,Cádiz,Sporting Gijón,current,1,4.0,0.0,0.0,0.0,1.0,24.0,9.0,2,1.5,2.0,0.5,0.5,0.0,12.0,5.0
+2026-10-11,2026-10-11,2026-10-03,2026-10-03,season:17269,Almería,Leganés,current,1,2.0,1.0,1.0,0.0,0.0,25.0,8.0,2,0.0,3.0,0.0,1.0,0.0,13.5,1.5
+2026-10-11,2026-10-11,2026-10-03,2026-10-04,season:17269,Cádiz,Sporting Gijón,current,1,4.0,0.0,0.0,0.0,1.0,24.0,9.0,1,3.0,2.0,1.0,0.0,0.0,13.0,7.0
 2026-10-11,2026-10-11,2026-10-04,2026-10-04,season:17269,FC Andorra,CD Castellón,current,1,0.0,0.0,0.0,1.0,1.0,4.0,0.0,2,1.5,0.5,0.5,0.0,0.5,16.0,4.5
-2026-10-11,2026-10-11,2026-10-04,2026-10-04,season:17269,RCD Mallorca,UD Las Palmas,current,2,0.0,0.5,0.0,1.0,0.5,13.0,2.5,2,2.0,2.5,1.0,0.0,0.0,11.5,4.5
+2026-10-11,2026-10-11,2026-10-04,2026-10-04,season:17269,RCD Mallorca,UD Las Palmas,current,1,0.0,0.0,0.0,1.0,1.0,9.0,0.0,1,2.0,2.0,1.0,0.0,0.0,12.0,4.0
 2026-10-11,2026-10-11,,,season:17356,Aris,Volos NFC,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17356,Iraklis Thessaloniki,Levadiakos,current,0,,,,,,,,0,,,,,,,
 2026-10-11,2026-10-11,,,season:17356,Kifisia,Panaitolikos,current,0,,,,,,,,0,,,,,,,
@@ -11711,9 +11697,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-12,2026-10-12,,,season:17084,Atalanta,Venezia,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17084,Torino,Udinese,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17091,AGF,SønderjyskE,current,0,,,,,,,,0,,,,,,,
-2026-10-12,2026-10-12,2026-09-27,,season:17099,Pumas UNAM,Cruz Azul,current,1,2.0,3.0,1.0,0.0,0.0,15.0,6.0,0,,,,,,,
+2026-10-12,2026-10-12,,,season:17099,Pumas UNAM,Cruz Azul,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,2026-10-09,2026-10-09,season:17112,GKS Katowice,Wieczysta Kraków,current,1,4.0,1.0,1.0,0.0,0.0,18.0,8.0,1,3.0,0.0,0.0,0.0,1.0,15.0,6.0
 2026-10-12,2026-10-12,,,season:17112,Radomiak Radom,Motor Lublin,current,0,,,,,,,,0,,,,,,,
+2026-10-12,2026-10-12,,,season:17117,Dijon,Metz,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17119,LFK Mladost Lučani,OFK Beograd,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17146,Coventry City,Newcastle United,current,0,,,,,,,,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17191,Livyi Bereh,Zorya,current,0,,,,,,,,0,,,,,,,
@@ -11722,10 +11709,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-12,2026-10-12,,2026-10-08,season:17247,Argeș,CFR Cluj,current,0,,,,,,,,1,1.0,3.0,1.0,0.0,0.0,12.0,3.0
 2026-10-12,2026-10-12,2026-10-08,,season:17247,Universitatea Cluj,Rapid Bucureşti,current,1,3.0,1.0,1.0,0.0,0.0,15.0,6.0,0,,,,,,,
 2026-10-12,2026-10-12,,,season:17265,Eyüpspor,Göztepe,current,0,,,,,,,,0,,,,,,,
-2026-10-12,2026-10-12,2026-10-03,2026-10-04,season:17269,Burgos CF,Granada CF,current,2,1.0,1.0,0.5,0.0,0.5,7.5,3.0,1,3.0,2.0,1.0,0.0,0.0,23.0,5.0
+2026-10-12,2026-10-12,2026-10-03,2026-10-04,season:17269,Burgos CF,Granada CF,current,1,1.0,2.0,1.0,0.0,0.0,9.0,4.0,1,3.0,2.0,1.0,0.0,0.0,23.0,5.0
 2026-10-12,2026-10-12,2026-10-05,2026-10-04,season:17269,CD Tenerife,Girona FC,current,1,2.0,3.0,1.0,0.0,0.0,10.0,2.0,1,0.0,0.0,0.0,1.0,1.0,16.0,5.0
-2026-10-12,2026-10-12,2026-10-02,2026-10-03,season:17269,Real Oviedo,SD Eibar,current,2,1.5,2.0,0.5,0.0,0.5,15.5,5.0,2,3.0,1.5,1.0,0.0,0.0,13.0,6.0
-2026-10-12,2026-10-12,2026-10-04,2026-10-03,season:17269,Real Valladolid,Albacete Balompié,current,2,2.5,1.5,1.0,0.0,0.0,13.5,7.0,1,1.0,3.0,1.0,0.0,0.0,22.0,6.0
+2026-10-12,2026-10-12,2026-10-02,2026-10-03,season:17269,Real Oviedo,SD Eibar,current,1,1.0,4.0,1.0,0.0,0.0,15.0,4.0,1,3.0,1.0,1.0,0.0,0.0,8.0,6.0
+2026-10-12,2026-10-12,2026-10-04,2026-10-03,season:17269,Real Valladolid,Albacete Balompié,current,1,2.0,2.0,1.0,0.0,0.0,15.0,7.0,1,1.0,3.0,1.0,0.0,0.0,22.0,6.0
 2026-10-12,2026-10-12,,,season:17356,PAOK,Kalamata,current,0,,,,,,,,0,,,,,,,
 2026-10-13,2026-10-13,2026-10-07,2026-10-08,season:16544,Bragantino,Cruzeiro,current,2,0.5,1.0,0.5,0.5,0.0,28.0,8.0,1,2.0,0.0,0.0,0.0,1.0,23.0,9.0
 2026-10-13,2026-10-13,2026-10-10,2026-10-10,season:17184,Birmingham City,Preston North End,current,1,1.0,0.0,0.0,0.0,1.0,15.0,7.0,1,0.0,1.0,0.0,1.0,0.0,12.0,1.0
@@ -11740,12 +11727,12 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-13,2026-10-13,,,season:17444,Kaizer Chiefs,Stellenbosch,current,0,,,,,,,,0,,,,,,,
 2026-10-13,2026-10-13,,,season:17444,Orlando Pirates,TS Galaxy,current,0,,,,,,,,0,,,,,,,
 2026-10-13,2026-10-13,,,season:17444,Richards Bay,Mamelodi Sundowns,current,0,,,,,,,,0,,,,,,,
-2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Columbus Crew,Charlotte,current,2,2.0,2.0,1.0,0.0,0.0,20.5,10.5,1,3.0,2.0,1.0,0.0,0.0,18.0,8.0
-2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,DC United,New York RB,current,2,1.5,3.5,0.5,0.5,0.0,18.0,5.0,2,2.0,2.0,0.5,0.5,0.0,19.0,8.5
-2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,FC Cincinnati,New England Revolution,current,1,3.0,1.0,1.0,0.0,0.0,13.0,4.0,2,0.0,3.0,0.0,1.0,0.0,14.5,4.5
-2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Inter Miami,New York City,current,2,2.5,1.0,0.5,0.0,0.5,11.0,6.0,1,1.0,2.0,1.0,0.0,0.0,12.0,6.0
+2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Columbus Crew,Charlotte,current,1,2.0,3.0,1.0,0.0,0.0,27.0,15.0,1,3.0,2.0,1.0,0.0,0.0,18.0,8.0
+2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,DC United,New York RB,current,1,0.0,4.0,0.0,1.0,0.0,15.0,2.0,2,2.0,2.0,0.5,0.5,0.0,19.0,8.5
+2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,FC Cincinnati,New England Revolution,current,1,3.0,1.0,1.0,0.0,0.0,13.0,4.0,1,0.0,3.0,0.0,1.0,0.0,13.0,5.0
+2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Inter Miami,New York City,current,1,4.0,0.0,0.0,0.0,1.0,17.0,9.0,1,1.0,2.0,1.0,0.0,0.0,12.0,6.0
 2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Montreal Impact,Atlanta United FC,current,1,1.0,2.0,1.0,0.0,0.0,16.0,7.0,1,1.0,3.0,1.0,0.0,0.0,16.0,6.0
-2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Toronto,Orlando City,current,2,1.0,1.5,0.5,0.5,0.0,12.5,4.0,1,3.0,2.0,1.0,0.0,0.0,20.0,8.0
+2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:16504,Toronto,Orlando City,current,1,2.0,1.0,1.0,0.0,0.0,14.0,5.0,1,3.0,2.0,1.0,0.0,0.0,20.0,8.0
 2026-10-14,2026-10-14,2026-10-09,2026-10-11,season:16571,Sarmiento,River Plate,current,1,3.0,1.0,1.0,0.0,0.0,14.0,3.0,1,1.0,0.0,0.0,0.0,1.0,28.0,8.0
 2026-10-14,2026-10-14,2026-10-10,2026-10-10,season:17157,Bohemians 1905,Mladá Boleslav,current,1,1.0,0.0,0.0,0.0,1.0,19.0,5.0,1,0.0,3.0,0.0,1.0,0.0,19.0,4.0
 2026-10-14,2026-10-14,2026-10-10,2026-10-09,season:17184,Lincoln City,West Ham United,current,1,0.0,3.0,0.0,1.0,0.0,12.0,3.0,1,1.0,1.0,1.0,0.0,0.0,12.0,5.0
@@ -11753,14 +11740,14 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-14,2026-10-14,2026-10-11,2026-10-10,season:17184,Portsmouth,Sheffield United,current,1,0.0,1.0,0.0,1.0,0.0,16.0,3.0,1,3.0,0.0,0.0,0.0,1.0,10.0,5.0
 2026-10-14,2026-10-14,2026-10-09,2026-10-10,season:17184,Queens Park Rangers,Derby County,current,1,1.0,1.0,1.0,0.0,0.0,7.0,3.0,1,1.0,1.0,1.0,0.0,0.0,10.0,4.0
 2026-10-15,2026-10-15,2026-10-10,2026-10-10,season:16504,Chicago Fire,Philadelphia Union,current,2,2.5,1.0,1.0,0.0,0.0,18.0,5.5,1,2.0,1.0,1.0,0.0,0.0,14.0,5.0
-2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Colorado Rapids,Minnesota United,current,2,1.5,2.0,1.0,0.0,0.0,11.0,7.0,2,1.5,2.5,1.0,0.0,0.0,14.5,4.0
-2026-10-15,2026-10-15,2026-10-10,2026-10-10,season:16504,FC Dallas,Seattle Sounders,current,2,1.5,1.5,0.5,0.0,0.5,13.0,4.5,3,2.6667,0.6667,0.6667,0.0,0.3333,14.3333,6.6667
-2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,LA Galaxy,Portland Timbers,current,2,2.5,4.0,1.0,0.0,0.0,16.5,7.0,2,2.0,3.0,1.0,0.0,0.0,13.5,5.5
-2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Los Angeles FC,Austin,current,2,0.5,1.0,0.5,0.5,0.0,11.5,3.5,2,2.0,3.5,1.0,0.0,0.0,12.0,5.5
-2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Nashville SC,Sporting KC,current,2,3.0,0.5,0.5,0.0,0.5,23.5,11.0,3,2.0,1.6667,0.6667,0.0,0.3333,14.6667,6.6667
-2026-10-15,2026-10-15,2026-10-10,2026-10-11,season:16504,Real Salt Lake,SJ Earthquakes,current,2,2.0,1.0,0.5,0.0,0.5,10.0,5.0,2,2.0,1.0,1.0,0.0,0.0,11.0,5.5
-2026-10-15,2026-10-15,2026-10-10,2026-10-11,season:16504,San Diego,Houston Dynamo,current,2,2.0,3.5,1.0,0.0,0.0,14.5,5.0,2,1.0,2.0,0.5,0.5,0.0,18.0,5.0
-2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,St. Louis City,Vancouver Whitecaps,current,2,4.5,1.0,0.5,0.0,0.5,13.0,7.0,3,1.6667,2.3333,1.0,0.0,0.0,13.3333,4.6667
+2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Colorado Rapids,Minnesota United,current,1,1.0,1.0,1.0,0.0,0.0,13.0,10.0,1,2.0,2.0,1.0,0.0,0.0,15.0,6.0
+2026-10-15,2026-10-15,2026-10-10,2026-10-10,season:16504,FC Dallas,Seattle Sounders,current,1,2.0,3.0,1.0,0.0,0.0,13.0,5.0,2,2.5,0.5,0.5,0.0,0.5,15.0,6.0
+2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,LA Galaxy,Portland Timbers,current,1,2.0,6.0,1.0,0.0,0.0,18.0,7.0,1,3.0,3.0,1.0,0.0,0.0,9.0,5.0
+2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Los Angeles FC,Austin,current,1,1.0,1.0,1.0,0.0,0.0,12.0,4.0,1,1.0,4.0,1.0,0.0,0.0,11.0,5.0
+2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,Nashville SC,Sporting KC,current,1,4.0,1.0,1.0,0.0,0.0,24.0,11.0,2,2.0,2.5,1.0,0.0,0.0,17.0,8.0
+2026-10-15,2026-10-15,2026-10-10,2026-10-11,season:16504,Real Salt Lake,SJ Earthquakes,current,1,1.0,2.0,1.0,0.0,0.0,11.0,4.0,1,1.0,1.0,1.0,0.0,0.0,9.0,3.0
+2026-10-15,2026-10-15,2026-10-10,2026-10-11,season:16504,San Diego,Houston Dynamo,current,1,1.0,4.0,1.0,0.0,0.0,14.0,5.0,1,2.0,2.0,1.0,0.0,0.0,15.0,6.0
+2026-10-15,2026-10-15,2026-10-11,2026-10-11,season:16504,St. Louis City,Vancouver Whitecaps,current,2,4.5,1.0,0.5,0.0,0.5,13.0,7.0,2,1.0,2.0,1.0,0.0,0.0,12.0,2.5
 2026-10-15,2026-10-15,2026-10-10,2026-10-09,season:16571,Huracán,Gimnasia La Plata,current,2,0.5,1.0,0.0,0.5,0.5,13.0,3.5,2,1.0,1.0,1.0,0.0,0.0,20.5,5.0
 2026-10-15,2026-10-15,2026-10-10,2026-10-10,season:17180,Mansfield Town,Oxford United,current,1,2.0,1.0,1.0,0.0,0.0,21.0,5.0,1,2.0,1.0,1.0,0.0,0.0,13.0,5.0
 2026-10-15,2026-10-15,,2026-10-09,season:17426,Al Faisaly,Al Kholood,current,0,,,,,,,,1,0.0,5.0,0.0,1.0,0.0,14.0,4.0
@@ -11770,7 +11757,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-16,2026-10-16,2026-10-11,2026-10-11,season:16544,Mirassol,Internacional,current,2,0.5,1.0,0.5,0.5,0.0,9.0,2.0,2,1.5,1.0,1.0,0.0,0.0,15.5,5.0
 2026-10-16,2026-10-16,2026-10-10,2026-10-09,season:16571,Defensa y Justicia,Instituto,current,2,2.5,0.0,0.0,0.0,1.0,19.5,7.0,2,3.0,1.5,1.0,0.0,0.0,12.5,5.0
 2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:16576,Brommapojkarna,Djurgården,current,1,6.0,5.0,1.0,0.0,0.0,13.0,9.0,1,1.0,0.0,0.0,0.0,1.0,9.0,5.0
-2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:16708,Cerro,Cerro Largo,current,3,1.0,1.3333,0.3333,0.6667,0.3333,9.6667,5.0,2,0.5,1.5,0.5,0.5,0.0,5.0,1.0
+2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:16708,Cerro,Cerro Largo,current,2,1.5,2.0,0.5,0.5,0.0,11.5,6.0,2,0.5,1.5,0.5,0.5,0.0,5.0,1.0
 2026-10-16,2026-10-16,2026-10-11,2026-10-10,season:16714,Deportivo Cuenca,Técnico Universitario,current,1,0.0,0.0,0.0,1.0,1.0,5.0,1.0,1,0.0,1.0,0.0,1.0,0.0,11.0,1.0
 2026-10-16,2026-10-16,2026-10-08,2026-10-10,season:16905,Los Chankas,ADT,current,2,0.5,0.5,0.5,0.5,0.5,7.0,1.0,1,0.0,0.0,0.0,1.0,1.0,36.0,13.0
 2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:16905,Sport Huancayo,Real Garcilaso,current,1,1.0,0.0,0.0,0.0,1.0,13.0,6.0,1,1.0,2.0,1.0,0.0,0.0,9.0,1.0
@@ -11781,6 +11768,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-16,2026-10-16,2026-10-10,2026-10-10,season:17102,Le Mans,Toulouse,current,1,1.0,3.0,1.0,0.0,0.0,11.0,3.0,1,2.0,2.0,1.0,0.0,0.0,8.0,4.0
 2026-10-16,2026-10-16,2026-10-11,2026-10-11,season:17112,Widzew Łódź,Wisła Kraków,current,1,1.0,2.0,1.0,0.0,0.0,17.0,3.0,1,0.0,2.0,0.0,1.0,0.0,15.0,7.0
 2026-10-16,2026-10-16,2026-10-12,2026-10-09,season:17112,Wieczysta Kraków,Raków Częstochowa,current,2,2.0,1.0,0.5,0.0,0.5,16.5,5.0,1,1.0,4.0,1.0,0.0,0.0,18.0,4.0
+2026-10-16,2026-10-16,2026-10-09,2026-10-09,season:17117,Annecy,Nancy,current,1,1.0,0.0,0.0,0.0,1.0,13.0,5.0,1,1.0,0.0,0.0,0.0,1.0,17.0,7.0
+2026-10-16,2026-10-16,2026-10-09,2026-10-09,season:17117,Grenoble Foot 38,Boulogne,current,1,0.0,2.0,0.0,1.0,0.0,16.0,5.0,1,1.0,1.0,1.0,0.0,0.0,10.0,3.0
+2026-10-16,2026-10-16,2026-10-09,2026-10-09,season:17117,Guingamp,Pau,current,1,0.0,1.0,0.0,1.0,0.0,8.0,2.0,1,3.0,2.0,1.0,0.0,0.0,16.0,8.0
+2026-10-16,2026-10-16,2026-10-09,2026-10-10,season:17117,Laval,Clermont,current,1,2.0,3.0,1.0,0.0,0.0,11.0,5.0,1,2.0,3.0,1.0,0.0,0.0,9.0,4.0
+2026-10-16,2026-10-16,2026-10-10,2026-10-12,season:17117,Reims,Dijon,current,1,0.0,0.0,0.0,1.0,1.0,7.0,4.0,1,4.0,2.0,1.0,0.0,0.0,17.0,7.0
 2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:17119,Radnik Surdulica,Radnički Niš,current,1,0.0,1.0,0.0,1.0,0.0,10.0,3.0,1,1.0,4.0,1.0,0.0,0.0,18.0,4.0
 2026-10-16,2026-10-16,2026-10-11,2026-10-11,season:17181,Rapid Wien,Hartberg,current,1,2.0,0.0,0.0,0.0,1.0,13.0,5.0,1,4.0,3.0,1.0,0.0,0.0,18.0,12.0
 2026-10-16,2026-10-16,2026-10-13,2026-10-13,season:17184,Burnley,Wolverhampton Wanderers,current,2,3.0,1.0,0.5,0.0,0.5,17.5,6.0,2,0.5,2.0,0.5,0.5,0.0,15.5,2.5
@@ -11792,16 +11784,16 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-16,2026-10-16,2026-10-09,2026-10-10,season:17247,Dinamo Bucureşti,Botoşani,current,1,2.0,0.0,0.0,0.0,1.0,15.0,6.0,1,2.0,0.0,0.0,0.0,1.0,20.0,9.0
 2026-10-16,2026-10-16,2026-10-10,2026-10-11,season:17247,Oţelul Galaţi,Csikszereda,current,1,0.0,1.0,0.0,1.0,0.0,10.0,1.0,1,0.0,1.0,0.0,1.0,0.0,14.0,3.0
 2026-10-16,2026-10-16,2026-10-11,2026-10-10,season:17265,Çorum Belediyespor,Rizespor,current,1,3.0,0.0,0.0,0.0,1.0,13.0,7.0,1,0.0,3.0,0.0,1.0,0.0,19.0,5.0
-2026-10-16,2026-10-16,2026-10-11,2026-10-10,season:17269,Leganés,Córdoba,current,3,0.0,3.0,0.0,1.0,0.0,11.3333,1.3333,3,1.6667,2.3333,1.0,0.0,0.0,14.6667,5.3333
+2026-10-16,2026-10-16,2026-10-11,2026-10-10,season:17269,Leganés,Córdoba,current,3,0.0,3.0,0.0,1.0,0.0,11.3333,1.3333,2,2.0,2.0,1.0,0.0,0.0,14.0,6.0
 2026-10-16,2026-10-16,,,season:17326,Sydney FC,Western Sydney Wanderers,current,0,,,,,,,,0,,,,,,,
 2026-10-16,2026-10-16,2026-10-11,2026-10-11,season:17404,Hellas Verona,Catanzaro,current,1,2.0,3.0,1.0,0.0,0.0,14.0,7.0,1,1.0,3.0,1.0,0.0,0.0,14.0,4.0
 2026-10-16,2026-10-16,2026-10-09,,season:17426,Al Quadisiya,Abha,current,1,5.0,0.0,0.0,0.0,1.0,20.0,9.0,0,,,,,,,
-2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,Atlanta United FC,Inter Miami,current,2,2.0,1.5,0.5,0.0,0.5,17.0,6.0,3,2.3333,0.6667,0.3333,0.0,0.6667,12.0,6.0
-2026-10-17,2026-10-17,2026-10-15,2026-10-15,season:16504,Minnesota United,St. Louis City,current,3,1.6667,2.3333,1.0,0.0,0.0,13.3333,3.3333,3,3.0,0.6667,0.3333,0.3333,0.6667,11.0,6.3333
-2026-10-17,2026-10-17,2026-10-14,2026-10-15,season:16504,New England Revolution,Chicago Fire,current,3,1.0,2.6667,0.3333,0.6667,0.0,13.0,4.6667,3,2.0,1.6667,1.0,0.0,0.0,14.6667,5.0
-2026-10-17,2026-10-17,2026-10-14,2026-10-15,season:16504,New York City,Los Angeles FC,current,2,0.5,2.0,0.5,0.5,0.0,13.0,5.5,3,1.3333,1.0,0.6667,0.3333,0.0,17.0,6.0
-2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,New York RB,Toronto,current,3,1.6667,2.0,0.6667,0.3333,0.0,20.6667,7.6667,3,1.6667,2.0,0.6667,0.3333,0.0,13.6667,5.0
-2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,Orlando City,DC United,current,2,3.0,2.5,1.0,0.0,0.0,17.0,6.0,3,1.6667,2.6667,0.6667,0.3333,0.0,13.3333,4.3333
+2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,Atlanta United FC,Inter Miami,current,2,2.0,1.5,0.5,0.0,0.5,17.0,6.0,2,3.0,0.0,0.0,0.0,1.0,15.5,7.5
+2026-10-17,2026-10-17,2026-10-15,2026-10-15,season:16504,Minnesota United,St. Louis City,current,2,2.0,2.0,1.0,0.0,0.0,13.0,4.0,3,3.0,0.6667,0.3333,0.3333,0.6667,11.0,6.3333
+2026-10-17,2026-10-17,2026-10-14,2026-10-15,season:16504,New England Revolution,Chicago Fire,current,2,1.5,2.5,0.5,0.5,0.0,11.5,5.0,3,2.0,1.6667,1.0,0.0,0.0,14.6667,5.0
+2026-10-17,2026-10-17,2026-10-14,2026-10-15,season:16504,New York City,Los Angeles FC,current,2,0.5,2.0,0.5,0.5,0.0,13.0,5.5,2,2.0,1.0,1.0,0.0,0.0,20.0,7.5
+2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,New York RB,Toronto,current,3,1.6667,2.0,0.6667,0.3333,0.0,20.6667,7.6667,2,2.5,2.0,1.0,0.0,0.0,15.0,6.0
+2026-10-17,2026-10-17,2026-10-14,2026-10-14,season:16504,Orlando City,DC United,current,2,3.0,2.5,1.0,0.0,0.0,17.0,6.0,2,1.0,2.5,0.5,0.5,0.0,9.5,2.5
 2026-10-17,2026-10-17,2026-10-15,2026-10-14,season:16504,Philadelphia Union,Charlotte,current,2,2.5,1.0,1.0,0.0,0.0,16.5,6.5,2,2.0,2.5,1.0,0.0,0.0,13.5,5.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-12,season:16533,Guaraní,Nacional Asunción,current,2,1.5,1.5,1.0,0.0,0.0,12.5,4.5,2,1.0,0.5,0.5,0.0,0.5,11.5,5.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-12,season:16533,Olimpia,2 de Mayo,current,3,0.6667,0.3333,0.3333,0.3333,0.6667,23.6667,5.3333,2,1.5,0.0,0.0,0.0,1.0,11.0,4.0
@@ -11818,8 +11810,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-17,2026-10-17,2026-10-11,2026-10-12,season:16571,Platense,Lanús,current,2,1.5,1.5,1.0,0.0,0.0,15.5,4.0,2,1.0,0.0,0.0,0.5,1.0,13.5,4.5
 2026-10-17,2026-10-17,2026-10-12,2026-10-12,season:16571,Vélez Sarsfield,Gimnasia Mendoza,current,2,1.0,2.0,0.5,0.5,0.0,10.0,4.5,2,0.5,1.5,0.0,0.5,0.5,9.5,2.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-09,season:16576,AIK,IFK Göteborg,current,1,5.0,6.0,1.0,0.0,0.0,25.0,12.0,1,1.0,0.0,0.0,0.0,1.0,3.0,1.0
-2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:16708,Boston River,Defensor Sporting,current,2,1.5,0.5,0.5,0.5,0.5,10.5,5.0,3,1.6667,2.0,0.6667,0.0,0.3333,7.6667,4.6667
-2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:16708,Progreso,Juventud,current,2,1.5,2.0,1.0,0.0,0.0,9.0,4.5,3,0.6667,0.0,0.0,0.6667,1.0,10.0,2.6667
+2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:16708,Boston River,Defensor Sporting,current,2,1.5,0.5,0.5,0.5,0.5,10.5,5.0,2,2.0,3.0,1.0,0.0,0.0,8.0,5.0
+2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:16708,Progreso,Juventud,current,2,1.5,2.0,1.0,0.0,0.0,9.0,4.5,2,1.0,0.0,0.0,0.5,1.0,10.5,2.5
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:16708,Racing,Wanderers,current,2,0.0,1.5,0.0,1.0,0.0,4.0,1.5,3,1.6667,1.3333,0.6667,0.0,0.3333,6.0,3.6667
 2026-10-17,2026-10-17,2026-10-09,2026-10-10,season:16714,Libertad,Guayaquil City FC,current,1,3.0,0.0,0.0,0.0,1.0,15.0,7.0,1,3.0,2.0,1.0,0.0,0.0,13.0,6.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:16714,Macará,CSD Independiente del Valle,current,1,1.0,0.0,0.0,0.0,1.0,12.0,4.0,1,2.0,1.0,1.0,0.0,0.0,3.0,2.0
@@ -11834,11 +11826,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-17,2026-10-17,2026-10-11,2026-10-09,season:17097,ADO Den Haag,PSV,current,1,2.0,2.0,1.0,0.0,0.0,3.0,2.0,1,2.0,0.0,0.0,0.0,1.0,16.0,2.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:17097,Sparta Rotterdam,Willem II,current,1,3.0,3.0,1.0,0.0,0.0,18.0,8.0,1,1.0,3.0,1.0,0.0,0.0,9.0,2.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17097,Telstar,Feyenoord,current,1,2.0,2.0,1.0,0.0,0.0,30.0,4.0,1,2.0,0.0,0.0,0.0,1.0,15.0,4.0
-2026-10-17,2026-10-17,2026-10-10,2026-10-12,season:17099,Atlante,Pumas UNAM,current,1,0.0,2.0,0.0,1.0,0.0,17.0,9.0,2,2.5,3.0,1.0,0.0,0.0,12.0,5.5
-2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17099,Guadalajara,Tigres UANL,current,1,1.0,1.0,1.0,0.0,0.0,12.0,5.0,2,2.0,1.0,0.5,0.0,0.5,16.0,8.5
+2026-10-17,2026-10-17,2026-10-10,2026-10-12,season:17099,Atlante,Pumas UNAM,current,1,0.0,2.0,0.0,1.0,0.0,17.0,9.0,1,3.0,3.0,1.0,0.0,0.0,9.0,5.0
+2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17099,Guadalajara,Tigres UANL,current,1,1.0,1.0,1.0,0.0,0.0,12.0,5.0,1,3.0,2.0,1.0,0.0,0.0,20.0,13.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-11,season:17099,Necaxa,Atlas,current,2,2.5,3.5,1.0,0.0,0.0,15.5,6.5,1,1.0,1.0,1.0,0.0,0.0,6.0,3.0
-2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17099,Santos Laguna,Querétaro,current,2,1.5,0.5,0.5,0.0,0.5,17.0,8.5,1,2.0,0.0,0.0,0.0,1.0,11.0,3.0
-2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:17099,Tijuana,Puebla,current,1,1.0,1.0,1.0,0.0,0.0,13.0,4.0,2,0.5,1.0,0.5,0.5,0.0,14.0,3.5
+2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17099,Santos Laguna,Querétaro,current,1,2.0,1.0,1.0,0.0,0.0,17.0,8.0,1,2.0,0.0,0.0,0.0,1.0,11.0,3.0
+2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:17099,Tijuana,Puebla,current,1,1.0,1.0,1.0,0.0,0.0,13.0,4.0,1,1.0,1.0,1.0,0.0,0.0,18.0,6.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:17102,Lille,Brest,current,1,1.0,0.0,0.0,0.0,1.0,5.0,1.0,1,5.0,1.0,1.0,0.0,0.0,19.0,9.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17102,Strasbourg,PSG,current,1,1.0,2.0,1.0,0.0,0.0,11.0,3.0,1,3.0,1.0,1.0,0.0,0.0,22.0,8.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-09,season:17102,Troyes,Lens,current,1,0.0,2.0,0.0,1.0,0.0,15.0,3.0,1,2.0,1.0,1.0,0.0,0.0,15.0,7.0
@@ -11853,6 +11845,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17115,Sanfrecce Hiroshima,Kyoto Sanga,current,1,2.0,0.0,0.0,0.0,1.0,12.0,6.0,1,0.0,1.0,0.0,1.0,0.0,15.0,3.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-09,season:17115,Shimizu S-Pulse,Gamba Osaka,current,1,2.0,1.0,1.0,0.0,0.0,9.0,4.0,1,0.0,2.0,0.0,1.0,0.0,12.0,4.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17115,Tokyo Verdy,Tokyo,current,1,0.0,2.0,0.0,1.0,0.0,7.0,3.0,1,3.0,0.0,0.0,0.0,1.0,16.0,5.0
+2026-10-17,2026-10-17,2026-10-12,2026-10-09,season:17117,Metz,Sochaux,current,1,2.0,4.0,1.0,0.0,0.0,13.0,4.0,1,1.0,1.0,1.0,0.0,0.0,11.0,3.0
+2026-10-17,2026-10-17,2026-10-10,2026-10-09,season:17117,Nantes,Dunkerque,current,1,0.0,0.0,0.0,1.0,1.0,19.0,5.0,1,0.0,1.0,0.0,1.0,0.0,6.0,0.0
+2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:17117,Red Star,Saint-Étienne,current,1,3.0,2.0,1.0,0.0,0.0,14.0,9.0,1,2.0,0.0,0.0,0.0,1.0,10.0,4.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-12,season:17119,Mačva Šabac,OFK Beograd,current,1,2.0,2.0,1.0,0.0,0.0,9.0,3.0,1,0.0,0.0,0.0,1.0,1.0,12.0,2.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:17119,Čukarički,Zemun,current,1,2.0,2.0,1.0,0.0,0.0,17.0,5.0,1,0.0,3.0,0.0,1.0,0.0,6.0,3.0
 2026-10-17,2026-10-17,2026-10-11,2026-10-10,season:17119,Vojvodina,Radnički Kragujevac,current,1,4.0,1.0,1.0,0.0,0.0,8.0,4.0,1,0.0,3.0,0.0,1.0,0.0,13.0,1.0
@@ -11917,10 +11912,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-17,2026-10-17,2026-10-10,2026-10-12,season:17265,BB Erzurumspor,Eyüpspor,current,1,0.0,0.0,0.0,1.0,1.0,15.0,5.0,1,0.0,4.0,0.0,1.0,0.0,7.0,4.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-10,season:17265,Fenerbahçe,Alanyaspor,current,1,3.0,0.0,0.0,0.0,1.0,13.0,5.0,1,0.0,0.0,0.0,1.0,1.0,15.0,5.0
 2026-10-17,2026-10-17,2026-10-10,2026-10-09,season:17265,Gençlerbirliği,Galatasaray,current,1,2.0,2.0,1.0,0.0,0.0,11.0,4.0,1,3.0,1.0,1.0,0.0,0.0,25.0,11.0
-2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:17269,Real Sociedad II,Almería,current,2,1.5,3.5,1.0,0.0,0.0,20.0,5.5,3,2.0,0.3333,0.3333,0.0,0.6667,18.0,6.3333
-2026-10-17,2026-10-17,2026-10-12,2026-10-11,season:17269,SD Eibar,RCD Mallorca,current,3,2.3333,2.0,1.0,0.0,0.0,14.6667,6.0,3,1.0,0.6667,0.3333,0.6667,0.3333,12.6667,3.6667
-2026-10-17,2026-10-17,2026-10-11,2026-10-12,season:17269,Sporting Gijón,Albacete Balompié,current,3,1.3333,1.3333,0.3333,0.3333,0.3333,12.3333,3.6667,2,0.5,4.0,0.5,0.5,0.0,16.0,4.0
-2026-10-17,2026-10-17,2026-10-11,2026-10-11,season:17269,UD Las Palmas,CD Castellón,current,3,1.6667,2.6667,1.0,0.0,0.0,9.0,3.6667,3,1.0,0.6667,0.3333,0.3333,0.3333,14.6667,4.0
+2026-10-17,2026-10-17,2026-10-10,2026-10-11,season:17269,Real Sociedad II,Almería,current,2,1.5,3.5,1.0,0.0,0.0,20.0,5.5,2,2.5,0.5,0.5,0.0,0.5,21.5,8.0
+2026-10-17,2026-10-17,2026-10-12,2026-10-11,season:17269,SD Eibar,RCD Mallorca,current,2,2.0,2.0,1.0,0.0,0.0,13.0,6.0,2,1.5,0.5,0.5,0.5,0.5,10.5,3.0
+2026-10-17,2026-10-17,2026-10-11,2026-10-12,season:17269,Sporting Gijón,Albacete Balompié,current,2,2.0,1.0,0.5,0.0,0.5,13.0,4.0,2,0.5,4.0,0.5,0.5,0.0,16.0,4.0
+2026-10-17,2026-10-17,2026-10-11,2026-10-11,season:17269,UD Las Palmas,CD Castellón,current,2,1.5,2.5,1.0,0.0,0.0,8.0,3.0,3,1.0,0.6667,0.3333,0.3333,0.3333,14.6667,4.0
 2026-10-17,2026-10-17,,,season:17326,Auckland,Melbourne City FC,current,0,,,,,,,,0,,,,,,,
 2026-10-17,2026-10-17,,,season:17326,Central Coast Mariners,Newcastle Jets FC,current,0,,,,,,,,0,,,,,,,
 2026-10-17,2026-10-17,,,season:17326,Macarthur,Perth Glory FC,current,0,,,,,,,,0,,,,,,,
@@ -11936,14 +11931,14 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-17,2026-10-17,,,season:17444,Chippa United,Kruger United,current,0,,,,,,,,0,,,,,,,
 2026-10-17,2026-10-17,,,season:17444,Golden Arrows,Milford,current,0,,,,,,,,0,,,,,,,
 2026-10-17,2026-10-17,,,season:17444,Sekhukhune United,Marumo Gallants,current,0,,,,,,,,0,,,,,,,
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Austin,Vancouver Whitecaps,current,3,1.6667,3.3333,1.0,0.0,0.0,12.6667,5.0,4,1.25,1.75,0.75,0.25,0.25,14.0,3.5
-2026-10-18,2026-10-18,2026-10-14,2026-10-14,season:16504,FC Cincinnati,Columbus Crew,current,2,2.5,2.0,1.0,0.0,0.0,17.0,6.5,3,2.3333,1.6667,1.0,0.0,0.0,24.6667,11.6667
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Houston Dynamo,FC Dallas,current,3,1.6667,2.3333,0.6667,0.3333,0.0,15.3333,4.3333,3,1.3333,1.0,0.3333,0.0,0.6667,13.6667,4.0
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,LA Galaxy,San Diego,current,3,2.3333,2.6667,0.6667,0.0,0.3333,14.0,6.3333,3,2.3333,3.3333,1.0,0.0,0.0,15.3333,5.3333
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Portland Timbers,Colorado Rapids,current,3,1.3333,2.6667,0.6667,0.3333,0.0,13.0,4.6667,3,1.6667,2.0,1.0,0.0,0.0,12.3333,6.0
-2026-10-18,2026-10-18,2026-10-15,2026-10-14,season:16504,Seattle Sounders,Montreal Impact,current,4,2.0,0.75,0.5,0.25,0.25,14.75,6.75,2,0.5,2.5,0.5,0.5,0.0,12.5,4.5
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,SJ Earthquakes,Nashville SC,current,3,1.6667,1.0,1.0,0.0,0.0,12.6667,4.3333,3,3.3333,0.3333,0.3333,0.0,0.6667,21.6667,11.0
-2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Sporting KC,Real Salt Lake,current,4,1.5,2.25,0.5,0.25,0.25,13.0,5.25,3,1.6667,1.0,0.6667,0.0,0.3333,14.0,6.0
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Austin,Vancouver Whitecaps,current,2,1.0,3.5,1.0,0.0,0.0,12.5,4.5,3,0.6667,1.3333,0.6667,0.3333,0.3333,13.3333,1.6667
+2026-10-18,2026-10-18,2026-10-14,2026-10-14,season:16504,FC Cincinnati,Columbus Crew,current,2,2.5,2.0,1.0,0.0,0.0,17.0,6.5,2,2.5,2.0,1.0,0.0,0.0,30.0,14.5
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Houston Dynamo,FC Dallas,current,2,2.5,2.5,1.0,0.0,0.0,12.5,4.5,2,1.5,1.5,0.5,0.0,0.5,14.0,4.0
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,LA Galaxy,San Diego,current,2,2.0,3.0,0.5,0.0,0.5,13.5,6.0,2,2.0,3.5,1.0,0.0,0.0,15.5,5.5
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Portland Timbers,Colorado Rapids,current,2,1.5,2.5,0.5,0.5,0.0,10.5,4.0,2,1.5,1.5,1.0,0.0,0.0,14.0,7.0
+2026-10-18,2026-10-18,2026-10-15,2026-10-14,season:16504,Seattle Sounders,Montreal Impact,current,3,1.6667,0.6667,0.3333,0.3333,0.3333,15.3333,6.3333,2,0.5,2.5,0.5,0.5,0.0,12.5,4.5
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,SJ Earthquakes,Nashville SC,current,2,1.0,1.0,1.0,0.0,0.0,12.5,2.5,2,4.0,0.5,0.5,0.0,0.5,21.0,11.0
+2026-10-18,2026-10-18,2026-10-15,2026-10-15,season:16504,Sporting KC,Real Salt Lake,current,3,1.3333,3.0,0.6667,0.3333,0.0,14.0,5.6667,2,1.0,1.5,1.0,0.0,0.0,16.5,6.0
 2026-10-18,2026-10-18,2026-10-10,2026-10-12,season:16533,Cerro Porteño,Sportivo Ameliano,current,2,1.5,1.0,0.0,0.5,0.5,17.0,4.5,2,0.5,1.5,0.5,0.5,0.0,12.5,4.5
 2026-10-18,2026-10-18,2026-10-10,2026-10-10,season:16533,Sportivo Luqueño,Sportivo San Lorenzo,current,2,1.0,3.0,0.5,0.5,0.0,16.0,5.0,3,0.6667,0.6667,0.6667,0.3333,0.3333,14.6667,3.6667
 2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:16533,Sportivo Trinidense,Libertad,current,2,2.0,1.5,1.0,0.0,0.0,14.0,5.0,3,1.3333,1.3333,0.6667,0.3333,0.0,13.3333,4.6667
@@ -11966,9 +11961,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-18,2026-10-18,2026-10-11,2026-10-10,season:16576,Örgryte,GAIS,current,1,0.0,3.0,0.0,1.0,0.0,4.0,3.0,1,0.0,1.0,0.0,1.0,0.0,16.0,1.0
 2026-10-18,2026-10-18,2026-10-10,2026-10-12,season:16576,Sirius,Elfsborg,current,1,1.0,0.0,0.0,0.0,1.0,10.0,3.0,1,4.0,0.0,0.0,0.0,1.0,18.0,7.0
 2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:16576,Västerås SK,Mjällby,current,1,0.0,1.0,0.0,1.0,0.0,13.0,2.0,1,1.0,1.0,1.0,0.0,0.0,13.0,5.0
-2026-10-18,2026-10-18,2026-10-11,2026-10-09,season:16708,Albion,Torque,current,3,1.6667,1.3333,0.6667,0.0,0.3333,8.0,4.6667,4,0.5,1.25,0.25,0.5,0.25,8.75,2.5
-2026-10-18,2026-10-18,2026-10-09,2026-10-11,season:16708,Danubio,Central Español,current,3,0.6667,1.0,0.3333,0.6667,0.0,6.6667,1.6667,3,0.3333,2.0,0.3333,0.6667,0.0,7.6667,3.0
-2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:16708,Liverpool FC Montevideo,Peñarol,current,3,2.0,1.3333,1.0,0.0,0.0,7.6667,5.0,3,1.0,0.6667,0.6667,0.0,0.3333,13.0,4.3333
+2026-10-18,2026-10-18,2026-10-11,2026-10-09,season:16708,Albion,Torque,current,3,1.6667,1.3333,0.6667,0.0,0.3333,8.0,4.6667,3,0.6667,1.0,0.3333,0.3333,0.3333,10.3333,3.0
+2026-10-18,2026-10-18,2026-10-09,2026-10-11,season:16708,Danubio,Central Español,current,2,1.0,1.0,0.5,0.5,0.0,7.0,2.0,2,0.0,2.0,0.0,1.0,0.0,5.5,2.5
+2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:16708,Liverpool FC Montevideo,Peñarol,current,2,2.0,1.5,1.0,0.0,0.0,9.5,6.0,3,1.0,0.6667,0.6667,0.0,0.3333,13.0,4.3333
 2026-10-18,2026-10-18,2026-10-11,2026-10-11,season:16714,Barcelona,CD Universidad Católica,current,1,1.0,2.0,1.0,0.0,0.0,16.0,4.0,1,0.0,1.0,0.0,1.0,0.0,13.0,2.0
 2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:16714,Delfin SC,Manta FC,current,1,3.0,2.0,1.0,0.0,0.0,17.0,7.0,1,1.0,0.0,0.0,0.0,1.0,15.0,3.0
 2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:16714,Leones del Norte,CS Emelec,current,1,0.0,3.0,0.0,1.0,0.0,17.0,4.0,1,2.0,3.0,1.0,0.0,0.0,14.0,3.0
@@ -11994,7 +11989,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17097,Twente,Utrecht,current,1,1.0,1.0,1.0,0.0,0.0,11.0,6.0,1,3.0,1.0,1.0,0.0,0.0,24.0,6.0
 2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17099,Cruz Azul,Juárez,current,1,3.0,3.0,1.0,0.0,0.0,30.0,6.0,2,1.0,1.5,1.0,0.0,0.0,9.0,3.5
 2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17099,León,América,current,2,1.5,1.0,1.0,0.0,0.0,9.0,3.0,2,2.5,1.5,1.0,0.0,0.0,17.5,9.0
-2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17099,Toluca,Atlético San Luis,current,1,2.0,3.0,1.0,0.0,0.0,17.0,8.0,2,2.0,2.0,1.0,0.0,0.0,13.5,5.0
+2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17099,Toluca,Atlético San Luis,current,1,2.0,3.0,1.0,0.0,0.0,17.0,8.0,1,1.0,2.0,1.0,0.0,0.0,16.0,3.0
 2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17102,Angers SCO,Olympique Marseille,current,1,1.0,5.0,1.0,0.0,0.0,9.0,3.0,1,2.0,0.0,0.0,0.0,1.0,5.0,2.0
 2026-10-18,2026-10-18,2026-10-10,2026-10-11,season:17102,Le Havre,Auxerre,current,1,0.0,1.0,0.0,1.0,0.0,17.0,2.0,1,1.0,4.0,1.0,0.0,0.0,12.0,5.0
 2026-10-18,2026-10-18,2026-10-10,2026-10-10,season:17102,Lorient,Monaco,current,1,1.0,0.0,0.0,0.0,1.0,8.0,5.0,1,2.0,2.0,1.0,0.0,0.0,16.0,4.0
@@ -12036,11 +12031,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-18,2026-10-18,2026-10-11,2026-10-11,season:17265,İstanbul Başakşehir,Gaziantep FK,current,1,0.0,0.0,0.0,1.0,1.0,7.0,0.0,1,0.0,3.0,0.0,1.0,0.0,12.0,2.0
 2026-10-18,2026-10-18,2026-10-09,2026-10-10,season:17265,Kasımpaşa,Samsunspor,current,1,1.0,3.0,1.0,0.0,0.0,9.0,3.0,1,0.0,3.0,0.0,1.0,0.0,23.0,6.0
 2026-10-18,2026-10-18,2026-10-11,2026-10-12,season:17265,Kocaelispor,Göztepe,current,1,1.0,2.0,1.0,0.0,0.0,11.0,6.0,1,4.0,0.0,0.0,0.0,1.0,19.0,7.0
-2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17269,Burgos CF,CE Sabadell FC,current,3,0.6667,1.0,0.3333,0.3333,0.3333,12.6667,3.6667,2,1.0,0.5,0.5,0.5,0.5,15.0,3.0
-2026-10-18,2026-10-18,2026-10-10,2026-10-12,season:17269,Ceuta,Real Oviedo,current,2,1.0,1.5,1.0,0.0,0.0,15.0,4.0,3,2.0,1.6667,0.6667,0.0,0.3333,16.0,5.6667
+2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17269,Burgos CF,CE Sabadell FC,current,2,0.5,1.5,0.5,0.5,0.0,16.0,4.5,2,1.0,0.5,0.5,0.5,0.5,15.0,3.0
+2026-10-18,2026-10-18,2026-10-10,2026-10-12,season:17269,Ceuta,Real Oviedo,current,2,1.0,1.5,1.0,0.0,0.0,15.0,4.0,2,2.0,2.5,1.0,0.0,0.0,16.0,5.5
 2026-10-18,2026-10-18,2026-10-12,2026-10-11,season:17269,Girona FC,FC Andorra,current,2,0.5,0.5,0.5,0.5,0.5,14.0,4.5,2,0.5,0.0,0.0,0.5,1.0,10.0,4.0
 2026-10-18,2026-10-18,2026-10-12,2026-10-11,season:17269,Granada CF,Cádiz,current,2,2.0,1.0,0.5,0.0,0.5,15.0,4.0,2,2.0,0.5,0.0,0.5,0.5,15.5,5.0
-2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17269,Real Valladolid,CD Eldense,current,3,3.3333,1.0,0.6667,0.0,0.3333,15.3333,7.0,3,2.0,1.0,0.6667,0.3333,0.0,14.0,5.6667
+2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17269,Real Valladolid,CD Eldense,current,2,3.5,1.0,0.5,0.0,0.5,17.0,7.0,2,3.0,1.0,1.0,0.0,0.0,15.5,6.5
 2026-10-18,2026-10-18,,,season:17326,Wellington Phoenix,Melbourne Victory FC,current,0,,,,,,,,0,,,,,,,
 2026-10-18,2026-10-18,2026-10-12,2026-10-10,season:17356,Kalamata,OFI,current,1,3.0,1.0,1.0,0.0,0.0,12.0,6.0,1,0.0,3.0,0.0,1.0,0.0,4.0,0.0
 2026-10-18,2026-10-18,2026-10-11,2026-10-11,season:17356,Kifisia,Aris,current,1,2.0,0.0,0.0,0.0,1.0,17.0,5.0,1,3.0,2.0,1.0,0.0,0.0,23.0,8.0
@@ -12056,13 +12051,14 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-19,2026-10-19,2026-10-12,2026-10-10,season:16571,Newell's Old Boys,Central Córdoba SdE,current,2,0.0,0.5,0.0,1.0,0.5,11.0,2.0,2,1.5,1.5,1.0,0.0,0.0,16.0,5.5
 2026-10-19,2026-10-19,2026-10-14,2026-10-10,season:16571,Sarmiento,Barracas Central,current,2,2.0,1.0,1.0,0.0,0.0,12.5,3.5,2,2.5,1.0,0.5,0.0,0.5,10.5,4.0
 2026-10-19,2026-10-19,2026-10-10,2026-10-12,season:16576,Degerfors,Kalmar,current,1,1.0,1.0,1.0,0.0,0.0,8.0,2.0,1,0.0,1.0,0.0,1.0,0.0,15.0,4.0
-2026-10-19,2026-10-19,2026-10-11,2026-10-09,season:16708,Nacional,Deportivo Maldonado,current,2,1.5,0.0,0.0,0.0,1.0,9.5,3.5,3,2.0,0.3333,0.3333,0.0,0.6667,5.3333,2.6667
+2026-10-19,2026-10-19,2026-10-11,2026-10-09,season:16708,Nacional,Deportivo Maldonado,current,2,1.5,0.0,0.0,0.0,1.0,9.5,3.5,2,2.0,0.5,0.5,0.0,0.5,6.0,2.5
 2026-10-19,2026-10-19,2026-10-09,2026-10-11,season:16714,Mushuc Runa SC,Orense SC,current,1,2.0,3.0,1.0,0.0,0.0,11.0,5.0,1,0.0,0.0,0.0,1.0,1.0,13.0,6.0
 2026-10-19,2026-10-19,2026-10-11,2026-10-11,season:17084,Monza,Cagliari,current,1,1.0,3.0,1.0,0.0,0.0,14.0,6.0,1,1.0,1.0,1.0,0.0,0.0,4.0,2.0
 2026-10-19,2026-10-19,2026-10-10,2026-10-12,season:17084,Parma,Torino,current,1,0.0,3.0,0.0,1.0,0.0,9.0,2.0,1,2.0,1.0,1.0,0.0,0.0,12.0,4.0
 2026-10-19,2026-10-19,2026-10-11,2026-10-11,season:17091,Viborg,Midtjylland,current,1,2.0,0.0,0.0,0.0,1.0,21.0,4.0,1,2.0,1.0,1.0,0.0,0.0,8.0,3.0
-2026-10-19,2026-10-19,2026-10-11,2026-10-11,season:17099,Monterrey,Pachuca,current,1,1.0,1.0,1.0,0.0,0.0,7.0,2.0,2,1.5,2.0,0.5,0.5,0.0,14.5,3.0
+2026-10-19,2026-10-19,2026-10-11,2026-10-11,season:17099,Monterrey,Pachuca,current,1,1.0,1.0,1.0,0.0,0.0,7.0,2.0,1,3.0,3.0,1.0,0.0,0.0,18.0,6.0
 2026-10-19,2026-10-19,2026-10-09,2026-10-12,season:17112,Wisła Płock,Radomiak Radom,current,1,0.0,3.0,0.0,1.0,0.0,11.0,2.0,1,2.0,3.0,1.0,0.0,0.0,6.0,2.0
+2026-10-19,2026-10-19,2026-10-10,2026-10-09,season:17117,Rodez,Montpellier,current,1,0.0,2.0,0.0,1.0,0.0,10.0,4.0,1,2.0,0.0,0.0,0.0,1.0,19.0,6.0
 2026-10-19,2026-10-19,2026-10-10,2026-10-12,season:17146,Tottenham Hotspur,Coventry City,current,1,1.0,1.0,1.0,0.0,0.0,12.0,3.0,1,4.0,1.0,1.0,0.0,0.0,9.0,6.0
 2026-10-19,2026-10-19,2026-10-10,2026-10-12,season:17191,Metalist 1925 Kharkiv,Livyi Bereh,current,1,2.0,1.0,1.0,0.0,0.0,18.0,7.0,1,1.0,3.0,1.0,0.0,0.0,10.0,4.0
 2026-10-19,2026-10-19,2026-10-10,,season:17199,Getafe CF,Rayo Vallecano,current,1,0.0,3.0,0.0,1.0,0.0,4.0,1.0,0,,,,,,,
@@ -12090,11 +12086,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-20,2026-10-20,2026-10-17,2026-10-10,season:17426,Al Ittifaq,Al Ittihad,current,2,1.0,0.5,0.5,0.0,0.5,13.5,5.0,1,2.0,3.0,1.0,0.0,0.0,7.0,5.0
 2026-10-20,2026-10-20,2026-10-09,2026-10-17,season:17426,Al Nassr,Neom SC,current,1,3.0,0.0,0.0,0.0,1.0,17.0,10.0,2,0.5,1.0,0.5,0.5,0.0,10.5,3.0
 2026-10-20,2026-10-20,2026-10-17,2026-10-16,season:17426,Al Taawon,Al Quadisiya,current,2,0.5,2.0,0.5,0.5,0.0,12.0,2.5,2,3.5,0.5,0.5,0.0,0.5,14.0,6.5
-2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:16504,FC Cincinnati,DC United,current,3,1.6667,2.0,0.6667,0.3333,0.0,19.0,6.6667,4,1.5,3.0,0.75,0.25,0.0,13.75,4.25
-2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:17099,Atlético San Luis,Querétaro,current,3,1.6667,1.6667,1.0,0.0,0.0,14.0,5.0,2,1.0,2.5,0.0,0.5,0.5,13.5,2.5
+2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:16504,FC Cincinnati,DC United,current,3,1.6667,2.0,0.6667,0.3333,0.0,19.0,6.6667,3,1.0,3.0,0.6667,0.3333,0.0,11.3333,3.0
+2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:17099,Atlético San Luis,Querétaro,current,2,1.0,1.5,1.0,0.0,0.0,15.5,4.0,2,1.0,2.5,0.0,0.5,0.5,13.5,2.5
 2026-10-21,2026-10-21,2026-10-17,2026-10-17,season:17099,Guadalajara,Necaxa,current,2,1.0,1.0,1.0,0.0,0.0,21.0,5.5,3,1.6667,3.0,0.6667,0.3333,0.0,17.0,5.3333
 2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:17099,Juárez,Atlante,current,3,0.6667,2.6667,0.6667,0.3333,0.0,9.3333,3.6667,2,0.5,2.0,0.5,0.5,0.0,16.5,7.0
-2026-10-21,2026-10-21,2026-10-17,2026-10-18,season:17099,Tigres UANL,León,current,3,1.6667,1.0,0.6667,0.0,0.3333,13.0,6.6667,3,2.0,2.3333,1.0,0.0,0.0,10.3333,4.3333
+2026-10-21,2026-10-21,2026-10-17,2026-10-18,season:17099,Tigres UANL,León,current,2,2.0,1.5,1.0,0.0,0.0,13.5,8.0,3,2.0,2.3333,1.0,0.0,0.0,10.3333,4.3333
 2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:17115,Avispa Fukuoka,Gamba Osaka,current,2,1.0,2.0,0.5,0.5,0.0,10.5,3.5,2,1.0,2.0,0.5,0.5,0.0,12.0,4.0
 2026-10-21,2026-10-21,2026-10-18,2026-10-17,season:17115,Fagiano Okayama,Mito Hollyhock,current,2,0.5,2.5,0.5,0.5,0.0,12.0,3.5,2,0.5,1.5,0.5,0.5,0.0,4.0,1.5
 2026-10-21,2026-10-21,2026-10-17,2026-10-18,season:17115,Kawasaki Frontale,Vissel Kobe,current,2,2.5,2.0,1.0,0.0,0.0,8.5,4.0,2,2.5,2.0,0.5,0.0,0.5,18.0,7.0
@@ -12108,9 +12104,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-21,2026-10-21,2026-10-17,2026-10-17,season:17180,Reading,Leyton Orient,current,3,2.0,1.0,0.6667,0.3333,0.0,13.6667,5.0,3,0.6667,0.6667,0.0,0.6667,0.6667,11.3333,3.6667
 2026-10-21,2026-10-21,2026-10-16,2026-10-17,season:17199,Levante UD,Athletic Club Bilbao,current,2,2.0,2.0,1.0,0.0,0.0,15.5,6.0,1,0.0,0.0,0.0,1.0,1.0,9.0,2.0
 2026-10-22,2026-10-22,2026-10-17,2026-10-18,season:17099,Atlas,América,current,2,1.5,0.5,0.5,0.0,0.5,10.0,4.0,3,3.3333,2.0,1.0,0.0,0.0,16.6667,9.3333
-2026-10-22,2026-10-22,2026-10-19,2026-10-18,season:17099,Pachuca,Cruz Azul,current,3,1.3333,2.0,0.6667,0.3333,0.0,13.3333,3.0,2,4.0,1.5,0.5,0.0,0.5,22.5,7.5
-2026-10-22,2026-10-22,2026-10-17,2026-10-19,season:17099,Puebla,Monterrey,current,3,0.3333,0.6667,0.3333,0.6667,0.3333,11.6667,3.3333,2,1.5,1.0,1.0,0.0,0.0,8.5,3.0
-2026-10-22,2026-10-22,2026-10-17,2026-10-17,season:17099,Santos Laguna,Pumas UNAM,current,3,2.6667,0.3333,0.3333,0.0,0.6667,16.0,7.3333,3,2.3333,2.3333,1.0,0.0,0.0,10.0,4.6667
+2026-10-22,2026-10-22,2026-10-19,2026-10-18,season:17099,Pachuca,Cruz Azul,current,2,2.0,2.5,1.0,0.0,0.0,14.5,4.5,2,4.0,1.5,0.5,0.0,0.5,22.5,7.5
+2026-10-22,2026-10-22,2026-10-17,2026-10-19,season:17099,Puebla,Monterrey,current,2,0.5,0.5,0.5,0.5,0.5,12.5,4.5,2,1.5,1.0,1.0,0.0,0.0,8.5,3.0
+2026-10-22,2026-10-22,2026-10-17,2026-10-17,season:17099,Santos Laguna,Pumas UNAM,current,2,3.5,0.5,0.5,0.0,0.5,15.5,6.5,2,2.5,2.0,1.0,0.0,0.0,7.5,4.0
 2026-10-22,2026-10-22,2026-10-18,2026-10-17,season:17099,Toluca,Tijuana,current,2,1.5,2.0,1.0,0.0,0.0,23.0,7.5,2,0.5,0.5,0.5,0.5,0.5,18.0,5.0
 2026-10-22,2026-10-22,2026-10-18,2026-10-19,season:17426,Al Fateh,Al Shabab,current,3,1.6667,3.0,0.6667,0.3333,0.0,10.6667,3.6667,2,2.5,1.0,0.5,0.0,0.5,15.0,6.5
 2026-10-22,2026-10-22,2026-10-19,2026-10-19,season:17426,Al Hazm,Al Feiha,current,3,1.0,1.6667,0.6667,0.3333,0.0,8.0,3.3333,3,1.0,2.0,0.6667,0.3333,0.0,10.0,2.0
@@ -12122,7 +12118,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-23,2026-10-23,2026-10-18,2026-10-18,season:16576,Elfsborg,Malmö FF,current,2,3.0,1.0,0.5,0.0,0.5,16.0,6.5,2,0.5,0.5,0.0,0.5,0.5,19.0,6.0
 2026-10-23,2026-10-23,2026-10-18,2026-10-18,season:16576,Västerås SK,Halmstad,current,2,0.5,0.5,0.0,0.5,0.5,17.5,5.5,2,0.0,2.5,0.0,1.0,0.0,7.0,1.0
 2026-10-23,2026-10-23,,2026-10-10,season:16615,Audax Italiano,Huachipato,current,0,,,,,,,,2,2.0,0.0,0.0,0.0,1.0,11.0,4.5
-2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:16708,Juventud,Peñarol,current,4,0.5,0.5,0.0,0.75,0.75,11.75,3.5,4,0.75,0.75,0.5,0.25,0.25,11.0,3.25
+2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:16708,Juventud,Peñarol,current,3,0.6667,0.6667,0.0,0.6667,0.6667,12.6667,3.6667,4,0.75,0.75,0.5,0.25,0.25,11.0,3.25
 2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:16714,CSD Independiente del Valle,CD Universidad Católica,current,2,1.0,1.0,0.5,0.5,0.0,9.5,3.5,2,0.5,1.0,0.5,0.5,0.0,8.5,1.5
 2026-10-23,2026-10-23,2026-10-18,2026-10-16,season:16905,Atlético Grau,ADT,current,2,0.5,1.5,0.5,0.5,0.5,12.5,5.5,2,0.5,1.0,0.5,0.5,0.5,23.5,8.0
 2026-10-23,2026-10-23,2026-10-18,2026-10-17,season:16905,UTC Cajamarca,Melgar,current,2,0.0,1.0,0.0,1.0,0.0,14.5,4.5,2,3.0,2.0,1.0,0.0,0.0,17.0,8.0
@@ -12132,6 +12128,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:17102,Brest,Nice,current,2,3.0,1.0,1.0,0.0,0.0,13.5,5.5,2,1.5,1.5,1.0,0.0,0.0,11.5,5.5
 2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:17112,Motor Lublin,Zagłębie Lubin,current,2,3.0,2.0,1.0,0.0,0.0,25.5,11.0,2,1.0,1.5,0.5,0.0,0.5,14.0,5.0
 2026-10-23,2026-10-23,2026-10-16,2026-10-18,season:17112,Widzew Łódź,Górnik Zabrze,current,2,0.5,1.0,0.5,0.5,0.5,13.5,3.0,2,2.0,1.0,1.0,0.0,0.0,21.0,7.0
+2026-10-23,2026-10-23,2026-10-16,2026-10-16,season:17117,Clermont,Guingamp,current,2,2.5,3.0,1.0,0.0,0.0,8.5,3.5,2,0.5,1.5,0.5,0.5,0.0,13.5,3.0
+2026-10-23,2026-10-23,2026-10-17,2026-10-17,season:17117,Dunkerque,Metz,current,2,1.5,1.5,0.5,0.5,0.0,9.0,2.0,2,2.5,3.0,1.0,0.0,0.0,13.0,4.5
+2026-10-23,2026-10-23,2026-10-16,2026-10-16,season:17117,Nancy,Laval,current,2,1.5,0.5,0.5,0.0,0.5,15.5,6.0,2,2.5,3.0,1.0,0.0,0.0,15.5,6.5
+2026-10-23,2026-10-23,2026-10-16,2026-10-16,season:17117,Pau,Grenoble Foot 38,current,2,2.5,1.5,1.0,0.0,0.0,12.0,5.5,2,0.0,2.0,0.0,1.0,0.0,13.5,3.0
+2026-10-23,2026-10-23,2026-10-17,2026-10-16,season:17117,Sochaux,Annecy,current,2,1.5,2.0,1.0,0.0,0.0,14.5,3.5,2,1.0,1.0,0.5,0.0,0.5,10.0,4.0
 2026-10-23,2026-10-23,2026-10-18,2026-10-18,season:17119,IMT Novi Beograd,Železničar Pančevo,current,2,1.5,0.5,0.5,0.0,0.5,13.0,6.5,2,2.0,0.0,0.0,0.0,1.0,13.5,6.5
 2026-10-23,2026-10-23,2026-10-17,2026-10-16,season:17119,Radnički Kragujevac,Radnik Surdulica,current,2,0.0,2.5,0.0,1.0,0.0,11.0,1.0,2,1.5,0.5,0.0,0.5,0.5,17.0,6.5
 2026-10-23,2026-10-23,2026-10-16,2026-10-18,season:17119,Radnički Niš,Novi Pazar,current,2,0.5,3.5,0.5,0.5,0.0,10.0,2.5,2,0.5,1.5,0.5,0.5,0.0,10.5,3.5
@@ -12150,7 +12151,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-23,2026-10-23,2026-10-16,2026-10-17,season:17247,Botoşani,Petrolul 52,current,2,1.0,1.0,0.0,0.5,0.5,13.5,5.5,2,1.0,2.0,1.0,0.0,0.0,14.5,5.0
 2026-10-23,2026-10-23,2026-10-17,2026-10-19,season:17247,Corvinul Hunedoara,Universitatea Cluj,current,2,1.5,2.0,0.5,0.5,0.0,16.0,4.5,3,2.6667,2.3333,1.0,0.0,0.0,15.3333,5.3333
 2026-10-23,2026-10-23,2026-10-17,2026-10-18,season:17265,Alanyaspor,Kocaelispor,current,2,0.0,1.5,0.0,1.0,0.5,14.0,5.0,2,1.0,2.0,1.0,0.0,0.0,12.0,5.0
-2026-10-23,2026-10-23,2026-10-18,2026-10-18,season:17269,Granada CF,Real Valladolid,current,3,2.0,0.6667,0.3333,0.0,0.6667,13.6667,3.3333,4,3.0,1.5,0.75,0.0,0.25,15.5,6.5
+2026-10-23,2026-10-23,2026-10-18,2026-10-18,season:17269,Granada CF,Real Valladolid,current,3,2.0,0.6667,0.3333,0.0,0.6667,13.6667,3.3333,3,3.0,1.6667,0.6667,0.0,0.3333,16.6667,6.3333
 2026-10-23,2026-10-23,,2026-10-17,season:17326,Brisbane Roar,Perth Glory FC,current,0,,,,,,,,1,1.0,2.0,1.0,0.0,0.0,9.0,6.0
 2026-10-23,2026-10-23,2026-10-17,2026-10-17,season:17404,Empoli,Vicenza,current,2,1.5,2.5,1.0,0.0,0.0,11.0,2.5,2,1.0,2.5,0.5,0.5,0.0,11.0,1.0
 2026-10-23,2026-10-23,2026-10-19,2026-10-18,season:17426,Al Ahli,Al Khaleej,current,2,3.5,1.0,0.5,0.0,0.5,16.0,9.0,3,2.0,1.0,0.6667,0.0,0.3333,12.6667,4.3333
@@ -12158,12 +12159,12 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-23,2026-10-23,2026-10-20,2026-10-20,season:17426,Al Ittihad,Al Draih,current,2,3.0,2.0,1.0,0.0,0.0,13.0,6.5,3,0.6667,1.3333,0.3333,0.3333,0.3333,11.6667,3.3333
 2026-10-23,2026-10-23,2026-10-20,2026-10-19,season:17426,Al Quadisiya,Al Hilal,current,3,2.6667,0.3333,0.3333,0.0,0.6667,17.0,7.3333,2,2.0,1.0,0.5,0.0,0.5,18.5,5.5
 2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,Atlanta United FC,Chicago Fire,current,3,1.6667,2.0,0.6667,0.0,0.3333,18.0,5.0,4,1.5,1.5,0.75,0.25,0.0,15.75,5.25
-2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:16504,Columbus Crew,Toronto,current,4,2.25,1.25,0.75,0.0,0.25,19.25,9.25,4,1.75,1.5,0.5,0.25,0.25,11.75,4.75
-2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:16504,DC United,FC Cincinnati,current,5,1.4,2.8,0.8,0.2,0.0,13.6,4.2,4,1.75,1.75,0.75,0.25,0.0,18.0,6.5
-2026-10-24,2026-10-24,2026-10-18,2026-10-18,season:16504,Montreal Impact,Nashville SC,current,3,0.6667,2.0,0.6667,0.3333,0.0,11.3333,3.6667,4,2.75,0.5,0.5,0.0,0.5,17.75,9.25
-2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,New York RB,Inter Miami,current,4,1.25,2.0,0.5,0.5,0.0,19.25,6.75,4,2.5,0.75,0.5,0.0,0.5,10.75,5.75
+2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:16504,Columbus Crew,Toronto,current,3,2.3333,1.3333,0.6667,0.0,0.3333,21.0,10.3333,3,2.3333,1.3333,0.6667,0.0,0.3333,12.0,5.3333
+2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:16504,DC United,FC Cincinnati,current,4,1.0,2.75,0.75,0.25,0.0,11.75,3.25,4,1.75,1.75,0.75,0.25,0.0,18.0,6.5
+2026-10-24,2026-10-24,2026-10-18,2026-10-18,season:16504,Montreal Impact,Nashville SC,current,3,0.6667,2.0,0.6667,0.3333,0.0,11.3333,3.6667,3,3.0,0.6667,0.6667,0.0,0.3333,16.0,8.6667
+2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,New York RB,Inter Miami,current,4,1.25,2.0,0.5,0.5,0.0,19.25,6.75,3,3.0,0.3333,0.3333,0.0,0.6667,12.6667,6.6667
 2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,Orlando City,New York City,current,3,3.3333,2.0,1.0,0.0,0.0,15.6667,6.3333,3,0.6667,1.6667,0.6667,0.3333,0.0,13.0,4.6667
-2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,Philadelphia Union,New England Revolution,current,3,2.3333,1.3333,1.0,0.0,0.0,18.0,6.0,4,1.0,2.0,0.25,0.5,0.25,11.0,4.5
+2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16504,Philadelphia Union,New England Revolution,current,3,2.3333,1.3333,1.0,0.0,0.0,18.0,6.0,3,1.3333,1.6667,0.3333,0.3333,0.3333,9.3333,4.6667
 2026-10-24,2026-10-24,2026-10-17,2026-10-16,season:16533,2 de Mayo,Deportivo Recoleta,current,3,1.0,1.0,0.0,0.3333,0.6667,11.3333,4.0,4,0.5,0.75,0.25,0.5,0.5,12.5,2.25
 2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:16533,Nacional Asunción,Sportivo Trinidense,current,3,1.3333,0.3333,0.3333,0.0,0.6667,12.3333,5.6667,3,1.6667,1.0,0.6667,0.0,0.3333,15.0,4.3333
 2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:16544,Chapecoense,Fluminense,current,3,0.3333,3.0,0.3333,0.6667,0.0,13.6667,3.6667,3,1.6667,1.0,0.3333,0.3333,0.3333,14.0,5.3333
@@ -12184,9 +12185,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:16576,Sirius,AIK,current,2,1.5,1.0,0.5,0.0,0.5,11.5,4.0,2,3.5,4.0,1.0,0.0,0.0,18.5,7.5
 2026-10-24,2026-10-24,2026-10-11,2026-10-11,season:16615,La Serena,Concepción,current,1,2.0,3.0,1.0,0.0,0.0,9.0,6.0,1,1.0,1.0,1.0,0.0,0.0,17.0,6.0
 2026-10-24,2026-10-24,2026-10-10,2026-10-10,season:16615,O'Higgins,Cobresal,current,1,0.0,2.0,0.0,1.0,0.0,19.0,7.0,1,1.0,1.0,1.0,0.0,0.0,23.0,8.0
-2026-10-24,2026-10-24,2026-10-18,2026-10-18,season:16708,Central Español,Albion,current,4,0.25,1.75,0.25,0.75,0.0,7.5,2.75,4,1.75,1.25,0.75,0.0,0.25,8.5,4.75
-2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16708,Defensor Sporting,Racing,current,4,1.25,1.75,0.5,0.25,0.25,6.75,4.0,3,1.0,1.0,0.0,0.6667,0.3333,6.3333,2.6667
-2026-10-24,2026-10-24,2026-10-19,2026-10-18,season:16708,Deportivo Maldonado,Danubio,current,4,2.0,1.0,0.5,0.0,0.5,5.25,2.75,4,0.75,0.75,0.25,0.5,0.25,6.5,2.25
+2026-10-24,2026-10-24,2026-10-18,2026-10-18,season:16708,Central Español,Albion,current,3,0.0,1.6667,0.0,1.0,0.0,6.0,2.3333,4,1.75,1.25,0.75,0.0,0.25,8.5,4.75
+2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16708,Defensor Sporting,Racing,current,3,1.3333,2.3333,0.6667,0.3333,0.0,6.6667,4.0,3,1.0,1.0,0.0,0.6667,0.3333,6.3333,2.6667
+2026-10-24,2026-10-24,2026-10-19,2026-10-18,season:16708,Deportivo Maldonado,Danubio,current,3,2.0,1.3333,0.6667,0.0,0.3333,5.6667,2.6667,3,1.0,0.6667,0.3333,0.3333,0.3333,6.6667,2.6667
 2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:16714,LDU Quito,Macará,current,2,1.5,1.0,1.0,0.0,0.0,17.0,5.5,2,1.0,0.0,0.0,0.0,1.0,12.0,4.5
 2026-10-24,2026-10-24,2026-10-18,2026-10-16,season:16714,Manta FC,Deportivo Cuenca,current,2,1.5,2.0,0.5,0.0,0.5,15.0,3.5,2,1.0,0.5,0.5,0.5,0.5,11.5,3.5
 2026-10-24,2026-10-24,2026-10-19,2026-10-18,season:16714,Orense SC,Delfin SC,current,2,0.5,0.5,0.5,0.5,0.5,14.0,7.0,2,3.5,2.0,1.0,0.0,0.0,17.5,5.5
@@ -12201,7 +12202,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-24,2026-10-24,2026-10-17,2026-10-16,season:17097,ADO Den Haag,Heerenveen,current,2,2.0,1.5,1.0,0.0,0.0,9.0,2.5,2,2.0,1.0,0.0,0.5,0.5,13.0,6.0
 2026-10-24,2026-10-24,2026-10-18,2026-10-18,season:17097,Utrecht,PEC Zwolle,current,2,2.5,1.0,1.0,0.0,0.0,20.0,5.5,2,2.0,1.0,0.5,0.5,0.0,17.0,7.5
 2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:17097,Willem II,Cambuur,current,2,1.5,3.0,1.0,0.0,0.0,11.0,3.0,2,1.5,1.0,0.5,0.0,0.5,12.0,5.0
-2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17099,Atlante,Atlético San Luis,current,3,0.6667,1.3333,0.3333,0.3333,0.3333,14.3333,5.6667,4,1.75,1.5,1.0,0.0,0.0,13.5,4.75
+2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17099,Atlante,Atlético San Luis,current,3,0.6667,1.3333,0.3333,0.3333,0.3333,14.3333,5.6667,3,1.3333,1.3333,1.0,0.0,0.0,14.3333,4.0
 2026-10-24,2026-10-24,2026-10-21,2026-10-22,season:17099,León,Toluca,current,4,2.0,1.75,0.75,0.0,0.25,10.75,4.5,3,1.6667,2.0,1.0,0.0,0.0,26.0,7.0
 2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17099,Necaxa,Juárez,current,4,1.25,2.5,0.5,0.5,0.0,15.5,5.0,4,0.5,2.25,0.5,0.5,0.0,8.75,3.0
 2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:17102,Lens,Paris,current,2,2.5,1.0,1.0,0.0,0.0,14.0,5.0,2,2.0,2.0,0.5,0.5,0.0,18.0,6.0
@@ -12214,6 +12215,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17115,Sanfrecce Hiroshima,Shimizu S-Pulse,current,3,1.6667,1.3333,0.0,0.3333,0.6667,18.0,5.0,3,1.3333,2.6667,0.6667,0.3333,0.0,9.3333,3.6667
 2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17115,Tokyo Verdy,Avispa Fukuoka,current,3,0.6667,2.6667,0.3333,0.6667,0.0,7.0,2.0,3,1.0,2.0,0.6667,0.3333,0.0,11.6667,3.3333
 2026-10-24,2026-10-24,2026-10-21,2026-10-21,season:17115,Vissel Kobe,Machida Zelvia,current,3,2.0,2.0,0.6667,0.0,0.3333,15.6667,6.0,3,3.0,0.0,0.0,0.0,1.0,14.3333,7.3333
+2026-10-24,2026-10-24,2026-10-16,2026-10-19,season:17117,Dijon,Rodez,current,2,3.0,3.0,1.0,0.0,0.0,15.0,5.5,2,0.0,2.5,0.0,1.0,0.0,13.0,3.0
+2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:17117,Saint-Étienne,Nantes,current,2,1.5,0.0,0.0,0.0,1.0,9.5,3.0,2,1.0,1.5,0.5,0.5,0.5,19.0,4.5
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:17119,LFK Mladost Lučani,Vojvodina,current,2,0.5,2.5,0.5,0.5,0.5,6.0,0.5,2,3.0,0.5,0.5,0.0,0.5,12.0,5.0
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:17119,Partizan,Čukarički,current,2,0.5,0.5,0.0,0.5,0.5,8.0,2.0,2,2.5,1.0,0.5,0.0,0.5,14.5,5.0
 2026-10-24,2026-10-24,2026-10-10,2026-10-11,season:17129,Servette,Vaduz,current,1,3.0,0.0,0.0,0.0,1.0,16.0,5.0,1,3.0,0.0,0.0,0.0,1.0,20.0,7.0
@@ -12288,11 +12291,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:17265,Eyüpspor,Kasımpaşa,current,2,0.0,3.0,0.0,1.0,0.0,8.5,4.0,2,2.5,2.0,1.0,0.0,0.0,16.0,6.0
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:17265,Gaziantep FK,BB Erzurumspor,current,2,0.5,2.5,0.5,0.5,0.0,12.0,3.0,2,1.0,0.0,0.0,0.5,1.0,11.0,4.0
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:17265,Samsunspor,Amed,current,2,0.5,3.5,0.5,0.5,0.0,17.5,5.0,2,1.5,1.0,0.5,0.0,0.5,16.0,4.5
-2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:17269,Almería,Real Oviedo,current,4,2.5,0.75,0.5,0.0,0.5,15.25,5.75,4,2.0,1.5,0.75,0.0,0.25,16.25,6.5
-2026-10-24,2026-10-24,2026-10-16,2026-10-17,season:17269,Córdoba,SD Eibar,current,4,1.5,1.75,0.75,0.0,0.25,16.0,4.75,4,2.0,1.75,1.0,0.0,0.0,14.25,6.0
+2026-10-24,2026-10-24,2026-10-17,2026-10-18,season:17269,Almería,Real Oviedo,current,3,3.0,1.0,0.6667,0.0,0.3333,16.6667,6.6667,3,2.0,2.0,1.0,0.0,0.0,16.3333,6.6667
+2026-10-24,2026-10-24,2026-10-16,2026-10-17,season:17269,Córdoba,SD Eibar,current,3,1.6667,1.3333,0.6667,0.0,0.3333,16.0,5.0,3,1.6667,1.6667,1.0,0.0,0.0,13.0,6.0
 2026-10-24,2026-10-24,2026-10-18,2026-10-19,season:17269,Girona FC,Celta de Vigo II,current,3,1.0,0.3333,0.3333,0.3333,0.6667,13.0,4.3333,3,2.3333,1.6667,1.0,0.0,0.0,13.6667,6.6667
-2026-10-24,2026-10-24,2026-10-16,2026-10-17,season:17269,Leganés,RCD Mallorca,current,4,0.0,2.5,0.0,1.0,0.0,10.75,1.5,4,1.0,0.75,0.5,0.5,0.25,13.5,4.0
-2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:17269,UD Las Palmas,Real Sociedad II,current,4,1.25,2.75,0.75,0.25,0.0,8.0,3.0,3,1.6667,3.6667,1.0,0.0,0.0,20.3333,6.6667
+2026-10-24,2026-10-24,2026-10-16,2026-10-17,season:17269,Leganés,RCD Mallorca,current,4,0.0,2.5,0.0,1.0,0.0,10.75,1.5,3,1.3333,0.6667,0.6667,0.3333,0.3333,12.3333,3.6667
+2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:17269,UD Las Palmas,Real Sociedad II,current,3,1.0,2.6667,0.6667,0.3333,0.0,7.0,2.3333,3,1.6667,3.6667,1.0,0.0,0.0,20.3333,6.6667
 2026-10-24,2026-10-24,2026-10-18,2026-10-17,season:17326,Melbourne Victory FC,Melbourne City FC,current,1,1.0,2.0,1.0,0.0,0.0,5.0,3.0,1,1.0,3.0,1.0,0.0,0.0,15.0,5.0
 2026-10-24,2026-10-24,2026-10-17,2026-10-17,season:17326,Newcastle Jets FC,Macarthur,current,1,2.0,2.0,1.0,0.0,0.0,18.0,5.0,1,2.0,1.0,1.0,0.0,0.0,9.0,2.0
 2026-10-24,2026-10-24,2026-10-16,2026-10-17,season:17326,Western Sydney Wanderers,Auckland,current,1,0.0,0.0,0.0,1.0,1.0,13.0,2.0,1,3.0,1.0,1.0,0.0,0.0,11.0,4.0
@@ -12309,13 +12312,13 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-24,2026-10-24,2026-10-15,2026-10-20,season:17426,Al Kholood,Al Ittifaq,current,2,1.0,4.0,0.5,0.5,0.0,16.0,4.0,3,1.0,1.6667,0.6667,0.0,0.3333,12.0,4.6667
 2026-10-24,2026-10-24,2026-10-20,2026-10-20,season:17426,Al Riyadh,Al Taawon,current,2,0.5,1.0,0.5,0.5,0.0,16.5,3.0,3,0.3333,1.6667,0.3333,0.6667,0.0,10.0,2.3333
 2026-10-24,2026-10-24,2026-10-20,2026-10-16,season:17426,Neom SC,Abha,current,3,0.3333,1.0,0.3333,0.6667,0.0,9.3333,2.3333,1,1.0,2.0,1.0,0.0,0.0,6.0,1.0
-2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,Colorado Rapids,Vancouver Whitecaps,current,4,1.25,1.5,0.75,0.25,0.25,11.5,4.75,5,1.4,1.6,0.8,0.2,0.2,13.2,3.4
-2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,FC Dallas,SJ Earthquakes,current,4,1.5,1.25,0.5,0.0,0.5,14.0,4.5,4,1.5,1.0,1.0,0.0,0.0,13.0,3.75
-2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Houston Dynamo,Minnesota United,current,4,1.75,2.25,0.75,0.25,0.0,14.25,4.0,4,2.0,2.25,1.0,0.0,0.0,16.75,5.25
-2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Portland Timbers,Charlotte,current,4,1.0,2.0,0.5,0.5,0.25,12.5,4.5,3,2.0,2.3333,1.0,0.0,0.0,13.3333,4.3333
-2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Real Salt Lake,St. Louis City,current,4,2.0,1.0,0.75,0.0,0.25,13.75,6.5,4,2.75,1.25,0.5,0.25,0.5,12.0,6.25
-2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,San Diego,Seattle Sounders,current,4,2.25,3.0,1.0,0.0,0.0,15.0,5.25,5,1.8,0.8,0.6,0.2,0.2,15.4,6.4
-2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,Sporting KC,Austin,current,5,1.4,2.4,0.6,0.2,0.2,12.0,4.8,4,1.5,3.0,1.0,0.0,0.0,11.75,5.0
+2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,Colorado Rapids,Vancouver Whitecaps,current,3,1.0,1.0,0.6667,0.3333,0.3333,12.3333,5.0,4,1.0,1.25,0.75,0.25,0.25,12.5,2.0
+2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,FC Dallas,SJ Earthquakes,current,3,1.6667,1.6667,0.6667,0.0,0.3333,14.3333,4.6667,3,1.0,1.0,1.0,0.0,0.0,13.0,2.3333
+2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Houston Dynamo,Minnesota United,current,3,2.3333,2.3333,1.0,0.0,0.0,12.0,4.0,3,2.3333,2.0,1.0,0.0,0.0,17.6667,6.3333
+2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Portland Timbers,Charlotte,current,3,1.0,1.6667,0.3333,0.6667,0.3333,10.6667,4.0,3,2.0,2.3333,1.0,0.0,0.0,13.3333,4.3333
+2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16504,Real Salt Lake,St. Louis City,current,3,1.6667,1.3333,1.0,0.0,0.0,15.3333,6.6667,4,2.75,1.25,0.5,0.25,0.5,12.0,6.25
+2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,San Diego,Seattle Sounders,current,3,2.0,3.0,1.0,0.0,0.0,15.0,5.3333,4,1.5,0.75,0.5,0.25,0.25,16.0,6.0
+2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16504,Sporting KC,Austin,current,4,1.25,3.0,0.75,0.25,0.0,12.5,5.0,3,1.0,3.0,1.0,0.0,0.0,11.3333,4.6667
 2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16533,Sportivo Ameliano,Olimpia,current,3,1.0,1.6667,0.6667,0.3333,0.0,12.3333,5.0,4,1.25,0.25,0.25,0.25,0.75,23.0,6.5
 2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16533,Sportivo San Lorenzo,Cerro Porteño,current,4,1.0,1.25,0.75,0.25,0.25,13.5,3.5,3,1.6667,1.3333,0.3333,0.3333,0.3333,15.3333,5.3333
 2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:16544,Santos,Bahia,current,4,1.75,1.5,1.0,0.0,0.0,13.0,4.0,3,0.3333,1.3333,0.0,0.6667,0.3333,11.6667,2.0
@@ -12336,8 +12339,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-25,2026-10-25,2026-10-11,,season:16615,Unión La Calera,Universidad Católica,current,1,1.0,1.0,1.0,0.0,0.0,10.0,3.0,0,,,,,,,
 2026-10-25,2026-10-25,2026-10-10,2026-10-11,season:16615,Univ. Concepción,Deportes Limache,current,2,0.5,1.5,0.5,0.5,0.0,13.0,2.5,1,2.0,2.0,1.0,0.0,0.0,10.0,4.0
 2026-10-25,2026-10-25,2026-10-16,2026-10-17,season:16708,Cerro Largo,Boston River,current,3,0.6667,1.3333,0.6667,0.3333,0.0,5.3333,1.3333,3,1.3333,0.3333,0.3333,0.3333,0.6667,9.6667,4.6667
-2026-10-25,2026-10-25,2026-10-19,2026-10-18,season:16708,Nacional,Liverpool FC Montevideo,current,3,2.0,0.6667,0.3333,0.0,0.6667,9.3333,4.0,4,1.75,1.0,0.75,0.0,0.25,8.25,4.5
-2026-10-25,2026-10-25,2026-10-18,2026-10-16,season:16708,Torque,Cerro,current,5,0.6,1.4,0.4,0.4,0.2,10.4,3.8,4,1.0,1.25,0.5,0.5,0.25,8.0,4.25
+2026-10-25,2026-10-25,2026-10-19,2026-10-18,season:16708,Nacional,Liverpool FC Montevideo,current,3,2.0,0.6667,0.3333,0.0,0.6667,9.3333,4.0,3,1.6667,1.0,0.6667,0.0,0.3333,9.6667,5.0
+2026-10-25,2026-10-25,2026-10-18,2026-10-16,season:16708,Torque,Cerro,current,4,0.75,1.25,0.5,0.25,0.25,12.0,4.5,3,1.3333,1.6667,0.6667,0.3333,0.0,8.6667,4.6667
 2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:16708,Wanderers,Progreso,current,4,1.25,1.75,0.5,0.25,0.25,5.5,3.0,3,1.6667,1.3333,0.6667,0.0,0.3333,9.0,5.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16714,CS Emelec,Guayaquil City FC,current,2,2.5,2.0,1.0,0.0,0.0,15.5,4.0,2,1.5,3.0,0.5,0.5,0.0,12.0,4.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:16714,Leones del Norte,Libertad,current,2,0.5,3.0,0.5,0.5,0.0,15.5,4.5,2,3.5,0.0,0.0,0.0,1.0,18.0,6.5
@@ -12362,9 +12365,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:17097,NEC,Groningen,current,2,1.5,1.5,1.0,0.0,0.0,16.0,4.5,2,3.5,3.0,1.0,0.0,0.0,15.0,7.0
 2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:17097,PSV,Feyenoord,current,2,1.5,1.0,0.5,0.0,0.5,15.5,3.0,2,3.0,1.5,0.5,0.0,0.5,18.5,7.5
 2026-10-25,2026-10-25,2026-10-17,2026-10-18,season:17097,Sparta Rotterdam,Ajax,current,2,3.0,2.5,1.0,0.0,0.0,20.0,8.0,2,3.0,1.5,1.0,0.0,0.0,16.5,8.0
-2026-10-25,2026-10-25,2026-10-22,2026-10-22,season:17099,Atlas,Puebla,current,3,1.6667,2.0,0.6667,0.0,0.3333,14.6667,4.6667,4,0.5,1.5,0.5,0.5,0.25,11.75,3.5
+2026-10-25,2026-10-25,2026-10-22,2026-10-22,season:17099,Atlas,Puebla,current,3,1.6667,2.0,0.6667,0.0,0.3333,14.6667,4.6667,3,0.6667,1.6667,0.6667,0.3333,0.3333,12.3333,4.3333
 2026-10-25,2026-10-25,2026-10-22,2026-10-21,season:17099,Monterrey,Guadalajara,current,3,2.3333,1.0,1.0,0.0,0.0,10.3333,4.0,3,1.0,0.6667,0.6667,0.0,0.3333,17.3333,4.6667
-2026-10-25,2026-10-25,2026-10-22,2026-10-21,season:17099,Pumas UNAM,Tigres UANL,current,4,1.75,2.25,0.75,0.25,0.0,8.75,3.75,4,1.25,1.25,0.5,0.25,0.25,14.75,6.5
+2026-10-25,2026-10-25,2026-10-22,2026-10-21,season:17099,Pumas UNAM,Tigres UANL,current,3,1.6667,2.0,0.6667,0.3333,0.0,6.6667,3.0,3,1.3333,1.6667,0.6667,0.3333,0.0,15.6667,7.3333
 2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:17102,Angers SCO,Lorient,current,2,1.5,5.0,1.0,0.0,0.0,10.0,3.0,2,1.0,0.0,0.0,0.0,1.0,8.5,4.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-16,season:17102,Auxerre,Le Mans,current,2,2.0,2.5,1.0,0.0,0.0,12.5,5.5,2,0.5,3.0,0.5,0.5,0.0,11.0,2.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-17,season:17102,Monaco,Lille,current,2,1.0,1.5,0.5,0.5,0.0,15.5,4.0,2,1.0,0.5,0.5,0.0,0.5,11.0,3.0
@@ -12417,8 +12420,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-25,2026-10-25,2026-10-18,2026-10-16,season:17247,SSC Farul,Oţelul Galaţi,current,2,1.5,1.5,0.5,0.5,0.0,12.0,5.0,2,0.5,1.0,0.5,0.5,0.0,19.5,6.5
 2026-10-25,2026-10-25,2026-10-18,2026-10-16,season:17265,Göztepe,Çorum Belediyespor,current,2,3.0,0.5,0.5,0.0,0.5,13.5,5.0,2,2.5,0.5,0.5,0.0,0.5,11.5,5.5
 2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:17265,Konyaspor,Gençlerbirliği,current,2,0.0,0.5,0.0,1.0,0.5,6.5,2.0,2,1.0,1.5,0.5,0.5,0.0,15.0,5.0
-2026-10-25,2026-10-25,2026-10-17,2026-10-18,season:17269,Albacete Balompié,CD Eldense,current,3,0.6667,3.3333,0.6667,0.3333,0.0,13.0,3.3333,4,2.25,1.25,0.75,0.25,0.0,13.75,5.5
-2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:17269,CD Castellón,Sporting Gijón,current,4,1.5,0.5,0.25,0.25,0.5,14.75,4.75,4,1.5,1.25,0.5,0.25,0.25,11.75,3.75
+2026-10-25,2026-10-25,2026-10-17,2026-10-18,season:17269,Albacete Balompié,CD Eldense,current,3,0.6667,3.3333,0.6667,0.3333,0.0,13.0,3.3333,3,3.0,1.3333,1.0,0.0,0.0,14.6667,6.0
+2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:17269,CD Castellón,Sporting Gijón,current,4,1.5,0.5,0.25,0.25,0.5,14.75,4.75,3,2.0,1.0,0.6667,0.0,0.3333,12.0,4.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-18,season:17269,Cádiz,Ceuta,current,3,1.3333,1.0,0.0,0.6667,0.3333,13.0,3.6667,3,1.0,1.6667,1.0,0.0,0.0,19.3333,5.0
 2026-10-25,2026-10-25,2026-10-18,2026-10-19,season:17269,CE Sabadell FC,CD Tenerife,current,3,0.6667,0.6667,0.3333,0.6667,0.3333,12.3333,2.6667,3,1.3333,1.6667,1.0,0.0,0.0,11.0,2.6667
 2026-10-25,2026-10-25,2026-10-16,,season:17326,Sydney FC,Adelaide United,current,1,0.0,0.0,0.0,1.0,1.0,9.0,1.0,0,,,,,,,
@@ -12429,7 +12432,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-25,2026-10-25,2026-10-17,2026-10-18,season:17356,Volos NFC,Panathinaikos,current,2,1.0,1.5,0.5,0.5,0.5,7.5,3.0,2,2.5,1.0,0.5,0.5,0.0,18.0,5.0
 2026-10-25,2026-10-25,2026-10-16,2026-10-17,season:17404,Hellas Verona,Pisa,current,2,2.0,2.5,1.0,0.0,0.0,19.5,6.5,2,3.0,0.5,0.5,0.0,0.5,18.5,7.0
 2026-10-25,2026-10-25,2026-10-17,2026-10-17,season:17404,Palermo,Carrarese,current,2,3.0,1.0,0.5,0.0,0.5,24.0,8.5,2,2.0,0.5,0.5,0.0,0.5,9.5,4.0
-2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:16504,Los Angeles FC,LA Galaxy,current,4,1.25,1.0,0.75,0.25,0.0,15.0,5.25,4,2.25,2.5,0.75,0.0,0.25,13.5,7.0
+2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:16504,Los Angeles FC,LA Galaxy,current,3,1.6667,1.0,1.0,0.0,0.0,16.3333,6.0,3,2.0,2.6667,0.6667,0.0,0.3333,13.0,7.0
 2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:16544,Coritiba,Grêmio,current,3,0.3333,2.0,0.3333,0.6667,0.0,11.3333,2.0,3,1.3333,2.0,1.0,0.0,0.0,15.3333,4.6667
 2026-10-26,2026-10-26,2026-10-18,2026-10-17,season:16544,Flamengo,Atlético Mineiro,current,3,2.0,0.6667,0.3333,0.0,0.6667,16.6667,9.0,4,1.5,0.75,0.5,0.0,0.5,16.5,6.75
 2026-10-26,2026-10-26,2026-10-19,2026-10-18,season:16571,Barracas Central,Estudiantes Río Cuarto,current,3,2.0,1.0,0.6667,0.0,0.3333,14.0,4.6667,3,1.0,1.3333,0.6667,0.3333,0.0,11.0,2.3333
@@ -12439,17 +12442,19 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-26,2026-10-26,2026-10-16,2026-10-19,season:16714,Técnico Universitario,Mushuc Runa SC,current,2,0.5,1.5,0.5,0.5,0.0,15.5,3.0,2,1.5,2.0,1.0,0.0,0.0,12.0,4.0
 2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:17087,Istra 1961,Hajduk Split,current,2,1.5,1.5,0.5,0.5,0.0,15.0,7.0,2,1.5,0.5,0.5,0.0,0.5,14.0,4.5
 2026-10-26,2026-10-26,2026-10-18,2026-10-18,season:17091,København,OB,current,2,1.0,1.5,1.0,0.0,0.0,19.0,4.0,2,1.0,0.5,0.5,0.5,0.5,11.5,3.5
-2026-10-26,2026-10-26,2026-10-22,2026-10-22,season:17099,América,Pachuca,current,4,3.75,2.0,1.0,0.0,0.0,16.0,8.5,4,1.25,2.0,0.75,0.25,0.0,13.5,3.5
+2026-10-26,2026-10-26,2026-10-22,2026-10-22,season:17099,América,Pachuca,current,4,3.75,2.0,1.0,0.0,0.0,16.0,8.5,3,1.6667,2.3333,1.0,0.0,0.0,14.3333,4.6667
 2026-10-26,2026-10-26,2026-10-21,2026-10-22,season:17099,Querétaro,Cruz Azul,current,3,1.0,2.3333,0.3333,0.3333,0.3333,12.0,3.0,3,3.3333,1.3333,0.6667,0.0,0.3333,18.6667,6.6667
-2026-10-26,2026-10-26,2026-10-22,2026-10-22,season:17099,Tijuana,Santos Laguna,current,3,1.0,1.0,0.6667,0.3333,0.3333,16.0,4.6667,4,2.5,0.25,0.25,0.0,0.75,14.25,6.0
+2026-10-26,2026-10-26,2026-10-22,2026-10-22,season:17099,Tijuana,Santos Laguna,current,3,1.0,1.0,0.6667,0.3333,0.3333,16.0,4.6667,3,3.0,0.3333,0.3333,0.0,0.6667,13.3333,5.0
 2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:17102,PSG,Olympique Lyonnais,current,2,3.0,1.0,1.0,0.0,0.0,20.0,7.5,2,1.5,1.5,1.0,0.0,0.0,10.5,4.5
+2026-10-26,2026-10-26,2026-10-16,2026-10-16,season:17117,Boulogne,Reims,current,2,1.5,0.5,0.5,0.0,0.5,12.5,5.0,2,2.0,1.0,0.5,0.5,0.5,9.5,5.5
+2026-10-26,2026-10-26,2026-10-19,2026-10-17,season:17117,Montpellier,Red Star,current,2,2.5,0.0,0.0,0.0,1.0,17.5,7.0,2,1.5,1.5,0.5,0.5,0.0,9.5,5.0
 2026-10-26,2026-10-26,2026-10-18,2026-10-18,season:17199,Sevilla FC,CA Osasuna,current,2,2.0,3.5,1.0,0.0,0.0,14.5,5.0,2,2.0,2.5,0.5,0.0,0.5,15.5,6.0
 2026-10-26,2026-10-26,2026-10-10,2026-10-10,season:17215,Torreense,Amarante,current,1,0.0,1.0,0.0,1.0,0.0,6.0,1.0,1,1.0,2.0,1.0,0.0,0.0,11.0,4.0
 2026-10-26,2026-10-26,2026-10-17,2026-10-18,season:17247,Sepsi,CS U Craiova,current,2,0.5,1.5,0.5,0.5,0.0,12.5,4.0,2,1.5,0.0,0.0,0.0,1.0,20.0,7.5
 2026-10-26,2026-10-26,2026-10-19,2026-10-18,season:17265,Beşiktaş,İstanbul Başakşehir,current,2,1.0,1.5,0.5,0.5,0.0,17.5,6.5,2,1.0,0.5,0.5,0.5,0.5,10.5,3.0
 2026-10-26,2026-10-26,2026-10-17,2026-10-17,season:17265,Galatasaray,Fenerbahçe,current,2,2.0,0.5,0.5,0.0,0.5,21.5,7.5,2,3.0,0.0,0.0,0.0,1.0,18.5,6.0
 2026-10-26,2026-10-26,2026-10-16,2026-10-19,season:17265,Rizespor,Trabzonspor,current,2,0.5,2.5,0.5,0.5,0.0,17.5,4.5,2,2.5,0.0,0.0,0.0,1.0,13.0,8.0
-2026-10-26,2026-10-26,2026-10-18,2026-10-18,season:17269,FC Andorra,Burgos CF,current,3,0.3333,0.6667,0.0,0.6667,0.6667,8.6667,3.6667,4,0.75,0.75,0.25,0.25,0.5,12.75,4.5
+2026-10-26,2026-10-26,2026-10-18,2026-10-18,season:17269,FC Andorra,Burgos CF,current,3,0.3333,0.6667,0.0,0.6667,0.6667,8.6667,3.6667,3,0.6667,1.0,0.3333,0.3333,0.3333,15.0,5.3333
 2026-10-27,2026-10-27,2026-10-17,2026-10-17,season:16571,Argentinos Juniors,Independiente Rivadavia,current,3,1.3333,0.6667,0.6667,0.0,0.3333,10.3333,4.0,3,1.0,2.6667,0.6667,0.3333,0.0,12.6667,3.6667
 2026-10-27,2026-10-27,2026-10-16,2026-10-20,season:16571,Instituto,Deportivo Riestra,current,3,2.3333,1.0,0.6667,0.0,0.3333,10.6667,4.3333,3,0.6667,1.0,0.6667,0.3333,0.0,10.3333,3.3333
 2026-10-27,2026-10-27,2026-10-24,2026-10-23,season:16576,AIK,Elfsborg,current,3,3.0,3.0,1.0,0.0,0.0,16.0,6.3333,3,2.0,0.6667,0.3333,0.3333,0.6667,15.3333,5.0
@@ -12472,10 +12477,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-27,2026-10-27,2026-10-24,2026-10-24,season:17404,Virtus Entella,Avellino,current,3,1.0,1.0,0.6667,0.3333,0.0,15.0,4.3333,3,1.6667,1.0,0.6667,0.3333,0.0,19.0,5.0
 2026-10-27,2026-10-27,2026-10-24,2026-10-23,season:17426,Abha,Al Faisaly,current,2,0.5,2.0,0.5,0.5,0.0,6.0,1.5,3,2.0,2.3333,1.0,0.0,0.0,13.0,4.0
 2026-10-28,2026-10-28,2026-10-25,2026-10-24,season:16504,Charlotte,Montreal Impact,current,4,2.0,2.5,1.0,0.0,0.0,11.5,4.0,4,0.5,2.0,0.5,0.5,0.0,11.0,4.25
-2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,Inter Miami,FC Cincinnati,current,5,2.0,1.0,0.4,0.2,0.4,11.0,5.0,5,1.8,1.4,0.6,0.2,0.2,15.8,5.6
-2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,New England Revolution,New York RB,current,5,1.2,1.8,0.4,0.4,0.2,11.2,5.2,5,1.4,1.6,0.4,0.4,0.2,19.2,6.6
+2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,Inter Miami,FC Cincinnati,current,4,2.25,0.75,0.25,0.25,0.5,12.5,5.5,5,1.8,1.4,0.6,0.2,0.2,15.8,5.6
+2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,New England Revolution,New York RB,current,4,1.5,1.5,0.5,0.25,0.25,10.0,5.5,5,1.4,1.6,0.4,0.4,0.2,19.2,6.6
 2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,New York City,Atlanta United FC,current,4,1.0,1.75,0.75,0.25,0.0,11.75,4.5,4,1.75,2.25,0.75,0.0,0.25,15.5,4.5
-2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,Toronto,DC United,current,5,1.8,2.0,0.6,0.2,0.2,13.4,5.2,5,0.8,2.6,0.6,0.4,0.0,11.0,3.0
+2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16504,Toronto,DC United,current,4,2.25,2.0,0.75,0.0,0.25,14.0,5.75,5,0.8,2.6,0.6,0.4,0.0,11.0,3.0
 2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16544,Bragantino,Chapecoense,current,5,1.2,1.4,0.6,0.4,0.0,20.6,6.8,4,0.75,2.5,0.5,0.5,0.0,11.75,3.5
 2026-10-28,2026-10-28,2026-10-24,2026-10-24,season:16544,Fluminense,Internacional,current,4,1.5,1.25,0.5,0.25,0.25,14.5,5.0,4,1.5,1.0,0.5,0.25,0.25,15.25,5.25
 2026-10-28,2026-10-28,2026-10-25,2026-10-24,season:16544,Santos,Palmeiras,current,5,1.6,1.4,1.0,0.0,0.0,15.0,5.4,4,2.25,0.25,0.25,0.0,0.75,19.25,7.25
@@ -12503,15 +12508,15 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-28,2026-10-28,2026-10-25,2026-10-24,season:17404,Carrarese,Arezzo,current,3,1.6667,1.0,0.6667,0.0,0.3333,11.3333,4.0,3,0.6667,1.3333,0.3333,0.6667,0.3333,13.0,3.3333
 2026-10-28,2026-10-28,2026-10-24,2026-10-25,season:17404,Juve Stabia,Hellas Verona,current,3,1.6667,0.3333,0.3333,0.0,0.6667,16.0,4.3333,3,1.6667,2.0,1.0,0.0,0.0,16.6667,5.3333
 2026-10-28,2026-10-28,2026-10-25,2026-10-25,season:17404,Pisa,Palermo,current,3,2.3333,0.6667,0.6667,0.0,0.3333,19.0,6.0,3,2.6667,1.0,0.6667,0.0,0.3333,22.3333,8.0
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Austin,Real Salt Lake,current,5,1.6,2.6,1.0,0.0,0.0,12.0,5.6,5,2.2,0.8,0.6,0.0,0.4,15.0,6.8
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Austin,Real Salt Lake,current,4,1.25,2.5,1.0,0.0,0.0,11.75,5.5,4,2.0,1.0,0.75,0.0,0.25,16.5,7.0
 2026-10-29,2026-10-29,2026-10-24,2026-10-24,season:16504,Chicago Fire,Orlando City,current,5,1.8,1.6,0.8,0.2,0.0,15.0,5.0,4,3.0,2.0,1.0,0.0,0.0,13.75,5.75
-2026-10-29,2026-10-29,2026-10-25,2026-10-24,season:16504,FC Dallas,Columbus Crew,current,5,1.8,1.0,0.4,0.0,0.6,14.2,4.8,5,2.6,1.4,0.8,0.0,0.2,17.4,8.6
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Minnesota United,Sporting KC,current,5,1.6,1.8,0.8,0.2,0.2,16.8,5.2,5,1.2,2.8,0.8,0.2,0.0,13.8,5.0
-2026-10-29,2026-10-29,2026-10-24,2026-10-24,season:16504,Nashville SC,Philadelphia Union,current,5,2.6,0.4,0.4,0.0,0.6,15.8,8.2,4,2.0,1.5,1.0,0.0,0.0,19.75,6.5
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Seattle Sounders,Houston Dynamo,current,5,1.6,1.0,0.6,0.2,0.2,15.2,5.4,5,1.4,1.8,0.6,0.4,0.2,13.4,3.4
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,SJ Earthquakes,Colorado Rapids,current,5,1.2,1.4,0.8,0.2,0.0,11.2,3.2,5,1.2,1.2,0.6,0.2,0.4,12.8,5.4
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,St. Louis City,Portland Timbers,current,5,2.2,1.6,0.4,0.4,0.4,10.2,5.4,5,1.4,2.0,0.6,0.4,0.2,15.4,6.2
-2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Vancouver Whitecaps,San Diego,current,5,0.8,1.2,0.6,0.4,0.2,11.6,2.0,5,2.2,2.8,1.0,0.0,0.0,14.6,5.0
+2026-10-29,2026-10-29,2026-10-25,2026-10-24,season:16504,FC Dallas,Columbus Crew,current,4,2.0,1.25,0.5,0.0,0.5,14.5,5.0,4,2.75,1.5,0.75,0.0,0.25,18.25,9.25
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Minnesota United,Sporting KC,current,4,1.75,1.5,0.75,0.25,0.25,17.5,6.0,5,1.2,2.8,0.8,0.2,0.0,13.8,5.0
+2026-10-29,2026-10-29,2026-10-24,2026-10-24,season:16504,Nashville SC,Philadelphia Union,current,4,2.75,0.5,0.5,0.0,0.5,14.0,7.5,4,2.0,1.5,1.0,0.0,0.0,19.75,6.5
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Seattle Sounders,Houston Dynamo,current,5,1.6,1.0,0.6,0.2,0.2,15.2,5.4,4,1.75,1.75,0.75,0.25,0.25,11.5,3.25
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,SJ Earthquakes,Colorado Rapids,current,4,0.75,1.5,0.75,0.25,0.0,10.75,2.0,4,1.0,0.75,0.5,0.25,0.5,13.75,5.75
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,St. Louis City,Portland Timbers,current,5,2.2,1.6,0.4,0.4,0.4,10.2,5.4,4,1.5,1.75,0.5,0.5,0.25,14.75,6.25
+2026-10-29,2026-10-29,2026-10-25,2026-10-25,season:16504,Vancouver Whitecaps,San Diego,current,5,0.8,1.2,0.6,0.4,0.2,11.6,2.0,4,2.0,2.75,1.0,0.0,0.0,14.5,5.0
 2026-10-29,2026-10-29,2026-10-26,2026-10-23,season:16544,Atlético Mineiro,Cruzeiro,current,5,1.6,1.2,0.6,0.0,0.4,14.2,6.2,4,2.25,1.5,0.5,0.0,0.5,17.5,8.25
 2026-10-29,2026-10-29,2026-10-25,2026-10-24,season:16544,Bahia,São Paulo,current,4,0.5,1.25,0.25,0.5,0.25,12.75,2.0,5,1.0,1.2,0.6,0.2,0.2,16.6,4.4
 2026-10-29,2026-10-29,2026-10-23,2026-10-24,season:16544,Remo,Botafogo,current,4,0.5,0.75,0.5,0.5,0.25,16.5,5.0,4,0.75,1.5,0.5,0.25,0.25,15.0,5.5
@@ -12545,6 +12550,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-30,2026-10-30,2026-10-23,2026-10-25,season:17102,Nice,Rennes,current,3,1.6667,1.3333,1.0,0.0,0.0,10.6667,4.3333,3,3.3333,1.6667,0.6667,0.0,0.3333,16.0,7.3333
 2026-10-30,2026-10-30,2026-10-24,2026-10-23,season:17112,Cracovia Kraków,Motor Lublin,current,3,1.6667,1.6667,1.0,0.0,0.0,14.3333,4.6667,3,2.6667,2.0,1.0,0.0,0.0,25.3333,9.6667
 2026-10-30,2026-10-30,2026-10-23,2026-10-25,season:17112,Górnik Zabrze,Legia Warszawa,current,3,1.6667,1.0,1.0,0.0,0.0,22.0,6.6667,3,1.3333,1.0,0.6667,0.0,0.3333,15.3333,6.3333
+2026-10-30,2026-10-30,2026-10-23,2026-10-24,season:17117,Grenoble Foot 38,Dijon,current,3,0.3333,2.0,0.3333,0.6667,0.0,11.0,2.3333,3,2.3333,2.6667,1.0,0.0,0.0,16.0,5.6667
+2026-10-30,2026-10-30,2026-10-23,2026-10-26,season:17117,Laval,Boulogne,current,3,1.6667,2.3333,0.6667,0.3333,0.0,12.3333,5.3333,3,1.3333,0.6667,0.6667,0.0,0.3333,12.6667,4.3333
+2026-10-30,2026-10-30,2026-10-23,2026-10-23,season:17117,Metz,Pau,current,3,2.0,2.3333,1.0,0.0,0.0,14.3333,6.0,3,2.3333,1.3333,1.0,0.0,0.0,13.3333,5.3333
+2026-10-30,2026-10-30,2026-10-24,2026-10-23,season:17117,Nantes,Clermont,current,3,0.6667,1.3333,0.3333,0.6667,0.3333,14.0,3.6667,3,1.6667,2.6667,0.6667,0.3333,0.0,8.6667,2.6667
+2026-10-30,2026-10-30,2026-10-24,2026-10-23,season:17117,Rodez,Dunkerque,current,3,0.6667,2.0,0.3333,0.6667,0.0,14.0,4.0,3,1.3333,1.3333,0.6667,0.3333,0.0,11.0,3.0
 2026-10-30,2026-10-30,2026-10-24,2026-10-25,season:17171,Zulte-Waregem,Club Brugge,current,2,0.0,2.5,0.0,1.0,0.0,11.0,4.0,2,3.5,1.5,1.0,0.0,0.0,17.0,6.5
 2026-10-30,2026-10-30,2026-10-24,2026-10-24,season:17181,Grazer AK,Hartberg,current,3,0.6667,2.3333,0.6667,0.3333,0.3333,15.3333,4.0,3,2.0,2.0,0.6667,0.0,0.3333,18.3333,6.3333
 2026-10-30,2026-10-30,2026-10-24,2026-10-24,season:17184,Sheffield United,Wrexham,current,4,1.75,1.0,0.5,0.0,0.5,15.5,5.25,4,1.5,1.5,0.75,0.25,0.0,15.75,3.5
@@ -12563,7 +12573,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-31,2026-10-31,2026-10-28,2026-10-29,season:16504,Charlotte,Orlando City,current,5,2.4,2.0,0.8,0.0,0.2,11.8,4.6,5,2.8,2.0,1.0,0.0,0.0,12.8,5.6
 2026-10-31,2026-10-31,2026-10-29,2026-10-28,season:16504,Columbus Crew,DC United,current,5,2.6,1.2,0.6,0.0,0.4,16.4,8.0,5,1.0,2.2,0.8,0.2,0.0,10.0,3.0
 2026-10-31,2026-10-31,2026-10-28,2026-10-29,season:16504,FC Cincinnati,Philadelphia Union,current,5,1.6,1.6,0.6,0.2,0.2,15.8,5.4,5,1.6,1.2,0.8,0.2,0.2,17.0,5.6
-2026-10-31,2026-10-31,2026-10-26,2026-10-29,season:16504,LA Galaxy,Austin,current,5,2.2,2.4,0.8,0.0,0.2,12.8,6.4,5,1.2,2.4,1.0,0.0,0.0,12.6,5.4
+2026-10-31,2026-10-31,2026-10-26,2026-10-29,season:16504,LA Galaxy,Austin,current,4,2.0,2.5,0.75,0.0,0.25,12.25,6.25,5,1.2,2.4,1.0,0.0,0.0,12.6,5.4
 2026-10-31,2026-10-31,2026-10-28,2026-10-28,season:16504,New York City,Montreal Impact,current,5,1.2,1.6,0.8,0.2,0.0,11.6,4.8,5,0.4,2.4,0.4,0.6,0.0,10.8,3.6
 2026-10-31,2026-10-31,2026-10-29,2026-10-29,season:16504,SJ Earthquakes,Real Salt Lake,current,5,1.0,1.6,0.8,0.2,0.0,12.0,3.2,5,2.0,1.0,0.8,0.0,0.2,17.2,6.4
 2026-10-31,2026-10-31,2026-10-29,2026-10-29,season:16504,Sporting KC,FC Dallas,current,5,1.2,3.0,0.8,0.2,0.0,11.4,3.2,5,1.6,1.4,0.4,0.2,0.4,14.8,5.0
@@ -12579,7 +12589,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-31,2026-10-31,2026-10-23,2026-10-25,season:16571,Sarmiento,Rosario Central,current,4,1.25,1.25,0.75,0.25,0.0,11.25,3.0,4,2.75,0.75,0.5,0.0,0.5,16.75,6.5
 2026-10-31,2026-10-31,2026-10-26,2026-10-24,season:16571,Vélez Sarsfield,San Lorenzo,current,4,2.0,1.0,0.25,0.25,0.5,15.5,6.0,4,0.75,1.0,0.25,0.5,0.5,14.25,4.75
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:16615,O'Higgins,Ñublense,current,2,0.5,1.5,0.5,0.5,0.0,20.5,5.0,2,1.0,3.5,0.5,0.5,0.0,12.0,4.5
-2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:16708,Cerro,Central Español,current,5,1.0,1.6,0.6,0.4,0.2,8.0,4.4,5,0.4,2.0,0.4,0.6,0.0,9.0,3.0
+2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:16708,Cerro,Central Español,current,4,1.25,2.0,0.75,0.25,0.0,8.5,4.75,4,0.25,2.0,0.25,0.75,0.0,8.25,2.75
 2026-10-31,2026-10-31,2026-10-23,2026-10-25,season:16708,Peñarol,Wanderers,current,5,0.6,0.6,0.4,0.4,0.4,12.6,4.2,5,1.0,1.6,0.4,0.4,0.2,6.4,3.0
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:16708,Racing,Cerro Largo,current,4,1.5,1.5,0.25,0.5,0.25,8.75,3.5,4,1.0,1.0,0.5,0.25,0.25,6.25,2.0
 2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:16714,CS Emelec,Leones del Norte,current,3,1.6667,1.6667,0.6667,0.3333,0.0,21.0,5.6667,3,1.6667,2.3333,0.6667,0.3333,0.0,17.0,4.6667
@@ -12596,10 +12606,10 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:17097,Feyenoord,Fortuna Sittard,current,3,2.3333,1.3333,0.6667,0.0,0.3333,16.6667,8.0,3,1.3333,1.0,0.6667,0.0,0.3333,9.0,4.3333
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17097,Heerenveen,NEC,current,3,2.3333,1.3333,0.3333,0.3333,0.3333,14.0,5.6667,3,1.6667,1.6667,1.0,0.0,0.0,17.6667,6.0
 2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:17097,PSV,Willem II,current,3,1.3333,1.0,0.6667,0.0,0.3333,16.6667,4.0,3,1.3333,4.0,1.0,0.0,0.0,11.0,2.6667
-2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17099,Atlético San Luis,Atlas,current,5,1.6,1.2,0.8,0.0,0.2,12.2,4.6,4,2.25,2.25,0.75,0.0,0.25,15.0,5.0
+2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17099,Atlético San Luis,Atlas,current,4,1.25,1.0,0.75,0.0,0.25,12.5,4.0,4,2.25,2.25,0.75,0.0,0.25,15.0,5.0
 2026-10-31,2026-10-31,2026-10-24,2026-10-26,season:17099,Juárez,Querétaro,current,5,0.6,2.0,0.6,0.4,0.0,11.8,3.4,4,1.0,2.5,0.5,0.25,0.25,11.5,3.25
-2026-10-31,2026-10-31,2026-10-26,2026-10-25,season:17099,Pachuca,Tigres UANL,current,5,1.4,1.8,0.8,0.2,0.0,14.0,3.6,5,1.2,1.2,0.6,0.2,0.2,14.6,6.8
-2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:17099,Puebla,Pumas UNAM,current,5,1.0,2.0,0.6,0.4,0.2,11.8,3.6,5,1.6,2.0,0.8,0.2,0.0,10.2,3.6
+2026-10-31,2026-10-31,2026-10-26,2026-10-25,season:17099,Pachuca,Tigres UANL,current,4,1.75,2.0,1.0,0.0,0.0,14.75,4.5,4,1.25,1.5,0.75,0.25,0.0,15.25,7.5
+2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:17099,Puebla,Pumas UNAM,current,4,1.25,2.25,0.75,0.25,0.25,12.25,4.25,4,1.5,1.75,0.75,0.25,0.0,9.0,3.0
 2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:17102,Troyes,Le Mans,current,3,0.3333,1.6667,0.3333,0.6667,0.3333,11.6667,2.6667,3,0.6667,2.3333,0.6667,0.3333,0.0,11.0,1.6667
 2026-10-31,2026-10-31,2026-10-24,2026-10-23,season:17112,GKS Katowice,Widzew Łódź,current,4,1.5,1.0,0.5,0.5,0.0,13.75,4.0,3,0.6667,1.0,0.6667,0.3333,0.3333,12.6667,3.6667
 2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:17112,Lech Poznań,Wisła Kraków,current,3,4.0,1.0,1.0,0.0,0.0,13.6667,5.3333,3,0.6667,1.0,0.3333,0.6667,0.3333,16.3333,6.3333
@@ -12611,6 +12621,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17115,Kyoto Sanga,Shimizu S-Pulse,current,4,1.0,2.0,0.5,0.5,0.0,9.75,2.75,4,1.0,3.0,0.5,0.5,0.0,9.5,3.25
 2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:17115,Mito Hollyhock,Sanfrecce Hiroshima,current,4,0.25,2.75,0.25,0.75,0.0,6.5,2.0,4,2.25,1.0,0.0,0.25,0.75,17.5,5.5
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17115,Vissel Kobe,Nagoya Grampus,current,4,1.5,1.5,0.5,0.25,0.5,16.25,6.0,4,1.75,1.0,1.0,0.0,0.0,14.75,4.75
+2026-10-31,2026-10-31,2026-10-23,2026-10-26,season:17117,Annecy,Montpellier,current,3,1.6667,1.0,0.6667,0.0,0.3333,11.3333,5.0,3,2.3333,0.3333,0.3333,0.0,0.6667,13.6667,5.6667
+2026-10-31,2026-10-31,2026-10-23,2026-10-24,season:17117,Guingamp,Saint-Étienne,current,3,1.0,1.0,0.3333,0.3333,0.3333,12.6667,4.3333,3,1.3333,0.0,0.0,0.0,1.0,10.0,3.0
 2026-10-31,2026-10-31,2026-10-23,2026-10-25,season:17119,Mačva Šabac,Red Star Belgrade,current,3,1.0,1.3333,0.6667,0.3333,0.0,9.3333,2.6667,3,3.0,0.3333,0.3333,0.0,0.6667,21.3333,8.3333
 2026-10-31,2026-10-31,2026-10-25,2026-10-24,season:17129,Grasshopper,Vaduz,current,2,0.0,1.0,0.0,1.0,0.5,10.5,3.0,2,2.0,1.0,0.5,0.0,0.5,13.0,5.0
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17129,Luzern,Sion,current,2,0.5,3.0,0.5,0.5,0.0,21.5,5.0,2,0.5,1.5,0.0,0.5,0.5,14.0,2.5
@@ -12684,9 +12696,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-10-31,2026-10-31,2026-10-26,2026-10-25,season:17265,Fenerbahçe,Göztepe,current,3,2.3333,0.6667,0.3333,0.0,0.6667,13.6667,5.0,3,2.6667,0.3333,0.3333,0.0,0.6667,14.0,5.6667
 2026-10-31,2026-10-31,2026-10-23,2026-10-26,season:17265,Kocaelispor,Rizespor,current,3,1.3333,1.6667,1.0,0.0,0.0,13.6667,5.0,3,1.3333,3.0,0.6667,0.3333,0.0,14.6667,5.0
 2026-10-31,2026-10-31,2026-10-25,2026-10-25,season:17269,Albacete Balompié,CE Sabadell FC,current,4,1.0,2.5,0.5,0.25,0.25,14.5,3.5,4,0.75,0.75,0.5,0.5,0.25,12.75,3.0
-2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17269,Celta de Vigo II,Córdoba,current,4,2.0,2.5,1.0,0.0,0.0,11.0,5.75,5,1.6,1.4,0.6,0.0,0.4,17.6,6.0
+2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17269,Celta de Vigo II,Córdoba,current,4,2.0,2.5,1.0,0.0,0.0,11.0,5.75,4,1.75,1.0,0.5,0.0,0.5,18.0,6.5
 2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17269,Real Sociedad II,Girona FC,current,4,1.25,3.0,0.75,0.25,0.0,18.25,5.75,4,2.0,0.5,0.5,0.25,0.5,15.0,5.25
-2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17269,SD Eibar,Almería,current,5,1.6,1.8,0.8,0.2,0.0,14.2,5.6,5,2.4,1.0,0.6,0.0,0.4,13.6,5.2
+2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17269,SD Eibar,Almería,current,4,1.25,1.75,0.75,0.25,0.0,13.25,5.5,4,2.75,1.25,0.75,0.0,0.25,14.25,5.75
 2026-10-31,2026-10-31,2026-10-24,2026-10-24,season:17326,Macarthur,Western Sydney Wanderers,current,2,1.5,1.0,1.0,0.0,0.0,8.0,3.0,2,2.5,1.0,0.5,0.5,0.5,13.5,4.0
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17326,Melbourne City FC,Sydney FC,current,2,1.0,2.0,1.0,0.0,0.0,15.5,4.0,2,1.0,0.5,0.5,0.5,0.5,12.5,3.0
 2026-10-31,2026-10-31,2026-10-24,2026-10-25,season:17326,Newcastle Jets FC,Wellington Phoenix,current,2,1.5,1.5,1.0,0.0,0.0,15.5,4.0,2,2.0,0.5,0.5,0.0,0.5,11.5,4.5
@@ -12730,9 +12742,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-01,2026-11-01,2026-10-23,2026-10-24,season:16615,Huachipato,La Serena,current,3,1.6667,0.3333,0.3333,0.0,0.6667,11.3333,4.0,2,2.5,2.0,1.0,0.0,0.0,13.0,7.0
 2026-11-01,2026-11-01,2026-10-28,2026-10-26,season:16615,Universidad Católica,Universidad Chile,current,2,1.0,2.0,1.0,0.0,0.0,14.0,3.5,2,5.0,0.5,0.5,0.0,0.5,18.0,10.0
 2026-11-01,2026-11-01,2026-10-25,2026-10-25,season:16708,Boston River,Torque,current,4,1.0,0.75,0.25,0.5,0.5,9.0,4.25,5,1.2,1.2,0.6,0.2,0.2,12.2,4.6
-2026-11-01,2026-11-01,2026-10-24,2026-10-25,season:16708,Danubio,Nacional,current,5,0.8,1.0,0.4,0.4,0.2,7.4,2.2,4,1.5,0.75,0.25,0.25,0.5,10.75,4.0
-2026-11-01,2026-11-01,2026-10-25,2026-10-23,season:16708,Liverpool FC Montevideo,Juventud,current,5,1.6,0.8,0.6,0.0,0.4,7.8,4.2,5,0.4,0.4,0.0,0.8,0.8,11.0,3.0
-2026-11-01,2026-11-01,2026-10-25,2026-10-24,season:16708,Progreso,Defensor Sporting,current,4,1.5,1.0,0.5,0.0,0.5,9.0,4.5,5,1.6,2.0,0.6,0.2,0.2,7.0,4.0
+2026-11-01,2026-11-01,2026-10-24,2026-10-25,season:16708,Danubio,Nacional,current,4,1.0,1.0,0.5,0.25,0.25,7.75,2.5,4,1.5,0.75,0.25,0.25,0.5,10.75,4.0
+2026-11-01,2026-11-01,2026-10-25,2026-10-23,season:16708,Liverpool FC Montevideo,Juventud,current,4,1.5,0.75,0.5,0.0,0.5,8.75,4.5,4,0.5,0.5,0.0,0.75,0.75,11.5,3.0
+2026-11-01,2026-11-01,2026-10-25,2026-10-24,season:16708,Progreso,Defensor Sporting,current,4,1.5,1.0,0.5,0.0,0.5,9.0,4.5,4,1.75,2.5,0.75,0.25,0.0,7.0,4.0
 2026-11-01,2026-11-01,2026-10-23,2026-10-25,season:16714,CD Universidad Católica,SD Aucas,current,3,0.3333,0.6667,0.3333,0.6667,0.3333,9.0,1.3333,3,0.6667,2.3333,0.6667,0.3333,0.0,9.6667,3.0
 2026-11-01,2026-11-01,2026-10-23,2026-10-24,season:16714,CSD Independiente del Valle,LDU Quito,current,3,0.6667,0.6667,0.3333,0.6667,0.3333,10.3333,3.6667,3,1.3333,1.3333,1.0,0.0,0.0,16.3333,5.6667
 2026-11-01,2026-11-01,2026-10-25,2026-10-25,season:16714,Guayaquil City FC,Libertad,current,3,1.3333,2.0,0.3333,0.3333,0.3333,12.0,3.3333,3,2.6667,1.3333,0.3333,0.0,0.6667,18.0,6.6667
@@ -12757,7 +12769,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-01,2026-11-01,2026-10-29,2026-10-24,season:17099,América,Toluca,current,5,2.6,1.8,1.0,0.0,0.0,18.4,8.0,4,1.5,1.75,1.0,0.0,0.0,23.0,6.5
 2026-11-01,2026-11-01,2026-10-25,2026-10-24,season:17099,Guadalajara,Atlante,current,4,1.0,0.5,0.5,0.0,0.5,15.75,5.25,4,0.5,1.25,0.25,0.5,0.25,16.0,6.5
 2026-11-01,2026-11-01,2026-10-25,2026-10-29,season:17099,Monterrey,Tijuana,current,4,1.75,1.0,0.75,0.25,0.0,10.5,4.25,5,1.6,1.0,0.8,0.2,0.2,13.8,4.6
-2026-11-01,2026-11-01,2026-10-26,2026-10-24,season:17099,Santos Laguna,Necaxa,current,5,2.2,1.0,0.4,0.0,0.6,13.8,5.4,5,1.2,2.2,0.6,0.4,0.0,15.6,5.4
+2026-11-01,2026-11-01,2026-10-26,2026-10-24,season:17099,Santos Laguna,Necaxa,current,4,2.5,1.25,0.5,0.0,0.5,13.0,4.5,5,1.2,2.2,0.6,0.4,0.0,15.6,5.4
 2026-11-01,2026-11-01,2026-10-26,2026-10-25,season:17102,Olympique Lyonnais,Angers SCO,current,3,1.0,1.6667,0.6667,0.3333,0.0,9.6667,4.6667,3,1.0,3.3333,0.6667,0.3333,0.3333,9.3333,3.6667
 2026-11-01,2026-11-01,2026-10-25,2026-10-25,season:17102,Olympique Marseille,Toulouse,current,3,3.6667,1.6667,0.6667,0.0,0.3333,12.3333,5.0,3,1.6667,0.6667,0.3333,0.3333,0.6667,9.3333,4.0
 2026-11-01,2026-11-01,2026-10-24,2026-10-25,season:17102,Paris,Monaco,current,3,1.6667,2.0,0.6667,0.3333,0.0,13.3333,4.3333,3,1.0,1.3333,0.6667,0.3333,0.0,17.3333,4.6667
@@ -12805,9 +12817,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-01,2026-11-01,2026-10-26,2026-10-24,season:17265,İstanbul Başakşehir,Samsunspor,current,3,0.6667,1.0,0.3333,0.6667,0.3333,10.0,3.3333,3,0.6667,3.0,0.6667,0.3333,0.0,15.0,4.3333
 2026-11-01,2026-11-01,2026-10-24,2026-10-26,season:17265,Kasımpaşa,Beşiktaş,current,3,2.0,1.3333,0.6667,0.0,0.3333,14.0,5.3333,3,1.3333,1.0,0.3333,0.3333,0.3333,17.3333,6.3333
 2026-11-01,2026-11-01,2026-10-26,2026-10-24,season:17265,Trabzonspor,Gaziantep FK,current,3,3.0,1.0,0.3333,0.0,0.6667,13.3333,7.6667,3,0.6667,2.6667,0.6667,0.3333,0.0,15.0,4.3333
-2026-11-01,2026-11-01,2026-10-26,2026-10-25,season:17269,Burgos CF,CD Castellón,current,5,1.2,1.0,0.4,0.2,0.4,12.8,5.0,5,2.0,0.4,0.2,0.2,0.6,14.6,5.0
-2026-11-01,2026-11-01,2026-10-25,2026-10-23,season:17269,CD Eldense,Granada CF,current,5,1.8,1.4,0.6,0.4,0.0,13.0,4.6,4,2.0,0.75,0.5,0.0,0.5,12.75,4.25
-2026-11-01,2026-11-01,2026-10-25,2026-10-25,season:17269,Ceuta,Sporting Gijón,current,4,1.0,2.0,1.0,0.0,0.0,20.5,5.0,5,1.2,1.8,0.4,0.4,0.2,11.0,3.6
+2026-11-01,2026-11-01,2026-10-26,2026-10-25,season:17269,Burgos CF,CD Castellón,current,4,1.25,1.25,0.5,0.25,0.25,14.5,5.75,5,2.0,0.4,0.2,0.2,0.6,14.6,5.0
+2026-11-01,2026-11-01,2026-10-25,2026-10-23,season:17269,CD Eldense,Granada CF,current,4,2.25,1.5,0.75,0.25,0.0,13.5,4.75,4,2.0,0.75,0.5,0.0,0.5,12.75,4.25
+2026-11-01,2026-11-01,2026-10-25,2026-10-25,season:17269,Ceuta,Sporting Gijón,current,4,1.0,2.0,1.0,0.0,0.0,20.5,5.0,4,1.5,1.75,0.5,0.25,0.25,11.0,3.75
 2026-11-01,2026-11-01,2026-10-24,2026-10-25,season:17326,Melbourne Victory FC,Central Coast Mariners,current,2,1.0,1.5,1.0,0.0,0.0,9.0,3.5,2,1.0,2.0,0.5,0.5,0.0,10.0,3.5
 2026-11-01,2026-11-01,2026-10-23,2026-10-25,season:17326,Perth Glory FC,Adelaide United,current,2,1.0,2.0,1.0,0.0,0.0,8.0,3.5,1,1.0,2.0,1.0,0.0,0.0,12.0,3.0
 2026-11-01,2026-11-01,2026-10-24,2026-10-25,season:17356,Levadiakos,Aris,current,3,0.0,0.6667,0.0,1.0,0.6667,11.3333,3.6667,3,2.6667,1.3333,1.0,0.0,0.0,15.6667,5.3333
@@ -12819,7 +12831,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-01,2026-11-01,2026-10-27,2026-10-28,season:17404,Empoli,Juve Stabia,current,4,1.0,2.25,0.75,0.25,0.0,11.5,3.75,4,1.25,0.5,0.25,0.25,0.5,14.75,4.0
 2026-11-01,2026-11-01,2026-10-28,2026-10-28,season:17404,Hellas Verona,Carrarese,current,4,1.5,1.5,0.75,0.0,0.25,16.0,5.0,4,1.75,1.0,0.75,0.0,0.25,13.25,3.75
 2026-11-01,2026-11-01,2026-10-28,2026-10-27,season:17404,Palermo,Vicenza,current,4,2.75,1.5,0.75,0.0,0.25,20.25,7.25,4,1.25,1.75,0.5,0.25,0.25,11.75,1.75
-2026-11-02,2026-11-02,2026-10-26,2026-10-29,season:16504,Los Angeles FC,Minnesota United,current,5,1.4,1.2,0.8,0.2,0.0,16.2,5.2,5,2.0,1.4,0.8,0.2,0.2,17.6,6.4
+2026-11-02,2026-11-02,2026-10-26,2026-10-29,season:16504,Los Angeles FC,Minnesota United,current,4,1.75,1.25,1.0,0.0,0.0,17.5,5.75,5,2.0,1.4,0.8,0.2,0.2,17.6,6.4
 2026-11-02,2026-11-02,2026-10-28,2026-10-28,season:16504,New England Revolution,Inter Miami,current,5,1.8,1.6,0.6,0.2,0.2,9.8,5.2,5,2.2,1.0,0.4,0.2,0.4,12.8,5.2
 2026-11-02,2026-11-02,2026-10-29,2026-10-29,season:16504,Portland Timbers,Houston Dynamo,current,5,1.8,1.8,0.6,0.4,0.2,14.2,6.2,5,1.6,1.4,0.6,0.2,0.4,9.6,2.8
 2026-11-02,2026-11-02,2026-10-28,2026-10-28,season:16544,Bragantino,Santos,current,5,1.8,1.2,0.6,0.2,0.2,20.6,7.6,5,1.2,1.2,0.8,0.2,0.2,16.4,5.6
@@ -12829,7 +12841,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-02,2026-11-02,2026-10-29,2026-10-29,season:16576,Mjällby,Kalmar,current,4,0.75,1.25,0.5,0.5,0.0,10.5,3.75,4,0.5,1.5,0.25,0.75,0.0,14.0,4.0
 2026-11-02,2026-11-02,2026-10-24,2026-10-25,season:16615,Concepción,Palestino,current,2,1.0,2.0,1.0,0.0,0.0,10.0,3.5,2,1.5,1.5,1.0,0.0,0.0,15.0,4.5
 2026-11-02,2026-11-02,2026-10-25,2026-10-28,season:16615,Deportes Limache,Audax Italiano,current,2,1.5,1.0,0.5,0.0,0.5,9.0,4.0,2,1.0,1.0,1.0,0.0,0.0,14.0,4.0
-2026-11-02,2026-11-02,2026-10-24,2026-10-24,season:16708,Albion,Deportivo Maldonado,current,5,2.0,1.2,0.8,0.0,0.2,8.6,4.8,5,2.0,1.0,0.6,0.0,0.4,6.0,3.4
+2026-11-02,2026-11-02,2026-10-24,2026-10-24,season:16708,Albion,Deportivo Maldonado,current,5,2.0,1.2,0.8,0.0,0.2,8.6,4.8,4,2.0,1.25,0.75,0.0,0.25,6.5,3.5
 2026-11-02,2026-11-02,2026-10-24,2026-10-26,season:16714,Orense SC,Técnico Universitario,current,3,1.6667,0.3333,0.3333,0.3333,0.6667,12.6667,6.3333,3,1.3333,1.0,0.3333,0.3333,0.3333,14.6667,3.6667
 2026-11-02,2026-11-02,2026-10-27,2026-10-30,season:16905,Sport Huancayo,Melgar,current,4,1.75,1.0,0.5,0.25,0.25,19.0,4.5,4,2.25,1.5,1.0,0.0,0.0,13.5,6.25
 2026-11-02,2026-11-02,2026-10-29,2026-10-28,season:16905,Sporting Cristal,FC Cajamarca,current,4,2.25,1.75,0.75,0.0,0.25,15.5,5.0,4,0.75,2.0,0.5,0.5,0.25,12.5,5.0
@@ -12842,6 +12854,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-02,2026-11-02,2026-10-24,2026-10-25,season:17112,Radomiak Radom,Śląsk Wrocław,current,3,1.6667,2.6667,0.6667,0.3333,0.0,12.6667,2.6667,3,1.6667,2.3333,0.6667,0.0,0.3333,9.3333,3.6667
 2026-11-02,2026-11-02,2026-10-24,2026-10-24,season:17112,Raków Częstochowa,Pogoń Szczecin,current,3,1.3333,2.3333,1.0,0.0,0.0,18.0,6.3333,3,2.3333,1.0,0.3333,0.0,0.6667,10.0,4.0
 2026-11-02,2026-11-02,2026-10-23,2026-10-24,season:17112,Zagłębie Lubin,Korona Kielce,current,3,1.3333,1.6667,0.6667,0.0,0.3333,12.6667,4.3333,3,0.6667,2.6667,0.3333,0.3333,0.3333,16.0,5.0
+2026-11-02,2026-11-02,2026-10-26,2026-10-23,season:17117,Red Star,Nancy,current,3,1.3333,1.6667,0.6667,0.3333,0.0,11.0,5.0,3,1.3333,0.3333,0.3333,0.0,0.6667,14.3333,4.6667
+2026-11-02,2026-11-02,2026-10-26,2026-10-23,season:17117,Reims,Sochaux,current,3,1.6667,1.0,0.6667,0.3333,0.3333,8.6667,4.3333,3,1.3333,2.3333,1.0,0.0,0.0,15.6667,4.6667
 2026-11-02,2026-11-02,2026-10-24,2026-10-23,season:17119,LFK Mladost Lučani,Radnik Surdulica,current,3,0.6667,2.0,0.6667,0.3333,0.3333,8.3333,1.3333,3,1.0,0.6667,0.0,0.6667,0.3333,15.6667,5.3333
 2026-11-02,2026-11-02,2026-10-25,2026-10-24,season:17146,Newcastle United,Everton,current,3,1.0,1.6667,0.3333,0.3333,0.3333,15.0,3.0,3,0.6667,2.0,0.3333,0.6667,0.0,9.6667,5.0
 2026-11-02,2026-11-02,2026-10-25,2026-10-23,season:17191,Hirnyk,Dynamo Kyiv,current,2,0.0,1.5,0.0,1.0,0.5,5.5,0.5,3,1.6667,1.3333,0.6667,0.0,0.3333,14.0,5.3333
@@ -12853,9 +12867,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-02,2026-11-02,2026-10-24,2026-10-25,season:17247,Voluntari,SSC Farul,current,3,1.3333,2.3333,1.0,0.0,0.0,15.0,3.0,3,2.3333,2.0,0.6667,0.3333,0.0,11.3333,4.6667
 2026-11-02,2026-11-02,2026-10-25,2026-10-23,season:17265,Gençlerbirliği,Alanyaspor,current,3,0.6667,1.6667,0.3333,0.6667,0.0,12.3333,4.0,3,0.3333,1.6667,0.3333,0.6667,0.3333,13.0,4.6667
 2026-11-02,2026-11-02,2026-10-25,2026-10-26,season:17269,CD Tenerife,FC Andorra,current,4,1.25,1.5,1.0,0.0,0.0,11.0,2.75,4,0.75,1.25,0.25,0.5,0.5,11.5,5.5
-2026-11-02,2026-11-02,2026-10-24,2026-10-25,season:17269,RCD Mallorca,Cádiz,current,5,1.0,0.8,0.6,0.4,0.2,12.8,3.8,4,1.75,1.0,0.25,0.5,0.25,12.5,4.0
-2026-11-02,2026-11-02,2026-10-24,2026-10-24,season:17269,Real Oviedo,UD Las Palmas,current,5,2.0,1.6,0.8,0.0,0.2,17.0,6.8,5,1.2,2.2,0.6,0.2,0.2,9.0,3.2
-2026-11-02,2026-11-02,2026-10-23,2026-10-24,season:17269,Real Valladolid,Leganés,current,5,2.6,1.6,0.8,0.0,0.2,15.2,6.8,5,0.2,2.2,0.2,0.8,0.0,11.2,2.0
+2026-11-02,2026-11-02,2026-10-24,2026-10-25,season:17269,RCD Mallorca,Cádiz,current,4,1.25,0.75,0.75,0.25,0.25,11.75,3.5,4,1.75,1.0,0.25,0.5,0.25,12.5,4.0
+2026-11-02,2026-11-02,2026-10-24,2026-10-24,season:17269,Real Oviedo,UD Las Palmas,current,4,2.0,2.0,1.0,0.0,0.0,17.25,7.0,4,1.0,2.0,0.5,0.25,0.25,8.5,2.75
+2026-11-02,2026-11-02,2026-10-23,2026-10-24,season:17269,Real Valladolid,Leganés,current,4,2.5,1.75,0.75,0.0,0.25,16.0,6.75,5,0.2,2.2,0.2,0.8,0.0,11.2,2.0
 2026-11-02,2026-11-02,2026-10-25,2026-10-25,season:17356,Atromitos,Volos NFC,current,2,1.0,2.5,1.0,0.0,0.0,8.0,2.0,3,0.6667,1.3333,0.3333,0.6667,0.3333,6.0,2.0
 2026-11-02,2026-11-02,2026-10-25,2026-10-24,season:17356,Kalamata,Iraklis Thessaloniki,current,3,2.3333,3.0,0.6667,0.3333,0.0,10.6667,5.6667,3,1.6667,1.6667,0.6667,0.0,0.3333,9.3333,3.0
 2026-11-03,2026-11-03,2026-10-30,2026-10-30,season:16533,2 de Mayo,Sportivo Trinidense,current,5,0.8,1.0,0.2,0.4,0.4,11.8,3.2,5,1.6,1.4,0.6,0.0,0.4,14.8,4.0
@@ -12912,6 +12926,12 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-06,2026-11-06,2026-11-01,2026-11-01,season:17102,Toulouse,Strasbourg,current,4,1.25,1.0,0.25,0.5,0.5,10.5,4.75,4,1.75,2.25,0.75,0.25,0.0,14.75,5.25
 2026-11-06,2026-11-06,2026-10-30,2026-10-31,season:17112,Motor Lublin,Wisła Płock,current,4,2.5,1.75,1.0,0.0,0.0,23.75,9.25,4,0.75,1.5,0.25,0.5,0.25,11.0,2.75
 2026-11-06,2026-11-06,2026-10-31,2026-10-30,season:17112,Wisła Kraków,Cracovia Kraków,current,4,0.75,1.5,0.5,0.5,0.25,16.25,5.5,4,1.5,1.75,1.0,0.0,0.0,15.5,5.0
+2026-11-06,2026-11-06,2026-10-30,2026-10-31,season:17117,Boulogne,Annecy,current,4,1.0,0.75,0.5,0.25,0.25,11.75,3.75,4,1.25,1.5,0.5,0.25,0.25,13.75,6.0
+2026-11-06,2026-11-06,2026-10-30,2026-11-02,season:17117,Dijon,Red Star,current,4,2.5,2.25,1.0,0.0,0.0,15.25,5.25,4,1.25,2.25,0.75,0.25,0.0,11.0,4.25
+2026-11-06,2026-11-06,2026-10-30,2026-10-31,season:17117,Dunkerque,Guingamp,current,4,1.0,1.25,0.5,0.5,0.0,11.25,2.75,4,1.5,0.75,0.25,0.25,0.5,12.25,4.25
+2026-11-06,2026-11-06,2026-10-30,2026-11-02,season:17117,Grenoble Foot 38,Reims,current,4,0.5,2.25,0.5,0.5,0.0,13.5,3.75,4,1.75,0.75,0.5,0.25,0.5,9.25,4.5
+2026-11-06,2026-11-06,2026-10-31,2026-10-30,season:17117,Montpellier,Metz,current,4,2.5,0.25,0.25,0.0,0.75,12.0,5.5,4,1.75,2.5,1.0,0.0,0.0,15.25,5.75
+2026-11-06,2026-11-06,2026-11-02,2026-11-02,season:17117,Nancy,Sochaux,current,4,2.0,0.5,0.5,0.0,0.5,13.75,5.0,4,1.0,2.25,0.75,0.25,0.0,15.5,4.0
 2026-11-06,2026-11-06,2026-11-02,2026-10-31,season:17146,Everton,Coventry City,current,4,0.75,1.5,0.25,0.5,0.25,11.25,5.0,4,2.0,1.5,0.75,0.25,0.0,11.5,3.25
 2026-11-06,2026-11-06,2026-10-31,2026-10-31,season:17171,Standard Liège,Waasland-Beveren,current,3,0.6667,1.3333,0.6667,0.3333,0.0,11.3333,3.3333,3,2.0,3.0,1.0,0.0,0.0,9.6667,6.0
 2026-11-06,2026-11-06,2026-11-01,2026-11-01,season:17181,Rapid Wien,Wolfsberger AC,current,4,3.0,0.5,0.5,0.0,0.5,13.0,5.5,4,0.25,1.75,0.25,0.75,0.0,11.25,3.0
@@ -12981,6 +13001,9 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-07,2026-11-07,2026-10-31,2026-11-01,season:17115,Shimizu S-Pulse,Tokyo Verdy,current,5,0.8,2.8,0.4,0.6,0.0,9.0,2.6,5,1.4,2.0,0.6,0.4,0.0,9.6,3.0
 2026-11-07,2026-11-07,2026-10-31,2026-10-31,season:17115,Tokyo,Kashima Antlers,current,5,3.4,0.0,0.0,0.2,1.0,20.6,7.0,5,2.4,1.2,0.6,0.0,0.4,15.8,5.4
 2026-11-07,2026-11-07,2026-11-01,2026-10-31,season:17115,Yokohama F. Marinos,Fagiano Okayama,current,5,1.4,1.0,0.6,0.4,0.4,13.4,4.6,5,0.8,2.2,0.4,0.4,0.2,13.8,3.6
+2026-11-07,2026-11-07,2026-10-30,2026-10-30,season:17117,Clermont,Rodez,current,4,1.5,2.25,0.75,0.25,0.0,7.25,2.25,4,0.75,1.5,0.25,0.5,0.25,13.75,4.5
+2026-11-07,2026-11-07,2026-10-30,2026-10-30,season:17117,Pau,Nantes,current,4,2.5,1.25,1.0,0.0,0.0,12.25,5.25,4,0.75,1.25,0.5,0.5,0.25,13.0,4.0
+2026-11-07,2026-11-07,2026-10-31,2026-10-30,season:17117,Saint-Étienne,Laval,current,4,1.0,0.75,0.0,0.25,0.75,12.75,3.0,4,1.5,1.75,0.5,0.25,0.25,11.75,4.5
 2026-11-07,2026-11-07,2026-10-28,2026-11-01,season:17119,Železničar Pančevo,Radnički Kragujevac,current,4,1.75,0.25,0.25,0.0,0.75,11.25,4.5,5,0.8,1.4,0.2,0.4,0.4,14.4,3.4
 2026-11-07,2026-11-07,2026-11-01,2026-10-28,season:17119,Čukarički,Radnički Niš,current,4,1.75,0.5,0.25,0.25,0.75,12.25,3.75,4,0.75,3.0,0.5,0.5,0.0,10.25,2.0
 2026-11-07,2026-11-07,2026-11-01,2026-11-01,season:17119,Zemun,IMT Novi Beograd,current,4,0.25,2.25,0.0,0.75,0.25,8.75,3.0,4,0.75,0.5,0.25,0.5,0.5,12.0,4.25
@@ -13354,6 +13377,11 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-20,2026-11-20,2026-11-07,2026-11-07,season:17115,Kashima Antlers,Shimizu S-Pulse,current,5,2.0,1.6,0.6,0.2,0.2,14.4,5.0,5,0.4,2.8,0.2,0.8,0.0,9.8,2.6
 2026-11-20,2026-11-20,2026-11-07,2026-11-08,season:17115,Kashiwa Reysol,JEF United,current,5,2.0,1.2,0.6,0.2,0.4,15.0,6.0,5,1.6,1.0,0.4,0.2,0.6,13.6,3.4
 2026-11-20,2026-11-20,2026-11-08,2026-11-08,season:17115,Vissel Kobe,Mito Hollyhock,current,5,1.8,1.0,0.6,0.2,0.4,15.8,5.4,5,0.0,2.6,0.0,1.0,0.0,7.2,1.2
+2026-11-20,2026-11-20,2026-11-06,2026-11-07,season:17117,Annecy,Clermont,current,5,1.0,1.8,0.4,0.4,0.2,13.0,5.6,5,1.4,1.8,0.6,0.2,0.2,8.2,2.6
+2026-11-20,2026-11-20,2026-11-06,2026-11-07,season:17117,Guingamp,Rodez,current,5,1.2,1.2,0.2,0.4,0.4,12.8,4.4,5,0.6,1.4,0.2,0.6,0.2,12.8,4.0
+2026-11-20,2026-11-20,2026-11-06,2026-11-06,season:17117,Metz,Boulogne,current,5,2.0,2.4,1.0,0.0,0.0,13.6,5.0,5,1.4,0.6,0.4,0.2,0.4,12.2,4.2
+2026-11-20,2026-11-20,2026-11-06,2026-11-06,season:17117,Nancy,Dijon,current,5,1.8,0.4,0.4,0.0,0.6,12.8,4.8,5,2.2,1.8,0.8,0.0,0.2,15.2,4.8
+2026-11-20,2026-11-20,2026-11-06,2026-11-07,season:17117,Red Star,Pau,current,5,1.0,2.0,0.6,0.4,0.0,10.2,3.4,5,2.0,1.4,0.8,0.2,0.0,12.0,4.8
 2026-11-20,2026-11-20,2026-11-07,2026-11-07,season:17171,Cercle Brugge,KVC Westerlo,current,4,1.5,2.0,0.75,0.0,0.25,9.0,4.75,4,2.75,3.5,1.0,0.0,0.0,11.75,5.25
 2026-11-20,2026-11-20,2026-11-14,2026-11-14,season:17180,Barnsley,Sheffield Wednesday,current,5,1.0,1.8,1.0,0.0,0.0,15.0,4.0,5,1.0,1.2,0.4,0.4,0.2,13.8,4.8
 2026-11-20,2026-11-20,2026-11-08,2026-11-14,season:17191,Shakhtar Donetsk,Livyi Bereh,current,5,1.4,0.2,0.2,0.4,0.8,13.0,4.8,5,0.6,1.8,0.6,0.4,0.2,7.4,2.2
@@ -13541,6 +13569,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-21,2026-11-21,2026-11-08,2026-11-07,season:17115,Machida Zelvia,V-Varen Nagasaki,current,5,1.6,0.0,0.0,0.6,1.0,15.8,6.8,5,1.2,1.2,0.4,0.4,0.2,11.4,2.8
 2026-11-21,2026-11-21,2026-11-08,2026-11-07,season:17115,Sanfrecce Hiroshima,Yokohama F. Marinos,current,5,2.0,0.8,0.0,0.4,0.8,18.8,6.0,5,1.6,1.2,0.8,0.2,0.2,12.6,4.6
 2026-11-21,2026-11-21,2026-11-07,2026-11-07,season:17115,Tokyo Verdy,Nagoya Grampus,current,5,1.6,1.6,0.6,0.2,0.2,9.4,2.6,5,1.2,1.6,0.8,0.2,0.0,13.8,4.2
+2026-11-21,2026-11-21,2026-11-07,2026-11-06,season:17117,Laval,Montpellier,current,5,1.2,1.8,0.4,0.4,0.2,10.2,3.8,5,2.4,0.8,0.4,0.0,0.6,14.2,5.4
+2026-11-21,2026-11-21,2026-11-06,2026-11-07,season:17117,Reims,Saint-Étienne,current,5,1.8,1.2,0.6,0.2,0.4,10.6,5.4,5,1.2,0.6,0.0,0.2,0.8,13.0,3.6
 2026-11-21,2026-11-21,2026-11-08,2026-11-07,season:17119,LFK Mladost Lučani,Železničar Pančevo,current,5,0.4,1.8,0.4,0.6,0.2,9.6,1.6,5,2.0,0.4,0.4,0.0,0.6,14.4,5.6
 2026-11-21,2026-11-21,2026-11-08,2026-11-08,season:17119,OFK Beograd,Novi Pazar,current,5,0.4,1.2,0.4,0.6,0.2,12.0,3.2,5,1.0,1.0,0.2,0.4,0.4,13.2,5.0
 2026-11-21,2026-11-21,2026-11-07,2026-11-07,season:17119,Radnički Niš,Zemun,current,5,0.8,2.8,0.6,0.4,0.0,9.6,2.0,5,0.4,2.0,0.2,0.6,0.2,7.8,2.8
@@ -13896,6 +13926,8 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-23,2026-11-23,2026-11-08,2026-11-08,season:17091,Brøndby,Midtjylland,current,5,2.2,1.2,0.6,0.2,0.2,11.8,4.6,5,2.4,1.6,1.0,0.0,0.0,14.6,5.0
 2026-11-23,2026-11-23,2026-11-14,2026-11-07,season:17099,Querétaro,Necaxa,current,5,0.6,2.2,0.6,0.4,0.0,15.8,4.2,5,0.4,1.0,0.2,0.6,0.2,17.0,5.4
 2026-11-23,2026-11-23,2026-11-07,2026-11-06,season:17112,Wieczysta Kraków,Motor Lublin,current,5,0.8,2.2,0.8,0.2,0.0,15.4,4.6,5,2.6,1.8,1.0,0.0,0.0,24.4,8.8
+2026-11-23,2026-11-23,2026-11-07,2026-11-06,season:17117,Nantes,Grenoble Foot 38,current,5,1.0,1.0,0.4,0.4,0.4,12.2,4.0,5,1.0,2.2,0.6,0.4,0.0,12.8,4.2
+2026-11-23,2026-11-23,2026-11-06,2026-11-06,season:17117,Sochaux,Dunkerque,current,5,0.8,2.0,0.6,0.4,0.0,14.0,3.6,5,1.4,1.0,0.4,0.4,0.2,12.8,3.4
 2026-11-23,2026-11-23,2026-11-08,2026-11-06,season:17146,Brentford,Everton,current,5,1.2,1.4,0.6,0.2,0.2,10.0,2.6,5,1.2,1.4,0.4,0.4,0.2,12.0,5.4
 2026-11-23,2026-11-23,2026-11-07,2026-11-07,season:17191,Chornomorets,Epitsentr Dunayivtsi,current,5,1.0,1.2,0.6,0.4,0.2,9.8,3.0,5,1.0,1.8,0.8,0.2,0.0,5.8,2.8
 2026-11-23,2026-11-23,2026-11-08,2026-11-06,season:17191,LNZ Cherkasy,Polessya,current,4,1.75,0.5,0.5,0.25,0.5,6.5,3.75,4,2.5,0.75,0.5,0.0,0.5,5.25,4.0
@@ -14019,6 +14051,7 @@ date,state_date,home_state_date,away_state_date,league,home_team,away_team,sourc
 2026-11-26,2026-11-26,,,Saudi Arabia Professional League,Abha,Al Shabab,upcoming,0,,,,,,,,0,,,,,,,
 2026-11-26,2026-11-26,,,Saudi Arabia Professional League,Al Faisaly,Al Draih,upcoming,0,,,,,,,,0,,,,,,,
 2026-11-26,2026-11-26,,,Saudi Arabia Professional League,Al Fateh,Al Riyadh,upcoming,0,,,,,,,,0,,,,,,,
+2026-11-26,2026-11-26,2026-11-23,2026-11-22,season:16544,São Paulo,Remo,current,5,0.8,1.2,0.6,0.4,0.2,14.6,4.2,5,1.4,2.4,0.6,0.2,0.2,12.6,5.2
 2026-11-26,2026-11-26,2026-11-07,2026-11-07,season:16571,Boca Juniors,Independiente Rivadavia,current,5,1.4,0.6,0.4,0.0,0.6,14.4,4.6,5,1.2,2.0,0.6,0.4,0.0,10.8,2.8
 2026-11-26,2026-11-26,2026-11-21,2026-11-20,season:16714,Barcelona,CSD Independiente del Valle,current,5,1.4,1.0,0.4,0.2,0.4,6.0,2.0,5,1.2,0.8,0.2,0.6,0.4,17.0,5.8
 2026-11-26,2026-11-26,2026-11-22,2026-11-22,season:17099,Monterrey,América,current,5,1.2,1.6,0.2,0.4,0.4,12.8,5.0,5,1.2,1.6,0.8,0.2,0.0,17.2,5.6

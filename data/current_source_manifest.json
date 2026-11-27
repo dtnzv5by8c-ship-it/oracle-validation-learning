@@ -1,12 +1,12 @@
 {
-  "generated_utc": "2026-11-26T23:49:30.237266+00:00",
+  "generated_utc": "2026-11-27T01:32:13.080335+00:00",
   "source": "FootyStats API",
   "source_role": "PRIMARY_CURRENT_DATA",
   "api_endpoint": "https://api.football-data-api.com/",
   "research_cutoff": "2026-09-20",
   "window": {
-    "start": "2026-09-27",
-    "end": "2026-12-03"
+    "start": "2026-09-28",
+    "end": "2026-12-04"
   },
   "errors": [],
   "leagues": [
@@ -16,7 +16,7 @@
       "season": "2026",
       "status": "OK",
       "pages": 1,
-      "rows": 144,
+      "rows": 134,
       "errors": []
     },
     {
@@ -43,7 +43,7 @@
       "season": "2026",
       "status": "OK",
       "pages": 1,
-      "rows": 56,
+      "rows": 57,
       "errors": []
     },
     {
@@ -79,7 +79,7 @@
       "season": "2026",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 59,
       "errors": []
     },
     {
@@ -106,7 +106,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 80,
+      "rows": 81,
       "errors": []
     },
     {
@@ -133,7 +133,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 64,
       "errors": []
     },
     {
@@ -142,7 +142,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 78,
+      "rows": 75,
       "errors": []
     },
     {
@@ -151,7 +151,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 64,
       "errors": []
     },
     {
@@ -160,7 +160,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 64,
+      "rows": 66,
       "errors": []
     },
     {
@@ -169,7 +169,16 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 87,
+      "rows": 88,
+      "errors": []
+    },
+    {
+      "league": "season:17117",
+      "season_id": 17117,
+      "season": "2026/2027",
+      "status": "OK",
+      "pages": 1,
+      "rows": 59,
       "errors": []
     },
     {
@@ -214,7 +223,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 57,
+      "rows": 58,
       "errors": []
     },
     {
@@ -241,7 +250,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 42,
+      "rows": 43,
       "errors": []
     },
     {
@@ -250,7 +259,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 121,
+      "rows": 122,
       "errors": []
     },
     {
@@ -259,7 +268,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 56,
+      "rows": 57,
       "errors": []
     },
     {
@@ -268,7 +277,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 72,
+      "rows": 73,
       "errors": []
     },
     {
@@ -277,7 +286,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 64,
       "errors": []
     },
     {
@@ -286,7 +295,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 65,
       "errors": []
     },
     {
@@ -295,7 +304,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 54,
+      "rows": 55,
       "errors": []
     },
     {
@@ -304,7 +313,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 57,
+      "rows": 58,
       "errors": []
     },
     {
@@ -313,7 +322,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 63,
+      "rows": 64,
       "errors": []
     },
     {
@@ -322,7 +331,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 102,
+      "rows": 97,
       "errors": []
     },
     {
@@ -349,7 +358,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 90,
+      "rows": 91,
       "errors": []
     },
     {
@@ -358,7 +367,7 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 54,
+      "rows": 58,
       "errors": []
     },
     {
@@ -367,315 +376,322 @@
       "season": "2026/2027",
       "status": "OK",
       "pages": 1,
-      "rows": 31,
+      "rows": 32,
       "errors": []
     }
   ],
   "files": [
     {
       "endpoint": "governed_50league_current.csv",
-      "sha256": "bfdc3dc4bb5e7a1a1a034fe11053c13c462a7bee608ad3091f19e92b22ac7584",
-      "bytes": 52991
+      "sha256": "29108354e12b184d9418c2973816c20a737eeec925c3462d54288143338b8774",
+      "bytes": 55807
     },
     {
       "endpoint": "league-matches",
       "season_id": 16504,
       "page": 1,
-      "sha256": "f148e92ea918c608e26ac4b96746cc2d32202778b3595b59d1e3bce1e289714c",
+      "sha256": "9a5c644654a9348408dbdde2329d19eb129d7dbd0b4f09e750a3cc5d4d635527",
       "bytes": 2709148
     },
     {
       "endpoint": "league-matches",
       "season_id": 16533,
       "page": 1,
-      "sha256": "b5eb9f64d504ac23ecd3aae5a6240bdad1786c1bd79cdcccb4afc04d4b44967c",
+      "sha256": "d3356fd0f6fa3fbdc0ba7c4068a4aeb305da1f4a04b7a070e5d5187eb868250b",
       "bytes": 1342654
     },
     {
       "endpoint": "league-matches",
       "season_id": 16544,
       "page": 1,
-      "sha256": "a89547a07de1faf9213c65d472e827c2930ae79a368174f795a4a7f6026d4fdc",
-      "bytes": 1927128
+      "sha256": "835c031a11720fba154eb409c87933b5f617ec1fb80ae41d5595b02f895909bf",
+      "bytes": 1927152
     },
     {
       "endpoint": "league-matches",
       "season_id": 16558,
       "page": 1,
-      "sha256": "ad55767576016501d6aa3ab152e427b88dd301a6a7ff8c19a7497b765483e416",
+      "sha256": "b9ccce707813c3a3c6f0a76720d8cb72b1b529c4809803ec6c35cb7514b9f99c",
       "bytes": 1208895
     },
     {
       "endpoint": "league-matches",
       "season_id": 16571,
       "page": 1,
-      "sha256": "77e85a8b41404dcdb5f2ac51d51ae108a0435037c3879f64c332ff6fa41c7c5a",
-      "bytes": 2589213
+      "sha256": "606968370219ca6e5f196308d591f36954735265b6b1ffc9dab6ef02d9093b97",
+      "bytes": 2589216
     },
     {
       "endpoint": "league-matches",
       "season_id": 16576,
       "page": 1,
-      "sha256": "eb7cc2bc87187f32895f83b87afb00f4e0e4ccbe4fae578ce3525ca56423154b",
+      "sha256": "3336b3176fbaa44384a7e6ed219439aa4153d070513dc55426aa01249e495126",
       "bytes": 1208757
     },
     {
       "endpoint": "league-matches",
       "season_id": 16615,
       "page": 1,
-      "sha256": "21a26fe44cf8f59b110677f6e8a8bf0e436442f6336c0e02f6306b806529df0a",
+      "sha256": "8ec80e23d2f990be5fc6816230448bb929961384064d1d2604694998dab6eed5",
       "bytes": 1222161
     },
     {
       "endpoint": "league-matches",
       "season_id": 16708,
       "page": 1,
-      "sha256": "34fff85f6fab09f838a41b99d230732dbc8a027ccdffff4d5c397bea2308c633",
-      "bytes": 1519885
+      "sha256": "bab4c214fa48e2bcf1757cde7d534c3128c1c2cef33e0a2f3262931329a5898c",
+      "bytes": 1519926
     },
     {
       "endpoint": "league-matches",
       "season_id": 16714,
       "page": 1,
-      "sha256": "4cfe698e7b56aa2325083103202a8911c154c7bc7e5605917b81bbfe75d6c525",
-      "bytes": 1581284
+      "sha256": "5e918b747e1a459de86e9ba4597a5a41ce5d9eca4e77610d1f5256f2cb6e414e",
+      "bytes": 1581283
     },
     {
       "endpoint": "league-matches",
       "season_id": 16905,
       "page": 1,
-      "sha256": "ecac7a93137f68db6a104bb2e35b9ec7799a3b1954635eac4fbc01ed4cacceed",
+      "sha256": "d1e4203db8996def35c3b688f751eece3868ee0b4047b64b01dd1f6c8f475188",
       "bytes": 1569889
     },
     {
       "endpoint": "league-matches",
       "season_id": 17084,
       "page": 1,
-      "sha256": "d85b6dfd44d30b0f8394301883bc0d61ee9b2219f230a0178a2625ca1a4ff91f",
-      "bytes": 1875761
+      "sha256": "0ed41305b52ee54f031cc28a7a50c869ce79eafc31b40b2c38826d032daf48cf",
+      "bytes": 1875777
     },
     {
       "endpoint": "league-matches",
       "season_id": 17087,
       "page": 1,
-      "sha256": "494927db824301471846461b23927fc568cd47296a957ffe29ac518e15a50f24",
-      "bytes": 894890
+      "sha256": "b5a4393bf5786864fb9f7fa14e3de16b1a8471ef6cecbb21f63b0d16c48a6191",
+      "bytes": 894888
     },
     {
       "endpoint": "league-matches",
       "season_id": 17091,
       "page": 1,
-      "sha256": "07871bdd87708c8c3574ab516e911ac472f15ecb52a78b16f3f2b8699c0a407f",
-      "bytes": 662695
+      "sha256": "cd55cdd3895b81a3850c16a12920d5adf440528bbe1842da122b2ad19b1393d1",
+      "bytes": 662696
     },
     {
       "endpoint": "league-matches",
       "season_id": 17097,
       "page": 1,
-      "sha256": "a7fbbcf2377bbc1b6131afce86cbbddec2b547c6d644be150e1550b5826f6304",
-      "bytes": 1523162
+      "sha256": "0b8cb863c62be28f02b753b267857b3e968dbe5defb135315a1d1a21ea001fa9",
+      "bytes": 1523192
     },
     {
       "endpoint": "league-matches",
       "season_id": 17099,
       "page": 1,
-      "sha256": "170d2592fee1204333363598df258d5c6d22adb42793a55fc2ccb9baad3b8ef0",
-      "bytes": 823353
+      "sha256": "904b347a5b004c89d878e2a1ce1ce1a715a161c42e130d8ee271c815e764ae8f",
+      "bytes": 823427
     },
     {
       "endpoint": "league-matches",
       "season_id": 17102,
       "page": 1,
-      "sha256": "77953d95dce3fe1ae75ba057538593934672f81df746c7df444f57c8f8fae31f",
-      "bytes": 1522905
+      "sha256": "994fe8a7eedf856cb79af733ef8c3a2a1e23f01d08486f88e759d2f4b4db6cfb",
+      "bytes": 1522954
     },
     {
       "endpoint": "league-matches",
       "season_id": 17112,
       "page": 1,
-      "sha256": "25ad3f52519b6198953f1c98552f620557a5680d173361f67444634da857074a",
+      "sha256": "8899434aaa47a414845f4daacbb861f6b3ad98c74d65db9edd5298ae763fea45",
       "bytes": 1536104
     },
     {
       "endpoint": "league-matches",
       "season_id": 17115,
       "page": 1,
-      "sha256": "d2aaf5a59823b180050cf922ec7a277a5f5b861c49fb8fb2b2bdd66790862883",
-      "bytes": 1890386
+      "sha256": "0d2df82295d0c1fe47a9c0f1f38a35546e58be550509c160c1294c7bd38348db",
+      "bytes": 1890381
+    },
+    {
+      "endpoint": "league-matches",
+      "season_id": 17117,
+      "page": 1,
+      "sha256": "07eceb87b98ab7062850121153fbb510995d112fd5d45820f5dde5425aca2a0a",
+      "bytes": 1520317
     },
     {
       "endpoint": "league-matches",
       "season_id": 17119,
       "page": 1,
-      "sha256": "d7a98310c81c00ce195ad2d3f7bc933145140141743a4ed677713dcf2c9d3caf",
-      "bytes": 916635
+      "sha256": "90fe5bb277f9f304f91021b809aa7f18c3cad7f623c4492e7f913d1c9c15c149",
+      "bytes": 916644
     },
     {
       "endpoint": "league-matches",
       "season_id": 17129,
       "page": 1,
-      "sha256": "477e94f25ff8248f56f595f37b0a93cc0ca8d5461fb790af3460c20ca171ff75",
-      "bytes": 661706
+      "sha256": "a61c3750cc78da6b67a38e40d993a36bd92cd2f11b4e88c558c86533c3ddcf89",
+      "bytes": 661705
     },
     {
       "endpoint": "league-matches",
       "season_id": 17146,
       "page": 1,
-      "sha256": "46171d1318ce160963fabf926cf2e419e1d3cb65aecca83b9a94e480b55d37b2",
-      "bytes": 1882181
+      "sha256": "7a9aedc6b5468a57a57d8ab0b4fc6525024d8f3ce543eaea5c82bfa381bc598c",
+      "bytes": 1882244
     },
     {
       "endpoint": "league-matches",
       "season_id": 17148,
       "page": 1,
-      "sha256": "9a5b18536c8c8a150daaddf0a166faafdfa8c33fed2051e761cb9b57570c6f04",
-      "bytes": 983279
+      "sha256": "12567e338001b914c67a043a7391f4d3660a2a32a82491156a4776823912ae06",
+      "bytes": 983283
     },
     {
       "endpoint": "league-matches",
       "season_id": 17157,
       "page": 1,
-      "sha256": "a36ef29d7d8364d3f69a5d014c937a96de0364caffd97a33f6125a4e2cea06de",
-      "bytes": 1205049
+      "sha256": "8da44a6b4f587656a44c805ed02cdc65274ba7ed23716bf96118c3fd249781ac",
+      "bytes": 1205053
     },
     {
       "endpoint": "league-matches",
       "season_id": 17171,
       "page": 1,
-      "sha256": "3cc7be188be776db8bc4e4a1755277db4f283c0af15bb705065057b94d01e804",
-      "bytes": 1517201
+      "sha256": "933acb2016692a07036fa86ca8641a5063318298da6065dd02fafac741b3a520",
+      "bytes": 1517198
     },
     {
       "endpoint": "league-matches",
       "season_id": 17180,
       "page": 1,
-      "sha256": "9e84c5964f501f5dab21e0a44a0a605682ed1e2f3df9d26ab6d3d3a81085c01c",
-      "bytes": 2745772
+      "sha256": "33dd4f011b5fa831c4c3efcc76e319fa5f5018dfc3d82574eaa19bbb59eec8b9",
+      "bytes": 2746168
     },
     {
       "endpoint": "league-matches",
       "season_id": 17181,
       "page": 1,
-      "sha256": "4c2d2b66cfaf150dbe921101440ad0a92d910b2d32874f79c4346ec5efc90d49",
-      "bytes": 661609
+      "sha256": "d477367da55528a08aed703e3779f2c83b255a43062731d420bdb9c360188676",
+      "bytes": 661618
     },
     {
       "endpoint": "league-matches",
       "season_id": 17184,
       "page": 1,
-      "sha256": "5f2fe3e38261e406de6e2e49047b599af4d83e0a92b7976227518e97a2de2164",
-      "bytes": 2749545
+      "sha256": "91e2455972e4cd9f888c86b47178bfaa3387bdacd50ab5414ac70a3f3d1261bc",
+      "bytes": 2749568
     },
     {
       "endpoint": "league-matches",
       "season_id": 17191,
       "page": 1,
-      "sha256": "26703c16988f4fe13ec0bf23ab4f1ef6599e76d72bc57da497dfc5415d85ff30",
-      "bytes": 1197809
+      "sha256": "7a95229c5df3bebfecd90d3b1e0efcb6eb6c0f18c9ead50e55175dce25130f56",
+      "bytes": 1197806
     },
     {
       "endpoint": "league-matches",
       "season_id": 17199,
       "page": 1,
-      "sha256": "db677a79f110c1bac08666aff504edbaaafb0f4c63f46b22b7f41e377b06f15c",
+      "sha256": "aa10f217d62300df5c565c718f66166d84ac26ee3e03b44532a5ab3236584849",
       "bytes": 1891853
     },
     {
       "endpoint": "league-matches",
       "season_id": 17210,
       "page": 1,
-      "sha256": "18f69738e7176ed3c3ca49ec26a8a66696e99c2a457913ffbd00a79ef187ca6e",
-      "bytes": 1519180
+      "sha256": "a27e6ec2cf5451a976c8e9d031e57010e04b760918d223baf8fca1087ae65031",
+      "bytes": 1519182
     },
     {
       "endpoint": "league-matches",
       "season_id": 17212,
       "page": 1,
-      "sha256": "3517febb7eb56784ce3c32cb71f5ee72a6133e38377e6375b16390369f158272",
-      "bytes": 1525207
+      "sha256": "ade16301a4132b35a94873ef9c6c465ea2d38116b1edf1d56f1f757eb7445d87",
+      "bytes": 1525200
     },
     {
       "endpoint": "league-matches",
       "season_id": 17215,
       "page": 1,
-      "sha256": "2393b34dd2f746a5cabbda6309edb3775c80a329ff63bc995982e9f253bfdc33",
+      "sha256": "5241a8631adbad4def241904bd052588850b85cf0aef021a23547d7955f16690",
       "bytes": 1516655
     },
     {
       "endpoint": "league-matches",
       "season_id": 17247,
       "page": 1,
-      "sha256": "f2e23c3fa53b9f479cb318631e4cb05ffc9151699fe66dbcd61006818d094170",
-      "bytes": 1207888
+      "sha256": "8adc054964d85b30a067368971006eb61625296173f1ecf6d5d25c00f1a72a4a",
+      "bytes": 1207886
     },
     {
       "endpoint": "league-matches",
       "season_id": 17265,
       "page": 1,
-      "sha256": "ee26b8b28f38faa8ef269d7641f17ce2575dea3b3048fb378e627b55980b664e",
-      "bytes": 1522253
+      "sha256": "5f0c199cdeff8ce77fcb06f506ad8b5b94611395d7a3c6020517a92fdbdc6668",
+      "bytes": 1522249
     },
     {
       "endpoint": "league-matches",
       "season_id": 17269,
       "page": 1,
-      "sha256": "8aeb8c75b4b890679b8168ef5b61e3607ce1cd09bb4f309a190a00014ad02275",
-      "bytes": 2295999
+      "sha256": "21fa05587a04de060ed30f911591ef799cd613bc640a30f378eded2ecbb7dfe7",
+      "bytes": 2295987
     },
     {
       "endpoint": "league-matches",
       "season_id": 17326,
       "page": 1,
-      "sha256": "ffd065d3d8c84dbaefc4905ff9c226314853e367584a8c2a8f9c1a6467a791bf",
-      "bytes": 772668
+      "sha256": "a163cd72f07bf12e1bc0b96e656d35ec9144189c054b37f96d5608f56c1d3c88",
+      "bytes": 772666
     },
     {
       "endpoint": "league-matches",
       "season_id": 17356,
       "page": 1,
-      "sha256": "2dd3b9ada108ae60bd69f68b9a9ff0c2cf6c5c7ba57ae5d83bb5e740e2d3cba0",
-      "bytes": 908147
+      "sha256": "e71637dff428fbeb74df862f97ac57112af590ab9cd2643464093e7d864eae43",
+      "bytes": 908140
     },
     {
       "endpoint": "league-matches",
       "season_id": 17404,
       "page": 1,
-      "sha256": "9f218166b8c81427539c37ff56ca2ad25b6790fbb33df8b03559d89a8c3245ee",
-      "bytes": 1881981
+      "sha256": "78956c4183c38725d79925b9199ecd3b38a759ce56aeafb4a1f0318f4d6af5a4",
+      "bytes": 1881972
     },
     {
       "endpoint": "league-matches",
       "season_id": 17426,
       "page": 1,
-      "sha256": "27c4b8c6a7937eb517620afaaea254afcb7afe15e6ccb0e52455666576715974",
-      "bytes": 1519638
+      "sha256": "f35957877d6919e549bdf29ab549f87d386faf73d69b42f73eacf54419050fe0",
+      "bytes": 1519636
     },
     {
       "endpoint": "league-matches",
       "season_id": 17444,
       "page": 1,
-      "sha256": "cd678b348cb5e5c9c4d4b66626231606e33a615cdd86c2d14933319f9dc2faec",
-      "bytes": 1195046
+      "sha256": "60ef1d96c6c35914bdca89570e148ee9902b74ad5e5b9dee3c0d332b5014b17d",
+      "bytes": 1195039
     }
   ],
-  "governed_spine_rows": 372,
-  "governed_spine_unique_provider_fixture_ids": 372,
-  "governed_spine_season_ids": 40,
+  "governed_spine_rows": 392,
+  "governed_spine_unique_provider_fixture_ids": 392,
+  "governed_spine_season_ids": 41,
   "selected_league_count": 50,
   "selection_source": "ROLLING_50_LEAGUE_PUBLIC_SPINE",
-  "match_rows": 2672,
-  "completed_match_rows": 2295,
-  "goal_event_rows": 6694,
-  "completed_matches_with_shots": 2295,
-  "completed_matches_with_sot": 2295,
-  "upcoming_match_rows": 377,
-  "xg_prematch_rows": 2672,
-  "goal_market_rows": 2672,
-  "avg_goals_prematch_rows": 2672,
-  "over25_prematch_rows": 2672,
-  "under25_prematch_rows": 2672,
-  "odds_1x2_rows": 2672,
-  "source_hash_count": 41,
+  "match_rows": 2733,
+  "completed_match_rows": 2328,
+  "goal_event_rows": 6788,
+  "completed_matches_with_shots": 2328,
+  "completed_matches_with_sot": 2328,
+  "upcoming_match_rows": 405,
+  "xg_prematch_rows": 2733,
+  "goal_market_rows": 2733,
+  "avg_goals_prematch_rows": 2733,
+  "over25_prematch_rows": 2733,
+  "under25_prematch_rows": 2733,
+  "odds_1x2_rows": 2733,
+  "source_hash_count": 42,
   "integrity": [
     "FootyStats is the primary current-data source for this lane.",
     "The rolling 50-league public spine is the sole weekly fixture universe; provider season IDs are derived from that spine.",
