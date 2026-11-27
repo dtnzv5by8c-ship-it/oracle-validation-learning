@@ -443,3 +443,5 @@ jobs:
 # 2026-11-27 02:10 SAST: remediation cycle trigger checkpoint; refresh rolling 50-league current spine before downstream admission.
 
 # 2026-11-27 03:30 SAST: remediation cycle — trigger fresh rolling governed spine after exact 372/372 reconciliation confirmation.
+
+# 2026-11-27 17:39 SAST: controlled runtime validation trigger after strict past-kickoff admission fix; no production-model change.
