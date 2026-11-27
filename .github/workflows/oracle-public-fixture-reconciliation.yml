@@ -404,3 +404,5 @@ jobs:
           name: oracle-public-fixture-reconciliation-${{ github.run_id }}
           path: recovery/fixtures/current/
           retention-days: 30
+
+# 2026-11-27 20:37 SAST: force runtime validation of the rolling-spine reconciliation contract fix.
