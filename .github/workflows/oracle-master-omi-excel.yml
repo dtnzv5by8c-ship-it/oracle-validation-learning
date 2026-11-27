@@ -86,6 +86,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Run exact matching regression gate
+        working-directory: oracle
+        run: python -m unittest tests/test_master_omi_exact_matching_contract.py
+
       - name: Install Excel dependencies
         run: python -m pip install --disable-pip-version-check pandas openpyxl
 
