@@ -4,41 +4,41 @@
   "fixture_date_min": "2026-11-27",
   "fixture_date_max": "2026-12-04",
   "governed_leagues": 50,
-  "fixture_rows": 392,
-  "unique_provider_fixture_ids": 392,
+  "fixture_rows": 385,
+  "unique_provider_fixture_ids": 385,
   "season_ids_with_fixtures": 41,
   "retrievals": [
     {
       "date": "2026-11-27",
-      "retrieved_utc": "2026-11-27T11:29:54.510815+00:00"
+      "retrieved_utc": "2026-11-27T15:40:35.215821+00:00"
     },
     {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-27T11:29:54.699626+00:00"
+      "retrieved_utc": "2026-11-27T15:40:35.411741+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-27T11:29:54.866823+00:00"
+      "retrieved_utc": "2026-11-27T15:40:35.590449+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-27T11:29:54.985812+00:00"
+      "retrieved_utc": "2026-11-27T15:40:35.739630+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-27T11:29:55.294066+00:00"
+      "retrieved_utc": "2026-11-27T15:40:35.874462+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-27T11:29:55.583256+00:00"
+      "retrieved_utc": "2026-11-27T15:40:36.013270+00:00"
     },
     {
       "date": "2026-12-03",
-      "retrieved_utc": "2026-11-27T11:29:55.698509+00:00"
+      "retrieved_utc": "2026-11-27T15:40:36.144042+00:00"
     },
     {
       "date": "2026-12-04",
-      "retrieved_utc": "2026-11-27T11:29:55.827457+00:00"
+      "retrieved_utc": "2026-11-27T15:40:36.337323+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -49,8 +49,8 @@
   "market_intelligence_A_ET_changed": false,
   "pre_match_only": true,
   "season_match_rows": 12266,
-  "last5_fully_verified_fixtures": 391,
-  "generated_utc": "2026-11-27T11:30:22.604665+00:00",
+  "last5_fully_verified_fixtures": 385,
+  "generated_utc": "2026-11-27T15:41:00.777830+00:00",
   "current_fixture_spine_path": "data/fixtures/governed_50league_current.csv",
   "current_mi_path": "oracle_upcoming_50/footystats_market_intelligence.csv"
 }
