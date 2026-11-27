@@ -806,3 +806,11 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Cycle 11 root-cause register aea614fb36928941c857a286fdaa3d427b30d829 confirms six release blockers: 139-column upstream artifact vs 754x264 canonical MI, xG without capture timestamp, unavailable direct GF/M/GA/M/goal-BTTS provider fields, incomplete provider status for 390/392, absent CMOI/LTSS/actuals/derived inputs, and absent candidate XLSX/XML.
 - Lessons learned updated at dfab9deb10ffe0ad32c3a548a756f94916643f07 with evidence and regression guards for these blockers.
 - Highest-value next action: rebuild the canonical downstream MI from the fresh rolling spine, build the authoritative current prediction ledger with exact row and Fixture-ID parity, then run independent cell/type/provenance/PIT/leakage and native XLSX/XML/hash gates. Do not certify from the stale reconciliation snapshot.
+
+
+## 2026-11-27 12:23 SAST — current FootyStats intelligence contract remediation
+- Historical-first inspection reconfirmed the live rolling spine is 392 fixtures / 50 governed leagues / 41 fixture-bearing season IDs, while the current FootyStats intelligence workflow still hard-coded 385 rows.
+- Root cause: current intelligence ingestion had a frozen weekly fixture-count assumption, causing recurring incompatibility with the rolling spine.
+- Fix: public commit c183a070214105616f3e35e43d3e3a7ca562f80f makes the workflow derive row count from the current governed reconciliation file, fail closed on empty input, and assert summary/input parity.
+- Validation: source contract is corrected in live main; runtime execution still requires a fresh workflow run before promotion.
+- Next blockers: fresh current prediction ledger is absent; current Team State is present but empty; current upstream MI remains 392x139 versus the locked 264-column schema; independent workbook certification remains blocked.
