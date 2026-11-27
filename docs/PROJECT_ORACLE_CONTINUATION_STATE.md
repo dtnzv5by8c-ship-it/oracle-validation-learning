@@ -814,3 +814,12 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Fix: public commit c183a070214105616f3e35e43d3e3a7ca562f80f makes the workflow derive row count from the current governed reconciliation file, fail closed on empty input, and assert summary/input parity.
 - Validation: source contract is corrected in live main; runtime execution still requires a fresh workflow run before promotion.
 - Next blockers: fresh current prediction ledger is absent; current Team State is present but empty; current upstream MI remains 392x139 versus the locked 264-column schema; independent workbook certification remains blocked.
+
+
+## 2026-11-27 13:29 SAST — rolling-spine freshness cadence permanently corrected
+- Historical-first evidence: latest independent QA at 12:47 SAST found the 08:33:39 UTC rolling spine stale under the 90-minute release gate. Live producer workflow was scheduled only at 00:15, 06:15, 12:15 and 18:15 UTC.
+- Root cause: producer cadence could exceed the freshness contract by hours, creating recurring stale-spine release blocks.
+- Fix: public commit 417e0dbd604691bde9b071f0567c8e5212094bf9 changes the producer schedule to hourly at minute 15.
+- Validation: workflow source now has `15 * * * *`; existing exact spine/Fixture-ID-set hash reconciliation and fail-closed freshness gates remain intact. A workflow-file push also provides an immediate controlled execution path.
+- Regression guard: producer cadence must remain <=90 minutes; no schedule may be accepted if it can systematically create a freshness breach. Do not use timestamps as identity equality; use exact spine and Fixture-ID-set hashes.
+- Next action: consume the fresh producer run, then require same-snapshot exact reconciliation, Team State persistence, authoritative current prediction ledger, canonical 264-column MI, and independent 100% certification. Do not reuse the 08:33 snapshot.
