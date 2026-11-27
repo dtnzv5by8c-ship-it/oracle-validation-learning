@@ -356,3 +356,20 @@ Commits:
 Provider-specific FootyStats Last-5 GF/M and GA/M mappings were corrected to their provider fields. Exact Fixture-ID/PIT controls remain active.
 
 Current runtime remains fail-closed until the public current prediction ledger and Team State are regenerated against the same fresh rolling 50-league spine. At the latest inspected state, the rolling spine is 359 rows while persisted current Team State/ledger remain 369 rows; this mismatch is correctly blocking release.
+
+
+## 2026-11-28 — kickoff-level PIT rebuild verified
+- Public current-data run: `46076862247` completed SUCCESS.
+- Fresh governed rolling spine: 359 fixtures.
+- Current pre-match Team State: 359/359 exact Fixture-ID parity.
+- Prediction Team-State compatibility: 359/359 exact parity.
+- Current prediction ledger: 359/359 exact parity.
+- Kickoff-level PIT: 0 violations; all home/away state cutoffs are strictly before governed kickoff.
+- Ledger status after permanent PIT fix: CONTROLLED 203, WATCH 140, NO_BET 16.
+- The prior widespread false missing-Team-State classification is therefore cleared at the source integration layer; Oracle V1.6 model logic remains unchanged.
+
+## 2026-11-28 — permanent canonical automation path
+- The public Master OMI exporter remains fail-closed and must not contain the canonical workbook binary.
+- Commit `ebac68ae567a0300e94bcfc3b9726a91b55896f7` changes the exporter to checkout the private `oracle-football-data` repository using the existing `ORACLE_PRIVATE_REPO_TOKEN`, locate the locked canonical workbook by exact filename, materialise it into the runner, and then enforce the canonical SHA before export.
+- This permanently separates public governed evidence from the private canonical workbook base.
+- Current blocker: the locked canonical binary is not yet present in the private production repository, so the exporter cannot reach production certification until that one-time binary placement is completed.
