@@ -831,3 +831,10 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Fix: public workflow commit `dd787d8a9d7e9ee865a5d5d1ea2aa41f1c8d33c9` binds intelligence ingestion to `data/fixtures/governed_50league_current.csv` + manifest, validates governed_leagues=50 and exact row/provider-ID parity, and triggers on rolling-spine changes.
 - Runtime validation: pending fresh workflow execution from the fix commit. Do not certify from the prior 385-row run.
 - Next action: consume the fresh intelligence run, then require current-data reconciliation, non-empty Team State, authoritative current prediction ledger with exact row/Fixture-ID parity, canonical 264-column MI, and independent 100% QA.
+
+
+## 2026-11-27 14:35 SAST — Team State league namespace blocker fixed
+- Current Data run 45956466720 reached 392-row Team State integrity and persistence tests, then failed in prediction compatibility because Team State `league_code` was blank for all rows. Root cause: builder read a non-existent rolling-spine `league_code` field instead of deriving the existing Oracle namespace from exact FootyStats `league_id -> league` evidence.
+- Private fix: `9e7c422d9c66ff4651f239711d6e1fd5e30316b8`; public workflow guard: `075d90ccba6f5f4ab5ed37dd8a084dccb6b5bd0f`.
+- Runtime validation: pending fresh Current Data run triggered by the public workflow change.
+- Next action: verify nonblank league namespace, then exact compatibility, authoritative prediction ledger row/Fixture-ID parity, canonical MI rebuild, and independent QA.
