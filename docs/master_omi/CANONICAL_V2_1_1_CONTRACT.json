@@ -1,0 +1,15 @@
+{
+  "contract_version": "Master OMI Canonical V2.1.1",
+  "canonical_workbook": "Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx",
+  "canonical_sha256": "9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e",
+  "market_intelligence_rows": 755,
+  "governed_fixture_rows": 754,
+  "market_intelligence_columns": 264,
+  "immutable_columns": "A:ET",
+  "immutable_column_count": 150,
+  "canonical_aet_contract_sha256": "b790145feea9a20f0d3d0070f76ace8c98c4a5f0911928a4335218beaf090564",
+  "source_of_truth": "Locked canonical workbook / persisted QA evidence",
+  "release_rule": "A generated current workbook is not canonical unless it preserves the 755x264 Market Intelligence surface and exact A:ET contract; current fixture count may differ from canonical governed-row count and must not be silently padded, truncated, or replaced.",
+  "current_data_rule": "The rolling 50-league fixture spine is the sole current fixture universe. It must never be forced to 754 rows merely to satisfy the canonical workbook shape.",
+  "status": "CONTRACT_ONLY_UNTIL_CANONICAL_BINARY_IS_AVAILABLE_TO_AUTOMATION"
+}
