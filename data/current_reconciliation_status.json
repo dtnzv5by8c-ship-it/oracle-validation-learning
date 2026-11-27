@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-11-27T22:09:07.837410+00:00",
-  "source_generated_utc": "2026-11-27T22:08:53.700247+00:00",
+  "generated_utc": "2026-11-27T22:29:48.579479+00:00",
+  "source_generated_utc": "2026-11-27T22:29:41.499886+00:00",
   "source_age_hours": 0.0,
   "freshness_status": "FRESH",
   "governed_upcoming_spine_rows": 359,
@@ -18,7 +18,7 @@
   "latest_current_kickoff_utc": "2026-12-04T20:00:00+00:00",
   "status": "CURRENT",
   "current_match_rows": 2733,
-  "current_goal_event_rows": 6877,
+  "current_goal_event_rows": 6881,
   "source_manifest_present": true,
   "reasons": [],
   "gates": {
