@@ -4,12 +4,6 @@ on:
   schedule:
     - cron: "25 * * * *"
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/oracle-public-current-footystats-fixture-intelligence.yml"
-      - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
-      - "data/fixtures/governed_50league_current.csv"
-      - "data/fixtures/governed_50league_current_manifest.json"
 
 permissions:
   contents: write
@@ -329,3 +323,5 @@ jobs:
           name: oracle-public-current-footystats-fixture-intelligence-${{ github.run_id }}
           path: recovery/fixtures/current/intelligence/
           retention-days: 30
+
+# 2026-11-27 21:08 SAST: remove push-triggered consumer execution; consumers must run only after the rolling producer via schedule/manual dispatch to prevent control-plane commits from consuming stale spines.
