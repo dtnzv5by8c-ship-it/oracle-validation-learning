@@ -895,3 +895,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Newly confirmed dependency defect: Current Data was scheduled at :10 UTC while the rolling-spine producer runs at :15 UTC. This ordering can make the consumer persist the prior cycle's spine/reconciliation. Permanent schedule fix: private commit 546272485e82cbb3e651c5e66241753642019117, Current Data now runs at :20 UTC.
 - Controlled runtime: Current Data run 46044401678 was triggered against the fresh spine; attempt 1 failed and attempt 2 is queued/running. Do not certify until its durable Team State, reconciliation hashes and prediction ledger are independently verified.
 - Binding blockers remain: authoritative current prediction ledger with exact row/Fixture-ID parity, canonical 264-column MI, PIT-valid xG where admitted, mandatory formula inputs, and native XLSX/XML/A:ET/type/formula/hash certification.
+
+
+## 2026-11-27 19:45 SAST — runtime validation checkpoint
+- Fresh public rolling manifest is now 384 fixtures / 384 unique Fixture IDs, generated 2026-11-27T16:36:18.975669Z; governed_leagues=50 and 41 fixture-bearing season IDs remain valid.
+- Current Data run 598 (46044401678) failed; rerun attempt 2 also failed. Schedule-fix run 599 (46044454917) also failed. All failures occurred within seconds and GitHub exposed no usable job-step/log evidence through the connector, so no new technical root cause is asserted from these failures.
+- The producer-before-consumer schedule fix remains committed at 546272485e82cbb3e651c5e66241753642019117 (Current Data :20 UTC after rolling producer :15 UTC).
+- Do not certify the fresh spine until a successful Current Data execution persists reconciliation hashes, non-empty Team State, and the authoritative current prediction ledger.
