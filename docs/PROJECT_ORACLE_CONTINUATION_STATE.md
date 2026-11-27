@@ -909,3 +909,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Fix commit: `7ae8b556f504edc30cc7708b1f2eeaf490521b5d` binds reconciliation to `data/fixtures/governed_50league_current.csv` and its manifest, enforces governed_leagues=50, exact row and Fixture-ID parity, strict kickoff > manifest generated_utc, and persists exact rolling-spine and Fixture-ID-set hashes.
 - Validation: source-level correction committed; runtime validation pending a new reconciliation workflow execution. No timestamp equality between independent processes is required.
 - Next action: obtain a fresh producer snapshot, run the corrected reconciliation against that same spine, certify both hashes, then proceed to Team State/prediction ledger and canonical MI.
+
+
+## 2026-11-27 20:37 SAST — public pipeline dependency order corrected
+- Historical-first evidence confirmed the rolling producer runs at :15 UTC while public reconciliation (:05) and FootyStats intelligence (:10) both ran earlier in the hourly cycle.
+- Fixes: reconciliation moved to :20 UTC (commit `45aa55c564c18c3678fb66c4497f1cbe25950ad9`); intelligence moved to :25 UTC (commit `d68f8b25945bc064e0efdf5e90810218e47b0d00`).
+- Validation: code-level schedule fixes committed; runtime validation pending next producer/consumer cycle.
+- Next action: fresh producer at :15 -> reconciliation at :20 -> intelligence at :25 -> private Current Data at :20 where applicable, then exact prediction ledger and canonical MI certification. Do not accept a consumer result produced before the current spine refresh.
