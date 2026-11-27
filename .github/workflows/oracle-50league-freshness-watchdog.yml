@@ -1,0 +1,113 @@
+name: Oracle 50-League Freshness Watchdog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: oracle-50league-freshness-watchdog
+  cancel-in-progress: true
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Inspect live rolling spine freshness
+        id: check
+        shell: python
+        run: |
+          import csv, json, os, subprocess, urllib.request
+          from datetime import datetime, timezone
+
+          repo=os.environ["GITHUB_REPOSITORY"]
+          base=f"https://raw.githubusercontent.com/{repo}/main"
+          headers={"User-Agent":"Oracle-50-League-Freshness-Watchdog/1.0","Cache-Control":"no-cache"}
+
+          def get(path):
+              req=urllib.request.Request(base+"/"+path,headers=headers)
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return r.read()
+
+          now=datetime.now(timezone.utc)
+          manifest=json.loads(get("data/fixtures/governed_50league_current_manifest.json").decode("utf-8"))
+          raw=get("data/fixtures/governed_50league_current.csv")
+          rows=list(csv.DictReader(raw.decode("utf-8-sig").splitlines()))
+
+          if int(manifest.get("governed_leagues") or 0) != 50:
+              raise SystemExit("WATCHDOG_BLOCKED_GOVERNED_LEAGUES_NOT_50")
+
+          ids=[str(r.get("fixture_id") or "").strip() for r in rows]
+          if not rows or any(not x for x in ids) or len(ids)!=len(set(ids)):
+              raise SystemExit("WATCHDOG_BLOCKED_INVALID_CURRENT_FIXTURE_SPINE")
+
+          generated=datetime.fromisoformat(str(manifest["generated_utc"]).replace("Z","+00:00"))
+          age=(now-generated).total_seconds()
+
+          past=[]
+          for r in rows:
+              k=str(r.get("kickoff_utc") or "").strip()
+              if not k:
+                  continue
+              try:
+                  ko=datetime.fromisoformat(k.replace("Z","+00:00"))
+                  if ko <= now:
+                      past.append(str(r.get("fixture_id") or ""))
+              except Exception:
+                  pass
+
+          stale=age > 60*60
+          temporally_invalid=bool(past)
+
+          print({
+              "now_utc":now.isoformat(),
+              "generated_utc":generated.isoformat(),
+              "age_seconds":round(age,1),
+              "rows":len(rows),
+              "unique_fixture_ids":len(set(ids)),
+              "past_kickoff_count":len(past),
+              "stale":stale,
+              "temporally_invalid":temporally_invalid,
+          })
+
+          # Inspect active producer executions before dispatching a replacement.
+          cmd=[
+              "gh","run","list",
+              "--repo",repo,
+              "--workflow","oracle-50league-upcoming-mi-build.yml",
+              "--limit","10",
+              "--json","status,databaseId,createdAt,event"
+          ]
+          runs=json.loads(subprocess.check_output(cmd,text=True))
+          active=[r for r in runs if r.get("status") in ("queued","in_progress")]
+          if active:
+              print({"action":"WAIT_FOR_ACTIVE_PRODUCER","active_runs":active})
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+                  f.write("dispatch=false\n")
+              raise SystemExit(0)
+
+          if stale or temporally_invalid:
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+                  f.write("dispatch=true\n")
+              print({"action":"DISPATCH_PRODUCER","reason":"stale_or_past_kickoff"})
+          else:
+              with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+                  f.write("dispatch=false\n")
+              print({"action":"NO_ACTION"})
+
+      - name: Dispatch fresh rolling-spine producer
+        if: steps.check.outputs.dispatch == 'true'
+        run: |
+          gh workflow run oracle-50league-upcoming-mi-build.yml --repo "${GITHUB_REPOSITORY}" --ref main
+          echo "Dispatched fresh rolling-spine producer because the persisted spine was stale or temporally inadmissible."
+
+      - name: Fail closed when producer was not dispatchable
+        if: steps.check.outputs.dispatch == 'false'
+        run: echo "Freshness watchdog completed without dispatch; active producer or admissible spine state already exists."
