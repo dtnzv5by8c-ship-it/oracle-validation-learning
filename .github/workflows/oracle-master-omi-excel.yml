@@ -159,7 +159,7 @@ jobs:
           if not p.exists() or p.stat().st_size == 0:
               raise SystemExit("MASTER_OMI_BLOCKED_WORKBOOK_MISSING")
           wb=load_workbook(p, data_only=False, read_only=False)
-          ws=wb["Market Intelligence"]
+          ws=wb["Market Intelligence CURRENT"]
           if ws.max_column != 264:
               raise SystemExit(f"MASTER_OMI_BLOCKED_WIDTH={ws.max_column}")
           manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
@@ -167,7 +167,10 @@ jobs:
               raise SystemExit("MASTER_OMI_BLOCKED_CURRENT_ROW_PARITY")
           if status.get("fixture_ids_sha256") is None:
               raise SystemExit("MASTER_OMI_BLOCKED_FIXTURE_ID_HASH_MISSING")
-          print({"status":"PASS","rows":ws.max_row-1,"columns":ws.max_column})
+          locked=wb["Market Intelligence"]
+if locked.max_column != 264:
+    raise SystemExit("MASTER_OMI_BLOCKED_LOCKED_CANONICAL_WIDTH")
+print({"status":"PASS","rows":ws.max_row-1,"columns":ws.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column})
           PY
 
       - name: Upload Master OMI Excel
