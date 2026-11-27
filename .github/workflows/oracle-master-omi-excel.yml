@@ -480,9 +480,23 @@ jobs:
           print(out, out.stat().st_size)
           PY
 
-      - name: Materialise canonical 264-column schema on rolling fixture spine
+      - name: Require authoritative canonical workbook base
         working-directory: oracle
-        run: python scripts/build_master_omi_current.py
+        run: |
+          set -euo pipefail
+          if [ ! -s "runtime/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_BINARY_NOT_AVAILABLE_TO_AUTOMATION"
+            echo "::error::The canonical workbook is maintained in the ChatGPT Library; do not synthesize or rewrite A:ET in GitHub."
+            exit 1
+          fi
+          python - <<'PY'
+          import hashlib, pathlib
+          p=pathlib.Path("runtime/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx")
+          sha=hashlib.sha256(p.read_bytes()).hexdigest()
+          expected="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
+          if sha!=expected: raise SystemExit(f"MASTER_OMI_BLOCKED_CANONICAL_BINARY_HASH={sha}")
+          print({"status":"PASS","canonical_sha256":sha})
+          PY
 
       - name: Enforce Master OMI evidence completeness contract
         working-directory: oracle
