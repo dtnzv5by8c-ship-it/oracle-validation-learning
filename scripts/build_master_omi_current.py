@@ -18,6 +18,7 @@ fp["Fixture ID"]=fp["Fixture ID"].astype(str).str.strip()
 
 fx=pd.read_csv(ROOT/"data/fixtures/governed_50league_current.csv")
 fx["fixture_id"]=fx["fixture_id"].astype(str)
+fx["Fixture ID"]=fx["fixture_id"]
 fx["kickoff_utc"]=pd.to_datetime(fx["kickoff_utc"],errors="coerce",utc=True)
 st=pd.read_csv(ROOT/"database/current_prematch_team_state.csv")
 st["fixture_id"]=st["fixture_id"].astype(str)
@@ -26,7 +27,7 @@ mt["home_id"]=mt["home_id"].astype(str); mt["away_id"]=mt["away_id"].astype(str)
 mt["date_utc"]=pd.to_datetime(mt["date_utc"],errors="coerce",utc=True)
 mt["source_retrieved_utc"]=pd.to_datetime(mt["source_retrieved_utc"],errors="coerce",utc=True)
 
-b=fp.merge(fx.drop_duplicates("fixture_id"),on="Fixture ID",how="left",suffixes=("","_FX"))
+b=fp.merge(fx.drop_duplicates("Fixture ID"),on="Fixture ID",how="left",suffixes=("","_FX"))
 b=b.merge(st.drop_duplicates("fixture_id"),on="fixture_id",how="left",suffixes=("","_ST"))
 
 # Exact fixture-level provider match: provider home/away IDs + exact kickoff minute.
