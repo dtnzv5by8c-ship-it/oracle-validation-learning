@@ -945,3 +945,12 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Fix: private oracle-football-data commit bb4f0d1243b8dd4c2ab7c1a84630c7f1598a64f5 adds an explicit pre-ingestion authoritative rolling-spine gate enforcing governed_leagues=50, manifest/spine row parity, unique Fixture IDs and strict future kickoff admission.
 - Validation: fix committed; failed public job requeued for validation. No release certification until the rerun completes and the authoritative prediction ledger exists with exact Fixture-ID/row parity.
 - Next action: complete the rerun; if exact-identity regression passes, continue immediately to authoritative prediction-ledger build and persistence, then canonical MI and independent 100% QA. Do not weaken the regression test.
+
+
+## 2026-11-27 — canonical workbook materialisation contract hardened
+- The locked V2.1.1 contract is independently evidenced as 755 Market Intelligence rows × 264 columns, with 754 governed fixture rows and immutable A:ET.
+- The public Excel exporter previously generated directly from the rolling current prediction ledger and did not enforce the canonical row surface before upload.
+- Permanent guard commit: `5ae8a705782a879accd0e94882c666a41f12e931`.
+- The guard now blocks any non-755×264 artifact and any Fixture-Predictions surface that is not exactly 754 nonblank unique Fixture IDs.
+- This does not permit padding or synthetic fixture rows. The rolling 50-league current spine remains the sole current fixture universe.
+- Canonical binary access is now the remaining materialisation dependency; no release is admissible until the locked canonical base/A:ET contract can be applied without mutation.
