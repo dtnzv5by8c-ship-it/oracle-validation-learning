@@ -33,5 +33,11 @@
 - Missing mandatory inputs remain release blockers.
 - Oracle V1.6 and A:ET remain immutable.
 
+## Validation update — 2026-11-27 12:47 SAST
+- Remediation commit c183a070214105616f3e35e43d3e3a7ca562f80f was exercised by workflow run 45966547927 (run 72), which completed successfully at 2026-11-27T08:33:46Z.
+- The resulting current MI artifact is 392 rows × 139 columns and matches the live rolling spine at 392/392 exact provider Fixture IDs.
+- This closes the fixed-fixture-count root cause. The release gate does not reopen it.
+- The current rolling snapshot is nevertheless stale at this audit point because its generation time is 2026-11-27T08:33:39Z; freshness must be re-established by a later rolling rebuild before release.
+
 ## Release decision
 FAIL-CLOSED. No release workbook is certified.
