@@ -854,3 +854,11 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Validation: corrected source is live; fresh Current Data runtime validation is still required. Do not certify from run 46000249579.
 - Parallel result: current FootyStats intelligence persistence run 46000338562 completed successfully, with the correct rolling-spine input and artifact persistence.
 - Next gate sequence: fresh Current Data run on the corrected private commit -> authoritative current prediction ledger with exact Fixture-ID row/set parity -> canonical 264-column MI -> full PIT/provenance/type/leakage QA -> native XLSX/XML/A:ET certification -> independent 100%.
+
+
+## 2026-11-27 17:12 SAST — upcoming-spine past-kickoff blocker
+- Independent gate found 6 persisted rows in the 392-row current "upcoming" spine with provider kickoff already elapsed at the audit time. This is a PIT/leakage risk for downstream prediction and workbook admission.
+- Root cause: producer queried the current date through +7 days but did not exclude rows whose exact provider kickoff had already occurred.
+- Fix commit: `d19cf316594f2ed35a86d7853b4cd2e2a3260cc2`.
+- Validation: pending fresh producer runtime. The independent gate remains fail-closed until the corrected spine is persisted and re-audited.
+- Next action: consume the next non-equivalent producer run; verify zero past kickoffs, exact fixture identity, spine SHA-256 and Fixture-ID-set SHA, then continue current-data/prediction-ledger certification.
