@@ -8,6 +8,8 @@ on:
     paths:
       - ".github/workflows/oracle-public-current-footystats-fixture-intelligence.yml"
       - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+      - "data/fixtures/governed_50league_current.csv"
+      - "data/fixtures/governed_50league_current_manifest.json"
 
 permissions:
   contents: write
@@ -39,14 +41,34 @@ jobs:
           from urllib.request import Request, urlopen
 
           API=os.environ["FOOTYSTATS_API_KEY"]
-          SRC=Path("recovery/fixtures/current/governed_fixture_reconciliation.csv")
+          SRC=Path("data/fixtures/governed_50league_current.csv")
+          MANIFEST=Path("data/fixtures/governed_50league_current_manifest.json")
           OUT=Path("recovery/fixtures/current/intelligence")
           OUT.mkdir(parents=True,exist_ok=True)
 
           rows=list(csv.DictReader(SRC.open(encoding="utf-8",newline="")))
+          manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
           governed_fixture_rows=len(rows)
           if governed_fixture_rows <= 0:
               raise SystemExit("FAIL-CLOSED: current governed fixture spine is empty")
+          if int(manifest.get("governed_leagues") or 0) != 50:
+              raise SystemExit("FAIL-CLOSED: governed_leagues must equal 50")
+          if int(manifest.get("fixture_rows") or 0) != governed_fixture_rows:
+              raise SystemExit("FAIL-CLOSED: manifest fixture_rows diverges from live rolling spine")
+          if int(manifest.get("unique_provider_fixture_ids") or 0) != governed_fixture_rows:
+              raise SystemExit("FAIL-CLOSED: manifest provider Fixture-ID count diverges from live rolling spine")
+          if any(str(r.get("identity_status") or "") != "EXACT_PROVIDER_FIXTURE_ID" for r in rows):
+              raise SystemExit("FAIL-CLOSED: rolling spine contains non-exact provider fixture identity")
+          for r in rows:
+              r["league_code"]=r.get("league_season_id") or ""
+              r["provider_fixture_id"]=r.get("fixture_id") or ""
+              r["provider_competition_id"]=r.get("league_season_id") or ""
+              r["provider_season"]=r.get("provider_season") or ""
+              r["provider_status"]=r.get("provider_status") or ""
+              r["provider_kickoff_unix"]=str(int(datetime.fromisoformat(str(r.get("kickoff_utc")).replace("Z","+00:00")).timestamp()))
+              r["provider_kickoff_utc"]=r.get("kickoff_utc") or ""
+              r["provider_home_id"]=r.get("provider_home_id") or ""
+              r["provider_away_id"]=r.get("provider_away_id") or ""
 
           def norm(x):
               return re.sub(r"[^a-z0-9]+","",unicodedata.normalize("NFKD",str(x or "")).encode("ascii","ignore").decode().lower())
@@ -71,9 +93,9 @@ jobs:
               raise last
 
           # Only exact current-provider identities are eligible.
-          exact=[r for r in rows if r.get("identity_status")=="MATCHED_EXACT_DATE_HOME_AWAY"]
-          ambiguous=[r for r in rows if r.get("identity_status")=="AMBIGUOUS_EXACT_DATE_HOME_AWAY"]
-          unmatched=[r for r in rows if r.get("identity_status")=="UNMATCHED_CURRENT_FOOTYSTATS"]
+          exact=list(rows)
+          ambiguous=[]
+          unmatched=[]
 
           metrics=[
             ("PPG","PPG","seasonPPG_overall","points_per_game"),
@@ -247,6 +269,8 @@ jobs:
           summary={
               "generated_utc":datetime.now(timezone.utc).isoformat(),
               "governed_fixture_rows":governed_fixture_rows,
+              "governed_leagues":int(manifest.get("governed_leagues") or 0),
+              "season_ids_with_fixtures":int(manifest.get("season_ids_with_fixtures") or 0),
               "exact_fixture_rows":len(exact),
               "ambiguous_fixture_rows":len(ambiguous),
               "unmatched_fixture_rows":len(unmatched),
@@ -268,6 +292,8 @@ jobs:
           (OUT/"footystats_current_fixture_intelligence_summary.json").write_text(json.dumps(summary,indent=2)+"\n")
           print(json.dumps(summary,indent=2))
 
+          if len(exact) != governed_fixture_rows:
+              raise SystemExit("FAIL-CLOSED: exact fixture identity count diverges from rolling spine")
           if len(exact)>0 and len(evidence)==0:
               raise SystemExit("FAIL-CLOSED: exact fixture identities exist but no current intelligence was produced.")
 
