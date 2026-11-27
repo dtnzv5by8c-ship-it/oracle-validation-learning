@@ -916,3 +916,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Fixes: reconciliation moved to :20 UTC (commit `45aa55c564c18c3678fb66c4497f1cbe25950ad9`); intelligence moved to :25 UTC (commit `d68f8b25945bc064e0efdf5e90810218e47b0d00`).
 - Validation: code-level schedule fixes committed; runtime validation pending next producer/consumer cycle.
 - Next action: fresh producer at :15 -> reconciliation at :20 -> intelligence at :25 -> private Current Data at :20 where applicable, then exact prediction ledger and canonical MI certification. Do not accept a consumer result produced before the current spine refresh.
+
+
+## 2026-11-27 — current cycle control update
+- Historical-first audit confirmed the rolling 50-league manifest is currently 50 governed leagues, 371 fixtures, 371 unique Fixture IDs, and 41 fixture-bearing season IDs, generated 2026-11-27T18:39:04.536137Z. This is the sole current fixture spine.
+- The prior persisted reconciliation status at data/current_reconciliation_status.json is stale (392 rows, generated 01:32:23Z) and is not admissible for the current spine. A fresh reconciliation execution is required.
+- The public intelligence artifact currently persisted is also stale relative to the current spine (384 rows generated 18:40:11Z versus current spine 371 rows generated 18:39:04Z); it is not admissible for release.
+- Newly confirmed consumer push-trigger race has been fixed in commits 8f7897b3016eaf041ed7eadfd0545d123bf82e6e and 48c55bc3e06f511c5338bdf8a6ddf04815d362b1. Do not certify until fresh reconciliation, fresh intelligence, current Team State, prediction ledger, canonical MI and independent QA gates pass.
