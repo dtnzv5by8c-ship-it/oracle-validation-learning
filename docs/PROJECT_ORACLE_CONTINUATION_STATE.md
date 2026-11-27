@@ -862,3 +862,29 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Fix commit: `d19cf316594f2ed35a86d7853b4cd2e2a3260cc2`.
 - Validation: pending fresh producer runtime. The independent gate remains fail-closed until the corrected spine is persisted and re-audited.
 - Next action: consume the next non-equivalent producer run; verify zero past kickoffs, exact fixture identity, spine SHA-256 and Fixture-ID-set SHA, then continue current-data/prediction-ledger certification.
+
+
+## 2026-11-27 — Master OMI current-cycle continuation update
+
+### Current live state
+- Public repository current rolling manifest: governed_leagues=50, 385 fixture rows, 385 unique provider Fixture IDs, 41 fixture-bearing league-season IDs; the 41 count is valid and does not need to equal 50.
+- Latest producer Run #75 (46026993270) succeeded at 2026-11-27T15:41:08Z and persisted the 15:41 snapshot.
+- Independent gate 18:25 SAST rejected that snapshot because fixture 8551569 kicked off at 16:00Z; the snapshot was therefore temporally inadmissible even though it was less than 90 minutes old.
+- Persisted current_reconciliation_status.json remains an older 392-row certificate and is not admissible for the current 385-row spine.
+
+### Newly confirmed root cause and remediation
+- Root cause: operational rolling-spine freshness/materialization gap. The code-level past-kickoff guard and hourly producer schedule were correct, but no subsequent producer execution materialized a newer snapshot before the release gate.
+- Fix: public freshness watchdog commit 505d01b71b8de51bea629d53492758d194c13d59; immediate watchdog validation trigger cb4d0f182a9b65b71ece0142f9d547455d4cf9b6; controlled fresh producer trigger 13fe1c5cd8f301db9e03dfa24ad4a3ee12da0708.
+- Watchdog policy: every 15 minutes, inspect the live rolling manifest; if stale or any persisted kickoff is at/before now, verify no producer is already queued/in progress and dispatch the producer workflow. Never substitute a stale snapshot or invent timestamps.
+- Current validation: producer Run #76 (46034938107) is IN_PROGRESS. Final closure requires the new manifest, exact spine/Fixture-ID-set evidence, strict temporal gate, and fresh reconciliation to persist successfully.
+
+### Binding production blockers
+1. Fresh temporally admissible rolling spine and independent spine/Fixture-ID-set hashes.
+2. Non-empty current Team State and prediction compatibility chain.
+3. Authoritative research/four_model/outputs/omi_prediction_ledger_current.csv with exact row and Fixture-ID set parity.
+4. Canonical 264-column MI surface with all mandatory fields populated from PIT-authoritative evidence or explicit unavailable/unverified classification.
+5. PIT-valid xG where xG is admitted; no capture timestamp means inadmissible.
+6. Candidate XLSX/XML with native Excel type/formula/error/A:ET/hash certification.
+7. Independent 100% QA gate.
+
+Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:ET remain unchanged.
