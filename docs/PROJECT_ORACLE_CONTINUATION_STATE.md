@@ -937,3 +937,11 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Run 46051033071 proved reconciliation itself succeeds but its singleton persistence failed because public main advanced during the job. Fix committed in public main as 929b1ce45e84a111b44916d1ee50129bb5a51c49: fetch/rebase/retry up to five times, no force-push.
 - Next admissible action: run reconciliation against the latest 369-fixture rolling spine, verify exact rolling-spine SHA and Fixture-ID-set SHA, then allow the :25 intelligence consumer to consume only that same current spine.
 - Current prediction ledger remains absent; canonical MI and export remain blocked until authoritative current ledger and downstream evidence gates pass.
+
+
+## 2026-11-27 22:50 SAST — current-data rolling-spine workflow contract repair
+- Historical-first runtime evidence: public Current Data run 46064230657 reached and passed ingestion, reconciliation, exact rolling-spine hash validation, independent source reconciliation, Team State integrity/persistence, namespace validation, prediction compatibility, model readiness and OTMS. It failed only at exact-identity regression because the private current-data workflow file did not explicitly reference governed_50league_current.csv, even though the ingestion script did consume the public rolling spine.
+- Root cause: workflow contract and regression guard were out of sync; the current-data workflow did not itself declare/validate the sole current fixture spine.
+- Fix: private oracle-football-data commit bb4f0d1243b8dd4c2ab7c1a84630c7f1598a64f5 adds an explicit pre-ingestion authoritative rolling-spine gate enforcing governed_leagues=50, manifest/spine row parity, unique Fixture IDs and strict future kickoff admission.
+- Validation: fix committed; failed public job requeued for validation. No release certification until the rerun completes and the authoritative prediction ledger exists with exact Fixture-ID/row parity.
+- Next action: complete the rerun; if exact-identity regression passes, continue immediately to authoritative prediction-ledger build and persistence, then canonical MI and independent 100% QA. Do not weaken the regression test.
