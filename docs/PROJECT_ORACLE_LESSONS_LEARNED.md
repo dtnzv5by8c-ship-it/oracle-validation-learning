@@ -238,3 +238,15 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
   - `d72bd58aad25ee8bd4ea32a4520b6c513c268bfb` — removes derived `Production Eligible` / `Betting Eligible` outputs from the mandatory-input gate; missing inputs remain explicitly unavailable rather than being falsely treated as source inputs.
 - Provider-specific FootyStats Last-5 GF/M and GA/M mappings were corrected to use their own provider fields rather than generic Team State aliases.
 - Exact Fixture-ID and PIT checks remain fail-closed. No stale-row padding, fuzzy matching, historical fallback, fabrication, or Oracle V1.6 model change.
+
+
+## 2026-11-28 — Permanent kickoff-level PIT root cause closed
+- Root cause identified in the live prediction chain: `build_current_team_state.py` correctly computed historical matches strictly before the target kickoff, but `build_prediction_team_state_compatibility.py` discarded the actual last-match cutoff and defaulted `state_date/home_state_date/away_state_date` to the fixture date.
+- The prediction engine then correctly enforced `state_date < fixture_date`, causing valid current Team State to be rejected and producing widespread false `MISSING_PREMATCH_TEAM_STATE_HOME/AWAY` NO_BET classifications.
+- Permanent fix:
+  - `9ba8a8d251c10a29eb9d8d6f173b12bdc6926f08` — current Team State now persists exact home/away last-5 historical kickoff cutoffs.
+  - `b8e19a22a8a925034f03ae63791a09aa6d8a43c9` — compatibility layer now carries those exact cutoffs instead of substituting fixture date.
+  - `c8275de6cfb449775af8068d5439a71269e5d72c` — governed fixture kickoff is carried into compatibility state.
+  - `afcb65cd56fa393d1feb33cb2581bc96c791cf35` — prediction engine uses exact fixture kickoff for prospective current-state PIT admission.
+  - `327e4a1df9c3ad01b9a1f8fe5efb0e34b41f0145` and `c6c4f93bcc4ca8cd0135c7673bb4505f48342152` — public workflow adds a permanent kickoff-level PIT regression gate.
+- This is an integration/PIT correction only. Oracle V1.6 features, formulas, calibration, thresholds and eligibility logic are unchanged.
