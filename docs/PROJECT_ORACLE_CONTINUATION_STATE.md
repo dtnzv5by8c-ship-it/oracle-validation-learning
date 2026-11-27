@@ -798,3 +798,11 @@ Read this file and `docs/PROJECT_ORACLE_LESSONS_LEARNED.md` before diagnosing a 
 
 ### Release discipline
 The canonical Master OMI workbook remains fail-closed until the independent 100% QA gate certifies the complete 50-league MI surface, workbook integrity, provenance, PIT chronology, formula compatibility, and exact A:ET protection. No green workflow alone is a release signal.
+
+
+## Cycle 11 live control — 2026-11-27 11:06 SAST
+- Live rolling spine is fresh at 2026-11-27T08:33:39.602844Z: 392 fixtures, 392 unique provider Fixture IDs, governed_leagues=50, 41 fixture-bearing season IDs. Do not require 50 season IDs.
+- Current reconciliation_status.json remains an older 01:32 snapshot and is therefore not admissible as the reconciliation certificate for the 08:33 rolling spine. Timestamp equality is not required; exact rolling-spine and Fixture-ID-set hashes are the required identity controls.
+- Cycle 11 root-cause register aea614fb36928941c857a286fdaa3d427b30d829 confirms six release blockers: 139-column upstream artifact vs 754x264 canonical MI, xG without capture timestamp, unavailable direct GF/M/GA/M/goal-BTTS provider fields, incomplete provider status for 390/392, absent CMOI/LTSS/actuals/derived inputs, and absent candidate XLSX/XML.
+- Lessons learned updated at dfab9deb10ffe0ad32c3a548a756f94916643f07 with evidence and regression guards for these blockers.
+- Highest-value next action: rebuild the canonical downstream MI from the fresh rolling spine, build the authoritative current prediction ledger with exact row and Fixture-ID parity, then run independent cell/type/provenance/PIT/leakage and native XLSX/XML/hash gates. Do not certify from the stale reconciliation snapshot.
