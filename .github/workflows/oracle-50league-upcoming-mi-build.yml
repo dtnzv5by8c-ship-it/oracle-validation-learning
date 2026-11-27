@@ -95,8 +95,19 @@ jobs:
               while True:
                   p=api("todays-matches",{"date":d.isoformat(),"timezone":"Etc/UTC","page":page})
                   for m in p.get("data") or []:
-                      if str(m.get("competition_id") or "") in selected_ids:
-                          fixtures.append(m)
+                      if str(m.get("competition_id") or "") not in selected_ids:
+                          continue
+                      ts=m.get("date_unix")
+                      # The persisted artifact is the governed UPCOMING spine.
+                      # Never admit a fixture whose provider kickoff has already occurred.
+                      # Missing kickoff timestamps are fail-closed and are not admitted.
+                      try:
+                          kickoff_ts=float(ts)
+                      except Exception:
+                          continue
+                      if kickoff_ts <= now.timestamp():
+                          continue
+                      fixtures.append(m)
                   pager=p.get("pager") or {}
                   max_page=int(pager.get("max_page") or page)
                   if page>=max_page: break
@@ -368,6 +379,11 @@ jobs:
           assert all(r.get("identity_status")=="EXACT_PROVIDER_FIXTURE_ID" for r in rows)
           import json
           manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
+          generated=manifest.get("generated_utc")
+          assert generated, "FAIL-CLOSED: manifest generated_utc missing"
+          from datetime import datetime, timezone
+          generated_dt=datetime.fromisoformat(generated.replace("Z","+00:00"))
+          assert all(datetime.fromisoformat(r["kickoff_utc"].replace("Z","+00:00")) > generated_dt for r in rows), "FAIL-CLOSED: persisted upcoming spine contains past/non-future kickoff"
           dates=sorted(r["date"] for r in rows if r.get("date"))
           assert manifest.get("fixture_rows")==len(rows), "FAIL-CLOSED: manifest row count mismatch"
           assert manifest.get("unique_provider_fixture_ids")==len(set(ids)), "FAIL-CLOSED: manifest fixture-ID count mismatch"
