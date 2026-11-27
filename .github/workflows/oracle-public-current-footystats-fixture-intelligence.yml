@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: oracle-public-current-footystats-fixture-intelligence
+  group: oracle-public-current-evidence-writer
   cancel-in-progress: false
 
 jobs:
@@ -325,3 +325,5 @@ jobs:
           retention-days: 30
 
 # 2026-11-27 21:08 SAST: remove push-triggered consumer execution; consumers must run only after the rolling producer via schedule/manual dispatch to prevent control-plane commits from consuming stale spines.
+
+# 2026-11-27 21:08 SAST: serialize all public current-evidence writers under one concurrency group; prevent producer/reconciliation/intelligence main-branch write races.
