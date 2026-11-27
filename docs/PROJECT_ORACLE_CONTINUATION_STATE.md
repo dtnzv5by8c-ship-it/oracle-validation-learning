@@ -989,3 +989,9 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - The public exporter now fails only on genuine materialisation dependencies rather than an incorrect fixed-row contract. The remaining binary dependency is the hash-verified canonical workbook base; it is present in the connected Library but not in public GitHub runtime.
 - Current prediction ledger remains absent from public HEAD; therefore no runtime overlay can yet be certified. The next admissible run is after current-data persistence creates `research/four_model/outputs/omi_prediction_ledger_current.csv` with exact row/Fixture-ID parity and the canonical base is made available to the automation runtime.
 - No Oracle V1.6 model logic, thresholds, calibration, probabilities, betting eligibility or A:ET contract was changed.
+
+
+## 2026-11-28 — Master OMI overlay field-contract runtime defect closed at source
+- Historical-first inspection confirmed the current rolling 50-league spine/Team State/authoritative prediction ledger chain had progressed to exact current-state parity, but the public overlay implementation contained undefined runtime symbols `alias`, `mandatory` and `blocked_fields`.
+- Fixes committed: `892f57d06cb50367d950cfc02db9e25594ef7198` adds exact authoritative field mappings and mandatory-input definitions; `660b8443dc55e945d55d7966a5bc2b5ca9564097` removes unsupported semantic aliases; regression guard `c37fe980968cba87888b67cf476bdf2404b7375e`.
+- Current release remains fail-closed until a fresh rolling-spine producer cycle occurs and the corrected exporter passes runtime validation, canonical SHA/A:ET preservation, native XLSX/XML checks and independent 100% QA.
