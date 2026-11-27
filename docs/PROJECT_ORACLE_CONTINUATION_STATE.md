@@ -838,3 +838,10 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Private fix: `9e7c422d9c66ff4651f239711d6e1fd5e30316b8`; public workflow guard: `075d90ccba6f5f4ab5ed37dd8a084dccb6b5bd0f`.
 - Runtime validation: pending fresh Current Data run triggered by the public workflow change.
 - Next action: verify nonblank league namespace, then exact compatibility, authoritative prediction ledger row/Fixture-ID parity, canonical MI rebuild, and independent QA.
+
+
+## 2026-11-27 14:35 SAST — intelligence persistence race hardened
+- Run 46000085695 successfully generated current FootyStats intelligence from the live rolling spine but failed only at `git push` because public main advanced concurrently.
+- Fix: `446a0868a4581b866f7962c7ab0c33e12de7fda3` adds fetch/rebase/push retry logic to the intelligence persistence step.
+- Runtime validation: pending fresh run from the fix commit.
+- Next action: verify persisted current intelligence, then consume the same fresh spine for reconciliation/Team State/prediction ledger and canonical MI QA.
