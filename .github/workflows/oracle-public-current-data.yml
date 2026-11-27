@@ -1,3 +1,4 @@
+# 2026-11-28 22:xx SAST: force fresh reconciliation/materialisation after rolling spine changed to 359 fixtures; permanent parity gate remains fail-closed.
 name: Oracle Public Current Data Execution
 # Recovery control: current-state date provenance repair applied 2026-11-13; run on public Actions capacity.
 
