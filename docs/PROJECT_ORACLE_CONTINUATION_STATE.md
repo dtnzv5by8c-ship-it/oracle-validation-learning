@@ -1,10 +1,5 @@
 # Project Oracle Continuation State
-
-Last updated: 2026-11-07 15:20 SAST
-Repository: dtnzv5by8c-ship-it/oracle-validation-learning
-Live HEAD: 3d06201be6cd757cfbb7cf20400d1151c09628ab
-
-## Finding
+Finding
 The live repository did not contain the requested canonical continuation-state or lessons-learned files. The repository does contain the dated checkpoints and current workflow history. Continuous Build Control therefore reconstructed the minimum canonical handover state from live GitHub evidence rather than relying on stale chat context.
 
 ## Evidence
@@ -995,3 +990,14 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Historical-first inspection confirmed the current rolling 50-league spine/Team State/authoritative prediction ledger chain had progressed to exact current-state parity, but the public overlay implementation contained undefined runtime symbols `alias`, `mandatory` and `blocked_fields`.
 - Fixes committed: `892f57d06cb50367d950cfc02db9e25594ef7198` adds exact authoritative field mappings and mandatory-input definitions; `660b8443dc55e945d55d7966a5bc2b5ca9564097` removes unsupported semantic aliases; regression guard `c37fe980968cba87888b67cf476bdf2404b7375e`.
 - Current release remains fail-closed until a fresh rolling-spine producer cycle occurs and the corrected exporter passes runtime validation, canonical SHA/A:ET preservation, native XLSX/XML checks and independent 100% QA.
+
+
+## 2026-11-28 — Master OMI Cycle 11 remediation checkpoint
+- Live public HEAD after remediation: `cc352df323b2b7f37f5bc72dbe5a99434e8c4cb2`.
+- Current rolling 50-league manifest: governed_leagues=50, fixture_rows=355, unique_provider_fixture_ids=355, season_ids_with_fixtures=40, generated_utc=2026-11-27T23:35:55.343923+00:00; private_repository_used=false, fuzzy_matching_used=false, historical_fallback_used=false, pre_match_only=true.
+- Current Team State, prediction ledger and FootyStats intelligence are present and exact Fixture-ID parity is enforced by the public Master OMI workflow.
+- Master OMI export workflow was rebuilt with variable-row/264-column certification, exact current Fixture-ID set gates, concurrency control, and immutable A:ET surface certification. Fix commits: `9a629c241cde422c56f7f5cb3ea127fa5b7025a8`, `a7c99f598e9d7a406e54e69fa7a460800369b13d`.
+- Runtime validation run 46085216500 reached the runner successfully and failed closed at canonical workbook materialisation because the private repository does not contain the locked canonical XLSX. No workbook overlay was attempted.
+- Controlled Library reference still contains the authoritative locked workbook with SHA `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`; the remaining infrastructure task is to make that exact binary available to the GitHub workflow without changing its bytes.
+- Release remains FAIL-CLOSED. Do not synthesize or reconstruct A:ET. Do not promote a different workbook. Do not change Oracle V1.6 logic, thresholds, calibration, probabilities or betting eligibility.
+- Next admissible action: restore the exact canonical binary into an approved GitHub-accessible immutable location, then rerun the corrected workflow. After canonical admission, continue directly through overlay runtime, mandatory-input/PIT gates, native XLSX certification, and independent 100% QA.
