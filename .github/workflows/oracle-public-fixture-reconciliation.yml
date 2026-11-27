@@ -3,10 +3,6 @@ name: Oracle Public Fixture Reconciliation - FootyStats Current
 on:
   schedule:
     - cron: "20 * * * *"
-  push:
-    paths:
-      - ".github/workflows/oracle-public-fixture-reconciliation.yml"
-      - "recovery/master_omi_source/2026-11-14/fixtures.csv"
   workflow_dispatch:
 
 permissions:
@@ -406,3 +402,5 @@ jobs:
           retention-days: 30
 
 # 2026-11-27 20:37 SAST: force runtime validation of the rolling-spine reconciliation contract fix.
+
+# 2026-11-27 21:08 SAST: remove push-triggered consumer execution; consumers must run only after the rolling producer via schedule/manual dispatch to prevent control-plane commits from consuming stale spines.
