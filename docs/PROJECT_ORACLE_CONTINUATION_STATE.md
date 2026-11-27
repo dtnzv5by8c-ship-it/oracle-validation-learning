@@ -954,3 +954,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - The guard now blocks any non-755×264 artifact and any Fixture-Predictions surface that is not exactly 754 nonblank unique Fixture IDs.
 - This does not permit padding or synthetic fixture rows. The rolling 50-league current spine remains the sole current fixture universe.
 - Canonical binary access is now the remaining materialisation dependency; no release is admissible until the locked canonical base/A:ET contract can be applied without mutation.
+
+
+## 2026-11-27 — Permanent Master OMI row-contract/materialisation checkpoint
+- Current weekly Master OMI fixture rows are variable and must exactly equal the fresh rolling 50-league Fixture-ID set; 754/755 is a historical canonical workbook surface, not a frozen weekly row requirement.
+- Locked weekly contract remains 264 Market Intelligence columns with A:ET protected; no stale padding, truncation, fuzzy matching or historical substitution.
+- Public export now materialises the locked 264-column schema through scripts/build_master_omi_current.py using exact current Fixture IDs and explicit unavailable classifications.
+- Remediation and QA automations were updated to enforce this semantic contract permanently.
