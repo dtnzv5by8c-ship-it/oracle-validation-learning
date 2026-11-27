@@ -171,3 +171,10 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: `929b1ce45e84a111b44916d1ee50129bb5a51c49` changes reconciliation persistence to fetch/rebase/retry up to five times and never force-pushes.
 - Validation result: code-level fix committed to live public main; runtime validation is pending the next post-fix reconciliation execution. No stale artifact is being promoted.
 - Regression guard: current reconciliation persistence must retry after a moving main head and may not fail closed solely because another governed writer advanced main. Force-push is prohibited; exact rolling-spine SHA and Fixture-ID-set SHA remain the admissibility controls.
+
+
+### Cycle 11 validation extension — public Current Data consumer ordering
+- Evidence: live `.github/workflows/oracle-public-current-data.yml` was scheduled at `10 * * * *`, earlier than the rolling producer at `15 * * * *`, while its push path could also execute independently. This left the public current-data lane structurally capable of consuming a prior rolling spine.
+- Fix commit: `c9c35e8278ac094f3008c7ea3971230ba954fdd2` moves the public Current Data schedule to `:20` UTC, after the :15 producer, and places it in the shared `oracle-public-current-evidence-writer` concurrency group.
+- Runtime validation: push-triggered Run `46064230657` is pending on the corrected workflow commit; it is the first execution against the new ordering and the private adapter namespace fix.
+- Regression guard: producer remains :15, public Current Data :20, public intelligence :25; consumers must not be scheduled before the rolling producer. Exact rolling-spine SHA and Fixture-ID-set SHA remain the authoritative identity gates.
