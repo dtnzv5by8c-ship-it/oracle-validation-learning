@@ -85,10 +85,16 @@ jobs:
           # rolling-spine hashes. Do not invent or require absent fields: derive the
           # hashes from the exact live spine and persist them in the gate log instead.
           # Identity/timestamp parity is still fail-closed.
-          if manifest.get("generated_utc") != status.get("source_generated_utc"):
-              raise SystemExit("CURRENT_RECONCILIATION_MANIFEST_TIMESTAMP_DRIFT")
-          if status.get("source_generated_utc") != status.get("generated_utc"):
-              raise SystemExit("CURRENT_RECONCILIATION_STATUS_TIMESTAMP_DRIFT")
+          # The current-source manifest timestamp and rolling-spine manifest timestamp
+          # are intentionally different clocks. The prior gate incorrectly compared them,
+          # causing false failures whenever the rolling 50-league spine refreshed before
+          # the current-source reconciliation completed. Compare the persisted rolling
+          # spine hashes instead: this proves exact fixture identity without coupling
+          # independent generation timestamps.
+          if status.get("rolling_spine_sha256") != live_sha:
+              raise SystemExit("CURRENT_RECONCILIATION_ROLLING_SPINE_HASH_DRIFT")
+          if status.get("rolling_spine_fixture_ids_sha256") != live_ids_sha:
+              raise SystemExit("CURRENT_RECONCILIATION_ROLLING_SPINE_ID_HASH_DRIFT")
           if manifest.get("fixture_rows") != live_n:
               raise SystemExit(f"CURRENT_RECONCILIATION_MANIFEST_ROW_DRIFT: manifest={manifest.get('fixture_rows')} live={live_n}")
           if int(manifest.get("unique_provider_fixture_ids") or 0) != live_n:
