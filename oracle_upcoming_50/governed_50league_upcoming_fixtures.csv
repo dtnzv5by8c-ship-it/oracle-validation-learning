@@ -1,5 +1,4 @@
 fixture_id,date,kickoff_utc,home_team,away_team,league_season_id,provider_home_id,provider_away_id,provider,provider_status,provider_season,identity_status
-8551569,2026-11-27,2026-11-27T16:00:00+00:00,IMT Novi Beograd,Mačva Šabac,17119,673397,1929,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8546182,2026-11-27,2026-11-27T17:00:00+00:00,Istra 1961,Varaždin,17087,1857,1881,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8550440,2026-11-27,2026-11-27T17:00:00+00:00,Raków Częstochowa,Piast Gliwice,17112,802,1226,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8578100,2026-11-27,2026-11-27T17:00:00+00:00,Líšeň,Slovácko,17157,9808,2426,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
