@@ -138,6 +138,15 @@ jobs:
           echo "canonical_sha256=$ACTUAL_SHA"
           echo "canonical_base=runtime/work/Master_OMI_Report_BASE.xlsx"
 
+      - name: Block until canonical overlay implementation is present
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          echo "::error::MASTER_OMI_BLOCKED_NO_SAFE_OVERLAY_IMPLEMENTATION"
+          echo "::error::The canonical workbook is the only permitted base, but no approved overlay/export implementation is present."
+          echo "::error::Do not fabricate Master_OMI_Report_CURRENT.xlsx."
+          exit 1
+
       - name: Upload Master OMI Excel
         uses: actions/upload-artifact@v4
         with:
