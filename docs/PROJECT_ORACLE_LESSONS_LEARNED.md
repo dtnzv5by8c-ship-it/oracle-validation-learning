@@ -99,3 +99,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commit: `446a0868a4581b866f7962c7ab0c33e12de7fda3` adds fetch/rebase/push retry logic (five attempts) to the persistence step.
 - Validation result: code-level race hardening is live; fresh runtime validation is pending the workflow run triggered by this commit.
 - Regression guard: governed current-intelligence persistence must tolerate concurrent public-main updates without dropping the generated artifact; direct single-attempt pushes are prohibited.
+
+
+## 2026-11-27 — Team State namespace adapter field mismatch
+- Cause: the corrected current Team State builder now writes the provider-derived league namespace into the field `league_code`, but `scripts/build_prediction_team_state_compatibility.py` still read `league`. The compatibility adapter therefore skipped all 392 otherwise valid current-state rows and returned `DATA_GATED: no valid pre-match state rows`.
+- Evidence: public Current Data run 46000249579 passed ingestion, fresh-spine reconciliation, Team State build (392 rows), persistence (392 rows), namespace gate and exact-identity tests, then failed only at prediction compatibility. Live builder source writes `"league_code":league_name_by_id.get(league_id,"")`; live adapter read `r.get("league","")`.
+- Fix commit: private production `db0faa05a47b887bfa8dc306d78cb7c31239b1f7` changes the adapter to read `league_code` with backward-compatible `league` fallback.
+- Validation result: source-level correction committed; fresh Current Data runtime validation is required before promotion. No Oracle V1.6 model logic, probabilities, calibration, thresholds, betting eligibility or A:ET changed.
+- Regression guard: private test `d779d0484ce772bbb0896fec6cd75d1214c65ae7` asserts the compatibility adapter consumes the current Team State `league_code` field. The public namespace gate remains mandatory before compatibility.
