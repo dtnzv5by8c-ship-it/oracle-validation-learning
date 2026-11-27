@@ -392,7 +392,22 @@ jobs:
             exit 0
           fi
           git commit -m "Add current FootyStats governed fixture reconciliation"
-          git push
+          # The rolling producer, reconciliation, intelligence and QA lanes all publish
+          # current singleton artifacts. A consumer may legitimately finish after another
+          # governed commit advances main. Never lose a valid current reconciliation merely
+          # because the branch moved: rebase the generated commit onto the live main head
+          # and retry the push. Do not force-push or overwrite unrelated evidence.
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              echo "Reconciliation evidence persisted on attempt ${attempt}."
+              exit 0
+            fi
+            echo "main advanced; rebasing reconciliation commit (attempt ${attempt}/5)."
+            git fetch --no-tags origin main
+            git rebase origin/main
+          done
+          echo "::error::RECONCILIATION_PERSISTENCE_FAILED_AFTER_RETRIES"
+          exit 1
 
       - name: Upload reconciliation artifact
         uses: actions/upload-artifact@v4
