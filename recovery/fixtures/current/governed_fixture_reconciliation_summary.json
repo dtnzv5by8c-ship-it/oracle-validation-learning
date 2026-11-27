@@ -1,670 +1,83 @@
 {
-  "generated_utc": "2026-11-27T18:07:22.427039+00:00",
+  "generated_utc": "2026-11-27T18:38:01.833588+00:00",
+  "source_generated_utc": "2026-11-27T16:36:18.975669+00:00",
+  "rolling_spine_sha256": "b2d152cadf13ddbc3ad471c7c1aa0ce1d9d7e3f28a816b1675ac32431e543329",
+  "fixture_id_set_sha256": "9ee8d6f977f57ad7e11147b65c84bac042f5a9cee8e463dbc035c73c09ed1afa",
   "source": "FootyStats API",
   "endpoint": "todays-matches",
-  "governed_fixture_rows": 385,
-  "provider_rows_retrieved": 419,
+  "governed_fixture_rows": 384,
+  "governed_leagues": 50,
+  "unique_provider_fixture_ids": 384,
+  "provider_rows_retrieved": 439,
   "provider_dates_retrieved": [
-    "2026-11-13",
-    "2026-11-14",
-    "2026-11-15",
-    "2026-11-16",
-    "2026-11-18",
-    "2026-11-19",
-    "2026-11-20",
-    "2026-11-21",
-    "2026-11-22",
-    "2026-11-23",
-    "2026-11-24"
+    "2026-11-27",
+    "2026-11-28",
+    "2026-11-29",
+    "2026-11-30",
+    "2026-12-01",
+    "2026-12-02",
+    "2026-12-03",
+    "2026-12-04"
   ],
-  "matched_exact": 364,
-  "ambiguous_exact": 0,
-  "unmatched_current": 21,
-  "coverage_pct": 94.55,
+  "matched_exact": 376,
+  "ambiguous_exact": 8,
+  "unmatched_current": 0,
+  "coverage_pct": 97.92,
   "private_repository_used": false,
   "historical_fallback_used": false,
   "fuzzy_team_matching_used": false,
   "production_model_logic_changed": false,
   "master_omi_a_et_changed": false,
-  "governance": "Identity reconciliation only. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
+  "governance": "Identity reconciliation only. Sole current rolling 50-league spine; exact Fixture-ID set and snapshot hashes are authoritative. Unmatched rows remain explicit and are not fabricated, inferred, or silently substituted.",
   "retrievals": [
     {
-      "date": "2026-11-13",
-      "retrieved_utc": "2026-11-27T18:06:57.406129+00:00",
+      "date": "2026-11-27",
+      "retrieved_utc": "2026-11-27T18:38:00.768248+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-14",
-      "retrieved_utc": "2026-11-27T18:06:57.583801+00:00",
+      "date": "2026-11-28",
+      "retrieved_utc": "2026-11-27T18:38:00.981383+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-15",
-      "retrieved_utc": "2026-11-27T18:06:57.748276+00:00",
+      "date": "2026-11-29",
+      "retrieved_utc": "2026-11-27T18:38:01.162986+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-16",
-      "retrieved_utc": "2026-11-27T18:06:57.866608+00:00",
+      "date": "2026-11-30",
+      "retrieved_utc": "2026-11-27T18:38:01.290520+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-18",
-      "retrieved_utc": "2026-11-27T18:06:57.986500+00:00",
+      "date": "2026-12-01",
+      "retrieved_utc": "2026-11-27T18:38:01.416276+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-19",
-      "retrieved_utc": "2026-11-27T18:06:58.133625+00:00",
+      "date": "2026-12-02",
+      "retrieved_utc": "2026-11-27T18:38:01.560782+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-20",
-      "retrieved_utc": "2026-11-27T18:06:58.302562+00:00",
+      "date": "2026-12-03",
+      "retrieved_utc": "2026-11-27T18:38:01.692454+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     },
     {
-      "date": "2026-11-21",
-      "retrieved_utc": "2026-11-27T18:06:58.502517+00:00",
-      "provider": "FootyStats",
-      "endpoint": "todays-matches"
-    },
-    {
-      "date": "2026-11-22",
-      "retrieved_utc": "2026-11-27T18:06:58.670470+00:00",
-      "provider": "FootyStats",
-      "endpoint": "todays-matches"
-    },
-    {
-      "date": "2026-11-23",
-      "retrieved_utc": "2026-11-27T18:06:58.803517+00:00",
-      "provider": "FootyStats",
-      "endpoint": "todays-matches"
-    },
-    {
-      "date": "2026-11-24",
-      "retrieved_utc": "2026-11-27T18:06:58.924166+00:00",
+      "date": "2026-12-04",
+      "retrieved_utc": "2026-11-27T18:38:01.826853+00:00",
       "provider": "FootyStats",
       "endpoint": "todays-matches"
     }
   ],
-  "resolver_diagnostics": {
-    "E2": {
-      "season_candidates": [
-        [
-          "14935",
-          "20252026",
-          "England EFL League Two"
-        ],
-        [
-          "17185",
-          "20262027",
-          "England EFL League Two"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "PAR1": {
-      "season_candidates": [
-        [
-          "16533",
-          "2026",
-          "Paraguay Division Profesional"
-        ],
-        [
-          "16900",
-          "2026",
-          "Paraguay Division Intermedia"
-        ],
-        [
-          "17067",
-          "2026",
-          "Paraguay Copa Paraguay"
-        ],
-        [
-          "16879",
-          "2026",
-          "Paraguay Campeonato Femenino"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "QAT1": {
-      "season_candidates": [
-        [
-          "15038",
-          "20252026",
-          "Qatar Stars League"
-        ],
-        [
-          "17370",
-          "20262027",
-          "Qatar Stars League"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "CRO": {
-      "season_candidates": [
-        [
-          "15053",
-          "20252026",
-          "Croatia Prva HNL"
-        ],
-        [
-          "17087",
-          "20262027",
-          "Croatia Prva HNL"
-        ],
-        [
-          "15191",
-          "20252026",
-          "Croatia Druga HNL"
-        ],
-        [
-          "17278",
-          "20262027",
-          "Croatia Druga HNL"
-        ],
-        [
-          "15491",
-          "20252026",
-          "Croatia Prva HNL Juniori"
-        ],
-        [
-          "17512",
-          "20262027",
-          "Croatia Prva HNL Juniori"
-        ],
-        [
-          "15803",
-          "20252026",
-          "Croatia 3. HNL West"
-        ],
-        [
-          "17747",
-          "20262027",
-          "Croatia 3. HNL West"
-        ],
-        [
-          "15812",
-          "20252026",
-          "Croatia 3. HNL South"
-        ],
-        [
-          "17859",
-          "20262027",
-          "Croatia 3. HNL South"
-        ],
-        [
-          "15785",
-          "20252026",
-          "Croatia 3. HNL East"
-        ],
-        [
-          "17470",
-          "20262027",
-          "Croatia 3. HNL East"
-        ],
-        [
-          "14947",
-          "20252026",
-          "Croatia Croatian Football Cup"
-        ],
-        [
-          "17382",
-          "20262027",
-          "Croatia Croatian Football Cup"
-        ],
-        [
-          "15367",
-          "20252026",
-          "Croatia First League Women"
-        ],
-        [
-          "17361",
-          "20262027",
-          "Croatia First League Women"
-        ],
-        [
-          "15804",
-          "20252026",
-          "Croatia 3. HNL North"
-        ],
-        [
-          "17835",
-          "20262027",
-          "Croatia 3. HNL North"
-        ],
-        [
-          "15799",
-          "20252026",
-          "Croatia 3. HNL Center"
-        ],
-        [
-          "17748",
-          "20262027",
-          "Croatia 3. HNL Center"
-        ],
-        [
-          "16211",
-          "20252026",
-          "Croatia Second NL"
-        ],
-        [
-          "17383",
-          "20262027",
-          "Croatia Second NL"
-        ],
-        [
-          "17075",
-          "20252026",
-          "Croatia Womens Playoffs 1 2"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "SRB1": {
-      "season_candidates": [
-        [
-          "15065",
-          "20252026",
-          "Serbia SuperLiga"
-        ],
-        [
-          "17119",
-          "20262027",
-          "Serbia SuperLiga"
-        ],
-        [
-          "15523",
-          "20252026",
-          "Serbia Prva Liga"
-        ],
-        [
-          "17125",
-          "20262027",
-          "Serbia Prva Liga"
-        ],
-        [
-          "15760",
-          "20252026",
-          "Serbia Srpska Liga Belgrade"
-        ],
-        [
-          "17857",
-          "20262027",
-          "Serbia Srpska Liga Belgrade"
-        ],
-        [
-          "15751",
-          "20252026",
-          "Serbia Srpska Liga Vojvodina"
-        ],
-        [
-          "17858",
-          "20262027",
-          "Serbia Srpska Liga Vojvodina"
-        ],
-        [
-          "15732",
-          "20252026",
-          "Serbia Srpska Liga East"
-        ],
-        [
-          "17794",
-          "20262027",
-          "Serbia Srpska Liga East"
-        ],
-        [
-          "16006",
-          "20252026",
-          "Serbia Srpska Liga West"
-        ],
-        [
-          "17510",
-          "20262027",
-          "Serbia Srpska Liga West"
-        ],
-        [
-          "16389",
-          "20252026",
-          "Serbia Serbian Cup"
-        ],
-        [
-          "17836",
-          "20262027",
-          "Serbia Serbian Cup"
-        ],
-        [
-          "15538",
-          "20252026",
-          "Serbia U19 League"
-        ],
-        [
-          "17483",
-          "20262027",
-          "Serbia U19 League"
-        ],
-        [
-          "15695",
-          "20252026",
-          "Serbia SuperLiga Women"
-        ],
-        [
-          "17500",
-          "20262027",
-          "Serbia SuperLiga Women"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "F2": {
-      "season_candidates": [
-        [
-          "14932",
-          "20252026",
-          "France Ligue 1"
-        ],
-        [
-          "17102",
-          "20262027",
-          "France Ligue 1"
-        ],
-        [
-          "14954",
-          "20252026",
-          "France Ligue 2"
-        ],
-        [
-          "17117",
-          "20262027",
-          "France Ligue 2"
-        ],
-        [
-          "15361",
-          "20252026",
-          "France National"
-        ],
-        [
-          "17208",
-          "20262027",
-          "France National"
-        ],
-        [
-          "15244",
-          "20252026",
-          "France Feminine Division 1"
-        ],
-        [
-          "18060",
-          "20262027",
-          "France Feminine Division 1"
-        ],
-        [
-          "15642",
-          "20252026",
-          "France Championnat National U19"
-        ],
-        [
-          "17420",
-          "20262027",
-          "France Championnat National U19"
-        ],
-        [
-          "16410",
-          "20252026",
-          "France Coupe de France"
-        ],
-        [
-          "18054",
-          "20262027",
-          "France Coupe de France"
-        ],
-        [
-          "17032",
-          "20252026",
-          "France Ligue 1 2 Play offs"
-        ],
-        [
-          "17019",
-          "20252026",
-          "France Ligue 2/3 Play-offs"
-        ],
-        [
-          "16412",
-          "20252026",
-          "France Trophee des Champions - Super Cup"
-        ],
-        [
-          "17049",
-          "20262027",
-          "France Trophee des Champions - Super Cup"
-        ],
-        [
-          "15476",
-          "20252026",
-          "France National 3 Group H"
-        ],
-        [
-          "17756",
-          "20262027",
-          "France National 3 Group H"
-        ],
-        [
-          "15486",
-          "20252026",
-          "France National 3 Group A"
-        ],
-        [
-          "17755",
-          "20262027",
-          "France National 3 Group A"
-        ],
-        [
-          "15508",
-          "20252026",
-          "France National 3 Group F"
-        ],
-        [
-          "17754",
-          "20262027",
-          "France National 3 Group F"
-        ],
-        [
-          "15477",
-          "20252026",
-          "France National 3 Group E"
-        ],
-        [
-          "17408",
-          "20262027",
-          "France National 3 Group E"
-        ],
-        [
-          "15490",
-          "20252026",
-          "France National 3 Group D"
-        ],
-        [
-          "17760",
-          "20262027",
-          "France National 3 Group D"
-        ],
-        [
-          "15438",
-          "20252026",
-          "France National 2 Group A"
-        ],
-        [
-          "17391",
-          "20262027",
-          "France National 2 Group A"
-        ],
-        [
-          "15436",
-          "20252026",
-          "France National 2 Group B"
-        ],
-        [
-          "17657",
-          "20262027",
-          "France National 2 Group B"
-        ],
-        [
-          "15440",
-          "20252026",
-          "France National 2 Group C"
-        ],
-        [
-          "17650",
-          "20262027",
-          "France National 2 Group C"
-        ],
-        [
-          "15500",
-          "20252026",
-          "France National 3 Group C"
-        ],
-        [
-          "17751",
-          "20262027",
-          "France National 3 Group C"
-        ],
-        [
-          "15482",
-          "20252026",
-          "France National 3 Group B"
-        ],
-        [
-          "17750",
-          "20262027",
-          "France National 3 Group B"
-        ],
-        [
-          "16602",
-          "20252026",
-          "France Coupe Gambardella"
-        ],
-        [
-          "16546",
-          "20252026",
-          "France Coupe de France F\u00e9minine"
-        ],
-        [
-          "18130",
-          "20262027",
-          "France Coupe de France F\u00e9minine"
-        ],
-        [
-          "15999",
-          "20252026",
-          "France Feminine Division 2"
-        ],
-        [
-          "17230",
-          "20262027",
-          "France Feminine Division 2"
-        ],
-        [
-          "15494",
-          "20252026",
-          "France National 3 Group G"
-        ],
-        [
-          "17796",
-          "20262027",
-          "France National 3 Group G"
-        ],
-        [
-          "18070",
-          "20262027",
-          "France Challenge Espoirs"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "BRA1": {
-      "season_candidates": [
-        [
-          "16544",
-          "2026",
-          "Brazil Serie A"
-        ]
-      ],
-      "match_fallback_hits": 1
-    },
-    "ECU1": {
-      "season_candidates": [
-        [
-          "16714",
-          "2026",
-          "Ecuador Primera Categor\u00eda Serie A"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "PER1": {
-      "season_candidates": [
-        [
-          "16905",
-          "2026",
-          "Peru Primera Divisi\u00f3n"
-        ]
-      ],
-      "match_fallback_hits": 0
-    },
-    "EGY1": {
-      "season_candidates": [
-        [
-          "15544",
-          "20252026",
-          "Egypt Egyptian Premier League"
-        ],
-        [
-          "17689",
-          "20262027",
-          "Egypt Egyptian Premier League"
-        ],
-        [
-          "16430",
-          "20252026",
-          "Egypt Egypt Cup"
-        ],
-        [
-          "17968",
-          "20262027",
-          "Egypt Egypt Cup"
-        ],
-        [
-          "15215",
-          "20252026",
-          "Egypt Second Division"
-        ],
-        [
-          "17412",
-          "20262027",
-          "Egypt Second Division"
-        ],
-        [
-          "16068",
-          "20252026",
-          "Egypt League Cup"
-        ],
-        [
-          "17574",
-          "20262027",
-          "Egypt League Cup"
-        ]
-      ],
-      "match_fallback_hits": 0
-    }
-  }
+  "resolver_diagnostics": {}
 }
