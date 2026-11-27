@@ -823,3 +823,11 @@ The canonical Master OMI workbook remains fail-closed until the independent 100%
 - Validation: workflow source now has `15 * * * *`; existing exact spine/Fixture-ID-set hash reconciliation and fail-closed freshness gates remain intact. A workflow-file push also provides an immediate controlled execution path.
 - Regression guard: producer cadence must remain <=90 minutes; no schedule may be accepted if it can systematically create a freshness breach. Do not use timestamps as identity equality; use exact spine and Fixture-ID-set hashes.
 - Next action: consume the fresh producer run, then require same-snapshot exact reconciliation, Team State persistence, authoritative current prediction ledger, canonical 264-column MI, and independent 100% certification. Do not reuse the 08:33 snapshot.
+
+
+## 2026-11-27 14:35 SAST — frozen current-intelligence input eliminated
+- Confirmed live defect: `.github/workflows/oracle-public-current-footystats-fixture-intelligence.yml` consumed `recovery/fixtures/current/governed_fixture_reconciliation.csv`, a dated 385-row artifact, instead of the current rolling 50-league spine.
+- Evidence: run 45981864852 processed 385 rows / 364 exact / 21 unmatched while the live 11:30 rolling manifest contained 392/392. The run failed during persistence after the remote branch advanced.
+- Fix: public workflow commit `dd787d8a9d7e9ee865a5d5d1ea2aa41f1c8d33c9` binds intelligence ingestion to `data/fixtures/governed_50league_current.csv` + manifest, validates governed_leagues=50 and exact row/provider-ID parity, and triggers on rolling-spine changes.
+- Runtime validation: pending fresh workflow execution from the fix commit. Do not certify from the prior 385-row run.
+- Next action: consume the fresh intelligence run, then require current-data reconciliation, non-empty Team State, authoritative current prediction ledger with exact row/Fixture-ID parity, canonical 264-column MI, and independent 100% QA.
