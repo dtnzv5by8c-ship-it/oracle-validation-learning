@@ -1,7 +1,7 @@
 name: Oracle Public Current Data Execution
 # Recovery control: current-state date provenance repair applied 2026-11-13; run on public Actions capacity.
 
-# Trigger checkpoint: force a fresh authoritative current-data execution after persistence-path remediation.
+# Trigger checkpoint: current-data consumer runs after the :15 rolling-spine producer; exact-spine/hash gates remain fail-closed.
 # 2026-11-27 08:24 SAST: rerun after exact FootyStats provider-ID Team State rebuild and regression hardening.
 on:
   push:
@@ -10,7 +10,7 @@ on:
       - "data/fixtures/governed_50league_current.csv"
       - "data/fixtures/governed_50league_current_manifest.json"
   schedule:
-    - cron: "10 * * * *"
+    - cron: "20 * * * *"
   workflow_dispatch:
 
 permissions:
