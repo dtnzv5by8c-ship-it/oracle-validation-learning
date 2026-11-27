@@ -106,5 +106,21 @@ for r,row in enumerate(out.itertuples(index=False,name=None),2):
 mi.freeze_panes="A2"; mi.auto_filter.ref=mi.dimensions
 for i,h in enumerate(HEADERS,1): mi.column_dimensions[get_column_letter(i)].width=min(max(len(str(h))+2,10),45)
 mi.row_dimensions[1].height=32
+# Refresh report metadata from the live governed spine; never carry a dated weekly label/run ID forward.
+if "Executive Summary" in wb.sheetnames:
+    es=wb["Executive Summary"]
+    meta={
+        "Project Oracle — Master OMI Report": str(pd.to_datetime(b["kickoff_utc"],errors="coerce",utc=True).min().date())+" to "+str(pd.to_datetime(b["kickoff_utc"],errors="coerce",utc=True).max().date()),
+        "Governed universe": "50-League rolling current fixture spine",
+        "Fixture rows": len(out),
+        "Production model": "Oracle V1.6 — unchanged",
+        "Row contract": "VARIABLE_CURRENT_ROLLING_SPINE — exact current Fixture-ID set; no stale padding",
+        "Market Intelligence": "264 columns; A:ET cell-reference contract preserved",
+        "FootyStats PPG/GF/M/GA/M": "Current provider/state evidence populated; unavailable fields explicit",
+        "xG": "UNVERIFIED_NO_CAPTURE_TIMESTAMP where capture provenance is not proven",
+        "Production / betting": "FAIL-CLOSED unless all mandatory release gates pass"
+    }
+    es.delete_rows(1, es.max_row)
+    for k,v in meta.items(): es.append([k,v])
 wb.save(BOOK)
 print({"status":"PASS","market_intelligence_rows":mi.max_row,"market_intelligence_columns":mi.max_column,"governed_fixture_rows":len(out),"row_contract":"VARIABLE_CURRENT_ROLLING_SPINE"})
