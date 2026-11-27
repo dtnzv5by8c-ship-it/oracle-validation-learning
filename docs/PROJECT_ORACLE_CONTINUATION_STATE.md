@@ -930,3 +930,10 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Permanent controls: consumer push triggers removed; all three public current-evidence writers now share `oracle-public-current-evidence-writer` with `cancel-in-progress=false`. Fix commits: 8f7897b3016eaf041ed7eadfd0545d123bf82e6e, 48c55bc3e06f511c5338bdf8a6ddf04815d362b1, f598a68cdf3aba4b1898c1a1b174c69e078967c8, 427b94077e9e40ada27cadc9f09c95ae0fcd8465, 71557af21c703a75c3ecafc3d4b5193059b531a6.
 - Current sole fixture spine: 50 governed leagues, 371 fixtures, 371 unique provider Fixture IDs, 41 fixture-bearing season IDs, generated 2026-11-27T18:39:04.536137Z.
 - Current persisted reconciliation status remains stale (392 rows, 01:32Z) and current intelligence remains stale relative to the 371-row spine (384 rows, 18:40:11Z). Both are release-blocking until regenerated and hash-matched to the 371-row spine.
+
+
+## 2026-11-27 — Cycle 11 continuation checkpoint: reconciliation persistence race
+- Fresh rolling spine currently: governed_leagues=50, fixture_rows=369, unique_provider_fixture_ids=369, season_ids_with_fixtures=41, generated_utc=2026-11-27T19:10:26.070640+00:00.
+- Run 46051033071 proved reconciliation itself succeeds but its singleton persistence failed because public main advanced during the job. Fix committed in public main as 929b1ce45e84a111b44916d1ee50129bb5a51c49: fetch/rebase/retry up to five times, no force-push.
+- Next admissible action: run reconciliation against the latest 369-fixture rolling spine, verify exact rolling-spine SHA and Fixture-ID-set SHA, then allow the :25 intelligence consumer to consume only that same current spine.
+- Current prediction ledger remains absent; canonical MI and export remain blocked until authoritative current ledger and downstream evidence gates pass.
