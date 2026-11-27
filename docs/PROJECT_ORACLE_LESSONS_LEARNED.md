@@ -203,3 +203,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - FootyStats current PPG/GF/M/GA/M are admitted from exact current provider/state evidence; xG remains quarantined when capture timestamp provenance is unproven.
 - Regression guard: remediation and independent QA automations now explicitly reject fixed weekly row-count assumptions and require exact current Fixture-ID parity.
 - Oracle V1.6 and the A:ET cell-reference contract remain unchanged.
+
+
+## 2026-11-27 — corrected Master OMI export contract: variable current fixture rows, immutable schema boundary
+- Root cause: the Excel exporter conflated the historical locked workbook's 754 governed fixture rows with the current rolling 50-league fixture universe.
+- Correct contract: current weekly Fixture-ID count is variable and must exactly equal the fresh rolling 50-league Fixture-ID set. The locked requirement is the 264-column Market Intelligence schema and immutable A:ET cell-reference contract.
+- Permanent guard: reject any fixed 754/755 weekly-row assumption; reject padding, truncation, stale fixture carry-forward, fuzzy matching or historical substitution.
+- Additional control: the authoritative canonical workbook binary is maintained in the ChatGPT Library and is not present in the public repository. GitHub automation must fail closed rather than synthesize or rewrite A:ET.
+- Follow-on blocker: a true canonical workbook materialisation path requires an approved automation-accessible canonical binary/base. Until that exists, no GitHub-generated workbook may be certified as preserving the canonical A:ET baseline.
