@@ -25,6 +25,30 @@ jobs:
         with:
           path: oracle
 
+      - name: Checkout private production repository for canonical workbook base only
+        uses: actions/checkout@v4
+        with:
+          repository: dtnzv5by8c-ship-it/oracle-football-data
+          token: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
+          path: oracle-private
+          fetch-depth: 1
+
+      - name: Materialise approved private canonical workbook base
+        working-directory: oracle
+        run: |
+          set -euo pipefail
+          CANONICAL_NAME="Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx"
+          SOURCE="$(find ../oracle-private -type f -name "$CANONICAL_NAME" -print -quit || true)"
+          if [ -z "$SOURCE" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_PRIVATE_CANONICAL_BINARY_NOT_FOUND"
+            echo "::error::Expected canonical binary in private production repository; public repository must not contain it."
+            exit 1
+          fi
+          mkdir -p runtime/canonical
+          cp "$SOURCE" "runtime/canonical/$CANONICAL_NAME"
+          echo "canonical_source=$SOURCE"
+          echo "canonical_materialised=runtime/canonical/$CANONICAL_NAME"
+
       - name: Enforce rolling current-spine freshness
         working-directory: oracle
         run: |
