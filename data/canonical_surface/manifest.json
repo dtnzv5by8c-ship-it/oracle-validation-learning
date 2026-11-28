@@ -1,9 +1,0 @@
-{
-  "rows": 755,
-  "columns": 150,
-  "sha256": "140fcac453e0158ac6f00005d02137017e3d94ea797f237b8d9e45b9f1c68a63",
-  "encoding": "gzip+base64",
-  "chunks": 18,
-  "chunk_size": 18000,
-  "source_sha256": "9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
-}
