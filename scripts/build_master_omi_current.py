@@ -162,6 +162,11 @@ if ledger_ids != spine_ids and set(ledger_ids) != set(spine_ids):
 if not set(spine_ids).issubset(set(intel_ids)):
     missing=sorted(set(spine_ids)-set(intel_ids))
     die("MASTER_OMI_BLOCKED_INTELLIGENCE_FIXTURE_ID_SET_MISMATCH", missing=missing[:20], spine_rows=len(spine_ids), intelligence_rows=len(intel_ids))
+
+# Preserve exact row identity order from the fresh spine.
+ledger_by={str(r["fixture_id"]).strip():r for r in ledger}
+intel_by={str(r["fixture_id"]).strip():r for r in intel}
+
 for r in spine:
     fid=str(r["fixture_id"]).strip()
     irow=intel_by.get(fid)
@@ -169,10 +174,6 @@ for r in spine:
     kickoff=parse_ts(r.get("kickoff_utc"))
     if snap is None or kickoff is None or snap > kickoff:
         die("MASTER_OMI_BLOCKED_INTELLIGENCE_PIT", fixture_id=fid, snapshot=(irow or {}).get("footystats_snapshot_utc"), kickoff=r.get("kickoff_utc"))
-
-# Preserve exact row identity order from the fresh spine.
-ledger_by={str(r["fixture_id"]).strip():r for r in ledger}
-intel_by={str(r["fixture_id"]).strip():r for r in intel}
 
 wb=load_workbook(CANONICAL, data_only=False)
 if "Market Intelligence" not in wb.sheetnames:
