@@ -8,6 +8,8 @@ on:
     paths:
       - ".github/workflows/oracle-public-final-gate-audit.yml"
       - "recovery/fixtures/current/governed_fixture_reconciliation.csv"
+      - "data/fixtures/governed_50league_current.csv"
+      - "data/fixtures/governed_50league_current_manifest.json"
       - "recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json"
       - "artifacts/oracle_50_league_fixture_source_reconciliation.json"
 
@@ -86,15 +88,33 @@ jobs:
           from datetime import datetime,timezone
           def lj(p): return json.loads(Path(p).read_text())
           recon=list(csv.DictReader(Path('recovery/fixtures/current/governed_fixture_reconciliation.csv').open(encoding='utf-8',newline='')))
+          spine=list(csv.DictReader(Path('data/fixtures/governed_50league_current.csv').open(encoding='utf-8',newline='')))
+          manifest=lj('data/fixtures/governed_50league_current_manifest.json')
           fs=lj('recovery/fixtures/current/intelligence/footystats_current_fixture_intelligence_summary.json')
+          if int(manifest.get('governed_leagues') or 0) != 50:
+              raise SystemExit('FAIL-CLOSED: governed_leagues must equal 50')
+          if int(manifest.get('fixture_rows') or 0) != len(spine):
+              raise SystemExit('FAIL-CLOSED: manifest fixture_rows diverges from live rolling spine')
+          spine_ids={str(x.get('fixture_id') or '').strip() for x in spine}
+          if '' in spine_ids:
+              raise SystemExit('FAIL-CLOSED: current rolling spine contains blank Fixture ID')
+          if len(spine_ids) != len(spine):
+              raise SystemExit('FAIL-CLOSED: current rolling spine contains duplicate Fixture IDs')
+          recon_ids={str(x.get('fixture_id') or x.get('Fixture ID') or '').strip() for x in recon}
+          if '' in recon_ids:
+              raise SystemExit('FAIL-CLOSED: reconciliation contains blank Fixture ID')
+          if recon_ids != spine_ids:
+              blockers_pre=[f'RECONCILIATION_FIXTURE_SET_MISMATCH:{len(recon_ids)}vs{len(spine_ids)}']
+          else:
+              blockers_pre=[]
           vf=list(Path('/tmp/v16').rglob('v1_6_fixture_integration_summary.json'))
           rf=list(Path('/tmp/risk').rglob('risk_coverage_reconciliation_summary.json'))
           exact=sum(x.get('identity_status')=='MATCHED_EXACT_DATE_HOME_AWAY' for x in recon)
           amb=sum(x.get('identity_status')=='AMBIGUOUS_EXACT_DATE_HOME_AWAY' for x in recon)
           unmatched=sum(x.get('identity_status')=='UNMATCHED_CURRENT_FOOTYSTATS' for x in recon)
-          blockers=[]
-          if len(recon)!=385: blockers.append(f'FIXTURE_UNIVERSE_NOT_385:{len(recon)}')
-          if exact!=385: blockers.append(f'FIXTURE_IDENTITY_NOT_100_PERCENT:{exact}/385')
+          blockers=list(blockers_pre)
+          if len(recon)!=len(spine): blockers.append(f'RECONCILIATION_ROW_COUNT_MISMATCH:{len(recon)}/{len(spine)}')
+          if exact!=len(spine): blockers.append(f'FIXTURE_IDENTITY_NOT_100_PERCENT:{exact}/{len(spine)}')
           if amb: blockers.append(f'AMBIGUOUS_IDENTITIES:{amb}')
           if fs.get('unverified_value_rows',0): blockers.append('FOOTYSTATS_UNVERIFIED_VALUES_PRESENT')
           if fs.get('historical_season_fallback_used'): blockers.append('HISTORICAL_FALLBACK_USED')
@@ -105,7 +125,7 @@ jobs:
           if not rf: blockers.append('RISK_COVERAGE_SUMMARY_MISSING')
           elif risk.get('status') not in ('PASS','READY'): blockers.append('RISK_COVERAGE_NOT_READY')
           out={'generated_utc':datetime.now(timezone.utc).isoformat(),'status':'PASS' if not blockers else 'BLOCKED_FAIL_CLOSED',
-               'completion_percent':100 if not blockers else 90,'governed_fixture_rows':len(recon),
+               'completion_percent':100 if not blockers else 90,'governed_fixture_rows':len(spine),
                'exact_identity_rows':exact,'exact_identity_percent':round(exact/len(recon)*100,2) if recon else 0,
                'ambiguous_identity_rows':amb,'unmatched_identity_rows':unmatched,
                'footystats_direct_provider_value_rows':fs.get('direct_provider_value_rows'),
