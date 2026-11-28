@@ -126,6 +126,12 @@ jobs:
                       if str(m.get("competition_id") or "") not in selected_ids:
                           continue
                       ts=m.get("date_unix")
+                      # The locked report period is the sole fixture-date boundary.
+                      # Provider date-query pages can return UTC-boundary spillover, so
+                      # admission must independently enforce the fixture's own UTC date.
+                      fixture_date=date_of(m)
+                      if not fixture_date or fixture_date < start.isoformat() or fixture_date > end.isoformat():
+                          continue
                       # The persisted artifact is the governed UPCOMING spine.
                       # Never admit a fixture whose provider kickoff has already occurred.
                       # Missing kickoff timestamps are fail-closed and are not admitted.
@@ -424,7 +430,8 @@ jobs:
           assert manifest.get("fixture_rows")==len(rows), "FAIL-CLOSED: manifest row count mismatch"
           assert manifest.get("unique_provider_fixture_ids")==len(set(ids)), "FAIL-CLOSED: manifest fixture-ID count mismatch"
           assert manifest.get("fixture_date_min")==dates[0] and manifest.get("fixture_date_max")==dates[-1], "FAIL-CLOSED: manifest fixture-date bounds mismatch"
-          print({"rows":len(rows),"unique_fixture_ids":len(set(ids)),"date_min":dates[0],"date_max":dates[-1]})
+          assert dates[0] >= control.get("report_start_date") and dates[-1] <= control.get("report_end_date"), "FAIL-CLOSED: persisted fixture dates outside locked OMI reporting period"
+          print({"rows":len(rows),"unique_fixture_ids":len(set(ids)),"date_min":dates[0],"date_max":dates[-1],"locked_period":control.get("period_id")})
           PY
 
       - name: Persist rolling current fixture and MI artifacts
