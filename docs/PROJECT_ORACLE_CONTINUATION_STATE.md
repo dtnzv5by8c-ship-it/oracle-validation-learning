@@ -1068,3 +1068,14 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 
 ### Control decision
 Production remains FAIL-CLOSED. Do not treat the 301-row current spine as a defect; it is the valid current variable-row universe for the locked 27 Nov–2 Dec report period. Do not promote the 355-row ledger or any stale 472-row reconciliation as current evidence. Do not modify Oracle V1.6 or A:ET.
+
+
+## Master OMI 100% Gate — canonical secret blocker checkpoint 2026-11-28 08:28 SAST
+- Current locked period remains 2026-11-27 through 2026-12-02 UTC.
+- Current rolling spine remains 301 fixtures / 301 unique provider Fixture IDs / 50 governed leagues / 39 fixture-bearing league-season IDs. Variable row count is valid.
+- Current public prediction ledger is 301 rows and exact-set-equal to the current spine; this upstream gate is now PASS.
+- Current FootyStats MI is 301 x 139 with exact current Fixture-ID parity. PIT checks for snapshot and Last-5 pass; xG remains inadmissible without capture timestamp; direct GF/M/GA/M and other downstream mandatory surfaces remain incomplete.
+- Canonical workbook is present in the controlled Library and independently verified at SHA-256 `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`, 755 x 264. A:ET remains immutable.
+- New confirmed blocker: exporter run 46113563964 fails at canonical materialisation because repository secret `MASTER_OMI_CANONICAL_XLSX_B64` is not configured. This is recorded as Issue #56. It is a configuration-only blocker; no public-repository binary publication is permitted.
+- After secret configuration, rerun the existing exporter and require canonical SHA equality before overlay/runtime certification. Do not weaken or bypass the gate.
+- Production remains FAIL-CLOSED until the 301 x 264 workbook passes all mandatory workbook, A:ET, Excel type/formula/error, PIT, provenance and final hash gates.
