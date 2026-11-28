@@ -23,6 +23,7 @@ SPINE = ROOT / "data/fixtures/governed_50league_current.csv"
 MANIFEST = ROOT / "data/fixtures/governed_50league_current_manifest.json"
 LEDGER = ROOT / "research/four_model/outputs/omi_prediction_ledger_current.csv"
 INTEL = ROOT / "oracle_upcoming_50/footystats_market_intelligence.csv"
+TEAM_STATE = ROOT / "database/current_prematch_team_state.csv"
 SCHEMA = ROOT / "docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json"
 CONTRACT = ROOT / "docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json"
 OUT = ROOT / "Master_OMI_Report_CURRENT.xlsx"
@@ -125,6 +126,8 @@ if not LEDGER.is_file() or LEDGER.stat().st_size == 0:
     die("MASTER_OMI_BLOCKED_CURRENT_PREDICTION_LEDGER_MISSING")
 if not INTEL.is_file() or INTEL.stat().st_size == 0:
     die("MASTER_OMI_BLOCKED_CURRENT_INTELLIGENCE_MISSING")
+if not TEAM_STATE.is_file() or TEAM_STATE.stat().st_size == 0:
+    die("MASTER_OMI_BLOCKED_CURRENT_TEAM_STATE_MISSING")
 
 manifest=json.loads(MANIFEST.read_text(encoding="utf-8"))
 contract=json.loads(CONTRACT.read_text(encoding="utf-8"))
@@ -141,6 +144,7 @@ if len(schema.get("headers", [])) != 264:
 spine=read_csv(SPINE)
 ledger=read_csv(LEDGER)
 intel=read_csv(INTEL)
+team_state=read_csv(TEAM_STATE)
 
 from datetime import datetime, timezone
 def parse_ts(v):
@@ -152,13 +156,15 @@ def parse_ts(v):
 
 def ids(rows):
     return [str(r.get("fixture_id","")).strip() for r in rows]
-spine_ids=ids(spine); ledger_ids=ids(ledger); intel_ids=ids(intel)
+spine_ids=ids(spine); ledger_ids=ids(ledger); intel_ids=ids(intel); team_state_ids=ids(team_state)
 if not spine_ids or len(spine_ids)!=len(set(spine_ids)):
     die("MASTER_OMI_BLOCKED_SPINE_IDENTITY_INVALID")
 if int(manifest.get("fixture_rows",-1)) != len(spine_ids) or int(manifest.get("unique_provider_fixture_ids",-1)) != len(spine_ids):
     die("MASTER_OMI_BLOCKED_MANIFEST_SPINE_PARITY")
 if ledger_ids != spine_ids and set(ledger_ids) != set(spine_ids):
     die("MASTER_OMI_BLOCKED_LEDGER_FIXTURE_ID_SET_MISMATCH", spine_rows=len(spine_ids), ledger_rows=len(ledger_ids))
+if set(team_state_ids) != set(spine_ids) or len(team_state_ids) != len(spine_ids):
+    die("MASTER_OMI_BLOCKED_TEAM_STATE_FIXTURE_ID_SET_MISMATCH", spine_rows=len(spine_ids), team_state_rows=len(team_state_ids))
 if not set(spine_ids).issubset(set(intel_ids)):
     missing=sorted(set(spine_ids)-set(intel_ids))
     die("MASTER_OMI_BLOCKED_INTELLIGENCE_FIXTURE_ID_SET_MISMATCH", missing=missing[:20], spine_rows=len(spine_ids), intelligence_rows=len(intel_ids))
@@ -166,6 +172,7 @@ if not set(spine_ids).issubset(set(intel_ids)):
 # Preserve exact row identity order from the fresh spine.
 ledger_by={str(r["fixture_id"]).strip():r for r in ledger}
 intel_by={str(r["fixture_id"]).strip():r for r in intel}
+team_state_by={str(r["fixture_id"]).strip():r for r in team_state}
 
 for r in spine:
     fid=str(r["fixture_id"]).strip()
@@ -226,6 +233,10 @@ for i,srow in enumerate(spine, start=2):
                "Home Team ID":"provider_home_id","Away Team ID":"provider_away_id"}
     for h,src in spine_map.items():
         row_data[h]=srow.get(src,"")
+    ts=team_state_by[fid]
+    ts_map={"Home Last-5 N":"home_last5_n","Home Points Per Game":"home_last5_ppg","Home Goals For Avg":"home_last5_gf_m","Home Goals Against Avg":"home_last5_ga_m","Away Last-5 N":"away_last5_n","Away Points Per Game":"away_last5_ppg","Away Goals For Avg":"away_last5_gf_m","Away Goals Against Avg":"away_last5_ga_m","FootyStats Home Overall Sample N":"home_last5_n","FootyStats Home Last 5 PPG":"home_last5_ppg","FootyStats Home Last 5 GF/M":"home_last5_gf_m","FootyStats Home Last 5 GA/M":"home_last5_ga_m","FootyStats Away Overall Sample N":"away_last5_n","FootyStats Away Last 5 PPG":"away_last5_ppg","FootyStats Away Last 5 GF/M":"away_last5_gf_m","FootyStats Away Last 5 GA/M":"away_last5_ga_m"}
+    for h,src in ts_map.items():
+        if src in ts and str(ts[src]).strip() != "": row_data[h]=ts[src]
     row_data["Schedule Reconciliation"]="EXACT_PROVIDER_FIXTURE_ID"
     row_data["History Cutoff UTC"]=irow.get("footystats_snapshot_utc","")
     for h in schema["headers"]:
@@ -265,3 +276,5 @@ STATUS.write_text(json.dumps({
 print(json.dumps({"status":"PASS","rows":len(spine_ids),"columns":264,"workbook":str(OUT),"sha256":sha}))
 
 # 2026-11-28: permanent prediction-ledger alias fix — presentation headings now resolve from authoritative machine-readable ledger fields before provider fallback.
+
+# 2026-11-28: permanent Team State authority fix — release-critical Last-5 numeric fields use exact-ID current Team State.
