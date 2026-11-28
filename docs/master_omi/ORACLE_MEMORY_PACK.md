@@ -462,3 +462,102 @@ Weekly report generation must be seamless and automated at the data-contract lev
 10. Only then provide the report. If a field is genuinely unavailable, explicitly label it as unavailable/unverified rather than silently leaving a misleading blank.
 
 Non-negotiable: Nolan should be able to request “Master OMI for the upcoming fixtures” without manually identifying missing columns or repairing the workbook. The technical reconciliation, extraction, validation and schema checks are Gem's responsibility.
+
+
+## Master OMI 100% Completion / Public-Repository Continuation Control — 2026-11-28
+
+This section is the current continuation checkpoint. It is binding project memory and exists to prevent restarting work from scratch.
+
+### Current operating repository
+- Active execution repository: `dtnzv5by8c-ship-it/oracle-validation-learning`.
+- The public repository is the execution/source-of-truth for current-data, validation, reconciliation, QA and workflow logic.
+- The private `oracle-football-data` repository is NOT to be used, dispatched, depended upon, or written to for ongoing execution.
+- Do not revert to the private-repository checkout pattern merely to make a workflow green.
+
+### Locked reporting period
+- Reporting period: **2026-11-27 through 2026-12-02 inclusive**.
+- Timezone: UTC.
+- Period ID: `OMI-2026-11-27_2026-12-02`.
+- Control file: `config/master_omi_reporting_period.json`.
+- The locked period is the sole fixture-admission boundary; `LOOKAHEAD_DAYS` must not expand the report universe.
+- Refreshes may update provider data inside the locked period but must never redefine the period.
+
+### Current governed data state
+- Current governed spine: **301 fixtures**.
+- Governed league universe: **50 leagues**.
+- Fixture-bearing seasons may be fewer than 50; this is not a defect.
+- Prediction ledger: **301/301 exact Fixture-ID parity**.
+- Team State: **301/301 exact Fixture-ID parity**.
+- FootyStats Market Intelligence: **301/301 exact Fixture-ID parity**.
+- Pre-match-only chronology controls: PASS.
+- Exact Fixture-ID reconciliation: PASS.
+- No fuzzy matching, row-number joins, historical fallback, estimates, zero-fill or post-kickoff evidence.
+- Oracle V1.6 production logic: unchanged.
+- Master OMI Market Intelligence: **264 columns**; A:ET is immutable.
+- Current weekly row count is variable and must not be forced to the historical 754/755-row shape.
+
+### Permanent fixes already implemented
+- Locked reporting-period boundary and spillover prevention.
+- Removal of obsolete fixed-row/fixed-season assertions.
+- Exact Fixture-ID reconciliation with provider Fixture ID authoritative; duplicate provider IDs rejected.
+- Current-surface builder made safe/non-destructive.
+- Market Intelligence CURRENT validation.
+- Derived eligibility outputs removed from mandatory-input gate.
+- Authoritative Team State mappings for release-critical Last-5 fields.
+- Prediction-ledger machine-readable evidence persisted into current-data artifacts.
+- Intentional NO_BET rows classified rather than treated as missing mandatory predictions.
+- FootyStats season-selection logic corrected so 50 governed leagues do not require 50 distinct fixture-bearing season IDs.
+- Current public execution path hardened around the rolling 50-league governed spine.
+
+### Current 100% blocker
+The remaining blocker is **canonical XLSX binary materialisation inside the public execution workflow**.
+
+The canonical workbook remains governed by:
+`Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx`
+SHA-256:
+`9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`
+
+The canonical binary MUST NOT be published into the public repository, including:
+- the full XLSX;
+- A:ET surface chunks;
+- canonical surface JSON;
+- encoded/base64 workbook blobs;
+- any equivalent reconstruction that exposes the canonical workbook publicly.
+
+The public workflow currently still contains a legacy/private-repository canonical-binary checkout gate. That dependency is inconsistent with the current public-only execution direction and must be removed/replaced before 100% certification.
+
+### Required path to 100%
+1. Keep the public repository as the execution source.
+2. Keep the canonical workbook outside public Git history.
+3. Establish a governance-compliant secure CI injection/materialisation mechanism for the canonical binary, or another approved controlled source accessible to the public workflow without publishing the binary.
+4. Remove the private-repository checkout as a required canonical source.
+5. Run the public current-data workflow against the locked 27-Nov–2-Dec period.
+6. Run the Excel exporter/build workflow using the canonical SHA and 301-fixture governed spine.
+7. Validate:
+   - exact Fixture-ID parity;
+   - 50-league universe;
+   - locked reporting period;
+   - 264 Market Intelligence columns;
+   - A:ET cell-for-cell preservation;
+   - native Excel types;
+   - formulas;
+   - workbook XML;
+   - chronology/pre-match controls;
+   - PIT validation;
+   - no fuzzy/historical fallback/zero-fill;
+   - variable row count;
+   - Oracle V1.6 unchanged.
+8. Complete the independent Master OMI 100% QA gate.
+9. Publish the certified workbook only as an artifact/controlled deliverable, NOT as a public-repository binary.
+10. Preserve the final run IDs, artifact digest, workbook SHA and QA evidence in this memory pack.
+
+### User action required
+Nolan does **not** need to restart the project or recreate data.
+
+If the secure canonical-binary injection mechanism is already available to the GitHub workflow, Nolan should run the public exporter/current-data workflow and Gem should then inspect the run, repair any remaining failures, and complete QA.
+
+If no secure injection mechanism is configured, simply rerunning the exporter will reproduce the same canonical-materialisation failure. In that case the next required action is to configure that controlled input mechanism; a public upload of the canonical workbook is NOT an acceptable workaround.
+
+### Continuation rule
+**Never restart. Continue from this checkpoint.**
+The objective is not to redesign Oracle, rebuild the canonical workbook, or reopen A:ET. The objective is to close the final execution/materialisation control and then certify the already-validated 301-fixture current report to 100%.
