@@ -303,3 +303,11 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Permanent fix: commit `c1ac54e8002895e8b13bd7aef7bfb1ae0ccb0e23` makes the governed provider Fixture ID authoritative, validates the current provider feed by exact ID first, rejects duplicate provider rows for an ID, and does not fall back to name/date matching when the exact ID is absent.
 - Validation result: source-level remediation committed; fresh reconciliation runtime validation is pending.
 - Regression guard: exact provider Fixture-ID identity is mandatory; date/team matching cannot override or substitute for the governed provider ID. Current reconciliation Fixture-ID set must exactly equal the live rolling spine.
+
+
+## 2026-11-28 — locked OMI reporting-period boundary admitted UTC spillover fixture
+- Cause: the locked OMI period is 2026-11-27 through 2026-12-02, but the producer queried provider pages by date and did not independently enforce each returned fixture's own UTC fixture date against the locked end date. The current persisted spine therefore contained fixture 8758076 at 2026-12-03T00:00:00Z and reported fixture_date_max=2026-12-03.
+- Evidence: live manifest OMI-2026-11-27_2026-12-02; current spine 302 rows with one 2026-12-03 fixture; producer commit 420354e79466db78c3ce5db4f9f0606ac2e3cf36; workflow admission loop lacked an explicit fixture_date <= locked report_end_date guard.
+- Permanent fix commit: 0e7749602ecddd0e74c072de07e4f80c6d80e43e. The admission loop now rejects provider rows whose UTC fixture date is outside the locked [report_start_date, report_end_date] interval, independent of API query page, runtime date or LOOKAHEAD_DAYS. Persistence validation also asserts persisted min/max fixture dates remain within the locked period.
+- Validation result: code-level remediation is committed; fresh producer runtime validation is pending the next scheduled/controlled producer execution. Until that run passes, production remains fail-closed.
+- Regression guard: every future current spine must satisfy fixture_date_min >= locked report_start_date and fixture_date_max <= locked report_end_date, in addition to manifest/report-period ID parity, row/Fixture-ID parity, exact provider identity, strict future-kickoff chronology, and no fallback/fuzzy matching. Issue #55 records the evidence and control.
