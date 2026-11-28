@@ -1001,3 +1001,13 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Controlled Library reference still contains the authoritative locked workbook with SHA `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`; the remaining infrastructure task is to make that exact binary available to the GitHub workflow without changing its bytes.
 - Release remains FAIL-CLOSED. Do not synthesize or reconstruct A:ET. Do not promote a different workbook. Do not change Oracle V1.6 logic, thresholds, calibration, probabilities or betting eligibility.
 - Next admissible action: restore the exact canonical binary into an approved GitHub-accessible immutable location, then rerun the corrected workflow. After canonical admission, continue directly through overlay runtime, mandatory-input/PIT gates, native XLSX certification, and independent 100% QA.
+
+
+## 2026-11-28 — current ledger freshness remediation checkpoint
+- Rolling spine currently: 355 fixtures, 355 unique provider Fixture IDs, governed_leagues=50, 40 fixture-bearing season IDs, generated 2026-11-27T23:35:55.343923Z.
+- Current prediction ledger is now exactly 355 rows / 355 unique Fixture IDs and exact-set-equal to the current rolling spine after public Current Data run 46085487965.
+- Permanent dependency fix is live: Oracle Public Current Data Execution now runs on successful Oracle 50-League Upcoming Fixture + MI Build completion and performs a final no-cache live-spine exact Fixture-ID-set revalidation immediately before ledger publication.
+- Master OMI export now runs on successful Oracle Public Current Data Execution completion, preventing the exporter from depending on GitHub-token bot pushes to retrigger downstream work.
+- Master OMI run 46085732572 reached the runner successfully but failed closed at the authoritative canonical workbook materialisation step because the private production repository current tree does not contain the locked canonical XLSX. This remains the active hard blocker.
+- Canonical reference in the controlled Library remains available at 4,800,304 bytes with SHA 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e. Do not synthesize, reconstruct, substitute, or alter A:ET.
+- After canonical binary admission, rerun the current-data-triggered Master OMI export and continue through overlay, mandatory-input/PIT, native workbook, formula/type/error, hash and independent QA gates.
