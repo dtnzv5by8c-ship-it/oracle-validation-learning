@@ -274,3 +274,18 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Fix commits: public current-data workflow fefcbb35e33118077533b4ad2fc47fb0f4981c66 adds a workflow_run dependency on Oracle 50-League Upcoming Fixture + MI Build and a final live-spine exact Fixture-ID-set revalidation immediately before ledger publication. Master OMI workflow 4181b6111d0ccb941816b09eb76e9c5784a84ea4 adds a workflow_run dependency on successful Oracle Public Current Data Execution so export is driven by a completed current-data persistence cycle rather than relying on bot-generated push events.
 - Validation result: public Current Data run 46085487965 completed successfully. The resulting ledger is now 355 rows / 355 unique Fixture IDs and exactly equals the current 355-fixture rolling spine. The stale four-fixture condition is closed for this cycle. Master OMI run 46085732572 reached the runner but remains blocked at the separate canonical workbook dependency.
 - Regression guard: every current ledger publication must pass exact current-live-spine row and Fixture-ID-set equality immediately before persistence; every Master OMI export must be triggered from successful current-data completion and independently revalidate the current spine/ledger/state set before certification. No stale ledger may be promoted merely because it is non-empty or because an upstream workflow is green.
+
+## 2026-11-28 — Master OMI exporter remediation: exact-match regression contract
+- Root cause: `tests/test_master_omi_exact_matching_contract.py` asserted an obsolete implementation literal rather than the current observable contract.
+- Evidence: live test required `st["fixture_id"].astype(str)==str(r["Fixture ID"])`, while the current variable-row exporter uses explicit Fixture-ID lookup maps and the locked 264-column/A:ET contract.
+- Fix commit: `fe96a0a4f7e8b145305b791af46193a9c91664f5`; follow-up guard-token correction: `bee6fd93c7eb71ba119200086f2af05c5980f0ea`.
+- Validation result: source-level contract re-audit passes; runtime workflow execution remains pending.
+- Regression guard: test now checks explicit Fixture-ID lookup architecture, no normalized-name admission, variable current-row semantics, 264-column schema, PIT guard, and A:ET boundary.
+
+## 2026-11-28 — Master OMI exporter lookup-order defect
+- Root cause: `scripts/build_master_omi_current.py` referenced `intel_by` during the FootyStats PIT validation loop before initializing the lookup map.
+- Evidence: live builder at the pre-fix blob executed `irow=intel_by.get(fid)` before `intel_by={...}`; this was a confirmed latent runtime defect independent of the earlier brittle test failure.
+- Fix commit: `252364e840ae6f8a9eed17e656de37ac89b720c1`.
+- Validation result: live source re-read confirms `ledger_by` and `intel_by` are now initialized before PIT validation; full exporter runtime validation remains pending.
+- Regression guard: exact-matching contract test requires explicit lookup initialization and PIT-guard tokens; exporter remains fail-closed on any Fixture-ID, PIT, schema or mandatory-input mismatch.
+
