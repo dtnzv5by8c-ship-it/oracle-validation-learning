@@ -11,7 +11,7 @@ Contract:
 - missing mandatory prediction/ledger inputs remain release-blocking.
 """
 from __future__ import annotations
-import csv, json, hashlib, shutil
+import csv, json, hashlib, shutil, copy
 from pathlib import Path
 from datetime import datetime, timezone
 from openpyxl import load_workbook
@@ -206,8 +206,8 @@ for c,h in enumerate(schema["headers"], start=1):
     if src.has_style:
         cell._style=src._style
     cell.number_format=src.number_format
-    cell.alignment=src.alignment
-    cell.protection=src.protection
+    cell.alignment=copy(src.alignment)
+    cell.protection=copy(src.protection)
     if src.comment:
         cell.comment=src.comment
 
