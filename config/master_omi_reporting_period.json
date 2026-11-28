@@ -1,0 +1,12 @@
+{
+  "status": "AWAITING_USER_PERIOD",
+  "report_start_date": null,
+  "report_end_date": null,
+  "timezone": "UTC",
+  "period_id": null,
+  "locked_at_utc": null,
+  "locked_by": null,
+  "control_rule": "The weekly OMI fixture reporting period is user-advised and must be explicitly locked. Scheduled refreshes may refresh provider data inside the locked period, but must never redefine the reporting period from the current date or a rolling lookahead.",
+  "refresh_rule": "Provider refresh is permitted hourly, but admission is constrained to the locked report period and future kickoffs for the upcoming prediction surface.",
+  "change_rule": "A new reporting period requires an explicit control-plane update; it must not be inferred from runtime date."
+}
