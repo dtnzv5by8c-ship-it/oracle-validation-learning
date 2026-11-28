@@ -623,3 +623,27 @@ The objective remains: **close the canonical runtime materialisation gate and ce
 - This scheduling posture is intentional: **one independent read-only release gate, no competing writers** during final Master OMI certification.
 - Current-data workflow `Oracle Public Current Data Execution #111` completed successfully on 2026-11-28 and is the authoritative fresh-data handoff for the next Master OMI export attempt.
 - Continuation rule: never restart the project. Complete the current export/certification chain, then re-evaluate scheduled automation roles after the 100% gate is achieved.
+
+## Master OMI 100% Gate Sequencing / Freshness Control — 2026-11-28
+
+### Confirmed state
+- Public current-data workflow **Oracle Public Current Data Execution #111** completed successfully on 2026-11-28.
+- Its current-data processing chain passed and published the 301-fixture current-state bundle.
+- The authoritative rolling-spine manifest currently reports **301 fixtures / 50 leagues** but generated_utc=2026-11-28T04:24:33.197931+00:00.
+- The Master OMI exporter freshness gate is 90 minutes. Therefore the exporter must correctly fail closed while that spine remains stale, even though downstream current-data processing completed later.
+- This is a sequencing/freshness issue, not a reason to weaken the 90-minute gate.
+
+### Correct next sequence
+1. Refresh the upstream rolling 50-league fixture/MI producer so that the governed spine and manifest are genuinely regenerated.
+2. Confirm the fresh manifest, exact 50-league governance, current fixture set, unique Fixture IDs and no forbidden matching/fallback flags.
+3. Allow the downstream current-data parity chain to consume that fresh spine.
+4. Run/allow **Oracle Master OMI Excel Export** only after the fresh spine is available.
+5. Certify 264 columns, variable current rows, exact Fixture-ID parity, A:ET immutability, Excel types/formulas/errors, PIT/provenance and final workbook SHA.
+
+### Non-regression rule
+- Do NOT relax the 90-minute freshness gate.
+- Do NOT rerun Master OMI repeatedly against the same stale spine.
+- Do NOT rewrite generated_utc or copy old artifacts to manufacture freshness.
+- The read-only QA automation remains the only active Project Oracle automation during final certification; root-cause remediation, continuous build, Accuracy and Signal Validation automations remain paused.
+- If a current-data consumer succeeds but the rolling-spine manifest remains stale, treat the upstream spine producer as the blocker.
+
