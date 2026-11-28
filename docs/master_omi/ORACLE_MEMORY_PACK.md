@@ -668,3 +668,18 @@ The objective remains: **close the canonical runtime materialisation gate and ce
 - If a governed workflow is active, QA audits only and reports it.
 - No timestamp rewriting, stale-artifact substitution, public canonical plaintext publication, fuzzy matching, historical fallback, or production-model/A:ET changes are permitted.
 - This is the deliberate **single-writer / read-only-gate** posture for final certification.
+
+## Master OMI Finalisation — Producer/Consumer Sequencing Fix — 2026-11-28
+
+- Canonical encrypted payload restored at `ci/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx.gpg`.
+- Exporter successfully decrypted and SHA-verified the canonical XLSX with SHA-256 `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`.
+- Diagnosed a real producer/consumer race: the rolling 50-league producer refreshed the current fixture spine to 296 fixtures while the public prediction ledger was still the prior 301-fixture snapshot. The Excel exporter correctly failed closed rather than combining mismatched evidence.
+- Permanent fix applied in `.github/workflows/oracle-public-current-data.yml`: removed the independent `:20` hourly schedule. Current Data is now a downstream consumer triggered by successful completion of the `:15` rolling-spine producer (plus manual/push control paths), preventing the scheduled consumer from racing the producer.
+- Fix commit: `230fa69032b60331dd9c6c43807a7042b4366b27`.
+- Current Data run `46121474832` succeeded after the fix.
+- Current authoritative fixture spine, prediction ledger, Team State and FootyStats MI are now all exactly **296 fixtures**, with exact Fixture-ID parity.
+- Latest prediction-ledger publication commit: `7876e510393805ed1fdf6d424d14325f91e74c9b`.
+- Excel export remains fail-closed until it is manually/explicitly started against this now-consistent 296-fixture current state. Do not bypass the parity gate.
+- Scheduled-workflow principle locked: producer first, dependent consumer second; no independent timer may race or overwrite a release-critical current-state input.
+- Never restart the project or weaken the gates. Continue from this checkpoint.
+
