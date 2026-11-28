@@ -300,4 +300,3 @@ fixture_id,date,kickoff_utc,home_team,away_team,league_season_id,provider_home_i
 8557986,2026-12-02,2026-12-02T20:15:00+00:00,Newcastle United,Manchester United,17146,157,149,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8574013,2026-12-02,2026-12-02T20:15:00+00:00,União de Leiria,Sporting CP II,17215,4880,1029,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8570489,2026-12-02,2026-12-02T20:30:00+00:00,FC Barcelona,Atlético Madrid,17199,83,117,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
-8758076,2026-12-03,2026-12-03T00:00:00+00:00,New England Revolution,Philadelphia Union,16504,11,16,FootyStats,incomplete,2026,EXACT_PROVIDER_FIXTURE_ID
