@@ -683,3 +683,31 @@ The objective remains: **close the canonical runtime materialisation gate and ce
 - Scheduled-workflow principle locked: producer first, dependent consumer second; no independent timer may race or overwrite a release-critical current-state input.
 - Never restart the project or weaken the gates. Continue from this checkpoint.
 
+## Finalisation checkpoint — A:ET hash methodology and five-hour coverage — 2026-11-28 08:xx UTC
+
+### Current release evidence
+- Rolling fixture spine/current prediction ledger/current Team State/FootyStats MI were last verified as 296 rows each with exact Fixture-ID parity and 50 governed leagues.
+- Excel export run #91 (46126565266) failed inside the builder at `MASTER_OMI_BLOCKED_CANONICAL_A_ET_BASELINE_HASH_MISMATCH`.
+- The diagnostic exposed a 755-row x 264-column canonical worksheet and a computed hash `235c0e8626a840a5905eb23583127014e66f924307974b6e2399b66f2d8`, which differs from the locked contract hash `b790145feea9a20f0d3d0070f76ace8c98c4a5f0911928a4335218beaf090564`.
+- This proves the present implementation's hash serialization is incomplete/wrong for the governed definition, NOT that the canonical file is corrupt: whole-workbook SHA is still verified at materialisation.
+- The governing A:ET specification is `docs/master_omi/MASTER_OMI_A_ET_IMMUTABLE_HASH_2026-11-20.md`: cell values, native types, number formats and comments are included. A simple (coordinate,value) JSON hash is not equivalent and must not be substituted.
+- Existing QA history independently records A:ET semantic value differences = 0 but native-type differences = 1,269 in a prior candidate; do not normalize or alter A:ET. The canonical baseline remains authoritative.
+
+### Builder / workflow defects already corrected
+- Keep verified canonical runtime copy at builder input path as well as work/base path: commit `16f385775694cafe946fbff8e6a1ea51927026ff`.
+- Apply `copy_style` to both alignment and protection assignments in builder overlay: commits `11986eba9dd83e40e5f0f00af8f514e24f29b330` and `8c4bb7ca7bbda63b5aced7e7da0032bb1103cbcd`.
+- Builder now loads a separate untouched canonical workbook instance and computes a provisional A:ET hash; diagnostic failure now prints payload details: commits `49870beb10cbd64bd6aec749487a2e88d788bad2`, `570394854ac94df7e9357f840dc4a4ad9143c033`, `616049be003f7a28a2574dd7f16db3293ee49ed4`, `e00d1ef3946129f79bbd4f8bc4efbf8a553e03b2`.
+- Exporter certification now compares build hash and runtime baseline hash: commit `a311902fb00d4892e9122e9d1f100649cca3cceb`. This is still pending validation because builder hash methodology must first match the governing full A:ET cell/value/type/number-format/comment algorithm.
+- Failed/cancelled attempts in this debug sequence: #79 46125438478 (canonical path), #80 46125616032 (StyleProxy copy module misuse), #81 46125678342 (remaining StyleProxy), #82 46125736571 (A:ET output/base comparison), #83 46125805450 (A:ET output/base comparison), #84 46125945598 (attempt to seed separate baseline/expected hash), #86 46126118547 (syntax/initialisation typo), #87 46126179572 (computed A:ET hash differs), #89 46126284338, #90 46126364931 and #91 46126565266 (still hash mismatch). These are not certified releases; no artifact accepted.
+
+### Scheduled coverage during Nolan's absence
+- QA observer remains enabled hourly at :55 Africa/Johannesburg: `6aff2ac2aacc819187a6fe78f8ff6d8f`, read-only, no writes or workflow dispatch.
+- Controlled remediation writer enabled for five hourly cycles starting 10:40 SAST: `6b030cbf6cf481918c2ff41286bbc524`, schedule COUNT=5. It must inspect active workflow runs first; if any producer/consumer/exporter is queued/running, it must do read-only observation and make no writes. It may implement only evidence-backed small workflow/builder fixes when all governed runs are complete, and must never dispatch manually, touch source data/API, weaken any gate, change A:ET, or modify Oracle V1.6.
+- Other Accuracy, Signal Validation, Data Integrity, Continuous Build and broad legacy remediation automations remain paused. This is one controlled writer plus one read-only QA observer; not multiple competing writers.
+- No scheduled automation provides continuous background execution: checks occur at scheduled hourly invocations. User should review latest run/notification after return.
+
+### Immediate next technical action
+- Reconstruct the exact canonical A:ET hash algorithm from the original QA/immutable hash implementation/evidence (including values, types, number formats, comments and any explicit empty-cell conventions), then implement one deterministic shared hash function used on the untouched baseline and candidate output.
+- Do not change the expected SHA, compare only values, bypass the A:ET gate, or use whole-workbook SHA as a substitute for A:ET.
+- Once algorithm is proven, run focused deterministic regression on canonical source; then allow one export attempt and inspect certification plus artifact. Continue from this checkpoint; do not restart.
+
