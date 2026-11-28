@@ -296,3 +296,10 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Permanent fix: commit `efa9d0d1cc0ef2469b89a3cd33f00f0647e5723e` removes the fixed 385 assertions, validates the live rolling spine/manifest, and requires reconciliation Fixture-ID-set equality against that current spine.
 - Validation result: source-level re-audit confirms the fixed-count tokens are removed and the gate now derives expected fixture count from the live current spine. A fresh workflow execution is required for runtime validation.
 - Regression guard: final gate must never contain a fixed weekly fixture count; it must validate governed_leagues=50, current spine uniqueness, manifest/spine parity, and exact reconciliation Fixture-ID-set equality. Historical 754/755 rows remain schema/reference-only.
+
+## 2026-11-28 — fixture reconciliation exact-provider-ID authority defect
+- Root cause: the current reconciliation workflow re-resolved fixtures by date+normalized home+away even when the governed rolling spine already carried the authoritative FootyStats provider Fixture ID. This produced 21 false ambiguities in the current 472-row reconciliation.
+- Evidence: current spine contains 472 unique provider Fixture IDs; reconciliation contained 451 exact date/home/away matches and 21 AMBIGUOUS_EXACT_DATE_HOME_AWAY rows with blank provider_fixture_id. Final gate run 46098924191 correctly failed closed at 451/472 after the fixed-count gate was corrected.
+- Permanent fix: commit `c1ac54e8002895e8b13bd7aef7bfb1ae0ccb0e23` makes the governed provider Fixture ID authoritative, validates the current provider feed by exact ID first, rejects duplicate provider rows for an ID, and does not fall back to name/date matching when the exact ID is absent.
+- Validation result: source-level remediation committed; fresh reconciliation runtime validation is pending.
+- Regression guard: exact provider Fixture-ID identity is mandatory; date/team matching cannot override or substitute for the governed provider ID. Current reconciliation Fixture-ID set must exactly equal the live rolling spine.
