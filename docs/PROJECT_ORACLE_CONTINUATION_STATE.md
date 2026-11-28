@@ -1011,3 +1011,60 @@ Oracle V1.6, thresholds, calibration, probabilities, betting eligibility and A:E
 - Master OMI run 46085732572 reached the runner successfully but failed closed at the authoritative canonical workbook materialisation step because the private production repository current tree does not contain the locked canonical XLSX. This remains the active hard blocker.
 - Canonical reference in the controlled Library remains available at 4,800,304 bytes with SHA 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e. Do not synthesize, reconstruct, substitute, or alter A:ET.
 - After canonical binary admission, rerun the current-data-triggered Master OMI export and continue through overlay, mandatory-input/PIT, native workbook, formula/type/error, hash and independent QA gates.
+
+## Master OMI 100% Gate — live control-plane checkpoint 2026-11-28 06:26 SAST
+
+### Current locked report period
+- Period: 2026-11-27 through 2026-12-02 UTC.
+- Period ID: OMI-2026-11-27_2026-12-02.
+- Status: LOCKED.
+- Runtime/lookahead must not expand the period.
+
+### Current rolling 50-league spine
+- Governed leagues: 50.
+- Current persisted fixture rows: 301.
+- Unique provider Fixture IDs: 301.
+- Fixture-bearing league-season IDs: 39; this is valid and is not required to equal 50.
+- Fixture date range: 2026-11-28 through 2026-12-02.
+- Exact provider identity: required and present.
+- Fuzzy matching: false.
+- Historical fallback: false.
+- Pre-match-only: true.
+- Latest producer persistence commit after the locked-period boundary fix: 28bffa98a579a80a83d8bfbaf887f63234464eac.
+- Boundary fix commit: 0e7749602ecddd0e74c072de07e4f80c6d80e43e.
+- Root-cause register: Issue #55.
+
+### Current FootyStats MI
+- Current admitted MI: 301 rows x 139 columns.
+- Fixture-ID set exactly matches the current 301-row spine.
+- Current MI date range: 2026-11-28 through 2026-12-02.
+- Snapshot/Last-5 PIT chronology checks currently pass for the persisted MI surface.
+- xG remains UNVERIFIED_NO_CAPTURE_TIMESTAMP and is not production-admissible.
+- Provider status remains incomplete/suspended and is not yet sufficient for release.
+- Direct GF/M and GA/M canonical fields remain unavailable; no inference or zero-fill is permitted.
+
+### Current prediction ledger
+- Current persisted ledger remains 355 rows / 355 unique IDs.
+- It contains all current-spine IDs but also 54 stale/extra IDs.
+- Therefore the authoritative current-ledger exact Fixture-ID-set gate FAILS until the current-data lane rebuilds the ledger from the 301-row governed spine.
+
+### Canonical workbook
+- Controlled Library canonical workbook exists and is independently hash-verified:
+  SHA-256 9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e.
+- Market Intelligence sheet: 755 rows x 264 columns.
+- A:ET = first 150 columns and remains immutable.
+- The 755-row reference is schema/reference only; current weekly row count is variable.
+- No current 301 x 264 release workbook has been produced or certified.
+
+### Release blockers
+1. Current prediction ledger is stale: 355 vs current spine 301, with 54 extra IDs.
+2. Current-data/Team State propagation has not yet produced a current ledger matching the fresh spine.
+3. Rolling-spine and Fixture-ID-set SHA-256 values are not persisted in the current manifest; identity must not be inferred from process timestamps.
+4. Canonical workbook is not yet materialised into the GitHub exporter runtime.
+5. Current MI is 139 columns, not the locked 264-column release surface.
+6. xG PIT capture provenance is inadmissible.
+7. GF/M, GA/M, goal/BTTS, LTSS, CMOI, actuals and derived formula-input gates remain incomplete.
+8. Native Excel type, formula/error, A:ET equality and final workbook hash/provenance gates remain unexecuted.
+
+### Control decision
+Production remains FAIL-CLOSED. Do not treat the 301-row current spine as a defect; it is the valid current variable-row universe for the locked 27 Nov–2 Dec report period. Do not promote the 355-row ledger or any stale 472-row reconciliation as current evidence. Do not modify Oracle V1.6 or A:ET.
