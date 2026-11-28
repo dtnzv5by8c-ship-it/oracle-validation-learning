@@ -45,7 +45,7 @@ class TestMasterOMIExactMatchingContract(unittest.TestCase):
         text = BUILDER.read_text(encoding="utf-8")
         self.assertIn('locked_ws["A1"].value', text)
         self.assertIn('locked_ws["ET1"].value', text)
-        self.assertIn('A_ET_CONTRACT', text)
+        self.assertIn('MASTER_OMI_BLOCKED_A_ET_HEADER_CONTRACT', text)
 
 if __name__ == "__main__":
     unittest.main()
