@@ -124,6 +124,12 @@ jobs:
                   return ""
               return datetime.fromtimestamp(float(ts), tz=timezone.utc).date().isoformat()
 
+          provider_by_id = {}
+          for m in provider_rows:
+              pid = str(m.get("id") or "").strip()
+              if pid:
+                  provider_by_id.setdefault(pid, []).append(m)
+
           provider_index = {}
           for m in provider_rows:
               d = provider_date(m)
@@ -230,6 +236,82 @@ jobs:
               d = str(r.get("date", ""))[:10]
               h = norm(r.get("home_team"))
               a = norm(r.get("away_team"))
+              spine_provider_id = str(r.get("fixture_id") or "").strip()
+              id_candidates = provider_by_id.get(spine_provider_id, [])
+
+              # The rolling spine already carries the authoritative provider Fixture ID.
+              # Identity must be resolved by that exact ID first; date/team matching is not
+              # permitted to replace an exact provider identity.
+              if len(id_candidates) == 1:
+                  m = id_candidates[0]
+                  provider_id = str(m.get("id") or "").strip()
+                  kickoff_unix = m.get("date_unix")
+                  kickoff_utc = (
+                      datetime.fromtimestamp(float(kickoff_unix), tz=timezone.utc).isoformat()
+                      if kickoff_unix is not None else ""
+                  )
+                  status = "MATCHED_EXACT_PROVIDER_FIXTURE_ID"
+                  status_counts[status] += 1
+                  output.append({
+                      **r,
+                      "provider": "FootyStats",
+                      "provider_fixture_id": provider_id,
+                      "provider_home_id": m.get("homeID"),
+                      "provider_away_id": m.get("awayID"),
+                      "provider_home_name": m.get("home_name"),
+                      "provider_away_name": m.get("away_name"),
+                      "provider_competition_id": m.get("competition_id"),
+                      "provider_season": m.get("season"),
+                      "provider_status": m.get("status"),
+                      "provider_kickoff_utc": kickoff_utc,
+                      "provider_kickoff_unix": kickoff_unix,
+                      "identity_status": status,
+                      "identity_reason": "Exact provider Fixture ID carried by governed rolling spine",
+                  })
+                  continue
+              if len(id_candidates) > 1:
+                  status = "AMBIGUOUS_PROVIDER_FIXTURE_ID"
+                  status_counts[status] += 1
+                  output.append({
+                      **r,
+                      "provider": "FootyStats",
+                      "provider_fixture_id": "",
+                      "provider_home_id": "",
+                      "provider_away_id": "",
+                      "provider_home_name": "",
+                      "provider_away_name": "",
+                      "provider_competition_id": "",
+                      "provider_season": "",
+                      "provider_status": "",
+                      "provider_kickoff_utc": "",
+                      "provider_kickoff_unix": "",
+                      "identity_status": status,
+                      "identity_reason": "Multiple current provider rows share the exact Fixture ID",
+                  })
+                  continue
+
+              # Exact provider ID not present in the current provider feed is not
+              # eligible for a name/date fallback. Keep it explicit and fail closed.
+              status = "UNVERIFIED_PROVIDER_FIXTURE_ID_NOT_IN_CURRENT_FEED"
+              status_counts[status] += 1
+              output.append({
+                  **r,
+                  "provider": "FootyStats",
+                  "provider_fixture_id": "",
+                  "provider_home_id": "",
+                  "provider_away_id": "",
+                  "provider_home_name": "",
+                  "provider_away_name": "",
+                  "provider_competition_id": "",
+                  "provider_season": "",
+                  "provider_status": "",
+                  "provider_kickoff_utc": "",
+                  "provider_kickoff_unix": "",
+                  "identity_status": status,
+                  "identity_reason": "Governed spine provider Fixture ID not present in current FootyStats feed",
+              })
+              continue
+
               candidates = provider_index.get((d, h, a), [])
 
               if len(candidates) == 1:
@@ -357,7 +439,8 @@ jobs:
               "unique_provider_fixture_ids": len(set(fixture_ids)),
               "provider_rows_retrieved": len(provider_rows),
               "provider_dates_retrieved": dates,
-              "matched_exact": status_counts["MATCHED_EXACT_DATE_HOME_AWAY"],
+              "matched_exact": status_counts["MATCHED_EXACT_PROVIDER_FIXTURE_ID"],
+              "matched_exact_date_home_away": status_counts["MATCHED_EXACT_DATE_HOME_AWAY"],
               "ambiguous_exact": status_counts["AMBIGUOUS_EXACT_DATE_HOME_AWAY"],
               "unmatched_current": status_counts["UNMATCHED_CURRENT_FOOTYSTATS"],
               "coverage_pct": round(
