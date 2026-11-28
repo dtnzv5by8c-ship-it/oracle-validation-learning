@@ -647,3 +647,24 @@ The objective remains: **close the canonical runtime materialisation gate and ce
 - The read-only QA automation remains the only active Project Oracle automation during final certification; root-cause remediation, continuous build, Accuracy and Signal Validation automations remain paused.
 - If a current-data consumer succeeds but the rolling-spine manifest remains stale, treat the upstream spine producer as the blocker.
 
+
+
+## Master OMI live continuation checkpoint — 2026-11-28 07:21 UTC
+
+- **Oracle 50-League Upcoming Fixture + MI Build #87** completed **SUCCESS**: run `46120731440`.
+- The build published the fresh rolling-current evidence to `main`.
+- Latest `main` commit after the successful build: `44d294f308df5eaaefd22b651dd182753fea4a75` — **Persist rolling 50-league current fixture and MI artifacts** — 2026-11-28 07:20:50 UTC.
+- Build artifact: `oracle-50league-omi-rolling-current`, artifact ID `15253836790`, digest `sha256:ee95efaf772a57194b158047c678b6aec8fb6d29f34f1e4d6f82d43bfd68052a`.
+- This means the previous stale-spine condition is now expected to be cleared on `main`; the downstream Master OMI Excel workflow must consume this latest `main` state.
+- The Master OMI Excel workflow is configured to trigger on both the current-data workflow completion and the current-data artifact push. Its concurrency group is `master-omi-current-export`, so duplicate triggers must not be allowed to create competing writers.
+- **Do not manually rerun Excel repeatedly.** First inspect the newest exporter run after current-data commit `44d294f...`; if it fails, diagnose that run rather than starting another overlapping run.
+- Canonical materialisation remains governed by the encrypted public-repo payload plus `MASTER_OMI_CANONICAL_PASSPHRASE`. The canonical plaintext must remain outside public Git history.
+- Canonical SHA remains: `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`.
+
+### Scheduled-task safety posture — reaffirmed 2026-11-28
+- Exactly **one** Project Oracle automation is active: **Master OMI MI QA — 100% Gate (Read-Only)**, ID `6aff2ac2aacc819187a6fe78f8ff6d8f`.
+- Accuracy, Signal Validation, Data Integrity, root-cause remediation and other competing Project Oracle automations remain paused during final certification.
+- The active QA task must never dispatch, rerun, cancel, edit, delete, overwrite, refresh, or race any producer/export/certification workflow.
+- If a governed workflow is active, QA audits only and reports it.
+- No timestamp rewriting, stale-artifact substitution, public canonical plaintext publication, fuzzy matching, historical fallback, or production-model/A:ET changes are permitted.
+- This is the deliberate **single-writer / read-only-gate** posture for final certification.
