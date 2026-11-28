@@ -107,7 +107,9 @@ blocked_fields = []
 
 def die(code, **detail):
     STATUS.parent.mkdir(parents=True, exist_ok=True)
-    STATUS.write_text(json.dumps({"status":"BLOCKED","reason":code, **detail}, indent=2), encoding="utf-8")
+    payload={"status":"BLOCKED","reason":code, **detail}
+    STATUS.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    print(json.dumps(payload, default=str), flush=True)
     raise SystemExit(code)
 
 def read_csv(path):
