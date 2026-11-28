@@ -497,3 +497,5 @@ jobs:
 # 2026-11-28 00:27 SAST: force post-PIT-fix authoritative rebuild; kickoff-level PIT must be regenerated before certification.
 
 # 2026-11-28 04:xx SAST: controlled trigger checkpoint after locked OMI period refresh; no production logic change.
+
+# 2026-11-28: trigger after permanent variable season-ID coverage fix in private current-data ingestion.
