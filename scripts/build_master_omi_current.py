@@ -98,7 +98,6 @@ mandatory = {
     "Fixture ID","Fixture Date","Provider Season ID","Home Team ID","Away Team ID",
     "Schedule Reconciliation","History Cutoff UTC",
     "BTTS Yes","Home 1X","Away X2","Home 1X + Over 1.5","Away X2 + Over 1.5",
-    "M-1UP Home","M-1UP Away",
     "Home Last-5 Form","Home Last-5 N","Home Goals For Avg","Home Goals Against Avg","Home Points Per Game",
     "Away Last-5 Form","Away Last-5 N","Away Goals For Avg","Away Goals Against Avg","Away Points Per Game",
     "FootyStats Home Last 5 PPG","FootyStats Away Last 5 PPG",
@@ -278,3 +277,5 @@ print(json.dumps({"status":"PASS","rows":len(spine_ids),"columns":264,"workbook"
 # 2026-11-28: permanent prediction-ledger alias fix — presentation headings now resolve from authoritative machine-readable ledger fields before provider fallback.
 
 # 2026-11-28: permanent Team State authority fix — release-critical Last-5 numeric fields use exact-ID current Team State.
+
+# 2026-11-28: permanent M-1UP availability fix — stale event-truth M-1UP values are explicitly unavailable/NO_BET and are not mandatory release inputs.
