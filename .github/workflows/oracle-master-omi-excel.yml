@@ -13,6 +13,9 @@ on:
       - "docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json"
       - "docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Oracle Public Current Data Execution"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -23,6 +26,7 @@ concurrency:
 
 jobs:
   export:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
