@@ -66,7 +66,17 @@ jobs:
             exit 1
           fi
           cp "runtime/canonical/$CANONICAL_NAME" runtime/work/Master_OMI_Report_BASE.xlsx
-          rm -f "runtime/canonical/$CANONICAL_NAME"
+          # Keep a verified runtime-only copy at the builder's declared input path.
+          # The canonical plaintext is never committed or uploaded as an artifact.
+          test -s "runtime/work/Master_OMI_Report_BASE.xlsx"
+          mkdir -p "$(dirname "runtime/canonical/$CANONICAL_NAME")"
+          cp "runtime/work/Master_OMI_Report_BASE.xlsx" "runtime/canonical/$CANONICAL_NAME"
+          RUNTIME_SHA="$(sha256sum "runtime/canonical/$CANONICAL_NAME" | awk '{print $1}')"
+          if [ "$RUNTIME_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_RUNTIME_COPY_SHA_MISMATCH expected=$EXPECTED_SHA actual=$RUNTIME_SHA"
+            exit 1
+          fi
+          echo "canonical_builder_path_sha256=$RUNTIME_SHA"
           echo "canonical_sha256=$ACTUAL_SHA"
 
       - name: Enforce fresh rolling 50-league spine
