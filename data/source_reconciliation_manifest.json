@@ -1,16 +1,12 @@
 {
-  "generated_utc": "2026-11-27T22:32:08.955486+00:00",
-  "fotmob_rows": 2733,
+  "generated_utc": "2026-11-28T00:00:56.478993+00:00",
+  "fotmob_rows": 2774,
   "sofascore_rows": 0,
   "matched": 0,
   "agree": 0,
   "conflict": 0,
-  "unverified": 2733,
+  "unverified": 2774,
   "source_errors": [
-    {
-      "date": "2026-09-28",
-      "error": "HTTP Error 403: Forbidden"
-    },
     {
       "date": "2026-09-30",
       "error": "HTTP Error 403: Forbidden"
@@ -172,10 +168,6 @@
       "error": "HTTP Error 403: Forbidden"
     },
     {
-      "date": "2026-11-12",
-      "error": "HTTP Error 403: Forbidden"
-    },
-    {
       "date": "2026-11-13",
       "error": "HTTP Error 403: Forbidden"
     },
@@ -257,6 +249,10 @@
     },
     {
       "date": "2026-12-04",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "date": "2026-12-05",
       "error": "HTTP Error 403: Forbidden"
     }
   ],
