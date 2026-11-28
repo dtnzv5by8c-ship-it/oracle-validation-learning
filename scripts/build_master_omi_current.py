@@ -214,7 +214,12 @@ for i,srow in enumerate(spine, start=2):
     for h in schema["headers"]:
         if h in lrow and str(lrow[h]).strip() != "":
             row_data[h]=lrow[h]
+    # Alias governed prediction-ledger fields first; then fall back to provider intelligence aliases.
+    # The current prediction ledger uses stable machine-readable field names (e.g. BTTS_raw),
+    # while the workbook contract uses presentation headings (e.g. BTTS Yes).
     for h,src in alias.items():
+        if h not in row_data and src in lrow and str(lrow[src]).strip() != "":
+            row_data[h]=lrow[src]
         if h not in row_data and src in irow and str(irow[src]).strip() != "":
             row_data[h]=irow[src]
     spine_map={"Fixture ID":"fixture_id","Fixture Date":"date","Provider Season ID":"league_season_id",
@@ -258,3 +263,5 @@ STATUS.write_text(json.dumps({
     "a_et_contract":"LOCKED_CANONICAL_SHEET_UNCHANGED","current_surface":"Market Intelligence CURRENT","locked_canonical_surface":"Market Intelligence","model_logic_changed":False
 },indent=2),encoding="utf-8")
 print(json.dumps({"status":"PASS","rows":len(spine_ids),"columns":264,"workbook":str(OUT),"sha256":sha}))
+
+# 2026-11-28: permanent prediction-ledger alias fix — presentation headings now resolve from authoritative machine-readable ledger fields before provider fallback.
