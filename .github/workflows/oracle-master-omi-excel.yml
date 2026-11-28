@@ -215,12 +215,15 @@ jobs:
               raise SystemExit("MASTER_OMI_BLOCKED_LOCKED_HEADER_CONTRACT")
           base_wb=load_workbook(Path("runtime/work/Master_OMI_Report_BASE.xlsx"),data_only=False,read_only=False)
           base_locked=base_wb["Market Intelligence"]
-          def surface_hash(ws):
-              payload=[(ws.cell(r,c).coordinate,ws.cell(r,c).value) for r in range(1,ws.max_row+1) for c in range(1,151)]
-              return hashlib.sha256(json.dumps(payload,default=str,separators=(",",":")).encode()).hexdigest()
-          if surface_hash(locked) != surface_hash(base_locked):
-              raise SystemExit("MASTER_OMI_BLOCKED_A_ET_CANONICAL_SURFACE_CHANGED")
-          print({"status":"PASS","current_rows":current.max_row-1,"columns":current.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column,"locked_surface":"UNCHANGED"})
+          base_payload=[(base_locked.cell(r,c).coordinate,base_locked.cell(r,c).value) for r in range(1,base_locked.max_row+1) for c in range(1,151)]
+          base_hash=hashlib.sha256(json.dumps(base_payload,default=str,separators=(",",":")).encode()).hexdigest()
+          expected_base_hash="b790145feea9a20f0d3d0070f76ace8c98c4a5f0911928a4335218beaf090564"
+          if base_hash != expected_base_hash:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_CANONICAL_A_ET_BASELINE_HASH_MISMATCH actual={base_hash}")
+          report_hash=status.get("canonical_a_et_surface_sha256")
+          if report_hash != base_hash:
+              raise SystemExit(f"MASTER_OMI_BLOCKED_A_ET_CANONICAL_SURFACE_CHANGED baseline={base_hash} build={report_hash}")
+          print({"status":"PASS","current_rows":current.max_row-1,"columns":current.max_column,"locked_canonical_rows":locked.max_row,"locked_canonical_columns":locked.max_column,"locked_surface":"UNCHANGED","a_et_sha256":base_hash})
           PY
 
       - name: Upload certified current Master OMI
