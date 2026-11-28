@@ -256,8 +256,8 @@ for i,srow in enumerate(spine, start=2):
         if src.has_style:
             cell._style=src._style
         cell.number_format=src.number_format
-        cell.alignment=src.alignment
-        cell.protection=src.protection
+        cell.alignment=copy_style(src.alignment)
+        cell.protection=copy_style(src.protection)
         if src.comment:
             cell.comment=src.comment
         cell.value=row_data[h]
