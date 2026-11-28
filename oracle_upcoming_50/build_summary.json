@@ -1,44 +1,44 @@
 {
-  "window_start": "2026-11-27",
-  "window_end": "2026-12-04",
+  "window_start": "2026-11-28",
+  "window_end": "2026-12-05",
   "fixture_date_min": "2026-11-28",
-  "fixture_date_max": "2026-12-04",
+  "fixture_date_max": "2026-12-06",
   "governed_leagues": 50,
-  "fixture_rows": 355,
-  "unique_provider_fixture_ids": 355,
+  "fixture_rows": 472,
+  "unique_provider_fixture_ids": 472,
   "season_ids_with_fixtures": 40,
   "retrievals": [
     {
-      "date": "2026-11-27",
-      "retrieved_utc": "2026-11-27T23:35:30.922568+00:00"
-    },
-    {
       "date": "2026-11-28",
-      "retrieved_utc": "2026-11-27T23:35:31.116629+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.030242+00:00"
     },
     {
       "date": "2026-11-29",
-      "retrieved_utc": "2026-11-27T23:35:31.292220+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.186759+00:00"
     },
     {
       "date": "2026-11-30",
-      "retrieved_utc": "2026-11-27T23:35:31.406711+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.273706+00:00"
     },
     {
       "date": "2026-12-01",
-      "retrieved_utc": "2026-11-27T23:35:31.571268+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.403748+00:00"
     },
     {
       "date": "2026-12-02",
-      "retrieved_utc": "2026-11-27T23:35:31.700094+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.483711+00:00"
     },
     {
       "date": "2026-12-03",
-      "retrieved_utc": "2026-11-27T23:35:31.835235+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.610751+00:00"
     },
     {
       "date": "2026-12-04",
-      "retrieved_utc": "2026-11-27T23:35:32.031759+00:00"
+      "retrieved_utc": "2026-11-28T01:22:45.713015+00:00"
+    },
+    {
+      "date": "2026-12-05",
+      "retrieved_utc": "2026-11-28T01:22:45.921520+00:00"
     }
   ],
   "provider": "FootyStats",
@@ -49,6 +49,6 @@
   "market_intelligence_A_ET_changed": false,
   "pre_match_only": true,
   "season_match_rows": 11968,
-  "last5_fully_verified_fixtures": 355,
-  "generated_utc": "2026-11-27T23:35:55.343923+00:00"
+  "last5_fully_verified_fixtures": 472,
+  "generated_utc": "2026-11-28T01:23:05.988846+00:00"
 }
