@@ -612,3 +612,14 @@ Do not upload the plaintext XLSX.
 The project is not restarting. All previously validated 301-fixture / 50-league current data, locked 27-Nov–2-Dec 2026 reporting period, Oracle V1.6 logic, canonical schema, A:ET immutability, exact Fixture-ID controls and permanent fixes remain in force.
 
 The objective remains: **close the canonical runtime materialisation gate and certify Master OMI to 100%.**
+
+
+## Scheduled-task non-regression control — 2026-11-28
+
+- The only active Project Oracle scheduled gate is **Master OMI MI QA — 100% Gate (Read-Only)**, automation ID `6aff2ac2aacc819187a6fe78f8ff6d8f`, hourly at :55 Africa/Johannesburg.
+- This gate is now explicitly READ-ONLY. It must not dispatch, rerun, cancel, edit, delete, overwrite, refresh, or otherwise interfere with an active current-data producer, FootyStats ingestion, Team-State build, Master OMI export, certification workflow, canonical payload, current artifact, branch, or secret.
+- If a governed build is active, the QA task audits only and reports the active run. It must not create artificial freshness, repeat successful work, weaken controls, or change Oracle V1.6/A:ET/schema/PIT/exact-ID rules.
+- Root-cause remediation, continuous build, Accuracy, and Signal Validation automations remain **paused** while the final certification path is being closed. They must not be re-enabled merely to create activity; any future reactivation must be coordinated around the governed build and must not introduce concurrent writes or duplicate workflow execution.
+- This scheduling posture is intentional: **one independent read-only release gate, no competing writers** during final Master OMI certification.
+- Current-data workflow `Oracle Public Current Data Execution #111` completed successfully on 2026-11-28 and is the authoritative fresh-data handoff for the next Master OMI export attempt.
+- Continuation rule: never restart the project. Complete the current export/certification chain, then re-evaluate scheduled automation roles after the 100% gate is achieved.
