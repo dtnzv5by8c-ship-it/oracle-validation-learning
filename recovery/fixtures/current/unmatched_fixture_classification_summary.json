@@ -1,6 +1,6 @@
 {
-  "generated_utc": "2026-11-27T23:25:54.745668+00:00",
-  "governed_fixture_rows": 384,
+  "generated_utc": "2026-11-28T07:41:31.945118+00:00",
+  "governed_fixture_rows": 472,
   "unmatched_rows": 0,
   "classification_counts": {},
   "governance": "Diagnostic classification only. Exact date+home+away identity remains mandatory; no fuzzy matching, historical fallback, synthetic data, Oracle V1.6 changes, or Master OMI A:ET changes.",
