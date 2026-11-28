@@ -289,3 +289,10 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Validation result: live source re-read confirms `ledger_by` and `intel_by` are now initialized before PIT validation; full exporter runtime validation remains pending.
 - Regression guard: exact-matching contract test requires explicit lookup initialization and PIT-guard tokens; exporter remains fail-closed on any Fixture-ID, PIT, schema or mandatory-input mismatch.
 
+
+## 2026-11-28 — Master OMI final-gate fixed weekly fixture-count defect
+- Root cause: the live `.github/workflows/oracle-public-final-gate-audit.yml` still enforced `len(recon)==385` and `exact==385`, contradicting the permanent variable-row contract for the fresh rolling 50-league Fixture-ID set.
+- Evidence: Run 46097382351 evaluated the current 472-fixture snapshot and produced blockers `FIXTURE_UNIVERSE_NOT_385:472` and `FIXTURE_IDENTITY_NOT_100_PERCENT:451/385`; the live rolling manifest contains governed_leagues=50 and fixture_rows=472 with 40 fixture-bearing season IDs. This was a gate implementation defect, not a fixture-universe defect.
+- Permanent fix: commit `efa9d0d1cc0ef2469b89a3cd33f00f0647e5723e` removes the fixed 385 assertions, validates the live rolling spine/manifest, and requires reconciliation Fixture-ID-set equality against that current spine.
+- Validation result: source-level re-audit confirms the fixed-count tokens are removed and the gate now derives expected fixture count from the live current spine. A fresh workflow execution is required for runtime validation.
+- Regression guard: final gate must never contain a fixed weekly fixture count; it must validate governed_leagues=50, current spine uniqueness, manifest/spine parity, and exact reconciliation Fixture-ID-set equality. Historical 754/755 rows remain schema/reference-only.
