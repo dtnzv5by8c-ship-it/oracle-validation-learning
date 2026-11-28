@@ -561,3 +561,54 @@ If no secure injection mechanism is configured, simply rerunning the exporter wi
 ### Continuation rule
 **Never restart. Continue from this checkpoint.**
 The objective is not to redesign Oracle, rebuild the canonical workbook, or reopen A:ET. The objective is to close the final execution/materialisation control and then certify the already-validated 301-fixture current report to 100%.
+
+
+## Master OMI 100% blocker correction — encrypted canonical CI payload — 2026-11-28
+
+This section supersedes the earlier proposed Base64 repository-secret mechanism.
+
+### Root cause confirmed
+- The approved canonical workbook is 4,800,304 bytes.
+- Its Base64 representation is approximately 6.4 MB.
+- GitHub Actions secrets are limited to **48 KB**, so the secret name `MASTER_OMI_CANONICAL_XLSX_B64` cannot carry the canonical workbook.
+- The previous PowerShell `Set-Clipboard` issue was only a Windows PowerShell compatibility problem; the larger architectural blocker is the GitHub secret-size limit.
+- GitHub officially documents a GPG/AES256 workaround for secrets larger than 48 KB: commit only the encrypted file and store only the decryption passphrase as the GitHub Actions secret.
+
+### New governed materialisation design
+- Public execution repository remains: `dtnzv5by8c-ship-it/oracle-validation-learning`.
+- Canonical workbook plaintext remains outside public Git history.
+- The public repository may contain **only an encrypted GPG/AES256 canonical payload**, which does not expose or reconstruct the plaintext without the passphrase.
+- Required encrypted path:
+  `ci/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx.gpg`
+- Required GitHub Actions secret:
+  `MASTER_OMI_CANONICAL_PASSPHRASE`
+- The workflow decrypts only at runtime, verifies the exact canonical SHA, copies the verified workbook into the build workspace, and removes the plaintext canonical runtime copy before completion.
+- Plaintext XLSX, A:ET chunks, canonical surface JSON, Base64 workbook blobs, or equivalent plaintext reconstruction must never be committed to the public repository.
+- Canonical SHA remains:
+  `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e`.
+
+### Workflow implementation
+Permanent workflow commit:
+`f93a68a79a13c83349b63ecfc3fc6f72049fee0a`
+
+The workflow now:
+1. checks out the public repository;
+2. requires `MASTER_OMI_CANONICAL_PASSPHRASE`;
+3. requires the encrypted `.gpg` canonical payload;
+4. decrypts at runtime;
+5. verifies the canonical SHA-256;
+6. continues through the existing 50-league, exact Fixture-ID, 264-column, A:ET immutability, chronology, build and certification gates;
+7. removes the plaintext canonical runtime copy;
+8. uploads only the certified current workbook as a workflow artifact.
+
+### User action to close the blocker
+Nolan needs to perform only these two controlled setup actions:
+1. Encrypt the already-verified canonical XLSX locally with GPG/AES256.
+2. Add the passphrase as `MASTER_OMI_CANONICAL_PASSPHRASE` and upload **only the resulting .gpg file** to the public repository at the governed path above.
+
+Do not upload the plaintext XLSX.
+
+### Continuation rule
+The project is not restarting. All previously validated 301-fixture / 50-league current data, locked 27-Nov–2-Dec 2026 reporting period, Oracle V1.6 logic, canonical schema, A:ET immutability, exact Fixture-ID controls and permanent fixes remain in force.
+
+The objective remains: **close the canonical runtime materialisation gate and certify Master OMI to 100%.**
