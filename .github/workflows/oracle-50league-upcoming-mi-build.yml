@@ -61,6 +61,12 @@ jobs:
               raise SystemExit(f"FAIL-CLOSED: invalid locked OMI reporting period: {e}")
           if end < start or (end-start).days > 14:
               raise SystemExit("FAIL-CLOSED: invalid locked OMI reporting period")
+          # The locked report period is the sole fixture-date admission boundary.
+          # LOOKAHEAD_DAYS is intentionally ignored for report-universe construction.
+          # Runtime date only controls whether a fixture is still upcoming; it never
+          # expands the requested reporting period.
+          if end > start + timedelta(days=14):
+              raise SystemExit("FAIL-CLOSED: report period exceeds 14 days")
           print(json.dumps({
               "report_period_id":period["period_id"],
               "report_start_date":start.isoformat(),
