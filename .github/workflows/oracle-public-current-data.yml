@@ -2,7 +2,7 @@
 name: Oracle Public Current Data Execution
 # Recovery control: current-state date provenance repair applied 2026-11-13; run on public Actions capacity.
 
-# Trigger checkpoint: current-data consumer runs after the :15 rolling-spine producer; exact-spine/hash gates remain fail-closed.
+# Trigger checkpoint: current-data is a downstream consumer of the :15 rolling-spine producer; it runs on successful producer completion, not on a competing hourly timer.
 # 2026-11-27 08:24 SAST: rerun after exact FootyStats provider-ID Team State rebuild and regression hardening.
 on:
   push:
@@ -10,8 +10,8 @@ on:
       - ".github/workflows/oracle-public-current-data.yml"
       - "data/fixtures/governed_50league_current.csv"
       - "data/fixtures/governed_50league_current_manifest.json"
-  schedule:
-    - cron: "20 * * * *"
+  # Deliberately no independent hourly schedule: this consumer must not race the :15 producer.
+  # The producer-completion workflow_run trigger below is the sole recurring trigger.
   workflow_dispatch:
   workflow_run:
     workflows: ["Oracle 50-League Upcoming Fixture + MI Build"]
