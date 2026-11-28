@@ -12,6 +12,7 @@ on:
       - "scripts/build_master_omi_current.py"
       - "docs/master_omi/CANONICAL_V2_1_1_CONTRACT.json"
       - "docs/master_omi/CANONICAL_V2_1_1_SCHEMA.json"
+      - "ci/canonical/Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx.gpg"
   workflow_dispatch:
   workflow_run:
     workflows: ["Oracle Public Current Data Execution"]
@@ -37,28 +38,35 @@ jobs:
           path: oracle
           fetch-depth: 1
 
-      - name: Materialise approved canonical workbook from controlled CI secret
+      - name: Materialise approved canonical workbook from encrypted CI payload
         working-directory: oracle
         env:
-          MASTER_OMI_CANONICAL_XLSX_B64: ${{ secrets.MASTER_OMI_CANONICAL_XLSX_B64 }}
+          MASTER_OMI_CANONICAL_PASSPHRASE: ${{ secrets.MASTER_OMI_CANONICAL_PASSPHRASE }}
         run: |
           set -euo pipefail
           CANONICAL_NAME="Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx"
+          ENCRYPTED_NAME="$CANONICAL_NAME.gpg"
           EXPECTED_SHA="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
-          if [ -z "${MASTER_OMI_CANONICAL_XLSX_B64:-}" ]; then
-            echo "::error::MASTER_OMI_BLOCKED_CONTROLLED_CANONICAL_SECRET_NOT_CONFIGURED"
-            echo "::error::Configure repository secret MASTER_OMI_CANONICAL_XLSX_B64 with the base64 encoding of the approved canonical XLSX."
-            echo "::error::Do NOT publish the canonical XLSX, A:ET chunks, surface JSON, or equivalent binary into the public repository."
+          if [ -z "${MASTER_OMI_CANONICAL_PASSPHRASE:-}" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_CANONICAL_PASSPHRASE_NOT_CONFIGURED"
+            echo "::error::Configure repository secret MASTER_OMI_CANONICAL_PASSPHRASE for the encrypted canonical payload."
+            echo "::error::Only the encrypted .gpg payload may be committed to the public repository; never commit the plaintext XLSX, A:ET chunks, surface JSON, or Base64 workbook."
+            exit 1
+          fi
+          if [ ! -f "ci/canonical/$ENCRYPTED_NAME" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_ENCRYPTED_CANONICAL_PAYLOAD_MISSING"
             exit 1
           fi
           mkdir -p runtime/canonical runtime/work
-          printf '%s' "$MASTER_OMI_CANONICAL_XLSX_B64" | base64 --decode > "runtime/canonical/$CANONICAL_NAME"
+          gpg --quiet --batch --yes --pinentry-mode loopback --passphrase "$MASTER_OMI_CANONICAL_PASSPHRASE"             --output "runtime/canonical/$CANONICAL_NAME"             --decrypt "ci/canonical/$ENCRYPTED_NAME"
           ACTUAL_SHA="$(sha256sum "runtime/canonical/$CANONICAL_NAME" | awk '{print $1}')"
           if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
             echo "::error::MASTER_OMI_BLOCKED_CANONICAL_SHA_MISMATCH expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
+            rm -f "runtime/canonical/$CANONICAL_NAME"
             exit 1
           fi
           cp "runtime/canonical/$CANONICAL_NAME" runtime/work/Master_OMI_Report_BASE.xlsx
+          rm -f "runtime/canonical/$CANONICAL_NAME"
           echo "canonical_sha256=$ACTUAL_SHA"
 
       - name: Enforce fresh rolling 50-league spine
