@@ -41,10 +41,32 @@ jobs:
 
           API=os.environ["FOOTYSTATS_API_KEY"]
           now=datetime.now(timezone.utc)
-          start=now.date()
-          end=(now+timedelta(days=int(os.environ.get("LOOKAHEAD_DAYS","7")))).date()
+
+          # REPORT PERIOD CONTROL: the weekly OMI period is explicitly user-advised and
+          # locked in config/master_omi_reporting_period.json. Runtime date must never
+          # silently redefine the reporting period. Scheduled refreshes operate only
+          # inside the locked period and never create a new period implicitly.
+          period_path=Path("config/master_omi_reporting_period.json")
+          if not period_path.exists():
+              raise SystemExit("FAIL-CLOSED: explicit OMI reporting-period control file is missing")
+          period=json.loads(period_path.read_text(encoding="utf-8"))
+          if period.get("status") != "LOCKED":
+              raise SystemExit("FAIL-CLOSED: OMI reporting period is not LOCKED; awaiting explicit user-advised fixture period")
+          if not period.get("report_start_date") or not period.get("report_end_date") or not period.get("period_id"):
+              raise SystemExit("FAIL-CLOSED: locked OMI reporting period is incomplete")
+          try:
+              start=datetime.fromisoformat(period["report_start_date"]).date()
+              end=datetime.fromisoformat(period["report_end_date"]).date()
+          except Exception as e:
+              raise SystemExit(f"FAIL-CLOSED: invalid locked OMI reporting period: {e}")
           if end < start or (end-start).days > 14:
-              raise SystemExit("Invalid rolling fixture window")
+              raise SystemExit("FAIL-CLOSED: invalid locked OMI reporting period")
+          print(json.dumps({
+              "report_period_id":period["period_id"],
+              "report_start_date":start.isoformat(),
+              "report_end_date":end.isoformat(),
+              "period_locked_at_utc":period.get("locked_at_utc")
+          }))
 
           selected_ids={
             "16571","17326","17181","17171","16544","16741","16615","16789","16614","17087",
@@ -336,6 +358,8 @@ jobs:
           actual_dates=sorted({r["date"] for r in spine if r.get("date")})
           summary={
             "window_start":start.isoformat(),"window_end":end.isoformat(),
+            "report_period_id":period["period_id"],"report_period_status":period["status"],
+            "period_locked_at_utc":period.get("locked_at_utc"),
             "fixture_date_min":actual_dates[0] if actual_dates else "",
             "fixture_date_max":actual_dates[-1] if actual_dates else "",
             "governed_leagues":50,
@@ -354,7 +378,8 @@ jobs:
           if not spine:
               raise SystemExit("FAIL-CLOSED: no governed 50-league fixtures returned for requested window")
 
-          # Persist only rolling current artifacts. No dated frozen spine is written.
+          # Persist current artifacts for the explicitly locked report period.
+          # The period itself is never silently advanced by runtime date.
           import shutil
           Path("data/fixtures").mkdir(parents=True,exist_ok=True)
           shutil.copyfile(out/"governed_50league_upcoming_fixtures.csv","data/fixtures/governed_50league_current.csv")
