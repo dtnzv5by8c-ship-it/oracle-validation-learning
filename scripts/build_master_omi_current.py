@@ -240,9 +240,15 @@ for i,srow in enumerate(spine, start=2):
     row_data["History Cutoff UTC"]=irow.get("footystats_snapshot_utc","")
     for h in schema["headers"]:
         if h not in row_data or str(row_data[h]).strip()=="":
-            row_data[h]="UNAVAILABLE: NO_AUTHORITATIVE_PREMATCH_EVIDENCE"
-            if h in mandatory:
-                blocked_fields.append((fid,h))
+            # An intentional NO_BET row is a valid model outcome, not a missing prediction.
+            # Prediction-market fields are explicitly classified as NO_BET rather than
+            # treated as unexplained blanks; all non-prediction mandatory inputs remain blocking.
+            if h in {"BTTS Yes","Home 1X","Away X2","Home 1X + Over 1.5","Away X2 + Over 1.5","M-1UP Home","M-1UP Away"} and str(lrow.get("status","")).strip()=="NO_BET":
+                row_data[h]="NO_BET: MODEL_NOT_ELIGIBLE"
+            else:
+                row_data[h]="UNAVAILABLE: NO_AUTHORITATIVE_PREMATCH_EVIDENCE"
+                if h in mandatory:
+                    blocked_fields.append((fid,h))
     for c,h in enumerate(schema["headers"], start=1):
         cell=ws.cell(i,c)
         src=base_row[c-1]
@@ -279,3 +285,5 @@ print(json.dumps({"status":"PASS","rows":len(spine_ids),"columns":264,"workbook"
 # 2026-11-28: permanent Team State authority fix — release-critical Last-5 numeric fields use exact-ID current Team State.
 
 # 2026-11-28: permanent M-1UP availability fix — stale event-truth M-1UP values are explicitly unavailable/NO_BET and are not mandatory release inputs.
+
+# 2026-11-28: permanent NO_BET contract fix — intentional model-ineligible rows are explicitly classified rather than treated as missing mandatory predictions.
