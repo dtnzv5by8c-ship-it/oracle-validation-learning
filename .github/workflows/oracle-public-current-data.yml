@@ -472,6 +472,7 @@ jobs:
             oracle-source/data/model_readiness.json
             oracle-source/data/current_otms_manifest.json
             oracle-source/data/four_model_readiness.json
+            oracle-source/research/four_model/outputs/omi_prediction_ledger_current.csv
 
 
       - name: Record validated persistence evidence
@@ -499,3 +500,5 @@ jobs:
 # 2026-11-28 04:xx SAST: controlled trigger checkpoint after locked OMI period refresh; no production logic change.
 
 # 2026-11-28: trigger after permanent variable season-ID coverage fix in private current-data ingestion.
+
+# 2026-11-28: permanent evidence fix — include authoritative current prediction ledger in the durable current-state artifact.
