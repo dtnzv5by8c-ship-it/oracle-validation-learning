@@ -182,6 +182,14 @@ for r in spine:
     if snap is None or kickoff is None or snap > kickoff:
         die("MASTER_OMI_BLOCKED_INTELLIGENCE_PIT", fixture_id=fid, snapshot=(irow or {}).get("footystats_snapshot_utc"), kickoff=r.get("kickoff_utc"))
 
+# Load an untouched canonical workbook instance solely as the immutable A:ET baseline.
+base_wb=load_workbook(CANONICAL, data_only=False)
+if "Market Intelligence" not in base_wb.sheetnames:
+    die("MASTER_OMI_BLOCKED_MARKET_INTELLIGENCE_SHEET_MISSING")
+base_locked_ws=base_wb["Market Intelligence"]
+base_surface_payload=[(base_locked_ws.cell(r,col).coordinate,base_locked_ws.cell(r,col).value) for r in range(1,base_locked_ws.max_row+1) for col in range(1,151)]
+canonical_aet_sha256=hashlib.sha256(json.dumps(base_surface_payload,default=str,separators=(",",":")).encode()).hexdigest()
+# Build the overlay on a separate workbook instance; never mutate the certification baseline.
 wb=load_workbook(CANONICAL, data_only=False)
 if "Market Intelligence" not in wb.sheetnames:
     die("MASTER_OMI_BLOCKED_MARKET_INTELLIGENCE_SHEET_MISSING")
@@ -277,7 +285,7 @@ sha=hashlib.sha256(OUT.read_bytes()).hexdigest()
 STATUS.write_text(json.dumps({
     "status":"PASS","rows":len(spine_ids),"columns":264,"fixture_ids_sha256":hashlib.sha256("\n".join(sorted(spine_ids)).encode()).hexdigest(),
     "spine_sha256":hashlib.sha256(SPINE.read_bytes()).hexdigest(),"workbook_sha256":sha,
-    "a_et_contract":"LOCKED_CANONICAL_SHEET_UNCHANGED","current_surface":"Market Intelligence CURRENT","locked_canonical_surface":"Market Intelligence","model_logic_changed":False
+    "a_et_contract":"LOCKED_CANONICAL_SHEET_UNCHANGED","canonical_a_et_surface_sha256":canonical_aet_sha256,"current_surface":"Market Intelligence CURRENT","locked_canonical_surface":"Market Intelligence","model_logic_changed":False
 },indent=2),encoding="utf-8")
 print(json.dumps({"status":"PASS","rows":len(spine_ids),"columns":264,"workbook":str(OUT),"sha256":sha}))
 
