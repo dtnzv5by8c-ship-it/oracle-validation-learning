@@ -37,27 +37,22 @@ jobs:
           path: oracle
           fetch-depth: 1
 
-      - name: Checkout private production repository for canonical workbook base only
-        uses: actions/checkout@v4
-        with:
-          repository: dtnzv5by8c-ship-it/oracle-football-data
-          token: ${{ secrets.ORACLE_PRIVATE_REPO_TOKEN }}
-          path: oracle-private
-          fetch-depth: 1
-
-      - name: Materialise approved canonical workbook
+      - name: Materialise approved canonical workbook from controlled CI secret
         working-directory: oracle
+        env:
+          MASTER_OMI_CANONICAL_XLSX_B64: ${{ secrets.MASTER_OMI_CANONICAL_XLSX_B64 }}
         run: |
           set -euo pipefail
           CANONICAL_NAME="Oracle_Master_OMI_CANONICAL_v2_Last3PPG_LTSS_V1_H2H_FootyStats_LOCKED.xlsx"
-          SOURCE="$(find ../oracle-private -type f -name "$CANONICAL_NAME" -print -quit || true)"
-          if [ -z "$SOURCE" ]; then
-            echo "::error::MASTER_OMI_BLOCKED_PRIVATE_CANONICAL_BINARY_NOT_FOUND"
+          EXPECTED_SHA="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
+          if [ -z "${MASTER_OMI_CANONICAL_XLSX_B64:-}" ]; then
+            echo "::error::MASTER_OMI_BLOCKED_CONTROLLED_CANONICAL_SECRET_NOT_CONFIGURED"
+            echo "::error::Configure repository secret MASTER_OMI_CANONICAL_XLSX_B64 with the base64 encoding of the approved canonical XLSX."
+            echo "::error::Do NOT publish the canonical XLSX, A:ET chunks, surface JSON, or equivalent binary into the public repository."
             exit 1
           fi
           mkdir -p runtime/canonical runtime/work
-          cp "$SOURCE" "runtime/canonical/$CANONICAL_NAME"
-          EXPECTED_SHA="9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e"
+          printf '%s' "$MASTER_OMI_CANONICAL_XLSX_B64" | base64 --decode > "runtime/canonical/$CANONICAL_NAME"
           ACTUAL_SHA="$(sha256sum "runtime/canonical/$CANONICAL_NAME" | awk '{print $1}')"
           if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
             echo "::error::MASTER_OMI_BLOCKED_CANONICAL_SHA_MISMATCH expected=$EXPECTED_SHA actual=$ACTUAL_SHA"
