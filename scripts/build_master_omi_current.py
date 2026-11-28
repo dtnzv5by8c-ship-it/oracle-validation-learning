@@ -191,7 +191,7 @@ base_surface_payload=[(base_locked_ws.cell(r,col).coordinate,base_locked_ws.cell
 canonical_aet_sha256=hashlib.sha256(json.dumps(base_surface_payload,default=str,separators=(",",":")).encode()).hexdigest()
 expected_aet_sha256="b790145feea9a20f0d3d0070f76ace8c98c4a5f0911928a4335218beaf090564"
 if canonical_aet_sha256 != expected_aet_sha256:
-    die("MASTER_OMI_BLOCKED_CANONICAL_A_ET_BASELINE_HASH_MISMATCH", actual=canonical_aet_sha256)
+    die("MASTER_OMI_BLOCKED_CANONICAL_A_ET_BASELINE_HASH_MISMATCH", actual=canonical_aet_sha256, expected=expected_aet_sha256)
 # Build the overlay on a separate workbook instance; certification baseline remains untouched.
 wb=load_workbook(CANONICAL, data_only=False)
 if "Market Intelligence" not in wb.sheetnames:
