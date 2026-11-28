@@ -311,3 +311,12 @@ Production remains fail-closed until canonical 50-league source/identity, snapsh
 - Permanent fix commit: 0e7749602ecddd0e74c072de07e4f80c6d80e43e. The admission loop now rejects provider rows whose UTC fixture date is outside the locked [report_start_date, report_end_date] interval, independent of API query page, runtime date or LOOKAHEAD_DAYS. Persistence validation also asserts persisted min/max fixture dates remain within the locked period.
 - Validation result: fresh producer execution after the fix completed successfully and persisted 301 fixtures. The 2026-12-03 spillover fixture was excluded; manifest bounds and row/Fixture-ID parity now pass. Issue #55 was closed after runtime validation.
 - Regression guard: every future current spine must satisfy fixture_date_min >= locked report_start_date and fixture_date_max <= locked report_end_date, in addition to manifest/report-period ID parity, row/Fixture-ID parity, exact provider identity, strict future-kickoff chronology, and no fallback/fuzzy matching. Issue #55 records the evidence and control.
+
+
+## 2026-11-28 — controlled canonical XLSX CI-secret configuration blocker
+- Root cause: the Master OMI exporter was correctly moved to a controlled CI-secret architecture, but repository secret `MASTER_OMI_CANONICAL_XLSX_B64` is not configured. The exporter therefore fails closed before workbook materialisation.
+- Evidence: exporter commit `69ad7df3f23346745740c5adab4e249c63df98c0`; run `46113563964`; job `140882238519`; runtime error `MASTER_OMI_BLOCKED_CONTROLLED_CANONICAL_SECRET_NOT_CONFIGURED`. The controlled Library canonical XLSX independently hashes to `9a02da12dd61b8cd588278c99d7ed544f8bf1a09cc3218aad2629ccbe39f106e` and is 755 x 264.
+- Remediation: configuration-only. Configure repository secret `MASTER_OMI_CANONICAL_XLSX_B64` with the base64 encoding of the approved canonical XLSX. Do not publish the binary, A:ET chunks, surface JSON, or equivalent canonical data into the public repository.
+- Fix commit: not applicable to the configuration defect itself; code-side controlled-secret enforcement is `69ad7df3f23346745740c5adab4e249c63df98c0`.
+- Validation result: pending secret configuration and a successful exporter rerun. The current failed run correctly demonstrates fail-closed behaviour.
+- Regression guard: exporter must fail closed if the secret is absent or the decoded SHA differs from the approved canonical SHA; no stale fallback, reconstruction, or public canonical-binary publication is permitted. Issue #56 records the evidence and remediation.
