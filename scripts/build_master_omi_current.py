@@ -183,7 +183,6 @@ for r in spine:
         die("MASTER_OMI_BLOCKED_INTELLIGENCE_PIT", fixture_id=fid, snapshot=(irow or {}).get("footystats_snapshot_utc"), kickoff=r.get("kickoff_utc"))
 
 # Load an untouched canonical workbook instance solely as the immutable A:ET baseline.
-base_# Load an untouched canonical workbook instance solely as the immutable A:ET baseline.
 base_wb=load_workbook(CANONICAL, data_only=False)
 if "Market Intelligence" not in base_wb.sheetnames:
     die("MASTER_OMI_BLOCKED_MARKET_INTELLIGENCE_SHEET_MISSING")
