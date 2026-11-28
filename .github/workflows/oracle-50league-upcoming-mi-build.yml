@@ -404,6 +404,11 @@ jobs:
           assert all(r.get("identity_status")=="EXACT_PROVIDER_FIXTURE_ID" for r in rows)
           import json
           manifest=json.loads(Path("data/fixtures/governed_50league_current_manifest.json").read_text())
+          control=json.loads(Path("config/master_omi_reporting_period.json").read_text())
+          assert control.get("status")=="LOCKED", "FAIL-CLOSED: reporting period is not LOCKED"
+          assert manifest.get("report_period_id")==control.get("period_id"), "FAIL-CLOSED: manifest/report-period ID mismatch"
+          assert manifest.get("window_start")==control.get("report_start_date"), "FAIL-CLOSED: manifest/report-period start mismatch"
+          assert manifest.get("window_end")==control.get("report_end_date"), "FAIL-CLOSED: manifest/report-period end mismatch"
           generated=manifest.get("generated_utc")
           assert generated, "FAIL-CLOSED: manifest generated_utc missing"
           from datetime import datetime, timezone
