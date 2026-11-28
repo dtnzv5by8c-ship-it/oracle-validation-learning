@@ -1,5 +1,4 @@
 fixture_id,date,kickoff_utc,home_team,away_team,league_season_id,provider_home_id,provider_away_id,provider,provider_status,provider_season,identity_status
-8756722,2026-11-28,2026-11-28T03:00:00+00:00,Real Salt Lake,Vancouver Whitecaps,16504,14,5,FootyStats,incomplete,2026,EXACT_PROVIDER_FIXTURE_ID
 8553276,2026-11-28,2026-11-28T05:00:00+00:00,Kyoto Sanga,Cerezo Osaka,17115,854,866,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8553109,2026-11-28,2026-11-28T05:00:00+00:00,Shimizu S-Pulse,Urawa Reds,17115,856,1003,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
 8553142,2026-11-28,2026-11-28T06:00:00+00:00,Kashima Antlers,Fagiano Okayama,17115,1006,862,FootyStats,incomplete,2026/2027,EXACT_PROVIDER_FIXTURE_ID
